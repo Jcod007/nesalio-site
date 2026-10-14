@@ -1,4 +1,4 @@
-# Nésalio — site et plan de mesure du smoke test
+# Nesalio — site et plan de mesure du smoke test
 
 Tous les fichiers du dossier vont à la racine du dépôt (voir la section 5). Pas de build, pas de dépendance.
 
@@ -98,7 +98,7 @@ Point de repère tiré de la formation Centech (Raphaëlle Fluet) : une validati
 
 ### Formulaire (Formspree)
 
-1. Crée un compte sur https://formspree.io, puis un formulaire « Accès anticipé Nésalio ».
+1. Crée un compte sur https://formspree.io, puis un formulaire « Accès anticipé Nesalio ».
 2. Copie son identifiant (ex. `xyzabcd` dans `https://formspree.io/f/xyzabcd`).
 3. Dans `index.html`, cherche `var FORM_ENDPOINT` et remplace `VOTRE_ID` par cet identifiant.
 
@@ -121,7 +121,7 @@ La page initialise PostHog sans témoins persistants (`persistence: 'memory'`) :
 
 Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confidentialite.html`, `vercel.json`, `robots.txt`, `sitemap.xml`, `llms.txt`, `favicon.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `og-image.png`.
 
-1. **GitHub** : crée un dépôt `nesalio-site` (privé, c'est possible), puis « Add file », « Upload files » et glisse tous les fichiers. Ou, en ligne de commande : `git init`, `git add .`, `git commit -m "Site Nésalio"`, puis `git push`.
+1. **GitHub** : crée un dépôt `nesalio-site` (privé, c'est possible), puis « Add file », « Upload files » et glisse tous les fichiers. Ou, en ligne de commande : `git init`, `git add .`, `git commit -m "Site Nesalio"`, puis `git push`.
 2. **Vercel** : connecte-toi avec GitHub, « Add New… », « Project », importe `nesalio-site`, laisse Framework Preset à « Other », puis « Deploy ». Le site est en ligne sur une adresse `*.vercel.app` en moins d'une minute.
 3. **Domaine** : dans le projet Vercel, Settings, puis Domains, ajoute `nesalio.com`. Vercel propose d'ajouter aussi `www.nesalio.com` : accepte, et choisis la redirection de `www` vers `nesalio.com` (une seule adresse officielle, c'est mieux pour le SEO).
 4. **DNS chez Namecheap** : Domain List, puis Manage, puis Advanced DNS. Crée exactement les enregistrements que Vercel affiche, en général :
@@ -144,11 +144,11 @@ Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confi
 | `canonical` vers `https://nesalio.com/` | Une seule adresse officielle, pas de contenu en double |
 | `hreflang="fr-CA"` | Indique que la page vise le Québec francophone |
 | Balises Open Graph et Twitter avec `og-image.png` (1200 × 630) | Belle vignette quand le lien est partagé sur Facebook, Messenger, LinkedIn, X |
-| Données structurées JSON-LD : `Organization`, `WebSite`, `WebPage`, `FAQPage` | Aident Google et les IA à comprendre qui vous êtes, ce que fait Nésalio et ses réponses officielles |
-| FAQ qui commence par « Qu'est-ce que Nésalio ? », « Pour qui ? », « Combien ça coûte ? » | Réponses courtes et factuelles : c'est le format que les IA reprennent et citent |
+| Données structurées JSON-LD : `Organization`, `WebSite`, `WebPage`, `FAQPage` | Aident Google et les IA à comprendre qui vous êtes, ce que fait Nesalio et ses réponses officielles |
+| FAQ qui commence par « Qu'est-ce que Nesalio ? », « Pour qui ? », « Combien ça coûte ? » | Réponses courtes et factuelles : c'est le format que les IA reprennent et citent |
 | `robots.txt` qui autorise Google, Bing et les robots des IA (OAI-SearchBot et GPTBot d'OpenAI, ClaudeBot, PerplexityBot, Google-Extended, Applebot) | Personne n'est bloqué ; le fichier pointe vers le sitemap |
 | `sitemap.xml` | La liste des pages à indexer |
-| `llms.txt` | Résumé en texte simple pour les assistants IA : ce qu'est Nésalio, pour qui, les notions, le prix, la différence avec ChatGPT |
+| `llms.txt` | Résumé en texte simple pour les assistants IA : ce qu'est Nesalio, pour qui, les notions, le prix, la différence avec ChatGPT |
 | Contenu principal en HTML (pas généré en JavaScript) | Lisible par tous les robots, y compris ceux qui n'exécutent pas de JavaScript |
 | `vercel.json` : URL propres (`/confidentialite`), en-têtes de sécurité, cache des images | Site rapide et propre |
 
@@ -160,7 +160,7 @@ Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confi
 4. **Teste la vignette de partage** : colle le lien dans Messenger ou LinkedIn et vérifie que l'image et le titre s'affichent.
 5. **Teste la vitesse** : https://pagespeed.web.dev avec `https://nesalio.com/`.
 
-### Ce qui fera vraiment monter Nésalio (Google comme IA)
+### Ce qui fera vraiment monter Nesalio (Google comme IA)
 
 Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, ce sont les **mentions et les liens venant d'autres sites**, et du **contenu qui répond à des questions précises**.
 
@@ -184,6 +184,6 @@ Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, c
 - **Prix : 199 $ par mois, 99 $ par mois pour les premiers inscrits.** Le prix fondateur est promis « tant que l'abonnement reste actif » : c'est un engagement à respecter au lancement. Pour changer les prix, modifie la section `tarifs` et l'objet `PLANS` du script. Garde-les fixes pendant toute une campagne, sinon les résultats ne se comparent pas.
 - **Le prix de 199 $ doit être réel.** La loi québécoise sur la protection du consommateur encadre les prix barrés : n'annonce 199 $ que si c'est vraiment le prix auquel tu comptes vendre après la période fondatrice.
 - **Les engagements doivent être tenus** : « Essai gratuit de 7 jours », « Prix fondateur garanti », « Aucune carte demandée ». Si tu ne peux pas les tenir, retire-les.
-- **Textos** : la page demande un consentement explicite (Loi canadienne anti-pourriel). N'envoie des textos qu'aux personnes qui ont coché la case, identifie Nésalio dans le message et respecte immédiatement « ARRÊT ».
+- **Textos** : la page demande un consentement explicite (Loi canadienne anti-pourriel). N'envoie des textos qu'aux personnes qui ont coché la case, identifie Nesalio dans le message et respecte immédiatement « ARRÊT ».
 - **Confidentialité** : relis `confidentialite.html` (tu y es nommé responsable). C'est un bon point de départ, pas un avis juridique.
 - **Histoire de Joyce** : obtiens son accord, et celui d'un parent, avant de publier, même sous forme anonyme.
