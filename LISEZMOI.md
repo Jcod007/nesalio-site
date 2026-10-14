@@ -101,7 +101,7 @@ Point de repère tiré de la formation Centech (Raphaëlle Fluet) : une validati
 
 1. Crée un compte sur https://formspree.io, puis un formulaire « Accès anticipé Nesalio ».
 2. Copie son identifiant (ex. `xyzabcd` dans `https://formspree.io/f/xyzabcd`).
-3. Dans `index.html`, cherche `var FORM_ENDPOINT` et remplace `VOTRE_ID` par cet identifiant.
+3. Dans `index.html`, cherche `var FORM_ENDPOINT` et remplace `VOTRE_ID` par cet identifiant. (fait : formulaire « Nesalio - inscriptions », `xrpeoeqv`, compte contact@nesalio.com).
 
 Chaque personne envoie **deux soumissions** : l'étape 1 (inscription, toujours) et l'étape 2 (questions, si elle les remplit). Elles sont reliées par le courriel. L'offre gratuite de Formspree est limitée en nombre de soumissions par mois : vérifie la limite actuelle sur leur site et prends le forfait payant si ta campagne dépasse.
 
