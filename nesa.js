@@ -223,7 +223,7 @@
   var uid = 0;
   function svg(p, o){
     o = o || {}; var id = 'nesa' + (++uid).toString(36), size = o.size || 400;
-    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="' + size + '" height="' + size + '">';
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="' + size + '" height="' + size + '"' + (typeof size === 'string' ? ' style="width:' + size + ';height:' + size + ';display:block"' : '') + '>';
     if(o.bg) s += '<rect width="400" height="400" fill="' + o.bg + '"/>';
     if(o.grid){ s += '<g stroke="' + (o.gridColor || '#E3E8F3') + '" stroke-width="1">'; for(var g = 20; g < 400; g += 20) s += '<path d="M' + g + ' 0V400M0 ' + g + 'H400"/>'; s += '</g>'; }
     var body = '';
@@ -306,7 +306,6 @@
       this._t0 = performance.now(); this._eng = new Engine(this.getAttribute('state')); this._vis = true;
       if(!this.hasAttribute('role')) this.setAttribute('role', 'img');
       this._label();
-      this.style.display = this.style.display || 'inline-block'; this.style.lineHeight = '0';
       if('IntersectionObserver' in window){ this._io = new IntersectionObserver(function(es){ self._vis = es[0].isIntersecting; self._loop(); }); this._io.observe(this); }
       this._loop();
     };
@@ -318,7 +317,7 @@
     };
     Object.defineProperty(P, 'state', {get:function(){ return this.getAttribute('state') || 'repos'; }, set:function(v){ this.setAttribute('state', v); }});
     P._label = function(){ var s = STATES[this.getAttribute('state')] || STATES.repos; this.setAttribute('aria-label', 'Nesa, la mascotte de Nesalio : ' + s.name.toLowerCase()); };
-    P._paint = function(){ this.innerHTML = svg(this._eng.sample(this.now(), {still:reduce}), {size:+this.getAttribute('size') || 160}); };
+    P._paint = function(){ this.innerHTML = svg(this._eng.sample(this.now(), {still:reduce}), {size:+this.getAttribute('size') || '100%'}); };
     P._loop = function(){
       var self = this; if(this._raf) return;
       var step = function(){
@@ -329,6 +328,7 @@
       this._raf = requestAnimationFrame(step);
     };
     document.addEventListener('visibilitychange', function(){ if(!document.hidden) document.querySelectorAll('nesa-mascot').forEach(function(el){ if(el._loop) el._loop(); }); });
+    var css = document.createElement('style'); css.textContent = ':where(nesa-mascot){display:inline-block;line-height:0}'; document.head.appendChild(css);
     customElements.define('nesa-mascot', El);
   }
 

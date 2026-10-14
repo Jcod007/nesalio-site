@@ -13,7 +13,7 @@ La page n'est pas seulement une liste d'attente. Chaque élément répond à une
 | Les gens vivent-ils ce problème, et à quelle fréquence ? | Sondage en un clic « Ça t'arrive souvent ? » (Chaque semaine / Quelques fois par session / Rarement / Jamais) | Champ `frequence_probleme` des inscrits ; événement `sondage_frequence` pour tous les visiteurs (PostHog) |
 | Le problème est-il assez douloureux pour qu'ils agissent déjà ? | Étape 2 : « La dernière fois que tu as bloqué, qu'as-tu fait ? » et « Combien dépense ta famille par mois ? » | Champs `derniere_fois` et `depense_mensuelle` |
 | Est-ce urgent maintenant ? | Étape 2 : « Ton prochain examen important, c'est quand ? » | Champ `urgence` |
-| La solution intéresse-t-elle ? | Lancement et fin de la démo, réponses, interruptions | Champs `demo` et `parcours` ; événements `demo_debut`, `demo_fin` |
+| La solution intéresse-t-elle ? | Vidéos de séance regardées, et jusqu'au bout ou non | Champs `demo` et `parcours` ; événements `video_vue`, `video_choix`, `video_fin` |
 | Sont-ils prêts à essayer ? | Clics sur « Essayer gratuitement » puis inscription | Événements `clic_essayer`, `inscription` ; nombre d'inscrits |
 | Sont-ils prêts à payer ? | Bouton choisi dans les tarifs : Essai (0 $) ou prix fondateur (99 $ par mois au lieu de 199 $). Aucun paiement n'est demandé. | Champ `formule` (`aucune`, `essai`, `fondateur`) |
 | Qui achète ? | « Tu es » (élève sec 4, sec 5, cégep, parent, enseignant) | Champ `profil` |
@@ -21,9 +21,9 @@ La page n'est pas seulement une liste d'attente. Chaque élément répond à une
 | Accepteront-ils une vraie conversation ? | Case « J'accepte qu'on me contacte 15 minutes » | Champ `appel_15_min` |
 
 Chaque inscription arrive avec son **parcours complet**, par exemple :
-`arrivee:facebook-parents > demo_debut:cine > demo_reponse_fausse:cine > demo_fin:cine > sondage_frequence:chaque_semaine > clic_formule:fondateur > inscription:fondateur`
+`arrivee:facebook-parents > video_vue:quad > video_choix:cine > video_fin:cine > sondage_frequence:chaque_semaine > clic_formule:fondateur > inscription:fondateur`
 
-Tu sais donc, pour chaque personne, si elle a regardé la démo, ce qu'elle a répondu au sondage et sur quel bouton elle a cliqué.
+Tu sais donc, pour chaque personne, quelles vidéos elle a regardées, ce qu'elle a répondu au sondage et sur quel bouton elle a cliqué.
 
 ---
 
@@ -38,9 +38,10 @@ Calcule-les à la fin de chaque campagne (export CSV de Formspree, plus les visi
 - **Urgence** = (« Dans moins de 2 semaines » + « Ce mois-ci ») ÷ inscrits ayant répondu.
 
 **B. Attrait de la solution**
-- **Taux de lancement de la démo** = visiteurs ayant lancé une séance ÷ visiteurs.
-- **Taux de fin de la démo** = séances terminées ÷ séances lancées.
-- **Effet de la démo** = taux d'inscription des visiteurs qui ont terminé la démo, comparé à celui des autres.
+- **Taux de visionnage** = visiteurs ayant vu au moins une vidéo ÷ visiteurs (la première se lance seule, sans son, quand elle est visible).
+- **Taux de choix** = visiteurs qui ont cliqué sur une autre séance (`video_choix`) ÷ visiteurs : c'est le vrai signal d'intérêt.
+- **Taux de fin** = vidéos regardées jusqu'au bout ÷ vidéos lancées.
+- **Effet des vidéos** = taux d'inscription des visiteurs qui ont vu une vidéo jusqu'au bout, comparé à celui des autres.
 
 **C. Intention d'essayer**
 - **Taux de clic** = visiteurs ayant cliqué « Essayer » au moins une fois ÷ visiteurs.
@@ -76,7 +77,7 @@ Point de repère tiré de la formation Centech (Raphaëlle Fluet) : une validati
 
 **Comment lire les combinaisons :**
 - Problème fréquent **et** signal payant élevés : le problème est réel et la solution attire. Passe aux entrevues de prix et au prototype.
-- Problème fréquent, mais faible taux d'inscription : le problème existe, mais la page ou la solution ne convainc pas. Teste un autre titre ou une autre démo.
+- Problème fréquent, mais faible taux d'inscription : le problème existe, mais la page ou la solution ne convainc pas. Teste un autre titre ou d'autres vidéos.
 - Beaucoup d'inscrits, mais peu de signal payant : intérêt réel, mais pas encore de valeur perçue pour payer. Creuse en entrevue ce qui manque.
 - Problème peu fréquent : vérifie le segment. Le problème est peut-être plus aigu chez un autre profil (cégep, parents, élèves en SN).
 
@@ -108,12 +109,12 @@ Tant que `VOTRE_ID` n'est pas remplacé, le formulaire affiche un message d'erre
 
 ### Statistiques sur tous les visiteurs (PostHog, recommandé)
 
-Sans PostHog, tu as le parcours détaillé des **inscrits** seulement. Avec PostHog, tu as aussi celui des visiteurs qui ne s'inscrivent pas : combien ont répondu au sondage, lancé la démo ou cliqué sur un prix sans aller au bout. C'est indispensable pour calculer les taux A à D sur tous les visiteurs.
+Sans PostHog, tu as le parcours détaillé des **inscrits** seulement. Avec PostHog, tu as aussi celui des visiteurs qui ne s'inscrivent pas : combien ont répondu au sondage, regardé une vidéo ou cliqué sur un prix sans aller au bout. C'est indispensable pour calculer les taux A à D sur tous les visiteurs.
 
 1. Crée un compte gratuit sur https://posthog.com (région US ou EU).
 2. Copie la clé du projet (`phc_…`) et colle-la dans `index.html`, à la ligne `var POSTHOG_KEY = '';`.
 3. Si tu choisis la région EU, remplace `us-assets.i.posthog.com` et `us.i.posthog.com` par `eu-assets.i.posthog.com` et `eu.i.posthog.com`.
-4. Dans PostHog, crée un **entonnoir** (Funnel) : `page_vue` → `demo_debut` → `clic_essayer` ou `clic_formule` → `inscription`.
+4. Dans PostHog, crée un **entonnoir** (Funnel) : `page_vue` → `video_choix` → `clic_essayer` ou `clic_formule` → `inscription`.
 
 La page initialise PostHog sans témoins persistants (`persistence: 'memory'`) : chaque visite est comptée, sans pistage d'une visite à l'autre.
 
@@ -171,13 +172,17 @@ Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, c
 
 ---
 
-## 7. La démo
+## 7. Les vidéos de séance
 
-- Trois exemples de séance, écrits à l'avance et joués dans la page (aucun serveur, aucune IA appelée) : `quad` (maths sec 4 SN, zéros d'une parabole), `cine` (physique sec 5, pente et vitesse en MRU) et `deriv` (cégep, dérivée).
-- La voix utilise la synthèse vocale du navigateur quand une voix française existe. Sur certains appareils, elle sonne robotique : teste-la sur ton téléphone.
-- Les textes sont dans le script de `index.html`, dans les objets `SCRIPTS.quad`, `SCRIPTS.cine` et `SCRIPTS.deriv`.
+Le haut de la page montre trois courtes vidéos (dossier `videos/`, en MP4 et WebM, avec une image d'aperçu) :
 
----
+- Maths sec 4 : les zéros d'une parabole (1 min). L'élève interrompt, Nesa réexplique, trouve ce qui bloque (une notion de sec 3) et lui fait trouver la réponse.
+- Physique sec 5 : la pente du graphique position-temps, c'est la vitesse (46 s).
+- Cégep : c'est quoi une dérivée (47 s).
+
+La première vidéo se lance seule, sans son, quand elle est visible ; on peut cliquer dessus pour la mettre en pause. Nesa, à côté de l'écran, parle pendant la lecture.
+
+Les vidéos ont été enregistrées à partir de l'ancienne démo interactive (toujours dans l'historique Git, commit `a535918`). Pour en refaire une : relancer cette démo en local, l'enregistrer avec Playwright (800 × 600), puis encoder en MP4 (H.264) et WebM (VP9).
 
 ## 8. À vérifier avant de publier
 
