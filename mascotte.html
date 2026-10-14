@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nesa, la mascotte</title>
+<meta name="description" content="Nesa, la mascotte de Nesalio : une forme violette qui se transforme selon ce que fait le tuteur.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F8FC;--grid:#E3E8F3;--ink:#18223A;--muted:#56617A;--line:#D5DCEA;
+    --violet:#5A45D6;--violet-deep:#4532B8;--violet-soft:#EEEAFF;
+    --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--hand:"Caveat",cursive;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  :focus-visible{outline:3px solid var(--violet);outline-offset:2px;border-radius:6px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  header{background:#fff;border-bottom:2px solid var(--ink)}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;padding-bottom:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.25rem;color:var(--ink);text-decoration:none}
+  .brand svg{width:26px;height:27px}
+  .brand small{font-family:var(--hand);font-weight:600;font-size:1.35rem;color:var(--violet)}
+  h1,h2{font-family:var(--display);letter-spacing:-.02em;line-height:1.05;margin:0}
+  h1{font-size:clamp(2.2rem,5vw,3.6rem)}
+  h2{font-size:clamp(1.5rem,3vw,2rem);margin-bottom:6px}
+  .lead{font-size:1.15rem;color:var(--muted);max-width:34em;margin:10px 0 0}
+
+  .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:center;padding:40px 0 28px}
+  .board-frame{position:relative;background:#fff;border:2px solid var(--ink);border-radius:28px;box-shadow:8px 8px 0 var(--ink);aspect-ratio:1;overflow:hidden;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+  #stage{position:absolute;inset:0;display:grid;place-items:center}
+  #stage svg{width:100%;height:100%}
+  .caption{position:absolute;left:16px;right:16px;bottom:14px;display:flex;justify-content:center}
+  .caption span{background:var(--ink);color:#fff;border-radius:999px;padding:6px 14px;font-weight:700;font-size:.95rem}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+  .chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-weight:700;font-size:.95rem;cursor:pointer;color:var(--ink)}
+  .chip:hover{border-color:var(--violet)}
+  .chip[aria-pressed="true"]{border-color:var(--violet);background:var(--violet-soft);color:var(--violet-deep)}
+  .chip.seq{background:var(--violet);border-color:var(--violet);color:#fff}
+  .chip.seq[aria-pressed="false"]{background:#fff;color:var(--violet-deep)}
+
+  section{padding:34px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:18px}
+  .card{background:#fff;border:2px solid var(--line);border-radius:20px;padding:10px 12px 14px;text-align:center}
+  .card nesa-mascot{display:block !important;margin:0 auto}
+  .card b{display:block;font-family:var(--display);font-size:1.1rem}
+  .card span{display:block;color:var(--muted);font-size:.9rem;line-height:1.35;margin-top:2px}
+
+  .dl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--ink);background:#fff;border-radius:12px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+  .btn.primary{background:var(--violet);border-color:var(--violet);color:#fff}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .status{font-weight:700;color:var(--muted)}
+  pre{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px;overflow:auto;font-size:.9rem;margin:12px 0 0}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
+  .rule{background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px}
+  .rule b{display:block;margin-bottom:2px}
+  .sw{display:inline-block;width:18px;height:18px;border-radius:5px;vertical-align:-3px;margin-right:6px;background:var(--violet)}
+  footer{padding:30px 0 40px;color:var(--muted);font-size:.9rem}
+
+  @media (max-width:820px){
+    .hero{grid-template-columns:1fr;padding-top:24px}
+    .board-frame{max-width:440px;width:100%;margin:0 auto}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Retour au site Nesalio">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 28 10 16 17 4 10Z" fill="#5A45D6"/><path d="M4 10 16 17v12L4 22Z" fill="#2E6BE6"/><path d="M28 10 16 17v12l12-7Z" fill="#23936A"/></svg>
+      Nesalio <small>la mascotte</small>
+    </a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div>
+      <h1>Voici Nesa.</h1>
+      <p class="lead">Une seule forme, violet Nesalio, deux yeux. Elle se transforme selon ce que fait le tuteur : elle écoute, cherche, devient un stylo pour tracer au tableau, s'allume quand l'élève comprend.</p>
+      <div class="chips" id="chips" role="group" aria-label="Voir un état"></div>
+    </div>
+    <div class="board-frame">
+      <div id="stage" role="img" aria-label="Nesa en animation"></div>
+      <div class="caption"><span id="cap">Une séance</span></div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Ses 9 états</h2>
+    <p class="lead">Chaque état correspond à un moment précis de la séance.</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section>
+    <h2>Télécharger</h2>
+    <p class="lead">Ce qui est affiché en haut, pour le site, les réseaux ou une présentation.</p>
+    <div class="dl">
+      <button class="btn primary" type="button" id="exGif">GIF animé</button>
+      <button class="btn" type="button" id="exPng">PNG 1024 px</button>
+      <button class="btn" type="button" id="exSvg">SVG</button>
+      <span class="status" id="st" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les règles</h2>
+    <div class="rules">
+      <div class="rule"><b><span class="sw"></span>Une couleur</b>Violet #5A45D6 pour le corps, blanc pour les yeux. Rien d'autre.</div>
+      <div class="rule"><b>Pas de bouche</b>Toute l'émotion passe par les yeux et la forme.</div>
+      <div class="rule"><b>Elle se transforme, elle ne se déguise pas</b>Stylo, ampoule, étoile : c'est toujours la même matière violette qui change de forme.</div>
+      <div class="rule"><b>Au repos, le cube</b>Le cube arrondi rappelle le logo ; elle y revient toujours.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dans l'outil</h2>
+    <p class="lead">Deux lignes pour l'afficher, une ligne pour changer d'état.</p>
+<pre>&lt;script src="https://nesalio.com/nesa.js" defer&gt;&lt;/script&gt;
+&lt;nesa-mascot id="nesa" state="ecoute" size="140"&gt;&lt;/nesa-mascot&gt;
+
+nesa.state = "stylo";   // repos, ecoute, parle, reflechit, stylo, idee, bravo, content, clin</pre>
+  </section>
+</main>
+<footer><div class="wrap">Nesa, mascotte de Nesalio. Page interne, non référencée.</div></footer>
+
+<script src="nesa.js"></script>
+<script>
+(function(){
+  'use strict';
+  var N = window.Nesa;
+  var USES = {
+    repos:['Repos', 'En attente, entre deux échanges.'],
+    ecoute:['Écoute', "L'élève parle : les ondes arrivent vers elle."],
+    parle:['Parle', 'Elle explique à voix haute.'],
+    reflechit:['Réfléchit', 'Elle cherche, ou pose une question de vérification.'],
+    stylo:['Écrit au tableau', 'Elle devient un stylo et trace la notion.'],
+    idee:['Idée !', "Le déclic : l'élève vient de comprendre."],
+    bravo:['Bravo !', 'Bonne réponse.'],
+    content:['Contente', 'Fin de séance, encouragement.'],
+    clin:["Clin d'œil", 'Une petite blague, un indice.']
+  };
+  var CAP = {repos:'Une séance', ecoute:"L'élève parle, Nesa écoute", reflechit:'Nesa réfléchit', stylo:'Nesa trace au tableau', parle:'Nesa explique', idee:'Le déclic', bravo:'Bravo !', content:'Séance terminée', clin:"Clin d'œil"};
+
+  var stage = document.getElementById('stage'), cap = document.getElementById('cap');
+  var mode = 'seq', eng = new N.Engine('repos'), t0 = performance.now(), lastKey = '';
+  function now(){ return (performance.now() - t0) / 1000; }
+  function frame(t){
+    if(mode === 'seq'){ var s = N.sampleSeq(N.SEANCE, t); if(s.key !== lastKey){ lastKey = s.key; cap.textContent = CAP[s.key]; } return N.live(s.pose, t); }
+    return eng.sample(t);
+  }
+  (function loop(){ stage.innerHTML = N.svg(frame(now()), {size:400}); requestAnimationFrame(loop); })();
+
+  // boutons
+  var chips = document.getElementById('chips');
+  function mk(label, key){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (key ? '' : ' seq'); b.textContent = label;
+    b.setAttribute('aria-pressed', key ? 'false' : 'true');
+    b.addEventListener('click', function(){
+      [].forEach.call(chips.children, function(c){ c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+      if(!key){ mode = 'seq'; t0 = performance.now(); lastKey = ''; return; }
+      if(mode === 'seq'){ var t = now(); eng = new N.Engine('repos'); eng.from = N.sampleSeq(N.SEANCE, t).pose; eng.key = key; eng.at = t; }
+      else eng.set(key, now());
+      mode = 'one'; cap.textContent = USES[key][0];
+    });
+    chips.appendChild(b);
+  }
+  mk('▶ La séance', null);
+  N.ORDER.forEach(function(k){ mk(USES[k][0], k); });
+
+  // planche vivante
+  var grid = document.getElementById('grid');
+  N.ORDER.forEach(function(k){
+    var c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = '<nesa-mascot state="' + k + '" size="150"></nesa-mascot><b>' + USES[k][0] + '</b><span>' + USES[k][1] + '</span>';
+    grid.appendChild(c);
+  });
+
+  // exports
+  var st = document.getElementById('st');
+  function name(ext){ return 'nesa-' + (mode === 'seq' ? 'seance' : eng.key) + '.' + ext; }
+  function download(blob, n){ var u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = n; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); }
+  function draw(svg, size, ctx){ return new Promise(function(res, rej){ var i = new Image(); i.onload = function(){ ctx.clearRect(0, 0, size, size); ctx.drawImage(i, 0, 0, size, size); res(); }; i.onerror = rej; i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }); }
+  function still(){ return frame(now()); }
+  document.getElementById('exSvg').onclick = function(){ download(new Blob([N.svg(still(), {size:400})], {type:'image/svg+xml'}), name('svg')); st.textContent = 'SVG téléchargé.'; };
+  document.getElementById('exPng').onclick = function(){
+    var s = 1024, c = document.createElement('canvas'); c.width = c.height = s;
+    draw(N.svg(still(), {size:s}), s, c.getContext('2d')).then(function(){ c.toBlob(function(b){ download(b, name('png')); st.textContent = 'PNG téléchargé (fond transparent).'; }, 'image/png'); });
+  };
+  var gifBtn = document.getElementById('exGif');
+  gifBtn.onclick = function(){
+    gifBtn.disabled = true; st.textContent = 'Préparation du GIF…';
+    var size = 400, fps = 20, dur = mode === 'seq' ? N.seqDuration(N.SEANCE) : 4, n = Math.round(dur * fps);
+    var key = eng.key, one = new N.Engine(key);
+    import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js').then(function(G){
+      var enc = G.GIFEncoder(), c = document.createElement('canvas'); c.width = c.height = size;
+      var ctx = c.getContext('2d', {willReadFrequently:true}), i = 0, seq = mode === 'seq';
+      (function next(){
+        if(i >= n){ enc.finish(); download(new Blob([enc.bytes()], {type:'image/gif'}), name('gif')); st.textContent = 'GIF téléchargé.'; gifBtn.disabled = false; return; }
+        var t = i / fps, p = seq ? N.live(N.sampleSeq(N.SEANCE, t).pose, t) : one.sample(t);
+        draw(N.svg(p, {size:size, bg:'#FFFFFF'}), size, ctx).then(function(){
+          var d = ctx.getImageData(0, 0, size, size).data, pal = G.quantize(d, 64), idx = G.applyPalette(d, pal);
+          enc.writeFrame(idx, size, size, {palette:pal, delay:1000 / fps});
+          i++; if(i % 20 === 0) st.textContent = 'GIF : ' + Math.round(i / n * 100) + ' %';
+          setTimeout(next, 0);
+        });
+      })();
+    }).catch(function(){ st.textContent = "Impossible de charger l'encodeur GIF."; gifBtn.disabled = false; });
+  };
+})();
+</script>
+</body>
+</html>

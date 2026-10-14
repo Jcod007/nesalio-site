@@ -188,12 +188,11 @@ Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, c
 - **Confidentialité** : relis `confidentialite.html` (tu y es nommé responsable). C'est un bon point de départ, pas un avis juridique.
 - **Histoire de Joyce** : obtiens son accord, et celui d'un parent, avant de publier, même sous forme anonyme.
 
-## Nesa, la mascotte officielle
+## Nesa, la mascotte
 
-Une seule mascotte pour tout Nesalio : le cube aux couleurs du logo, visage sur la face de droite. Personne ne la personnalise ; elle change seulement d'expression.
+Une seule forme pleine, violet #5A45D6, deux yeux blancs en gélule, pas de bouche. Au repos c'est un cube arrondi ; elle se transforme selon ce que fait le tuteur.
 
-- `nesa.js` : le moteur et le composant `<nesa-mascot>`. Dans le site ou l'outil :
-  `<script src="/nesa.js" defer></script>` puis `<nesa-mascot state="ecoute" size="120"></nesa-mascot>`.
-  Changer d'expression : `el.state = "explique"` (transition douce, clignement et regard automatiques, mouvement coupé si l'utilisateur a demandé moins d'animations).
-- Expressions : repos, ecoute, reflechit, explique, concentre, content, bravo, surpris, clin. Version `variant="une-couleur"` pour l'impression.
-- `nesalio.com/studio` : page interne de référence et d'export (non indexée). Voir chaque expression, enchaîner des animations, planche complète, exports SVG, PNG 1024 px, GIF, vidéo. Liens : `/studio#etat=bravo`, `/studio#planche`.
+- États : `repos`, `ecoute` (ondes qui arrivent), `parle` (ondes qui partent), `reflechit` (point d'interrogation), `stylo` (trace une courbe au tableau), `idee` (ampoule), `bravo` (étoile), `content`, `clin`.
+- `nesa.js` : moteur + composant. `<script src="/nesa.js" defer></script>` puis `<nesa-mascot state="ecoute" size="140"></nesa-mascot>` ; changer d'état : `el.state = "stylo"`.
+- Moteur : silhouettes en profils radiaux (même échantillonnage, donc transformation = interpolation des rayons), yeux posés sur une sphère, clignements pré-tirés ; rendu = fonction pure du temps. Principes inspirés du projet MIT « bloub », code écrit pour Nesalio.
+- `nesalio.com/mascotte` : page interne (non indexée) qui présente Nesa, ses 9 états, et permet de télécharger GIF, PNG et SVG. `/studio` y redirige.
