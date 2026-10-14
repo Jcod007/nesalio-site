@@ -11,14 +11,14 @@ La page n'est pas seulement une liste d'attente. Chaque élément répond à une
 | Question d'entrepreneur | Ce qui la mesure sur la page | Où lire le chiffre |
 |---|---|---|
 | Les gens vivent-ils ce problème, et à quelle fréquence ? | Sondage en un clic « Ça t'arrive souvent ? » (Chaque semaine / Quelques fois par session / Rarement / Jamais) | Champ `frequence_probleme` des inscrits ; événement `sondage_frequence` pour tous les visiteurs (PostHog) |
-| Le problème est-il assez douloureux pour qu'ils agissent déjà ? | Étape 2 : « La dernière fois que tu as bloqué, qu'as-tu fait ? » et « Combien dépense ta famille par mois ? » | Champs `derniere_fois` et `depense_mensuelle` |
+| Le problème est-il réel et assez douloureux pour qu'ils agissent déjà ? | Étape 2, une question par écran. Deux questions ouvertes sur un fait réel : « Raconte la dernière fois où tu as bloqué. C'était sur quoi ? » et « Qu'est-ce que tu as fait pour t'en sortir ? Est-ce que ça a marché ? ». Puis « Combien dépense ta famille par mois ? » | Champs `notion` et `derniere_fois` (texte libre, à lire et à classer à la main), `depense_mensuelle` |
 | Est-ce urgent maintenant ? | Étape 2 : « Ton prochain examen important, c'est quand ? » | Champ `urgence` |
 | La solution intéresse-t-elle ? | Vidéos de séance regardées, et jusqu'au bout ou non | Champs `demo` et `parcours` ; événements `video_vue`, `video_choix`, `video_fin` |
 | Sont-ils prêts à essayer ? | Clics sur « Essayer gratuitement » puis inscription | Événements `clic_essayer`, `inscription` ; nombre d'inscrits |
 | Jusqu'où sont-ils prêts à s'engager ? | Bouton choisi dans la section démo : « M'avertir à l'ouverture » (engagement faible) ou « Réserver ma démo » de 15 minutes (engagement fort). Tous les autres boutons « Réserver une démo » comptent comme une démo. Aucun prix n'est affiché. | Champ `formule` (`avertir`, `demo`) |
 | Qui achète ? | « Tu es » (élève sec 4, sec 5, cégep, parent, enseignant) | Champ `profil` |
 | D'où viennent les meilleurs prospects ? | Paramètre `?src=` des liens partagés | Champ `source` |
-| Accepteront-ils une vraie conversation ? | Case « J'accepte qu'on me contacte 15 minutes » | Champ `appel_15_min` |
+| Accepteront-ils une vraie conversation ? | Réservation d'une démo de 15 minutes, avec cellulaire obligatoire | Champs `formule` = `demo` et `cellulaire` |
 
 Chaque inscription arrive avec son **parcours complet**, par exemple :
 `arrivee:facebook-parents > video_vue:quad > video_choix:cine > video_fin:cine > sondage_frequence:chaque_semaine > clic_formule:demo > inscription:demo`
@@ -33,7 +33,7 @@ Calcule-les à la fin de chaque campagne (export CSV de Formspree, plus les visi
 
 **A. Intensité du problème**
 - **Problème fréquent** = (« Chaque semaine » + « Quelques fois par session ») ÷ total des réponses au sondage.
-- **Problème qui fait agir** = inscrits qui ont coché autre chose que « Rien, j'ai laissé tomber » ÷ inscrits ayant répondu à l'étape 2.
+- **Problème qui fait agir** = réponses à « Qu'est-ce que tu as fait ? » qui décrivent une action réelle (ChatGPT, tuteur, ami, enseignant…) ÷ réponses reçues. Lis-les une par une et classe-les : c'est aussi là que tu trouveras les mots exacts des gens pour ta page et ton pitch.
 - **Problème qui coûte** = inscrits qui dépensent plus de 0 $ par mois ÷ inscrits ayant répondu.
 - **Urgence** = (« Dans moins de 2 semaines » + « Ce mois-ci ») ÷ inscrits ayant répondu.
 
@@ -53,7 +53,7 @@ Calcule-les à la fin de chaque campagne (export CSV de Formspree, plus les visi
 - **Signal démo par profil** = même calcul pour les parents seuls. C'est le parent qui paiera : si les élèves réservent mais pas les parents, l'acheteur n'est pas validé. La volonté de payer se mesure ensuite pendant la démo (question sur le prix) et avec la question « combien dépense ta famille ».
 
 **E. Conversation**
-- **Acceptation d'entrevue** = « Oui » à l'appel de 15 minutes ÷ inscrits ayant rempli l'étape 2.
+- **Acceptation d'entrevue** = inscrits qui réservent une démo (`formule` = `demo`) ÷ inscrits. Pendant la démo, refais les questions ouvertes à l'oral et demande combien la famille paierait.
 
 Découpe toujours ces chiffres par `profil` (élève, cégep, parent) et par `source`. Un taux global peut cacher un segment qui convertit très bien.
 

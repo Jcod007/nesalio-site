@@ -420,6 +420,18 @@
   .fine{font-size:.88rem;color:var(--muted);margin:12px 0 0}
   .status{margin:12px 0 0;font-weight:700}
   .status.err{color:#B3261E}
+  .qhead{display:flex;align-items:center;gap:12px;margin:0 0 18px}
+  .qcount{font-weight:700;font-size:.9rem;color:var(--violet-deep);white-space:nowrap}
+  .qbar{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+  .qbar i{display:block;height:100%;width:25%;background:var(--violet);border-radius:3px;transition:width .25s}
+  .qtitle{font-family:var(--display);font-size:1.25rem;line-height:1.25;margin-bottom:12px}
+  .q textarea{min-height:96px}
+  .choices.stack{flex-direction:column}
+  .choices.stack span{display:block;padding:11px 16px;border-radius:14px;font-size:1rem}
+  .qnav{display:flex;gap:10px;margin-top:20px}
+  .qnav .cta{flex:1;width:auto}
+  .qnav .ghost{text-decoration:none;font-weight:700;color:var(--ink);padding:0 14px}
+  .qhint{font-size:.88rem;color:var(--muted);margin:10px 0 0;text-align:center}
   .share{display:flex;gap:8px;margin-top:14px}
   .share input{flex:1;font:inherit;font-size:.92rem;border:2px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--paper);color:var(--ink);min-width:0}
 
@@ -850,11 +862,11 @@
         <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
       </div>
       <div class="field">
-        <label for="tel">Your cell phone <span class="opt">(optional, if you prefer a text)</span></label>
+        <label for="tel">Your cell phone <span class="opt" id="telOpt">(to set up your demo)</span></label>
         <input id="tel" name="cellulaire" type="tel" autocomplete="tel" inputmode="tel" placeholder="514 555-0123">
       </div>
       <div class="field" id="smsField" hidden>
-        <label class="check"><input type="checkbox" name="consentement_texto" value="Oui" id="smsOk"> I agree to receive a text from Nesalio to set up my demo or when Nesalio opens. I can reply STOP at any time.</label>
+        <label class="check"><input type="checkbox" name="consentement_texto" value="Oui" id="smsOk"> I agree to texts from Nesalio (reply STOP to stop).</label>
       </div>
       <div class="field">
         <span class="legend" id="prof">You are</span>
@@ -879,25 +891,25 @@
       <p class="fine">No payment. Your email and number are never sold. Under 14? Ask a parent to sign up for you. <a href="confidentialite.html" target="_blank">Privacy (French)</a></p>
     </form>
 
-    <!-- Step 2: qualify the problem (past behavior, urgency, money) -->
+    <!-- Step 2: valider le problème, une question à la fois (faits réels, questions ouvertes d'abord) -->
     <form id="step2" novalidate hidden>
       <div class="dlg-top"><h2 id="s2Title">Got it!</h2><button class="x" type="button" data-close aria-label="Close">×</button></div>
-      <p class="sub">3 quick questions to prepare your demo on the right concept. You can skip.</p>
-      <div class="progress" aria-hidden="true"><i class="on"></i><i class="on"></i></div>
-      <div class="field">
-        <span class="legend" id="q1">The last time you got stuck, what did you do?</span>
-        <fieldset class="choices" aria-labelledby="q1">
-          <label><input type="checkbox" name="derniere_fois" value="Demandé à un ami ou à la famille"><span>Asked a friend or family</span></label>
-          <label><input type="checkbox" name="derniere_fois" value="ChatGPT ou une autre IA"><span>ChatGPT or another AI</span></label>
-          <label><input type="checkbox" name="derniere_fois" value="YouTube ou Alloprof"><span>YouTube or Alloprof</span></label>
-          <label><input type="checkbox" name="derniere_fois" value="Tuteur ou centre payant"><span>A paid tutor or center</span></label>
-          <label><input type="checkbox" name="derniere_fois" value="Demandé à l'enseignant"><span>Asked the teacher</span></label>
-          <label><input type="checkbox" name="derniere_fois" value="Rien, j'ai laissé tomber"><span>Nothing, I gave up</span></label>
-        </fieldset>
+      <p class="sub">4 quick questions to prepare your demo.</p>
+      <div class="qhead"><span class="qcount"><span id="qNum">1</span> of 4</span><span class="qbar" aria-hidden="true"><i id="qFill"></i></span></div>
+
+      <div class="q">
+        <label for="qa1" class="qtitle" data-parent="Tell us about the last time your child got stuck in math or science. What was it on?">Tell us about the last time you got stuck in math or science. What was it on?</label>
+        <textarea id="qa1" name="notion" maxlength="1000" rows="3" placeholder="E.g. a problem about functions, the night before a test."></textarea>
       </div>
-      <div class="field">
-        <span class="legend" id="q2">This year, how much does your family spend on school help per month?</span>
-        <fieldset class="choices" aria-labelledby="q2">
+
+      <div class="q" hidden>
+        <label for="qa2" class="qtitle" data-parent="What did you or your child do to get past it? Did it work?">What did you do to get past it? Did it work?</label>
+        <textarea id="qa2" name="derniere_fois" maxlength="300" rows="3" placeholder="E.g. I asked ChatGPT, but I did not understand the steps."></textarea>
+      </div>
+
+      <div class="q" hidden>
+        <span class="legend qtitle" id="q3" data-parent="This year, how much do you spend on school help per month?">This year, how much does your family spend on school help per month?</span>
+        <fieldset class="choices stack" aria-labelledby="q3">
           <label><input type="radio" name="depense_mensuelle" value="0 $"><span>Nothing</span></label>
           <label><input type="radio" name="depense_mensuelle" value="Moins de 50 $"><span>Less than $50</span></label>
           <label><input type="radio" name="depense_mensuelle" value="50 à 150 $"><span>$50 to $150</span></label>
@@ -905,27 +917,26 @@
           <label><input type="radio" name="depense_mensuelle" value="Je ne sais pas"><span>I don't know</span></label>
         </fieldset>
       </div>
-      <div class="field">
-        <span class="legend" id="q3">When is your next big exam in this subject?</span>
-        <fieldset class="choices" aria-labelledby="q3">
+
+      <div class="q" hidden>
+        <span class="legend qtitle" id="q4" data-parent="When is your child's next big exam in this subject?">When is your next big exam in this subject?</span>
+        <fieldset class="choices stack" aria-labelledby="q4">
           <label><input type="radio" name="urgence" value="Moins de 2 semaines"><span>In less than 2 weeks</span></label>
           <label><input type="radio" name="urgence" value="Ce mois-ci"><span>This month</span></label>
           <label><input type="radio" name="urgence" value="Plus tard dans la session"><span>Later in the term</span></label>
           <label><input type="radio" name="urgence" value="Pas d'examen prévu"><span>No exam planned</span></label>
         </fieldset>
       </div>
-      <div class="field">
-        <label for="notion">Which concept blocks you the most right now? <span class="opt">(optional)</span></label>
-        <textarea id="notion" name="notion" placeholder="E.g. factoring, law of sines, accelerated motion, stoichiometry, limits…"></textarea>
-      </div>
-      <div class="field">
-        <label class="check"><input type="checkbox" name="appel_15_min" value="Oui"> I agree to a 15-minute call to set up my demo and talk about it.</label>
-      </div>
+
       <input type="hidden" name="etape" value="2-qualification">
+      <input type="hidden" name="profil" id="profil2" value="">
       <input type="hidden" name="email" id="email2" value="">
       <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
-      <button class="cta" type="submit">Send</button>
-      <button class="ghost" type="button" id="skip2" style="width:100%;margin-top:6px">Skip</button>
+      <div class="qnav">
+        <button class="ghost" type="button" id="qBack" hidden>Back</button>
+        <button class="cta" type="button" id="qNext">Next</button>
+      </div>
+      <p class="qhint" id="qHint">You can leave it blank and skip.</p>
       <p class="status" id="status2" role="status" aria-live="polite"></p>
     </form>
 
@@ -1055,16 +1066,16 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
   var s1 = document.getElementById('step1'), s2 = document.getElementById('step2'), s3 = document.getElementById('step3');
   var planTag = document.getElementById('planTag');
   var PLANS = {
-    demo:{title:'Book your demo', sub:"A 15-minute online session on the concept you are stuck on. Free, no commitment. We will write to set a time.", btn:'Book my demo', done:"We will write soon to set up your demo."},
-    avertir:{title:'Get notified at launch', sub:"We will email you as soon as Nesalio opens. No commitment.", btn:"Notify me", done:"We will email you as soon as Nesalio opens."}
+    demo:{title:'Book your demo', sub:"A 15-minute online session on the concept you are stuck on. Free, no commitment. We will write to set a time.", btn:'Book my demo', done:"We will write soon to set up your demo.", tel:'(to set up your demo)', telNeeded:true},
+    avertir:{title:'Get notified at launch', sub:"We will email you as soon as Nesalio opens. No commitment.", btn:"Notify me", done:"We will email you as soon as Nesalio opens.", tel:'(optional, for a text at launch)', telNeeded:false}
   };
-  var SUBMIT = PLANS.demo.btn;
+  var SUBMIT = PLANS.demo.btn, TEL_NEEDED = true;
   var hasModal = typeof dlg.showModal === 'function';
 
   function open(where, plan, profil){
     nTrack(plan ? 'clic_formule' : 'clic_essayer', plan ? {plan: plan} : {where: where});
     document.getElementById('fBtn').value = where;
-    var P = PLANS[plan] || PLANS.demo; SUBMIT = P.btn;
+    var P = PLANS[plan] || PLANS.demo; SUBMIT = P.btn; TEL_NEEDED = P.telNeeded; document.getElementById('telOpt').textContent = P.tel;
     document.getElementById('fPlan').value = PLANS[plan] ? plan : 'demo';
     document.getElementById('dlgTitle').textContent = P.title; document.getElementById('dlgSub').textContent = P.sub;
     document.getElementById('submit1').textContent = P.btn; document.getElementById('s3Done').textContent = P.done;
@@ -1105,26 +1116,49 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     var email = s1.email.value.trim();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ st.className = 'status err'; st.textContent = 'Enter a valid email address, for example you@example.com.'; s1.email.focus(); return; }
     var phone = tel.value.replace(/\D/g, '');
+    if(!phone && TEL_NEEDED){ st.className = 'status err'; st.textContent = "Enter your cell phone: it is how we set up your demo."; tel.focus(); return; }
     if(phone && (phone.length < 10 || phone.length > 11)){ st.className = 'status err'; st.textContent = 'Check your number: 10 digits, for example 514 555-0123.'; tel.focus(); return; }
     if(phone && !document.getElementById('smsOk').checked){ st.className = 'status err'; st.textContent = "Check the box to accept the text, or clear your number."; return; }
     var btn = s1.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Booking…';
     nTrack('inscription', {plan: document.getElementById('fPlan').value});
     send(s1).then(function(){
       document.getElementById('email2').value = email;
-      s1.hidden = true; s2.hidden = false;
-      var first = s2.querySelector('input'); if(first) first.focus();
+      var pr = s1.querySelector('input[name=profil]:checked'), prof = pr ? pr.value : '';
+      document.getElementById('profil2').value = prof;
+      if(prof === 'Parent') s2.querySelectorAll('[data-parent]').forEach(function(el){ el.textContent = el.getAttribute('data-parent'); });
+      s1.hidden = true; s2.hidden = false; showQ(0);
     }).catch(function(err){ fail(st, err); btn.disabled = false; btn.textContent = SUBMIT; });
   });
 
   function toDone(){ s2.hidden = true; s3.hidden = false; document.getElementById('copyBtn').focus(); }
-  s2.addEventListener('submit', function(e){
-    e.preventDefault();
-    var st = document.getElementById('status2'); st.className = 'status'; st.textContent = '';
-    var btn = s2.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Sending…';
-    nTrack('qualification');
-    send(s2).then(toDone).catch(function(err){ fail(st, err); btn.disabled = false; btn.textContent = 'Send'; });
+  /* étape 2 : une question à la fois */
+  var qs = s2.querySelectorAll('.q'), qi = 0, qNext = document.getElementById('qNext'), qBack = document.getElementById('qBack');
+  var NEXT = 'Next', SEND = 'Send', SENDING = 'Sending…';
+  function answered(q){ var t = q.querySelector('textarea'); return t ? !!t.value.trim() : !!q.querySelector('input:checked'); }
+  function showQ(i){
+    qi = i;
+    qs.forEach(function(q, k){ q.hidden = k !== i; });
+    document.getElementById('qNum').textContent = i + 1;
+    document.getElementById('qFill').style.width = ((i + 1) / qs.length * 100) + '%';
+    qBack.hidden = i === 0;
+    qNext.textContent = i === qs.length - 1 ? SEND : NEXT;
+    document.getElementById('qHint').hidden = answered(qs[i]);
+    var f = qs[i].querySelector('textarea, input'); if(f) setTimeout(function(){ f.focus(); }, 30);
+  }
+  s2.addEventListener('input', function(){ document.getElementById('qHint').hidden = answered(qs[qi]); });
+  s2.addEventListener('change', function(e){
+    if(e.target.type === 'radio' && qi < qs.length - 1){ var at = qi; setTimeout(function(){ if(qi === at) showQ(qi + 1); }, 280); }
   });
-  document.getElementById('skip2').addEventListener('click', function(){ nTrack('qualification_passee'); toDone(); });
+  qBack.addEventListener('click', function(){ if(qi > 0) showQ(qi - 1); });
+  qNext.addEventListener('click', function(){
+    nTrack('question', {answer: (qi + 1) + (answered(qs[qi]) ? '_repondue' : '_passee')});
+    if(qi < qs.length - 1){ showQ(qi + 1); return; }
+    var st = document.getElementById('status2'); st.className = 'status'; st.textContent = '';
+    qNext.disabled = true; qNext.textContent = SENDING;
+    nTrack('qualification');
+    send(s2).then(toDone).catch(function(err){ fail(st, err); qNext.disabled = false; qNext.textContent = SEND; });
+  });
+  s2.addEventListener('submit', function(e){ e.preventDefault(); });
 
   document.getElementById('copyBtn').addEventListener('click', function(){
     var inp = document.getElementById('shareLink'), st = document.getElementById('status3');
