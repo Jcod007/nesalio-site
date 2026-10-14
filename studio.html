@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Studio Nesa</title>
+<title>Nesa, mascotte Nesalio</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -109,13 +109,13 @@
   <header>
     <a class="brand" href="/" aria-label="Retour au site Nesalio">
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 28 10 16 17 4 10Z" fill="#5A45D6"/><path d="M4 10 16 17v12L4 22Z" fill="#2E6BE6"/><path d="M28 10 16 17v12l12-7Z" fill="#23936A"/></svg>
-      Nesalio <small>studio de mascotte</small>
+      Nesalio <small>la mascotte officielle</small>
     </a>
-    <span class="status" id="saved">Réglages enregistrés dans ce navigateur</span>
+    <span class="status" id="saved">Nesa, une seule mascotte pour tout Nesalio</span>
   </header>
 
-  <nav class="rail" role="tablist" aria-label="Vues du studio">
-    <button role="tab" aria-selected="true" data-view="perso" id="tab-perso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>Personnaliser</button>
+  <nav class="rail" role="tablist" aria-label="Vues">
+    <button role="tab" aria-selected="true" data-view="perso" id="tab-perso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>Expressions</button>
     <button role="tab" aria-selected="false" data-view="anim" id="tab-anim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>Animer</button>
     <button role="tab" aria-selected="false" data-view="planche" id="tab-planche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Planche</button>
   </nav>
@@ -133,12 +133,11 @@
   <aside class="panel" id="panel">
     <!-- Personnaliser -->
     <section id="v-perso">
-      <h2>Personnaliser Nesa</h2>
-      <p class="hint">Clique sur une expression pour la voir. Tout reste dans les couleurs Nesalio.</p>
+      <h2>Les expressions de Nesa</h2>
+      <p class="hint">Nesa est la mascotte unique de Nesalio : même cube, mêmes couleurs, même visage partout. Ici, tu la vois réagir et tu exportes ses visuels pour le site, les réseaux ou une présentation.</p>
       <div class="group"><span class="label">Expression</span><div class="chips" id="stateChips"></div></div>
-      <div class="group"><span class="label">Couleurs</span><div class="swatches" id="palettes"></div></div>
-      <div class="group"><span class="label">Fond</span><div class="chips" id="bgs"></div></div>
-      <div class="group"><span class="label">Visage</span><div class="chips" id="sides"></div></div>
+      <div class="group"><span class="label">Version</span><div class="swatches" id="palettes"></div></div>
+      <div class="group"><span class="label">Fond de l'image exportée</span><div class="chips" id="bgs"></div></div>
       <div class="group">
         <span class="label">Vie</span>
         <label class="toggle"><input type="checkbox" id="blink" checked> Clignement des yeux</label>
@@ -169,7 +168,14 @@
     <section id="v-planche" hidden>
       <h2>Planche</h2>
       <p class="hint">Toutes les expressions côte à côte, figées. Clique sur l'une d'elles pour l'ouvrir.</p>
-      <p class="hint">Lien direct vers une expression : ajoute <code>#etat=bravo</code> à l'adresse du studio.</p>
+      <p class="hint">Lien direct vers une expression : ajoute <code>#etat=bravo</code> à l'adresse de cette page.</p>
+      <h2 style="margin-top:22px">Dans l'outil</h2>
+      <p class="hint">La même Nesa, vivante, se pose n'importe où avec deux lignes. Pendant une séance, l'outil change son expression : écoute quand l'élève parle, réfléchit, explique, bravo.</p>
+      <pre style="white-space:pre-wrap;font-size:.8rem;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:10px;margin:0">&lt;script src="/nesa.js" defer&gt;&lt;/script&gt;
+&lt;nesa-mascot state="ecoute" size="120"&gt;&lt;/nesa-mascot&gt;
+
+// plus tard
+mascotte.state = "explique";</pre>
     </section>
   </aside>
 
@@ -185,44 +191,19 @@
   </footer>
 </div>
 
+<script src="nesa.js"></script>
 <script>
 /* =====================================================================
-   Studio Nesa — moteur d'animation de la mascotte Nesalio.
-   Le rendu est une fonction pure du temps : sample(t) -> paramètres -> SVG.
+   Nesa, la mascotte officielle : page de référence et d'export.
+   Le moteur (expressions, rendu) vit dans /nesa.js, partagé avec le site et l'outil.
    ===================================================================== */
 (function(){
   'use strict';
 
-  /* ---------- Identité ---------- */
-  var PALETTES = {
-    marque:  {name:'Marque',  top:'#5A45D6', left:'#2E6BE6', right:'#23936A', feat:'#FFFFFF', accent:'#F2A65A', ink:'#18223A'},
-    nuit:    {name:'Nuit',    top:'#8C7CFF', left:'#5B8DF5', right:'#3FB98A', feat:'#FFFFFF', accent:'#F2A65A', ink:'#E8ECF5'},
-    pastel:  {name:'Pastel',  top:'#B6ABFF', left:'#8FB0FF', right:'#7FD3AF', feat:'#18223A', accent:'#F2A65A', ink:'#18223A'},
-    encre:   {name:'Une couleur', top:'#18223A', left:'#3A4766', right:'#56617A', feat:'#FFFFFF', accent:'#18223A', ink:'#18223A'}
-  };
-  var BGS = {
-    transparent:{name:'Transparent', fill:null},
-    papier:{name:'Papier', fill:'#F6F8FC', grid:true},
-    blanc:{name:'Blanc', fill:'#FFFFFF'},
-    violet:{name:'Violet doux', fill:'#EEEAFF'},
-    nuit:{name:'Nuit', fill:'#18223A'}
-  };
-
-  /* ---------- Expressions (paramètres) ---------- */
-  var BASE = {eyeW:1, eyeH:1, eyeL:1, eyeR:1, gx:0, gy:0, arc:0, curve:9, open:0, sx:1, sy:1, bob:0, tilt:0, q:0, spark:0, wave:0};
-  function S(o){ var r = {}; for(var k in BASE) r[k] = BASE[k]; for(var j in o) r[j] = o[j]; return r; }
-  var STATES = {
-    repos:     {name:'Repos',      p:S({})},
-    ecoute:    {name:'Écoute',     p:S({eyeH:1.12, gy:-1, curve:6, tilt:-3, sx:.98, sy:1.02})},
-    reflechit: {name:'Réfléchit',  p:S({gx:4, gy:-8, eyeH:.85, curve:0, tilt:4, q:1})},
-    explique:  {name:'Explique',   p:S({open:.9, curve:4, wave:1, bob:-6})},
-    concentre: {name:'Concentré',  p:S({eyeH:.55, gy:2, curve:2, sx:1.02, sy:.98})},
-    content:   {name:'Content',    p:S({arc:1, curve:12})},
-    bravo:     {name:'Bravo !',    p:S({arc:1, open:.7, curve:14, spark:1, bob:-16, sx:.97, sy:1.05})},
-    surpris:   {name:'Surpris',    p:S({eyeH:1.3, eyeW:1.1, open:.6, curve:0, sx:.96, sy:1.06, bob:-6})},
-    clin:      {name:"Clin d'œil", p:S({eyeR:.12, curve:12, tilt:-4})}
-  };
-  var ORDER = ['repos','ecoute','reflechit','explique','concentre','content','bravo','surpris','clin'];
+  /* ---------- Mascotte officielle (moteur partagé : /nesa.js) ---------- */
+  var N = window.Nesa;
+  var PALETTES = N.PALETTES, BGS = N.BGS, STATES = N.STATES, ORDER = N.ORDER;
+  var lerp = N.lerp, ease = N.ease, tlDuration = N.tlDuration, sampleTimeline = N.sampleTimeline, life = N.life, render = N.render;
   var PRESETS = {
     seance:  {name:'Une séance',     tl:[['ecoute',1.4],['reflechit',1.6],['explique',2],['bravo',1.6],['content',1.2]]},
     salut:   {name:'Salut !',        tl:[['repos',1],['clin',.9],['content',1.2]]},
@@ -241,95 +222,13 @@
   function sanitize(r){
     if(!PALETTES[r.palette]) r.palette = 'marque';
     if(!BGS[r.bg]) r.bg = 'papier';
-    if(r.side !== 'gauche') r.side = 'droite';
+    r.side = 'droite';
     if(!STATES[r.rest]) r.rest = 'repos';
     if(!Array.isArray(r.timeline) || !r.timeline.length) r.timeline = DEF.timeline.map(function(x){ return x.slice(); });
     r.timeline = r.timeline.filter(function(x){ return STATES[x[0]]; }).map(function(x){ return [x[0], Math.max(.2, Math.min(10, +x[1] || 1))]; });
     return r;
   }
   function save(){ try{ localStorage.setItem('nesa-studio', JSON.stringify(ui)); }catch(e){} }
-
-  /* ---------- Moteur (fonctions pures) ---------- */
-  function lerp(a, b, k){ var r = {}; for(var key in a) r[key] = a[key] + (b[key] - a[key]) * k; return r; }
-  function ease(dt, tau){ return dt <= 0 ? 0 : 1 - Math.exp(-dt / tau); }
-  function tlDuration(tl){ return tl.reduce(function(s, x){ return s + x[1]; }, 0); }
-  // Paramètres de la ligne de temps à l'instant t (en boucle)
-  function sampleTimeline(tl, t, tau){
-    var total = tlDuration(tl), tt = ((t % total) + total) % total, acc = 0;
-    for(var i = 0; i < tl.length; i++){
-      if(tt < acc + tl[i][1] || i === tl.length - 1){
-        var prev = STATES[tl[(i - 1 + tl.length) % tl.length][0]].p, cur = STATES[tl[i][0]].p;
-        return {p:lerp(prev, cur, ease(tt - acc, tau)), index:i};
-      }
-      acc += tl[i][1];
-    }
-  }
-  // Vie : clignement, regard, respiration — tous déterministes en t
-  function life(p, t, opt){
-    var q = {}; for(var k in p) q[k] = p[k];
-    if(opt.blink){
-      var period = 3.6, ph = (t + 1.3) % period, d = .16, b = 0;
-      if(ph < d) b = 1 - Math.abs(ph / d * 2 - 1);
-      if(((t + 1.3) / period | 0) % 4 === 2){ var ph2 = ph - .32; if(ph2 > 0 && ph2 < d) b = Math.max(b, 1 - Math.abs(ph2 / d * 2 - 1)); }
-      var m = 1 - .9 * b; q.eyeL *= m; q.eyeR *= m;
-    }
-    if(opt.gaze){ q.gx += 1.6 * Math.sin(t * .83) + .7 * Math.sin(t * 2.1 + 1); q.gy += 1.1 * Math.sin(t * .61 + 2); }
-    if(opt.breath){ var br = Math.sin(t * 2.2); q.sy *= 1 + .012 * br; q.sx *= 1 - .006 * br; }
-    return q;
-  }
-
-  /* ---------- Rendu SVG ---------- */
-  function f(n){ return (Math.round(n * 100) / 100).toString(); }
-  function render(p, o){
-    var pal = PALETTES[o.palette], bg = BGS[o.bg], right = o.side !== 'gauche', props = o.props !== false;
-    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="' + (o.size || 400) + '" height="' + (o.size || 400) + '">';
-    if(bg.fill){
-      s += '<rect width="400" height="400" fill="' + bg.fill + '"/>';
-      if(bg.grid){ s += '<g stroke="#DFE6F3" stroke-width="1">'; for(var g = 20; g < 400; g += 20){ s += '<path d="M' + g + ' 0V400M0 ' + g + 'H400"/>'; } s += '</g>'; }
-    }
-    // ombre
-    var sh = 1 + p.bob / 60;
-    s += '<ellipse cx="200" cy="364" rx="' + f(96 * sh) + '" ry="' + f(10 * sh) + '" fill="' + (o.bg === 'nuit' ? '#000' : '#18223A') + '" opacity="' + f(.1 * sh) + '"/>';
-    // corps : pivot en bas du cube
-    s += '<g transform="translate(200 ' + f(346 + p.bob) + ') rotate(' + f(p.tilt) + ') scale(' + f(p.sx) + ' ' + f(p.sy) + ') translate(-200 -346)">';
-    s += '<path d="M200 70 L320 139 L200 208 L80 139 Z" fill="' + pal.top + '" stroke="' + pal.top + '" stroke-width="26" stroke-linejoin="round"/>';
-    s += '<path d="M80 139 L200 208 L200 346 L80 277 Z" fill="' + pal.left + '" stroke="' + pal.left + '" stroke-width="26" stroke-linejoin="round"/>';
-    s += '<path d="M200 208 L320 139 L320 277 L200 346 Z" fill="' + pal.right + '" stroke="' + pal.right + '" stroke-width="26" stroke-linejoin="round"/>';
-    s += '<path d="M146 112 L200 82 L254 112" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".3"/>';
-    // visage sur une face
-    var dir = right ? 1 : -1;
-    s += '<g transform="' + (right ? 'translate(260 246) skewY(-30)' : 'translate(140 246) skewY(30)') + '">';
-    var gx = p.gx * dir, w = 17 * p.eyeW;
-    [[-22.5, p.eyeL], [22.5, p.eyeR]].forEach(function(e){
-      var cx = e[0] + gx, h = Math.max(2.5, 27 * p.eyeH * e[1]), cy = -.5 + p.gy;
-      var ro = 1 - Math.min(1, Math.max(0, p.arc));
-      if(ro > .02) s += '<rect x="' + f(cx - w / 2) + '" y="' + f(cy - h / 2) + '" width="' + f(w) + '" height="' + f(h) + '" rx="' + f(Math.min(w, h) / 2) + '" fill="' + pal.feat + '" opacity="' + f(ro) + '"/>';
-      if(p.arc > .02) s += '<path d="M' + f(cx - 10) + ' ' + f(cy + 4) + ' Q ' + f(cx) + ' ' + f(cy - 12) + ' ' + f(cx + 10) + ' ' + f(cy + 4) + '" fill="none" stroke="' + pal.feat + '" stroke-width="6" stroke-linecap="round" opacity="' + f(Math.min(1, p.arc)) + '"/>';
-    });
-    // bouche
-    var mx = 2 + gx * .4, my = 32 + p.gy * .3;
-    if(p.open > .05){
-      s += '<ellipse cx="' + f(mx) + '" cy="' + f(my + 4 * p.open) + '" rx="' + f(8 + 5 * p.open) + '" ry="' + f(2 + 9 * p.open) + '" fill="' + pal.feat + '" opacity="' + f(Math.min(1, p.open * 1.4)) + '"/>';
-    }
-    if(p.open < .95){
-      s += '<path d="M' + f(mx - 14) + ' ' + f(my) + ' Q ' + f(mx) + ' ' + f(my + p.curve) + ' ' + f(mx + 14) + ' ' + f(my) + '" fill="none" stroke="' + pal.feat + '" stroke-width="5.5" stroke-linecap="round" opacity="' + f(1 - p.open) + '"/>';
-    }
-    s += '</g></g>';
-    // accessoires
-    if(props){
-      var ax = right ? 0 : 1;
-      if(p.q > .02) s += '<text x="' + (ax ? 52 : 318) + '" y="' + f(108 + p.bob) + '" font-family="Bricolage Grotesque, Arial, sans-serif" font-size="78" font-weight="800" fill="' + pal.accent + '" opacity="' + f(p.q) + '">?</text>';
-      if(p.spark > .02){
-        var star = function(cx, cy, r){ return '<path d="M' + cx + ' ' + (cy - r) + ' L' + f(cx + r * .28) + ' ' + f(cy - r * .28) + ' L' + (cx + r) + ' ' + cy + ' L' + f(cx + r * .28) + ' ' + f(cy + r * .28) + ' L' + cx + ' ' + (cy + r) + ' L' + f(cx - r * .28) + ' ' + f(cy + r * .28) + ' L' + (cx - r) + ' ' + cy + ' L' + f(cx - r * .28) + ' ' + f(cy - r * .28) + ' Z" fill="' + pal.accent + '"/>'; };
-        s += '<g opacity="' + f(p.spark) + '">' + star(340, 74 + p.bob, 22) + star(66, 96 + p.bob, 14) + star(352, 182 + p.bob, 10) + '</g>';
-      }
-      if(p.wave > .02){
-        var wx = right ? 346 : 54, sg = right ? 1 : -1;
-        s += '<g fill="none" stroke="' + pal.ink + '" stroke-width="7" stroke-linecap="round" opacity="' + f(p.wave) + '"><path d="M' + wx + ' ' + f(196 + p.bob) + ' q ' + 14 * sg + ' 18 0 36"/><path d="M' + (wx + 18 * sg) + ' ' + f(180 + p.bob) + ' q ' + 24 * sg + ' 34 0 68"/></g>';
-      }
-    }
-    return s + '</svg>';
-  }
 
   /* ---------- Lecture ---------- */
   var mode = 'pose';                 // 'pose' (expression choisie) ou 'tl' (ligne de temps)
@@ -393,7 +292,6 @@
   }
   chipGroup(document.getElementById('stateChips'), ORDER.map(function(k){ return {key:k, name:STATES[k].name}; }), ui.rest, function(k){ ui.rest = k; save(); setPose(k); });
   chipGroup(document.getElementById('bgs'), Object.keys(BGS).map(function(k){ return {key:k, name:BGS[k].name}; }), ui.bg, function(k){ ui.bg = k; save(); });
-  chipGroup(document.getElementById('sides'), [{key:'droite', name:'Face de droite'}, {key:'gauche', name:'Face de gauche'}], ui.side, function(k){ ui.side = k; save(); });
   (function(){
     var el = document.getElementById('palettes');
     Object.keys(PALETTES).forEach(function(k){
@@ -577,7 +475,7 @@
   drawTimeline();
   fromHash();
   window.addEventListener('hashchange', fromHash);
-  window.NesaStudio = {render:render, states:STATES, palettes:PALETTES, sampleTimeline:sampleTimeline};
+  window.NesaStudio = window.Nesa;
   requestAnimationFrame(tick);
 })();
 </script>
