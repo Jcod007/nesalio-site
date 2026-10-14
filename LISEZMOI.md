@@ -15,13 +15,13 @@ La page n'est pas seulement une liste d'attente. Chaque élément répond à une
 | Est-ce urgent maintenant ? | Étape 2 : « Ton prochain examen important, c'est quand ? » | Champ `urgence` |
 | La solution intéresse-t-elle ? | Vidéos de séance regardées, et jusqu'au bout ou non | Champs `demo` et `parcours` ; événements `video_vue`, `video_choix`, `video_fin` |
 | Sont-ils prêts à essayer ? | Clics sur « Essayer gratuitement » puis inscription | Événements `clic_essayer`, `inscription` ; nombre d'inscrits |
-| Sont-ils prêts à payer ? | Bouton choisi dans les tarifs : Essai (0 $) ou prix fondateur (99 $ par mois au lieu de 199 $). Aucun paiement n'est demandé. | Champ `formule` (`aucune`, `essai`, `fondateur`) |
+| Jusqu'où sont-ils prêts à s'engager ? | Bouton choisi dans la section démo : « M'avertir à l'ouverture » (engagement faible) ou « Réserver ma démo » de 15 minutes (engagement fort). Tous les autres boutons « Réserver une démo » comptent comme une démo. Aucun prix n'est affiché. | Champ `formule` (`avertir`, `demo`) |
 | Qui achète ? | « Tu es » (élève sec 4, sec 5, cégep, parent, enseignant) | Champ `profil` |
 | D'où viennent les meilleurs prospects ? | Paramètre `?src=` des liens partagés | Champ `source` |
 | Accepteront-ils une vraie conversation ? | Case « J'accepte qu'on me contacte 15 minutes » | Champ `appel_15_min` |
 
 Chaque inscription arrive avec son **parcours complet**, par exemple :
-`arrivee:facebook-parents > video_vue:quad > video_choix:cine > video_fin:cine > sondage_frequence:chaque_semaine > clic_formule:fondateur > inscription:fondateur`
+`arrivee:facebook-parents > video_vue:quad > video_choix:cine > video_fin:cine > sondage_frequence:chaque_semaine > clic_formule:demo > inscription:demo`
 
 Tu sais donc, pour chaque personne, quelles vidéos elle a regardées, ce qu'elle a répondu au sondage et sur quel bouton elle a cliqué.
 
@@ -49,8 +49,8 @@ Calcule-les à la fin de chaque campagne (export CSV de Formspree, plus les visi
 - **Taux de qualification** = inscrits ayant rempli l'étape 2 ÷ inscrits.
 
 **D. Intention de payer**
-- **Signal payant** = inscrits dont `formule` = `fondateur` ÷ inscrits. C'est le chiffre clé : ces personnes ont vu « 99 $ par mois » et ont cliqué quand même.
-- **Signal payant par profil** = même calcul pour les parents seuls. À 99 $, c'est surtout le parent qui paie : si les élèves cliquent mais pas les parents, le prix n'est pas validé.
+- **Signal démo** = inscrits dont `formule` = `demo` ÷ inscrits. C'est le chiffre clé : ces personnes acceptent de donner 15 minutes de leur temps, ce qui vaut plus qu'un simple courriel.
+- **Signal démo par profil** = même calcul pour les parents seuls. C'est le parent qui paiera : si les élèves réservent mais pas les parents, l'acheteur n'est pas validé. La volonté de payer se mesure ensuite pendant la démo (question sur le prix) et avec la question « combien dépense ta famille ».
 
 **E. Conversation**
 - **Acceptation d'entrevue** = « Oui » à l'appel de 15 minutes ÷ inscrits ayant rempli l'étape 2.
@@ -68,7 +68,7 @@ Ce sont des **seuils de départ à valider avec ton EER**, pas des normes de l'i
 | Problème fréquent | 50 % et plus | 30 à 50 % | Moins de 30 % |
 | Problème qui coûte | 25 % et plus | 10 à 25 % | Moins de 10 % |
 | Taux d'inscription (visiteurs) | 5 % et plus | 2 à 5 % | Moins de 2 % |
-| Signal payant (inscrits) | 30 % et plus | 15 à 30 % | Moins de 15 % |
+| Signal démo (inscrits) | 30 % et plus | 15 à 30 % | Moins de 15 % |
 | Acceptation d'entrevue | 20 % et plus | 10 à 20 % | Moins de 10 % |
 
 Point de repère tiré de la formation Centech (Raphaëlle Fluet) : une validation de produit par groupes Facebook, à 0 $, a obtenu 465 visites et un taux de conversion de 3,4 % en 8 jours.
@@ -76,9 +76,9 @@ Point de repère tiré de la formation Centech (Raphaëlle Fluet) : une validati
 **Taille minimale avant de conclure :** environ 300 visiteurs par source ou par segment, sur 8 à 14 jours. En dessous, un ou deux inscrits de plus changent tout le pourcentage.
 
 **Comment lire les combinaisons :**
-- Problème fréquent **et** signal payant élevés : le problème est réel et la solution attire. Passe aux entrevues de prix et au prototype.
+- Problème fréquent **et** signal démo élevés : le problème est réel et la solution attire. Fais les démos et pose la question du prix pendant l'appel.
 - Problème fréquent, mais faible taux d'inscription : le problème existe, mais la page ou la solution ne convainc pas. Teste un autre titre ou d'autres vidéos.
-- Beaucoup d'inscrits, mais peu de signal payant : intérêt réel, mais pas encore de valeur perçue pour payer. Creuse en entrevue ce qui manque.
+- Beaucoup d'inscrits, mais peu de démos réservées : intérêt réel, mais pas encore de valeur perçue pour payer. Creuse en entrevue ce qui manque.
 - Problème peu fréquent : vérifie le segment. Le problème est peut-être plus aigu chez un autre profil (cégep, parents, élèves en SN).
 
 ---
@@ -149,7 +149,7 @@ Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confi
 | FAQ qui commence par « Qu'est-ce que Nesalio ? », « Pour qui ? », « Combien ça coûte ? » | Réponses courtes et factuelles : c'est le format que les IA reprennent et citent |
 | `robots.txt` qui autorise Google, Bing et les robots des IA (OAI-SearchBot et GPTBot d'OpenAI, ClaudeBot, PerplexityBot, Google-Extended, Applebot) | Personne n'est bloqué ; le fichier pointe vers le sitemap |
 | `sitemap.xml` | La liste des pages à indexer |
-| `llms.txt` | Résumé en texte simple pour les assistants IA : ce qu'est Nesalio, pour qui, les notions, le prix, la différence avec ChatGPT |
+| `llms.txt` | Résumé en texte simple pour les assistants IA : ce qu'est Nesalio, pour qui, les notions, l'accès, la différence avec ChatGPT |
 | Contenu principal en HTML (pas généré en JavaScript) | Lisible par tous les robots, y compris ceux qui n'exécutent pas de JavaScript |
 | `vercel.json` : URL propres (`/confidentialite`), en-têtes de sécurité, cache des images | Site rapide et propre |
 
@@ -168,7 +168,7 @@ Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, c
 - **Mentions de confiance** : demande une page ou un lien au Centech (fiche des entreprises incubées), à Polytechnique, à des enseignants, à des groupes de parents. Les IA citent surtout des sources qui sont elles-mêmes citées ailleurs.
 - **Profils cohérents** : crée LinkedIn (page entreprise), Instagram et TikTok @nesalio avec la même phrase de description que la page : « Tuteur à la voix propulsé par l'IA pour le secondaire 4-5 et le cégep au Québec. » Mets le lien `nesalio.com` partout.
 - **Une page par notion, plus tard** : par exemple `nesalio.com/notions/factorisation` ou `/notions/loi-des-sinus`, chacune avec une vraie explication, un exemple résolu et une question de vérification. C'est ce que les élèves cherchent sur Google (« comment factoriser secondaire 4 ») et ce que les IA aiment citer. Commence par les notions que les inscrits nomment le plus souvent dans le formulaire.
-- **Garde les faits à jour** : si le prix ou les matières changent, modifie en même temps la FAQ, le JSON-LD et `llms.txt`.
+- **Garde les faits à jour** : si l'offre ou les matières changent, modifie en même temps la FAQ, le JSON-LD et `llms.txt`.
 
 ---
 
@@ -186,9 +186,8 @@ Les vidéos ont été enregistrées à partir de l'ancienne démo interactive (t
 
 ## 8. À vérifier avant de publier
 
-- **Prix : 199 $ par mois, 99 $ par mois pour les premiers inscrits.** Le prix fondateur est promis « tant que l'abonnement reste actif » : c'est un engagement à respecter au lancement. Pour changer les prix, modifie la section `tarifs` et l'objet `PLANS` du script. Garde-les fixes pendant toute une campagne, sinon les résultats ne se comparent pas.
-- **Le prix de 199 $ doit être réel.** La loi québécoise sur la protection du consommateur encadre les prix barrés : n'annonce 199 $ que si c'est vraiment le prix auquel tu comptes vendre après la période fondatrice.
-- **Les engagements doivent être tenus** : « Essai gratuit de 7 jours », « Prix fondateur garanti », « Aucune carte demandée ». Si tu ne peux pas les tenir, retire-les.
+- **Démos : tiens l'engagement.** Chaque personne qui réserve une démo doit recevoir une réponse rapide et une vraie séance de 15 minutes. Prépare au moins une séance montrable (prototype ou séance guidée) avant de lancer la campagne.
+- **Les engagements doivent être tenus** : « Démo gratuite de 15 min », « Sans engagement ». Si tu ne peux pas les tenir, retire-les.
 - **Textos** : la page demande un consentement explicite (Loi canadienne anti-pourriel). N'envoie des textos qu'aux personnes qui ont coché la case, identifie Nesalio dans le message et respecte immédiatement « ARRÊT ».
 - **Confidentialité** : relis `confidentialite.html` (tu y es nommé responsable). C'est un bon point de départ, pas un avis juridique.
 - **Histoire de Joyce** : obtiens son accord, et celui d'un parent, avant de publier, même sous forme anonyme.
