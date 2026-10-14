@@ -79,7 +79,6 @@ T = [
 ('Programme québécois</li>', 'Québec curriculum</li>'),
 ('<p class="trust">Conçu à Montréal avec des <strong>élèves, des parents et des enseignants</strong> du Québec.</p>',
  '<p class="trust">Built in Montréal with <strong>students, parents and teachers</strong> from Québec.</p>'),
-('<p class="incub"><span>Incubé au</span>', '<p class="incub"><span>Incubated at</span>'),
 ('aria-label="Vidéos : Nesalio en séance"', 'aria-label="Videos: Nesalio in a session"'),
 ('</svg>Séance avec Nesalio</span>', '</svg>Session with Nesalio</span>'),
 ('aria-label="Séance avec Nesalio : l\'élève pose sa question, Nesa dessine l\'explication et l\'aide à trouver la réponse"',
