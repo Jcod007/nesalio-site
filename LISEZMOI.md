@@ -187,3 +187,14 @@ Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, c
 - **Textos** : la page demande un consentement explicite (Loi canadienne anti-pourriel). N'envoie des textos qu'aux personnes qui ont coché la case, identifie Nesalio dans le message et respecte immédiatement « ARRÊT ».
 - **Confidentialité** : relis `confidentialite.html` (tu y es nommé responsable). C'est un bon point de départ, pas un avis juridique.
 - **Histoire de Joyce** : obtiens son accord, et celui d'un parent, avant de publier, même sous forme anonyme.
+
+## Studio Nesa (nesalio.com/studio)
+
+Outil interne pour fabriquer les visuels de la mascotte, dans les couleurs Nesalio. Page non indexée (meta noindex).
+
+- **Personnaliser** : 9 expressions (repos, écoute, réfléchit, explique, concentré, content, bravo, surpris, clin d'œil), 4 palettes, 5 fonds, visage sur la face de droite ou de gauche, clignement, regard, respiration, accessoires.
+- **Animer** : ligne de temps d'expressions avec durées, transitions douces, 4 animations prêtes (séance, salut, il cherche, il parle).
+- **Planche** : toutes les expressions côte à côte.
+- **Exporter** : SVG, PNG 1024 px, code SVG copié, GIF animé, vidéo (MP4 ou WebM).
+- Liens directs : `/studio#etat=bravo` (ajouter `&stop` pour figer), `/studio#planche`.
+- Les réglages sont gardés dans le navigateur. `window.NesaStudio.render(...)` donne le SVG par code.

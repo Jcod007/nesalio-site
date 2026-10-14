@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Nesa</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F8FC;--grid:#DFE6F3;--ink:#18223A;--muted:#56617A;--line:#D5DCEA;
+    --violet:#5A45D6;--violet-deep:#4532B8;--violet-soft:#EEEAFF;--blue:#2E6BE6;--green:#23936A;--amber:#F2A65A;
+    --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--hand:"Caveat",cursive;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  body{margin:0;background-color:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button,input,select{font:inherit;color:inherit}
+  :focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:6px}
+
+  .app{display:grid;grid-template-columns:200px minmax(0,1fr) 360px;grid-template-rows:auto minmax(0,1fr) auto;height:100vh;height:100dvh}
+  .app>*{min-height:0}
+  header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:2px solid var(--ink);background:#fff}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.25rem;text-decoration:none;color:var(--ink)}
+  .brand svg{width:26px;height:27px}
+  .brand small{font-family:var(--hand);font-weight:600;font-size:1.35rem;color:var(--violet)}
+
+  /* Rail */
+  .rail{border-right:2px solid var(--ink);background:#fff;padding:14px 10px;display:flex;flex-direction:column;gap:6px}
+  .rail button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:2px solid transparent;background:none;border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}
+  .rail button svg{width:20px;height:20px;flex:none}
+  .rail button:hover{background:var(--paper)}
+  .rail button[aria-selected="true"]{background:var(--violet-soft);border-color:var(--violet);color:var(--violet-deep)}
+
+  /* Stage */
+  .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:16px;padding:24px;overflow:auto;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px}
+  .frame{width:min(460px,80vw,60vh);flex:none;aspect-ratio:1;border:2px solid var(--ink);border-radius:24px;box-shadow:8px 8px 0 var(--ink);overflow:hidden;background:#fff;display:grid;place-items:center}
+  .frame svg{width:100%;height:100%;display:block}
+  .now{font-family:var(--hand);font-size:1.9rem;line-height:1;color:var(--violet)}
+  .transport{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;width:100%;max-width:900px}
+  .board figure{margin:0;background:#fff;border:2px solid var(--ink);border-radius:16px;padding:8px;text-align:center;cursor:pointer}
+  .board figure:hover{box-shadow:4px 4px 0 var(--violet)}
+  .board figure svg{width:100%;aspect-ratio:1;display:block;border-radius:10px}
+  .board figcaption{font-weight:700;font-size:.92rem;padding-top:4px}
+
+  /* Panel */
+  .panel{border-left:2px solid var(--ink);background:#fff;padding:18px;overflow:auto}
+  .panel h2{font-family:var(--display);font-size:1.15rem;margin:0 0 4px}
+  .panel .hint{color:var(--muted);margin:0 0 14px;font-size:.92rem}
+  .group{margin-bottom:20px}
+  .label{display:block;font-weight:700;margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 12px;cursor:pointer;font-weight:700;font-size:.9rem}
+  .chip[aria-pressed="true"]{border-color:var(--violet);background:var(--violet-soft);color:var(--violet-deep)}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap}
+  .swatch{border:2px solid var(--line);background:#fff;border-radius:12px;padding:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;font-weight:700;width:72px}
+  .swatch[aria-pressed="true"]{border-color:var(--violet);box-shadow:3px 3px 0 var(--violet)}
+  .swatch i{display:flex;width:100%;height:22px;border-radius:7px;overflow:hidden}
+  .swatch i b{flex:1}
+  .toggle{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-weight:700;cursor:pointer}
+  .toggle input{width:18px;height:18px;accent-color:var(--violet)}
+  .range{display:flex;align-items:center;gap:10px}
+  .range input{flex:1;accent-color:var(--violet)}
+
+  .btn{border:2px solid var(--ink);background:#fff;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .btn:hover{background:var(--paper)}
+  .btn.primary{background:var(--violet);color:#fff;border-color:var(--violet);box-shadow:0 3px 0 var(--violet-deep)}
+  .btn.primary:hover{background:var(--violet-deep)}
+  .btn svg{width:16px;height:16px}
+  .btn[disabled]{opacity:.5;cursor:default}
+
+  /* Timeline */
+  .tl{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px}
+  .tl li{display:grid;grid-template-columns:20px minmax(0,1fr) 58px auto;gap:5px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:6px 8px;background:var(--paper)}
+  .tl li.on{border-color:var(--violet);background:var(--violet-soft)}
+  .tl .n{font-family:var(--hand);font-size:1.3rem;color:var(--violet);text-align:center}
+  .tl select,.tl input{width:100%;border:2px solid var(--line);border-radius:8px;padding:4px 6px;background:#fff}
+  .tl .acts{display:flex;gap:0}
+  .tl .acts .icon{width:26px}
+  .icon{border:0;background:none;width:28px;height:28px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+  .icon:hover{background:#fff}
+  .icon svg{width:16px;height:16px}
+  .total{color:var(--muted);font-size:.9rem;margin:0 0 10px}
+
+  /* Export bar */
+  .exportbar{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 20px;border-top:2px solid var(--ink);background:#fff}
+  .exportbar .sp{flex:1}
+  .status{font-weight:700;color:var(--muted)}
+  .status.ok{color:#14694A}
+  .status.err{color:#B3261E}
+
+  @media (max-width:980px){
+    .app{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;height:auto}
+    .rail{flex-direction:row;border-right:0;border-bottom:2px solid var(--ink);overflow-x:auto}
+    .rail{padding:8px;gap:4px}
+    .rail button{width:auto;flex:1;justify-content:center;white-space:nowrap;padding:8px 6px;gap:6px}
+    #saved{display:none}
+    .panel{border-left:0;border-top:2px solid var(--ink)}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a class="brand" href="/" aria-label="Retour au site Nesalio">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 28 10 16 17 4 10Z" fill="#5A45D6"/><path d="M4 10 16 17v12L4 22Z" fill="#2E6BE6"/><path d="M28 10 16 17v12l12-7Z" fill="#23936A"/></svg>
+      Nesalio <small>studio de mascotte</small>
+    </a>
+    <span class="status" id="saved">Réglages enregistrés dans ce navigateur</span>
+  </header>
+
+  <nav class="rail" role="tablist" aria-label="Vues du studio">
+    <button role="tab" aria-selected="true" data-view="perso" id="tab-perso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>Personnaliser</button>
+    <button role="tab" aria-selected="false" data-view="anim" id="tab-anim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>Animer</button>
+    <button role="tab" aria-selected="false" data-view="planche" id="tab-planche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Planche</button>
+  </nav>
+
+  <main class="stage" id="stageMain">
+    <div class="frame" id="frame" role="img" aria-label="Nesa, la mascotte de Nesalio"></div>
+    <div class="now" id="nowLabel">Repos</div>
+    <div class="transport" id="transport" hidden>
+      <button class="btn primary" type="button" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg><span>Lire</span></button>
+      <button class="btn" type="button" id="restartBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/></svg>Recommencer</button>
+    </div>
+    <div class="board" id="board" hidden></div>
+  </main>
+
+  <aside class="panel" id="panel">
+    <!-- Personnaliser -->
+    <section id="v-perso">
+      <h2>Personnaliser Nesa</h2>
+      <p class="hint">Clique sur une expression pour la voir. Tout reste dans les couleurs Nesalio.</p>
+      <div class="group"><span class="label">Expression</span><div class="chips" id="stateChips"></div></div>
+      <div class="group"><span class="label">Couleurs</span><div class="swatches" id="palettes"></div></div>
+      <div class="group"><span class="label">Fond</span><div class="chips" id="bgs"></div></div>
+      <div class="group"><span class="label">Visage</span><div class="chips" id="sides"></div></div>
+      <div class="group">
+        <span class="label">Vie</span>
+        <label class="toggle"><input type="checkbox" id="blink" checked> Clignement des yeux</label>
+        <label class="toggle"><input type="checkbox" id="gaze" checked> Regard qui bouge</label>
+        <label class="toggle"><input type="checkbox" id="breath" checked> Respiration légère</label>
+      </div>
+      <div class="group"><span class="label">Accessoires</span><label class="toggle"><input type="checkbox" id="props" checked> Afficher les accessoires des expressions (?, étincelles, ondes)</label></div>
+    </section>
+
+    <!-- Animer -->
+    <section id="v-anim" hidden>
+      <h2>Animer</h2>
+      <p class="hint">Enchaîne des expressions. Chaque ligne tient le temps indiqué, avec une transition douce.</p>
+      <ol class="tl" id="timeline"></ol>
+      <p class="total" id="total"></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+        <button class="btn" type="button" id="addStep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter une étape</button>
+        <button class="btn" type="button" id="resetTl">Réinitialiser</button>
+      </div>
+      <div class="group"><span class="label">Animations prêtes</span><div class="chips" id="presets"></div></div>
+      <div class="group">
+        <span class="label" id="spdL">Vitesse des transitions</span>
+        <div class="range"><input type="range" id="tau" min="0.05" max="0.4" step="0.01" value="0.12" aria-labelledby="spdL"><span id="tauV">Normale</span></div>
+      </div>
+    </section>
+
+    <!-- Planche -->
+    <section id="v-planche" hidden>
+      <h2>Planche</h2>
+      <p class="hint">Toutes les expressions côte à côte, figées. Clique sur l'une d'elles pour l'ouvrir.</p>
+      <p class="hint">Lien direct vers une expression : ajoute <code>#etat=bravo</code> à l'adresse du studio.</p>
+    </section>
+  </aside>
+
+  <footer class="exportbar">
+    <strong>Exporter</strong>
+    <button class="btn" type="button" id="exSvg">SVG</button>
+    <button class="btn" type="button" id="exPng">PNG</button>
+    <button class="btn" type="button" id="exCopy">Copier le code SVG</button>
+    <button class="btn" type="button" id="exGif">GIF animé</button>
+    <button class="btn" type="button" id="exVid">Vidéo</button>
+    <span class="sp"></span>
+    <span class="status" id="exStatus" role="status" aria-live="polite"></span>
+  </footer>
+</div>
+
+<script>
+/* =====================================================================
+   Studio Nesa — moteur d'animation de la mascotte Nesalio.
+   Le rendu est une fonction pure du temps : sample(t) -> paramètres -> SVG.
+   ===================================================================== */
+(function(){
+  'use strict';
+
+  /* ---------- Identité ---------- */
+  var PALETTES = {
+    marque:  {name:'Marque',  top:'#5A45D6', left:'#2E6BE6', right:'#23936A', feat:'#FFFFFF', accent:'#F2A65A', ink:'#18223A'},
+    nuit:    {name:'Nuit',    top:'#8C7CFF', left:'#5B8DF5', right:'#3FB98A', feat:'#FFFFFF', accent:'#F2A65A', ink:'#E8ECF5'},
+    pastel:  {name:'Pastel',  top:'#B6ABFF', left:'#8FB0FF', right:'#7FD3AF', feat:'#18223A', accent:'#F2A65A', ink:'#18223A'},
+    encre:   {name:'Une couleur', top:'#18223A', left:'#3A4766', right:'#56617A', feat:'#FFFFFF', accent:'#18223A', ink:'#18223A'}
+  };
+  var BGS = {
+    transparent:{name:'Transparent', fill:null},
+    papier:{name:'Papier', fill:'#F6F8FC', grid:true},
+    blanc:{name:'Blanc', fill:'#FFFFFF'},
+    violet:{name:'Violet doux', fill:'#EEEAFF'},
+    nuit:{name:'Nuit', fill:'#18223A'}
+  };
+
+  /* ---------- Expressions (paramètres) ---------- */
+  var BASE = {eyeW:1, eyeH:1, eyeL:1, eyeR:1, gx:0, gy:0, arc:0, curve:9, open:0, sx:1, sy:1, bob:0, tilt:0, q:0, spark:0, wave:0};
+  function S(o){ var r = {}; for(var k in BASE) r[k] = BASE[k]; for(var j in o) r[j] = o[j]; return r; }
+  var STATES = {
+    repos:     {name:'Repos',      p:S({})},
+    ecoute:    {name:'Écoute',     p:S({eyeH:1.12, gy:-1, curve:6, tilt:-3, sx:.98, sy:1.02})},
+    reflechit: {name:'Réfléchit',  p:S({gx:4, gy:-8, eyeH:.85, curve:0, tilt:4, q:1})},
+    explique:  {name:'Explique',   p:S({open:.9, curve:4, wave:1, bob:-6})},
+    concentre: {name:'Concentré',  p:S({eyeH:.55, gy:2, curve:2, sx:1.02, sy:.98})},
+    content:   {name:'Content',    p:S({arc:1, curve:12})},
+    bravo:     {name:'Bravo !',    p:S({arc:1, open:.7, curve:14, spark:1, bob:-16, sx:.97, sy:1.05})},
+    surpris:   {name:'Surpris',    p:S({eyeH:1.3, eyeW:1.1, open:.6, curve:0, sx:.96, sy:1.06, bob:-6})},
+    clin:      {name:"Clin d'œil", p:S({eyeR:.12, curve:12, tilt:-4})}
+  };
+  var ORDER = ['repos','ecoute','reflechit','explique','concentre','content','bravo','surpris','clin'];
+  var PRESETS = {
+    seance:  {name:'Une séance',     tl:[['ecoute',1.4],['reflechit',1.6],['explique',2],['bravo',1.6],['content',1.2]]},
+    salut:   {name:'Salut !',        tl:[['repos',1],['clin',.9],['content',1.2]]},
+    cherche: {name:'Il cherche',     tl:[['concentre',1.2],['reflechit',1.4],['surpris',.8],['content',1.4]]},
+    parle:   {name:'Il parle',       tl:[['explique',.5],['repos',.25],['explique',.6],['ecoute',.3],['explique',.5],['content',.9]]}
+  };
+
+  /* ---------- État de l'interface (persisté) ---------- */
+  var DEF = {palette:'marque', bg:'papier', side:'droite', blink:true, gaze:true, breath:true, props:true, tau:.12, rest:'repos',
+             timeline:PRESETS.seance.tl.map(function(x){ return x.slice(); })};
+  var ui = load();
+  function load(){
+    try{ var raw = localStorage.getItem('nesa-studio'); if(raw){ var o = JSON.parse(raw), r = {}; for(var k in DEF) r[k] = (o[k] !== undefined ? o[k] : DEF[k]); return sanitize(r); } }catch(e){}
+    return JSON.parse(JSON.stringify(DEF));
+  }
+  function sanitize(r){
+    if(!PALETTES[r.palette]) r.palette = 'marque';
+    if(!BGS[r.bg]) r.bg = 'papier';
+    if(r.side !== 'gauche') r.side = 'droite';
+    if(!STATES[r.rest]) r.rest = 'repos';
+    if(!Array.isArray(r.timeline) || !r.timeline.length) r.timeline = DEF.timeline.map(function(x){ return x.slice(); });
+    r.timeline = r.timeline.filter(function(x){ return STATES[x[0]]; }).map(function(x){ return [x[0], Math.max(.2, Math.min(10, +x[1] || 1))]; });
+    return r;
+  }
+  function save(){ try{ localStorage.setItem('nesa-studio', JSON.stringify(ui)); }catch(e){} }
+
+  /* ---------- Moteur (fonctions pures) ---------- */
+  function lerp(a, b, k){ var r = {}; for(var key in a) r[key] = a[key] + (b[key] - a[key]) * k; return r; }
+  function ease(dt, tau){ return dt <= 0 ? 0 : 1 - Math.exp(-dt / tau); }
+  function tlDuration(tl){ return tl.reduce(function(s, x){ return s + x[1]; }, 0); }
+  // Paramètres de la ligne de temps à l'instant t (en boucle)
+  function sampleTimeline(tl, t, tau){
+    var total = tlDuration(tl), tt = ((t % total) + total) % total, acc = 0;
+    for(var i = 0; i < tl.length; i++){
+      if(tt < acc + tl[i][1] || i === tl.length - 1){
+        var prev = STATES[tl[(i - 1 + tl.length) % tl.length][0]].p, cur = STATES[tl[i][0]].p;
+        return {p:lerp(prev, cur, ease(tt - acc, tau)), index:i};
+      }
+      acc += tl[i][1];
+    }
+  }
+  // Vie : clignement, regard, respiration — tous déterministes en t
+  function life(p, t, opt){
+    var q = {}; for(var k in p) q[k] = p[k];
+    if(opt.blink){
+      var period = 3.6, ph = (t + 1.3) % period, d = .16, b = 0;
+      if(ph < d) b = 1 - Math.abs(ph / d * 2 - 1);
+      if(((t + 1.3) / period | 0) % 4 === 2){ var ph2 = ph - .32; if(ph2 > 0 && ph2 < d) b = Math.max(b, 1 - Math.abs(ph2 / d * 2 - 1)); }
+      var m = 1 - .9 * b; q.eyeL *= m; q.eyeR *= m;
+    }
+    if(opt.gaze){ q.gx += 1.6 * Math.sin(t * .83) + .7 * Math.sin(t * 2.1 + 1); q.gy += 1.1 * Math.sin(t * .61 + 2); }
+    if(opt.breath){ var br = Math.sin(t * 2.2); q.sy *= 1 + .012 * br; q.sx *= 1 - .006 * br; }
+    return q;
+  }
+
+  /* ---------- Rendu SVG ---------- */
+  function f(n){ return (Math.round(n * 100) / 100).toString(); }
+  function render(p, o){
+    var pal = PALETTES[o.palette], bg = BGS[o.bg], right = o.side !== 'gauche', props = o.props !== false;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="' + (o.size || 400) + '" height="' + (o.size || 400) + '">';
+    if(bg.fill){
+      s += '<rect width="400" height="400" fill="' + bg.fill + '"/>';
+      if(bg.grid){ s += '<g stroke="#DFE6F3" stroke-width="1">'; for(var g = 20; g < 400; g += 20){ s += '<path d="M' + g + ' 0V400M0 ' + g + 'H400"/>'; } s += '</g>'; }
+    }
+    // ombre
+    var sh = 1 + p.bob / 60;
+    s += '<ellipse cx="200" cy="364" rx="' + f(96 * sh) + '" ry="' + f(10 * sh) + '" fill="' + (o.bg === 'nuit' ? '#000' : '#18223A') + '" opacity="' + f(.1 * sh) + '"/>';
+    // corps : pivot en bas du cube
+    s += '<g transform="translate(200 ' + f(346 + p.bob) + ') rotate(' + f(p.tilt) + ') scale(' + f(p.sx) + ' ' + f(p.sy) + ') translate(-200 -346)">';
+    s += '<path d="M200 70 L320 139 L200 208 L80 139 Z" fill="' + pal.top + '" stroke="' + pal.top + '" stroke-width="26" stroke-linejoin="round"/>';
+    s += '<path d="M80 139 L200 208 L200 346 L80 277 Z" fill="' + pal.left + '" stroke="' + pal.left + '" stroke-width="26" stroke-linejoin="round"/>';
+    s += '<path d="M200 208 L320 139 L320 277 L200 346 Z" fill="' + pal.right + '" stroke="' + pal.right + '" stroke-width="26" stroke-linejoin="round"/>';
+    s += '<path d="M146 112 L200 82 L254 112" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".3"/>';
+    // visage sur une face
+    var dir = right ? 1 : -1;
+    s += '<g transform="' + (right ? 'translate(260 246) skewY(-30)' : 'translate(140 246) skewY(30)') + '">';
+    var gx = p.gx * dir, w = 17 * p.eyeW;
+    [[-22.5, p.eyeL], [22.5, p.eyeR]].forEach(function(e){
+      var cx = e[0] + gx, h = Math.max(2.5, 27 * p.eyeH * e[1]), cy = -.5 + p.gy;
+      var ro = 1 - Math.min(1, Math.max(0, p.arc));
+      if(ro > .02) s += '<rect x="' + f(cx - w / 2) + '" y="' + f(cy - h / 2) + '" width="' + f(w) + '" height="' + f(h) + '" rx="' + f(Math.min(w, h) / 2) + '" fill="' + pal.feat + '" opacity="' + f(ro) + '"/>';
+      if(p.arc > .02) s += '<path d="M' + f(cx - 10) + ' ' + f(cy + 4) + ' Q ' + f(cx) + ' ' + f(cy - 12) + ' ' + f(cx + 10) + ' ' + f(cy + 4) + '" fill="none" stroke="' + pal.feat + '" stroke-width="6" stroke-linecap="round" opacity="' + f(Math.min(1, p.arc)) + '"/>';
+    });
+    // bouche
+    var mx = 2 + gx * .4, my = 32 + p.gy * .3;
+    if(p.open > .05){
+      s += '<ellipse cx="' + f(mx) + '" cy="' + f(my + 4 * p.open) + '" rx="' + f(8 + 5 * p.open) + '" ry="' + f(2 + 9 * p.open) + '" fill="' + pal.feat + '" opacity="' + f(Math.min(1, p.open * 1.4)) + '"/>';
+    }
+    if(p.open < .95){
+      s += '<path d="M' + f(mx - 14) + ' ' + f(my) + ' Q ' + f(mx) + ' ' + f(my + p.curve) + ' ' + f(mx + 14) + ' ' + f(my) + '" fill="none" stroke="' + pal.feat + '" stroke-width="5.5" stroke-linecap="round" opacity="' + f(1 - p.open) + '"/>';
+    }
+    s += '</g></g>';
+    // accessoires
+    if(props){
+      var ax = right ? 0 : 1;
+      if(p.q > .02) s += '<text x="' + (ax ? 52 : 318) + '" y="' + f(108 + p.bob) + '" font-family="Bricolage Grotesque, Arial, sans-serif" font-size="78" font-weight="800" fill="' + pal.accent + '" opacity="' + f(p.q) + '">?</text>';
+      if(p.spark > .02){
+        var star = function(cx, cy, r){ return '<path d="M' + cx + ' ' + (cy - r) + ' L' + f(cx + r * .28) + ' ' + f(cy - r * .28) + ' L' + (cx + r) + ' ' + cy + ' L' + f(cx + r * .28) + ' ' + f(cy + r * .28) + ' L' + cx + ' ' + (cy + r) + ' L' + f(cx - r * .28) + ' ' + f(cy + r * .28) + ' L' + (cx - r) + ' ' + cy + ' L' + f(cx - r * .28) + ' ' + f(cy - r * .28) + ' Z" fill="' + pal.accent + '"/>'; };
+        s += '<g opacity="' + f(p.spark) + '">' + star(340, 74 + p.bob, 22) + star(66, 96 + p.bob, 14) + star(352, 182 + p.bob, 10) + '</g>';
+      }
+      if(p.wave > .02){
+        var wx = right ? 346 : 54, sg = right ? 1 : -1;
+        s += '<g fill="none" stroke="' + pal.ink + '" stroke-width="7" stroke-linecap="round" opacity="' + f(p.wave) + '"><path d="M' + wx + ' ' + f(196 + p.bob) + ' q ' + 14 * sg + ' 18 0 36"/><path d="M' + (wx + 18 * sg) + ' ' + f(180 + p.bob) + ' q ' + 24 * sg + ' 34 0 68"/></g>';
+      }
+    }
+    return s + '</svg>';
+  }
+
+  /* ---------- Lecture ---------- */
+  var mode = 'pose';                 // 'pose' (expression choisie) ou 'tl' (ligne de temps)
+  var playing = true, t0 = performance.now(), tPaused = 0;
+  var pose = {from:STATES[ui.rest].p, to:STATES[ui.rest].p, at:0, key:ui.rest};
+  var current = STATES[ui.rest].p;
+  var frame = document.getElementById('frame'), nowLabel = document.getElementById('nowLabel');
+  var frozen = false;
+
+  function clock(){ return playing ? (performance.now() - t0) / 1000 : tPaused; }
+  function opts(size){ return {palette:ui.palette, bg:ui.bg, side:ui.side, props:ui.props, size:size}; }
+  function lifeOpts(){ return {blink:ui.blink && !frozen, gaze:ui.gaze && !frozen, breath:ui.breath && !frozen}; }
+  function paramsAt(t){
+    if(mode === 'tl'){ var r = sampleTimeline(ui.timeline, t, ui.tau); return {p:life(r.p, t, lifeOpts()), index:r.index}; }
+    return {p:life(lerp(pose.from, pose.to, frozen ? 1 : ease(t - pose.at, ui.tau)), t, lifeOpts()), index:-1};
+  }
+  var lastIndex = -2;
+  function tick(){
+    var t = clock(), r = paramsAt(t);
+    current = r.p;
+    frame.innerHTML = render(r.p, opts(400));
+    if(mode === 'tl' && r.index !== lastIndex){
+      lastIndex = r.index;
+      nowLabel.textContent = STATES[ui.timeline[r.index][0]].name;
+      document.querySelectorAll('#timeline li').forEach(function(li, i){ li.classList.toggle('on', i === r.index); });
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function setPose(key){
+    var t = clock();
+    pose = {from:paramsAt(t).p, to:STATES[key].p, at:t, key:key};
+    pose.from = stripLife(pose.from);
+    nowLabel.textContent = STATES[key].name;
+  }
+  function stripLife(p){ var q = {}; for(var k in p) q[k] = p[k]; q.eyeL = Math.max(q.eyeL, .12); q.eyeR = Math.max(q.eyeR, .12); return q; }
+
+  /* ---------- Vues ---------- */
+  var views = {perso:document.getElementById('v-perso'), anim:document.getElementById('v-anim'), planche:document.getElementById('v-planche')};
+  function showView(v){
+    document.querySelectorAll('.rail button').forEach(function(b){ b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'); });
+    for(var k in views) views[k].hidden = k !== v;
+    document.getElementById('transport').hidden = v !== 'anim';
+    document.getElementById('board').hidden = v !== 'planche';
+    frame.hidden = v === 'planche'; nowLabel.hidden = v === 'planche';
+    if(v === 'anim'){ mode = 'tl'; lastIndex = -2; t0 = performance.now(); playing = true; updatePlay(); }
+    else { mode = 'pose'; document.querySelectorAll('#timeline li').forEach(function(li){ li.classList.remove('on'); }); nowLabel.textContent = STATES[pose.key].name; }
+    if(v === 'planche') drawBoard();
+  }
+  document.querySelectorAll('.rail button').forEach(function(b){ b.addEventListener('click', function(){ showView(b.dataset.view); }); });
+
+  /* ---------- Personnaliser ---------- */
+  function chipGroup(el, items, current, onPick){
+    el.innerHTML = '';
+    items.forEach(function(it){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = it.name;
+      b.setAttribute('aria-pressed', it.key === current ? 'true' : 'false');
+      b.addEventListener('click', function(){ el.querySelectorAll('.chip').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); onPick(it.key); });
+      el.appendChild(b);
+    });
+  }
+  chipGroup(document.getElementById('stateChips'), ORDER.map(function(k){ return {key:k, name:STATES[k].name}; }), ui.rest, function(k){ ui.rest = k; save(); setPose(k); });
+  chipGroup(document.getElementById('bgs'), Object.keys(BGS).map(function(k){ return {key:k, name:BGS[k].name}; }), ui.bg, function(k){ ui.bg = k; save(); });
+  chipGroup(document.getElementById('sides'), [{key:'droite', name:'Face de droite'}, {key:'gauche', name:'Face de gauche'}], ui.side, function(k){ ui.side = k; save(); });
+  (function(){
+    var el = document.getElementById('palettes');
+    Object.keys(PALETTES).forEach(function(k){
+      var p = PALETTES[k], b = document.createElement('button');
+      b.type = 'button'; b.className = 'swatch'; b.setAttribute('aria-pressed', k === ui.palette ? 'true' : 'false');
+      b.innerHTML = '<i aria-hidden="true"><b style="background:' + p.top + '"></b><b style="background:' + p.left + '"></b><b style="background:' + p.right + '"></b></i>' + p.name;
+      b.addEventListener('click', function(){ ui.palette = k; save(); el.querySelectorAll('.swatch').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); });
+      el.appendChild(b);
+    });
+  })();
+  ['blink','gaze','breath','props'].forEach(function(id){
+    var c = document.getElementById(id); c.checked = !!ui[id];
+    c.addEventListener('change', function(){ ui[id] = c.checked; save(); });
+  });
+
+  /* ---------- Animer ---------- */
+  var tlEl = document.getElementById('timeline');
+  var ICON_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
+  var ICON_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  var ICON_DEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  function drawTimeline(){
+    tlEl.innerHTML = '';
+    ui.timeline.forEach(function(step, i){
+      var li = document.createElement('li');
+      var opts = ORDER.map(function(k){ return '<option value="' + k + '"' + (k === step[0] ? ' selected' : '') + '>' + STATES[k].name + '</option>'; }).join('');
+      li.innerHTML = '<span class="n">' + (i + 1) + '</span>' +
+        '<select aria-label="Expression de l\'étape ' + (i + 1) + '">' + opts + '</select>' +
+        '<input type="number" min="0.2" max="10" step="0.1" value="' + step[1] + '" aria-label="Durée de l\'étape ' + (i + 1) + ' en secondes">' +
+        '<span class="acts"><button class="icon" type="button" data-a="up" aria-label="Monter l\'étape ' + (i + 1) + '">' + ICON_UP + '</button>' +
+        '<button class="icon" type="button" data-a="down" aria-label="Descendre l\'étape ' + (i + 1) + '">' + ICON_DOWN + '</button>' +
+        '<button class="icon" type="button" data-a="del" aria-label="Supprimer l\'étape ' + (i + 1) + '">' + ICON_DEL + '</button></span>';
+      li.querySelector('select').addEventListener('change', function(e){ ui.timeline[i][0] = e.target.value; changed(); });
+      li.querySelector('input').addEventListener('change', function(e){ ui.timeline[i][1] = Math.max(.2, Math.min(10, +e.target.value || 1)); e.target.value = ui.timeline[i][1]; changed(); });
+      li.querySelectorAll('.icon').forEach(function(b){
+        b.addEventListener('click', function(){
+          var a = b.dataset.a, tl = ui.timeline;
+          if(a === 'up' && i > 0){ var x = tl[i]; tl[i] = tl[i - 1]; tl[i - 1] = x; }
+          if(a === 'down' && i < tl.length - 1){ var y = tl[i]; tl[i] = tl[i + 1]; tl[i + 1] = y; }
+          if(a === 'del' && tl.length > 1){ tl.splice(i, 1); }
+          changed(true);
+        });
+      });
+      tlEl.appendChild(li);
+    });
+    document.getElementById('total').textContent = 'Durée totale : ' + tlDuration(ui.timeline).toFixed(1).replace('.', ',') + ' s, en boucle';
+  }
+  function changed(redraw){ save(); lastIndex = -2; if(redraw !== false) drawTimeline(); }
+  document.getElementById('addStep').addEventListener('click', function(){ ui.timeline.push(['content', 1.2]); changed(); });
+  document.getElementById('resetTl').addEventListener('click', function(){ ui.timeline = PRESETS.seance.tl.map(function(x){ return x.slice(); }); changed(); restart(); });
+  chipGroup(document.getElementById('presets'), Object.keys(PRESETS).map(function(k){ return {key:k, name:PRESETS[k].name}; }), null, function(k){ ui.timeline = PRESETS[k].tl.map(function(x){ return x.slice(); }); changed(); restart(); });
+  var tauEl = document.getElementById('tau'), tauV = document.getElementById('tauV');
+  function tauLabel(){ tauV.textContent = ui.tau < .09 ? 'Vive' : ui.tau > .2 ? 'Lente' : 'Normale'; }
+  tauEl.value = ui.tau; tauLabel();
+  tauEl.addEventListener('input', function(){ ui.tau = +tauEl.value; tauLabel(); save(); });
+
+  var playBtn = document.getElementById('playBtn');
+  function updatePlay(){ playBtn.querySelector('span').textContent = playing ? 'Pause' : 'Lire'; playBtn.querySelector('path').setAttribute('d', playing ? 'M7 5h4v14H7zM13 5h4v14h-4z' : 'M7 5v14l12-7z'); }
+  playBtn.addEventListener('click', function(){
+    if(playing){ tPaused = clock(); playing = false; } else { t0 = performance.now() - tPaused * 1000; playing = true; }
+    updatePlay();
+  });
+  function restart(){ t0 = performance.now(); tPaused = 0; lastIndex = -2; }
+  document.getElementById('restartBtn').addEventListener('click', restart);
+
+  /* ---------- Planche ---------- */
+  function drawBoard(){
+    var el = document.getElementById('board'); el.innerHTML = '';
+    ORDER.forEach(function(k){
+      var fig = document.createElement('figure'); fig.tabIndex = 0; fig.setAttribute('role', 'button');
+      fig.innerHTML = render(STATES[k].p, opts(150)) + '<figcaption>' + STATES[k].name + '</figcaption>';
+      var open = function(){ ui.rest = k; save(); showView('perso'); pose = {from:STATES[k].p, to:STATES[k].p, at:0, key:k}; nowLabel.textContent = STATES[k].name;
+        document.querySelectorAll('#stateChips .chip').forEach(function(c, i){ c.setAttribute('aria-pressed', ORDER[i] === k ? 'true' : 'false'); }); };
+      fig.addEventListener('click', open);
+      fig.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(); } });
+      el.appendChild(fig);
+    });
+  }
+
+  /* ---------- Exports ---------- */
+  var exStatus = document.getElementById('exStatus');
+  function status(msg, cls){ exStatus.textContent = msg; exStatus.className = 'status' + (cls ? ' ' + cls : ''); }
+  function stamp(){ var d = new Date(); return d.getFullYear() + '' + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '-' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0'); }
+  function nameFor(ext){ var k = mode === 'tl' ? 'animation' : pose.key; return 'nesa-' + k + '-' + stamp() + '.' + ext; }
+  function download(blob, name){
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+  function stillParams(){ return mode === 'tl' ? current : STATES[pose.key].p; }
+  function svgToCanvas(svg, size, ctx){
+    return new Promise(function(res, rej){
+      var img = new Image();
+      img.onload = function(){ ctx.clearRect(0, 0, size, size); ctx.drawImage(img, 0, 0, size, size); res(); };
+      img.onerror = rej;
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+  document.getElementById('exSvg').addEventListener('click', function(){
+    download(new Blob([render(stillParams(), opts(400))], {type:'image/svg+xml'}), nameFor('svg')); status('SVG téléchargé.', 'ok');
+  });
+  document.getElementById('exCopy').addEventListener('click', function(){
+    var code = render(stillParams(), opts(400));
+    var done = function(){ status('Code SVG copié.', 'ok'); };
+    if(navigator.clipboard){ navigator.clipboard.writeText(code).then(done, function(){ status('Copie refusée par le navigateur.', 'err'); }); } else { status('Copie non disponible ici.', 'err'); }
+  });
+  document.getElementById('exPng').addEventListener('click', function(){
+    var size = 1024, c = document.createElement('canvas'); c.width = c.height = size;
+    svgToCanvas(render(stillParams(), opts(size)), size, c.getContext('2d')).then(function(){
+      c.toBlob(function(b){ download(b, nameFor('png')); status('PNG 1024 × 1024 téléchargé.', 'ok'); }, 'image/png');
+    }).catch(function(){ status("L'export PNG a échoué.", 'err'); });
+  });
+
+  // Images de la ligne de temps (ou de l'expression, 3 s), rendues hors temps réel
+  function frameTimes(fps){
+    var dur = mode === 'tl' ? tlDuration(ui.timeline) : 3, n = Math.round(dur * fps), out = [];
+    for(var i = 0; i < n; i++) out.push(i / fps);
+    return out;
+  }
+  function paramsForExport(t){
+    var lo = {blink:ui.blink, gaze:ui.gaze, breath:ui.breath};
+    if(mode === 'tl') return life(sampleTimeline(ui.timeline, t, ui.tau).p, t, lo);
+    return life(STATES[pose.key].p, t, lo);
+  }
+  var busy = false;
+  function lock(on){ busy = on; ['exGif','exVid','exPng','exSvg'].forEach(function(id){ document.getElementById(id).disabled = on; }); }
+
+  document.getElementById('exGif').addEventListener('click', function(){
+    if(busy) return; lock(true); status('Préparation du GIF…');
+    var size = 400, fps = 20, times = frameTimes(fps);
+    import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js').then(function(G){
+      var enc = G.GIFEncoder(), c = document.createElement('canvas'); c.width = c.height = size;
+      var ctx = c.getContext('2d', {willReadFrequently:true});
+      var o = opts(size); if(o.bg === 'transparent') o.bg = 'blanc';
+      var i = 0;
+      function next(){
+        if(i >= times.length){ enc.finish(); download(new Blob([enc.bytes()], {type:'image/gif'}), nameFor('gif')); status('GIF téléchargé (' + times.length + ' images).', 'ok'); lock(false); return; }
+        svgToCanvas(render(paramsForExport(times[i]), o), size, ctx).then(function(){
+          var data = ctx.getImageData(0, 0, size, size).data;
+          var palette = G.quantize(data, 256), index = G.applyPalette(data, palette);
+          enc.writeFrame(index, size, size, {palette:palette, delay:1000 / fps});
+          i++; if(i % 10 === 0) status('GIF : ' + Math.round(i / times.length * 100) + ' %');
+          setTimeout(next, 0);
+        }).catch(function(){ status('Le GIF a échoué.', 'err'); lock(false); });
+      }
+      next();
+    }).catch(function(){ status("Impossible de charger l'encodeur GIF (connexion ?).", 'err'); lock(false); });
+  });
+
+  document.getElementById('exVid').addEventListener('click', function(){
+    if(busy) return;
+    if(!window.MediaRecorder){ status("Ce navigateur ne sait pas enregistrer de vidéo.", 'err'); return; }
+    var types = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+    var type = types.find(function(t){ return MediaRecorder.isTypeSupported(t); });
+    if(!type){ status('Aucun format vidéo disponible ici.', 'err'); return; }
+    lock(true); status('Enregistrement de la vidéo…');
+    var size = 720, fps = 30, times = frameTimes(fps), c = document.createElement('canvas'); c.width = c.height = size;
+    var ctx = c.getContext('2d'), o = opts(size); if(o.bg === 'transparent') o.bg = 'blanc';
+    var stream = c.captureStream(fps), rec = new MediaRecorder(stream, {mimeType:type, videoBitsPerSecond:4e6}), chunks = [];
+    rec.ondataavailable = function(e){ if(e.data.size) chunks.push(e.data); };
+    rec.onstop = function(){ var ext = type.indexOf('mp4') > -1 ? 'mp4' : 'webm'; download(new Blob(chunks, {type:type.split(';')[0]}), nameFor(ext)); status('Vidéo ' + ext.toUpperCase() + ' téléchargée.', 'ok'); lock(false); };
+    svgToCanvas(render(paramsForExport(0), o), size, ctx).then(function(){
+      rec.start();
+      var start = performance.now(), i = 0;
+      (function step(){
+        var due = (performance.now() - start) / 1000;
+        if(i >= times.length){ setTimeout(function(){ rec.stop(); }, 120); return; }
+        if(due >= times[i]){ svgToCanvas(render(paramsForExport(times[i]), o), size, ctx).then(function(){ i++; requestAnimationFrame(step); }); }
+        else requestAnimationFrame(step);
+      })();
+    });
+  });
+
+  /* ---------- Liens directs : #etat=bravo, #planche ---------- */
+  function fromHash(){
+    var h = location.hash.replace('#', '');
+    if(h === 'planche'){ showView('planche'); return; }
+    var m = h.match(/etat=([a-z]+)/);
+    if(m && STATES[m[1]]){ showView('perso'); pose = {from:STATES[m[1]].p, to:STATES[m[1]].p, at:0, key:m[1]}; nowLabel.textContent = STATES[m[1]].name; frozen = /stop/.test(h); }
+  }
+
+  drawTimeline();
+  fromHash();
+  window.addEventListener('hashchange', fromHash);
+  window.NesaStudio = {render:render, states:STATES, palettes:PALETTES, sampleTimeline:sampleTimeline};
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
