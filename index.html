@@ -514,17 +514,12 @@
   .ph-arrow{display:none}
   .final-act{display:flex;align-items:center;gap:22px}
   body{overflow-x:clip}
-  .vwrap{position:relative;background:#fff;border-bottom:2px solid var(--ink);line-height:0}
+  .vwrap{position:relative;background:#fff;line-height:0}
   .vwrap video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#fff;cursor:pointer}
   .vplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;border:0;background:var(--violet);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 0 var(--violet-deep)}
   .vplay svg{width:34px;height:34px;margin-left:4px}
   .vprog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(24,34,58,.08)}
   .vprog i{display:block;height:100%;width:0;background:var(--violet)}
-  .vtabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px}
-  .vtabs button{text-align:left;border:2px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;cursor:pointer;font:inherit;color:var(--ink);line-height:1.25}
-  .vtabs button small{display:block;font-size:.78rem;font-weight:700;color:var(--violet-deep)}
-  .vtabs button span{display:block;font-size:.88rem;font-weight:700}
-  .vtabs button[aria-selected="true"]{border-color:var(--violet);background:var(--violet-soft)}
   .final-nesa{width:150px;height:150px;margin:-28px -18px}
   .dlg-title{display:flex;align-items:center;gap:10px}
   .dlg-nesa{width:60px;height:60px;margin:-11px}
@@ -539,9 +534,7 @@
     .laptop .screen{padding:8px 8px 10px;border-radius:16px 16px 4px 4px}
     .laptop .base{margin:0 -10px;height:12px}
     .hero-nesa{right:-10px;bottom:-34px;width:140px;height:140px}
-    .vtabs{grid-template-columns:1fr;gap:6px}
-    .vtabs button{display:flex;gap:8px;align-items:baseline}
-    .hero-bubble{right:86px;font-size:1.25rem;bottom:8px}
+        .hero-bubble{right:86px;font-size:1.25rem;bottom:8px}
     .hero-arrow{display:none}
     .sec-nesa{display:none}
     .final-nesa{width:110px;height:110px;margin:-20px -14px}
@@ -600,11 +593,6 @@
               <video id="vid" muted playsinline preload="metadata" poster="/videos/seance-quad.jpg" aria-label="Séance avec Nesalio : l'élève pose sa question, Nesa dessine l'explication et l'aide à trouver la réponse"></video>
               <button class="vplay" id="vPlay" type="button" aria-label="Lire la vidéo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
               <span class="vprog" aria-hidden="true"><i id="vProg"></i></span>
-            </div>
-            <div class="vtabs" role="tablist" aria-label="Choisis une séance">
-              <button type="button" role="tab" aria-selected="true" data-clip="quad"><small>Maths sec 4</small><span>Les zéros d'une parabole</span></button>
-              <button type="button" role="tab" aria-selected="false" data-clip="cine"><small>Physique sec 5</small><span>La pente, c'est la vitesse</span></button>
-              <button type="button" role="tab" aria-selected="false" data-clip="deriv"><small>Cégep</small><span>C'est quoi une dérivée ?</span></button>
             </div>
           </div>
           </div>
@@ -995,7 +983,7 @@ var FORM_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
   };
   var vid = document.getElementById('vid'), playBtn = document.getElementById('vPlay'), prog = document.getElementById('vProg');
   var len = document.getElementById('vLen'), field = document.getElementById('demoField');
-  var tabs = document.querySelectorAll('.vtabs [data-clip]'), heroNesa = document.querySelector('.hero-nesa');
+  var heroNesa = document.querySelector('.hero-nesa');
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var cur = 'quad', seen = {}, done = {}, visible = false, userPaused = reduce;
   var ORDER = ['quad', 'cine', 'deriv'];
@@ -1003,7 +991,6 @@ var FORM_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
     prog.style.width = '0';
     cur = k; vid.poster = '/videos/seance-' + k + '.jpg'; len.textContent = CLIPS[k].len;
     vid.innerHTML = '<source src="/videos/seance-' + k + '.mp4" type="video/mp4"><source src="/videos/seance-' + k + '.webm" type="video/webm">'; vid.load();
-    tabs.forEach(function(t){ t.setAttribute('aria-selected', t.dataset.clip === k ? 'true' : 'false'); });
   }
   function play(){ var p = vid.play(); if(p && p.catch) p.catch(function(){ sync(); }); }
   function sync(){
@@ -1028,9 +1015,6 @@ var FORM_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
   });
   vid.addEventListener('click', function(){ if(vid.paused){ userPaused = false; play(); } else { userPaused = true; vid.pause(); } });
   playBtn.addEventListener('click', function(){ userPaused = false; play(); });
-  tabs.forEach(function(t){
-    t.addEventListener('click', function(){ if(t.dataset.clip === cur && !vid.paused) return; load(t.dataset.clip); userPaused = false; nTrack('video_choix', {notion: cur}); play(); });
-  });
   load('quad'); sync();
   // lecture automatique (sans son) seulement quand la vidéo est visible
   if('IntersectionObserver' in window){
