@@ -73,7 +73,6 @@ T = [
 ("<h1 id=\"titre\">Ce n'est pas toi le problème.</h1>", '<h1 id="titre">You are not the problem.</h1>'),
 ('<p class="lede"><strong>Nesalio est un tuteur à la voix pour le secondaire 4-5 et le cégep.</strong> Il trouve la notion qui bloque vraiment et te la réexplique en dessinant, comme dans ton cours. Sans te donner la réponse.</p>',
  '<p class="lede"><strong>Nesalio is a voice tutor for Secondary 4-5 and CEGEP.</strong> It finds the concept that is really blocking you and explains it again by drawing, just like in class. Without giving you the answer.</p>'),
-('data-track="voir_seance">Voir une séance</a>', 'data-track="voir_seance">Watch a session</a>'),
 ('Démo gratuite de 15 min</li>', 'Free 15-min demo</li>'),
 ('Sans engagement</li>', 'No commitment</li>'),
 ('Programme québécois</li>', 'Québec curriculum</li>'),
