@@ -202,3 +202,10 @@ Une seule forme pleine, violet #5A45D6, deux yeux blancs en gélule, pas de bouc
 - `nesa.js` : moteur + composant. `<script src="/nesa.js" defer></script>` puis `<nesa-mascot state="ecoute" size="140"></nesa-mascot>` ; changer d'état : `el.state = "stylo"`.
 - Moteur : silhouettes en profils radiaux (même échantillonnage, donc transformation = interpolation des rayons), yeux posés sur une sphère, clignements pré-tirés ; rendu = fonction pure du temps. Principes inspirés du projet MIT « bloub », code écrit pour Nesalio.
 - `nesalio.com/mascotte` : page interne (non indexée) qui présente Nesa, ses 9 états, et permet de télécharger GIF, PNG et SVG. `/studio` y redirige.
+
+## Articles
+
+Les articles (`/articles`) sont générés par `tools/articles.py` à partir de `tools/articles_content.py` (texte, sources).
+Pour en ajouter un : ajoute une entrée dans `articles_content.py`, relance `python3 tools/articles.py`, puis ajoute l'adresse dans `sitemap.xml` et `llms.txt`.
+Chaque chiffre doit venir d'une source vérifiée, listée en bas de l'article. Le bouton de chaque article mène à la démo avec `?src=article-<nom>`, pour mesurer quel article amène des inscriptions.
+
