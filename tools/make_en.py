@@ -82,7 +82,6 @@ T = [
 ('</svg>Séance avec Nesalio</span>', '</svg>Session with Nesalio</span>'),
 ('aria-label="Séance avec Nesalio : l\'élève pose sa question, Nesa dessine l\'explication et l\'aide à trouver la réponse"',
  'aria-label="Session with Nesalio: the student asks a question, Nesa draws the explanation and helps them find the answer (video in French)"'),
-('aria-label="Lire la vidéo"', 'aria-label="Play the video"'),
 ('<p class="hero-bubble" aria-hidden="true">Regarde-moi en séance !</p>', '<p class="hero-bubble" aria-hidden="true">Watch me in a session!</p>'),
 # ---------- strip ----------
 ('aria-label="Exemples de notions couvertes"', 'aria-label="Examples of concepts covered"'),

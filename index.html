@@ -534,8 +534,6 @@
   body{overflow-x:clip}
   .vwrap{position:relative;background:#fff;line-height:0}
   .vwrap video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#fff;cursor:pointer}
-  .vplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;border:0;background:var(--violet);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 0 var(--violet-deep)}
-  .vplay svg{width:34px;height:34px;margin-left:4px}
   .vprog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(24,34,58,.08)}
   .vprog i{display:block;height:100%;width:0;background:var(--violet)}
   .final-nesa{width:150px;height:150px;margin:-28px -18px}
@@ -607,7 +605,6 @@
             </div>
             <div class="vwrap">
               <video id="vid" muted playsinline preload="metadata" poster="/videos/seance-quad-v3.jpg" aria-label="Séance avec Nesalio : l'élève pose sa question, Nesa dessine l'explication et l'aide à trouver la réponse"></video>
-              <button class="vplay" id="vPlay" type="button" aria-label="Lire la vidéo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
               <span class="vprog" aria-hidden="true"><i id="vProg"></i></span>
             </div>
           </div>
@@ -992,7 +989,7 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     cine:{name:'Physique sec 5 : pente et vitesse', len:'Vidéo, 26 s'},
     deriv:{name:'Cégep : la dérivée', len:'Vidéo, 23 s'}
   };
-  var vid = document.getElementById('vid'), playBtn = document.getElementById('vPlay'), prog = document.getElementById('vProg');
+  var vid = document.getElementById('vid'), prog = document.getElementById('vProg');
   var len = document.getElementById('vLen'), field = document.getElementById('demoField');
   var heroNesa = document.querySelector('.hero-nesa');
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1006,7 +1003,6 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
   }
   function play(){ var p = vid.play(); if(p && p.catch) p.catch(function(){ sync(); }); }
   function sync(){
-    playBtn.hidden = !vid.paused;
     if(heroNesa) heroNesa.setAttribute('state', vid.paused ? 'repos' : 'parle');
   }
   function mark(){
@@ -1026,7 +1022,6 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
       if(!done[cur] && vid.currentTime > vid.duration - 1.5){ done[cur] = 1; mark(); nTrack('video_fin', {notion: cur}); } }
   });
   vid.addEventListener('click', function(){ if(vid.paused){ userPaused = false; play(); } else { userPaused = true; vid.pause(); } });
-  playBtn.addEventListener('click', function(){ userPaused = false; play(); });
   load('quad'); sync();
   // lecture automatique (sans son) seulement quand la vidéo est visible
   if('IntersectionObserver' in window){
