@@ -239,7 +239,7 @@ T = [
 ("var src = q.get('src') || q.get('utm_source') || (document.referrer ? new URL(document.referrer).hostname : 'direct');",
  "var src = (q.get('src') || q.get('utm_source') || (document.referrer ? new URL(document.referrer).hostname : 'direct')) + ' (en)';"),
 ("    quad:{name:'Maths sec 4 : zéros d\\'une parabole', len:'Vidéo, 29 s'},", "    quad:{name:'Sec 4 math: zeros of a parabola', len:'Video in French, 29 s'},"),
-("    cine:{name:'Physique sec 5 : pente et vitesse', len:'Vidéo, 26 s'},", "    cine:{name:'Sec 5 physics: slope and speed', len:'Video in French, 26 s'},"),
+("    proj:{name:'Physique : mouvement d\\'un projectile', len:'Vidéo, 23 s'},", "    proj:{name:'Physics: projectile motion', len:'Video in French, 23 s'},"),
 ("    deriv:{name:'Cégep : la dérivée', len:'Vidéo, 23 s'}", "    deriv:{name:'CEGEP: the derivative', len:'Video in French, 23 s'}"),
 ('chaque_semaine:"Tu n\'es vraiment pas seul. C\'est exactement pour ces soirs-là qu\'on construit Nesalio.",', 'chaque_semaine:"You are really not alone. Those are exactly the nights we are building Nesalio for.",'),
 ('quelques_fois_session:"C\'est souvent à ces moments-là, avant un examen, que tout se joue. Nesalio est fait pour ça.",', 'quelques_fois_session:"Those moments before an exam are often when everything is decided. Nesalio is made for that.",'),

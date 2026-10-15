@@ -21,7 +21,7 @@ La page n'est pas seulement une liste d'attente. Chaque élément répond à une
 | Accepteront-ils une vraie conversation ? | Réservation d'une démo de 15 minutes, avec cellulaire obligatoire | Champs `formule` = `demo` et `cellulaire` |
 
 Chaque inscription arrive avec son **parcours complet**, par exemple :
-`arrivee:facebook-parents > video_vue:quad > video_choix:cine > video_fin:cine > sondage_frequence:chaque_semaine > clic_formule:demo > inscription:demo`
+`arrivee:facebook-parents > video_vue:quad > video_vue:proj > video_fin:proj > sondage_frequence:chaque_semaine > clic_formule:demo > inscription:demo`
 
 Tu sais donc, pour chaque personne, quelles vidéos elle a regardées, ce qu'elle a répondu au sondage et sur quel bouton elle a cliqué.
 
