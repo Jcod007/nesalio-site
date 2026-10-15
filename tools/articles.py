@@ -58,7 +58,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (max-width:560px){.wrap{padding:0 16px}.nav-links a.txt{display:none}main{padding:36px 0 60px}.cta-box{padding:20px}}
 """
 
-def head(title, desc, url, kind, extra_ld):
+def head(title, desc, url, kind, extra_ld, keywords=''):
     ld = json.dumps(extra_ld, ensure_ascii=False, indent=1)
     return f"""<!doctype html>
 <html lang="fr-CA">
@@ -67,6 +67,7 @@ def head(title, desc, url, kind, extra_ld):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)}</title>
 <meta name="description" content="{html.escape(desc)}">
+<meta name="keywords" content="{html.escape(keywords)}">
 <link rel="canonical" href="{url}">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta property="og:type" content="{kind}">
@@ -111,10 +112,11 @@ for a in ARTICLES:
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": a['title'], "description": a['desc'],
           "datePublished": DATE, "dateModified": DATE, "inLanguage": "fr-CA", "mainEntityOfPage": url,
           "author": {"@type": "Person", "name": AUTHOR}, "publisher": ORG, "image": "https://nesalio.com/og-image.png",
+          "keywords": a['keywords'], "audience": {"@type": "EducationalAudience", "educationalRole": "student, parent", "geographicArea": {"@type": "AdministrativeArea", "name": "Québec"}},
           "citation": [re.sub(r'<[^>]+>', '', s) for s, _ in a['sources']]}
     src_items = ''.join('<li>%s%s</li>' % (s, (' <a href="%s" rel="noopener">%s</a>' % (u, html.escape(u))) if u else '') for s, u in a['sources'])
     others = ''.join(card(o) for o in ARTICLES if o is not a)
-    page = head(a['title'] + ' | Nesalio', a['desc'], url, 'article', ld).replace('{SRC}', 'article-' + a['slug'])
+    page = head(a['seo_title'] + ' | Nesalio', a['seo_desc'], url, 'article', ld, a['keywords']).replace('{SRC}', 'article-' + a['slug'])
     page += f"""<main><div class="col">
 <article>
   <p class="kicker">{a['kicker']}</p>
@@ -133,8 +135,8 @@ for a in ARTICLES:
 url = 'https://nesalio.com/articles'
 ld = {"@context": "https://schema.org", "@type": "Blog", "name": "Articles Nesalio", "url": url, "inLanguage": "fr-CA", "publisher": ORG,
       "blogPost": [{"@type": "BlogPosting", "headline": a['title'], "url": f'https://nesalio.com/articles/{a["slug"]}', "datePublished": DATE} for a in ARTICLES]}
-desc = "Des articles courts, basés sur la recherche, pour aider les élèves du secondaire et du cégep à mieux apprendre, et les parents à les accompagner."
-page = head('Articles | Nesalio', desc, url, 'website', ld).replace('{SRC}', 'articles')
+desc = "Articles courts et sourcés pour les élèves du secondaire et du cégep au Québec et leurs parents : aide aux devoirs, ChatGPT, tutorat, méthodes d'étude en maths et en sciences."
+page = head('Articles : aide aux devoirs, maths et sciences au secondaire et au cégep | Nesalio', desc, url, 'website', ld, 'aide aux devoirs, maths secondaire, sciences, cégep, Québec, tuteur, méthodes d étude, parents').replace('{SRC}', 'articles')
 page += f"""<main><div class="col">
   <p class="kicker">Apprendre mieux</p>
   <h1>Articles</h1>

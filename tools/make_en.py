@@ -10,9 +10,9 @@ s = (ROOT / 'index.html').read_text(encoding='utf-8')
 T = [
 # ---------- head ----------
 ('<html lang="fr-CA">', '<html lang="en-CA">'),
-('<title>Nesalio | Tuteur à la voix en maths et sciences, sec 4-5 et cégep</title>', '<title>Nesalio | Voice tutor for math and science, Secondary 4-5 and CEGEP</title>'),
-('content="Un tuteur à la voix, propulsé par l\'intelligence artificielle, pour le secondaire 4-5 et le cégep : il trouve la notion qui te bloque et te la réexplique en dessinant, selon le programme québécois."',
- 'content="An AI-powered voice tutor for Secondary 4-5 and CEGEP: it finds the concept you are stuck on and explains it again by drawing, following the Québec curriculum."'),
+('<title>Tuteur maths et sciences au Québec, sec 4-5 et cégep | Nesalio</title>', '<title>Math and science tutor in Québec, Secondary 4-5 and CEGEP | Nesalio</title>'),
+('content="Aide aux devoirs en maths, physique et chimie pour le secondaire 4-5 et le cégep au Québec : un tuteur à la voix, propulsé par l\'intelligence artificielle, qui trouve la notion qui bloque et la réexplique en dessinant, selon le programme québécois."',
+ 'content="Homework help in math, physics and chemistry for Secondary 4-5 and CEGEP in Québec: an AI-powered voice tutor that finds the concept you are stuck on and explains it again by drawing, following the Québec curriculum."'),
 ('<link rel="canonical" href="https://nesalio.com/">', '<link rel="canonical" href="https://nesalio.com/en">'),
 ('<meta property="og:url" content="https://nesalio.com/">', '<meta property="og:url" content="https://nesalio.com/en">'),
 ('content="Tu bloques sur une notion de maths ou de sciences ? Ce n\'est pas toi le problème."', 'content="Stuck on a math or science concept? You are not the problem."'),
@@ -30,8 +30,8 @@ T = [
  '"url": "https://nesalio.com/en",\n   "name": "Nesalio, a voice tutor for math and science (Secondary 4-5 and CEGEP)",\n   "inLanguage": "en-CA",'),
 ('"@id": "https://nesalio.com/#page"', '"@id": "https://nesalio.com/en#page"'),
 ('"@id": "https://nesalio.com/#faq"', '"@id": "https://nesalio.com/en#faq"'),
-('"keywords": "tuteur à la voix, intelligence artificielle, aide aux devoirs, mathématiques secondaire 4, mathématiques secondaire 5, physique, chimie, cégep, programme québécois, SN, TS, CST"',
- '"keywords": "voice tutor, artificial intelligence, homework help, Secondary 4 math, Secondary 5 math, physics, chemistry, CEGEP, Québec curriculum, SN, TS, CST"'),
+('"keywords": "tuteur maths Québec, aide aux devoirs, tuteur à la voix, intelligence artificielle, récupération, examen du ministère, cote R, mathématiques secondaire 4, mathématiques secondaire 5, physique, chimie, cégep, programme québécois, SN, TS, CST"',
+ '"keywords": "math tutor Quebec, homework help, voice tutor, artificial intelligence, Quebec ministry exams, R score, Secondary 4 math, Secondary 5 math, physics, chemistry, CEGEP, Québec curriculum, SN, TS, CST"'),
 # FAQ (JSON-LD and page share the same sentences)
 ("Qu'est-ce que Nesalio ?", "What is Nesalio?"),
 ("Nesalio est un tuteur à la voix, propulsé par l'intelligence artificielle, pour les élèves de secondaire 4 et 5 et les étudiants du cégep au Québec. L'élève pose sa question à voix haute. Nesalio repère la notion qui bloque vraiment, puis la réexplique en dessinant l'explication étape par étape, selon le programme québécois et la démarche vue en classe. Il guide sans donner la réponse et vérifie que l'élève sait refaire seul. Les parents reçoivent un rapport de progrès chaque semaine.",
