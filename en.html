@@ -534,8 +534,6 @@
   body{overflow-x:clip}
   .vwrap{position:relative;background:#fff;line-height:0}
   .vwrap video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#fff;cursor:pointer}
-  .vprog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(24,34,58,.08)}
-  .vprog i{display:block;height:100%;width:0;background:var(--violet)}
   .final-nesa{width:150px;height:150px;margin:-28px -18px}
   .dlg-title{display:flex;align-items:center;gap:10px}
   .dlg-nesa{width:60px;height:60px;margin:-11px}
@@ -605,7 +603,6 @@
             </div>
             <div class="vwrap">
               <video id="vid" muted playsinline preload="metadata" poster="/videos/seance-quad-v3.jpg" aria-label="Session with Nesalio: the student asks a question, Nesa draws the explanation and helps them find the answer (video in French)"></video>
-              <span class="vprog" aria-hidden="true"><i id="vProg"></i></span>
             </div>
           </div>
           </div>
@@ -989,7 +986,7 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     cine:{name:'Sec 5 physics: slope and speed', len:'Video in French, 26 s'},
     deriv:{name:'CEGEP: the derivative', len:'Video in French, 23 s'}
   };
-  var vid = document.getElementById('vid'), prog = document.getElementById('vProg');
+  var vid = document.getElementById('vid');
   var len = document.getElementById('vLen'), field = document.getElementById('demoField');
   var heroNesa = document.querySelector('.hero-nesa');
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -997,7 +994,6 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
   var ORDER = ['quad', 'cine', 'deriv'];
   var VER = '-v3'; // changer à chaque nouvelle version des vidéos (elles sont en cache 7 jours)
   function load(k){
-    prog.style.width = '0';
     cur = k; vid.poster = '/videos/seance-' + k + VER + '.jpg'; len.textContent = CLIPS[k].len;
     vid.innerHTML = '<source src="/videos/seance-' + k + VER + '.mp4" type="video/mp4"><source src="/videos/seance-' + k + VER + '.webm" type="video/webm">'; vid.load();
   }
@@ -1018,7 +1014,7 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     if(!userPaused && (visible || !('IntersectionObserver' in window))) play(); else sync();
   });
   vid.addEventListener('timeupdate', function(){
-    if(vid.duration){ prog.style.width = (vid.currentTime / vid.duration * 100) + '%';
+    if(vid.duration){
       if(!done[cur] && vid.currentTime > vid.duration - 1.5){ done[cur] = 1; mark(); nTrack('video_fin', {notion: cur}); } }
   });
   vid.addEventListener('click', function(){ if(vid.paused){ userPaused = false; play(); } else { userPaused = true; vid.pause(); } });
