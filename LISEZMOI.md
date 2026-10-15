@@ -14,6 +14,7 @@ La page n'est pas seulement une liste d'attente. Chaque élément répond à une
 | Le problème est-il réel et assez douloureux pour qu'ils agissent déjà ? | Étape 2, une question par écran. Deux questions ouvertes sur un fait réel : « Raconte la dernière fois où tu as bloqué. C'était sur quoi ? » et « Qu'est-ce que tu as fait pour t'en sortir ? Est-ce que ça a marché ? ». Puis « Combien dépense ta famille par mois ? » | Champs `notion` et `derniere_fois` (texte libre, à lire et à classer à la main), `depense_mensuelle` |
 | Est-ce urgent maintenant ? | Étape 2 : « Ton prochain examen important, c'est quand ? » | Champ `urgence` |
 | La solution intéresse-t-elle ? | Vidéos de séance regardées, et jusqu'au bout ou non | Champs `demo` et `parcours` ; événements `video_vue`, `video_choix`, `video_fin` |
+| Quelles matières intéressent le plus ? | Onglets de la section « Les notions de ton cours » (Fonctions, Calcul, Mécanique, Électricité, Optique, Chimie) | Événement `onglet_matiere` dans le champ `parcours` |
 | Sont-ils prêts à essayer ? | Clics sur « Essayer gratuitement » puis inscription | Événements `clic_essayer`, `inscription` ; nombre d'inscrits |
 | Jusqu'où sont-ils prêts à s'engager ? | Bouton choisi dans la section démo : « M'avertir à l'ouverture » (engagement faible) ou « Réserver ma démo » de 15 minutes (engagement fort). Tous les autres boutons « Réserver une démo » comptent comme une démo. Aucun prix n'est affiché. | Champ `formule` (`avertir`, `demo`) |
 | Qui achète ? | « Tu es » (élève sec 4, sec 5, cégep, parent, enseignant) | Champ `profil` |
@@ -39,7 +40,8 @@ Calcule-les à la fin de chaque campagne (export CSV de Formspree, plus les visi
 
 **B. Attrait de la solution**
 - **Taux de visionnage** = visiteurs ayant vu au moins une vidéo ÷ visiteurs (la première se lance seule, sans son, quand elle est visible).
-- **Taux de choix** = visiteurs qui ont cliqué sur une autre séance (`video_choix`) ÷ visiteurs : c'est le vrai signal d'intérêt.
+- **Matières qui intéressent** = nombre de clics `onglet_matiere` par matière. Compare-le avec la matière nommée dans la question ouverte « C'était dans quelle matière ? ».
+- Les images de cette section sont générées par `tools/notions.py` (puis relancer `tools/make_en.py`).
 - **Taux de fin** = vidéos regardées jusqu'au bout ÷ vidéos lancées.
 - **Effet des vidéos** = taux d'inscription des visiteurs qui ont vu une vidéo jusqu'au bout, comparé à celui des autres.
 
