@@ -7,6 +7,7 @@ import { transcribeAudio } from "@/server/ai/audio";
 import { readAiConfig } from "@/server/config";
 import { checkRate, jsonError, readJson } from "@/server/http";
 import { createRateLimiter } from "@/server/rateLimit";
+import { isUnavailable } from "@/server/tutor/service";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -45,6 +46,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ text }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.warn("transcribe: échec", error);
+    // 503 : le navigateur passe à sa propre reconnaissance vocale.
+    if (isUnavailable(error)) return jsonError(503, "Transcription indisponible pour le moment.");
     return jsonError(502, "Je n'ai pas réussi à comprendre l'enregistrement.");
   }
 }

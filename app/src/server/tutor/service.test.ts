@@ -72,6 +72,17 @@ describe("tutorEvents", () => {
     expect(events.at(-1)).toEqual({ kind: "end", summary: [] });
   });
 
+  it("joue la démonstration si le service d'IA refuse l'accès (paiement requis)", async () => {
+    const refused: CompletionStream = async function* () {
+      throw new UpstreamError("paiement requis", 403);
+    };
+    const events = await collect(
+      tutorEvents({ mode: "question", question: "C'est quoi une dérivée ?" }, { ...base, completion: refused }),
+    );
+    expect(events.filter((e) => e.kind === "source").at(-1)).toEqual({ kind: "source", source: "demo" });
+    expect(events.some((e) => e.kind === "step")).toBe(true);
+  });
+
   it("signale une réponse vide", async () => {
     const events = await collect(
       tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("Désolé, je ne peux pas.") }),

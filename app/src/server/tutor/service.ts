@@ -10,7 +10,7 @@ import type { Lesson, StreamEvent } from "@/domain/scene/schema";
 import { createModelOutputParser, JsonObjectScanner } from "@/domain/tutor/modelOutput";
 import type { TutorRequest } from "@/domain/tutor/request";
 import type { ChatProvider } from "@/server/config";
-import type { CompletionStream } from "./chatCompletions";
+import { UpstreamError, type CompletionStream } from "./chatCompletions";
 import { buildMessages } from "./prompt";
 
 export const MAX_STEPS = 12;
@@ -40,6 +40,12 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
   } catch (error) {
     config.log?.("tutor: échec de l'appel au modèle", error);
     if (config.signal?.aborted) return;
+    if (steps === 0 && isUnavailable(error)) {
+      // Service d'IA non activé (paiement, droits) : la démonstration plutôt qu'une erreur.
+      yield { kind: "source", source: "demo" };
+      yield* demoEvents(request);
+      return;
+    }
     if (steps === 0) {
       yield { kind: "error", code: "upstream", message: "Nesa n'arrive pas à répondre pour le moment. Réessaie dans un instant." };
       return;
@@ -129,4 +135,9 @@ export function* demoEvents(request: TutorRequest): Generator<StreamEvent> {
     };
   }
   yield* rest;
+}
+
+/** Erreur d'accès (clé refusée, paiement requis) : le service n'est pas utilisable pour l'instant. */
+export function isUnavailable(error: unknown): boolean {
+  return error instanceof UpstreamError && [401, 402, 403].includes(error.status ?? 0);
 }

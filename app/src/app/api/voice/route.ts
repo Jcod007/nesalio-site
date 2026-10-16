@@ -8,6 +8,7 @@ import { synthesizeSpeech } from "@/server/ai/audio";
 import { readAiConfig } from "@/server/config";
 import { checkRate, jsonError, readJson } from "@/server/http";
 import { createRateLimiter } from "@/server/rateLimit";
+import { isUnavailable } from "@/server/tutor/service";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -42,6 +43,8 @@ export async function POST(request: Request): Promise<Response> {
     });
   } catch (error) {
     console.warn("voice: échec de la synthèse", error);
+    // 503 : le navigateur passe tout de suite à sa propre voix.
+    if (isUnavailable(error)) return jsonError(503, "Voix indisponible pour le moment.");
     return jsonError(502, "La voix n'a pas pu être générée.");
   }
 }
