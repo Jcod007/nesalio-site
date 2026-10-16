@@ -1,0 +1,90 @@
+import { describe, expect, it } from "vitest";
+import { createModelOutputParser, JsonObjectScanner } from "./modelOutput";
+
+describe("JsonObjectScanner", () => {
+  it("retrouve les objets même découpés en morceaux, sur plusieurs lignes ou entourés de texte", () => {
+    const scanner = new JsonObjectScanner();
+    const text = 'Voici :\n```json\n{"kind":"lesson","title":"A {b}"}\n{"kind":"step",\n "say":"x \\" }",\n "do":[{"type":"note","text":"y"}]}\n```';
+    const found: string[] = [];
+    for (const ch of text.match(/.{1,7}/gs)!) found.push(...scanner.push(ch));
+    expect(found).toHaveLength(2);
+    expect(JSON.parse(found[0]!)).toEqual({ kind: "lesson", title: "A {b}" });
+    expect(JSON.parse(found[1]!).say).toBe('x " }');
+  });
+});
+
+describe("createModelOutputParser", () => {
+  it("valide une étape complète", () => {
+    const parser = createModelOutputParser();
+    const event = parser.parseLine(
+      JSON.stringify({
+        kind: "step",
+        say: "On trace la courbe.",
+        mood: "dessine",
+        do: [
+          { type: "axes", x: [-1, 5], y: [-3, 4] },
+          { type: "curve", id: "f", fn: "-(x-2)^2+3", color: "blue" },
+        ],
+      }),
+    );
+    expect(event).toMatchObject({ kind: "step", say: "On trace la courbe.", mood: "dessine" });
+    expect(event?.kind === "step" && event.do).toHaveLength(2);
+    expect(parser.issues).toHaveLength(0);
+  });
+
+  it("corrige les écarts courants : alias, identifiant manquant, kind oublié, {x,y}", () => {
+    const parser = createModelOutputParser();
+    const event = parser.parseLine(
+      JSON.stringify({
+        say: "Regarde.",
+        do: [
+          { type: "line", from: [0, 0], to: [1, 1] },
+          { type: "dot", x: 1, y: 2, label: "A" },
+        ],
+      }),
+    );
+    expect(event?.kind).toBe("step");
+    if (event?.kind !== "step") throw new Error();
+    expect(event.do.map((a) => a.type)).toEqual(["segment", "point"]);
+    expect(event.do[0]).toHaveProperty("id");
+    expect(event.do[1]).toMatchObject({ at: [1, 2] });
+  });
+
+  it("garde la phrase quand une commande est invalide, et l'écarte", () => {
+    const parser = createModelOutputParser();
+    const event = parser.parseLine(
+      JSON.stringify({
+        kind: "step",
+        say: "On garde la phrase.",
+        do: [
+          { type: "curve", id: "bad", fn: "alert(1)" },
+          { type: "point", id: "ok", at: [0, 0] },
+          { type: "teleport", id: "z" },
+        ],
+      }),
+    );
+    if (event?.kind !== "step") throw new Error();
+    expect(event.do).toEqual([{ type: "point", id: "ok", at: [0, 0] }]);
+    expect(parser.issues.length).toBe(2);
+  });
+
+  it("écarte une question de vérification incohérente sans perdre l'étape", () => {
+    const parser = createModelOutputParser();
+    const event = parser.parseLine(
+      JSON.stringify({
+        kind: "step",
+        say: "Question.",
+        check: { prompt: "?", choices: ["a", "b"], answer: 5, ifRight: "oui", ifWrong: "non" },
+      }),
+    );
+    if (event?.kind !== "step") throw new Error();
+    expect(event.check).toBeUndefined();
+  });
+
+  it("rejette le texte qui n'est pas du JSON", () => {
+    const parser = createModelOutputParser();
+    expect(parser.parseLine("Bien sûr, voici la réponse")).toBeNull();
+    expect(parser.parseLine('{"kind":"weird"}')).toBeNull();
+    expect(parser.parseLine('{"kind":"step","say":""}')).toBeNull();
+  });
+});
