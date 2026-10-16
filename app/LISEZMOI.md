@@ -8,20 +8,24 @@ pas »), lui poser une question sur ce qui est au tableau, puis reprendre.
 - **Next.js 16 + TypeScript**, déployé sur Vercel.
 - **manim-web** pour le tableau : repère, courbes, vecteurs, `Create`,
   `GrowArrow`, `Indicate`, `FadeOut`, caméra pour le zoom.
-- **OpenRouter** pour le modèle (configurable), appelé uniquement côté serveur.
-- **Voix du navigateur** pour Nesa et pour le micro (en attendant une voix clonée).
+- **Vercel AI Gateway** pour le modèle, la voix de Nesa et la transcription du
+  micro, appelé uniquement côté serveur. Sur Vercel, l'authentification est
+  automatique (jeton OIDC) : aucune clé à gérer. OpenRouter reste possible
+  pour le modèle.
+- **Repli automatique** : sans service d'IA, séances de démonstration, voix du
+  navigateur et reconnaissance vocale du navigateur.
 
 ## Démarrer
 
 ```bash
 npm install
-cp .env.example .env.local   # puis coller la clé OpenRouter
+vercel env pull .env.local   # jeton OIDC pour AI Gateway (ou voir .env.example)
 npm run dev                  # http://localhost:3000
 npm test                     # tests unitaires (moteur, langage de scène, serveur)
 npm run typecheck
 ```
 
-Sans `OPENROUTER_API_KEY`, l'application joue trois séances de démonstration
+Sans accès à AI Gateway (ni `OPENROUTER_API_KEY`), l'application joue trois séances de démonstration
 (zéros d'une quadratique, portée d'un projectile, dérivée) et l'indique par une
 étiquette « Démonstration » en haut de l'écran.
 
@@ -38,7 +42,7 @@ QuestionInput ─▶ Player ─▶ TutorSource (HTTP) ──POST /api/tutor─�
                   │  └──── étapes validées, en flux NDJSON ◀──────────┤ modelOutput.ts (validation)
                   │                                                   │ prompt.ts (consignes + exemple)
                   ▼                                                   ▼
-           BoardState (pur) ─▶ ManimRenderer (manim-web)        OpenRouter (flux SSE)
+           BoardState (pur) ─▶ ManimRenderer (manim-web)     AI Gateway (flux SSE)
                   │          ─▶ NotesColumn (calculs)
                   └─▶ Speaker (voix) · Dock (sous-titres, choix, interruption)
 ```
@@ -47,7 +51,7 @@ QuestionInput ─▶ Player ─▶ TutorSource (HTTP) ──POST /api/tutor─�
 |---|---|---|
 | `src/domain/` | Le cœur, sans React ni réseau : langage de scène (Zod), parseur d'expressions sûr, état du tableau, planification des tracés, validation de la sortie du modèle | rien |
 | `src/engine/` | `Player` : la machine à états qui joue les étapes, gère l'interruption et la reprise. `ports.ts` définit ce dont il a besoin (voix, source, horloge) | `domain` |
-| `src/server/` | Route `/api/tutor`, consignes du modèle, appel OpenRouter, limite d'usage | `domain`, `content` |
+| `src/server/` | Routes `/api/tutor`, `/api/voice`, `/api/transcribe`, `/api/status` ; consignes du modèle, appels à AI Gateway, limites d'usage | `domain`, `content` |
 | `src/services/` | Implémentations navigateur des ports : voix, micro, client HTTP | `domain`, `engine` |
 | `src/ui/` | Écran : tableau manim-web, carte de Nesa, colonne de calculs, accueil | tout le reste |
 | `src/content/` | Séances de démonstration écrites dans le langage de scène (servent aussi d'exemple au modèle et aux tests) | `domain` |
@@ -93,8 +97,8 @@ la décrire dans `prompt.ts`. Les tests signalent ce qui manque.
 ## Déploiement (Vercel)
 
 1. Importer le dépôt dans Vercel (cadre Next.js détecté automatiquement).
-2. Variables d'environnement : `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`
-   (facultatif), `NEXT_PUBLIC_APP_URL=https://app.nesalio.com`.
+2. Aucune variable obligatoire : AI Gateway est authentifié par le jeton OIDC
+   de Vercel. Variables facultatives : voir `.env.example`.
 3. Domaine : ajouter `app.nesalio.com` au projet, puis l'enregistrement DNS
    indiqué par Vercel.
 4. Sur le site nesalio.com, faire pointer le bouton « Essayer Nesalio » (ou la
@@ -105,22 +109,20 @@ la décrire dans `prompt.ts`. Les tests signalent ce qui manque.
 - **Limite d'usage en mémoire** (20 questions par 10 minutes et par adresse) :
   approximative sur Vercel, car chaque instance a son compteur. Pour la
   production, la brancher sur un stockage partagé (Upstash Redis).
-- **Voix du navigateur** : la qualité dépend de l'appareil. Le port `Speaker`
-  permet de brancher une voix clonée (voir ci-dessous) sans toucher au moteur.
-- **Micro** : reconnaissance vocale du navigateur (Chrome, Edge, Safari). Le
-  bouton est masqué ailleurs.
+- **Voix** : générée phrase par phrase (Gemini TTS via AI Gateway), préchargée
+  pour éviter les blancs ; la première phrase met environ une seconde de plus.
+- **Micro** : la fin de la phrase est détectée par le silence (1,4 s), puis la
+  phrase est transcrite par le serveur. Il faut autoriser le micro.
 - **Petits écrans** : un repère très large (par exemple 0 à 40 m) devient petit
   sur téléphone ; on peut zoomer avec deux doigts.
 - Aucun compte, aucune donnée enregistrée : les questions passent par le
   modèle et ne sont pas conservées par l'application.
 
-## Brancher une voix clonée
+## Changer la voix de Nesa
 
-1. Créer la voix chez le fournisseur choisi (voir la recommandation dans la
-   conversation : ElevenLabs ou Cartesia), avec l'accord écrit de la personne
-   dont c'est la voix.
-2. Ajouter une route serveur `/api/voice` qui reçoit une phrase et renvoie
-   l'audio du fournisseur (la clé reste côté serveur).
-3. Écrire un `Speaker` (`src/services/voice/`) qui joue cet audio et dont
-   `estimate()` renvoie la durée réelle du fichier ; le brancher dans
-   `src/ui/hooks/useTutor.ts`.
+- **Autre voix prédéfinie** : variables `VOICE_NAME` (par exemple `Kore`,
+  `Zephyr`, `Puck`) et `VOICE_INSTRUCTIONS` (ton, rythme, accent).
+- **Voix clonée** (la tienne ou celle d'une personne qui donne son accord
+  écrit) : créer la voix chez ElevenLabs ou Cartesia, puis remplacer l'appel
+  de `src/server/ai/audio.ts > synthesizeSpeech` par l'API du fournisseur. La
+  route `/api/voice` et le lecteur côté navigateur restent identiques.

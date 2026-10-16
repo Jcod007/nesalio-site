@@ -1,14 +1,14 @@
 /**
  * POST /api/tutor — reçoit la question de l'élève et renvoie l'explication
  * en flux NDJSON (un événement par ligne), au fur et à mesure que le modèle
- * la génère. La clé OpenRouter ne quitte jamais le serveur.
+ * la génère. Les identifiants du modèle ne quittent jamais le serveur.
  */
 import type { StreamEvent } from "@/domain/scene/schema";
 import { encodeLine } from "@/domain/tutor/ndjson";
 import { TutorRequestSchema } from "@/domain/tutor/request";
-import { readServerConfig } from "@/server/config";
+import { readAiConfig } from "@/server/config";
 import { clientKey, createRateLimiter } from "@/server/rateLimit";
-import { streamOpenRouter } from "@/server/tutor/openrouter";
+import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
 
 export const runtime = "nodejs";
@@ -53,14 +53,11 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const config = readServerConfig();
-  const signal = request.signal;
+  const config = readAiConfig(request.headers);
   const events = tutorEvents(parsed.data, {
-    apiKey: config.openRouterApiKey,
-    model: config.model,
-    appUrl: config.appUrl,
-    completion: streamOpenRouter,
-    signal,
+    provider: config.chat,
+    completion: streamChatCompletion,
+    signal: request.signal,
     log: (message, detail) => console.warn(message, detail),
   });
 

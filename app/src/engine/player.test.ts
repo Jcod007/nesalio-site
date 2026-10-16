@@ -169,6 +169,19 @@ describe("Player", () => {
     await speakUntil(player, voice, (s) => s.status === "done");
   });
 
+  it("cale la phrase sur la durée réelle de la voix et prépare la suivante", async () => {
+    const voice = fakeSpeaker();
+    const prefetched: string[] = [];
+    const speaker: Speaker = { ...voice.speaker, prepare: async () => 4321, prefetch: (text) => prefetched.push(text) };
+    const { source } = scriptedSource(() => [step("Un."), step("Deux."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker, source, clock: fakeClock() });
+    player.ask("?");
+    await until(player, (s) => s.caption?.text === "Un.");
+    expect(player.getSnapshot().caption?.durationMs).toBe(4321);
+    await until(player, () => prefetched.includes("Deux."));
+    await speakUntil(player, voice, (s) => s.status === "done");
+  });
+
   it("affiche une erreur si la première réponse échoue", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [{ kind: "error", code: "upstream", message: "Indisponible" }]);

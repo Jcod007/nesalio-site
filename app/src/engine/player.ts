@@ -67,6 +67,7 @@ export const INITIAL_SNAPSHOT: PlayerSnapshot = {
 /** Pause entre deux étapes, pour laisser le temps de regarder le tableau. */
 export const PAUSE_BETWEEN_STEPS_MS = 350;
 const MAX_HISTORY = 16;
+const PREPARE_TIMEOUT_MS = 8000;
 
 interface Segment {
   kind: "question" | "followUp";
@@ -234,6 +235,8 @@ export class Player {
           case "step": {
             const { kind: _kind, ...step } = event;
             segment.steps.push(step);
+            // Une étape qui sera bientôt jouée : sa voix peut se préparer dès maintenant.
+            if (segment.steps.length - 1 <= segment.cursor + 2) this.deps.speaker.prefetch?.(step.say);
             this.poke();
             break;
           }
@@ -325,8 +328,17 @@ export class Player {
     this.stepAbort = abort;
     segment.inProgress = true;
 
+    // La phrase est préparée (voix générée) avant de dessiner : les tracés se calent sur sa vraie durée.
+    const speechMs = await this.prepareSpeech(step.say, abort.signal);
+    if (abort.signal.aborted) return false;
+    const next = segment.steps[segment.cursor + 1];
+    if (next) speaker.prefetch?.(next.say);
+    if (step.check) {
+      speaker.prefetch?.(step.check.ifRight);
+      speaker.prefetch?.(step.check.ifWrong);
+    }
+
     const now = clock.now();
-    const speechMs = speaker.estimate(step.say);
     let drawingMs = 0;
 
     if (segment.appliedUpTo <= segment.cursor) {
@@ -376,6 +388,25 @@ export class Player {
 
     await clock.sleep(PAUSE_BETWEEN_STEPS_MS, abort.signal);
     return !abort.signal.aborted;
+  }
+
+  /** Durée réelle de la phrase si la voix sait la préparer (8 s au plus), sinon l'estimation. */
+  private async prepareSpeech(text: string, signal: AbortSignal): Promise<number> {
+    const { speaker, clock } = this.deps;
+    const fallback = speaker.estimate(text);
+    if (!speaker.prepare) return fallback;
+    const timeout = new AbortController();
+    const onAbort = () => timeout.abort();
+    signal.addEventListener("abort", onAbort, { once: true });
+    try {
+      return await Promise.race([
+        speaker.prepare(text).catch(() => fallback),
+        clock.sleep(PREPARE_TIMEOUT_MS, timeout.signal).then(() => fallback),
+      ]);
+    } finally {
+      timeout.abort();
+      signal.removeEventListener("abort", onAbort);
+    }
   }
 
   private remember(sentence: string) {

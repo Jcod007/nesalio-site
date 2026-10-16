@@ -19,6 +19,13 @@ export interface Speaker {
   speak(text: string): SpeechHandle;
   /** Coupe la phrase en cours. */
   cancel(): void;
+  /**
+   * Facultatif : prépare la phrase (par exemple, génère l'audio) et renvoie
+   * sa durée réelle en ms. Le lecteur s'en sert pour caler les tracés.
+   */
+  prepare?(text: string): Promise<number>;
+  /** Facultatif : commence à préparer une phrase qui viendra bientôt. */
+  prefetch?(text: string): void;
 }
 
 export interface TutorSource {

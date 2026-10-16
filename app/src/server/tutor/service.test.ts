@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { serializeLesson } from "./prompt";
 import { derivativeLesson } from "@/content/demoLessons";
 import type { StreamEvent } from "@/domain/scene/schema";
-import { parseSse, UpstreamError, type CompletionStream } from "./openrouter";
+import { parseSse, UpstreamError, type CompletionStream } from "./chatCompletions";
 import { tutorEvents } from "./service";
 
 async function collect(iterable: AsyncIterable<StreamEvent>) {
@@ -23,7 +23,7 @@ const fakeCompletion =
     }
   };
 
-const base = { model: "test", apiKey: "k" };
+const base = { provider: { name: "gateway" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
   it("relaie une séance complète du modèle, validée étape par étape", async () => {
@@ -81,13 +81,13 @@ describe("tutorEvents", () => {
 
   it("joue une séance de démonstration sans clé", async () => {
     const events = await collect(
-      tutorEvents({ mode: "question", question: "C'est quoi une dérivée ?" }, { model: "m", completion: fakeCompletion("") }),
+      tutorEvents({ mode: "question", question: "C'est quoi une dérivée ?" }, { provider: null, completion: fakeCompletion("") }),
     );
     expect(events[0]).toEqual({ kind: "source", source: "demo" });
     expect(events[1]).toMatchObject({ title: derivativeLesson.header.title });
 
     const other = await collect(
-      tutorEvents({ mode: "question", question: "La mitose ?" }, { model: "m", completion: fakeCompletion("") }),
+      tutorEvents({ mode: "question", question: "La mitose ?" }, { provider: null, completion: fakeCompletion("") }),
     );
     expect(other[2]).toMatchObject({ kind: "step", mood: "idee" });
   });

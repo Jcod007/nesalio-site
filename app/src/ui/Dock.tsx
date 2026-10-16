@@ -3,6 +3,8 @@
 import { forwardRef } from "react";
 import type { PlayerSnapshot } from "@/engine/player";
 import { Caption } from "./Caption";
+import { useVoiceInput } from "./hooks/useVoiceInput";
+import { MicButton } from "./MicButton";
 import { Nesa } from "./Nesa";
 import { QuestionInput } from "./QuestionInput";
 import { nesaStateFor } from "./theme";
@@ -31,6 +33,9 @@ interface Props {
  */
 export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, lastAsked, listening, actions }, ref) {
   const { status, caption, check } = snapshot;
+  // Micro de la carte : parler à Nesa pendant qu'elle explique, c'est l'interrompre.
+  const voice = useVoiceInput((state) => actions.setListening(state !== "idle"));
+  const voiceBusy = voice.state !== "idle";
   const nesa = nesaStateFor(status, caption?.mood, listening);
   const speaking = status === "playing" || status === "checking";
 
@@ -59,12 +64,15 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
                 {snapshot.summary.length > 0 ? "Bien travaillé ! Voici ce qu'il faut retenir." : "Tu as une autre question ? Je suis là."}
               </p>
             ) : status === "paused" ? (
-              <p className={styles.caption}>Je t&apos;écoute. Qu&apos;est-ce qui n&apos;est pas clair ?</p>
+              <p className={styles.caption}>
+                {voice.state === "transcribing" ? "Je note ce que tu m'as dit…" : "Je t'écoute. Qu'est-ce qui n'est pas clair ?"}
+              </p>
             ) : caption ? (
               <Caption key={`${caption.startedAt}`} caption={caption} speaking={speaking} />
             ) : null}
             {status === "thinking" && caption ? <span className={styles.dots} aria-label="Nesa réfléchit" /> : null}
             {snapshot.error && status !== "error" ? <p className={styles.notice}>{snapshot.error}</p> : null}
+            {voice.error ? <p className={styles.notice}>{voice.error}</p> : null}
           </div>
         </div>
 
@@ -105,12 +113,19 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
 
         <div className={styles.controls}>
           {status === "playing" || status === "checking" || (status === "thinking" && caption) ? (
-            <button type="button" className="btn-line" onClick={actions.interrupt}>
-              <PauseIcon /> Attends, je comprends pas
-            </button>
+            <>
+              <button type="button" className="btn-line" onClick={actions.interrupt}>
+                <PauseIcon /> Attends, je comprends pas
+              </button>
+              <MicButton voice={voice} variant="pill" onStart={actions.interrupt} onResult={actions.followUp} />
+            </>
           ) : null}
 
-          {status === "paused" ? (
+          {status === "paused" && voiceBusy ? (
+            <MicButton voice={voice} variant="pill" onResult={actions.followUp} />
+          ) : null}
+
+          {status === "paused" && !voiceBusy ? (
             <>
               <QuestionInput
                 placeholder="Dis-moi ce qui bloque…"

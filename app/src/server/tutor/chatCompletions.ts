@@ -1,11 +1,10 @@
 /**
- * Appel en flux à l'API OpenRouter (format compatible OpenAI).
- * Produit le texte du modèle morceau par morceau, au fil de la génération.
+ * Appel en flux à une API « Chat Completions » compatible OpenAI
+ * (Vercel AI Gateway ou OpenRouter). Produit le texte du modèle morceau par
+ * morceau, au fil de la génération.
  */
 import { LineSplitter } from "@/domain/tutor/ndjson";
 import type { ChatMessage } from "./prompt";
-
-const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 export class UpstreamError extends Error {
   constructor(
@@ -18,11 +17,12 @@ export class UpstreamError extends Error {
 }
 
 export interface CompletionOptions {
+  endpoint: string;
   apiKey: string;
   model: string;
   messages: ChatMessage[];
   signal?: AbortSignal;
-  appUrl?: string;
+  extraHeaders?: Record<string, string>;
   maxTokens?: number;
   /** Remplaçable dans les tests. */
   fetchImpl?: typeof fetch;
@@ -31,16 +31,15 @@ export interface CompletionOptions {
 /** Une source de texte en flux : c'est tout ce dont le reste du serveur a besoin. */
 export type CompletionStream = (options: CompletionOptions) => AsyncIterable<string>;
 
-export const streamOpenRouter: CompletionStream = async function* (options) {
+export const streamChatCompletion: CompletionStream = async function* (options) {
   const fetchImpl = options.fetchImpl ?? fetch;
-  const response = await fetchImpl(ENDPOINT, {
+  const response = await fetchImpl(options.endpoint, {
     method: "POST",
     signal: options.signal,
     headers: {
       Authorization: `Bearer ${options.apiKey}`,
       "Content-Type": "application/json",
-      ...(options.appUrl ? { "HTTP-Referer": options.appUrl } : {}),
-      "X-Title": "Nesalio",
+      ...options.extraHeaders,
     },
     body: JSON.stringify({
       model: options.model,
@@ -53,13 +52,13 @@ export const streamOpenRouter: CompletionStream = async function* (options) {
 
   if (!response.ok || !response.body) {
     const detail = await response.text().catch(() => "");
-    throw new UpstreamError(`OpenRouter a répondu ${response.status} ${detail.slice(0, 200)}`, response.status);
+    throw new UpstreamError(`Le modèle a répondu ${response.status} ${detail.slice(0, 300)}`, response.status);
   }
 
   yield* parseSse(response.body);
 };
 
-/** Lit un flux SSE d'OpenRouter et en extrait le texte généré. */
+/** Lit un flux SSE (format OpenAI) et en extrait le texte généré. */
 export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
@@ -69,7 +68,7 @@ export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerato
       const { done, value } = await reader.read();
       const lines = done ? splitter.flush() : splitter.push(decoder.decode(value, { stream: true }));
       for (const line of lines) {
-        if (!line.startsWith("data:")) continue; // commentaires « : OPENROUTER PROCESSING »
+        if (!line.startsWith("data:")) continue; // commentaires de maintien de connexion
         const data = line.slice(5).trim();
         if (data === "[DONE]") return;
         let payload: { choices?: { delta?: { content?: string } }[]; error?: { message?: string } };

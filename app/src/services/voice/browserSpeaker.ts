@@ -27,8 +27,10 @@ export function createBrowserSpeaker(): BrowserSpeaker {
   const pickVoice = () => {
     if (!synth) return;
     const voices = synth.getVoices();
+    // Les voix « naturelles » (Edge, Chrome, Safari améliorées) sonnent bien moins robotiques.
+    const natural = /natural|neural|online|google|premium|enhanced|amélioré/i;
     const score = (v: SpeechSynthesisVoice) =>
-      (v.lang === "fr-CA" ? 4 : v.lang.startsWith("fr") ? 2 : 0) + (v.localService ? 0 : 1);
+      (natural.test(v.name) ? 5 : 0) + (v.lang === "fr-CA" ? 3 : v.lang.startsWith("fr") ? 1 : 0) + (v.localService ? 0 : 1);
     voice = voices.filter((v) => v.lang.startsWith("fr")).sort((a, b) => score(b) - score(a))[0] ?? null;
   };
   if (synth) {

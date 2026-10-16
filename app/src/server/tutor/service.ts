@@ -9,23 +9,22 @@ import { matchDemoLesson, DEMO_LESSONS } from "@/content/demoLessons";
 import type { Lesson, StreamEvent } from "@/domain/scene/schema";
 import { createModelOutputParser, JsonObjectScanner } from "@/domain/tutor/modelOutput";
 import type { TutorRequest } from "@/domain/tutor/request";
-import type { CompletionStream } from "./openrouter";
+import type { ChatProvider } from "@/server/config";
+import type { CompletionStream } from "./chatCompletions";
 import { buildMessages } from "./prompt";
 
 export const MAX_STEPS = 12;
 
 export interface TutorServiceConfig {
-  /** Sans clé, on joue les séances de démonstration. */
-  apiKey?: string;
-  model: string;
-  appUrl?: string;
+  /** Sans fournisseur, on joue les séances de démonstration. */
+  provider: ChatProvider | null;
   completion: CompletionStream;
   signal?: AbortSignal;
   log?: (message: string, detail?: unknown) => void;
 }
 
 export async function* tutorEvents(request: TutorRequest, config: TutorServiceConfig): AsyncGenerator<StreamEvent> {
-  if (!config.apiKey) {
+  if (!config.provider) {
     yield { kind: "source", source: "demo" };
     yield* demoEvents(request);
     return;
@@ -62,10 +61,12 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
   let ended = false;
   let headerSent = false;
 
+  const provider = config.provider!;
   const text = config.completion({
-    apiKey: config.apiKey!,
-    model: config.model,
-    appUrl: config.appUrl,
+    endpoint: provider.endpoint,
+    apiKey: provider.apiKey,
+    model: provider.model,
+    extraHeaders: provider.extraHeaders,
     messages: buildMessages(request),
     signal: config.signal,
   });
