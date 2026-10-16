@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { serializeLesson } from "./prompt";
 import { derivativeLesson } from "@/content/demoLessons";
 import type { StreamEvent } from "@/domain/scene/schema";
-import { parseSse, UpstreamError, type CompletionStream } from "./chatCompletions";
+import { parseAnthropicSse, parseSse, UpstreamError, type CompletionStream } from "./chatCompletions";
 import { tutorEvents } from "./service";
 
 async function collect(iterable: AsyncIterable<StreamEvent>) {
@@ -23,7 +23,7 @@ const fakeCompletion =
     }
   };
 
-const base = { provider: { name: "gateway" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
+const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
   it("relaie une séance complète du modèle, validée étape par étape", async () => {
@@ -133,5 +133,39 @@ describe("parseSse", () => {
     await expect(async () => {
       for await (const _ of parseSse(stream(body))) void _;
     }).rejects.toThrow("quota");
+  });
+});
+
+describe("parseAnthropicSse", () => {
+  const stream = (text: string) =>
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(text));
+        controller.close();
+      },
+    });
+
+  it("garde le texte et ignore la réflexion", async () => {
+    const body = [
+      "event: message_start",
+      'data: {"type":"message_start","message":{}}',
+      "event: content_block_delta",
+      'data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"hmm"}}',
+      "event: content_block_delta",
+      'data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"Bon"}}',
+      'data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"jour"}}',
+      'data: {"type":"message_stop"}',
+      "",
+    ].join("\n");
+    const out: string[] = [];
+    for await (const text of parseAnthropicSse(stream(body))) out.push(text);
+    expect(out.join("")).toBe("Bonjour");
+  });
+
+  it("transforme un événement d'erreur en exception", async () => {
+    const body = 'event: error\ndata: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}\n\n';
+    await expect(async () => {
+      for await (const _ of parseAnthropicSse(stream(body))) void _;
+    }).rejects.toThrow("Overloaded");
   });
 });

@@ -29,11 +29,12 @@ export async function GET(request: Request): Promise<Response> {
     try {
       let text = "";
       for await (const chunk of streamChatCompletion({
+        protocol: config.chat.protocol,
         endpoint: config.chat.endpoint,
         apiKey: config.chat.apiKey,
         model: config.chat.model,
         extraHeaders: config.chat.extraHeaders,
-        maxTokens: 12,
+        maxTokens: 300,
         messages: [{ role: "user", content: "Réponds seulement : bonjour" }],
       })) {
         text += chunk;

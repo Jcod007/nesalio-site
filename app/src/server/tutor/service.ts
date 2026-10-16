@@ -69,6 +69,7 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
 
   const provider = config.provider!;
   const text = config.completion({
+    protocol: provider.protocol,
     endpoint: provider.endpoint,
     apiKey: provider.apiKey,
     model: provider.model,

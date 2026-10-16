@@ -2,16 +2,19 @@
  * Configuration serveur : quels services d'IA sont disponibles, et avec
  * quels identifiants.
  *
- * Par défaut, tout passe par Vercel AI Gateway, authentifié par le jeton OIDC
- * que Vercel fournit à chaque requête : aucune clé à gérer. OpenRouter reste
- * possible pour le modèle (OPENROUTER_API_KEY). Sans aucun des deux, Nesa
- * joue les séances de démonstration et utilise la voix du navigateur.
+ * Modèle, par ordre de priorité :
+ *   1. Claude directement (ANTHROPIC_API_KEY, console Claude) ;
+ *   2. OpenRouter (OPENROUTER_API_KEY) ;
+ *   3. Vercel AI Gateway, authentifié par le jeton OIDC de Vercel.
+ * Voix et transcription : Vercel AI Gateway. Sans rien de tout ça, Nesa joue
+ * les séances de démonstration avec la voix et le micro du navigateur.
  */
 
 export const GATEWAY_BASE = "https://ai-gateway.vercel.sh";
 
 export interface ChatProvider {
-  name: "gateway" | "openrouter";
+  name: "anthropic" | "gateway" | "openrouter";
+  protocol: "openai" | "anthropic";
   endpoint: string;
   apiKey: string;
   model: string;
@@ -27,6 +30,7 @@ export interface AiConfig {
 }
 
 export const DEFAULTS = {
+  anthropicModel: "claude-sonnet-5-5",
   gatewayModel: "anthropic/claude-sonnet-5.5",
   openRouterModel: "anthropic/claude-sonnet-4.5",
   voiceModel: "google/gemini-3.8-flash-lite-tts",
@@ -43,20 +47,33 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
   const gatewayToken =
     env.AI_GATEWAY_API_KEY?.trim() || headers.get("x-vercel-oidc-token") || env.VERCEL_OIDC_TOKEN?.trim() || null;
   const openRouterKey = env.OPENROUTER_API_KEY?.trim();
+  const anthropicKey = env.ANTHROPIC_API_KEY?.trim();
   const modelOverride = env.TUTOR_MODEL?.trim() || env.OPENROUTER_MODEL?.trim();
 
   let chat: ChatProvider | null = null;
-  if (openRouterKey) {
+  if (env.DISABLE_AI === "1") {
+    chat = null;
+  } else if (anthropicKey) {
+    chat = {
+      name: "anthropic",
+      protocol: "anthropic",
+      endpoint: "https://api.anthropic.com/v1/messages",
+      apiKey: anthropicKey,
+      model: modelOverride || DEFAULTS.anthropicModel,
+    };
+  } else if (openRouterKey) {
     chat = {
       name: "openrouter",
+      protocol: "openai",
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
       apiKey: openRouterKey,
       model: modelOverride || DEFAULTS.openRouterModel,
       extraHeaders: { "X-Title": "Nesalio", ...(env.NEXT_PUBLIC_APP_URL ? { "HTTP-Referer": env.NEXT_PUBLIC_APP_URL } : {}) },
     };
-  } else if (gatewayToken && env.DISABLE_AI !== "1") {
+  } else if (gatewayToken) {
     chat = {
       name: "gateway",
+      protocol: "openai",
       endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
       apiKey: gatewayToken,
       model: modelOverride || DEFAULTS.gatewayModel,

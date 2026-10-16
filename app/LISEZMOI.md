@@ -8,7 +8,9 @@ pas »), lui poser une question sur ce qui est au tableau, puis reprendre.
 - **Next.js 16 + TypeScript**, déployé sur Vercel.
 - **manim-web** pour le tableau : repère, courbes, vecteurs, `Create`,
   `GrowArrow`, `Indicate`, `FadeOut`, caméra pour le zoom.
-- **Vercel AI Gateway** pour le modèle, la voix de Nesa et la transcription du
+- **Claude** (API de la console Claude, `ANTHROPIC_API_KEY`) pour le modèle,
+  appelé directement par le serveur ; à défaut, OpenRouter ou Vercel AI Gateway.
+- **Vercel AI Gateway** pour la voix de Nesa et la transcription du
   micro, appelé uniquement côté serveur. Sur Vercel, l'authentification est
   automatique (jeton OIDC) : aucune clé à gérer. OpenRouter reste possible
   pour le modèle.

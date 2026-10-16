@@ -16,6 +16,11 @@ describe("readAiConfig", () => {
     expect(config.gatewayToken).toBe("oidc");
   });
 
+  it("utilise Claude directement en priorité quand ANTHROPIC_API_KEY est fournie", () => {
+    const config = readAiConfig(headers("oidc"), { ANTHROPIC_API_KEY: "sk", OPENROUTER_API_KEY: "or" } as unknown as NodeJS.ProcessEnv);
+    expect(config.chat).toMatchObject({ name: "anthropic", protocol: "anthropic", apiKey: "sk", model: DEFAULTS.anthropicModel });
+  });
+
   it("passe en démonstration sans aucun identifiant, ou si l'IA est désactivée", () => {
     expect(readAiConfig(headers(), {} as NodeJS.ProcessEnv)).toMatchObject({ chat: null, gatewayToken: null });
     expect(readAiConfig(headers("oidc"), { DISABLE_AI: "1" } as unknown as NodeJS.ProcessEnv)).toMatchObject({
