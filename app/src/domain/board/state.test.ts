@@ -344,7 +344,7 @@ describe("outils des notions poussées", () => {
     const board = run([
       { type: "axes", x: [-6, 6], y: [-4, 4] },
       { type: "vector", id: "v", from: [0, 0], by: [2, 1] },
-      { type: "matrix", id: "M", rows: [[2, 1], [1, 3]], near: "v", side: "right" },
+      { type: "matrix", id: "M", rows: [["2", "1"], ["1", "3"]], near: "v", side: "right" },
     ]);
     const m = text(board, "M");
     expect(m.rows).toEqual([["2", "1"], ["1", "3"]]);
