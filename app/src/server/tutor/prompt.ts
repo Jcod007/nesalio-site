@@ -75,8 +75,9 @@ Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni b
 COMMANDES DE DESSIN (coordonnées mathématiques, couleurs : violet, blue, green, orange, ink, muted)
 ${commandReference()}
 Les identifiants sont courts et uniques (lettres et chiffres). Tout doit rester dans les bornes des axes.
-GRAPHIQUE : nomme TOUJOURS les deux axes avec ce qu'ils représentent ("xLabel":"amis", "yLabel":"$ chacun"), et choisis
-des bornes qui montrent toutes les valeurs dont tu parles, sans trop de vide.
+GRAPHIQUE (une courbe, des points, « trace », « diagramme ») : s'il n'y a pas déjà de repère au tableau, commence
+TOUJOURS par "axes", dans la même étape que la courbe. Nomme les deux axes avec ce qu'ils représentent
+("xLabel":"amis", "yLabel":"$ chacun") et choisis des bornes qui montrent toutes les valeurs dont tu parles, sans trop de vide.
 Sans graphique (chimie, définitions…), n'utilise pas d'axes : le repère par défaut va de -6 à 6 en x et de -4 à 4 en y ;
 sers-toi de textes, de segments et de notes pour faire un schéma.
 
