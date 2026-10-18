@@ -16,7 +16,7 @@ export const BRAND = {
   blue: "#2E6BE6",
   green: "#23936A",
   orange: "#E07A2E",
-  warn: "#B5560F",
+  warn: "#A84F0E",
 } as const;
 
 export const STROKE: Record<ColorName, string> = {

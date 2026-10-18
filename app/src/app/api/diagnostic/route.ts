@@ -8,9 +8,13 @@
  *             transcrite (micro simulé : voix → texte) ;
  *   ensuite : séance complète du modèle, validée comme dans l'application ;
  *   enfin   : la première phrase de Nesa est synthétisée (texte → voix).
+ * sync=1 : mesure seulement la synchronisation voix-dessin (repères {id} prévus
+ *          comparés à l'heure réelle des mots), sur les phrases des démos.
  * Sans le bon jeton : 404, aucun appel payant.
  */
-import { synthesizeSpeech, transcribeAudio } from "@/server/ai/audio";
+import { synthesizeSpeech, transcribeAudio, transcribeWords, wavDurationMs } from "@/server/ai/audio";
+import { measureSync } from "@/server/ai/syncMeasure";
+import { DEMO_LESSONS } from "@/content/demoLessons";
 import type { Check } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
 import { emptyBoard, resolveTargets, summarizeBoard } from "@/domain/board/state";
@@ -33,6 +37,29 @@ export async function GET(request: Request): Promise<Response> {
   if (!token || params.get("check") !== token) return new Response("Not found", { status: 404 });
 
   const config = readAiConfig(request.headers);
+
+  // ?sync=1[&limit=12] : mesure la synchronisation voix-dessin sur les phrases des séances de démonstration.
+  if (params.get("sync") === "1") {
+    if (!config.gatewayToken) return Response.json({ error: "Voix non configurée." }, { status: 503 });
+    const token = config.gatewayToken;
+    const limit = Math.min(Math.max(Number(params.get("limit") ?? 12) || 12, 1), 24);
+    const sentences = DEMO_LESSONS.flatMap((lesson) => lesson.steps.map((step) => step.say))
+      .filter((say) => say.includes("{"))
+      .slice(0, limit);
+    const report = await measureSync(sentences, {
+      synthesize: async (text) => {
+        const speech = await synthesizeSpeech({ token, model: config.voice.model, voice: config.voice.voice, instructions: config.voice.instructions, text });
+        return { ...speech, durationMs: wavDurationMs(speech.audio) };
+      },
+      transcribe: (audio, mediaType) =>
+        transcribeWords({ token, model: config.transcription.model, audioBase64: Buffer.from(audio).toString("base64"), mediaType }),
+    });
+    return Response.json(
+      { voice: config.voice.model, transcription: config.transcription.model, ...report },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const started = Date.now();
   const ms = () => Date.now() - started;
   const report: Record<string, unknown> = {};
