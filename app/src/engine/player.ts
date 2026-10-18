@@ -244,7 +244,8 @@ export class Player {
     this.answerResolver = null;
     const choices = this.snapshot.check?.choices ?? [];
     const matched = matchChoice(text, choices);
-    resolve(matched ?? text.trim().slice(0, 140));
+    // Même limite que la requête (300) : une réponse dite à voix haute ne doit pas être coupée en plein raisonnement.
+    resolve(matched ?? text.trim().slice(0, 300));
   }
 
   /** Retour à l'écran d'accueil, tableau vierge. */

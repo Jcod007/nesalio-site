@@ -392,4 +392,21 @@ describe("Player", () => {
     expect(requests[1]!.answer).toMatchObject({ picked: "Parce que la courbe descend des deux côtés", correct: null });
     await speakUntil(player, voice, (s) => s.status === "done");
   });
+
+  it("garde une réponse dite à voix haute en entier, même longue (un raisonnement complet)", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "Que vaut l'hypoténuse ?", choices: ["7", "5", "25"], answer: 1 };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question" ? [step("Calcule.", { check }), { kind: "await" }] : [step("Voyons."), { kind: "end", summary: [] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    const reasoning =
+      "On va faire 3 au carré, ça fait 3 fois 3, ça fait 9, plus 4 au carré, ça fait 4 fois 4, ça fait 16, on va faire 9 plus 16, ça fait 25, on va prendre la racine de 25 et ça donne 5";
+    player.answerText(reasoning);
+    await until(player, () => requests.length === 2);
+    expect(requests[1]!.answer!.picked).toBe(reasoning);
+    await speakUntil(player, voice, (s) => s.status === "done");
+  });
 });
