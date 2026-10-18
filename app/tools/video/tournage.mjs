@@ -18,6 +18,11 @@ const audio = new Map();
 await context.exposeFunction("__saveVoice", (text, b64) => {
   if (!audio.has(text)) audio.set(text, Buffer.from(b64, "base64"));
 });
+// Le contenu de chaque tour (flux NDJSON de /api/tutor), lu dans la page une fois le tour fini.
+const turns = [];
+await context.exposeFunction("__saveTurn", (body) => {
+  turns.push(body.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)));
+});
 
 // Dans la page : associer chaque URL audio à la phrase dite, et noter quand la voix démarre / s'arrête.
 // Les éléments audio de Nesa ne sont pas dans le DOM : on écoute chaque élément au moment où il joue.
@@ -28,6 +33,7 @@ await context.addInitScript(() => {
   window.fetch = async (input, init) => {
     const res = await origFetch(input, init);
     const url = typeof input === "string" ? input : input.url;
+    if (url.includes("/api/tutor") && res.ok) res.clone().text().then((body) => window.__saveTurn?.(body));
     if (url.includes("/api/voice") && res.ok) {
       const text = JSON.parse(init?.body ?? "{}").text;
       res.clone().arrayBuffer().then((buf) => {
@@ -67,21 +73,8 @@ await context.addInitScript(() => {
   };
 });
 
-// Côté Node : garder le contenu de chaque tour.
-const turns = [];
 const pageCreated = Date.now();
 const page = await context.newPage();
-page.on("response", async (res) => {
-  const u = res.url();
-  try {
-    if (u.includes("/api/tutor")) {
-      const body = await res.text();
-      turns.push(body.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)));
-    }
-  } catch (e) {
-    console.log("réponse non lue", u, e.message);
-  }
-});
 page.on("console", (m) => m.type() === "error" && console.log("console:", m.text().slice(0, 200)));
 
 await page.goto(URL, { waitUntil: "networkidle" });
