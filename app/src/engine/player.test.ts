@@ -233,6 +233,37 @@ describe("Player", () => {
     expect(player.getSnapshot().summary).toEqual(["Sommet"]);
   });
 
+  it("garde la mémoire de la séance : objectifs, réponses passées, erreur visée, relecture du tour", async () => {
+    const voice = fakeSpeaker();
+    const check1 = { prompt: "Combien ?", choices: ["0", "2"], answer: 1, why: ["confond sommet et zéro", ""] };
+    const check2 = { prompt: "Et la moyenne ?", choices: ["0", "1"], answer: 0, why: ["", "croit que tout s'additionne"] };
+    const { source, requests } = scriptedSource((request) => {
+      if (request.mode === "question") {
+        return [{ kind: "lesson", title: "Zéros", goals: ["Lire le sommet", "Trouver les zéros"] }, step("Devine.", { check: check1 }), { kind: "await" }];
+      }
+      if (request.context?.answered === 1) {
+        return [step("Les bosses s'annulent."), step("Donc la moyenne est nulle."), step("À toi.", { check: check2 }), { kind: "await" }];
+      }
+      return [step("Bravo."), { kind: "end", summary: [] }];
+    });
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+
+    player.ask("zéros ?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(0);
+    await until(player, () => requests.length === 2);
+    expect(requests[1]!.answer?.misconception).toBe("confond sommet et zéro");
+    expect(requests[1]!.context?.goals).toEqual(["Lire le sommet", "Trouver les zéros"]);
+
+    await speakUntil(player, voice, (s) => s.status === "checking" && s.check?.prompt === "Et la moyenne ?");
+    player.answer(1);
+    await until(player, () => requests.length === 3);
+    const third = requests[2]!.context!;
+    expect(third.answers).toEqual([{ prompt: "Combien ?", picked: "0", correct: false, misconception: "confond sommet et zéro" }]);
+    expect(third.review?.some((r) => r.includes("sans le montrer"))).toBe(true);
+    expect(requests[2]!.answer?.misconception).toBe("croit que tout s'additionne");
+  });
+
   it("une question pour situer l'élève n'a pas de verdict", async () => {
     const voice = fakeSpeaker();
     const check = { prompt: "Tu connais le triangle rectangle ?", choices: ["Oui", "Un peu", "Non"] };

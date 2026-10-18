@@ -36,10 +36,19 @@ export const Check = z
     answer: z.number().int().min(0).optional(),
     ifRight: z.string().trim().min(1).max(300).optional(),
     ifWrong: z.string().trim().min(1).max(300).optional(),
+    /**
+     * Pour chaque choix (même ordre), l'erreur de raisonnement qu'il révèle ("" pour la bonne réponse).
+     * Elle revient au modèle avec la réponse de l'élève : la remédiation vise la bonne erreur.
+     */
+    why: z.array(z.string().trim().max(160)).max(4).optional(),
   })
   .refine((check) => check.answer === undefined || check.answer < check.choices.length, {
     message: "La bonne réponse doit désigner un des choix",
     path: ["answer"],
+  })
+  .refine((check) => !check.why || check.why.length <= check.choices.length, {
+    message: "why : une explication par choix au plus",
+    path: ["why"],
   });
 export type Check = z.infer<typeof Check>;
 
@@ -62,6 +71,8 @@ export const LessonHeaderEvent = z.object({
   kind: z.literal("lesson"),
   title: z.string().trim().min(1).max(80),
   topic: z.string().trim().max(80).optional(),
+  /** 2 ou 3 objectifs : ce que l'élève aura compris à la fin ; le dernier est l'idée centrale de la notion. */
+  goals: z.array(z.string().trim().min(1).max(120)).max(4).optional(),
 });
 
 export const StepEvent = Step.extend({ kind: z.literal("step") });

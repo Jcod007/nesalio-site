@@ -28,6 +28,22 @@ export const TutorContextSchema = z.object({
   interrupted: z.boolean().optional(),
   /** Nombre de questions auxquelles l'élève a déjà répondu dans la séance (pour doser sa longueur). */
   answered: z.number().int().min(0).max(50).optional(),
+  /** Objectifs de la séance, fixés par Nesa au premier tour : ils gardent le cap d'un tour à l'autre. */
+  goals: z.array(z.string().max(120)).max(4).optional(),
+  /** Réponses précédentes de l'élève dans la séance (la plus récente en dernier). */
+  answers: z
+    .array(
+      z.object({
+        prompt: z.string().max(300),
+        picked: z.string().max(300),
+        correct: z.boolean().nullable(),
+        misconception: z.string().max(160).optional(),
+      }),
+    )
+    .max(8)
+    .optional(),
+  /** Relecture du tour précédent (dit sans montrer, objets absents…), rendue au modèle pour qu'il se corrige. */
+  review: z.array(z.string().max(240)).max(4).optional(),
 });
 
 /** Réponse de l'élève à la dernière question de Nesa. */
@@ -38,6 +54,8 @@ export const StudentAnswerSchema = z.object({
   picked: z.string().max(300),
   /** null pour une question sans bonne réponse (situer l'élève). */
   correct: z.boolean().nullable(),
+  /** L'erreur de raisonnement que ce choix révèle, telle que Nesa l'a prévue en écrivant la question. */
+  misconception: z.string().max(160).optional(),
 });
 
 export const TutorRequestSchema = z.object({

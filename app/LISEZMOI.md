@@ -150,7 +150,33 @@ que projeter ce graphe (Create, Shift, ReplacementTransform, fondus, Indicate).
 complète côté serveur avec un élève simulé : `voice=1` (micro simulé),
 `model=<id>` (autre modèle d'AI Gateway), `effort=none|low|medium|high`
 (réflexion du modèle, principal levier de latence), `answers=right|wrong`.
-Le rapport donne, tour par tour, le délai avant la première phrase.
+Le rapport donne, tour par tour, le délai avant la première phrase, les gestes
+(objets qui bougent ou se transforment) et les phrases « dites sans montrer ».
+
+## Mesurer avant / après un changement
+
+- **Banc d'évaluation** : `tools/eval/evaluer.mjs` joue les questions de
+  `tools/eval/questions.json` contre `/api/diagnostic` et enregistre les mesures
+  dans `tools/eval/resultats/` (gestes, dit sans montrer, rejets, cibles absentes,
+  latence). À lancer avant et après chaque changement de consigne ou du moteur :
+  `NESALIO_URL=https://app.nesalio.com SELFTEST_TOKEN=… node tools/eval/evaluer.mjs`.
+- **Rejeu visuel** : `tools/rejeu/seance.py` rejoue une séance enregistrée (les
+  événements du diagnostic avec `raw=1`) dans le navigateur, sur un serveur
+  local (`npx next start -p 3100`), et capture une image par phrase ;
+  `tools/rejeu/rafale.py` prend une rafale d'images pendant un geste.
+  `tools/rejeu/partitions/` contient les moments clés de 5 vidéos de
+  3Blue1Brown écrits dans le langage de Nesa (tests du moteur).
+
+## La boucle d'une séance
+
+1. Premier tour : Nesa fixe 2 ou 3 objectifs (le dernier est l'idée centrale),
+   montre, puis pose une question de prédiction. Chaque choix porte l'erreur de
+   raisonnement qu'il révèle (`why`).
+2. L'élève répond ; le navigateur relit le tour qui finit (gestes, phrases dites
+   sans montrer, objets absents : `domain/tutor/turnReview.ts`).
+3. Tour suivant : le modèle reçoit les objectifs, toutes les réponses de l'élève
+   avec l'erreur visée, et la relecture de son propre tour. Il se corrige sans
+   délai supplémentaire.
 
 ## Changer la voix de Nesa
 

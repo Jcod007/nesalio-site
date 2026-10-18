@@ -23,3 +23,27 @@ describe("consigne du modèle", () => {
     expect(board.nodes.w2?.offset).toEqual([1, 2]);
   });
 });
+
+describe("mémoire de la séance", () => {
+  it("rend au modèle les objectifs, les réponses passées, l'erreur visée et la relecture du tour", async () => {
+    const { buildMessages } = await import("./prompt");
+    const [, user] = buildMessages({
+      mode: "continue",
+      question: "C'est quoi la transformée de Fourier ?",
+      context: {
+        spoken: ["Voici un signal."],
+        board: [],
+        answered: 2,
+        goals: ["Une onde = fréquence et amplitude", "L'enroulement et le pic de fréquence"],
+        answers: [{ prompt: "Que fait-on ?", picked: "La pente", correct: false, misconception: "confond pente et fréquence" }],
+        review: ["Tu as dit « les bosses s'annulent » sans le montrer."],
+      },
+      answer: { prompt: "Quelle onde ?", choices: ["a", "b"], picked: "a", correct: false, misconception: "confond hauteur et fréquence" },
+    });
+    const text = user!.content;
+    expect(text).toContain("L'enroulement et le pic de fréquence");
+    expect(text).toContain("erreur visée : confond pente et fréquence");
+    expect(text).toContain("Erreur visée par ce choix (prévue quand tu as écrit la question) : confond hauteur et fréquence");
+    expect(text).toContain("Retour sur ton tour précédent");
+  });
+});

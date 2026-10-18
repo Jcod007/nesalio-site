@@ -19,6 +19,7 @@
  */
 import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/domain/board/state";
 import { applyAction } from "@/domain/scene/commands";
+import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import type { Check, Mood, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import type { StudentAnswer, TutorContext, TutorRequest } from "@/domain/tutor/request";
@@ -91,6 +92,8 @@ interface Segment {
   pendingAnswer: StudentAnswer | null;
   /** Indice de la dernière étape dont la question a reçu une réponse. */
   answeredStep: number;
+  /** Première étape du tour en cours (pour relire le tour quand il se termine). */
+  turnStart: number;
   summary: string[];
   error: string | null;
   abort: AbortController;
@@ -109,6 +112,9 @@ export class Player {
   private history: string[] = [];
   /** Questions auxquelles l'élève a répondu dans la séance. */
   private answeredCount = 0;
+  /** Objectifs de la séance (premier tour) et réponses de l'élève : la mémoire de la séance. */
+  private goals: string[] = [];
+  private answerLog: StudentAnswer[] = [];
   private session = 0;
   private loopSession = -1;
   private stepAbort: AbortController | null = null;
@@ -226,6 +232,8 @@ export class Player {
     this.segments = [];
     this.history = [];
     this.answeredCount = 0;
+    this.goals = [];
+    this.answerLog = [];
     this.stopCurrentStep();
     this.poke();
   }
@@ -253,6 +261,7 @@ export class Player {
       awaiting: false,
       pendingAnswer: null,
       answeredStep: -1,
+      turnStart: 0,
       summary: [],
       error: null,
       abort: new AbortController(),
@@ -275,12 +284,16 @@ export class Player {
     segment.pendingAnswer = null;
     segment.awaiting = false;
     segment.streamDone = false;
+    // Relecture du tour qui se termine : rendue au modèle pour qu'il se corrige au tour suivant.
+    const review = reviewNotes(reviewTurn(segment.steps.slice(segment.turnStart, segment.cursor + 1), this.snapshot.board));
+    segment.turnStart = segment.steps.length;
     const request: TutorRequest = {
       mode: "continue",
       question: this.snapshot.question ?? answer.prompt,
-      context: this.buildContext(false),
+      context: { ...this.buildContext(false), review: review.length > 0 ? review : undefined },
       answer,
     };
+    this.answerLog = [...this.answerLog, { ...answer, prompt: answer.prompt.slice(0, 300), picked: answer.picked.slice(0, 300) }].slice(-8);
     void this.consume(segment, request, this.session);
   }
 
@@ -293,7 +306,10 @@ export class Player {
             this.set({ source: event.source });
             break;
           case "lesson":
-            if (segment.kind === "question") this.set({ title: event.title, topic: event.topic ?? null });
+            if (segment.kind === "question") {
+              this.set({ title: event.title, topic: event.topic ?? null });
+              if (event.goals) this.goals = event.goals.slice(0, 4);
+            }
             break;
           case "step": {
             const { kind: _kind, ...step } = event;
@@ -464,11 +480,13 @@ export class Player {
       this.answeredCount++;
       segment.answeredStep = segment.cursor;
       // Le tour suivant est demandé tout de suite : il s'écrit pendant que Nesa réagit.
+      const misconception = picked !== null && right === false ? check.why?.[picked]?.trim() || undefined : undefined;
       this.answered(segment, {
         prompt: check.prompt,
         choices: check.choices,
         picked: pickedText,
         correct: right,
+        misconception,
       });
       this.set({ status: "playing", check: { ...check, picked } });
       if (right !== null) {
@@ -517,6 +535,8 @@ export class Player {
       board: summarizeBoard(this.snapshot.board).slice(0, 40),
       interrupted,
       answered: this.answeredCount,
+      goals: this.goals.length > 0 ? this.goals : undefined,
+      answers: this.answerLog.length > 0 ? this.answerLog.map(({ choices: _c, ...rest }) => rest) : undefined,
     };
   }
 

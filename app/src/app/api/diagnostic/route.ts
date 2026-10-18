@@ -18,6 +18,9 @@ import { applyAction } from "@/domain/scene/commands";
 import { GATEWAY_BASE, parseEffort, readAiConfig, type ChatProvider } from "@/server/config";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
+import type { Step } from "@/domain/scene/schema";
+import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
+import type { StudentAnswer } from "@/domain/tutor/request";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,6 +88,10 @@ export async function GET(request: Request): Promise<Response> {
   const raw: unknown[][] = [];
   let cueable = 0;
   let cued = 0;
+  let goals: string[] | undefined;
+  const answerLog: Array<Omit<StudentAnswer, "choices">> = [];
+  let review: string[] = [];
+  let unshownTotal = 0;
   for (let turn = 1; turn <= maxTurns; turn++) {
     const turnStart = Date.now();
     const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
@@ -94,12 +101,18 @@ export async function GET(request: Request): Promise<Response> {
       if (Array.isArray(detail)) rejected.push(...(detail as Array<{ line: string; reason: string }>));
     };
     const turnEvents: unknown[] = [];
+    const turnSteps: Step[] = [];
     raw.push(turnEvents);
     for await (const event of tutorEvents(turnRequest, { provider, completion: streamChatCompletion, log })) {
       turnEvents.push(event);
       if (event.kind === "source") lesson.source = event.source;
-      if (event.kind === "lesson") lesson.title = event.title;
+      if (event.kind === "lesson") {
+        lesson.title = event.title;
+        if (event.goals) goals = lesson.goals = event.goals;
+      }
       if (event.kind === "step") {
+        const { kind: _kind, ...step } = event;
+        turnSteps.push(step);
         if (info.firstStepMs === undefined) info.firstStepMs = Date.now() - turnStart;
         spoken.push(event.say);
         lastCheck = event.check;
@@ -126,26 +139,45 @@ export async function GET(request: Request): Promise<Response> {
       if (event.kind === "error") lesson.error = `${event.code} : ${event.message}`;
     }
     info.totalMs = Date.now() - turnStart;
+    // Même relecture que dans l'application : mesurée ici, rendue au modèle au tour suivant.
+    const turnReview = reviewTurn(turnSteps, board);
+    info.gestures = turnReview.gestures;
+    if (turnReview.unshown.length > 0) info.unshown = turnReview.unshown.map((u) => `${u.word} : ${u.say}`);
+    unshownTotal += turnReview.unshown.length;
+    review = reviewNotes(turnReview);
     if (!awaiting || !lastCheck) {
       turns.push(info);
       break;
     }
     const picked = pickAnswer(lastCheck, answerRight);
     const correct = lastCheck.answer === undefined ? null : picked === lastCheck.answer;
-    info.studentAnswer = `${lastCheck.choices[picked]} (${correct === null ? "situer" : correct ? "juste" : "faux"})`;
+    const misconception = correct === false ? lastCheck.why?.[picked]?.trim() || undefined : undefined;
+    info.studentAnswer = `${lastCheck.choices[picked]} (${correct === null ? "situer" : correct ? "juste" : "faux"})${misconception ? ` — erreur visée : ${misconception}` : ""}`;
     turns.push(info);
     spoken.push(lastCheck.prompt);
     turnRequest = {
       mode: "continue",
       question,
-      context: { title: typeof lesson.title === "string" ? lesson.title : undefined, originalQuestion: question, spoken: spoken.slice(-12).map((x) => x.slice(0, 320)), board: summarizeBoard(board).slice(0, 40), answered: turn },
-      answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: lastCheck.choices[picked]!, correct },
+      context: {
+        title: typeof lesson.title === "string" ? lesson.title : undefined,
+        originalQuestion: question,
+        spoken: spoken.slice(-12).map((x) => x.slice(0, 320)),
+        board: summarizeBoard(board).slice(0, 40),
+        answered: turn,
+        goals,
+        answers: answerLog.length > 0 ? [...answerLog] : undefined,
+        review: review.length > 0 ? review : undefined,
+      },
+      answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: lastCheck.choices[picked]!, correct, misconception },
     };
+    answerLog.push({ prompt: lastCheck.prompt, picked: lastCheck.choices[picked]!, correct, misconception });
   }
   lesson.stepCount = steps.length;
   lesson.actionCount = steps.reduce((n, s) => n + s.do.length, 0);
   lesson.commands = usage;
   /** Gestes : ce qui bouge ou se transforme sous les yeux de l'élève (au moins un par tour attendu). */
+  /** Phrases qui annoncent une action sans la montrer (« les bosses s'annulent » sans aire). */
+  lesson.unshown = unshownTotal;
   lesson.gestures = ["move", "copy", "transform", "rotate", "applyMatrix"].reduce((n, type) => n + (usage[type] ?? 0), 0);
   /** Part des objets synchronisés sur la parole (repères {id}). */
   lesson.cueCoverage = cueable > 0 ? `${cued}/${cueable}` : "—";

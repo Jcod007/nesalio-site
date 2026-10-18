@@ -49,7 +49,10 @@ function gestureExample(): string {
 const SCENE_SPEC = `
 FORMAT DE RÉPONSE
 Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni bloc de code.
-1. {"kind":"lesson","title":"…","topic":"…"} : titre court de la séance (seulement pour une nouvelle question).
+1. {"kind":"lesson","title":"…","topic":"…","goals":["…","…","…"]} : titre court de la séance (seulement pour une
+   nouvelle question) et 2 ou 3 objectifs, du plus simple au plus profond : le dernier est l'IDÉE CENTRALE de la notion
+   (pour la transformée de Fourier : l'enroulement et le pic de fréquence ; pour un déterminant : le facteur d'aire).
+   Ces objectifs te sont rendus à chaque tour : ils gardent le cap.
 2. {"kind":"step","say":"…","mood":"…","do":[…],"check":{…}} : une étape.
    - "say" : ce que tu dis à voix haute : UNE phrase courte (20 mots au plus). Écris les maths comme on les prononce :
      « x au carré », « racine carrée de 3 », « f de x », « 20 mètres par seconde ». Les symboles vont sur le tableau.
@@ -61,7 +64,10 @@ Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni b
      Nouvel objet à présenter = nouvelle étape : une phrase, son dessin, puis la phrase suivante (comme une vidéo).
    - "check" : question posée à l'élève, qui termine le tour (voir COMMENT TU ENSEIGNES).
      Question avec une bonne réponse :
-     {"prompt":"…","choices":["…","…","…"],"answer":<index du bon choix, à partir de 0>,"ifRight":"…","ifWrong":"…"}
+     {"prompt":"…","choices":["…","…","…"],"answer":<index du bon choix, à partir de 0>,"ifRight":"…","ifWrong":"…",
+      "why":["…","","…"]}
+     "why" : pour chaque choix, l'erreur de raisonnement qu'il révèle ("" pour la bonne réponse). Elle te sera rendue
+     avec la réponse de l'élève : ta remédiation visera la bonne erreur.
      Question pour situer l'élève (ce qu'il sait déjà, comment il s'y prendrait), sans bonne réponse :
      {"prompt":"…","choices":["…","…","…"]}
 3. {"kind":"end","summary":["…","…"]} : fin de la séance, 2 ou 3 points à retenir, écrits avec les symboles.
@@ -128,16 +134,18 @@ La séance est un ÉCHANGE, par tours, pas un cours magistral.
 - Un tour = 2 à 6 étapes courtes, dont la dernière porte un "check" : tu poses ta question, puis tu T'ARRÊTES.
   N'écris rien après cette ligne : tu recevras la réponse de l'élève et tu continueras au tour suivant.
 - Premier tour d'une nouvelle question : 2 ou 3 étapes courtes (une accroche concrète, ce qu'il faut voir au tableau),
-  puis une question pour situer l'élève : ce qu'il connaît déjà (sans "answer"), ou une prédiction qualitative
-  (avec "answer"). PAS de calcul au premier tour : les calculs viennent ensuite.
+  puis une question de PRÉDICTION sur ce qui est au tableau (« que va devenir le carré ? », « où va arriver la
+  flèche ? »), avec "answer" et "why" : sa réponse montre ce qu'il comprend mieux qu'une auto-évaluation.
+  Ne demande « qu'est-ce que tu connais déjà ? » que si sa question est trop vague pour savoir par où commencer.
+  PAS de calcul au premier tour : les calculs viennent ensuite.
 - Tes questions portent sur le raisonnement, pas sur la mémoire. 2 à 4 choix ; les mauvais choix correspondent à des
   erreurs typiques d'élèves. "ifRight" / "ifWrong" : une réaction immédiate d'une phrase (15 mots au plus) ;
   l'explication vient au tour suivant, adaptée à ce que l'élève a répondu.
 - Tu pars de l'intuition (une image, un exemple concret), puis tu passes au calcul. Une idée par étape, et le dessin
   se construit pendant que tu parles.
 - Si une notion d'une année précédente bloque souvent, nomme-la avec une étiquette "tag".
-- Une séance compte 2 à 4 questions. Termine par {"kind":"end"} quand la notion est couverte et que l'élève a réussi
-  un petit exercice.
+- Une séance compte 2 à 4 questions. Termine par {"kind":"end"} quand les objectifs sont atteints (l'idée centrale
+  comprise) et que l'élève a réussi un petit exercice.
 - Vérifie tes calculs : les nombres dits, notés et dessinés doivent concorder.
 - Si tu simplifies (petits angles : sin θ ≈ θ, frottements négligés…), dis-le à voix haute au moment où tu le fais.
 - Si la question ne porte pas sur les maths ou les sciences, ou si elle est inappropriée, réponds gentiment en une ou
@@ -153,7 +161,10 @@ function exampleExchange(): string {
   const line = (event: object) => JSON.stringify(event);
   const step = (value: object) => line({ kind: "step", ...value });
   const turn1 = [
-    line(quadraticLesson.header),
+    line({
+      ...quadraticLesson.header,
+      goals: ["Lire le sommet sur la forme canonique", "Isoler x pas à pas", "Les zéros = où la parabole croise l'axe des x"],
+    }),
     step(beats[0]!),
     step(beats[1]!),
     step({
@@ -164,6 +175,7 @@ function exampleExchange(): string {
         answer: 2,
         ifRight: "Bien vu ! On le vérifie au tableau.",
         ifWrong: "Pas tout à fait. Regarde-la se dessiner.",
+        why: ["croit qu'une parabole ouverte vers le bas ne touche pas l'axe", "confond le sommet avec un zéro", ""],
       },
     }),
   ];
@@ -174,7 +186,14 @@ function exampleExchange(): string {
     step(beats[6]!),
     step({
       ...beats[7]!,
-      check: { prompt: "Que vaut x ?", choices: ["2 ± √3", "2 ± 3", "± √3"], answer: 0, ifRight: "Exact !", ifWrong: "Pas tout à fait." },
+      check: {
+        prompt: "Que vaut x ?",
+        choices: ["2 ± √3", "2 ± 3", "± √3"],
+        answer: 0,
+        ifRight: "Exact !",
+        ifWrong: "Pas tout à fait.",
+        why: ["", "oublie la racine carrée en isolant x", "oublie d'ajouter 2 de l'autre côté"],
+      },
     }),
   ];
   const turn3 = [
@@ -199,7 +218,7 @@ function exampleExchange(): string {
     "Tour 2 (l'élève a répondu « 2 », juste) :",
     ...turn2,
     "",
-    "Tour 3 (l'élève a répondu « 2 ± 3 », faux : remédiation, puis fin) :",
+    "Tour 3 (l'élève a répondu « 2 ± 3 », faux, erreur visée : oublie la racine carrée ; remédiation, puis fin) :",
     ...turn3,
   ].join("\n");
 }
@@ -226,7 +245,12 @@ L'élève vient de répondre à ta question. Continue la séance (nouveau tour) 
   · question pour le situer : adapte le niveau (il ne connaît pas → pars de plus loin ; il connaît → va plus vite) ;
 - puis 2 à 6 étapes courtes qui finissent par une nouvelle question ("check"), OU la fin de la séance ({"kind":"end"}) si la
   notion est couverte et que l'élève a réussi un exercice ;
-- après 3 réponses, conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
+- garde le cap sur les objectifs de la séance : si l'idée centrale n'a pas encore été montrée, montre-la dans ce tour,
+  même si l'élève a eu besoin d'un détour ;
+- si sa réponse fausse correspond à une erreur prévue (« erreur visée »), commence par elle ; si la même erreur
+  revient dans ses réponses précédentes, change d'approche ;
+- si on te donne un « retour sur ton tour précédent », corrige-le dans ce tour (montre ce que tu avais seulement dit) ;
+- après 4 réponses, conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
   puis {"kind":"end"} (pas de nouvelle question) ;
 - s'il se trompe encore sur la même idée, change d'angle (autre image, autre exemple) et pose une question différente ;
 - réutilise les objets déjà au tableau au lieu de tout redessiner.`.trim();
@@ -248,6 +272,17 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
     ...context.board.map((item) => `- ${item.id} · ${item.type} · ${item.detail}`),
     context.interrupted ? "L'élève t'a coupée au milieu de ta dernière phrase." : "",
     context.answered !== undefined ? `L'élève a déjà répondu à ${context.answered} question(s) dans cette séance.` : "",
+    ...(context.goals?.length ? ["Objectifs de la séance (le dernier est l'idée centrale) :", ...context.goals.map((g) => `- ${g}`)] : []),
+    ...(context.answers?.length
+      ? [
+          "Ses réponses précédentes :",
+          ...context.answers.map(
+            (a) =>
+              `- « ${a.prompt} » → « ${a.picked} » ${a.correct === null ? "(pour le situer)" : a.correct ? "(juste)" : "(faux)"}${a.misconception ? ` — erreur visée : ${a.misconception}` : ""}`,
+          ),
+        ]
+      : []),
+    ...(context.review?.length ? ["Retour sur ton tour précédent :", ...context.review.map((r) => `- ${r}`)] : []),
     "",
     ...(request.mode === "continue" && request.answer ? describeAnswer(request.answer) : [`L'élève : ${request.question}`]),
   ];
@@ -267,5 +302,6 @@ function describeAnswer(answer: StudentAnswer): string[] {
     `Ta question : ${answer.prompt}`,
     `Choix proposés : ${answer.choices.map((c) => `« ${c} »`).join(", ")}`,
     `Réponse de l'élève : « ${answer.picked} » ${verdict}`,
+    ...(answer.misconception ? [`Erreur visée par ce choix (prévue quand tu as écrit la question) : ${answer.misconception}`] : []),
   ];
 }
