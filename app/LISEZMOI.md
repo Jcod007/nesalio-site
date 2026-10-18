@@ -44,8 +44,8 @@ QuestionInput ─▶ Player ─▶ TutorSource (HTTP) ──POST /api/tutor─�
                   │  └──── étapes validées, en flux NDJSON ◀──────────┤ modelOutput.ts (validation)
                   │                                                   │ prompt.ts (consignes + exemple)
                   ▼                                                   ▼
-           BoardState (pur) ─▶ ManimRenderer (manim-web)     AI Gateway (flux SSE)
-                  │          ─▶ NotesColumn (calculs)
+     graphe de scène (pur) ─▶ ManimRenderer (manim-web)   AI Gateway (flux SSE)
+       + moteur de placement ─▶ DiagnosticTag
                   └─▶ Speaker (voix) · Dock (sous-titres, choix, interruption)
 ```
 
@@ -97,11 +97,28 @@ de lignes JSON :
 {"kind":"end","summary":["Forme canonique : lire le sommet"]}
 ```
 
-Commandes : `axes`, `curve`, `point`, `vector`, `segment`, `text`, `note`,
-`tag`, `highlight`, `erase`, `focus`, `resetView`. Pour en ajouter une : la
-déclarer dans le schéma, l'appliquer dans `board/state.ts`, lui donner une
-durée dans `timeline/plan.ts`, la dessiner dans `ManimRenderer.build()`, puis
-la décrire dans `prompt.ts`. Les tests signalent ce qui manque.
+Commandes (registre `src/domain/scene/commands/`) : `axes`, `curve`, `point`,
+`vector`, `segment`, `text` (posé à côté d'un objet avec `near`), `note`
+(ligne de calcul), `tag`, `group`, `move`, `transform`, `highlight`, `dim`,
+`undim`, `erase`, `clear`, `focus`, `resetView`.
+
+Chaque commande est un module unique : son schéma (validation), sa
+documentation pour le modèle (générée dans les consignes), sa durée et son
+effet sur le graphe de scène. Pour en ajouter une : écrire le module et
+l'inscrire dans `commands/index.ts`. Le rendu n'a pas à changer tant que la
+commande manipule des nœuds existants (il dessine des nœuds, pas des commandes).
+
+### Le graphe de scène
+
+`src/domain/board/state.ts` est la représentation abstraite du tableau : des
+nœuds (courbe, point, vecteur, segment, texte) avec leur apparition, leur
+déplacement cumulé, leur dernière transformation et leur estompage ; des
+groupes ; des relations (un texte ancré à un objet le suit et disparaît avec
+lui) ; la pile de calculs. `src/domain/board/layout.ts` est le moteur de
+placement : l'IA dit « à côté de A », il choisit la place libre (en évitant
+textes, points, courbes et axes) et range les calculs en colonne à côté de la
+figure, en faisant de la place quand elle est pleine. Le rendu Manim ne fait
+que projeter ce graphe (Create, Shift, ReplacementTransform, fondus, Indicate).
 
 ## Déploiement (Vercel)
 

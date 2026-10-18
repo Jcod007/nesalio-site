@@ -7,7 +7,9 @@
  * chargé, le dessin dépasse simplement la voix ; le lecteur attend la fin
  * des deux avant de passer à l'étape suivante.
  */
-import type { Action, ActionType } from "@/domain/scene/schema";
+import { actionDuration, isQuick, type Action } from "@/domain/scene/commands";
+
+export { actionDuration };
 
 export interface PlannedAction {
   action: Action;
@@ -21,31 +23,6 @@ export interface StepPlan {
   /** Fin du dernier tracé, en ms depuis le début de l'étape. */
   drawingMs: number;
 }
-
-const BASE_DURATION: Record<ActionType, number> = {
-  axes: 900,
-  curve: 1700,
-  point: 450,
-  vector: 750,
-  segment: 650,
-  text: 500,
-  note: 450,
-  tag: 400,
-  highlight: 1400,
-  erase: 450,
-  focus: 1000,
-  resetView: 1000,
-};
-
-/** Durée d'apparition d'une commande ; l'écriture à la main dépend de la longueur du texte. */
-export function actionDuration(action: Action): number {
-  const base = BASE_DURATION[action.type];
-  if (action.type === "text" || action.type === "note") return base + 32 * action.text.length;
-  return base;
-}
-
-/** Commandes instantanées qui ne méritent pas leur propre créneau dans la phrase. */
-const QUICK: ReadonlySet<ActionType> = new Set(["highlight", "erase", "tag"]);
 
 /** Part de la phrase sur laquelle on étale les tracés (on garde la fin pour respirer). */
 const SPREAD = 0.8;
@@ -62,7 +39,7 @@ export function planStep(actions: readonly Action[], speechMs: number): StepPlan
   let cursor = 0;
   actions.forEach((action, i) => {
     natural.push(cursor);
-    if (!QUICK.has(action.type)) cursor += durations[i]! * OVERLAP;
+    if (!isQuick(action.type)) cursor += durations[i]! * OVERLAP;
   });
 
   // 2. Si la voix dure plus longtemps, on étire les intervalles pour suivre la phrase.

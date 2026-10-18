@@ -7,6 +7,7 @@
  * passe pas. Une commande invalide est retirée sans perdre la phrase de
  * l'étape : l'élève entend l'explication même si un tracé manque.
  */
+import { ACTION_ALIASES, COMMANDS, NODE_COMMANDS, type ActionType } from "@/domain/scene/commands";
 import {
   Action,
   Check,
@@ -18,22 +19,11 @@ import {
 } from "@/domain/scene/schema";
 import { z } from "zod";
 
-/** Noms de commandes que les modèles inventent, et leur équivalent. */
-const ACTION_ALIASES: Record<string, string> = {
-  line: "segment",
-  arrow: "vector",
-  label: "text",
-  equation: "note",
-  annotation: "text",
-  graph: "curve",
-  plot: "curve",
-  function: "curve",
-  dot: "point",
-  camera: "focus",
-  zoom: "focus",
+/** Noms de commandes que les modèles inventent : ceux du registre, plus quelques synonymes de type. */
+const TYPE_ALIASES: Readonly<Record<string, string>> = {
+  ...Object.fromEntries(Object.keys(COMMANDS).map((type) => [type.toLowerCase(), type])),
+  ...ACTION_ALIASES,
 };
-
-const DRAWABLE = new Set(["curve", "point", "vector", "segment", "text"]);
 
 export interface ParseIssue {
   line: string;
@@ -61,9 +51,9 @@ export function createModelOutputParser(): ModelOutputParser {
     const action = { ...(raw as Record<string, unknown>) };
     if (typeof action.type === "string") {
       const type = action.type.toLowerCase();
-      action.type = ACTION_ALIASES[type] ?? type;
+      action.type = TYPE_ALIASES[type] ?? action.type;
     }
-    if (typeof action.type === "string" && DRAWABLE.has(action.type) && typeof action.id !== "string") {
+    if (typeof action.type === "string" && NODE_COMMANDS.has(action.type as ActionType) && typeof action.id !== "string") {
       action.id = nextId(action.type);
     }
     // { x, y } au lieu de at: [x, y]

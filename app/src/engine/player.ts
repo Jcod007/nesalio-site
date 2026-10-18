@@ -17,7 +17,8 @@
  * Le lecteur ne dépend ni de React ni du navigateur : tout passe par les
  * ports (voix, source, horloge), ce qui le rend testable de bout en bout.
  */
-import { applyAction, emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/domain/board/state";
+import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/domain/board/state";
+import { applyAction } from "@/domain/scene/commands";
 import type { Check, Mood, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import type { StudentAnswer, TutorContext, TutorRequest } from "@/domain/tutor/request";

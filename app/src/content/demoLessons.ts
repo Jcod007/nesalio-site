@@ -40,18 +40,20 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "Pour les trouver, on pose f de x égale zéro, et on isole le carré.",
+      say: "Pour les trouver, on pose f de x égale zéro.",
       mood: "explique",
       do: [
         { type: "note", id: "n2", text: "−(x − 2)² + 3 = 0" },
-        { type: "note", id: "n3", text: "3 = (x − 2)²" },
         { type: "tag", text: "Ce qui bloque souvent : isoler une expression (sec 3)", tone: "warn" },
       ],
     },
     {
-      say: "On prend la racine carrée des deux côtés, sans oublier le plus ou moins. Donc x égale 2 plus ou moins racine de 3.",
+      say: "On isole le carré, puis on prend la racine carrée des deux côtés, sans oublier le plus ou moins. Donc x égale 2 plus ou moins racine de 3.",
       mood: "idee",
-      do: [{ type: "note", id: "n4", text: "x = 2 ± √3" }],
+      do: [
+        { type: "transform", target: "n2", text: "(x − 2)² = 3" },
+        { type: "note", id: "n4", text: "x = 2 ± √3", color: "green" },
+      ],
     },
     {
       say: "Ça donne environ 3,73 et 0,27. Regarde le graphique : ce sont exactement les deux points où la courbe coupe l'axe.",
@@ -61,6 +63,8 @@ export const quadraticLesson: Lesson = {
         { type: "erase", target: "q2" },
         { type: "point", id: "z1", at: [0.268, 0], label: "0,27", color: "green" },
         { type: "point", id: "z2", at: [3.732, 0], label: "3,73", color: "green" },
+        { type: "group", id: "zeros", members: ["z1", "z2"] },
+        { type: "dim", target: "axe" },
         { type: "highlight", target: "n4" },
       ],
     },

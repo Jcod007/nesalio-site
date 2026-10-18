@@ -6,6 +6,7 @@
  * spécification et l'exemple viennent donc de la même source que le moteur.
  */
 import { quadraticLesson } from "@/content/demoLessons";
+import { commandReference } from "@/domain/scene/commands";
 import type { Lesson } from "@/domain/scene/schema";
 import type { StudentAnswer, TutorRequest } from "@/domain/tutor/request";
 
@@ -37,21 +38,22 @@ Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni b
 3. {"kind":"end","summary":["…","…"]} : fin de la séance, 2 ou 3 points à retenir, écrits avec les symboles.
 
 COMMANDES DE DESSIN (coordonnées mathématiques, couleurs : violet, blue, green, orange, ink, muted)
-- {"type":"axes","x":[min,max],"y":[min,max],"xLabel":"x","yLabel":"y"} : repère, à tracer en premier si tu fais un graphique.
-- {"type":"curve","id":"f","fn":"-(x-2)^2+3","from":a,"to":b,"color":"blue","style":"solid|dashed|dotted","label":"…"}
-  "fn" est une expression en x : + - * / ^, parenthèses, sin cos tan sqrt abs exp ln log, pi. Pas de « y = ».
-- {"type":"point","id":"A","at":[x,y],"label":"(2, 3)","color":"violet","ring":true}
-- {"type":"vector","id":"v","from":[x,y],"to":[x,y],"label":"v₀","color":"violet"}
-- {"type":"segment","id":"s","from":[x,y],"to":[x,y],"label":"…","dashed":true}
-- {"type":"text","id":"t","at":[x,y],"text":"…"} : mot ou symbole écrit à la main sur le graphique.
-- {"type":"note","id":"n1","text":"x = 2 ± √3"} : ligne de calcul dans la colonne de droite (utilise ², √, ±, π, ≈, ÷, ×).
-- {"type":"tag","text":"Ce qui bloque : …","tone":"warn|ok|info"} : étiquette de diagnostic.
-- {"type":"highlight","target":"id"} : fait pulser un objet déjà dessiné.
-- {"type":"erase","target":"id"} : efface un objet.
-- {"type":"focus","x":[min,max],"y":[min,max]} : zoome sur une zone. {"type":"resetView"} : revient à la vue d'ensemble.
+${commandReference()}
 Les identifiants sont courts et uniques (lettres et chiffres). Tout doit rester dans les bornes des axes.
 Sans graphique (chimie, définitions…), n'utilise pas d'axes : le repère par défaut va de -6 à 6 en x et de -4 à 4 en y ;
-sers-toi de notes, de textes et de segments pour faire un schéma.`.trim();
+sers-toi de textes, de segments et de notes pour faire un schéma.
+
+STYLE AU TABLEAU (comme une bonne vidéo animée : le tableau vit avec l'explication)
+- Écris un texte À CÔTÉ de ce qu'il décrit ("text" avec "near"), pas dans un coin. Le moteur choisit la place exacte
+  et évite les chevauchements ; n'utilise "at" que pour une position qui a un sens mathématique.
+- Les calculs qui s'enchaînent vont dans la colonne ("note"). Quand une équation devient la suivante (on isole,
+  on simplifie), TRANSFORME-la ("transform" avec le nouveau "text") au lieu d'écrire une nouvelle ligne.
+- Ce qui n'est plus au centre : estompe-le ("dim"), il reste comme repère. Efface ("erase") ce qui gêne.
+- Regroupe ("group") les objets qui forment un tout (un triangle, une figure), puis déplace-le ("move") pour faire de
+  la place ou comparer deux situations côte à côte.
+- Même couleur pour un terme d'équation et l'objet qu'il désigne.
+- Ne transforme ni ne déplace un objet dans l'étape où tu le crées : fais-le à l'étape suivante, pendant que tu l'expliques.
+- Nouvelle idée sans lien avec le tableau : "clear", puis repars de zéro.`.trim();
 
 const PERSONA = `
 Tu es Nesa, la tutrice à la voix de Nesalio. Tu aides des élèves de secondaire 4 et 5 et du cégep, au Québec,
@@ -114,6 +116,7 @@ function exampleExchange(): string {
       mood: "idee",
       do: [
         { type: "point", id: "s2", at: [2, -1], label: "(2, −1)", color: "orange", ring: true },
+        { type: "text", id: "t3", text: "sous l'axe !", near: "s2", side: "below", color: "orange" },
         { type: "highlight", target: "g" },
       ],
     }),

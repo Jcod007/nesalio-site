@@ -1,15 +1,19 @@
 /**
  * Rendu du tableau avec manim-web.
  *
- * Le rendu est une projection de l'état du tableau (`BoardState`) : à chaque
- * changement, il compare l'état reçu à ce qu'il a déjà dessiné et lance les
- * animations de Manim qui manquent (Create, GrowArrow, Write, Indicate,
- * FadeOut). Les heures d'apparition prévues par le lecteur deviennent des
- * horodatages `playWithTimestamps`, ce qui garde le tracé synchronisé avec
- * la voix.
+ * Le rendu est une projection du graphe de scène (`BoardState`) : à chaque
+ * changement, il compare le graphe reçu à ce qu'il a déjà dessiné et lance
+ * les animations de Manim qui manquent — tracer (Create, GrowArrow), écrire,
+ * déplacer (Shift), transformer (TransformMatchingShapes, ReplacementTransform),
+ * estomper, faire pulser (Indicate), effacer (FadeOut). Les heures prévues par
+ * le lecteur deviennent des horodatages `playWithTimestamps`, ce qui garde le
+ * tracé synchronisé avec la voix.
+ *
+ * Il ne connaît pas les commandes du langage de scène, seulement les nœuds :
+ * ajouter une commande ne demande pas de toucher au rendu.
  *
  * La caméra (tableau infini : molette, glisser, pincer) est gérée ici, avec
- * les calculs purs de camera.ts.
+ * les calculs purs de camera.ts ; elle recadre le contenu quand il grandit.
  */
 import {
   Arrow,
@@ -25,8 +29,11 @@ import {
   GrowFromCenter,
   Indicate,
   Line,
+  ReplacementTransform,
   Scene,
+  Shift,
   Text,
+  UpdateFromAlphaFunc,
   registerTheme,
   setTheme,
   type Animation,
@@ -34,7 +41,8 @@ import {
   type VMobject,
 } from "manim-web";
 import { formatNumber, niceStep, sampleCurve } from "@/domain/board/geometry";
-import { DEFAULT_FRAME, type BoardItem, type BoardState, type Frame } from "@/domain/board/state";
+import { AXES_BOX, contentBox, fontSizeOf, FONT_SIZE } from "@/domain/board/layout";
+import { DEFAULT_FRAME, type BoardNode, type BoardState, type Frame, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
 import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
@@ -48,16 +56,28 @@ interface TimedAnimation {
   end: number;
 }
 
+interface PlannedAnimation {
+  delay: number;
+  share: number;
+  make: (seconds: number) => Animation;
+}
+
+/** Ce qui est dessiné pour un nœud du graphe, et ce qui en a déjà été animé. */
 interface Rendered {
   revealStart: number;
   mobjects: Mobject[];
   erased: boolean;
+  /** Déplacement cumulé déjà appliqué aux mobjects (coordonnées mathématiques). */
+  appliedOffset: Vec2;
+  motionStart?: number;
+  morphStart?: number;
+  dimStart?: number;
+  opacity: number;
 }
 
-/** Taille du repère dans le monde de Manim (cadre standard : 14 × 8). */
-const AXES_BOX = { width: 11.5, height: 6.4 };
 const HAND_FONT = "Caveat";
-const LABEL_SIZE = 34;
+/** Opacité d'un objet estompé (contexte), comme dans les vidéos de 3Blue1Brown. */
+const DIMMED = 0.28;
 
 let themeReady = false;
 function ensureTheme() {
@@ -81,13 +101,18 @@ export class ManimRenderer {
   private cameraTween = 0;
   private cameraTimer: ReturnType<typeof setTimeout> | null = null;
 
+  private board: BoardState | null = null;
   private axes: Axes | null = null;
   private axesMobjects: Mobject[] = [];
   private axesRevealStart: number | null = null;
+  private axesClearedAt: number | null = null;
   private frame: Frame = DEFAULT_FRAME;
   private items = new Map<string, Rendered>();
   private highlightsSeen = new Map<string, number>();
   private cameraAt: number | null = null;
+  /** Zoom demandé par le modèle (focus) : la caméra ne recadre pas d'elle-même pendant ce temps. */
+  private focused = false;
+  private lastContentKey = "";
 
   private queue: Promise<void> = Promise.resolve();
   private generation = 0;
@@ -108,17 +133,26 @@ export class ManimRenderer {
 
   /* --------------------------------- état --------------------------------- */
 
-  /** Compare l'état reçu à ce qui est dessiné et lance ce qui manque. */
+  /** Compare le graphe reçu à ce qui est dessiné et lance ce qui manque. */
   sync(board: BoardState, now: number): void {
     if (board.order.length === 0 && board.axes === null && (this.items.size > 0 || this.axesMobjects.length > 0)) {
       this.clear();
     }
+    this.board = board;
 
     const batch: TimedAnimation[] = [];
     const at = (start: number, durationMs: number): Pick<TimedAnimation, "start" | "end"> => {
       const s = Math.max(0, (start - now) / 1000);
       return { start: s, end: s + Math.max(0.05, durationMs / 1000) };
     };
+
+    // Repère effacé (commande clear avec le repère).
+    if (board.axesCleared && board.axesCleared.start !== this.axesClearedAt) {
+      this.axesClearedAt = board.axesCleared.start;
+      for (const old of this.axesMobjects) batch.push({ animation: new FadeOut(old, { duration: 0.4 }), ...at(board.axesCleared.start, 400) });
+      this.axesMobjects = [];
+      this.axesRevealStart = null;
+    }
 
     // Repère
     if (board.axes && board.axes.reveal.start !== this.axesRevealStart) {
@@ -133,31 +167,13 @@ export class ManimRenderer {
       for (const label of labels) {
         batch.push({ animation: new FadeIn(label, { duration: (duration * 0.5) / 1000 }), ...at(start + duration * 0.5, duration * 0.5) });
       }
-      if (!this.userMoved) this.animateView(fitView(this.homeBox(), this.viewport), 700, board.axes.reveal.start - now);
     }
 
-    // Objets
+    // Nœuds du graphe
     for (const id of board.order) {
-      const item = board.items[id];
-      if (!item) continue;
-      const rendered = this.items.get(id);
-      if (!rendered || rendered.revealStart !== item.reveal.start) {
-        if (rendered) this.scene.remove(...rendered.mobjects);
-        const built = this.build(item);
-        this.items.set(id, { revealStart: item.reveal.start, mobjects: built.mobjects, erased: false });
-        for (const anim of built.animations) {
-          const start = item.reveal.start + anim.delay * item.reveal.duration;
-          const duration = anim.share * item.reveal.duration;
-          batch.push({ animation: anim.make(duration / 1000), ...at(start, duration) });
-        }
-      }
-      const current = this.items.get(id)!;
-      if (item.erased && !current.erased) {
-        current.erased = true;
-        for (const mobject of current.mobjects) {
-          batch.push({ animation: new FadeOut(mobject, { duration: item.erased.duration / 1000 }), ...at(item.erased.start, item.erased.duration) });
-        }
-      }
+      const node = board.nodes[id];
+      if (!node) continue;
+      this.syncNode(node, batch, at);
     }
 
     // Mises en évidence
@@ -166,16 +182,17 @@ export class ManimRenderer {
       this.highlightsSeen.set(id, start);
       const target = this.items.get(id)?.mobjects[0];
       if (!target) continue;
-      const isCurve = board.items[id]?.type === "curve";
+      const isCurve = board.nodes[id]?.type === "curve";
       batch.push({
-        animation: new Indicate(target, { duration: 1.2, scaleFactor: isCurve ? 1 : 1.25, color: BRAND.violet }),
+        animation: new Indicate(target, { duration: 1.2, scaleFactor: isCurve ? 1 : 1.2, color: BRAND.violet }),
         ...at(start, 1200),
       });
     }
 
-    // Caméra
+    // Caméra : zoom demandé par le modèle, sinon recadrage quand le contenu change.
     if (board.camera && board.camera.at !== this.cameraAt) {
       this.cameraAt = board.camera.at;
+      this.focused = board.camera.kind === "fit";
       const target =
         board.camera.kind === "reset"
           ? fitView(this.homeBox(), this.viewport)
@@ -183,8 +200,101 @@ export class ManimRenderer {
       this.userMoved = false;
       this.animateView(target, board.camera.duration, board.camera.at - now);
     }
+    const contentKey = this.contentKey();
+    if (contentKey !== this.lastContentKey) {
+      this.lastContentKey = contentKey;
+      if (!this.userMoved && !this.focused) this.animateView(fitView(this.homeBox(), this.viewport), 700, 0);
+    }
 
     if (batch.length > 0) this.enqueue(batch);
+  }
+
+  /** Un nœud : apparition, déplacement, transformation, estompage, effacement. */
+  private syncNode(node: BoardNode, batch: TimedAnimation[], at: (start: number, durationMs: number) => Pick<TimedAnimation, "start" | "end">) {
+    let rendered = this.items.get(node.id);
+    const fresh = !rendered || rendered.revealStart !== node.reveal.start;
+
+    if (fresh) {
+      if (rendered) this.scene.remove(...rendered.mobjects);
+      // Un nœud qui apparaît puis bouge dans la même étape est dessiné à son point de départ.
+      const startOffset = node.motion && node.motion.start >= node.reveal.start ? node.motion.from : node.offset;
+      const built = this.build(node, startOffset);
+      rendered = { revealStart: node.reveal.start, mobjects: built.mobjects, erased: false, appliedOffset: startOffset, morphStart: node.morph?.start, opacity: 1 };
+      this.items.set(node.id, rendered);
+      for (const anim of built.animations) {
+        const start = node.reveal.start + anim.delay * node.reveal.duration;
+        const duration = anim.share * node.reveal.duration;
+        batch.push({ animation: anim.make(duration / 1000), ...at(start, duration) });
+      }
+    }
+    const current = rendered!;
+
+    // Transformation : les nouveaux mobjects remplacent les anciens en se transformant.
+    if (!fresh && node.morph && node.morph.start !== current.morphStart) {
+      current.morphStart = node.morph.start;
+      const built = this.build(node, node.offset);
+      for (const mobject of built.mobjects) mobject.opacity = current.opacity;
+      const seconds = node.morph.duration / 1000;
+      const [oldMain, ...oldRest] = current.mobjects;
+      const [newMain, ...newRest] = built.mobjects;
+      if (oldMain && newMain) {
+        if (node.type === "text") {
+          // Le texte de manim-web n'est pas un tracé vectoriel : l'ancien glisse et s'efface pendant que le nouveau s'écrit.
+          batch.push({ animation: new FadeOut(oldMain, { duration: seconds * 0.6, shift: [0, 0.22, 0] }), ...at(node.morph.start, node.morph.duration * 0.6) });
+          batch.push({
+            animation: new FadeIn(newMain, { duration: seconds * 0.7, shift: [0, 0.22, 0] }),
+            ...at(node.morph.start + node.morph.duration * 0.3, node.morph.duration * 0.7),
+          });
+        } else {
+          batch.push({ animation: new ReplacementTransform(oldMain, newMain, { duration: seconds }), ...at(node.morph.start, node.morph.duration) });
+        }
+      }
+      for (const old of oldRest) batch.push({ animation: new FadeOut(old, { duration: seconds * 0.5 }), ...at(node.morph.start, node.morph.duration * 0.5) });
+      for (const extra of newRest) {
+        batch.push({ animation: new FadeIn(extra, { duration: seconds * 0.5 }), ...at(node.morph.start + node.morph.duration * 0.5, node.morph.duration * 0.5) });
+      }
+      current.mobjects = built.mobjects;
+      current.appliedOffset = node.offset;
+      current.motionStart = node.motion?.start;
+    }
+
+    // Déplacement
+    if (node.motion && node.motion.start !== current.motionStart) {
+      current.motionStart = node.motion.start;
+      const delta = this.worldDelta([node.motion.to[0] - current.appliedOffset[0], node.motion.to[1] - current.appliedOffset[1]]);
+      current.appliedOffset = node.motion.to;
+      if (delta[0] !== 0 || delta[1] !== 0) {
+        for (const mobject of current.mobjects) {
+          batch.push({ animation: new Shift(mobject, { direction: delta, duration: node.motion.duration / 1000 }), ...at(node.motion.start, node.motion.duration) });
+        }
+      }
+    }
+
+    // Estompage
+    if (node.dim && node.dim.start !== current.dimStart) {
+      current.dimStart = node.dim.start;
+      const from = current.opacity;
+      const to = node.dim.on ? DIMMED : 1;
+      current.opacity = to;
+      for (const mobject of current.mobjects) {
+        const fade = new UpdateFromAlphaFunc(
+          mobject,
+          (m, alpha) => {
+            m.opacity = from + (to - from) * alpha;
+          },
+          { duration: node.dim.duration / 1000 },
+        );
+        batch.push({ animation: fade, ...at(node.dim.start, node.dim.duration) });
+      }
+    }
+
+    // Effacement
+    if (node.erased && !current.erased) {
+      current.erased = true;
+      for (const mobject of current.mobjects) {
+        batch.push({ animation: new FadeOut(mobject, { duration: node.erased.duration / 1000 }), ...at(node.erased.start, node.erased.duration) });
+      }
+    }
   }
 
   /** Marges de l'interface : la caméra cadre le contenu dans la zone libre. */
@@ -197,6 +307,7 @@ export class ManimRenderer {
   /** Retour à la vue d'ensemble (bouton « Recentrer »). */
   recenter(): void {
     this.userMoved = false;
+    this.focused = false;
     this.animateView(fitView(this.homeBox(), this.viewport), 600, 0);
   }
 
@@ -219,14 +330,18 @@ export class ManimRenderer {
     this.highlightsSeen.clear();
     this.axesMobjects = [];
     this.axesRevealStart = null;
+    this.axesClearedAt = null;
     this.cameraAt = null;
+    this.focused = false;
+    this.lastContentKey = "";
     this.frame = DEFAULT_FRAME;
     this.axes = this.coordinatesFor(DEFAULT_FRAME);
     this.userMoved = false;
+    this.board = null;
     this.animateView(fitView(this.homeBox(), this.viewport), 400, 0);
   }
 
-  /** Repère (même échelle en x et en y) qui sert aussi à convertir les coordonnées. */
+  /** Repère (même échelle en x et en y, centré à l'origine) qui sert aussi à convertir les coordonnées. */
   private coordinatesFor(frame: Frame): Axes {
     const dx = frame.x[1] - frame.x[0];
     const dy = frame.y[1] - frame.y[0];
@@ -258,8 +373,8 @@ export class ManimRenderer {
       if (Math.abs(v) < 1e-9) continue;
       labels.push(this.label(formatNumber(v), add(this.p(ox, v), [-0.3, 0, 0]), BRAND.muted, 20, "body"));
     }
-    if (frame.xLabel) labels.push(this.label(frame.xLabel, add(this.p(frame.x[1], oy), [-0.15, 0.35, 0]), BRAND.ink, LABEL_SIZE));
-    if (frame.yLabel) labels.push(this.label(frame.yLabel, add(this.p(ox, frame.y[1]), [0.4, -0.1, 0]), BRAND.ink, LABEL_SIZE));
+    if (frame.xLabel) labels.push(this.label(frame.xLabel, add(this.p(frame.x[1], oy), [-0.15, 0.35, 0]), BRAND.ink, FONT_SIZE.label));
+    if (frame.yLabel) labels.push(this.label(frame.yLabel, add(this.p(ox, frame.y[1]), [0.4, -0.1, 0]), BRAND.ink, FONT_SIZE.label));
     return labels;
   }
 
@@ -267,7 +382,14 @@ export class ManimRenderer {
     return this.axes!.c2p(x, y) as Vec3;
   }
 
-  private label(text: string, at: Vec3, color: string, size = LABEL_SIZE, font: "hand" | "body" = "hand"): Mobject {
+  /** Un déplacement mathématique, en unités du monde. */
+  private worldDelta([dx, dy]: Vec2): Vec3 {
+    const a = this.p(0, 0);
+    const b = this.p(dx, dy);
+    return [b[0] - a[0], b[1] - a[1], 0];
+  }
+
+  private label(text: string, at: Vec3, color: string, size: number = FONT_SIZE.label, font: "hand" | "body" = "hand"): Mobject {
     const mobject = new Text({
       text,
       fontSize: size,
@@ -279,52 +401,58 @@ export class ManimRenderer {
     return mobject;
   }
 
+  /** Construit les mobjects d'un nœud, décalés de `offset`, et décrit leurs animations d'apparition. */
+  private build(node: BoardNode, offset: Vec2): { mobjects: Mobject[]; animations: PlannedAnimation[] } {
+    const built = this.buildShape(node);
+    const delta = this.worldDelta(offset);
+    if (delta[0] !== 0 || delta[1] !== 0) for (const mobject of built.mobjects) mobject.shift(delta);
+    return built;
+  }
+
   /**
-   * Construit les mobjects d'un objet et décrit leurs animations :
-   * `delay` et `share` sont des fractions de la durée d'apparition prévue.
+   * Les mobjects d'un nœud à sa position dessinée. `delay` et `share` sont des
+   * fractions de la durée d'apparition prévue.
    */
-  private build(item: BoardItem): { mobjects: Mobject[]; animations: Array<{ delay: number; share: number; make: (s: number) => Animation }> } {
-    const color = STROKE[item.color ?? (item.type === "curve" ? "blue" : item.type === "vector" ? "violet" : "ink")];
-    switch (item.type) {
+  private buildShape(node: BoardNode): { mobjects: Mobject[]; animations: PlannedAnimation[] } {
+    const color = STROKE[node.color ?? (node.type === "curve" ? "blue" : node.type === "vector" ? "violet" : "ink")];
+    switch (node.type) {
       case "curve": {
-        const f = compileExpression(item.fn);
-        const pieces = sampleCurve(item.fn, this.frame, item.from, item.to);
+        const f = compileExpression(node.fn);
+        const pieces = sampleCurve(node.fn, this.frame, node.from, node.to);
         const graphs = pieces.map((piece) => {
-          const graph = this.axes!.plot(f, { xRange: [piece[0]![0], piece.at(-1)![0]], color, strokeWidth: item.style === "dotted" ? 7 : 4.5, numSamples: 160 });
-          if (item.style === "dashed" || item.style === "dotted") {
+          const graph = this.axes!.plot(f, { xRange: [piece[0]![0], piece.at(-1)![0]], color, strokeWidth: node.style === "dotted" ? 7 : 4.5, numSamples: 160 });
+          if (node.style === "dashed" || node.style === "dotted") {
             const length = Math.abs(piece.at(-1)![0] - piece[0]![0]);
-            return new DashedVMobject({ vmobject: graph as unknown as VMobject, numDashes: Math.max(8, Math.round(length * 6)), dashRatio: item.style === "dotted" ? 0.08 : 0.55 });
+            return new DashedVMobject({ vmobject: graph as unknown as VMobject, numDashes: Math.max(8, Math.round(length * 6)), dashRatio: node.style === "dotted" ? 0.08 : 0.55 });
           }
           return graph;
         });
         const mobjects: Mobject[] = [...graphs];
-        const animations = graphs.map((graph, i) => ({
+        const animations: PlannedAnimation[] = graphs.map((graph, i) => ({
           delay: i / Math.max(1, graphs.length),
           share: 1 / Math.max(1, graphs.length),
           make: (s: number) => new Create(graph, { duration: s }) as Animation,
         }));
         const last = pieces.at(-1)?.at(-1);
-        if (item.label && last) {
-          const text = this.label(item.label, add(this.p(last[0], last[1]), [0.3, 0.3, 0]), color);
+        if (node.label && last) {
+          const text = this.label(node.label, add(this.p(last[0], last[1]), [0.3, 0.3, 0]), color);
           mobjects.push(text);
           animations.push({ delay: 0.85, share: 0.15, make: (s) => new FadeIn(text, { duration: s }) });
         }
         return { mobjects, animations };
       }
       case "point": {
-        const center = this.p(item.at[0], item.at[1]);
+        const center = this.p(node.at[0], node.at[1]);
         const dot = new Dot({ point: center, radius: 0.085, color });
         const mobjects: Mobject[] = [dot];
-        const animations: Array<{ delay: number; share: number; make: (s: number) => Animation }> = [
-          { delay: 0, share: 0.6, make: (s) => new GrowFromCenter(dot, { duration: s }) },
-        ];
-        if (item.ring) {
+        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.6, make: (s) => new GrowFromCenter(dot, { duration: s }) }];
+        if (node.ring) {
           const ring = new Circle({ radius: 0.2, color, strokeWidth: 3, center });
           mobjects.push(ring);
           animations.push({ delay: 0.2, share: 0.8, make: (s) => new Create(ring, { duration: s }) });
         }
-        if (item.label) {
-          const text = this.label(item.label, add(center, [0.25, 0.42, 0]), BRAND.ink);
+        if (node.label) {
+          const text = this.label(node.label, add(center, [0.25, 0.42, 0]), BRAND.ink);
           text.shift([textHalfWidth(text), 0, 0]);
           mobjects.push(text);
           animations.push({ delay: 0.4, share: 0.6, make: (s) => new FadeIn(text, { duration: s }) });
@@ -333,32 +461,34 @@ export class ManimRenderer {
       }
       case "vector":
       case "segment": {
-        const from = this.p(item.from[0], item.from[1]);
-        const to = this.p(item.to[0], item.to[1]);
+        const from = this.p(node.from[0], node.from[1]);
+        const to = this.p(node.to[0], node.to[1]);
         const mobjects: Mobject[] = [];
-        const animations: Array<{ delay: number; share: number; make: (s: number) => Animation }> = [];
-        if (item.type === "vector") {
+        const animations: PlannedAnimation[] = [];
+        if (node.type === "vector") {
           const arrow = new Arrow({ start: from, end: to, color, strokeWidth: 5, tipLength: 0.22, tipWidth: 0.2 });
           mobjects.push(arrow);
           animations.push({ delay: 0, share: 1, make: (s) => new GrowArrow(arrow, { duration: s }) });
         } else {
-          const line = item.dashed
+          const line = node.dashed
             ? new DashedLine({ start: from, end: to, color, strokeWidth: 3, dashLength: 0.12 })
             : new Line({ start: from, end: to, color, strokeWidth: 3.5 });
           mobjects.push(line);
           animations.push({ delay: 0, share: 1, make: (s) => new Create(line, { duration: s }) });
         }
-        if (item.label) {
-          const anchor = item.type === "vector" ? to : mid(from, to);
+        if (node.label) {
+          const anchor = node.type === "vector" ? to : mid(from, to);
           const normal = perpendicular(from, to, this.p(0, 0));
-          const text = this.label(item.label, add(anchor, scale(normal, 0.38)), color);
+          const text = this.label(node.label, add(anchor, scale(normal, 0.38)), color);
           mobjects.push(text);
           animations.push({ delay: 0.6, share: 0.4, make: (s) => new FadeIn(text, { duration: s }) });
         }
         return { mobjects, animations };
       }
       case "text": {
-        const text = this.label(item.text, this.p(item.at[0], item.at[1]), color, 40);
+        const text = this.label(node.text, this.p(node.at[0], node.at[1]), color, fontSizeOf(node));
+        // Ligne de calcul : alignée à gauche sur sa colonne.
+        if (node.align === "left") text.shift([textHalfWidth(text), 0, 0]);
         return {
           mobjects: [text],
           animations: [{ delay: 0, share: 1, make: (s) => new FadeIn(text, { duration: s, shift: [0, -0.12, 0] }) }],
@@ -388,9 +518,18 @@ export class ManimRenderer {
 
   /* --------------------------------- caméra --------------------------------- */
 
+  /** Tout ce qui est au tableau (figure, textes, calculs), en unités du monde. */
   private homeBox(): WorldBox {
-    if (!this.axes) return { x: 0, y: 0, width: 14, height: 8 };
-    return this.mathBox(this.frame.x, this.frame.y, 0.6);
+    if (!this.board) return this.mathBox(this.frame.x, this.frame.y, 0.6);
+    const box = contentBox(this.board);
+    return this.mathBox([box.x0, box.x1], [box.y0, box.y1], 0.5);
+  }
+
+  /** Clé du contenu : quand elle change, la caméra recadre (si l'élève n'a pas bougé la vue). */
+  private contentKey(): string {
+    if (!this.board) return "";
+    const box = contentBox(this.board);
+    return [box.x0, box.y0, box.x1, box.y1].map((v) => v.toFixed(2)).join(",");
   }
 
   private mathBox(x: [number, number], y: [number, number], margin = 0.3): WorldBox {

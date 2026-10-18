@@ -8,134 +8,14 @@
  *   3. une fin `end` avec le résumé de la séance.
  *
  * Tout ce qui arrive du modèle est validé ici avant d'atteindre le moteur :
- * une ligne invalide est ignorée, jamais exécutée.
+ * une ligne invalide est ignorée, jamais exécutée. Les commandes de dessin
+ * sont définies une par une dans `commands/` (registre).
  */
 import { z } from "zod";
-import { tryCompileExpression } from "@/domain/math/expr";
+import { Action } from "./commands";
 
-/** Palette nommée : le modèle choisit une intention, le rendu choisit la couleur de marque. */
-export const ColorName = z.enum(["violet", "blue", "green", "orange", "ink", "muted"]);
-export type ColorName = z.infer<typeof ColorName>;
-
-const finite = z.number().finite();
-const Coord = z.tuple([finite, finite]);
-const Range = z
-  .tuple([finite, finite])
-  .refine(([a, b]) => b > a, { message: "L'intervalle doit être croissant" });
-const Id = z
-  .string()
-  .regex(/^[a-zA-Z][\w-]{0,31}$/, "Identifiant : lettres, chiffres, - ou _ (32 caractères max.)");
-const ShortText = z.string().trim().min(1).max(80);
-
-const Expression = z
-  .string()
-  .min(1)
-  .max(200)
-  .refine((source) => tryCompileExpression(source) !== null, { message: "Expression mathématique invalide" });
-
-/* ---------------------------- commandes de dessin ---------------------------- */
-
-export const AxesAction = z.object({
-  type: z.literal("axes"),
-  x: Range,
-  y: Range,
-  xLabel: z.string().max(12).optional(),
-  yLabel: z.string().max(12).optional(),
-});
-
-export const CurveAction = z.object({
-  type: z.literal("curve"),
-  id: Id,
-  fn: Expression,
-  from: finite.optional(),
-  to: finite.optional(),
-  color: ColorName.optional(),
-  style: z.enum(["solid", "dashed", "dotted"]).optional(),
-  label: z.string().max(40).optional(),
-});
-
-export const PointAction = z.object({
-  type: z.literal("point"),
-  id: Id,
-  at: Coord,
-  label: z.string().max(40).optional(),
-  color: ColorName.optional(),
-  ring: z.boolean().optional(),
-});
-
-export const VectorAction = z.object({
-  type: z.literal("vector"),
-  id: Id,
-  from: Coord,
-  to: Coord,
-  label: z.string().max(24).optional(),
-  color: ColorName.optional(),
-});
-
-export const SegmentAction = z.object({
-  type: z.literal("segment"),
-  id: Id,
-  from: Coord,
-  to: Coord,
-  label: z.string().max(24).optional(),
-  color: ColorName.optional(),
-  dashed: z.boolean().optional(),
-});
-
-export const TextAction = z.object({
-  type: z.literal("text"),
-  id: Id,
-  at: Coord,
-  text: z.string().trim().min(1).max(60),
-  color: ColorName.optional(),
-});
-
-/** Ligne écrite à la main dans la colonne de calculs, en haut à droite. */
-export const NoteAction = z.object({
-  type: z.literal("note"),
-  id: Id.optional(),
-  text: z.string().trim().min(1).max(60),
-});
-
-/** Étiquette de diagnostic, par exemple « Ce qui bloque : isoler une expression (sec 3) ». */
-export const TagAction = z.object({
-  type: z.literal("tag"),
-  text: ShortText,
-  tone: z.enum(["warn", "ok", "info"]).optional(),
-});
-
-export const HighlightAction = z.object({ type: z.literal("highlight"), target: Id });
-export const EraseAction = z.object({ type: z.literal("erase"), target: Id });
-
-/** Recadre la caméra sur une zone du graphique (coordonnées mathématiques). */
-export const FocusAction = z.object({
-  type: z.literal("focus"),
-  x: Range,
-  y: Range,
-});
-
-/** Retour à la vue d'ensemble. */
-export const ResetViewAction = z.object({ type: z.literal("resetView") });
-
-export const Action = z.discriminatedUnion("type", [
-  AxesAction,
-  CurveAction,
-  PointAction,
-  VectorAction,
-  SegmentAction,
-  TextAction,
-  NoteAction,
-  TagAction,
-  HighlightAction,
-  EraseAction,
-  FocusAction,
-  ResetViewAction,
-]);
-export type Action = z.infer<typeof Action>;
-export type ActionType = Action["type"];
-
-/** Commandes qui laissent un objet sur le tableau (et qu'on peut donc cibler). */
-export type DrawableAction = Extract<Action, { type: "curve" | "point" | "vector" | "segment" | "text" }>;
+export { ColorName } from "./primitives";
+export { Action, type ActionType } from "./commands";
 
 /* --------------------------------- étapes --------------------------------- */
 

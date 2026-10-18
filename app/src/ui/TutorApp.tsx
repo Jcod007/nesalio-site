@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ManimBoard } from "./board/ManimBoard";
-import { NotesColumn } from "./board/NotesColumn";
+import { DiagnosticTag } from "./board/DiagnosticTag";
 import { Dock, type DockActions } from "./Dock";
 import { useTutor } from "./hooks/useTutor";
 import { StartScreen } from "./StartScreen";
@@ -12,8 +12,8 @@ const TOP_BAR = 60;
 const WIDE = 900;
 
 /**
- * Composition de l'écran : barre du haut, tableau infini, colonne de
- * calculs, et la carte de Nesa. Toute la logique de séance vit dans le
+ * Composition de l'écran : barre du haut, tableau infini (figure et calculs),
+ * étiquette de diagnostic, et la carte de Nesa. Toute la logique de séance vit dans le
  * lecteur (engine/player.ts) ; ce composant ne fait que la brancher.
  */
 export function TutorApp() {
@@ -24,7 +24,7 @@ export function TutorApp() {
   const dockRef = useRef<HTMLElement>(null);
   const [dockHeight, setDockHeight] = useState(0);
   const [width, setWidth] = useState(1200);
-  const [notesBottom, setNotesBottom] = useState(0);
+  const [tagBottom, setTagBottom] = useState(0);
 
   useEffect(() => {
     const onResize = () => setWidth(window.innerWidth);
@@ -81,21 +81,22 @@ export function TutorApp() {
   );
 
   const wide = width >= WIDE;
-  const hasNotes = snapshot.board.notes.length > 0 || snapshot.board.tag !== null;
+  // Les calculs sont dans la scène : seule l'étiquette de diagnostic réserve un peu de place en haut.
+  const hasTag = snapshot.board.tag !== null;
   const insets = useMemo(
     () => ({
-      top: wide || !hasNotes ? TOP_BAR + 12 : Math.max(TOP_BAR + 12, notesBottom + 8),
-      right: wide && hasNotes ? 330 : 16,
+      top: hasTag ? Math.max(TOP_BAR + 12, tagBottom + 8) : TOP_BAR + 12,
+      right: 16,
       bottom: idle ? 16 : dockHeight + 36,
       left: 16,
     }),
-    [wide, hasNotes, idle, dockHeight, notesBottom],
+    [hasTag, idle, dockHeight, tagBottom],
   );
 
   return (
     <main style={{ position: "fixed", inset: 0, overflow: "hidden" }}>
       <ManimBoard board={snapshot.board} insets={insets} />
-      <NotesColumn board={snapshot.board} compact={!wide} onHeightChange={setNotesBottom} />
+      <DiagnosticTag board={snapshot.board} compact={!wide} onBottomChange={setTagBottom} />
       <TopBar
         title={snapshot.title}
         topic={snapshot.topic}
