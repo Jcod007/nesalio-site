@@ -78,6 +78,8 @@ export async function GET(request: Request): Promise<Response> {
   let board = emptyBoard();
   const usage: Record<string, number> = {};
   const unknownTargets: string[] = [];
+  let cueable = 0;
+  let cued = 0;
   for (let turn = 1; turn <= maxTurns; turn++) {
     const turnStart = Date.now();
     const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
@@ -92,6 +94,11 @@ export async function GET(request: Request): Promise<Response> {
         lastCheck = event.check;
         for (const action of event.do ?? []) {
           usage[action.type] = (usage[action.type] ?? 0) + 1;
+          const key = "id" in action ? action.id : "target" in action ? action.target : undefined;
+          if (typeof key === "string") {
+            cueable++;
+            if (event.cues && key in event.cues) cued++;
+          }
           if ("target" in action && resolveTargets(board, action.target).length === 0) unknownTargets.push(`${action.type} ${action.target}`);
           board = applyAction(board, action, { start: 0, duration: 0 });
         }
@@ -127,6 +134,8 @@ export async function GET(request: Request): Promise<Response> {
   lesson.stepCount = steps.length;
   lesson.actionCount = steps.reduce((n, s) => n + s.do.length, 0);
   lesson.commands = usage;
+  /** Part des objets synchronisés sur la parole (repères {id}). */
+  lesson.cueCoverage = cueable > 0 ? `${cued}/${cueable}` : "—";
   lesson.unknownTargets = unknownTargets;
   report.lesson = lesson;
   report.turns = turns;

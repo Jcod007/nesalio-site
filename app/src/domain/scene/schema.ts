@@ -47,6 +47,11 @@ export const Step = z.object({
   mood: Mood.optional(),
   do: z.array(Action).max(12).default([]),
   check: Check.optional(),
+  /**
+   * Moment où chaque objet apparaît, en fraction de la phrase (0 = début).
+   * Calculé à partir des repères {id} écrits dans « say » (voir tutor/cues.ts).
+   */
+  cues: z.record(z.string(), z.number().min(0).max(1)).optional(),
 });
 export type Step = z.infer<typeof Step>;
 

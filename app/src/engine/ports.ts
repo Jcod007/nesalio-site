@@ -11,6 +11,12 @@ import type { TutorRequest } from "@/domain/tutor/request";
 export interface SpeechHandle {
   /** Se résout quand la phrase est finie ou interrompue. */
   done: Promise<void>;
+  /**
+   * Se résout quand le son commence vraiment (ou tout de suite si on ne peut
+   * pas le savoir). Le tableau attend ce moment pour dessiner : l'image ne
+   * doit jamais devancer la voix.
+   */
+  started?: Promise<void>;
 }
 
 export interface Speaker {

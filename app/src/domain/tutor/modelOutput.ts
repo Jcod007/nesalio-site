@@ -18,6 +18,7 @@ import {
   type Step,
 } from "@/domain/scene/schema";
 import { z } from "zod";
+import { extractCues } from "./cues";
 
 /** Noms de commandes que les modèles inventent : ceux du registre, plus quelques synonymes de type. */
 const TYPE_ALIASES: Readonly<Record<string, string>> = {
@@ -68,7 +69,8 @@ export function createModelOutputParser(): ModelOutputParser {
   }
 
   function parseStep(obj: Record<string, unknown>, line: string): ModelEvent | null {
-    const say = z.string().trim().min(1).max(320).safeParse(obj.say);
+    const cued = typeof obj.say === "string" ? extractCues(obj.say) : null;
+    const say = z.string().trim().min(1).max(320).safeParse(cued?.say);
     if (!say.success) return reject(line, "Étape sans phrase valide");
 
     const rawActions = Array.isArray(obj.do) ? obj.do : [];
@@ -88,6 +90,7 @@ export function createModelOutputParser(): ModelOutputParser {
       mood: mood.success ? mood.data : undefined,
       do: actions,
       check: check?.success ? check.data : undefined,
+      cues: cued && Object.keys(cued.cues).length > 0 ? cued.cues : undefined,
     };
     return { kind: "step", ...step };
   }

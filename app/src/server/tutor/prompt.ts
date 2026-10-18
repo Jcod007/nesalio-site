@@ -28,6 +28,9 @@ Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni b
 2. {"kind":"step","say":"…","mood":"…","do":[…],"check":{…}} : une étape.
    - "say" : ce que tu dis à voix haute (1 ou 2 phrases, 35 mots au plus). Écris les maths comme on les prononce :
      « x au carré », « racine carrée de 3 », « f de x », « 20 mètres par seconde ». Les symboles vont sur le tableau.
+     SYNCHRONISATION : écris {id} juste après le mot qui désigne un objet de "do" (« le sommet {S} est en haut »).
+     L'objet apparaît, bouge ou s'estompe à ce moment-là, comme dans une vidéo : jamais avant que tu en parles.
+     Un repère par objet ; les repères ne sont pas prononcés.
    - "mood" : "explique" | "dessine" | "question" | "idee" | "bravo".
    - "do" : les commandes de dessin à jouer pendant la phrase (0 à 6 par étape, dans l'ordre où elles se dessinent).
    - "check" : question posée à l'élève, qui termine le tour (voir COMMENT TU ENSEIGNES).
@@ -112,7 +115,7 @@ function exampleExchange(): string {
   ];
   const turn3 = [
     step({
-      say: "Tu as dit 2 : c'est l'erreur la plus courante, on regarde seulement l'ouverture. Ce qui compte, c'est où est le sommet : ici, il est sous l'axe.",
+      say: "Tu as dit 2 : c'est l'erreur la plus courante, on regarde seulement l'ouverture {g}. Ce qui compte, c'est où est le sommet {s2} : ici, il est sous l'axe {t3}.",
       mood: "idee",
       do: [
         { type: "point", id: "s2", at: [2, -1], label: "(2, −1)", color: "orange", ring: true },
@@ -121,7 +124,7 @@ function exampleExchange(): string {
       ],
     }),
     step({
-      say: "Et comme la courbe ouvre vers le bas, elle ne fait que descendre à partir de là. Elle ne touche jamais l'axe : zéro zéro.",
+      say: "Et comme la courbe ouvre vers le bas, elle ne fait que descendre à partir de là. Elle ne touche jamais l'axe : zéro zéro {n5}.",
       mood: "explique",
       do: [{ type: "note", id: "n5", text: "sommet sous l'axe + ouvre vers le bas → 0 zéro" }],
     }),

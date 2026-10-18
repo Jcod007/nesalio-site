@@ -29,10 +29,41 @@ const SPREAD = 0.8;
 /** Recouvrement naturel : la commande suivante démarre avant la fin de la précédente. */
 const OVERLAP = 0.6;
 
-export function planStep(actions: readonly Action[], speechMs: number): StepPlan {
+/** L'objet apparaît un peu avant le mot qui le désigne : l'œil le trouve quand l'oreille l'entend. */
+const CUE_LEAD_MS = 150;
+
+/** Identifiant de l'objet concerné par une commande (créé ou ciblé), s'il y en a un. */
+function cueKey(action: Action): string | undefined {
+  if ("id" in action && typeof action.id === "string") return action.id;
+  if ("target" in action && typeof action.target === "string") return action.target;
+  return undefined;
+}
+
+/**
+ * Horaire des commandes d'une étape.
+ * - Avec des repères ({id} dans la phrase) : chaque objet repéré apparaît au
+ *   moment où Nesa en parle ; les autres s'enchaînent naturellement autour.
+ * - Sans repère : les tracés s'étalent sur la durée de la phrase.
+ */
+export function planStep(actions: readonly Action[], speechMs: number, cues?: Readonly<Record<string, number>>): StepPlan {
   if (actions.length === 0) return { actions: [], drawingMs: 0 };
 
   const durations = actions.map(actionDuration);
+  const cueOf = (action: Action) => {
+    const key = cueKey(action);
+    return key !== undefined && cues && key in cues ? cues[key]! : undefined;
+  };
+
+  if (cues && actions.some((action) => cueOf(action) !== undefined)) {
+    let cursor = 0;
+    const planned = actions.map((action, i) => {
+      const cue = cueOf(action);
+      const offset = cue !== undefined ? Math.max(0, Math.round(cue * speechMs - CUE_LEAD_MS)) : cursor;
+      if (!isQuick(action.type)) cursor = Math.max(cursor, offset + durations[i]! * OVERLAP);
+      return { action, offset, duration: durations[i]! };
+    });
+    return { actions: planned, drawingMs: Math.max(...planned.map((p) => p.offset + p.duration)) };
+  }
 
   // 1. Enchaînement naturel, sans tenir compte de la voix.
   const natural: number[] = [];

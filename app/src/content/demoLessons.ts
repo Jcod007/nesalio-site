@@ -15,7 +15,7 @@ export const quadraticLesson: Lesson = {
   header: { kind: "lesson", title: "Les zéros d'une fonction quadratique", topic: "Fonctions · sec 4" },
   steps: [
     {
-      say: "On va trouver les zéros de f de x égale moins x moins 2, le tout au carré, plus 3. D'abord, la forme canonique nous donne le sommet directement.",
+      say: "On va trouver les zéros de f de x {n1} égale moins x moins 2, le tout au carré, plus 3. D'abord, la forme canonique nous donne le sommet directement.",
       mood: "explique",
       do: [
         { type: "axes", x: [-1, 5], y: [-3, 4], xLabel: "x", yLabel: "y" },
@@ -23,7 +23,7 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "Le sommet est au point 2, 3. Et le a est négatif, donc la parabole ouvre vers le bas.",
+      say: "Le sommet {sommet} est au point 2, 3. Et le a est négatif, donc la parabole ouvre vers le bas, symétrique autour de cet axe {axe}.",
       mood: "dessine",
       do: [
         { type: "point", id: "sommet", at: [2, 3], label: "(2, 3)", color: "violet", ring: true },
@@ -31,7 +31,7 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "Imagine une colline : le sommet est au-dessus de l'axe des x, et les deux côtés descendent. Chaque côté finit par croiser l'axe, donc il y a deux zéros.",
+      say: "Imagine une colline {f} : le sommet est au-dessus de l'axe des x, et les deux côtés descendent. Chaque côté finit par croiser l'axe {q1} {q2}, donc il y a deux zéros.",
       mood: "dessine",
       do: [
         { type: "curve", id: "f", fn: "-(x-2)^2+3", color: "blue" },
@@ -40,7 +40,7 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "Pour les trouver, on pose f de x égale zéro.",
+      say: "Pour les trouver, on pose f de x égale zéro {n2}.",
       mood: "explique",
       do: [
         { type: "note", id: "n2", text: "−(x − 2)² + 3 = 0" },
@@ -48,7 +48,7 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "On isole le carré, puis on prend la racine carrée des deux côtés, sans oublier le plus ou moins. Donc x égale 2 plus ou moins racine de 3.",
+      say: "On isole le carré {n2}, puis on prend la racine carrée des deux côtés, sans oublier le plus ou moins. Donc x égale 2 plus ou moins racine de 3 {n4}.",
       mood: "idee",
       do: [
         { type: "transform", target: "n2", text: "(x − 2)² = 3" },
@@ -56,7 +56,7 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "Ça donne environ 3,73 et 0,27. Regarde le graphique : ce sont exactement les deux points où la courbe coupe l'axe.",
+      say: "Ça donne environ 3,73 {z2} et 0,27 {z1}. Regarde le graphique : ce sont exactement les deux points où la courbe coupe l'axe.",
       mood: "dessine",
       do: [
         { type: "erase", target: "q1" },
@@ -69,7 +69,7 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "À toi maintenant. Même ouverture vers le bas, mais cette fois le sommet est en 2, moins 1.",
+      say: "À toi maintenant. Même ouverture vers le bas, mais cette fois le sommet est en 2, moins 1 {g}.",
       mood: "question",
       do: [{ type: "curve", id: "g", fn: "-(x-2)^2-1", color: "muted", style: "dashed" }],
       check: {

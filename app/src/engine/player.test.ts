@@ -269,4 +269,29 @@ describe("Player", () => {
     await speakUntil(player, voice, (s) => s.status === "done");
     expect(voice.spoken).toEqual(["Devine.", "Oui !", "Suite."]);
   });
+
+  it("ne dessine qu'une fois la voix vraiment lancée", async () => {
+    let start: () => void = () => {};
+    const voice = fakeSpeaker();
+    const speaker: Speaker = {
+      ...voice.speaker,
+      speak(text) {
+        const handle = voice.speaker.speak(text);
+        return { ...handle, started: new Promise<void>((resolve) => (start = resolve)) };
+      },
+    };
+    const { source } = scriptedSource(() => [step("Voici A.", { do: [{ type: "point", id: "A", at: [1, 1] }] }), { kind: "end", summary: [] }]);
+    // Horloge où l'attente de sécurité (4 s) ne se termine jamais d'elle-même.
+    const base = fakeClock();
+    const clock: Clock = { now: base.now, sleep: (ms, signal) => (ms >= 4000 ? new Promise(() => signal?.aborted) : base.sleep(ms, signal)) };
+    const player = new Player({ speaker, source, clock });
+
+    player.ask("?");
+    await until(player, () => voice.spoken.length === 1);
+    await tick();
+    expect(player.getSnapshot().board.order).toEqual([]);
+    start();
+    await until(player, (s) => s.board.order.includes("A"));
+    await speakUntil(player, voice, (s) => s.status === "done");
+  });
 });

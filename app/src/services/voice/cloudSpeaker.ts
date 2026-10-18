@@ -96,22 +96,29 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
 
       let cancelled = false;
       let finish: () => void = () => {};
+      let markStarted: () => void = () => {};
+      const started = new Promise<void>((resolve) => (markStarted = resolve));
       const done = new Promise<void>((resolve) => {
         finish = () => {
           cancelled = true;
+          markStarted();
           resolve();
         };
         void load(text).then((clip) => {
           if (cancelled) return;
           if (!clip) {
             // Pas d'audio pour cette phrase : la voix du navigateur prend le relais.
-            fallback.speak(text).done.then(resolve);
+            const spoken = fallback.speak(text);
+            void (spoken.started ?? Promise.resolve()).then(markStarted);
+            spoken.done.then(resolve);
             current = { audio: new Audio(), finish: () => { fallback.cancel(); resolve(); } };
             return;
           }
           const audio = new Audio(clip.url);
+          audio.onplaying = () => markStarted();
           const end = () => {
-            audio.onended = audio.onerror = null;
+            markStarted();
+            audio.onended = audio.onerror = audio.onplaying = null;
             if (current?.audio === audio) current = null;
             resolve();
           };
@@ -126,12 +133,14 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
           };
           audio.play().catch(() => {
             // Lecture bloquée (aucun geste de l'utilisateur) : on lit avec la voix du navigateur.
-            fallback.speak(text).done.then(end);
+            const spoken = fallback.speak(text);
+            void (spoken.started ?? Promise.resolve()).then(markStarted);
+            spoken.done.then(end);
           });
         });
       });
       current = { audio: new Audio(), finish };
-      return { done };
+      return { done, started };
     },
     cancel() {
       const playing = current;

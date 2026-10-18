@@ -71,12 +71,20 @@ export function createBrowserSpeaker(): BrowserSpeaker {
       if (voice) utterance.voice = voice;
       utterance.rate = RATE;
 
+      let markStarted: () => void = () => {};
+      const started = new Promise<void>((resolve) => {
+        markStarted = resolve;
+        // Certains navigateurs n'émettent jamais « start » : on n'attend pas plus d'une seconde.
+        setTimeout(resolve, 1000);
+      });
+      utterance.onstart = () => markStarted();
       const done = new Promise<void>((resolve) => {
         // Certains navigateurs n'émettent jamais « end » : filet de sécurité.
         const safety = setTimeout(finish, estimate(text) * 2 + 2500);
         function finish() {
           clearTimeout(safety);
           utterance.onend = utterance.onerror = null;
+          markStarted();
           resolve();
         }
         utterance.onend = finish;
@@ -87,7 +95,7 @@ export function createBrowserSpeaker(): BrowserSpeaker {
         };
       });
       synth.speak(utterance);
-      return { done };
+      return { done, started };
     },
     cancel() {
       const cancel = cancelCurrent;

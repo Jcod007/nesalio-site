@@ -71,6 +71,8 @@ export const INITIAL_SNAPSHOT: PlayerSnapshot = {
 export const PAUSE_BETWEEN_STEPS_MS = 350;
 const MAX_HISTORY = 16;
 const PREPARE_TIMEOUT_MS = 8000;
+/** Au-delà, on dessine même si la voix n'a pas encore démarré (son bloqué, navigateur muet…). */
+const START_TIMEOUT_MS = 4000;
 
 interface Segment {
   kind: "question" | "followUp";
@@ -389,11 +391,19 @@ export class Player {
     if (step.check?.ifRight) speaker.prefetch?.(step.check.ifRight);
     if (step.check?.ifWrong) speaker.prefetch?.(step.check.ifWrong);
 
+    // La voix d'abord : le tableau ne dessine qu'une fois le son vraiment lancé
+    // (contiguïté temporelle), même si l'audio met du temps à démarrer.
+    const speech = speaker.speak(step.say);
+    if (speech.started) {
+      await Promise.race([speech.started, clock.sleep(START_TIMEOUT_MS, abort.signal)]);
+      if (abort.signal.aborted) return false;
+    }
+
     const now = clock.now();
     let drawingMs = 0;
 
     if (segment.appliedUpTo <= segment.cursor) {
-      const plan = planStep(step.do, speechMs);
+      const plan = planStep(step.do, speechMs, step.cues);
       let board = pruneErased(this.snapshot.board, now);
       for (const planned of plan.actions) {
         board = applyAction(board, planned.action, { start: now + planned.offset, duration: planned.duration });
@@ -411,7 +421,6 @@ export class Player {
       caption: { text: step.say, mood: step.mood ?? "explique", startedAt: now, durationMs: speechMs },
     });
 
-    const speech = speaker.speak(step.say);
     if (!(await this.race(Promise.all([speech.done, clock.sleep(drawingMs, abort.signal)]), abort.signal))) {
       return false;
     }
