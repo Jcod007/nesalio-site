@@ -13,6 +13,7 @@ import type { CommandSpec } from "./define";
 import { dimCommand, highlightCommand, undimCommand } from "./emphasis";
 import { axesCommand, curveCommand, pointCommand, segmentCommand, vectorCommand } from "./figure";
 import { moveCommand, transformCommand } from "./motion";
+import { angleCommand, circleCommand, inclineCommand, polygonCommand, triangleCommand } from "./shapes";
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
 import { noteCommand, tagCommand, textCommand } from "./text";
 
@@ -23,6 +24,11 @@ export const COMMANDS = {
   point: pointCommand,
   vector: vectorCommand,
   segment: segmentCommand,
+  triangle: triangleCommand,
+  angle: angleCommand,
+  circle: circleCommand,
+  polygon: polygonCommand,
+  incline: inclineCommand,
   text: textCommand,
   note: noteCommand,
   tag: tagCommand,
@@ -44,6 +50,11 @@ export const Action = z.discriminatedUnion("type", [
   pointCommand.schema,
   vectorCommand.schema,
   segmentCommand.schema,
+  triangleCommand.schema,
+  angleCommand.schema,
+  circleCommand.schema,
+  polygonCommand.schema,
+  inclineCommand.schema,
   textCommand.schema,
   noteCommand.schema,
   tagCommand.schema,
@@ -86,7 +97,18 @@ export const ACTION_ALIASES: Readonly<Record<string, ActionType>> = Object.fromE
 );
 
 /** Commandes qui créent un nœud identifié (un identifiant est ajouté s'il manque). */
-export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set(["curve", "point", "vector", "segment", "text"]);
+export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
+  "curve",
+  "point",
+  "vector",
+  "segment",
+  "text",
+  "triangle",
+  "angle",
+  "circle",
+  "polygon",
+  "incline",
+]);
 
 /** Documentation de toutes les commandes, pour les consignes du modèle. */
 export function commandReference(): string {

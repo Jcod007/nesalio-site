@@ -11,13 +11,17 @@
  * convertit avec l'échelle du repère courant.
  */
 import { sampleCurve } from "./geometry";
+import { arcPoints } from "./shapes";
 import {
   isVisible,
   moveNodes,
   updateNodes,
   visibleNodes,
+  type ArcNode,
   type BoardNode,
   type BoardState,
+  type CircleNode,
+  type PolygonNode,
   type Frame,
   type Reveal,
   type TextNode,
@@ -115,6 +119,14 @@ export function nodeBox(node: BoardNode, frame: Frame): Box {
       box = points.length > 0 ? fromPoints(points) : frameBox(frame);
       break;
     }
+    case "arc":
+    case "circle":
+    case "polygon": {
+      box = fromPoints(outline(node));
+      const size = label(node.label);
+      if (size) box = union([box, boxAround(boxCenter(box), { w: size.w, h: size.h })])!;
+      break;
+    }
     case "text": {
       const size = textExtent(node.text, fontSizeOf(node), frame);
       const center: Vec2 = node.align === "left" ? [node.at[0] + size.w / 2, node.at[1]] : node.at;
@@ -123,6 +135,24 @@ export function nodeBox(node: BoardNode, frame: Frame): Box {
     }
   }
   return shift(box, node.offset);
+}
+
+/** Contour d'une forme (sans déplacement), pour les boîtes et les obstacles. */
+export function outline(node: ArcNode | CircleNode | PolygonNode): Vec2[] {
+  switch (node.type) {
+    case "arc":
+      return arcPoints(node.center, node.radius, node.start, node.end, 16);
+    case "circle":
+      return arcPoints(node.center, node.radius, 0, 360, 32);
+    case "polygon": {
+      const ring = node.closed ? [...node.points, node.points[0]!] : node.points;
+      return ring.flatMap((p, i) => (i === 0 ? [p] : sampleLine(ring[i - 1]!, p, 8).slice(1)));
+    }
+  }
+}
+
+function sampleLine(a: Vec2, b: Vec2, n: number): Vec2[] {
+  return Array.from({ length: n + 1 }, (_, i) => [a[0] + ((b[0] - a[0]) * i) / n, a[1] + ((b[1] - a[1]) * i) / n] as Vec2);
 }
 
 /** La figure : le repère s'il y en a un, sinon les dessins (hors textes), sinon le cadre par défaut. */
@@ -208,14 +238,14 @@ function obstacles(state: BoardState, ignore: ReadonlySet<string>): (box: Box) =
   const traces: Vec2[] = [];
   for (const node of visibleNodes(state)) {
     if (ignore.has(node.id)) continue;
+    const move = ([x, y]: Vec2): Vec2 => [x + node.offset[0], y + node.offset[1]];
     if (node.type === "text" || node.type === "point") boxes.push(nodeBox(node, state.frame));
-    else if (node.type === "curve") {
-      for (const [x, y] of sampleCurve(node.fn, state.frame, node.from, node.to, 120).flat()) traces.push([x + node.offset[0], y + node.offset[1]]);
-    } else {
-      for (let i = 0; i <= 16; i++) {
-        const t = i / 16;
-        traces.push([node.from[0] + (node.to[0] - node.from[0]) * t + node.offset[0], node.from[1] + (node.to[1] - node.from[1]) * t + node.offset[1]]);
-      }
+    else if (node.type === "curve") traces.push(...sampleCurve(node.fn, state.frame, node.from, node.to, 120).flat().map(move));
+    else if (node.type === "segment" || node.type === "vector") traces.push(...sampleLine(node.from, node.to, 16).map(move));
+    else {
+      traces.push(...outline(node).map(move));
+      // Une forme remplie (le bloc d'un plan incliné) se contourne entièrement.
+      if (node.type === "polygon" && node.fill) boxes.push(nodeBox(node, state.frame));
     }
   }
   if (state.axes) {

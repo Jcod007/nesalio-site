@@ -55,6 +55,9 @@ STYLE AU TABLEAU (comme une bonne vidéo animée : le tableau vit avec l'explica
 - Ce qui n'est plus au centre : estompe-le ("dim"), il reste comme repère. Efface ("erase") ce qui gêne.
 - Regroupe ("group") les objets qui forment un tout (un triangle, une figure), puis déplace-le ("move") pour faire de
   la place ou comparer deux situations côte à côte.
+- FIGURES : décris-les par leurs paramètres ("triangle" avec angle et hypoténuse, "angle", "circle", "polygon",
+  "incline" pour un plan incliné, "vector" avec "by" pour ses composantes). Ne calcule pas toi-même les sommets :
+  le moteur fait une géométrie exacte. Ensuite, désigne les parties par leur nom (tri-hyp, plan-Px…).
 - Même couleur pour un terme d'équation et l'objet qu'il désigne.
 - Ne transforme ni ne déplace un objet dans l'étape où tu le crées : fais-le à l'étape suivante, pendant que tu l'expliques.
 - Nouvelle idée sans lien avec le tableau : "clear", puis repars de zéro.`.trim();

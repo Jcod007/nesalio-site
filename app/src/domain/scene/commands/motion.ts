@@ -96,6 +96,10 @@ function morphed(node: BoardNode, a: z.infer<typeof TransformSchema>): BoardNode
     case "segment":
     case "vector":
       return { ...node, color, from: a.from ? local(a.from) : node.from, to: a.to ? local(a.to) : node.to, label: a.label ?? node.label };
+    case "arc":
+    case "circle":
+    case "polygon":
+      return { ...node, color, label: a.label ?? node.label };
   }
 }
 

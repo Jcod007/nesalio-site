@@ -82,7 +82,12 @@ export type TextNode = NodeBase & {
   /** Relation : le texte accompagne cet objet (il le suit et disparaît avec lui). */
   anchor?: { target: string; side: Side };
 };
-export type BoardNode = CurveNode | PointNode | VectorNode | SegmentNode | TextNode;
+/** Arc de cercle (marque d'angle, par exemple). Angles en degrés, sens trigonométrique. */
+export type ArcNode = NodeBase & { type: "arc"; center: Vec2; radius: number; start: number; end: number; label?: string };
+export type CircleNode = NodeBase & { type: "circle"; center: Vec2; radius: number; dashed?: boolean; label?: string };
+/** Polygone ou ligne brisée (`closed: false`), éventuellement rempli. */
+export type PolygonNode = NodeBase & { type: "polygon"; points: Vec2[]; closed: boolean; fill?: boolean; label?: string };
+export type BoardNode = CurveNode | PointNode | VectorNode | SegmentNode | TextNode | ArcNode | CircleNode | PolygonNode;
 export type NodeType = BoardNode["type"];
 
 export interface Group {
@@ -261,6 +266,12 @@ function describeNode(node: BoardNode): string {
     case "vector":
     case "segment":
       return `de ${pt(shifted(node.from, node.offset))} à ${pt(shifted(node.to, node.offset))}${node.label ? ` « ${node.label} »` : ""}`;
+    case "arc":
+      return `angle de ${fmt(node.end - node.start)}° en ${pt(shifted(node.center, node.offset))}${node.label ? ` « ${node.label} »` : ""}`;
+    case "circle":
+      return `centre ${pt(shifted(node.center, node.offset))}, rayon ${fmt(node.radius)}${node.label ? ` « ${node.label} »` : ""}`;
+    case "polygon":
+      return `${node.points.map((p) => pt(shifted(p, node.offset))).join(" ")}${node.label ? ` « ${node.label} »` : ""}`;
     case "text":
       if (node.role === "calc") return node.text;
       return `« ${node.text} »${node.anchor ? ` (${sideWord[node.anchor.side]} ${node.anchor.target})` : ` en ${pt(shifted(node.at, node.offset))}`}`;

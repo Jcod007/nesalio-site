@@ -8,12 +8,12 @@ import { ColorName, Coord, Expression, finite, Id, Range } from "../primitives";
 import { defineCommand } from "./define";
 
 /** Ajoute un nœud de la figure ; la pile de calculs suit si la figure s'agrandit. */
-function drawNode(state: BoardState, node: BoardNode, reveal: Reveal): BoardState {
+export function drawNode(state: BoardState, node: BoardNode, reveal: Reveal): BoardState {
   const next = putNode(state, node);
   return next.axes || next.calc.length === 0 ? next : reflowCalc(next, reveal);
 }
 
-const base = (id: string, reveal: Reveal, color?: z.infer<typeof ColorName>) => ({ id, reveal, color, offset: [0, 0] as [number, number] });
+export const base = (id: string, reveal: Reveal, color?: z.infer<typeof ColorName>) => ({ id, reveal, color, offset: [0, 0] as [number, number] });
 
 export const axesCommand = defineCommand({
   schema: z.object({
@@ -73,20 +73,24 @@ export const pointCommand = defineCommand({
 });
 
 export const vectorCommand = defineCommand({
-  schema: z.object({
-    type: z.literal("vector"),
-    id: Id,
-    from: Coord,
-    to: Coord,
-    label: z.string().max(24).optional(),
-    color: ColorName.optional(),
-  }),
-  doc: '{"type":"vector","id":"v","from":[x,y],"to":[x,y],"label":"v₀","color":"violet"}',
+  schema: z
+    .object({
+      type: z.literal("vector"),
+      id: Id,
+      from: Coord,
+      to: Coord.optional(),
+      by: Coord.optional(),
+      label: z.string().max(24).optional(),
+      color: ColorName.optional(),
+    })
+    .refine((a) => (a.to === undefined) !== (a.by === undefined), { message: "vector : indiquer to ou by (composantes)" }),
+  doc: '{"type":"vector","id":"v","from":[x,y],"by":[3,2],"label":"v₀","color":"violet"} : "by" = composantes (ou "to":[x,y] = pointe).',
   duration: 750,
   aliases: ["arrow"],
   apply(state, action, reveal) {
-    const { type, id, color, ...rest } = action;
-    return drawNode(state, { ...base(id, reveal, color), type, ...rest }, reveal);
+    const { type, id, color, by, to, ...rest } = action;
+    const tip: [number, number] = to ?? [action.from[0] + by![0], action.from[1] + by![1]];
+    return drawNode(state, { ...base(id, reveal, color), type, ...rest, to: tip }, reveal);
   },
 });
 

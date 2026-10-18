@@ -11,7 +11,8 @@ const run = (actions: Action[], board: BoardState = emptyBoard()) =>
 const text = (board: BoardState, id: string) => board.nodes[id] as TextNode;
 const position = (board: BoardState, id: string) => {
   const node = board.nodes[id]!;
-  const at: [number, number] = "at" in node ? node.at : node.type === "curve" ? [0, 0] : node.from;
+  const at: [number, number] =
+    node.type === "point" || node.type === "text" ? node.at : node.type === "segment" || node.type === "vector" ? node.from : [0, 0];
   return [at[0] + node.offset[0], at[1] + node.offset[1]] as const;
 };
 

@@ -16,6 +16,7 @@
  * les calculs purs de camera.ts ; elle recadre le contenu quand il grandit.
  */
 import {
+  Arc,
   Arrow,
   Axes,
   Circle,
@@ -29,6 +30,7 @@ import {
   GrowFromCenter,
   Indicate,
   Line,
+  Polygon,
   ReplacementTransform,
   Scene,
   Shift,
@@ -382,6 +384,12 @@ export class ManimRenderer {
     return this.axes!.c2p(x, y) as Vec3;
   }
 
+  /** Une longueur mathématique, en unités du monde. */
+  private worldLength(length: number): number {
+    const [dx] = this.worldDelta([length, 0]);
+    return Math.abs(dx);
+  }
+
   /** Un déplacement mathématique, en unités du monde. */
   private worldDelta([dx, dy]: Vec2): Vec3 {
     const a = this.p(0, 0);
@@ -482,6 +490,49 @@ export class ManimRenderer {
           const text = this.label(node.label, add(anchor, scale(normal, 0.38)), color);
           mobjects.push(text);
           animations.push({ delay: 0.6, share: 0.4, make: (s) => new FadeIn(text, { duration: s }) });
+        }
+        return { mobjects, animations };
+      }
+      case "arc": {
+        const center = this.p(node.center[0], node.center[1]);
+        const radius = this.worldLength(node.radius);
+        const arc = new Arc({ center, radius, startAngle: rad(node.start), angle: rad(node.end - node.start), color, strokeWidth: 3 });
+        const mobjects: Mobject[] = [arc];
+        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.7, make: (s) => new Create(arc, { duration: s }) }];
+        if (node.label) {
+          // Étiquette sur la bissectrice, juste à l'extérieur de l'arc.
+          const middle = rad((node.start + node.end) / 2);
+          const text = this.label(node.label, add(center, [Math.cos(middle) * (radius + 0.32), Math.sin(middle) * (radius + 0.32), 0]), color);
+          mobjects.push(text);
+          animations.push({ delay: 0.5, share: 0.5, make: (s) => new FadeIn(text, { duration: s }) });
+        }
+        return { mobjects, animations };
+      }
+      case "circle": {
+        const center = this.p(node.center[0], node.center[1]);
+        const radius = this.worldLength(node.radius);
+        const circle = new Circle({ center, radius, color, strokeWidth: 3.5 });
+        const shape = node.dashed ? new DashedVMobject({ vmobject: circle as unknown as VMobject, numDashes: Math.max(16, Math.round(radius * 12)), dashRatio: 0.55 }) : circle;
+        const mobjects: Mobject[] = [shape];
+        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(shape, { duration: s }) as Animation }];
+        if (node.label) {
+          const text = this.label(node.label, add(center, [radius * 0.72 + 0.2, radius * 0.72 + 0.25, 0]), color);
+          text.shift([textHalfWidth(text), 0, 0]);
+          mobjects.push(text);
+          animations.push({ delay: 0.7, share: 0.3, make: (s) => new FadeIn(text, { duration: s }) });
+        }
+        return { mobjects, animations };
+      }
+      case "polygon": {
+        const vertices = node.points.map(([x, y]) => this.p(x, y));
+        const polygon = new Polygon({ vertices, color, fillOpacity: node.fill ? 0.16 : 0, strokeWidth: 3.2, closed: node.closed });
+        const mobjects: Mobject[] = [polygon];
+        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(polygon, { duration: s }) }];
+        if (node.label) {
+          const center = vertices.reduce((acc, v) => add(acc, scale(v, 1 / vertices.length)), [0, 0, 0] as Vec3);
+          const text = this.label(node.label, center, color);
+          mobjects.push(text);
+          animations.push({ delay: 0.7, share: 0.3, make: (s) => new FadeIn(text, { duration: s }) });
         }
         return { mobjects, animations };
       }
@@ -657,6 +708,7 @@ function clampTo(v: number, [a, b]: [number, number]) {
   return v < a ? a : v > b ? b : v;
 }
 const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const rad = (degrees: number) => (degrees * Math.PI) / 180;
 const scale = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
 const mid = (a: Vec3, b: Vec3): Vec3 => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 0];
 /**
