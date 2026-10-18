@@ -55,10 +55,19 @@ export const DEFAULTS = {
    * masquées par la réaction de Nesa à la réponse de l'élève (mesures du 17 octobre 2026).
    */
   firstTurnEffort: "none" as ReasoningEffort,
-  // Mesuré (oct. 2026, Claude Sonnet) : sans réflexion, les tours de suite démarrent en 1 à 3 s au lieu de 5 à 8 s,
-  // avec des calculs et des remédiations aussi justes. « low » reste disponible par TUTOR_REASONING_EFFORT.
-  reasoningEffort: "none" as ReasoningEffort,
 } as const;
+
+/**
+ * Réflexion des tours de suite (après une réponse de l'élève), si TUTOR_REASONING_EFFORT ne l'impose pas.
+ * Mesuré le 17 octobre 2026 sur le déterminant, 4 tours :
+ * - Claude Sonnet sans réflexion : calculs justes, 1,2 à 2 s avant la première phrase ;
+ * - DeepSeek sans réflexion : 0,5 à 0,8 s, mais une erreur de calcul (aire √5 × √5 = 5 au lieu de 3) ;
+ * - DeepSeek avec « low » : juste, mais 4 à 15 s.
+ * D'où : pas de réflexion pour Claude, « low » pour les autres modèles (la justesse d'abord).
+ */
+export function followUpEffortFor(model: string): ReasoningEffort {
+  return /(^|\/)(anthropic|claude)/i.test(model) ? "none" : "low";
+}
 
 export function parseEffort(value: string | null | undefined): ReasoningEffort | undefined {
   const effort = value?.trim() as ReasoningEffort | undefined;
@@ -72,7 +81,8 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
   const openRouterKey = env.OPENROUTER_API_KEY?.trim();
   const anthropicKey = env.ANTHROPIC_API_KEY?.trim();
   const modelOverride = env.TUTOR_MODEL?.trim() || env.OPENROUTER_MODEL?.trim();
-  const reasoningEffort = parseEffort(env.TUTOR_REASONING_EFFORT) ?? DEFAULTS.reasoningEffort;
+  const explicitEffort = parseEffort(env.TUTOR_REASONING_EFFORT);
+  const reasoningEffort = explicitEffort ?? "low";
   const firstTurnEffort = parseEffort(env.TUTOR_FIRST_TURN_EFFORT) ?? DEFAULTS.firstTurnEffort;
 
   let chat: ChatProvider | null = null;
@@ -110,6 +120,9 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
       firstTurnEffort,
     };
   }
+
+  // Sans réglage explicite, la réflexion des tours de suite dépend du modèle choisi.
+  if (chat && !explicitEffort) chat = { ...chat, reasoningEffort: followUpEffortFor(chat.model) };
 
   return {
     chat,

@@ -15,7 +15,7 @@ import type { Check } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
 import { emptyBoard, resolveTargets, summarizeBoard } from "@/domain/board/state";
 import { applyAction } from "@/domain/scene/commands";
-import { GATEWAY_BASE, parseEffort, readAiConfig, type ChatProvider } from "@/server/config";
+import { followUpEffortFor, GATEWAY_BASE, parseEffort, readAiConfig, type ChatProvider } from "@/server/config";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
 import type { Step } from "@/domain/scene/schema";
@@ -66,7 +66,7 @@ export async function GET(request: Request): Promise<Response> {
   const effort = parseEffort(params.get("effort")) ?? `${config.chat?.firstTurnEffort} puis ${config.chat?.reasoningEffort}`;
   const base: ChatProvider | null =
     override && config.gatewayToken
-      ? { name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: config.gatewayToken, model: override }
+      ? { name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: config.gatewayToken, model: override, firstTurnEffort: "none", reasoningEffort: followUpEffortFor(override) }
       : config.chat;
   const forced = parseEffort(params.get("effort"));
   const provider = base ? { ...base, ...(forced ? { reasoningEffort: forced, firstTurnEffort: forced } : {}) } : null;
