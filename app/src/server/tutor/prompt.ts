@@ -150,6 +150,7 @@ L'élève t'interrompt ou te pose une question sur la séance en cours. Réponds
 const CONTINUE_RULES = `
 L'élève vient de répondre à ta question. Continue la séance (nouveau tour) :
 - pas de ligne "lesson" ;
+- tu parles toujours À l'élève (« tu »), jamais de lui à la troisième personne : tout ce que tu écris est dit à voix haute ;
 - commence par réagir à SA réponse :
   · juste : confirme en une phrase, puis va un cran plus loin ;
   · fausse : devine l'erreur de raisonnement probable derrière son choix, nomme-la sans jugement, et réexplique
@@ -159,6 +160,7 @@ L'élève vient de répondre à ta question. Continue la séance (nouveau tour) 
   notion est couverte et que l'élève a réussi un exercice ;
 - après 3 réponses, conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
   puis {"kind":"end"} (pas de nouvelle question) ;
+- s'il se trompe encore sur la même idée, change d'angle (autre image, autre exemple) et pose une question différente ;
 - réutilise les objets déjà au tableau au lieu de tout redessiner.`.trim();
 
 export function buildMessages(request: TutorRequest): ChatMessage[] {
