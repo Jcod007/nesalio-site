@@ -15,6 +15,8 @@ export interface DockActions {
   resume(): void;
   followUp(text: string): void;
   answer(choice: number): void;
+  /** Réponse dite ou tapée avec ses mots. */
+  answerText(text: string): void;
   retry(): void;
   newTopic(): void;
   setListening(listening: boolean): void;
@@ -112,7 +114,22 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
         ) : null}
 
         <div className={styles.controls}>
-          {status === "playing" || status === "checking" || (status === "thinking" && caption) ? (
+          {status === "checking" ? (
+            <>
+              {/* Pendant une question, parler à Nesa, c'est lui répondre (pas l'interrompre). */}
+              <QuestionInput
+                placeholder="Ou réponds avec tes mots…"
+                onSubmit={actions.answerText}
+                onListeningChange={actions.setListening}
+                submitLabel="Répondre"
+              />
+              <button type="button" className="btn-line" onClick={actions.interrupt}>
+                <PauseIcon /> Je comprends pas
+              </button>
+            </>
+          ) : null}
+
+          {status === "playing" || (status === "thinking" && caption) ? (
             <>
               <button type="button" className="btn-line" onClick={actions.interrupt}>
                 <PauseIcon /> Attends, je comprends pas

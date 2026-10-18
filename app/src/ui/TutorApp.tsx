@@ -63,6 +63,7 @@ export function TutorApp() {
         player.followUp(text);
       },
       answer: (choice) => player.answer(choice),
+      answerText: (text) => player.answerText(text),
       retry: () => {
         const question = player.getSnapshot().question;
         if (question) player.ask(question);
@@ -72,8 +73,8 @@ export function TutorApp() {
         player.stop();
       },
       setListening: (value) => {
-        // Parler à Nesa pendant qu'elle explique, c'est l'interrompre.
-        if (value) player.interrupt();
+        // Parler à Nesa pendant qu'elle explique, c'est l'interrompre ; pendant une question, c'est répondre.
+        if (value && player.getSnapshot().status !== "checking") player.interrupt();
         setListening(value);
       },
     }),

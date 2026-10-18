@@ -228,7 +228,8 @@ describe("Player", () => {
     expect(next.context?.answered).toBe(1);
 
     await speakUntil(player, voice, (s) => s.status === "done");
-    expect(voice.spoken).toEqual(["Devine.", "Presque.", "Tu avais choisi 0 : regardons le sommet."]);
+    // La question est dite à voix haute (la phrase de l'étape ne la posait pas).
+    expect(voice.spoken).toEqual(["Devine.", "Combien ?", "Presque.", "Tu avais choisi 0 : regardons le sommet."]);
     expect(player.getSnapshot().summary).toEqual(["Sommet"]);
   });
 
@@ -247,7 +248,7 @@ describe("Player", () => {
     player.answer(2);
     await speakUntil(player, voice, (s) => s.status === "done");
     expect(requests[1]?.answer).toMatchObject({ picked: "Non", correct: null });
-    expect(voice.spoken).toEqual(["Avant de commencer.", "On part de la base."]);
+    expect(voice.spoken).toEqual(["Avant de commencer.", "Tu connais le triangle rectangle ?", "On part de la base."]);
   });
 
   it("ne repose pas une question déjà répondue après une interruption", async () => {
@@ -267,7 +268,7 @@ describe("Player", () => {
     player.interrupt();
     player.resume();
     await speakUntil(player, voice, (s) => s.status === "done");
-    expect(voice.spoken).toEqual(["Devine.", "Oui !", "Suite."]);
+    expect(voice.spoken).toEqual(["Devine.", "Combien ?", "Oui !", "Suite."]);
   });
 
   it("ne dessine qu'une fois la voix vraiment lancée", async () => {
@@ -292,6 +293,38 @@ describe("Player", () => {
     expect(player.getSnapshot().board.order).toEqual([]);
     start();
     await until(player, (s) => s.board.order.includes("A"));
+    await speakUntil(player, voice, (s) => s.status === "done");
+  });
+
+  it("accepte une réponse dite : un choix reconnu, sinon une réponse libre que Nesa évaluera", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "Combien de zéros ?", choices: ["0", "1", "2"], answer: 2, ifRight: "Oui !", ifWrong: "Presque." };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question" ? [step("Combien de zéros a-t-elle ?", { check }), { kind: "await" }] : [step("Suite."), { kind: "end", summary: [] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    // La phrase posait déjà la question : elle n'est pas répétée.
+    expect(voice.spoken).toEqual(["Combien de zéros a-t-elle ?"]);
+    player.answerText("je pense 2");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]!.answer).toMatchObject({ picked: "2", correct: true });
+    await speakUntil(player, voice, (s) => s.status === "done");
+  });
+
+  it("transmet une réponse libre telle quelle, sans verdict immédiat", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "Pourquoi ?", choices: ["parce que a", "parce que b"], answer: 0 };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question" ? [step("Pourquoi ?", { check }), { kind: "await" }] : [step("Voyons ta réponse."), { kind: "end", summary: [] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answerText("Parce que la courbe descend des deux côtés");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]!.answer).toMatchObject({ picked: "Parce que la courbe descend des deux côtés", correct: null });
     await speakUntil(player, voice, (s) => s.status === "done");
   });
 });

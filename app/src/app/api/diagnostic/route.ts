@@ -81,6 +81,8 @@ export async function GET(request: Request): Promise<Response> {
   const unknownTargets: string[] = [];
   /** Ce que le validateur a écarté (commandes ou lignes invalides) : mesure l'intérêt d'un format imposé. */
   const rejected: Array<{ line: string; reason: string }> = [];
+  /** raw=1 : les événements bruts de chaque tour, pour rejouer la séance dans un navigateur. */
+  const raw: unknown[][] = [];
   let cueable = 0;
   let cued = 0;
   for (let turn = 1; turn <= maxTurns; turn++) {
@@ -91,7 +93,10 @@ export async function GET(request: Request): Promise<Response> {
     const log = (_message: string, detail?: unknown) => {
       if (Array.isArray(detail)) rejected.push(...(detail as Array<{ line: string; reason: string }>));
     };
+    const turnEvents: unknown[] = [];
+    raw.push(turnEvents);
     for await (const event of tutorEvents(turnRequest, { provider, completion: streamChatCompletion, log })) {
+      turnEvents.push(event);
       if (event.kind === "source") lesson.source = event.source;
       if (event.kind === "lesson") lesson.title = event.title;
       if (event.kind === "step") {
@@ -147,6 +152,7 @@ export async function GET(request: Request): Promise<Response> {
   report.lesson = lesson;
   report.turns = turns;
   report.steps = steps;
+  if (params.get("raw") === "1") report.raw = raw;
 
   // 3. Voix de Nesa sur sa première phrase.
   const firstSay = steps[0]?.say;

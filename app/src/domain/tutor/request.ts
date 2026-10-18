@@ -34,7 +34,8 @@ export const TutorContextSchema = z.object({
 export const StudentAnswerSchema = z.object({
   prompt: z.string().max(300),
   choices: z.array(z.string().max(140)).max(4),
-  picked: z.string().max(140),
+  /** Le choix retenu, ou la réponse libre de l'élève (dite ou tapée). */
+  picked: z.string().max(300),
   /** null pour une question sans bonne réponse (situer l'élève). */
   correct: z.boolean().nullable(),
 });

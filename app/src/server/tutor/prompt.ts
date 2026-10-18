@@ -198,7 +198,14 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
 }
 
 function describeAnswer(answer: StudentAnswer): string[] {
-  const verdict = answer.correct === null ? "(question pour le situer)" : answer.correct ? "(juste)" : "(faux)";
+  const free = !answer.choices.some((c) => c === answer.picked);
+  const verdict = free
+    ? "(réponse libre, avec ses mots : évalue-la toi-même — juste, en partie juste ou fausse — et réagis)"
+    : answer.correct === null
+      ? "(question pour le situer)"
+      : answer.correct
+        ? "(juste)"
+        : "(faux)";
   return [
     `Ta question : ${answer.prompt}`,
     `Choix proposés : ${answer.choices.map((c) => `« ${c} »`).join(", ")}`,
