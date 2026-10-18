@@ -96,7 +96,11 @@ export const ErrorEvent = z.object({
  * Fin d'un tour : Nesa a posé une question et attend la réponse de l'élève.
  * La séance continue avec une requête « continue ». Émis par le serveur, jamais par le modèle.
  */
-export const AwaitEvent = z.object({ kind: z.literal("await") });
+export const AwaitEvent = z.object({
+  kind: z.literal("await"),
+  /** Commandes du tour refusées par le validateur (raison courte) : rendues au modèle au tour suivant. */
+  rejected: z.array(z.string().max(200)).max(6).optional(),
+});
 export const SourceEvent = z.object({
   kind: z.literal("source"),
   source: z.enum(["model", "demo"]),

@@ -341,6 +341,11 @@ describe("outils des notions poussées", () => {
     if (plus.type === "polygon") expect(Math.max(...plus.points.map((p) => p[1]))).toBeCloseTo(1, 1);
   });
 
+  it("décrit une courbe paramétrée au modèle par ses équations, pour qu'il puisse la transformer", () => {
+    const board = run([{ type: "parametric", id: "c", x: "cos(t)", y: "sin(t)", t: [0, 6.28] }]);
+    expect(summarizeBoard(board)[0]!.detail).toBe("courbe paramétrée x(t) = cos(t), y(t) = sin(t), t de 0 à 6.28");
+  });
+
   it("déforme une courbe paramétrée en gardant le même nombre de points", () => {
     let board = run([{ type: "parametric", id: "c", x: "cos(t)", y: "sin(t)", t: [0, 6.28] }]);
     const before = board.nodes.c!;

@@ -94,6 +94,8 @@ interface Segment {
   answeredStep: number;
   /** Première étape du tour en cours (pour relire le tour quand il se termine). */
   turnStart: number;
+  /** Commandes refusées par le serveur pendant le tour. */
+  rejected: string[];
   summary: string[];
   error: string | null;
   abort: AbortController;
@@ -262,6 +264,7 @@ export class Player {
       pendingAnswer: null,
       answeredStep: -1,
       turnStart: 0,
+      rejected: [],
       summary: [],
       error: null,
       abort: new AbortController(),
@@ -285,8 +288,9 @@ export class Player {
     segment.awaiting = false;
     segment.streamDone = false;
     // Relecture du tour qui se termine : rendue au modèle pour qu'il se corrige au tour suivant.
-    const review = reviewNotes(reviewTurn(segment.steps.slice(segment.turnStart, segment.cursor + 1), this.snapshot.board));
+    const review = reviewNotes(reviewTurn(segment.steps.slice(segment.turnStart, segment.cursor + 1), this.snapshot.board), segment.rejected);
     segment.turnStart = segment.steps.length;
+    segment.rejected = [];
     const request: TutorRequest = {
       mode: "continue",
       question: this.snapshot.question ?? answer.prompt,
@@ -327,6 +331,7 @@ export class Player {
             break;
           case "await":
             segment.awaiting = true;
+            if (event.rejected) segment.rejected = event.rejected;
             break;
         }
       }

@@ -330,8 +330,14 @@ function describeNode(node: BoardNode): string {
       return `angle de ${fmt(node.end - node.start)}° en ${pt(shifted(node.center, node.offset))}${node.label ? ` « ${node.label} »` : ""}`;
     case "circle":
       return `centre ${pt(shifted(node.center, node.offset))}, rayon ${fmt(node.radius)}${node.label ? ` « ${node.label} »` : ""}`;
-    case "polygon":
-      return `${node.points.map((p) => pt(shifted(p, node.offset))).join(" ")}${node.label ? ` « ${node.label} »` : ""}`;
+    case "polygon": {
+      const label = node.label ? ` « ${node.label} »` : "";
+      // Le modèle doit pouvoir reprendre une courbe paramétrée par ses équations (pour la transformer).
+      if (node.param) return `courbe paramétrée x(t) = ${node.param.x}, y(t) = ${node.param.y}, t de ${fmt(node.param.t[0])} à ${fmt(node.param.t[1])}${label}`;
+      if (node.shade) return `aire colorée de x = ${fmt(Math.min(...node.points.map((p) => p[0])))} à ${fmt(Math.max(...node.points.map((p) => p[0])))}`;
+      if (node.points.length > 10) return `ligne de ${node.points.length} points${label}`;
+      return `${node.points.map((p) => pt(shifted(p, node.offset))).join(" ")}${label}`;
+    }
     case "grid":
       return `quadrillage, matrice appliquée [[${node.matrix[0].map(fmt).join(", ")}], [${node.matrix[1].map(fmt).join(", ")}]]`;
     case "text":

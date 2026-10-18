@@ -74,6 +74,8 @@ export function reviewTurn(steps: readonly Step[], board: BoardState): TurnRevie
   for (const step of steps) {
     const types = (step.do ?? []).map((a) => a.type);
     const shows = types.some((t) => SHOWING_COMMANDS.has(t));
+    // Seul un vrai geste (ou une aire, un parcours) couvre la phrase suivante ; une mise en évidence, non.
+    const changes = types.some((t) => SHOWING_COMMANDS.has(t) && t !== "highlight");
     gestures += types.filter((t) => GESTURE_COMMANDS.has(t)).length;
     for (const action of step.do ?? []) {
       if ("target" in action && typeof action.target === "string" && !(action.target in board.nodes) && resolveTargets(board, action.target).length === 0) {
@@ -83,15 +85,18 @@ export function reviewTurn(steps: readonly Step[], board: BoardState): TurnRevie
     // Une phrase qui commente le geste de l'étape précédente (« tu vois, il s'est étiré ») est couverte.
     const word = actionWord(step.say);
     if (word && !shows && !previousShowed) unshown.push({ say: step.say.slice(0, 120), word });
-    previousShowed = shows;
+    previousShowed = changes;
     if (step.say.trim().split(/\s+/).length > 22) longSentences++;
   }
   return { steps: steps.length, gestures, missingTargets: [...missing], unshown, longSentences };
 }
 
 /** Le retour donné au modèle au début du tour suivant (vide si le tour était propre). */
-export function reviewNotes(review: TurnReview): string[] {
+export function reviewNotes(review: TurnReview, rejected: readonly string[] = []): string[] {
   const notes: string[] = [];
+  for (const reason of rejected.slice(0, 2)) {
+    notes.push(`Une commande a été refusée, rien ne s'est affiché : ${reason.slice(0, 150)}. Refais-la correctement.`);
+  }
   for (const { say, word } of review.unshown.slice(0, 2)) {
     notes.push(`Tu as dit « ${say} » (« ${word} ») sans le montrer : fais-le au tableau (move, rotate, transform, applyMatrix, area).`);
   }

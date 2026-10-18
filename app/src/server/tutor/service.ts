@@ -111,9 +111,10 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
           steps++;
           yield event;
           if (event.check) {
-            // Question posée : le tour est fini, Nesa attend la réponse.
+            // Question posée : le tour est fini, Nesa attend la réponse (avec ce qui a été refusé dans le tour).
             ended = true;
-            yield { kind: "await" };
+            const rejected = parser.issues.slice(0, 6).map((issue) => `${issue.reason} : ${issue.line}`.slice(0, 200));
+            yield rejected.length > 0 ? { kind: "await", rejected } : { kind: "await" };
           }
         } else {
           ended = true;

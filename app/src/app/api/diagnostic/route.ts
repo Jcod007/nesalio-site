@@ -102,6 +102,7 @@ export async function GET(request: Request): Promise<Response> {
     };
     const turnEvents: unknown[] = [];
     const turnSteps: Step[] = [];
+    let turnRejected: string[] = [];
     raw.push(turnEvents);
     for await (const event of tutorEvents(turnRequest, { provider, completion: streamChatCompletion, log })) {
       turnEvents.push(event);
@@ -134,7 +135,10 @@ export async function GET(request: Request): Promise<Response> {
           check: event.check ? `${event.check.prompt} [${event.check.choices.join(" | ")}]${event.check.answer === undefined ? " (situer)" : ` (bonne : ${event.check.choices[event.check.answer]})`}` : undefined,
         });
       }
-      if (event.kind === "await") awaiting = true;
+      if (event.kind === "await") {
+        awaiting = true;
+        turnRejected = event.rejected ?? [];
+      }
       if (event.kind === "end") lesson.summary = event.summary;
       if (event.kind === "error") lesson.error = `${event.code} : ${event.message}`;
     }
@@ -144,7 +148,7 @@ export async function GET(request: Request): Promise<Response> {
     info.gestures = turnReview.gestures;
     if (turnReview.unshown.length > 0) info.unshown = turnReview.unshown.map((u) => `${u.word} : ${u.say}`);
     unshownTotal += turnReview.unshown.length;
-    review = reviewNotes(turnReview);
+    review = reviewNotes(turnReview, turnRejected);
     if (!awaiting || !lastCheck) {
       turns.push(info);
       break;

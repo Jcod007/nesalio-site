@@ -55,7 +55,9 @@ export const DEFAULTS = {
    * masquées par la réaction de Nesa à la réponse de l'élève (mesures du 17 octobre 2026).
    */
   firstTurnEffort: "none" as ReasoningEffort,
-  reasoningEffort: "low" as ReasoningEffort,
+  // Mesuré (oct. 2026, Claude Sonnet) : sans réflexion, les tours de suite démarrent en 1 à 3 s au lieu de 5 à 8 s,
+  // avec des calculs et des remédiations aussi justes. « low » reste disponible par TUTOR_REASONING_EFFORT.
+  reasoningEffort: "none" as ReasoningEffort,
 } as const;
 
 export function parseEffort(value: string | null | undefined): ReasoningEffort | undefined {

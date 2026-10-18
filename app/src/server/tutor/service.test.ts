@@ -71,6 +71,16 @@ describe("tutorEvents", () => {
     expect(signal?.aborted).toBe(true);
   });
 
+  it("signale à la fin du tour les commandes refusées, pour que le modèle les refasse", async () => {
+    const check = '{"prompt":"Combien ?","choices":["0","2"],"answer":1}';
+    const bad = '{"type":"transform","target":"e1","points":[[0,0],[1,1]]}';
+    const text = `{"kind":"lesson","title":"Fourier"}\n{"kind":"step","say":"La courbe se déforme.","do":[${bad}]}\n{"kind":"step","say":"À toi.","check":${check}}`;
+    const events = await collect(tutorEvents({ mode: "question", question: "fourier ?" }, { ...base, completion: fakeCompletion(text) }));
+    const done = events.at(-1);
+    expect(done?.kind).toBe("await");
+    expect(done?.kind === "await" && done.rejected?.[0]).toContain("transform");
+  });
+
   it("continue la séance sans nouvel en-tête et transmet la réponse de l'élève au modèle", async () => {
     let prompt = "";
     const completion: CompletionStream = (options) => {
