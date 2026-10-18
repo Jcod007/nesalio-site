@@ -5,18 +5,30 @@
  * `ref` relie ces réponses à l'inscription sans faire passer le courriel dans l'adresse.
  */
 import { z } from "zod";
+import { REF_PATTERN } from "@/domain/session";
 
 export const HELPED = ["Oui, beaucoup", "Un peu", "Pas vraiment", "Je ne sais pas"] as const;
+/** Ce que la personne a trouvé le plus utile pendant l'essai (plusieurs choix possibles) : la valeur perçue. */
+export const USEFUL = [
+  "Les dessins qui se construisent au tableau",
+  "L'explication à voix haute",
+  "Les questions pour vérifier si j'ai compris",
+  "Pouvoir poser mes questions en cours de route",
+  "Avoir de l'aide tout de suite, à n'importe quelle heure",
+  "Rien de particulier",
+] as const;
 export const SPENDING = ["0 $", "Moins de 50 $", "50 à 150 $", "Plus de 150 $", "Je ne sais pas"] as const;
 export const URGENCY = ["Moins de 2 semaines", "Ce mois-ci", "Plus tard dans la session", "Pas d'examen prévu"] as const;
 
 /** Référence anonyme créée par le site à l'inscription (lettres et chiffres). */
-export const RefSchema = z.string().regex(/^[a-z0-9]{6,20}$/);
+export const RefSchema = z.string().regex(REF_PATTERN);
 
 export const AfterTrialSchema = z.object({
   ref: RefSchema.optional(),
   helped: z.enum(HELPED),
   why: z.string().trim().max(600).optional(),
+  useful: z.array(z.enum(USEFUL)).max(USEFUL.length).optional(),
+  missing: z.string().trim().max(600).optional(),
   whatYouDid: z.string().trim().max(600).optional(),
   spending: z.enum(SPENDING).optional(),
   urgency: z.enum(URGENCY).optional(),

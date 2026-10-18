@@ -5,7 +5,7 @@
  * site (champ « etape » = « retour-outil », pour les trier), ou à
  * FEEDBACK_ENDPOINT s'il est défini. Rien n'est conservé par l'application.
  */
-import { shortSession } from "@/domain/session";
+import { refFromHeaders, shortSession } from "@/domain/session";
 import { FEEDBACK_LABELS, FeedbackSchema } from "@/domain/feedback";
 import { jsonError, readJson } from "@/server/http";
 import { forwardToForm } from "@/server/forms";
@@ -33,6 +33,7 @@ export async function POST(request: Request): Promise<Response> {
     message,
     ...(email ? { email } : {}),
     session: limit.session ? shortSession(limit.session) : "inconnue",
+    ref: refFromHeaders(request.headers) ?? "sans inscription",
     ...(context
       ? {
           question: context.question ?? "",

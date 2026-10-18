@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SESSION_HEADER } from "@/domain/session";
+import { REF_HEADER, SESSION_HEADER } from "@/domain/session";
 import { POST } from "./route";
 
-const request = (body: unknown, session = "abcdef12-3456") =>
+const request = (body: unknown, session = "abcdef12-3456", ref?: string) =>
   new Request("http://localhost/api/feedback", {
     method: "POST",
-    headers: { "Content-Type": "application/json", [SESSION_HEADER]: session, "x-forwarded-for": "10.1.1.1" },
+    headers: { "Content-Type": "application/json", [SESSION_HEADER]: session, "x-forwarded-for": "10.1.1.1", ...(ref ? { [REF_HEADER]: ref } : {}) },
     body: JSON.stringify(body),
   });
 
@@ -35,5 +35,16 @@ describe("POST /api/feedback", () => {
     expect((await POST(request({ kind: "idee", message: " " }))).status).toBe(400);
     vi.stubGlobal("fetch", async () => new Response("non", { status: 500 }));
     expect((await POST(request({ kind: "idee", message: "Une idée", email: "toi@exemple.com" }, "zzzzzzzz-1")))).toHaveProperty("status", 502);
+  });
+
+  it("joint la référence de l'inscription, pour relier le retour au courriel", async () => {
+    const sent: Array<Record<string, string>> = [];
+    vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
+      sent.push(JSON.parse(String(init.body)));
+      return new Response("{}", { status: 200 });
+    });
+    await POST(request({ kind: "idee", message: "Plus d'exemples" }, "refref12-1", "k3x9a1b2c3d4"));
+    await POST(request({ kind: "idee", message: "Sans inscription" }, "refref12-2"));
+    expect(sent.map((p) => p.ref)).toEqual(["k3x9a1b2c3d4", "sans inscription"]);
   });
 });

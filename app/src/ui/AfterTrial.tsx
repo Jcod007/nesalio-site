@@ -5,7 +5,7 @@
  * termine (la personne vient de vivre l'outil). Facultatives, en une fenêtre.
  */
 import { useEffect, useRef, useState } from "react";
-import { HELPED, SPENDING, URGENCY, refFromSearch, type AfterTrial } from "@/domain/afterTrial";
+import { HELPED, SPENDING, URGENCY, USEFUL, refFromSearch, type AfterTrial } from "@/domain/afterTrial";
 import { sessionHeaders } from "@/services/session";
 import styles from "./Feedback.module.css";
 
@@ -56,6 +56,12 @@ export function AfterTrialQuestions({ sessionDone, question }: { sessionDone: bo
     }
   }
 
+  const toggleUseful = (value: (typeof USEFUL)[number]) =>
+    setAnswers((a) => {
+      const current = a.useful ?? [];
+      return { ...a, useful: current.includes(value) ? current.filter((v) => v !== value) : [...current, value] };
+    });
+
   const radio = <K extends keyof AfterTrial>(key: K, value: AfterTrial[K], label: string) => (
     <label key={String(value)}>
       <input type="radio" name={`apres-${String(key)}`} checked={answers[key] === value} onChange={() => setAnswers((a) => ({ ...a, [key]: value }))} />
@@ -85,6 +91,28 @@ export function AfterTrialQuestions({ sessionDone, question }: { sessionDone: bo
           <label className={styles.field} htmlFor="apres-why">
             Pourquoi ? <span className={styles.opt}>(facultatif)</span>
             <textarea id="apres-why" rows={2} maxLength={600} value={answers.why ?? ""} onChange={(e) => setAnswers((a) => ({ ...a, why: e.target.value }))} />
+          </label>
+          <fieldset className={styles.kinds}>
+            <legend>
+              Qu&apos;est-ce qui t&apos;a été le plus utile ? <span className={styles.opt}>(plusieurs choix possibles)</span>
+            </legend>
+            {USEFUL.map((value) => (
+              <label key={value}>
+                <input type="checkbox" name="apres-useful" checked={answers.useful?.includes(value) ?? false} onChange={() => toggleUseful(value)} />
+                <span>{value}</span>
+              </label>
+            ))}
+          </fieldset>
+          <label className={styles.field} htmlFor="apres-missing">
+            Qu&apos;est-ce qui t&apos;a manqué ? <span className={styles.opt}>(facultatif)</span>
+            <textarea
+              id="apres-missing"
+              rows={2}
+              maxLength={600}
+              value={answers.missing ?? ""}
+              onChange={(e) => setAnswers((a) => ({ ...a, missing: e.target.value }))}
+              placeholder="Ex. : un exemple de plus, aller moins vite, un exercice à la fin."
+            />
           </label>
           <label className={styles.field} htmlFor="apres-did">
             Ce jour-là, qu&apos;as-tu fait pour t&apos;en sortir ? Est-ce que ça a marché ? <span className={styles.opt}>(facultatif)</span>
