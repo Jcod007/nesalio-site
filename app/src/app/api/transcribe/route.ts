@@ -6,7 +6,7 @@ import { z } from "zod";
 import { transcribeAudio } from "@/server/ai/audio";
 import { readAiConfig } from "@/server/config";
 import { checkRate, jsonError, readJson } from "@/server/http";
-import { createRateLimiter } from "@/server/rateLimit";
+import { createSessionLimits } from "@/server/rateLimit";
 import { isUnavailable } from "@/server/tutor/service";
 
 export const runtime = "nodejs";
@@ -20,7 +20,7 @@ const Body = z.object({
   audio: z.string().min(100),
   mediaType: z.string().refine((type) => MEDIA_TYPES.some((allowed) => type.startsWith(allowed)), "Format audio non pris en charge"),
 });
-const limiter = createRateLimiter({ limit: 40, windowMs: 10 * 60_000 });
+const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000 });
 
 export async function POST(request: Request): Promise<Response> {
   const read = await readJson(request, MAX_BODY_BYTES);

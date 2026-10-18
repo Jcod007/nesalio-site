@@ -7,7 +7,7 @@ import { z } from "zod";
 import { synthesizeSpeech } from "@/server/ai/audio";
 import { readAiConfig } from "@/server/config";
 import { checkRate, jsonError, readJson } from "@/server/http";
-import { createRateLimiter } from "@/server/rateLimit";
+import { createSessionLimits } from "@/server/rateLimit";
 import { isUnavailable } from "@/server/tutor/service";
 
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ export const maxDuration = 30;
 
 const Body = z.object({ text: z.string().trim().min(1).max(400) });
 // Une séance compte une dizaine de phrases : la limite est large mais réelle.
-const limiter = createRateLimiter({ limit: 160, windowMs: 10 * 60_000 });
+const limiter = createSessionLimits({ limit: 160, windowMs: 10 * 60_000 });
 
 export async function POST(request: Request): Promise<Response> {
   const read = await readJson(request, 4_000);

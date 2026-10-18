@@ -1,5 +1,5 @@
 /** Petits utilitaires partagés par les routes de l'API. */
-import { clientKey, type RateLimiter } from "./rateLimit";
+import type { SessionLimits } from "./rateLimit";
 
 export function jsonError(status: number, message: string, extra: Record<string, string> = {}) {
   return Response.json({ error: message }, { status, headers: { "Cache-Control": "no-store", ...extra } });
@@ -16,8 +16,8 @@ export async function readJson(request: Request, maxBytes: number): Promise<{ ok
   }
 }
 
-export function checkRate(limiter: RateLimiter, request: Request): Response | null {
-  const limit = limiter.check(clientKey(request.headers));
+export function checkRate(limits: SessionLimits, request: Request): Response | null {
+  const limit = limits.check(request.headers);
   if (limit.allowed) return null;
   return jsonError(429, "Trop de demandes d'un coup. Réessaie dans quelques minutes.", {
     "Retry-After": String(limit.retryAfterSeconds),

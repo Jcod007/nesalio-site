@@ -5,6 +5,7 @@
 import { StreamEvent } from "@/domain/scene/schema";
 import { readLines } from "@/domain/tutor/ndjson";
 import type { TutorSource } from "@/engine/ports";
+import { sessionHeaders } from "@/services/session";
 
 export function createHttpSource(endpoint = "/api/tutor"): TutorSource {
   return {
@@ -14,7 +15,7 @@ export function createHttpSource(endpoint = "/api/tutor"): TutorSource {
         response = await fetch(endpoint, {
           method: "POST",
           signal,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...sessionHeaders() },
           body: JSON.stringify(request),
         });
       } catch {

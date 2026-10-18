@@ -9,6 +9,7 @@
  */
 import type { SpeechHandle } from "@/engine/ports";
 import type { BrowserSpeaker } from "./browserSpeaker";
+import { sessionHeaders } from "@/services/session";
 
 interface Clip {
   url: string;
@@ -43,7 +44,7 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
     try {
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...sessionHeaders() },
         body: JSON.stringify({ text }),
       });
       if (response.status === 503) {

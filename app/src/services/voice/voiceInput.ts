@@ -7,6 +7,7 @@
  * se rabat sur la reconnaissance vocale du navigateur (Chrome, Edge, Safari).
  */
 import { createSpeechListener } from "./speechListener";
+import { sessionHeaders } from "@/services/session";
 
 export type VoiceInputState = "idle" | "recording" | "transcribing";
 
@@ -150,7 +151,7 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
         const blob = new Blob(chunks, { type: mediaRecorder.mimeType || mimeType || "audio/webm" });
         const response = await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...sessionHeaders() },
           body: JSON.stringify({ audio: await toBase64(blob), mediaType: blob.type }),
         });
         if (response.status === 503) {
