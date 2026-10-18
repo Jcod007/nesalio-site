@@ -79,6 +79,8 @@ export async function GET(request: Request): Promise<Response> {
   let board = emptyBoard();
   const usage: Record<string, number> = {};
   const unknownTargets: string[] = [];
+  /** Ce que le validateur a écarté (commandes ou lignes invalides) : mesure l'intérêt d'un format imposé. */
+  const rejected: Array<{ line: string; reason: string }> = [];
   let cueable = 0;
   let cued = 0;
   for (let turn = 1; turn <= maxTurns; turn++) {
@@ -86,7 +88,10 @@ export async function GET(request: Request): Promise<Response> {
     const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
     let lastCheck: Check | undefined;
     let awaiting = false;
-    for await (const event of tutorEvents(turnRequest, { provider, completion: streamChatCompletion })) {
+    const log = (_message: string, detail?: unknown) => {
+      if (Array.isArray(detail)) rejected.push(...(detail as Array<{ line: string; reason: string }>));
+    };
+    for await (const event of tutorEvents(turnRequest, { provider, completion: streamChatCompletion, log })) {
       if (event.kind === "source") lesson.source = event.source;
       if (event.kind === "lesson") lesson.title = event.title;
       if (event.kind === "step") {
@@ -138,6 +143,7 @@ export async function GET(request: Request): Promise<Response> {
   /** Part des objets synchronisés sur la parole (repères {id}). */
   lesson.cueCoverage = cueable > 0 ? `${cued}/${cueable}` : "—";
   lesson.unknownTargets = unknownTargets;
+  lesson.rejected = { count: rejected.length, examples: rejected.slice(0, 6).map((r) => `${r.reason} : ${r.line.slice(0, 120)}`) };
   report.lesson = lesson;
   report.turns = turns;
   report.steps = steps;
