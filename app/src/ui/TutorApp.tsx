@@ -6,6 +6,7 @@ import { DiagnosticTag } from "./board/DiagnosticTag";
 import { Dock, type DockActions } from "./Dock";
 import { useTutor } from "./hooks/useTutor";
 import { StartScreen } from "./StartScreen";
+import { FeedbackButton } from "./Feedback";
 import { TopBar } from "./TopBar";
 
 const TOP_BAR = 60;
@@ -108,6 +109,7 @@ export function TutorApp() {
           setMuted(!muted);
         }}
         onHome={idle ? null : actions.newTopic}
+        feedback={<FeedbackButton player={player} />}
       />
       {idle ? (
         <StartScreen onAsk={ask} listening={listening} onListeningChange={setListening} />

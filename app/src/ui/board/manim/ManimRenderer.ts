@@ -155,17 +155,14 @@ export class ManimRenderer {
     // Repère effacé (commande clear avec le repère).
     if (board.axesCleared && board.axesCleared.start !== this.axesClearedAt) {
       this.axesClearedAt = board.axesCleared.start;
-      // Chaque morceau du repère s'efface (graduations comprises : un FadeOut du repère seul les laissait à l'écran).
-      for (const old of this.axesMobjects) {
-        for (const part of old.getFamily()) batch.push({ animation: new FadeOut(part, { duration: 0.4 }), ...at(board.axesCleared.start, 400) });
-      }
+      for (const old of this.axesMobjects) batch.push(...fadeAll(old, 0.4, at(board.axesCleared.start, 400)));
       this.axesMobjects = [];
       this.axesRevealStart = null;
     }
 
     // Repère
     if (board.axes && board.axes.reveal.start !== this.axesRevealStart) {
-      for (const old of this.axesMobjects) batch.push({ animation: new FadeOut(old, { duration: 0.3 }), ...at(board.axes.reveal.start, 300) });
+      for (const old of this.axesMobjects) batch.push(...fadeAll(old, 0.3, at(board.axes.reveal.start, 300)));
       const { start, duration } = board.axes.reveal;
       this.frame = board.axes.frame;
       this.axes = this.coordinatesFor(board.axes.frame);
@@ -891,4 +888,13 @@ function turn(mobject: Mobject, pivot: Vec3, radians: number, turnShape: boolean
     },
     { duration: seconds },
   );
+}
+
+/**
+ * Efface un objet et chacun de ses morceaux. Le repère de manim-web garde ses
+ * graduations à l'écran si l'on n'efface que l'ensemble : c'était la cause des
+ * graduations fantômes, à l'effacement comme au remplacement du repère.
+ */
+function fadeAll(mobject: Mobject, seconds: number, when: Pick<TimedAnimation, "start" | "end">): TimedAnimation[] {
+  return mobject.getFamily().map((part) => ({ animation: new FadeOut(part as Mobject, { duration: seconds }), ...when }));
 }

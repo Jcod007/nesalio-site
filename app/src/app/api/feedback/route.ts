@@ -1,0 +1,67 @@
+/**
+ * POST /api/feedback — un testeur signale un problème ou donne une idée.
+ *
+ * Le retour est transmis au même formulaire Formspree que les inscriptions du
+ * site (champ « etape » = « retour-outil », pour les trier), ou à
+ * FEEDBACK_ENDPOINT s'il est défini. Rien n'est conservé par l'application.
+ */
+import { shortSession } from "@/domain/session";
+import { FEEDBACK_LABELS, FeedbackSchema } from "@/domain/feedback";
+import { jsonError, readJson } from "@/server/http";
+import { createSessionLimits } from "@/server/rateLimit";
+
+export const runtime = "nodejs";
+
+const DEFAULT_ENDPOINT = "https://formspree.io/f/xrpeoeqv";
+// Assez pour signaler plusieurs problèmes pendant un essai, pas assez pour inonder le formulaire.
+const limiter = createSessionLimits({ limit: 8, windowMs: 30 * 60_000, ipFactor: 6 });
+
+export async function POST(request: Request): Promise<Response> {
+  const read = await readJson(request, 40_000);
+  if (!read.ok) return read.response;
+  const parsed = FeedbackSchema.safeParse(read.body);
+  if (!parsed.success) return jsonError(400, parsed.error.issues[0]?.message ?? "Retour invalide.");
+
+  const limit = limiter.check(request.headers);
+  if (!limit.allowed) return jsonError(429, "Merci ! Tu as déjà envoyé plusieurs retours ; réessaie un peu plus tard.");
+
+  const { kind, message, email, context } = parsed.data;
+  const payload = {
+    etape: "retour-outil",
+    _subject: `Nesalio · retour de testeur : ${FEEDBACK_LABELS[kind]}`,
+    type: FEEDBACK_LABELS[kind],
+    message,
+    ...(email ? { email } : {}),
+    session: limit.session ? shortSession(limit.session) : "inconnue",
+    ...(context
+      ? {
+          question: context.question ?? "",
+          seance: context.title ?? "",
+          etat: context.status,
+          dernieres_phrases: context.recent.join("\n"),
+          tableau: context.board.join("\n"),
+          ecran: context.screen,
+          navigateur: context.browser,
+          rejeu: context.replay ?? "",
+        }
+      : { contexte: "non joint" }),
+  };
+
+  const endpoint = process.env.FEEDBACK_ENDPOINT?.trim() || DEFAULT_ENDPOINT;
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) {
+      console.warn("feedback: le formulaire a refusé l'envoi", response.status, (await response.text()).slice(0, 300));
+      return jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
+    }
+  } catch (error) {
+    console.warn("feedback: formulaire injoignable", error);
+    return jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
+  }
+  return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+}

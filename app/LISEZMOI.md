@@ -167,6 +167,21 @@ Le rapport donne, tour par tour, le délai avant la première phrase, les gestes
   `tools/rejeu/partitions/` contient les moments clés de 5 vidéos de
   3Blue1Brown écrits dans le langage de Nesa (tests du moteur).
 
+## Retours des testeurs
+
+Le bouton « Signaler un problème » (en haut de l'outil) envoie le retour au même
+formulaire Formspree que les inscriptions du site, avec `etape` = `retour-outil`
+(ou à `FEEDBACK_ENDPOINT` si la variable est définie). Si la personne laisse la
+case cochée, le retour contient sa question, les dernières phrases de Nesa, le
+tableau, son écran, son navigateur et le champ `rejeu` : l'enregistrement exact
+de ce que le serveur lui a envoyé. Pour revoir sa séance à l'identique :
+
+```
+# coller le contenu du champ « rejeu » dans seance.json, puis
+npx next build && npx next start -p 3100
+python3 tools/rejeu/seance.py /tmp seance.json essai "[]"
+```
+
 ## La boucle d'une séance
 
 1. Premier tour : Nesa fixe 2 ou 3 objectifs (le dernier est l'idée centrale),

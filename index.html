@@ -433,6 +433,8 @@
   .qnav .cta{flex:1;width:auto}
   .qnav .ghost{text-decoration:none;font-weight:700;color:var(--ink);padding:0 14px}
   .qhint{font-size:.88rem;color:var(--muted);margin:10px 0 0;text-align:center}
+  .skip{text-align:center;margin:4px 0 0;font-size:.9rem}
+  #toolWrap{margin:14px 0 4px}
   .share{display:flex;gap:8px;margin-top:14px}
   .share input{flex:1;font:inherit;font-size:.92rem;border:2px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--paper);color:var(--ink);min-width:0}
 
@@ -858,8 +860,8 @@
   <div class="dlg">
     <!-- Step 1: capture the lead -->
     <form id="step1" novalidate>
-      <div class="dlg-top"><div class="dlg-title"><nesa-mascot class="dlg-nesa" state="clin" aria-hidden="true"></nesa-mascot><h2 id="dlgTitle">Réserve ta démo</h2></div><button class="x" type="button" data-close aria-label="Fermer">×</button></div>
-      <p class="sub" id="dlgSub">Une séance de 15 minutes en ligne, sur la notion qui te bloque. Gratuit, sans engagement. On t'écrit pour fixer le moment.</p>
+      <div class="dlg-top"><div class="dlg-title"><nesa-mascot class="dlg-nesa" state="clin" aria-hidden="true"></nesa-mascot><h2 id="dlgTitle">Essaie Nesalio</h2></div><button class="x" type="button" data-close aria-label="Fermer">×</button></div>
+      <p class="sub" id="dlgSub">Pose ta question, Nesa t'explique au tableau, à voix haute. Gratuit, sans engagement : tu essaies l'outil tout de suite après ce formulaire.</p>
       <p class="plan-tag" id="planTag" hidden></p>
       <div class="progress" aria-hidden="true"><i class="on"></i><i></i></div>
       <div class="field">
@@ -877,7 +879,7 @@
         <input id="email" name="email" type="email" autocomplete="email" required placeholder="toi@exemple.com">
       </div>
       <div class="field">
-        <label for="tel">Ton cellulaire <span class="opt" id="telOpt">(pour fixer ta démo)</span></label>
+        <label for="tel">Ton cellulaire <span class="opt" id="telOpt">(pour te recontacter après ton essai)</span></label>
         <input id="tel" name="cellulaire" type="tel" autocomplete="tel" inputmode="tel" placeholder="514 555-0123">
       </div>
       <div class="field" id="smsField" hidden>
@@ -891,7 +893,7 @@
       <input type="hidden" name="parcours" id="fJourney" value="">
       <input type="hidden" name="source" id="source" value="">
       <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
-      <button class="cta" type="submit" id="submit1">Réserver ma démo</button>
+      <button class="cta" type="submit" id="submit1">Essayer maintenant</button>
       <p class="status" id="status1" role="status" aria-live="polite"></p>
       <p class="fine">Aucun paiement. Ton courriel et ton numéro ne sont jamais vendus. Moins de 14 ans ? Demande à un parent de s'inscrire pour toi. <a href="confidentialite.html" target="_blank">Confidentialité</a></p>
     </form>
@@ -899,7 +901,7 @@
     <!-- Step 2: valider le problème, une question à la fois (faits réels, questions ouvertes d'abord) -->
     <form id="step2" novalidate hidden>
       <div class="dlg-top"><h2 id="s2Title">C'est noté !</h2><button class="x" type="button" data-close aria-label="Fermer">×</button></div>
-      <p class="sub">Encore 4 petites questions pour préparer ta démo.</p>
+      <p class="sub" id="s2Sub">Encore 4 petites questions, puis on t'ouvre l'outil.</p>
       <div class="qhead"><span class="qcount"><span id="qNum">1</span> sur 4</span><span class="qbar" aria-hidden="true"><i id="qFill"></i></span></div>
 
       <div class="q">
@@ -942,13 +944,15 @@
         <button class="cta" type="button" id="qNext">Suivant</button>
       </div>
       <p class="qhint" id="qHint">Tu peux laisser vide et passer.</p>
+      <p class="skip" id="skipWrap" hidden><button class="ghost" type="button" id="qSkip">Passer les questions et essayer tout de suite</button></p>
       <p class="status" id="status2" role="status" aria-live="polite"></p>
     </form>
 
     <!-- Done: referral -->
     <div id="step3" hidden>
       <div class="dlg-top"><h2>Merci, c'est noté.</h2><button class="x" type="button" data-close aria-label="Fermer">×</button></div>
-      <p class="sub"><span id="s3Done">On t'écrit bientôt pour fixer ta démo.</span> Un ami bloque aussi à l'école ? Envoie-lui le lien.</p>
+      <p class="sub"><span id="s3Done">C'est parti : on t'ouvre Nesalio.</span> <span id="s3Share">Un ami bloque aussi à l'école ? Envoie-lui le lien.</span></p>
+      <p id="toolWrap" hidden><a class="cta" id="toolLink" href="/dev?src=formulaire">Ouvrir Nesalio</a></p>
       <div class="share">
         <input id="shareLink" type="text" readonly value="https://nesalio.com/?src=ami" aria-label="Lien à partager">
         <button class="cta small" type="button" id="copyBtn">Copier</button>
@@ -1102,16 +1106,19 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
   var s1 = document.getElementById('step1'), s2 = document.getElementById('step2'), s3 = document.getElementById('step3');
   var planTag = document.getElementById('planTag');
   var PLANS = {
-    demo:{title:'Réserve ta démo', sub:"Une séance de 15 minutes en ligne, sur la notion qui te bloque. Gratuit, sans engagement. On t'écrit pour fixer le moment.", btn:'Réserver ma démo', done:"On t'écrit bientôt pour fixer ta démo.", tel:'(pour fixer ta démo)', telNeeded:true},
+    demo:{title:'Essaie Nesalio', sub:"Pose ta question, Nesa t'explique au tableau, à voix haute. Gratuit, sans engagement : tu essaies l'outil tout de suite après ce formulaire.", btn:'Essayer maintenant', done:"C'est parti : on t'ouvre Nesalio.", tel:'(pour te recontacter après ton essai)', telNeeded:true, tool:true},
     avertir:{title:'Sois averti à l\'ouverture', sub:"On t'écrit dès que Nesalio ouvre. Aucun engagement.", btn:"M'avertir", done:"On t'écrit dès que Nesalio ouvre.", tel:'(facultatif, pour un texto à l\'ouverture)', telNeeded:false}
   };
-  var SUBMIT = PLANS.demo.btn, TEL_NEEDED = true;
+  var SUBMIT = PLANS.demo.btn, TEL_NEEDED = true, TO_TOOL = true;
+  /* Après le formulaire « Essayer », on ouvre l'outil (nesalio.com/dev redirige vers l'application). */
+  var TOOL_URL = '/dev?src=formulaire';
   var hasModal = typeof dlg.showModal === 'function';
 
   function open(where, plan, profil){
     nTrack(plan ? 'clic_formule' : 'clic_essayer', plan ? {plan: plan} : {where: where});
     document.getElementById('fBtn').value = where;
-    var P = PLANS[plan] || PLANS.demo; SUBMIT = P.btn; TEL_NEEDED = P.telNeeded; document.getElementById('telOpt').textContent = P.tel;
+    var P = PLANS[plan] || PLANS.demo; SUBMIT = P.btn; TEL_NEEDED = P.telNeeded; TO_TOOL = !!P.tool; document.getElementById('telOpt').textContent = P.tel;
+    document.getElementById('s2Sub').textContent = TO_TOOL ? "Encore 4 petites questions, puis on t'ouvre l'outil." : "Encore 4 petites questions.";
     document.getElementById('fPlan').value = PLANS[plan] ? plan : 'demo';
     document.getElementById('dlgTitle').textContent = P.title; document.getElementById('dlgSub').textContent = P.sub;
     document.getElementById('submit1').textContent = P.btn; document.getElementById('s3Done').textContent = P.done;
@@ -1163,11 +1170,22 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
       var pr = s1.querySelector('input[name=profil]:checked'), prof = pr ? pr.value : '';
       document.getElementById('profil2').value = prof;
       if(prof === 'Parent') s2.querySelectorAll('[data-parent]').forEach(function(el){ el.textContent = el.getAttribute('data-parent'); });
-      s1.hidden = true; s2.hidden = false; showQ(0);
+      s1.hidden = true; s2.hidden = false; document.getElementById('skipWrap').hidden = !TO_TOOL; showQ(0);
     }).catch(function(err){ fail(st, err); btn.disabled = false; btn.textContent = SUBMIT; });
   });
 
-  function toDone(){ s2.hidden = true; s3.hidden = false; document.getElementById('copyBtn').focus(); }
+  function toDone(){
+    s2.hidden = true; s3.hidden = false;
+    if(TO_TOOL){
+      /* Inscription faite : direction l'outil (bouton visible au cas où la redirection est bloquée). */
+      document.getElementById('toolWrap').hidden = false;
+      document.getElementById('s3Share').hidden = true;
+      document.querySelector('#step3 .share').hidden = true;
+      nTrack('ouverture_outil');
+      setTimeout(function(){ window.location.assign(TOOL_URL); }, 1200);
+      document.getElementById('toolLink').focus();
+    } else { document.getElementById('copyBtn').focus(); }
+  }
   /* étape 2 : une question à la fois */
   var qs = s2.querySelectorAll('.q'), qi = 0, qNext = document.getElementById('qNext'), qBack = document.getElementById('qBack');
   var NEXT = 'Suivant', SEND = 'Envoyer', SENDING = 'Envoi…';
@@ -1196,6 +1214,12 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     send(s2).then(toDone).catch(function(err){ fail(st, err); qNext.disabled = false; qNext.textContent = SEND; });
   });
   s2.addEventListener('submit', function(e){ e.preventDefault(); });
+  /* Passer les questions : on envoie ce qui est déjà rempli (s'il y a quelque chose), puis l'outil. */
+  document.getElementById('qSkip').addEventListener('click', function(){
+    nTrack('questions_passees', {at: qi + 1});
+    var any = Array.prototype.some.call(qs, answered);
+    (any ? send(s2).catch(function(){}) : Promise.resolve()).then(toDone);
+  });
 
   document.getElementById('copyBtn').addEventListener('click', function(){
     var inp = document.getElementById('shareLink'), st = document.getElementById('status3');

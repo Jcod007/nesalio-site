@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import styles from "./TopBar.module.css";
 
 interface Props {
@@ -9,9 +10,11 @@ interface Props {
   muted: boolean;
   onToggleMute(): void;
   onHome: (() => void) | null;
+  /** Bouton « Signaler un problème » (testeurs). */
+  feedback?: ReactNode;
 }
 
-export function TopBar({ title, topic, demo, muted, onToggleMute, onHome }: Props) {
+export function TopBar({ title, topic, demo, muted, onToggleMute, onHome, feedback }: Props) {
   return (
     <header className={styles.bar}>
       <a className={styles.brand} href="https://nesalio.com" aria-label="Nesalio, retour au site">
@@ -38,6 +41,7 @@ export function TopBar({ title, topic, demo, muted, onToggleMute, onHome }: Prop
             Démonstration
           </span>
         ) : null}
+        {feedback}
         <button
           type="button"
           className={styles.icon}

@@ -19,6 +19,7 @@
  */
 import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/domain/board/state";
 import { applyAction } from "@/domain/scene/commands";
+import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import type { Check, Mood, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
@@ -37,6 +38,10 @@ export interface Caption {
 export interface ActiveCheck extends Check {
   picked: number | null;
 }
+
+/** Tours gardés pour rejouer une séance signalée, et taille maximale de l'enregistrement joint. */
+const MAX_RECORDED_TURNS = 6;
+const MAX_REPLAY_CHARS = 16_000;
 
 export interface PlayerSnapshot {
   status: PlayerStatus;
@@ -112,6 +117,11 @@ export class Player {
   private readonly listeners = new Set<() => void>();
   private segments: Segment[] = [];
   private history: string[] = [];
+  /**
+   * Enregistrement de ce qui est arrivé du serveur, tour par tour (les événements tels quels).
+   * Joint à un signalement de problème, il permet de rejouer exactement la séance de la personne.
+   */
+  private transcript: StreamEvent[][] = [];
   /** Questions auxquelles l'élève a répondu dans la séance. */
   private answeredCount = 0;
   /** Objectifs de la séance (premier tour) et réponses de l'élève : la mémoire de la séance. */
@@ -133,6 +143,28 @@ export class Player {
   };
 
   getSnapshot = (): PlayerSnapshot => this.snapshot;
+
+  /** Ce qu'un testeur vient de voir et d'entendre, pour accompagner un signalement de problème. */
+  recentContext(): { question: string | null; title: string | null; status: string; recent: string[]; board: string[]; replay: string } {
+    const { question, title, status, board } = this.snapshot;
+    // Les tours les plus récents d'abord gardés : on retire les plus anciens tant que c'est trop long.
+    let turns = this.transcript;
+    let replay = JSON.stringify(turns);
+    while (replay.length > MAX_REPLAY_CHARS && turns.length > 1) {
+      turns = turns.slice(1);
+      replay = JSON.stringify(turns);
+    }
+    return {
+      question,
+      title,
+      status,
+      replay: replay.length > MAX_REPLAY_CHARS ? "" : replay,
+      recent: this.history.slice(-6),
+      board: summarizeBoard(board)
+        .slice(0, 30)
+        .map((item) => `${item.id} · ${item.type} · ${item.detail}`.slice(0, 200)),
+    };
+  }
 
   private set(patch: Partial<PlayerSnapshot>) {
     this.snapshot = { ...this.snapshot, ...patch };
@@ -236,6 +268,7 @@ export class Player {
     this.answeredCount = 0;
     this.goals = [];
     this.answerLog = [];
+    this.transcript = [];
     this.stopCurrentStep();
     this.poke();
   }
@@ -302,9 +335,12 @@ export class Player {
   }
 
   private async consume(segment: Segment, request: TutorRequest, session: number) {
+    const turn: StreamEvent[] = [];
+    this.transcript = [...this.transcript, turn].slice(-MAX_RECORDED_TURNS);
     try {
       for await (const event of this.deps.source.open(request, segment.abort.signal)) {
         if (session !== this.session || segment.abort.signal.aborted) return;
+        turn.push(event);
         switch (event.kind) {
           case "source":
             this.set({ source: event.source });

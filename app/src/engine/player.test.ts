@@ -264,6 +264,19 @@ describe("Player", () => {
     expect(requests[2]!.answer?.misconception).toBe("croit que tout s'additionne");
   });
 
+  it("garde l'enregistrement exact de la séance, pour qu'un signalement puisse être rejoué", async () => {
+    const voice = fakeSpeaker();
+    const { source } = scriptedSource(() => [{ kind: "lesson", title: "Zéros" }, step("Voici la parabole."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("zéros ?");
+    await speakUntil(player, voice, (s) => s.status === "done");
+    const context = player.recentContext();
+    const turns = JSON.parse(context.replay) as Array<Array<{ kind: string; say?: string }>>;
+    expect(turns).toHaveLength(1);
+    expect(turns[0]!.map((e) => e.kind)).toEqual(["lesson", "step", "end"]);
+    expect(context.recent).toContain("Voici la parabole.");
+  });
+
   it("une question pour situer l'élève n'a pas de verdict", async () => {
     const voice = fakeSpeaker();
     const check = { prompt: "Tu connais le triangle rectangle ?", choices: ["Oui", "Un peu", "Non"] };
