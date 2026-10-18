@@ -12,7 +12,7 @@ import { focusCommand, resetViewCommand } from "./camera";
 import type { CommandSpec } from "./define";
 import { dimCommand, highlightCommand, undimCommand } from "./emphasis";
 import { axesCommand, curveCommand, pointCommand, segmentCommand, vectorCommand } from "./figure";
-import { moveCommand, transformCommand } from "./motion";
+import { copyCommand, moveCommand, transformCommand } from "./motion";
 import { angleCommand, circleCommand, inclineCommand, polygonCommand, triangleCommand } from "./shapes";
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
 import { noteCommand, tagCommand, textCommand } from "./text";
@@ -34,6 +34,7 @@ export const COMMANDS = {
   tag: tagCommand,
   group: groupCommand,
   move: moveCommand,
+  copy: copyCommand,
   transform: transformCommand,
   highlight: highlightCommand,
   dim: dimCommand,
@@ -60,6 +61,7 @@ export const Action = z.discriminatedUnion("type", [
   tagCommand.schema,
   groupCommand.schema,
   moveCommand.schema,
+  copyCommand.schema,
   transformCommand.schema,
   highlightCommand.schema,
   dimCommand.schema,
@@ -98,6 +100,7 @@ export const ACTION_ALIASES: Readonly<Record<string, ActionType>> = Object.fromE
 
 /** Commandes qui créent un nœud identifié (un identifiant est ajouté s'il manque). */
 export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
+  "copy",
   "curve",
   "point",
   "vector",

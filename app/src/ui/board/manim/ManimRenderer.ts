@@ -44,7 +44,7 @@ import {
 } from "manim-web";
 import { formatNumber, niceStep, sampleCurve } from "@/domain/board/geometry";
 import { AXES_BOX, contentBox, fontSizeOf, FONT_SIZE } from "@/domain/board/layout";
-import { DEFAULT_FRAME, type BoardNode, type BoardState, type Frame, type Vec2 } from "@/domain/board/state";
+import { DEFAULT_FRAME, lastMotion, type BoardNode, type BoardState, type Frame, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
 import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
@@ -71,6 +71,7 @@ interface Rendered {
   erased: boolean;
   /** Déplacement cumulé déjà appliqué aux mobjects (coordonnées mathématiques). */
   appliedOffset: Vec2;
+  /** Début du dernier déplacement déjà animé (les suivants restent à jouer). */
   motionStart?: number;
   morphStart?: number;
   dimStart?: number;
@@ -218,10 +219,20 @@ export class ManimRenderer {
 
     if (fresh) {
       if (rendered) this.scene.remove(...rendered.mobjects);
-      // Un nœud qui apparaît puis bouge dans la même étape est dessiné à son point de départ.
-      const startOffset = node.motion && node.motion.start >= node.reveal.start ? node.motion.from : node.offset;
+      // Un nœud qui apparaît puis bouge dans la même étape est dessiné à son point de départ,
+      // et ses déplacements de cette étape restent à jouer.
+      const pending = (node.motions ?? []).filter((m) => m.start >= node.reveal.start);
+      const startOffset = pending[0]?.from ?? node.offset;
       const built = this.build(node, startOffset);
-      rendered = { revealStart: node.reveal.start, mobjects: built.mobjects, erased: false, appliedOffset: startOffset, morphStart: node.morph?.start, opacity: 1 };
+      rendered = {
+        revealStart: node.reveal.start,
+        mobjects: built.mobjects,
+        erased: false,
+        appliedOffset: startOffset,
+        motionStart: pending.length > 0 ? -Infinity : lastMotion(node)?.start,
+        morphStart: node.morph?.start,
+        opacity: 1,
+      };
       this.items.set(node.id, rendered);
       for (const anim of built.animations) {
         const start = node.reveal.start + anim.delay * node.reveal.duration;
@@ -257,18 +268,18 @@ export class ManimRenderer {
       }
       current.mobjects = built.mobjects;
       current.appliedOffset = node.offset;
-      current.motionStart = node.motion?.start;
+      current.motionStart = lastMotion(node)?.start;
     }
 
-    // Déplacement
-    if (node.motion && node.motion.start !== current.motionStart) {
-      current.motionStart = node.motion.start;
-      const delta = this.worldDelta([node.motion.to[0] - current.appliedOffset[0], node.motion.to[1] - current.appliedOffset[1]]);
-      current.appliedOffset = node.motion.to;
-      if (delta[0] !== 0 || delta[1] !== 0) {
-        for (const mobject of current.mobjects) {
-          batch.push({ animation: new Shift(mobject, { direction: delta, duration: node.motion.duration / 1000 }), ...at(node.motion.start, node.motion.duration) });
-        }
+    // Déplacements : chacun des nouveaux, dans l'ordre (aller puis retour, par exemple).
+    const since = current.motionStart ?? -Infinity;
+    for (const motion of (node.motions ?? []).filter((m) => m.start > since)) {
+      current.motionStart = motion.start;
+      const delta = this.worldDelta([motion.to[0] - current.appliedOffset[0], motion.to[1] - current.appliedOffset[1]]);
+      current.appliedOffset = motion.to;
+      if (delta[0] === 0 && delta[1] === 0) continue;
+      for (const mobject of current.mobjects) {
+        batch.push({ animation: new Shift(mobject, { direction: delta, duration: motion.duration / 1000 }), ...at(motion.start, motion.duration) });
       }
     }
 

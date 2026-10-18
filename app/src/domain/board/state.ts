@@ -51,8 +51,11 @@ interface NodeBase {
   color?: ColorName;
   /** Déplacement cumulé depuis la position dessinée (coordonnées mathématiques). */
   offset: Vec2;
-  /** Dernier déplacement, à animer. */
-  motion?: Motion;
+  /**
+   * Déplacements à animer, dans l'ordre (les plus récents). Plusieurs par étape
+   * sont possibles : « on le déplace, puis on le ramène ».
+   */
+  motions?: Motion[];
   /** Dernière transformation (le nœud a changé de forme ou de texte). */
   morph?: Reveal;
   /** Estompé (contexte) ou rendu à pleine intensité. */
@@ -194,12 +197,25 @@ export function updateNodes(state: BoardState, ids: readonly string[], update: (
   return { ...state, nodes };
 }
 
-/** Déplace des nœuds de `delta` (coordonnées mathématiques), avec animation. */
+/** Nombre de déplacements gardés par nœud : assez pour une étape, sans faire grossir l'état. */
+const MOTION_HISTORY = 8;
+
+/** Dernier déplacement d'un nœud, s'il en a un. */
+export function lastMotion(node: BoardNode): Motion | undefined {
+  return node.motions?.at(-1);
+}
+
+/**
+ * Déplace des nœuds de `delta` (coordonnées mathématiques), avec animation.
+ * Le déplacement s'ajoute aux précédents : deux déplacements dans la même
+ * étape s'enchaînent au lieu de s'écraser.
+ */
 export function moveNodes(state: BoardState, ids: readonly string[], delta: Vec2, reveal: Reveal): BoardState {
   if (ids.length === 0 || (delta[0] === 0 && delta[1] === 0)) return state;
   return updateNodes(state, ids, (node) => {
     const to: Vec2 = [node.offset[0] + delta[0], node.offset[1] + delta[1]];
-    return { ...node, offset: to, motion: { from: node.offset, to, start: reveal.start, duration: reveal.duration } };
+    const motion: Motion = { from: node.offset, to, start: reveal.start, duration: reveal.duration };
+    return { ...node, offset: to, motions: [...(node.motions ?? []), motion].slice(-MOTION_HISTORY) };
   });
 }
 

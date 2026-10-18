@@ -44,3 +44,19 @@ describe("estimateSpeechMs", () => {
     expect(estimateSpeechMs("Bonjour.")).toBeLessThan(estimateSpeechMs("Bonjour, on va regarder la pente de cette courbe ensemble."));
   });
 });
+
+describe("planStep · un même objet", () => {
+  it("joue deux commandes sur le même objet l'une après l'autre", () => {
+    const moves: Action[] = [
+      { type: "move", target: "v", by: [4, -1] },
+      { type: "move", target: "v", by: [-4, 1] },
+    ];
+    // Les deux repères tombent au même mot : le retour attend la fin de l'aller.
+    const plan = planStep(moves, 3000, { v: 0.2 });
+    const [go, back] = plan.actions;
+    expect(back!.offset).toBe(go!.offset + go!.duration);
+    // Sans repère non plus, rien ne se chevauche.
+    const plain = planStep(moves, 400);
+    expect(plain.actions[1]!.offset).toBeGreaterThanOrEqual(plain.actions[0]!.offset + plain.actions[0]!.duration);
+  });
+});

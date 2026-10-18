@@ -7,7 +7,7 @@
  */
 import { quadraticLesson } from "@/content/demoLessons";
 import { commandReference } from "@/domain/scene/commands";
-import type { Lesson } from "@/domain/scene/schema";
+import type { Action, Lesson } from "@/domain/scene/schema";
 import type { StudentAnswer, TutorRequest } from "@/domain/tutor/request";
 
 export interface ChatMessage {
@@ -19,6 +19,31 @@ export function serializeLesson(lesson: Lesson): string {
   return [lesson.header, ...lesson.steps.map((step) => ({ kind: "step", ...step })), lesson.end]
     .map((event) => JSON.stringify(event))
     .join("\n");
+}
+
+/** Trois étapes qui montrent un geste : dessiner au départ, faire glisser (une copie), tracer le résultat. */
+function gestureExample(): string {
+  const steps: Array<{ say: string; mood: string; do: Action[] }> = [
+    {
+      say: "Voici v {v} et w {w}, qui partent tous les deux de l'origine.",
+      mood: "dessine",
+      do: [
+        { type: "vector", id: "v", from: [0, 0], by: [1, 2], label: "v", color: "violet" },
+        { type: "vector", id: "w", from: [0, 0], by: [3, -1], label: "w", color: "orange" },
+      ],
+    },
+    {
+      say: "Pour les additionner, une copie de w {w2} glisse jusqu'au bout de v.",
+      mood: "explique",
+      do: [{ type: "copy", target: "w", id: "w2", onto: "v" }],
+    },
+    {
+      say: "La somme {s} va de l'origine à la nouvelle pointe.",
+      mood: "dessine",
+      do: [{ type: "vector", id: "s", from: [0, 0], to: [4, 1], label: "v + w", color: "green" }],
+    },
+  ];
+  return steps.map((step) => JSON.stringify({ kind: "step", ...step })).join("\n");
 }
 
 const SCENE_SPEC = `
@@ -53,14 +78,32 @@ STYLE AU TABLEAU (comme une bonne vidéo animée : le tableau vit avec l'explica
 - Les calculs qui s'enchaînent vont dans la colonne ("note"). Quand une équation devient la suivante (on isole,
   on simplifie), TRANSFORME-la ("transform" avec le nouveau "text") au lieu d'écrire une nouvelle ligne.
 - Ce qui n'est plus au centre : estompe-le ("dim"), il reste comme repère. Efface ("erase") ce qui gêne.
-- Regroupe ("group") les objets qui forment un tout (un triangle, une figure), puis déplace-le ("move") pour faire de
-  la place ou comparer deux situations côte à côte.
+- Regroupe ("group") les objets qui forment un tout (un triangle, une figure) pour les déplacer ou les estomper d'un coup.
 - FIGURES : décris-les par leurs paramètres ("triangle" avec angle et hypoténuse, "angle", "circle", "polygon",
   "incline" pour un plan incliné, "vector" avec "by" pour ses composantes). Ne calcule pas toi-même les sommets :
   le moteur fait une géométrie exacte. Ensuite, désigne les parties par leur nom (tri-hyp, plan-Px…).
-- Même couleur pour un terme d'équation et l'objet qu'il désigne.
+- Même couleur pour un terme d'équation et l'objet qu'il désigne, et garde ce code de couleur toute la séance
+  (si x est vert une fois, il reste vert).
+- Ne parle jamais d'un objet qui n'est pas au tableau : dessine-le d'abord, dans l'étape où tu le nommes.
+- Nouvelle idée sans lien avec le tableau : "clear", puis repars de zéro.
+
+LE MOUVEMENT EXPLIQUE (c'est ce qui fait une bonne vidéo)
+Quand l'idée est une ACTION, montre le geste au lieu de dessiner le résultat : l'objet apparaît à sa place de départ,
+puis, à l'étape suivante, il bouge PENDANT que tu dis ce qu'il fait. Vise au moins un geste par tour.
+- Vecteurs : additionner = faire glisser w bout à bout ("move" avec "onto":"v"), puis tracer la somme ; "copy" pour
+  garder l'original à sa place. Multiplier par un nombre = "transform" du vecteur ("to"), qui s'étire ou se retourne.
+- Nombres qui viennent de la figure : "copy" de la composante ou de la mesure jusqu'à l'équation (« le 3 vient d'ici »).
+- Algèbre : un terme change de membre = "copy" du terme vers l'autre côté, puis "transform" de l'équation.
+- Fonctions : translation ou étirement = "transform" de la courbe ("fn") ; un point qui parcourt la courbe = "transform" ("at").
+- Géométrie : comparer deux figures = les superposer ("move" avec "onto" ou "near") ; une figure qui tourne ou s'agrandit = "transform".
+- Physique : le bloc glisse sur le plan ("move"), une force se décompose ("copy" de la force, puis "transform" en composante).
+- Aller-retour : deux "move" du même objet dans la même étape s'enchaînent.
 - Ne transforme ni ne déplace un objet dans l'étape où tu le crées : fais-le à l'étape suivante, pendant que tu l'expliques.
-- Nouvelle idée sans lien avec le tableau : "clear", puis repars de zéro.`.trim();
+CHOISIS DES EXEMPLES OÙ ÇA SE VOIT : nombres entiers et petits, objets bien séparés, directions franchement différentes
+(jamais deux vecteurs presque alignés, jamais une somme cachée sous un autre objet), vecteurs qui partent de l'origine.
+
+Exemple de geste (vecteurs) :
+${gestureExample()}`.trim();
 
 const PERSONA = `
 Tu es Nesa, la tutrice à la voix de Nesalio. Tu aides des élèves de secondaire 4 et 5 et du cégep, au Québec,

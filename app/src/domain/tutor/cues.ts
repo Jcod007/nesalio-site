@@ -41,6 +41,8 @@ const TYPE_WORDS: Record<string, readonly string[]> = {
   point: ["point", "sommet"],
   vector: ["vecteur", "flèche", "force", "vitesse"],
   segment: ["segment", "côté", "trait", "droite", "hauteur"],
+  move: ["glisse", "glisser", "déplace", "déplacer", "place", "pose", "ramène", "ramener", "bout"],
+  copy: ["copie", "recopie", "part", "descend", "monte"],
 };
 
 const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -67,7 +69,8 @@ interface CueableAction {
 /** Ce par quoi Nesa désigne probablement l'objet : son nom (« A »), son étiquette, son texte, son type. */
 function wordsFor(action: CueableAction): Array<{ word: string; exact: boolean }> {
   const words: Array<{ word: string; exact: boolean }> = [];
-  const name = action.id ?? action.target;
+  // Une copie porte un identifiant neuf, jamais prononcé : on cherche l'original.
+  const name = action.type === "copy" ? (action.target ?? action.id) : (action.id ?? action.target);
   // Un nom court (« A », « f ») se cherche tel quel ; un nom long seulement s'il est un vrai mot.
   if (name && name.length <= 2) words.push({ word: name, exact: true });
   else if (name && /^[\p{L}]{3,}$/u.test(name)) words.push({ word: name, exact: false });

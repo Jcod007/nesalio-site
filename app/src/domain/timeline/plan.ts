@@ -64,7 +64,7 @@ export function planStep(actions: readonly Action[], speechMs: number, cues?: Re
       follow = isQuick(action.type) ? offset : offset + Math.round(durations[i]! * OVERLAP);
       return { action, offset, duration: durations[i]! };
     });
-    return { actions: planned, drawingMs: Math.max(...planned.map((p) => p.offset + p.duration)) };
+    return finish(planned);
   }
 
   // 1. Enchaînement naturel, sans tenir compte de la voix.
@@ -85,8 +85,24 @@ export function planStep(actions: readonly Action[], speechMs: number, cues?: Re
     offset: Math.round(natural[i]! * stretch),
     duration: durations[i]!,
   }));
-  const drawingMs = Math.max(...planned.map((p) => p.offset + p.duration));
-  return { actions: planned, drawingMs };
+  return finish(planned);
+}
+
+/**
+ * Deux commandes sur le même objet ne se jouent jamais en même temps : la
+ * seconde attend la fin de la première (« on le déplace, puis on le ramène »).
+ * Les commandes suivantes de la liste gardent leur horaire.
+ */
+function finish(planned: PlannedAction[]): StepPlan {
+  const busyUntil = new Map<string, number>();
+  const actions = planned.map((p) => {
+    const key = cueKey(p.action);
+    let offset = p.offset;
+    if (key !== undefined && busyUntil.has(key)) offset = Math.max(offset, busyUntil.get(key)!);
+    if (key !== undefined) busyUntil.set(key, offset + p.duration);
+    return offset === p.offset ? p : { ...p, offset };
+  });
+  return { actions, drawingMs: Math.max(...actions.map((p) => p.offset + p.duration)) };
 }
 
 /** Estimation de la durée d'une phrase lue à vitesse normale (≈ 165 mots par minute en français). */

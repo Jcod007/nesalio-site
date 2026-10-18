@@ -3,7 +3,7 @@ import { DEMO_LESSONS } from "@/content/demoLessons";
 import { applyAction, type Action } from "@/domain/scene/commands";
 import { ModelEvent } from "@/domain/scene/schema";
 import { calcColumn, nodeBox, intersects } from "./layout";
-import { emptyBoard, pruneErased, resolveTargets, summarizeBoard, type BoardState, type TextNode } from "./state";
+import { emptyBoard, lastMotion, pruneErased, resolveTargets, summarizeBoard, type BoardState, type TextNode } from "./state";
 
 const t = (start: number) => ({ start, duration: 100 });
 const run = (actions: Action[], board: BoardState = emptyBoard()) =>
@@ -65,7 +65,7 @@ describe("graphe de scène", () => {
 
     board = applyAction(board, { type: "move", target: "tri", by: [-2, 1] }, t(100));
     for (const id of ["a", "b", "h"]) expect(board.nodes[id]!.offset).toEqual([-2, 1]);
-    expect(board.nodes.a!.motion).toEqual({ from: [0, 0], to: [-2, 1], start: 100, duration: 100 });
+    expect(lastMotion(board.nodes.a!)).toEqual({ from: [0, 0], to: [-2, 1], start: 100, duration: 100 });
 
     board = applyAction(board, { type: "dim", target: "tri" }, t(200));
     expect(board.nodes.h!.dim).toMatchObject({ on: true, start: 200 });
@@ -145,7 +145,7 @@ describe("graphe de scène", () => {
     expect(board.nodes.n0!.erased).toEqual(t(500));
     expect(board.calc).toHaveLength(capacity);
     expect(position(board, "n1")[1]).toBeGreaterThan(secondBefore[1]!);
-    expect(board.nodes.n1!.motion?.start).toBe(500);
+    expect(lastMotion(board.nodes.n1!)?.start).toBe(500);
   });
 
   it("n'écrit jamais une ligne de calcul sur un texte posé dans la figure", () => {
@@ -166,7 +166,7 @@ describe("graphe de scène", () => {
     const before = position(board, "n1");
     board = applyAction(board, { type: "axes", x: [0, 40], y: [0, 12] }, t(100));
     expect(position(board, "n1")[0]).toBeGreaterThan(before[0]!);
-    expect(board.nodes.n1!.motion?.start).toBe(100);
+    expect(lastMotion(board.nodes.n1!)?.start).toBe(100);
   });
 
   it("vide le tableau, avec ou sans le repère", () => {
@@ -219,5 +219,56 @@ describe("séances de démonstration", () => {
         }
       }
     }
+  });
+});
+
+describe("mouvements", () => {
+  const vectors: Action[] = [
+    { type: "axes", x: [-6, 6], y: [-4, 4] },
+    { type: "vector", id: "v", from: [0, 0], by: [1, 2] },
+    { type: "vector", id: "w", from: [0, 0], by: [3, -1] },
+  ];
+
+  it("enchaîne deux déplacements du même objet dans une étape (aller, puis retour)", () => {
+    let board = run(vectors);
+    board = applyAction(board, { type: "move", target: "v", by: [4, -1] }, t(100));
+    board = applyAction(board, { type: "move", target: "v", by: [-4, 1] }, t(200));
+    expect(board.nodes.v!.offset).toEqual([0, 0]);
+    expect(board.nodes.v!.motions).toEqual([
+      { from: [0, 0], to: [4, -1], start: 100, duration: 100 },
+      { from: [4, -1], to: [0, 0], start: 200, duration: 100 },
+    ]);
+  });
+
+  it("pose la queue d'un vecteur sur la pointe d'un autre, sans calcul (onto)", () => {
+    const board = applyAction(run(vectors), { type: "move", target: "w", onto: "v" }, t(100));
+    expect(position(board, "w")).toEqual([1, 2]);
+    // Visée sur la queue : les deux vecteurs repartent du même point.
+    const back = applyAction(board, { type: "move", target: "w", onto: "v", ontoPart: "tail" }, t(200));
+    expect(position(back, "w")).toEqual([0, 0]);
+  });
+
+  it("détache une copie qui glisse, l'original reste en place", () => {
+    const board = applyAction(run(vectors), { type: "copy", target: "w", id: "w2", onto: "v", color: "orange" }, t(100));
+    expect(position(board, "w")).toEqual([0, 0]);
+    expect(position(board, "w2")).toEqual([1, 2]);
+    const copy = board.nodes.w2!;
+    expect(copy.color).toBe("orange");
+    expect(copy.reveal.start).toBe(100);
+    expect(copy.motions).toEqual([{ from: [0, 0], to: [1, 2], start: 100, duration: 100 }]);
+  });
+
+  it("copie un groupe membre par membre, et nomme la copie comme un groupe", () => {
+    let board = run([...vectors, { type: "group", id: "vw", members: ["v", "w"] }]);
+    board = applyAction(board, { type: "copy", target: "vw", id: "c", by: [0, -3] }, t(100));
+    expect(resolveTargets(board, "c")).toEqual(["c-v", "c-w"]);
+    expect(position(board, "c-v")).toEqual([0, -3]);
+  });
+
+  it("une copie de ligne de calcul devient un texte libre", () => {
+    let board = run([{ type: "note", id: "n1", text: "−2" }, { type: "point", id: "A", at: [2, 2] }]);
+    board = applyAction(board, { type: "copy", target: "n1", id: "k", near: "A", side: "right" }, t(100));
+    expect(text(board, "k").role).toBe("free");
+    expect(board.calc).toEqual(["n1"]);
   });
 });
