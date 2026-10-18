@@ -57,4 +57,14 @@ describe("figures paramétriques", () => {
     const board = applyAction(emptyBoard(), { type: "vector", id: "v", from: [1, 1], by: [3, 2] }, t);
     expect(board.nodes.v).toMatchObject({ from: [1, 1], to: [4, 3] });
   });
+
+  it("complète une figure redemandée avec plus d'options sans redessiner ce qui est déjà là", () => {
+    let board = applyAction(emptyBoard(), { type: "incline", id: "plan", angle: 30, weight: false }, t);
+    expect(board.nodes["plan-P"]).toBeUndefined();
+    const blockReveal = board.nodes["plan-bloc"]!.reveal;
+    board = applyAction(board, { type: "incline", id: "plan", angle: 30, weight: true }, { start: 5000, duration: 1000 });
+    expect(board.nodes["plan-bloc"]!.reveal).toEqual(blockReveal);
+    expect(board.nodes["plan-P"]!.reveal.start).toBe(5000);
+    expect(resolveTargets(board, "plan")).toContain("plan-P");
+  });
 });

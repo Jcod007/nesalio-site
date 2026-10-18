@@ -47,13 +47,23 @@ function stagger(reveal: Reveal, index: number, count: number): Reveal {
   return { start: reveal.start + index * slot * 0.6, duration: slot };
 }
 
-/** Dessine les parties d'une figure et les réunit dans un groupe portant le nom de la figure. */
+/**
+ * Dessine les parties d'une figure et les réunit dans un groupe portant le nom
+ * de la figure. Redemander la même figure avec plus d'options la complète :
+ * les parties déjà au tableau restent en place, seules les nouvelles
+ * apparaissent (on présente les forces une à une, par exemple).
+ */
 function drawFigure(state: BoardState, id: string, parts: BoardNode[], reveal: Reveal): BoardState {
-  let next = state;
-  parts.forEach((part, i) => {
-    next = drawNode(next, { ...part, reveal: stagger(reveal, i, parts.length) }, reveal);
+  const fresh = parts.filter((part) => {
+    const existing = state.nodes[part.id];
+    return !isVisible(existing) || existing.type !== part.type;
   });
-  return { ...next, groups: { ...next.groups, [id]: { id, members: parts.map((p) => p.id) } } };
+  let next = state;
+  fresh.forEach((part, i) => {
+    next = drawNode(next, { ...part, reveal: stagger(reveal, i, fresh.length) }, reveal);
+  });
+  const members = [...new Set([...(state.groups[id]?.members ?? []), ...parts.map((p) => p.id)])];
+  return { ...next, groups: { ...next.groups, [id]: { id, members } } };
 }
 
 /** Texte posé à une position calculée, attaché à une partie de la figure (il la suit). */
@@ -248,7 +258,9 @@ export const inclineCommand = defineCommand({
   doc:
     '{"type":"incline","id":"plan","angle":25,"block":true,"weight":true,"components":true,"normal":false}\n' +
     '  Plan incliné (angle en degrés) avec un bloc, son poids P et, si demandé, ses composantes P∥ et P⊥ et la normale N.\n' +
-    '  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N.',
+    '  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N.\n' +
+    '  Pour présenter les forces une à une, redemande la même figure (même id) avec une option de plus : seules les\n' +
+    '  nouvelles parties apparaissent (d\'abord "weight":false, puis "weight":true, puis "components":true…).',
   duration: 3000,
   aliases: ["plan", "ramp", "slope"],
   apply(state, action, reveal) {

@@ -30,11 +30,12 @@ export type Mood = z.infer<typeof Mood>;
  */
 export const Check = z
   .object({
-    prompt: z.string().trim().min(1).max(200),
-    choices: z.array(z.string().trim().min(1).max(60)).min(2).max(4),
+    prompt: z.string().trim().min(1).max(300),
+    // Les modèles formulent parfois des choix en phrase complète : on les accepte (la carte passe à la ligne).
+    choices: z.array(z.string().trim().min(1).max(140)).min(2).max(4),
     answer: z.number().int().min(0).optional(),
-    ifRight: z.string().trim().min(1).max(200).optional(),
-    ifWrong: z.string().trim().min(1).max(240).optional(),
+    ifRight: z.string().trim().min(1).max(300).optional(),
+    ifWrong: z.string().trim().min(1).max(300).optional(),
   })
   .refine((check) => check.answer === undefined || check.answer < check.choices.length, {
     message: "La bonne réponse doit désigner un des choix",

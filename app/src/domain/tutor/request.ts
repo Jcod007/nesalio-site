@@ -32,9 +32,9 @@ export const TutorContextSchema = z.object({
 
 /** Réponse de l'élève à la dernière question de Nesa. */
 export const StudentAnswerSchema = z.object({
-  prompt: z.string().max(200),
-  choices: z.array(z.string().max(60)).max(4),
-  picked: z.string().max(60),
+  prompt: z.string().max(300),
+  choices: z.array(z.string().max(140)).max(4),
+  picked: z.string().max(140),
   /** null pour une question sans bonne réponse (situer l'élève). */
   correct: z.boolean().nullable(),
 });
