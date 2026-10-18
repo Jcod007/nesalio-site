@@ -4,7 +4,7 @@
  * diagnostic.
  */
 import { z } from "zod";
-import { calcSlot, makeRoomInCalc, nodeBox, placeBeside, textExtent, FONT_SIZE, union } from "@/domain/board/layout";
+import { boxAround, makeRoomInCalc, nextCalcSlot, nodeBox, obstacles, placeBeside, textExtent, FONT_SIZE, union } from "@/domain/board/layout";
 import { isVisible, putNode, resolveTargets, type BoardState, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, Id, ShortText, Side, TextSize } from "../primitives";
 import { defineCommand } from "./define";
@@ -23,7 +23,7 @@ export function writeCalcLine(state: BoardState, id: string, text: string, revea
     id,
     type: "text",
     text,
-    at: calcSlot(next, next.calc.length),
+    at: nextCalcSlot(next, text),
     align: "left",
     size: "normal",
     role: "calc",
@@ -68,7 +68,10 @@ export const textCommand = defineCommand({
       at = placed.center;
       anchor = { target: action.near!, side: placed.side };
     } else {
+      // Position demandée ; si elle est prise, le texte se pose juste à côté, à la première place libre.
       at = action.at!;
+      const ignore = new Set([action.id]);
+      if (obstacles(state, ignore)(boxAround(at, extent)) > 0) at = placeBeside(state, extent, boxAround(at, extent), action.side, ignore).center;
     }
     const node: TextNode = {
       id: action.id,

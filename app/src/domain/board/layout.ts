@@ -232,7 +232,7 @@ const inside = ([x, y]: Vec2, b: Box) => x > b.x0 && x < b.x1 && y > b.y0 && y <
  * boîte), les traits des courbes et des segments (points échantillonnés), et
  * les axes avec leurs graduations chiffrées.
  */
-function obstacles(state: BoardState, ignore: ReadonlySet<string>): (box: Box) => number {
+export function obstacles(state: BoardState, ignore: ReadonlySet<string>): (box: Box) => number {
   const unit = worldPerMath(state.frame);
   const boxes: Box[] = [];
   const traces: Vec2[] = [];
@@ -293,10 +293,40 @@ export function calcColumn(state: BoardState): CalcColumn {
   };
 }
 
-/** Position (bord gauche, milieu) de la ligne `index` de la pile. */
-export function calcSlot(state: BoardState, index: number): Vec2 {
+/**
+ * Positions (bord gauche, milieu) des lignes de la pile, de haut en bas. Une
+ * ligne ne s'écrit jamais sur un texte posé dans la figure ou sur un point :
+ * elle descend d'un cran tant que la place est prise.
+ */
+export function calcFlow(state: BoardState, texts: readonly string[]): Vec2[] {
   const column = calcColumn(state);
-  return [column.x, column.top - index * column.spacing];
+  const calc = new Set(state.calc);
+  const taken = visibleNodes(state)
+    .filter((node) => (node.type === "text" && !calc.has(node.id)) || node.type === "point" || (node.type === "polygon" && node.fill))
+    .map((node) => nodeBox(node, state.frame));
+  const positions: Vec2[] = [];
+  let y = column.top;
+  for (const text of texts) {
+    const extent = textExtent(text, FONT_SIZE.calc, state.frame);
+    const lineAt = (cy: number): Box => ({ x0: column.x, x1: column.x + extent.w, y0: cy - extent.h / 2, y1: cy + extent.h / 2 });
+    for (let guard = 0; guard < 20 && taken.some((box) => intersects(box, lineAt(y))); guard++) y -= column.spacing;
+    positions.push([column.x, y]);
+    y -= column.spacing;
+  }
+  return positions;
+}
+
+/** Texte des lignes de la pile, dans l'ordre. */
+function calcTexts(state: BoardState): string[] {
+  return state.calc.map((id) => {
+    const node = state.nodes[id];
+    return node?.type === "text" ? node.text : "";
+  });
+}
+
+/** Où écrire une nouvelle ligne de calcul (sous les autres, sans recouvrir la figure). */
+export function nextCalcSlot(state: BoardState, text: string): Vec2 {
+  return calcFlow(state, [...calcTexts(state), text]).at(-1)!;
 }
 
 /**
@@ -305,10 +335,11 @@ export function calcSlot(state: BoardState, index: number): Vec2 {
  */
 export function reflowCalc(state: BoardState, reveal: Reveal): BoardState {
   let next = state;
+  const slots = calcFlow(state, calcTexts(state));
   state.calc.forEach((id, index) => {
     const node = next.nodes[id];
     if (!isVisible(node) || node.type !== "text") return;
-    const [sx, sy] = calcSlot(next, index);
+    const [sx, sy] = slots[index]!;
     const current: Vec2 = [node.at[0] + node.offset[0], node.at[1] + node.offset[1]];
     const delta: Vec2 = [sx - current[0], sy - current[1]];
     if (Math.abs(delta[0]) > 1e-9 || Math.abs(delta[1]) > 1e-9) next = moveNodes(next, [id], delta, reveal);

@@ -148,6 +148,19 @@ describe("graphe de scène", () => {
     expect(board.nodes.n1!.motion?.start).toBe(500);
   });
 
+  it("n'écrit jamais une ligne de calcul sur un texte posé dans la figure", () => {
+    let board = run([
+      { type: "axes", x: [-1, 5], y: [-3, 4] },
+      { type: "note", id: "n1", text: "x = 2 ± √3" },
+      { type: "text", id: "t", text: "√3 ≈ 1,73 environ", near: "n1", side: "below" },
+      { type: "note", id: "n2", text: "(x − 2)² = (x − 2) × (x − 2)" },
+    ]);
+    expect(intersects(nodeBox(board.nodes.t!, board.frame), nodeBox(board.nodes.n2!, board.frame))).toBe(false);
+    // Un texte demandé à une position déjà prise se décale.
+    board = applyAction(board, { type: "text", id: "u", text: "ici", at: position(board, "n1") as [number, number] }, t(500));
+    expect(intersects(nodeBox(board.nodes.u!, board.frame), nodeBox(board.nodes.n1!, board.frame))).toBe(false);
+  });
+
   it("range la colonne de calculs à côté du nouveau repère quand il change", () => {
     let board = run([{ type: "note", id: "n1", text: "a" }]);
     const before = position(board, "n1");
