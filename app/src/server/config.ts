@@ -31,7 +31,9 @@ export interface AiConfig {
 
 export const DEFAULTS = {
   anthropicModel: "claude-sonnet-5-5",
-  gatewayModel: "anthropic/claude-sonnet-5.5",
+  // DeepSeek V4.1 Flash : séances justes pour environ 20 fois moins cher que Claude Sonnet 5.5
+  // (testé en ligne le 17 octobre 2026). Pour revenir à Claude : TUTOR_MODEL=anthropic/claude-sonnet-5.5
+  gatewayModel: "deepseek/deepseek-v4.1-flash",
   openRouterModel: "anthropic/claude-sonnet-4.5",
   voiceModel: "google/gemini-3.8-flash-lite-tts",
   voiceName: "Kore",
