@@ -5,7 +5,7 @@
  * service, pour vérifier un déploiement. Sans le bon jeton, aucun appel payant.
  */
 import { synthesizeSpeech } from "@/server/ai/audio";
-import { readAiConfig } from "@/server/config";
+import { GATEWAY_BASE, readAiConfig } from "@/server/config";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 
 export const runtime = "nodejs";
@@ -43,6 +43,34 @@ export async function GET(request: Request): Promise<Response> {
     } catch (error) {
       results.tutor = `erreur : ${(error as Error).message.slice(0, 300)}`;
     }
+  }
+  // ?models=a,b,c : essaie d'autres modèles sur AI Gateway (5 au plus).
+  const models = (new URL(request.url).searchParams.get("models") ?? "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+  if (config.gatewayToken && models.length > 0) {
+    await Promise.all(
+      models.map(async (model) => {
+        try {
+          let text = "";
+          for await (const chunk of streamChatCompletion({
+            protocol: "openai",
+            endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
+            apiKey: config.gatewayToken!,
+            model,
+            maxTokens: 300,
+            messages: [{ role: "user", content: "Réponds seulement : bonjour" }],
+          })) {
+            text += chunk;
+          }
+          results[`model:${model}`] = `ok : ${text.trim().slice(0, 40)}`;
+        } catch (error) {
+          results[`model:${model}`] = `erreur : ${(error as Error).message.slice(0, 160)}`;
+        }
+      }),
+    );
   }
   if (config.gatewayToken) {
     try {
