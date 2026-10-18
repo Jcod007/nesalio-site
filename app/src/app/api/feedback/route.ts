@@ -8,11 +8,11 @@
 import { shortSession } from "@/domain/session";
 import { FEEDBACK_LABELS, FeedbackSchema } from "@/domain/feedback";
 import { jsonError, readJson } from "@/server/http";
+import { forwardToForm } from "@/server/forms";
 import { createSessionLimits } from "@/server/rateLimit";
 
 export const runtime = "nodejs";
 
-const DEFAULT_ENDPOINT = "https://formspree.io/f/xrpeoeqv";
 // Assez pour signaler plusieurs problèmes pendant un essai, pas assez pour inonder le formulaire.
 const limiter = createSessionLimits({ limit: 8, windowMs: 30 * 60_000, ipFactor: 6 });
 
@@ -47,21 +47,6 @@ export async function POST(request: Request): Promise<Response> {
       : { contexte: "non joint" }),
   };
 
-  const endpoint = process.env.FEEDBACK_ENDPOINT?.trim() || DEFAULT_ENDPOINT;
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!response.ok) {
-      console.warn("feedback: le formulaire a refusé l'envoi", response.status, (await response.text()).slice(0, 300));
-      return jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
-    }
-  } catch (error) {
-    console.warn("feedback: formulaire injoignable", error);
-    return jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
-  }
+  if (!(await forwardToForm(payload))) return jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
   return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
 }

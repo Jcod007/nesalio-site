@@ -6,6 +6,7 @@ import { DiagnosticTag } from "./board/DiagnosticTag";
 import { Dock, type DockActions } from "./Dock";
 import { useTutor } from "./hooks/useTutor";
 import { StartScreen } from "./StartScreen";
+import { AfterTrialQuestions } from "./AfterTrial";
 import { FeedbackButton } from "./Feedback";
 import { TopBar } from "./TopBar";
 
@@ -111,6 +112,7 @@ export function TutorApp() {
         onHome={idle ? null : actions.newTopic}
         feedback={<FeedbackButton player={player} />}
       />
+      <AfterTrialQuestions sessionDone={snapshot.status === "done" && snapshot.summary.length > 0} question={snapshot.question} />
       {idle ? (
         <StartScreen onAsk={ask} listening={listening} onListeningChange={setListening} />
       ) : (

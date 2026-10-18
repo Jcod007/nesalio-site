@@ -433,7 +433,6 @@
   .qnav .cta{flex:1;width:auto}
   .qnav .ghost{text-decoration:none;font-weight:700;color:var(--ink);padding:0 14px}
   .qhint{font-size:.88rem;color:var(--muted);margin:10px 0 0;text-align:center}
-  .skip{text-align:center;margin:4px 0 0;font-size:.9rem}
   #toolWrap{margin:14px 0 4px}
   .share{display:flex;gap:8px;margin-top:14px}
   .share input{flex:1;font:inherit;font-size:.92rem;border:2px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--paper);color:var(--ink);min-width:0}
@@ -892,6 +891,7 @@
       <input type="hidden" name="demo" id="demoField" value="aucune vidéo vue">
       <input type="hidden" name="parcours" id="fJourney" value="">
       <input type="hidden" name="source" id="source" value="">
+      <input type="hidden" name="ref" class="refField" value="">
       <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
       <button class="cta" type="submit" id="submit1">Essayer maintenant</button>
       <p class="status" id="status1" role="status" aria-live="polite"></p>
@@ -901,7 +901,7 @@
     <!-- Step 2: valider le problème, une question à la fois (faits réels, questions ouvertes d'abord) -->
     <form id="step2" novalidate hidden>
       <div class="dlg-top"><h2 id="s2Title">C'est noté !</h2><button class="x" type="button" data-close aria-label="Fermer">×</button></div>
-      <p class="sub" id="s2Sub">Encore 4 petites questions, puis on t'ouvre l'outil.</p>
+      <p class="sub" id="s2Sub">Une dernière question, puis on t'ouvre l'outil.</p>
       <div class="qhead"><span class="qcount"><span id="qNum">1</span> sur 4</span><span class="qbar" aria-hidden="true"><i id="qFill"></i></span></div>
 
       <div class="q">
@@ -936,6 +936,7 @@
       </div>
 
       <input type="hidden" name="etape" value="2-qualification">
+      <input type="hidden" name="ref" class="refField" value="">
       <input type="hidden" name="profil" id="profil2" value="">
       <input type="hidden" name="email" id="email2" value="">
       <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
@@ -944,7 +945,6 @@
         <button class="cta" type="button" id="qNext">Suivant</button>
       </div>
       <p class="qhint" id="qHint">Tu peux laisser vide et passer.</p>
-      <p class="skip" id="skipWrap" hidden><button class="ghost" type="button" id="qSkip">Passer les questions et essayer tout de suite</button></p>
       <p class="status" id="status2" role="status" aria-live="polite"></p>
     </form>
 
@@ -952,7 +952,7 @@
     <div id="step3" hidden>
       <div class="dlg-top"><h2>Merci, c'est noté.</h2><button class="x" type="button" data-close aria-label="Fermer">×</button></div>
       <p class="sub"><span id="s3Done">C'est parti : on t'ouvre Nesalio.</span> <span id="s3Share">Un ami bloque aussi à l'école ? Envoie-lui le lien.</span></p>
-      <p id="toolWrap" hidden><a class="cta" id="toolLink" href="/dev?src=formulaire">Ouvrir Nesalio</a></p>
+      <p id="toolWrap" hidden><a class="cta" id="toolLink" href="/dev">Ouvrir Nesalio</a></p>
       <div class="share">
         <input id="shareLink" type="text" readonly value="https://nesalio.com/?src=ami" aria-label="Lien à partager">
         <button class="cta small" type="button" id="copyBtn">Copier</button>
@@ -1111,14 +1111,18 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
   };
   var SUBMIT = PLANS.demo.btn, TEL_NEEDED = true, TO_TOOL = true;
   /* Après le formulaire « Essayer », on ouvre l'outil (nesalio.com/dev redirige vers l'application). */
-  var TOOL_URL = '/dev?src=formulaire';
+  /* Référence anonyme de l'inscription : relie ses réponses à celles d'après l'essai (jamais le courriel dans l'adresse). */
+  var REF = Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  document.querySelectorAll('.refField').forEach(function(f){ f.value = REF; });
+  var TOOL_URL = 'https://nesalio-app.vercel.app/?src=formulaire&ref=' + REF;
   var hasModal = typeof dlg.showModal === 'function';
 
   function open(where, plan, profil){
     nTrack(plan ? 'clic_formule' : 'clic_essayer', plan ? {plan: plan} : {where: where});
     document.getElementById('fBtn').value = where;
     var P = PLANS[plan] || PLANS.demo; SUBMIT = P.btn; TEL_NEEDED = P.telNeeded; TO_TOOL = !!P.tool; document.getElementById('telOpt').textContent = P.tel;
-    document.getElementById('s2Sub').textContent = TO_TOOL ? "Encore 4 petites questions, puis on t'ouvre l'outil." : "Encore 4 petites questions.";
+    document.getElementById('s2Sub').textContent = TO_TOOL ? "Une dernière question, puis on t'ouvre l'outil." : "Encore 4 petites questions.";
+    document.getElementById('toolLink').href = TOOL_URL;
     document.getElementById('fPlan').value = PLANS[plan] ? plan : 'demo';
     document.getElementById('dlgTitle').textContent = P.title; document.getElementById('dlgSub').textContent = P.sub;
     document.getElementById('submit1').textContent = P.btn; document.getElementById('s3Done').textContent = P.done;
@@ -1170,7 +1174,7 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
       var pr = s1.querySelector('input[name=profil]:checked'), prof = pr ? pr.value : '';
       document.getElementById('profil2').value = prof;
       if(prof === 'Parent') s2.querySelectorAll('[data-parent]').forEach(function(el){ el.textContent = el.getAttribute('data-parent'); });
-      s1.hidden = true; s2.hidden = false; document.getElementById('skipWrap').hidden = !TO_TOOL; showQ(0);
+      s1.hidden = true; s2.hidden = false; activeQs(); showQ(0);
     }).catch(function(err){ fail(st, err); btn.disabled = false; btn.textContent = SUBMIT; });
   });
 
@@ -1187,7 +1191,9 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     } else { document.getElementById('copyBtn').focus(); }
   }
   /* étape 2 : une question à la fois */
-  var qs = s2.querySelectorAll('.q'), qi = 0, qNext = document.getElementById('qNext'), qBack = document.getElementById('qBack');
+  var allQs = Array.prototype.slice.call(s2.querySelectorAll('.q')), qs = allQs, qi = 0, qNext = document.getElementById('qNext'), qBack = document.getElementById('qBack');
+  /* Pour l'essai : seule la première question avant ; les trois autres sont posées dans l'outil, après l'essai. */
+  function activeQs(){ qs = TO_TOOL ? allQs.slice(0, 1) : allQs; allQs.forEach(function(q){ q.hidden = true; }); document.querySelector('#step2 .qhead').hidden = qs.length === 1; }
   var NEXT = 'Suivant', SEND = 'Envoyer', SENDING = 'Envoi…';
   function answered(q){ var t = q.querySelector('textarea'); return t ? !!t.value.trim() : !!q.querySelector('input:checked'); }
   function showQ(i){
@@ -1196,7 +1202,7 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     document.getElementById('qNum').textContent = i + 1;
     document.getElementById('qFill').style.width = ((i + 1) / qs.length * 100) + '%';
     qBack.hidden = i === 0;
-    qNext.textContent = i === qs.length - 1 ? SEND : NEXT;
+    qNext.textContent = i === qs.length - 1 ? (TO_TOOL ? 'Ouvrir l\'outil' : SEND) : NEXT;
     document.getElementById('qHint').hidden = answered(qs[i]);
     var f = qs[i].querySelector('textarea, input'); if(f) setTimeout(function(){ f.focus(); }, 30);
   }
@@ -1214,12 +1220,7 @@ var FORM_ENDPOINT = 'https://formspree.io/f/xrpeoeqv';
     send(s2).then(toDone).catch(function(err){ fail(st, err); qNext.disabled = false; qNext.textContent = SEND; });
   });
   s2.addEventListener('submit', function(e){ e.preventDefault(); });
-  /* Passer les questions : on envoie ce qui est déjà rempli (s'il y a quelque chose), puis l'outil. */
-  document.getElementById('qSkip').addEventListener('click', function(){
-    nTrack('questions_passees', {at: qi + 1});
-    var any = Array.prototype.some.call(qs, answered);
-    (any ? send(s2).catch(function(){}) : Promise.resolve()).then(toDone);
-  });
+
 
   document.getElementById('copyBtn').addEventListener('click', function(){
     var inp = document.getElementById('shareLink'), st = document.getElementById('status3');
