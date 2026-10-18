@@ -13,6 +13,8 @@
 import { synthesizeSpeech, transcribeAudio } from "@/server/ai/audio";
 import type { Check } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
+import { emptyBoard, resolveTargets, summarizeBoard } from "@/domain/board/state";
+import { applyAction } from "@/domain/scene/commands";
 import { GATEWAY_BASE, parseEffort, readAiConfig, type ChatProvider } from "@/server/config";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
@@ -72,6 +74,10 @@ export async function GET(request: Request): Promise<Response> {
   const lesson: Record<string, unknown> = { provider: provider?.name ?? "demo", model: provider?.model ?? null, effort };
   let turnRequest: TutorRequest = { mode: "question", question };
   const spoken: string[] = [];
+  // Le tableau est tenu comme dans le navigateur : le modèle reçoit son vrai état à chaque tour.
+  let board = emptyBoard();
+  const usage: Record<string, number> = {};
+  const unknownTargets: string[] = [];
   for (let turn = 1; turn <= maxTurns; turn++) {
     const turnStart = Date.now();
     const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
@@ -84,6 +90,11 @@ export async function GET(request: Request): Promise<Response> {
         if (info.firstStepMs === undefined) info.firstStepMs = Date.now() - turnStart;
         spoken.push(event.say);
         lastCheck = event.check;
+        for (const action of event.do ?? []) {
+          usage[action.type] = (usage[action.type] ?? 0) + 1;
+          if ("target" in action && resolveTargets(board, action.target).length === 0) unknownTargets.push(`${action.type} ${action.target}`);
+          board = applyAction(board, action, { start: 0, duration: 0 });
+        }
         steps.push({
           turn,
           say: event.say,
@@ -109,12 +120,14 @@ export async function GET(request: Request): Promise<Response> {
     turnRequest = {
       mode: "continue",
       question,
-      context: { title: typeof lesson.title === "string" ? lesson.title : undefined, originalQuestion: question, spoken: spoken.slice(-12).map((x) => x.slice(0, 320)), board: [], answered: turn },
+      context: { title: typeof lesson.title === "string" ? lesson.title : undefined, originalQuestion: question, spoken: spoken.slice(-12).map((x) => x.slice(0, 320)), board: summarizeBoard(board).slice(0, 40), answered: turn },
       answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: lastCheck.choices[picked]!, correct },
     };
   }
   lesson.stepCount = steps.length;
   lesson.actionCount = steps.reduce((n, s) => n + s.do.length, 0);
+  lesson.commands = usage;
+  lesson.unknownTargets = unknownTargets;
   report.lesson = lesson;
   report.turns = turns;
   report.steps = steps;
