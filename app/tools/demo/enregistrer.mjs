@@ -137,7 +137,15 @@ async function humanType(locator, text) {
   await page.waitForTimeout(400);
 }
 
+// En cas d'échec : capture d'écran et message dans OUT, pour comprendre sans les journaux.
+process.on("unhandledRejection", async (error) => {
+  writeFileSync(join(OUT, "erreur.txt"), String(error?.stack ?? error));
+  await page.screenshot({ path: join(OUT, "erreur.png") }).catch(() => {});
+  process.exit(1);
+});
+
 await page.goto(URL, { waitUntil: "networkidle" });
+writeFileSync(join(OUT, "page.txt"), `${page.url()}\n${await page.title()}\n${(await page.locator("body").innerText()).slice(0, 2000)}`);
 const timeOrigin = await page.evaluate(() => performance.timeOrigin);
 await page.mouse.move(SIZE.width / 2, SIZE.height - 120);
 await page.waitForTimeout(1500);

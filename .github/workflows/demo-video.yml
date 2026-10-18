@@ -34,15 +34,19 @@ jobs:
       - run: npx playwright install --with-deps chromium ffmpeg
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Enregistrer la séance
-        run: node tools/demo/enregistrer.mjs
+        run: |
+          set -o pipefail
+          mkdir -p sortie
+          node tools/demo/enregistrer.mjs 2>&1 | tee sortie/journal.txt
         env:
           SCENARIO: ${{ matrix.scenario }}
           NESALIO_URL: https://app.nesalio.com/
           OUT: sortie
       - name: Publier la vidéo
         if: always()
-        working-directory: app/sortie
+        working-directory: app
         run: |
+          mkdir -p sortie && cd sortie
           git init -q
           git checkout -q -b demo-video-${{ matrix.scenario }}
           git add -A
