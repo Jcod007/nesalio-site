@@ -1,4 +1,5 @@
 // Montage : la vidéo du navigateur + chaque phrase de Nesa posée à l'instant exact où elle a été jouée.
+// Le son est complété de silence jusqu'à la fin de l'image (la fin de séance reste visible).
 // Usage : node montage.mjs <dossier du tournage> <sortie.mp4> [début en s]
 import { readdirSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -17,7 +18,7 @@ const placements = events
 const args = ["-y", "-ss", String(start), "-i", `${dir}/${video}`];
 for (const p of placements) args.push("-i", `${dir}/${p.file}`);
 const delays = placements.map((p, i) => `[${i + 1}:a]adelay=${Math.round(p.at)}|${Math.round(p.at)},aresample=48000[a${i}]`);
-const mix = `${placements.map((_, i) => `[a${i}]`).join("")}amix=inputs=${placements.length}:normalize=0:dropout_transition=0,volume=1.0[aout]`;
+const mix = `${placements.map((_, i) => `[a${i}]`).join("")}amix=inputs=${placements.length}:normalize=0:dropout_transition=0,volume=1.0,apad[aout]`;
 args.push(
   "-filter_complex", [...delays, mix].join(";"),
   "-map", "0:v", "-map", "[aout]",
