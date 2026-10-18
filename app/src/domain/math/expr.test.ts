@@ -44,3 +44,13 @@ describe("compileExpression", () => {
     expect(() => parseExpression("x".repeat(300))).toThrow(ExprError);
   });
 });
+
+describe("variable t", () => {
+  it("accepte t comme synonyme de x (axe du temps), sans casser tan ni sqrt", async () => {
+    const { compileExpression } = await import("./expr");
+    expect(compileExpression("sin(t)+0.5*sin(3*t)")(Math.PI / 2)).toBeCloseTo(1 - 0.5);
+    expect(compileExpression("tan(t)")(0)).toBe(0);
+    expect(compileExpression("sqrt(t)")(4)).toBe(2);
+    expect(compileExpression("2t")(3)).toBe(6);
+  });
+});

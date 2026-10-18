@@ -6,7 +6,7 @@
  * syntaxique (analyse de Pratt), puis en fonction JavaScript.
  *
  * Grammaire acceptée :
- *   nombres (3, 2.5, 1e-3), variable x, constantes pi et e,
+ *   nombres (3, 2.5, 1e-3), variable x (ou t, son synonyme : un axe du temps), constantes pi et e,
  *   + - * / ^ (puissance associative à droite, prioritaire sur le moins unaire),
  *   multiplication implicite (2x, 3(x+1), (x-1)(x+1), 2pi),
  *   fonctions : sin cos tan asin acos atan sqrt abs exp ln log floor ceil.
@@ -119,7 +119,7 @@ function tokenize(source: string): Token[] {
  * « 2xsin(x) » ou « pix » sans espaces. Le plus long nom connu gagne.
  */
 function splitIdentifier(word: string, start: number): Token[] {
-  const names = [...Object.keys(FUNCTIONS), ...Object.keys(CONSTANTS), "x"].sort(
+  const names = [...Object.keys(FUNCTIONS), ...Object.keys(CONSTANTS), "x", "t"].sort(
     (a, b) => b.length - a.length,
   );
   const out: Token[] = [];
@@ -199,7 +199,8 @@ class Parser {
         return inner;
       }
       case "id": {
-        if (token.value === "x") return { kind: "var" };
+        // t est un synonyme de x : le modèle écrit sin(t) quand l'axe est celui du temps.
+        if (token.value === "x" || token.value === "t") return { kind: "var" };
         const constant = CONSTANTS[token.value];
         if (constant !== undefined) return { kind: "num", value: constant };
         const fn = token.value as FunctionName;

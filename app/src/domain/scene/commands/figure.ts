@@ -46,7 +46,7 @@ export const curveCommand = defineCommand({
   }),
   doc:
     '{"type":"curve","id":"f","fn":"-(x-2)^2+3","from":a,"to":b,"color":"blue","style":"solid|dashed|dotted","label":"…"}\n' +
-    '  "fn" est une expression en x : + - * / ^, parenthèses, sin cos tan sqrt abs exp ln log, pi. Pas de « y = ».',
+    '  "fn" est une expression en x (ou en t pour un axe du temps) : + - * / ^, parenthèses, sin cos tan sqrt abs exp ln log, pi. Pas de « y = ».',
   duration: 1700,
   aliases: ["graph", "plot", "function"],
   apply(state, action, reveal) {
