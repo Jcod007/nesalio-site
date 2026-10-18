@@ -109,7 +109,7 @@ export async function GET(request: Request): Promise<Response> {
     turnRequest = {
       mode: "continue",
       question,
-      context: { title: typeof lesson.title === "string" ? lesson.title : undefined, originalQuestion: question, spoken: spoken.slice(-12).map((x) => x.slice(0, 320)), board: [] },
+      context: { title: typeof lesson.title === "string" ? lesson.title : undefined, originalQuestion: question, spoken: spoken.slice(-12).map((x) => x.slice(0, 320)), board: [], answered: turn },
       answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: lastCheck.choices[picked]!, correct },
     };
   }

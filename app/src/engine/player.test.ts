@@ -225,6 +225,7 @@ describe("Player", () => {
     expect(next.mode).toBe("continue");
     expect(next.answer).toEqual({ prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false });
     expect(next.context?.spoken).toContain("Combien ?");
+    expect(next.context?.answered).toBe(1);
 
     await speakUntil(player, voice, (s) => s.status === "done");
     expect(voice.spoken).toEqual(["Devine.", "Presque.", "Tu avais choisi 0 : regardons le sommet."]);

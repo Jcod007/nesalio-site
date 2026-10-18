@@ -26,6 +26,8 @@ export const TutorContextSchema = z.object({
   board: z.array(BoardSummaryItemSchema).max(40),
   /** Vrai si l'élève a coupé Nesa au milieu d'une phrase. */
   interrupted: z.boolean().optional(),
+  /** Nombre de questions auxquelles l'élève a déjà répondu dans la séance (pour doser sa longueur). */
+  answered: z.number().int().min(0).max(50).optional(),
 });
 
 /** Réponse de l'élève à la dernière question de Nesa. */

@@ -104,6 +104,8 @@ export class Player {
   private readonly listeners = new Set<() => void>();
   private segments: Segment[] = [];
   private history: string[] = [];
+  /** Questions auxquelles l'élève a répondu dans la séance. */
+  private answeredCount = 0;
   private session = 0;
   private loopSession = -1;
   private stepAbort: AbortController | null = null;
@@ -207,6 +209,7 @@ export class Player {
     for (const segment of this.segments) segment.abort.abort();
     this.segments = [];
     this.history = [];
+    this.answeredCount = 0;
     this.stopCurrentStep();
     this.poke();
   }
@@ -425,6 +428,7 @@ export class Player {
       // Sans bonne réponse (question pour situer l'élève), pas de verdict.
       const right = check.answer === undefined ? null : picked === check.answer;
       this.remember(check.prompt);
+      this.answeredCount++;
       segment.answeredStep = segment.cursor;
       // Le tour suivant est demandé tout de suite : il s'écrit pendant que Nesa réagit.
       this.answered(segment, {
@@ -479,6 +483,7 @@ export class Player {
       spoken: this.history.slice(-12),
       board: summarizeBoard(this.snapshot.board).slice(0, 40),
       interrupted,
+      answered: this.answeredCount,
     };
   }
 

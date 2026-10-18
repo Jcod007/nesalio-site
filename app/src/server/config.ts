@@ -45,8 +45,12 @@ export const DEFAULTS = {
     "Parle en français avec un accent québécois léger, un ton naturel, vivant et encourageant, " +
     "à un rythme posé, avec de petites pauses aux virgules. Jamais monotone.",
   transcriptionModel: "openai/whisper-1",
-  /** Réflexion courte : la première phrase arrive vite (voir le banc d'essai de latence). */
-  reasoningEffort: "low" as ReasoningEffort,
+  /**
+   * Sans réflexion préalable : première phrase en moins d'une seconde avec DeepSeek V4.1 Flash,
+   * contre environ 12 s par défaut (mesuré en ligne le 17 octobre 2026, calculs restés justes).
+   * Mettre TUTOR_REASONING_EFFORT=low si les explications perdent en justesse.
+   */
+  reasoningEffort: "none" as ReasoningEffort,
 } as const;
 
 export function parseEffort(value: string | null | undefined): ReasoningEffort | undefined {

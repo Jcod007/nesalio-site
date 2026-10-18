@@ -157,6 +157,8 @@ L'élève vient de répondre à ta question. Continue la séance (nouveau tour) 
   · question pour le situer : adapte le niveau (il ne connaît pas → pars de plus loin ; il connaît → va plus vite) ;
 - puis 1 à 3 étapes qui finissent par une nouvelle question ("check"), OU la fin de la séance ({"kind":"end"}) si la
   notion est couverte et que l'élève a réussi un exercice ;
+- après 3 réponses, conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
+  puis {"kind":"end"} (pas de nouvelle question) ;
 - réutilise les objets déjà au tableau au lieu de tout redessiner.`.trim();
 
 export function buildMessages(request: TutorRequest): ChatMessage[] {
@@ -175,6 +177,7 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
     "Objets au tableau (id, type, détail) :",
     ...context.board.map((item) => `- ${item.id} · ${item.type} · ${item.detail}`),
     context.interrupted ? "L'élève t'a coupée au milieu de ta dernière phrase." : "",
+    context.answered !== undefined ? `L'élève a déjà répondu à ${context.answered} question(s) dans cette séance.` : "",
     "",
     ...(request.mode === "continue" && request.answer ? describeAnswer(request.answer) : [`L'élève : ${request.question}`]),
   ];
