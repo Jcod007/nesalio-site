@@ -2,6 +2,7 @@
  * POST /api/tutor — reçoit la question de l'élève et renvoie l'explication
  * en flux NDJSON (un événement par ligne), au fur et à mesure que le modèle
  * la génère. Les identifiants du modèle ne quittent jamais le serveur.
+ * Le tour est enregistré pour améliorer l'outil (domain/sessionLog.ts).
  */
 import type { StreamEvent } from "@/domain/scene/schema";
 import { encodeLine } from "@/domain/tutor/ndjson";
@@ -11,6 +12,10 @@ import { createSessionLimits } from "@/server/rateLimit";
 import { shortSession } from "@/domain/session";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
+import { after } from "next/server";
+import { createTurnRecorder } from "@/domain/sessionLog";
+import { recordEnv, saveTurn } from "@/server/sessionStore";
+import { withRecording } from "@/server/tutor/recording";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -58,12 +63,26 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const config = readAiConfig(request.headers);
-  const events = tutorEvents(parsed.data, {
-    provider: config.chat,
-    completion: streamChatCompletion,
-    signal: request.signal,
-    log: (message, detail) => console.warn(tag, message, detail),
+  // Chaque tour est enregistré (sans nom, IP ni audio) pour améliorer Nesalio ; écrit après la réponse.
+  const recorder = createTurnRecorder({
+    request: parsed.data,
+    session: limit.session,
+    env: recordEnv(),
+    source: config.chat ? "model" : "demo",
+    model: config.chat?.model,
+    startedAt: new Date(),
+    clock: { now: () => Date.now() },
   });
+  after(() => saveTurn(recorder.record()));
+  const events = withRecording(
+    tutorEvents(parsed.data, {
+      provider: config.chat,
+      completion: streamChatCompletion,
+      signal: request.signal,
+      log: (message, detail) => console.warn(tag, message, detail),
+    }),
+    recorder,
+  );
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({

@@ -38,6 +38,12 @@ export function StartScreen({ onAsk, listening, onListeningChange }: Props) {
         ))}
       </div>
       <p className={styles.sound}>Active le son : Nesa parle.</p>
+      <p className={styles.privacy}>
+        Tes questions et les explications de Nesa sont enregistrées, sans ton nom, pour améliorer Nesalio.{" "}
+        <a href="https://nesalio.com/confidentialite" target="_blank" rel="noopener">
+          En savoir plus
+        </a>
+      </p>
     </section>
   );
 }

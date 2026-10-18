@@ -28,6 +28,20 @@ npm run typecheck
 npm run test:e2e             # parcours réel dans le navigateur (ordinateur + téléphone), app lancée à part
 ```
 
+## Séances enregistrées
+
+Chaque tour (une requête à `/api/tutor`) est enregistré après la réponse dans
+le magasin Vercel Blob **privé** `nesalio-seances` (Montréal) : la question ou
+la réponse de l'élève, et exactement les événements envoyés (paroles, dessins,
+questions, lignes refusées), dans le format du flux, donc rejouable avec
+`tools/rejeu`. Ni nom, ni courriel, ni IP, ni audio. Voir `src/domain/sessionLog.ts`.
+
+- Chemin : `production/AAAA-MM-JJ/<session courte>/<heure>-<mode>.json`
+  (la session courte est celle des retours « Signaler un problème »).
+- Consulter : `/api/seances?check=<SELFTEST_TOKEN>&jour=AAAA-MM-JJ[&session=xxxxxxxx][&env=preview]`.
+- Conservation : 12 mois, purge quotidienne (`vercel.json`, `/api/seances/purge`, `CRON_SECRET`).
+- Désactiver : `RECORD_SESSIONS=0` (ou sans `BLOB_READ_WRITE_TOKEN`, en local).
+
 Sans accès à AI Gateway (ni `OPENROUTER_API_KEY`), l'application joue trois séances de démonstration
 (zéros d'une quadratique, portée d'un projectile, dérivée) et l'indique par une
 étiquette « Démonstration » en haut de l'écran.
