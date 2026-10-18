@@ -10,6 +10,8 @@
  * les séances de démonstration avec la voix et le micro du navigateur.
  */
 
+import { REASONING_EFFORTS, type ReasoningEffort } from "@/server/tutor/chatCompletions";
+
 export const GATEWAY_BASE = "https://ai-gateway.vercel.sh";
 
 export interface ChatProvider {
@@ -19,6 +21,7 @@ export interface ChatProvider {
   apiKey: string;
   model: string;
   extraHeaders?: Record<string, string>;
+  reasoningEffort?: ReasoningEffort;
 }
 
 export interface AiConfig {
@@ -42,7 +45,14 @@ export const DEFAULTS = {
     "Parle en français avec un accent québécois léger, un ton naturel, vivant et encourageant, " +
     "à un rythme posé, avec de petites pauses aux virgules. Jamais monotone.",
   transcriptionModel: "openai/whisper-1",
+  /** Réflexion courte : la première phrase arrive vite (voir le banc d'essai de latence). */
+  reasoningEffort: "low" as ReasoningEffort,
 } as const;
+
+export function parseEffort(value: string | null | undefined): ReasoningEffort | undefined {
+  const effort = value?.trim() as ReasoningEffort | undefined;
+  return effort && REASONING_EFFORTS.includes(effort) ? effort : undefined;
+}
 
 /** Lit la configuration pour une requête (le jeton OIDC arrive dans ses en-têtes). */
 export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.env): AiConfig {
@@ -51,6 +61,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
   const openRouterKey = env.OPENROUTER_API_KEY?.trim();
   const anthropicKey = env.ANTHROPIC_API_KEY?.trim();
   const modelOverride = env.TUTOR_MODEL?.trim() || env.OPENROUTER_MODEL?.trim();
+  const reasoningEffort = parseEffort(env.TUTOR_REASONING_EFFORT) ?? DEFAULTS.reasoningEffort;
 
   let chat: ChatProvider | null = null;
   if (env.DISABLE_AI === "1") {
@@ -62,6 +73,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
       endpoint: "https://api.anthropic.com/v1/messages",
       apiKey: anthropicKey,
       model: modelOverride || DEFAULTS.anthropicModel,
+      reasoningEffort,
     };
   } else if (openRouterKey) {
     chat = {
@@ -71,6 +83,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
       apiKey: openRouterKey,
       model: modelOverride || DEFAULTS.openRouterModel,
       extraHeaders: { "X-Title": "Nesalio", ...(env.NEXT_PUBLIC_APP_URL ? { "HTTP-Referer": env.NEXT_PUBLIC_APP_URL } : {}) },
+      reasoningEffort,
     };
   } else if (gatewayToken) {
     chat = {
@@ -79,6 +92,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
       endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
       apiKey: gatewayToken,
       model: modelOverride || DEFAULTS.gatewayModel,
+      reasoningEffort,
     };
   }
 

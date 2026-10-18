@@ -206,4 +206,66 @@ describe("Player", () => {
     await speakUntil(player, voice, (s) => s.status === "done");
     expect(voice.spoken).toEqual(["a", "b"]);
   });
+
+  it("avance par tours : la réponse de l'élève déclenche le tour suivant, avec sa réponse", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "Combien ?", choices: ["0", "2"], answer: 1, ifRight: "Oui !", ifWrong: "Presque." };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question"
+        ? [{ kind: "lesson", title: "Zéros" }, step("Devine.", { check }), { kind: "await" }]
+        : [step("Tu avais choisi 0 : regardons le sommet."), { kind: "end", summary: ["Sommet"] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+
+    player.ask("zéros ?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(0);
+    await until(player, () => requests.length === 2);
+    const next = requests[1]!;
+    expect(next.mode).toBe("continue");
+    expect(next.answer).toEqual({ prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false });
+    expect(next.context?.spoken).toContain("Combien ?");
+
+    await speakUntil(player, voice, (s) => s.status === "done");
+    expect(voice.spoken).toEqual(["Devine.", "Presque.", "Tu avais choisi 0 : regardons le sommet."]);
+    expect(player.getSnapshot().summary).toEqual(["Sommet"]);
+  });
+
+  it("une question pour situer l'élève n'a pas de verdict", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "Tu connais le triangle rectangle ?", choices: ["Oui", "Un peu", "Non"] };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question"
+        ? [step("Avant de commencer.", { check }), { kind: "await" }]
+        : [step("On part de la base."), { kind: "end", summary: [] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+
+    player.ask("trigo ?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(2);
+    await speakUntil(player, voice, (s) => s.status === "done");
+    expect(requests[1]?.answer).toMatchObject({ picked: "Non", correct: null });
+    expect(voice.spoken).toEqual(["Avant de commencer.", "On part de la base."]);
+  });
+
+  it("ne repose pas une question déjà répondue après une interruption", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "Combien ?", choices: ["0", "2"], answer: 1, ifRight: "Oui !", ifWrong: "Presque." };
+    const { source } = scriptedSource((request) =>
+      request.mode === "question"
+        ? [step("Devine.", { check }), { kind: "await" }]
+        : [step("Suite."), { kind: "end", summary: [] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+
+    player.ask("?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(1);
+    await until(player, (s) => s.caption?.text === "Oui !");
+    player.interrupt();
+    player.resume();
+    await speakUntil(player, voice, (s) => s.status === "done");
+    expect(voice.spoken).toEqual(["Devine.", "Oui !", "Suite."]);
+  });
 });

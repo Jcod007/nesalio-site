@@ -142,15 +142,21 @@ export type DrawableAction = Extract<Action, { type: "curve" | "point" | "vector
 export const Mood = z.enum(["explique", "dessine", "question", "idee", "bravo"]);
 export type Mood = z.infer<typeof Mood>;
 
+/**
+ * Question posée à l'élève. Deux sortes :
+ * - avec `answer` : question de vérification (une bonne réponse, réaction immédiate ifRight / ifWrong) ;
+ * - sans `answer` : question pour situer l'élève (ce qu'il sait, ce qu'il prédit) ; pas de bonne réponse.
+ * Dans les deux cas, Nesa attend la réponse avant de continuer.
+ */
 export const Check = z
   .object({
     prompt: z.string().trim().min(1).max(200),
-    choices: z.array(z.string().trim().min(1).max(40)).min(2).max(4),
-    answer: z.number().int().min(0),
-    ifRight: z.string().trim().min(1).max(200),
-    ifWrong: z.string().trim().min(1).max(240),
+    choices: z.array(z.string().trim().min(1).max(60)).min(2).max(4),
+    answer: z.number().int().min(0).optional(),
+    ifRight: z.string().trim().min(1).max(200).optional(),
+    ifWrong: z.string().trim().min(1).max(240).optional(),
   })
-  .refine((check) => check.answer < check.choices.length, {
+  .refine((check) => check.answer === undefined || check.answer < check.choices.length, {
     message: "La bonne réponse doit désigner un des choix",
     path: ["answer"],
   });
@@ -189,6 +195,11 @@ export const ErrorEvent = z.object({
   code: z.enum(["rate_limited", "bad_request", "upstream", "empty"]),
   message: z.string(),
 });
+/**
+ * Fin d'un tour : Nesa a posé une question et attend la réponse de l'élève.
+ * La séance continue avec une requête « continue ». Émis par le serveur, jamais par le modèle.
+ */
+export const AwaitEvent = z.object({ kind: z.literal("await") });
 export const SourceEvent = z.object({
   kind: z.literal("source"),
   source: z.enum(["model", "demo"]),
@@ -200,6 +211,7 @@ export const StreamEvent = z.discriminatedUnion("kind", [
   EndEvent,
   ErrorEvent,
   SourceEvent,
+  AwaitEvent,
 ]);
 export type StreamEvent = z.infer<typeof StreamEvent>;
 export type LessonHeader = z.infer<typeof LessonHeaderEvent>;

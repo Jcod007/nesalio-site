@@ -5,6 +5,8 @@
  * - `followUp` : l'élève a interrompu ou pose une question sur la séance en
  *   cours ; on joint ce qui a déjà été dit et dessiné pour que Nesa reparte
  *   de là au lieu de tout recommencer.
+ * - `continue` : l'élève a répondu à la question de Nesa ; elle réagit à sa
+ *   réponse et poursuit la séance (tour suivant).
  */
 import { z } from "zod";
 
@@ -26,11 +28,22 @@ export const TutorContextSchema = z.object({
   interrupted: z.boolean().optional(),
 });
 
+/** Réponse de l'élève à la dernière question de Nesa. */
+export const StudentAnswerSchema = z.object({
+  prompt: z.string().max(200),
+  choices: z.array(z.string().max(60)).max(4),
+  picked: z.string().max(60),
+  /** null pour une question sans bonne réponse (situer l'élève). */
+  correct: z.boolean().nullable(),
+});
+
 export const TutorRequestSchema = z.object({
-  mode: z.enum(["question", "followUp"]),
+  mode: z.enum(["question", "followUp", "continue"]),
   question: z.string().trim().min(1).max(MAX_QUESTION_LENGTH),
   context: TutorContextSchema.optional(),
+  answer: StudentAnswerSchema.optional(),
 });
 
 export type TutorRequest = z.infer<typeof TutorRequestSchema>;
 export type TutorContext = z.infer<typeof TutorContextSchema>;
+export type StudentAnswer = z.infer<typeof StudentAnswerSchema>;

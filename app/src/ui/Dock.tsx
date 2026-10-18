@@ -86,13 +86,13 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
           </div>
         ) : null}
 
-        {check && check.picked !== null && status === "playing" ? (
+        {check && check.picked !== null && (status === "playing" || status === "thinking") ? (
           <div className={styles.choices} aria-hidden="true">
             {check.choices.map((choice, i) => (
               <span
                 key={i}
                 className={styles.choice}
-                data-state={i === check.answer ? "right" : i === check.picked ? "wrong" : "idle"}
+                data-state={choiceState(i, check.picked, check.answer)}
               >
                 {choice}
               </span>
@@ -185,4 +185,11 @@ function PlayIcon() {
       <path d="M7 5v14l12-7z" fill="currentColor" />
     </svg>
   );
+}
+
+/** État d'un choix une fois la réponse donnée. Sans bonne réponse (question pour situer l'élève), on montre seulement son choix. */
+function choiceState(index: number, picked: number | null, answer: number | undefined): "right" | "wrong" | "picked" | "idle" {
+  if (answer === undefined) return index === picked ? "picked" : "idle";
+  if (index === answer) return "right";
+  return index === picked ? "wrong" : "idle";
 }

@@ -8,7 +8,9 @@
  *                                         paused ──followUp──▶ thinking (réponse à l'interruption)
  *
  * Les étapes arrivent en flux : la première est jouée pendant que le modèle
- * écrit les suivantes. Une interruption empile une « séquence » de réponse
+ * écrit les suivantes. La séance avance par tours : un tour se termine sur
+ * une question (« await ») ; dès que l'élève répond, le tour suivant est
+ * demandé, pendant que Nesa réagit à voix haute à sa réponse. Une interruption empile une « séquence » de réponse
  * au-dessus de la séance ; quand elle est jouée, la séance reprend à l'étape
  * suivante, avec le tableau tel qu'il était.
  *
@@ -18,7 +20,7 @@
 import { applyAction, emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/domain/board/state";
 import type { Check, Mood, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
-import type { TutorContext, TutorRequest } from "@/domain/tutor/request";
+import type { StudentAnswer, TutorContext, TutorRequest } from "@/domain/tutor/request";
 import type { Clock, Speaker, TutorSource } from "./ports";
 
 export type PlayerStatus = "idle" | "thinking" | "playing" | "paused" | "checking" | "done" | "error";
@@ -80,6 +82,12 @@ interface Segment {
   inProgress: boolean;
   /** Après une interruption : rejouer la phrase coupée, ou passer à la suite. */
   resumeAt: "replay" | "next" | null;
+  /** Le tour s'est terminé sur une question : la suite viendra après la réponse. */
+  awaiting: boolean;
+  /** Réponse de l'élève en attente d'être envoyée (le flux du tour n'est pas encore fermé). */
+  pendingAnswer: StudentAnswer | null;
+  /** Indice de la dernière étape dont la question a reçu une réponse. */
+  answeredStep: number;
   summary: string[];
   error: string | null;
   abort: AbortController;
@@ -136,7 +144,11 @@ export class Player {
     }
     const interrupted = status === "paused" || status === "playing" || status === "checking";
     const parent = this.segments.at(-1);
-    if (parent) parent.resumeAt = parent.inProgress ? "next" : null;
+    if (parent) {
+      // Une question laissée sans réponse sera reposée ; sinon, on passe à l'étape suivante.
+      const pendingQuestion = parent.steps[parent.cursor]?.check !== undefined && parent.answeredStep !== parent.cursor;
+      parent.resumeAt = parent.inProgress ? (pendingQuestion ? "replay" : "next") : null;
+    }
     this.stopCurrentStep();
 
     const context = this.buildContext(interrupted);
@@ -149,7 +161,8 @@ export class Player {
     const status = this.snapshot.status;
     if (status !== "playing" && status !== "checking" && status !== "thinking") return;
     const segment = this.segments.at(-1);
-    if (segment?.inProgress) segment.resumeAt = "replay";
+    // Une question déjà répondue n'est pas reposée : on reprendra à l'étape suivante.
+    if (segment?.inProgress) segment.resumeAt = segment.answeredStep === segment.cursor ? "next" : "replay";
     this.stopCurrentStep();
     this.set({ status: "paused", check: null });
   }
@@ -157,6 +170,12 @@ export class Player {
   /** Reprend après une interruption, en redisant la phrase coupée. */
   resume(): void {
     if (this.snapshot.status !== "paused") return;
+    const segment = this.segments.at(-1);
+    if (segment?.resumeAt === "next") {
+      segment.cursor++;
+      segment.inProgress = false;
+      segment.resumeAt = null;
+    }
     this.set({ status: this.segments.length > 0 ? "playing" : "done" });
     this.poke();
   }
@@ -212,6 +231,9 @@ export class Player {
       streamDone: false,
       inProgress: false,
       resumeAt: null,
+      awaiting: false,
+      pendingAnswer: null,
+      answeredStep: -1,
       summary: [],
       error: null,
       abort: new AbortController(),
@@ -219,6 +241,28 @@ export class Player {
     this.segments.push(segment);
     void this.consume(segment, request, this.session);
     this.ensureLoop();
+  }
+
+  /** L'élève a répondu à la question qui termine un tour : on demande le tour suivant. */
+  private answered(segment: Segment, answer: StudentAnswer) {
+    if (!segment.awaiting || segment.cursor !== segment.steps.length - 1) return;
+    segment.pendingAnswer = answer;
+    this.tryContinue(segment);
+  }
+
+  private tryContinue(segment: Segment) {
+    if (!segment.pendingAnswer || !segment.streamDone || segment.abort.signal.aborted) return;
+    const answer = segment.pendingAnswer;
+    segment.pendingAnswer = null;
+    segment.awaiting = false;
+    segment.streamDone = false;
+    const request: TutorRequest = {
+      mode: "continue",
+      question: this.snapshot.question ?? answer.prompt,
+      context: this.buildContext(false),
+      answer,
+    };
+    void this.consume(segment, request, this.session);
   }
 
   private async consume(segment: Segment, request: TutorRequest, session: number) {
@@ -246,12 +290,17 @@ export class Player {
           case "error":
             segment.error = event.message;
             break;
+          case "await":
+            segment.awaiting = true;
+            break;
         }
       }
     } catch {
       if (!segment.abort.signal.aborted) segment.error = "La connexion avec Nesa a été coupée. Réessaie ?";
     } finally {
       segment.streamDone = true;
+      // L'élève a peut-être déjà répondu avant que le flux ne se ferme.
+      if (session === this.session) this.tryContinue(segment);
       this.poke();
     }
   }
@@ -333,10 +382,8 @@ export class Player {
     if (abort.signal.aborted) return false;
     const next = segment.steps[segment.cursor + 1];
     if (next) speaker.prefetch?.(next.say);
-    if (step.check) {
-      speaker.prefetch?.(step.check.ifRight);
-      speaker.prefetch?.(step.check.ifWrong);
-    }
+    if (step.check?.ifRight) speaker.prefetch?.(step.check.ifRight);
+    if (step.check?.ifWrong) speaker.prefetch?.(step.check.ifWrong);
 
     const now = clock.now();
     let drawingMs = 0;
@@ -375,15 +422,26 @@ export class Player {
       const picked = await this.waitAnswer();
       if (picked === null || abort.signal.aborted) return false;
 
-      const right = picked === check.answer;
-      const feedback = right ? check.ifRight : check.ifWrong;
-      this.remember(feedback);
-      this.set({
-        status: "playing",
-        check: { ...check, picked },
-        caption: { text: feedback, mood: right ? "bravo" : "idee", startedAt: clock.now(), durationMs: speaker.estimate(feedback) },
+      // Sans bonne réponse (question pour situer l'élève), pas de verdict.
+      const right = check.answer === undefined ? null : picked === check.answer;
+      this.remember(check.prompt);
+      segment.answeredStep = segment.cursor;
+      // Le tour suivant est demandé tout de suite : il s'écrit pendant que Nesa réagit.
+      this.answered(segment, {
+        prompt: check.prompt,
+        choices: check.choices,
+        picked: check.choices[picked] ?? String(picked),
+        correct: right,
       });
-      if (!(await this.race(speaker.speak(feedback).done, abort.signal))) return false;
+      this.set({ status: "playing", check: { ...check, picked } });
+      if (right !== null) {
+        const feedback = right ? (check.ifRight ?? "Exact !") : (check.ifWrong ?? "Pas tout à fait.");
+        this.remember(feedback);
+        this.set({
+          caption: { text: feedback, mood: right ? "bravo" : "idee", startedAt: clock.now(), durationMs: speaker.estimate(feedback) },
+        });
+        if (!(await this.race(speaker.speak(feedback).done, abort.signal))) return false;
+      }
     }
 
     await clock.sleep(PAUSE_BETWEEN_STEPS_MS, abort.signal);

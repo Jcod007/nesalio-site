@@ -73,7 +73,14 @@ QuestionInput ─▶ Player ─▶ TutorSource (HTTP) ──POST /api/tutor─�
    reçu à ce qu'il a déjà dessiné et lance les animations manquantes avec
    `scene.playWithTimestamps()`, aux heures prévues, ce qui synchronise le
    tracé avec la voix.
-5. **Interruption** : la voix se coupe, l'élève pose sa question. Le lecteur
+5. **Échange par tours** : un tour (1 à 3 étapes) se termine sur une question
+   posée à l'élève. Le serveur coupe alors l'appel au modèle et envoie
+   `{"kind":"await"}`. Dès que l'élève répond, le lecteur demande le tour
+   suivant (`mode: "continue"`, avec sa réponse et l'état du tableau) pendant
+   que Nesa réagit à voix haute ; le modèle adapte la suite (confirmation,
+   ou remédiation ciblée sur l'erreur probable). Une question sans bonne
+   réponse sert à situer l'élève (ce qu'il connaît déjà).
+6. **Interruption** : la voix se coupe, l'élève pose sa question. Le lecteur
    empile une séquence de réponse et envoie au modèle ce qui a été dit et ce
    qui est au tableau (`summarizeBoard`). Nesa répond en réutilisant les
    objets du tableau, puis la séance reprend à l'étape suivante.
@@ -108,7 +115,7 @@ la décrire dans `prompt.ts`. Les tests signalent ce qui manque.
 
 ## Limites connues du prototype
 
-- **Limite d'usage en mémoire** (20 questions par 10 minutes et par adresse) :
+- **Limite d'usage en mémoire** (40 tours par 10 minutes et par adresse) :
   approximative sur Vercel, car chaque instance a son compteur. Pour la
   production, la brancher sur un stockage partagé (Upstash Redis).
 - **Voix** : générée phrase par phrase (Gemini TTS via AI Gateway), préchargée
@@ -119,6 +126,14 @@ la décrire dans `prompt.ts`. Les tests signalent ce qui manque.
   sur téléphone ; on peut zoomer avec deux doigts.
 - Aucun compte, aucune donnée enregistrée : les questions passent par le
   modèle et ne sont pas conservées par l'application.
+
+## Vérifier un déploiement
+
+`/api/diagnostic?check=<SELFTEST_TOKEN>&ask=<question>` joue une séance
+complète côté serveur avec un élève simulé : `voice=1` (micro simulé),
+`model=<id>` (autre modèle d'AI Gateway), `effort=none|low|medium|high`
+(réflexion du modèle, principal levier de latence), `answers=right|wrong`.
+Le rapport donne, tour par tour, le délai avant la première phrase.
 
 ## Changer la voix de Nesa
 

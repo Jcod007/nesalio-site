@@ -26,15 +26,17 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
-  it("relaie une séance complète du modèle, validée étape par étape", async () => {
+  it("relaie le tour du modèle, validé étape par étape", async () => {
     const text = "```json\n" + serializeLesson(derivativeLesson) + "\n```";
     const events = await collect(
       tutorEvents({ mode: "question", question: "dérivée ?" }, { ...base, completion: fakeCompletion(text) }),
     );
     expect(events[0]).toEqual({ kind: "source", source: "model" });
     expect(events[1]).toMatchObject({ kind: "lesson", title: derivativeLesson.header.title });
-    expect(events.filter((e) => e.kind === "step")).toHaveLength(derivativeLesson.steps.length);
-    expect(events.at(-1)).toMatchObject({ kind: "end" });
+    // Le tour s'arrête à la première question posée à l'élève.
+    const firstCheck = derivativeLesson.steps.findIndex((step) => step.check);
+    expect(events.filter((e) => e.kind === "step")).toHaveLength(firstCheck + 1);
+    expect(events.at(-1)).toEqual({ kind: "await" });
   });
 
   it("ajoute un titre et une fin quand le modèle les oublie", async () => {
@@ -54,6 +56,40 @@ describe("tutorEvents", () => {
       ),
     );
     expect(events.map((e) => e.kind)).toEqual(["source", "step", "end"]);
+  });
+
+  it("termine le tour sur la première question, annonce l'attente et coupe le modèle", async () => {
+    const check = '{"prompt":"Combien ?","choices":["0","2"],"answer":1}';
+    const text = `{"kind":"lesson","title":"Zéros"}\n{"kind":"step","say":"Devine.","check":${check}}\n{"kind":"step","say":"Trop tôt."}`;
+    let signal: AbortSignal | undefined;
+    const completion: CompletionStream = (options) => {
+      signal = options.signal;
+      return fakeCompletion(text)(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "zéros ?" }, { ...base, completion }));
+    expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "await"]);
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it("continue la séance sans nouvel en-tête et transmet la réponse de l'élève au modèle", async () => {
+    let prompt = "";
+    const completion: CompletionStream = (options) => {
+      prompt = options.messages.at(-1)!.content;
+      return fakeCompletion('{"kind":"lesson","title":"x"}\n{"kind":"step","say":"Regardons le sommet."}\n{"kind":"end","summary":[]}')(options);
+    };
+    const events = await collect(
+      tutorEvents(
+        {
+          mode: "continue",
+          question: "zéros ?",
+          context: { spoken: ["Combien ?"], board: [] },
+          answer: { prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false },
+        },
+        { ...base, completion },
+      ),
+    );
+    expect(events.map((e) => e.kind)).toEqual(["source", "step", "end"]);
+    expect(prompt).toContain("Réponse de l'élève : « 0 » (faux)");
   });
 
   it("signale une erreur si le modèle échoue avant la première étape", async () => {

@@ -15,7 +15,8 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MAX_BODY_BYTES = 24_000;
-const limiter = createRateLimiter({ limit: 20, windowMs: 10 * 60_000 });
+// Une séance compte plusieurs tours (un appel par réponse de l'élève) : environ 8 séances par 10 minutes.
+const limiter = createRateLimiter({ limit: 40, windowMs: 10 * 60_000 });
 
 const NDJSON_HEADERS = {
   "Content-Type": "application/x-ndjson; charset=utf-8",

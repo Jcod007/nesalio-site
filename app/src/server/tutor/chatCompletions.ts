@@ -26,9 +26,17 @@ export interface CompletionOptions {
   signal?: AbortSignal;
   extraHeaders?: Record<string, string>;
   maxTokens?: number;
+  /**
+   * Effort de réflexion avant de répondre. Plus il est bas, plus la première
+   * phrase arrive vite : c'est le principal levier de latence.
+   */
+  reasoningEffort?: ReasoningEffort;
   /** Remplaçable dans les tests. */
   fetchImpl?: typeof fetch;
 }
+
+export type ReasoningEffort = "none" | "minimal" | "low" | "medium" | "high";
+export const REASONING_EFFORTS: readonly ReasoningEffort[] = ["none", "minimal", "low", "medium", "high"];
 
 /** Une source de texte en flux : c'est tout ce dont le reste du serveur a besoin. */
 export type CompletionStream = (options: CompletionOptions) => AsyncIterable<string>;
@@ -52,6 +60,8 @@ async function* streamOpenAi(options: CompletionOptions): AsyncGenerator<string>
       messages: options.messages,
       stream: true,
       max_tokens: options.maxTokens ?? 6000,
+      // Extension d'AI Gateway, traduite vers le réglage propre à chaque modèle.
+      ...(options.reasoningEffort ? { reasoning: { effort: options.reasoningEffort } } : {}),
     }),
   });
   await ensureOk(response);
@@ -78,12 +88,18 @@ async function* streamAnthropic(options: CompletionOptions): AsyncGenerator<stri
       system,
       messages,
       stream: true,
-      // Explication en direct : effort moyen, bon compromis entre justesse et rapidité.
-      output_config: { effort: "medium" },
+      // Explication en direct : effort modéré par défaut, pour garder la voix réactive.
+      output_config: { effort: anthropicEffort(options.reasoningEffort) },
     }),
   });
   await ensureOk(response);
   yield* parseAnthropicSse(response.body!);
+}
+
+function anthropicEffort(effort: ReasoningEffort | undefined): "low" | "medium" | "high" {
+  if (effort === "high") return "high";
+  if (effort === "medium" || effort === undefined) return "medium";
+  return "low";
 }
 
 async function ensureOk(response: Response) {

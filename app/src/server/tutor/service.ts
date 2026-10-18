@@ -13,6 +13,7 @@ import type { ChatProvider } from "@/server/config";
 import { UpstreamError, type CompletionStream } from "./chatCompletions";
 import { buildMessages } from "./prompt";
 
+/** Étapes au plus par tour (un tour se termine normalement bien avant, sur une question). */
 export const MAX_STEPS = 12;
 
 export interface TutorServiceConfig {
@@ -60,12 +61,23 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
   }
 }
 
+/**
+ * Un tour de séance : les étapes du modèle, validées une à une, jusqu'à la
+ * première question posée à l'élève. Là, le tour s'arrête (« await ») et
+ * l'appel au modèle est coupé : la suite dépendra de la réponse de l'élève.
+ */
 async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): AsyncGenerator<StreamEvent> {
   const parser = createModelOutputParser();
   const scanner = new JsonObjectScanner();
   let steps = 0;
   let ended = false;
   let headerSent = false;
+  const wantsHeader = request.mode === "question";
+
+  // Coupe l'appel au modèle dès que le tour est fini (on ne paie pas pour la suite).
+  const upstream = new AbortController();
+  const onAbort = () => upstream.abort();
+  config.signal?.addEventListener("abort", onAbort, { once: true });
 
   const provider = config.provider!;
   const text = config.completion({
@@ -74,31 +86,44 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     apiKey: provider.apiKey,
     model: provider.model,
     extraHeaders: provider.extraHeaders,
+    reasoningEffort: provider.reasoningEffort,
     messages: buildMessages(request),
-    signal: config.signal,
+    signal: upstream.signal,
   });
 
-  for await (const chunk of text) {
-    for (const objectText of scanner.push(chunk)) {
-      const event = parser.parseLine(objectText);
-      if (!event || ended) continue;
-      if (event.kind === "lesson") {
-        if (headerSent || request.mode === "followUp") continue;
-        headerSent = true;
-        yield event;
-      } else if (event.kind === "step") {
-        if (steps >= MAX_STEPS) continue;
-        if (!headerSent && request.mode === "question") {
+  try {
+    for await (const chunk of text) {
+      for (const objectText of scanner.push(chunk)) {
+        const event = parser.parseLine(objectText);
+        if (!event || ended) continue;
+        if (event.kind === "lesson") {
+          if (headerSent || !wantsHeader) continue;
           headerSent = true;
-          yield { kind: "lesson", title: request.question.slice(0, 80) };
+          yield event;
+        } else if (event.kind === "step") {
+          if (steps >= MAX_STEPS) continue;
+          if (!headerSent && wantsHeader) {
+            headerSent = true;
+            yield { kind: "lesson", title: request.question.slice(0, 80) };
+          }
+          steps++;
+          yield event;
+          if (event.check) {
+            // Question posée : le tour est fini, Nesa attend la réponse.
+            ended = true;
+            yield { kind: "await" };
+          }
+        } else {
+          ended = true;
+          yield event;
         }
-        steps++;
-        yield event;
-      } else {
-        ended = true;
-        yield event;
+        if (ended) break;
       }
+      if (ended) break;
     }
+  } finally {
+    config.signal?.removeEventListener("abort", onAbort);
+    upstream.abort();
   }
   if (parser.issues.length > 0) config.log?.("tutor: lignes du modèle écartées", parser.issues);
   if (!ended && steps > 0) yield { kind: "end", summary: [] };
@@ -112,7 +137,7 @@ function* lessonEvents(lesson: Lesson): Generator<StreamEvent> {
 
 /** Mode démonstration : la séance qui correspond le mieux, ou une séance d'exemple annoncée comme telle. */
 export function* demoEvents(request: TutorRequest): Generator<StreamEvent> {
-  if (request.mode === "followUp") {
+  if (request.mode !== "question") {
     yield {
       kind: "step",
       say: "Bonne question ! En mode démonstration, je ne peux pas encore répondre librement. Je reprends l'explication là où on était.",

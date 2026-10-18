@@ -1,5 +1,6 @@
 /**
- * GET /api/diagnostic?check=<SELFTEST_TOKEN>&ask=<question>[&voice=1][&model=<id>]
+ * GET /api/diagnostic?check=<SELFTEST_TOKEN>&ask=<question>
+ *     [&voice=1][&model=<id>][&effort=low][&answers=right|wrong][&turns=4]
  *
  * Joue une séance complète côté serveur, pour vérifier un déploiement (ou
  * comparer des modèles) sans navigateur :
@@ -10,7 +11,9 @@
  * Sans le bon jeton : 404, aucun appel payant.
  */
 import { synthesizeSpeech, transcribeAudio } from "@/server/ai/audio";
-import { GATEWAY_BASE, readAiConfig, type ChatProvider } from "@/server/config";
+import type { Check } from "@/domain/scene/schema";
+import type { TutorRequest } from "@/domain/tutor/request";
+import { GATEWAY_BASE, parseEffort, readAiConfig, type ChatProvider } from "@/server/config";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
 
@@ -52,34 +55,68 @@ export async function GET(request: Request): Promise<Response> {
     }
   }
 
-  // 2. Séance complète.
+  // 2. Séance complète, tour par tour : l'élève simulé répond à chaque question
+  //    (answers=right : bonne réponse ; answers=wrong, par défaut : une erreur).
   const override = params.get("model")?.trim();
-  const provider: ChatProvider | null =
+  const effort = parseEffort(params.get("effort")) ?? config.chat?.reasoningEffort;
+  const base: ChatProvider | null =
     override && config.gatewayToken
       ? { name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: config.gatewayToken, model: override }
       : config.chat;
-  const steps: { say: string; mood?: string; do: string[]; check?: string }[] = [];
-  const lesson: Record<string, unknown> = { provider: provider?.name ?? "demo", model: provider?.model ?? null };
-  const tutorStart = Date.now();
-  for await (const event of tutorEvents({ mode: "question", question }, { provider, completion: streamChatCompletion })) {
-    if (event.kind === "source") lesson.source = event.source;
-    if (event.kind === "lesson") lesson.title = event.title;
-    if (event.kind === "step") {
-      if (steps.length === 0) lesson.firstStepMs = Date.now() - tutorStart;
-      steps.push({
-        say: event.say,
-        mood: event.mood,
-        do: (event.do ?? []).map((a) => describe(a as Record<string, unknown>)),
-        check: event.check?.prompt,
-      });
+  const provider = base ? { ...base, reasoningEffort: effort } : null;
+  const answerRight = params.get("answers") === "right";
+  const maxTurns = Math.min(Number(params.get("turns") ?? 4) || 4, 6);
+
+  const steps: { turn: number; say: string; mood?: string; do: string[]; check?: string }[] = [];
+  const turns: Record<string, unknown>[] = [];
+  const lesson: Record<string, unknown> = { provider: provider?.name ?? "demo", model: provider?.model ?? null, effort };
+  let turnRequest: TutorRequest = { mode: "question", question };
+  const spoken: string[] = [];
+  for (let turn = 1; turn <= maxTurns; turn++) {
+    const turnStart = Date.now();
+    const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
+    let lastCheck: Check | undefined;
+    let awaiting = false;
+    for await (const event of tutorEvents(turnRequest, { provider, completion: streamChatCompletion })) {
+      if (event.kind === "source") lesson.source = event.source;
+      if (event.kind === "lesson") lesson.title = event.title;
+      if (event.kind === "step") {
+        if (info.firstStepMs === undefined) info.firstStepMs = Date.now() - turnStart;
+        spoken.push(event.say);
+        lastCheck = event.check;
+        steps.push({
+          turn,
+          say: event.say,
+          mood: event.mood,
+          do: (event.do ?? []).map((a) => describe(a as Record<string, unknown>)),
+          check: event.check ? `${event.check.prompt} [${event.check.choices.join(" | ")}]${event.check.answer === undefined ? " (situer)" : ` (bonne : ${event.check.choices[event.check.answer]})`}` : undefined,
+        });
+      }
+      if (event.kind === "await") awaiting = true;
+      if (event.kind === "end") lesson.summary = event.summary;
+      if (event.kind === "error") lesson.error = `${event.code} : ${event.message}`;
     }
-    if (event.kind === "end") lesson.summary = event.summary;
-    if (event.kind === "error") lesson.error = `${event.code} : ${event.message}`;
+    info.totalMs = Date.now() - turnStart;
+    if (!awaiting || !lastCheck) {
+      turns.push(info);
+      break;
+    }
+    const picked = pickAnswer(lastCheck, answerRight);
+    const correct = lastCheck.answer === undefined ? null : picked === lastCheck.answer;
+    info.studentAnswer = `${lastCheck.choices[picked]} (${correct === null ? "situer" : correct ? "juste" : "faux"})`;
+    turns.push(info);
+    spoken.push(lastCheck.prompt);
+    turnRequest = {
+      mode: "continue",
+      question,
+      context: { title: typeof lesson.title === "string" ? lesson.title : undefined, originalQuestion: question, spoken: spoken.slice(-12).map((x) => x.slice(0, 320)), board: [] },
+      answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: lastCheck.choices[picked]!, correct },
+    };
   }
-  lesson.totalMs = Date.now() - tutorStart;
   lesson.stepCount = steps.length;
   lesson.actionCount = steps.reduce((n, s) => n + s.do.length, 0);
   report.lesson = lesson;
+  report.turns = turns;
   report.steps = steps;
 
   // 3. Voix de Nesa sur sa première phrase.
@@ -102,6 +139,13 @@ export async function GET(request: Request): Promise<Response> {
 
   report.totalMs = ms();
   return Response.json(report, { headers: { "Cache-Control": "no-store" } });
+}
+
+/** Réponse de l'élève simulé : la bonne, ou une erreur ; pour une question pour le situer, « un peu ». */
+function pickAnswer(check: Check, right: boolean): number {
+  if (check.answer === undefined) return Math.min(1, check.choices.length - 1);
+  if (right) return check.answer;
+  return check.answer === 0 ? 1 : 0;
 }
 
 /** Résumé lisible d'une commande de scène : « curve sin(x) », « point (1, 0) »… */
