@@ -1,14 +1,16 @@
 /**
- * POST /api/voice — la voix de Nesa : { text } → audio (WAV ou MP3).
+ * POST /api/voice — la voix de Nesa : { text } → audio (WAV ou MP3), avec la
+ * partie vraiment parlée dans l'en-tête X-Speech-Span (« début,fin » en ms).
  * Réponse 503 si aucune voix n'est configurée : le navigateur se rabat alors
  * sur sa propre synthèse vocale.
  */
 import { z } from "zod";
-import { synthesizeSpeech } from "@/server/ai/audio";
+import { speechSpanOf, synthesizeSpeech } from "@/server/ai/audio";
 import { readAiConfig } from "@/server/config";
 import { checkRate, jsonError, readJson } from "@/server/http";
 import { createSessionLimits } from "@/server/rateLimit";
 import { isUnavailable } from "@/server/tutor/service";
+import { SPEECH_SPAN_HEADER } from "@/domain/audio/speechSpan";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -38,8 +40,14 @@ export async function POST(request: Request): Promise<Response> {
       text: parsed.data.text,
       signal: request.signal,
     });
+    // Partie vraiment parlée (sans les silences du début et de la fin) : le lecteur y cale les repères {id}.
+    const span = speechSpanOf(audio, mediaType);
     return new Response(audio as unknown as BodyInit, {
-      headers: { "Content-Type": mediaType, "Cache-Control": "private, max-age=3600" },
+      headers: {
+        "Content-Type": mediaType,
+        "Cache-Control": "private, max-age=3600",
+        ...(span ? { [SPEECH_SPAN_HEADER]: `${span.startMs},${span.endMs}` } : {}),
+      },
     });
   } catch (error) {
     console.warn("voice: échec de la synthèse", error);

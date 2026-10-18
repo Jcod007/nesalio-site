@@ -23,6 +23,7 @@ import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import type { Check, Mood, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
+import { retimeCues } from "@/domain/timeline/spokenTime";
 import type { StudentAnswer, TutorContext, TutorRequest } from "@/domain/tutor/request";
 import type { Clock, Speaker, TutorSource } from "./ports";
 
@@ -475,7 +476,9 @@ export class Player {
     let drawingMs = 0;
 
     if (segment.appliedUpTo <= segment.cursor) {
-      const plan = planStep(step.do, speechMs, step.cues);
+      // Repères au prorata du temps de parole, sur la partie vraiment parlée de l'audio (voir spokenTime.ts).
+      const cues = step.cues ? retimeCues(step.say, step.cues, speechMs, speaker.speechSpan?.(step.say)) : undefined;
+      const plan = planStep(step.do, speechMs, cues);
       let board = pruneErased(this.snapshot.board, now);
       for (const planned of plan.actions) {
         board = applyAction(board, planned.action, { start: now + planned.offset, duration: planned.duration });

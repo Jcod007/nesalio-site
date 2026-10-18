@@ -182,6 +182,27 @@ describe("Player", () => {
     await speakUntil(player, voice, (s) => s.status === "done");
   });
 
+  it("cale les repères sur la partie vraiment parlée de l'audio, sans ses silences", async () => {
+    const voice = fakeSpeaker();
+    const speaker: Speaker = {
+      ...voice.speaker,
+      prepare: async () => 4000,
+      speechSpan: () => ({ startMs: 500, endMs: 3500 }),
+    };
+    const { source } = scriptedSource(() => [
+      step("Voici le point.", { cues: { A: 1 }, do: [{ type: "point", id: "A", at: [1, 1] }] }),
+      { kind: "end", summary: [] },
+    ]);
+    const player = new Player({ speaker, source, clock: fakeClock() });
+    player.ask("?");
+    await until(player, (s) => s.caption?.text === "Voici le point.");
+    const snapshot = player.getSnapshot();
+    const offset = snapshot.board.nodes.A!.reveal.start - snapshot.caption!.startedAt;
+    // Fin de la voix (3 500 ms) moins l'avance de 150 ms, et non la fin du fichier (4 000 ms).
+    expect(offset).toBe(3350);
+    await speakUntil(player, voice, (s) => s.status === "done");
+  });
+
   it("affiche une erreur si la première réponse échoue", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [{ kind: "error", code: "upstream", message: "Indisponible" }]);
