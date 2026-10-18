@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { planStep } from "@/domain/timeline/plan";
-import { extractCues } from "./cues";
+import { extractCues, inferCues } from "./cues";
 
 describe("repères de synchronisation", () => {
   it("retire les repères du texte dit et garde leur position dans la phrase", () => {
@@ -28,5 +28,24 @@ describe("repères de synchronisation", () => {
     expect(axes!.offset).toBe(0);
     expect(point!.offset).toBe(4000 - 150);
     expect(curve!.offset).toBe(6000 - 150);
+  });
+
+  it("déduit le moment d'apparition des mots de la phrase quand le modèle n'a pas mis de repère", () => {
+    const say = "Place le point A, puis trace la courbe : la montée vaut 3.";
+    const cues = inferCues(say, [
+      { type: "point", id: "A" },
+      { type: "curve", id: "g" },
+      { type: "note", id: "n1", text: "montée = 3" },
+      { type: "axes" },
+    ]);
+    expect(cues.A).toBeCloseTo(say.indexOf("A,") / say.length);
+    expect(cues.g).toBeCloseTo(say.indexOf("courbe") / say.length);
+    expect(cues.n1).toBeCloseTo(say.indexOf("montée") / say.length);
+  });
+
+  it("garde la priorité aux repères écrits par le modèle et ne confond pas « a » et « A »", () => {
+    const cues = inferCues("Le a est négatif, et A est ici.", [{ type: "point", id: "A" }], {});
+    expect(cues.A).toBeCloseTo("Le a est négatif, et ".length / "Le a est négatif, et A est ici.".length);
+    expect(inferCues("Le point A.", [{ type: "point", id: "A" }], { A: 0.9 }).A).toBe(0.9);
   });
 });

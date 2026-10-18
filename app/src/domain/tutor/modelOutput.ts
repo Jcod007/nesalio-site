@@ -18,7 +18,7 @@ import {
   type Step,
 } from "@/domain/scene/schema";
 import { z } from "zod";
-import { extractCues } from "./cues";
+import { extractCues, inferCues } from "./cues";
 
 /** Noms de commandes que les modèles inventent : ceux du registre, plus quelques synonymes de type. */
 const TYPE_ALIASES: Readonly<Record<string, string>> = {
@@ -90,8 +90,11 @@ export function createModelOutputParser(): ModelOutputParser {
       mood: mood.success ? mood.data : undefined,
       do: actions,
       check: check?.success ? check.data : undefined,
-      cues: cued && Object.keys(cued.cues).length > 0 ? cued.cues : undefined,
+      cues: undefined,
     };
+    // Repères écrits par le modèle, complétés par ceux qu'on déduit des mots de la phrase.
+    const cues = inferCues(step.say, actions as Parameters<typeof inferCues>[1], cued?.cues);
+    if (Object.keys(cues).length > 0) step.cues = cues;
     return { kind: "step", ...step };
   }
 

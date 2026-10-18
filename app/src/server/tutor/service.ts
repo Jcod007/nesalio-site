@@ -7,7 +7,7 @@
  */
 import { matchDemoLesson, DEMO_LESSONS } from "@/content/demoLessons";
 import type { Lesson, StreamEvent } from "@/domain/scene/schema";
-import { extractCues } from "@/domain/tutor/cues";
+import { extractCues, inferCues } from "@/domain/tutor/cues";
 import { createModelOutputParser, JsonObjectScanner } from "@/domain/tutor/modelOutput";
 import type { TutorRequest } from "@/domain/tutor/request";
 import type { ChatProvider } from "@/server/config";
@@ -87,7 +87,8 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     apiKey: provider.apiKey,
     model: provider.model,
     extraHeaders: provider.extraHeaders,
-    reasoningEffort: provider.reasoningEffort,
+    // Premier tour : réponse immédiate (pas de calcul) ; ensuite, un peu de réflexion pour la justesse.
+    reasoningEffort: request.mode === "question" ? (provider.firstTurnEffort ?? provider.reasoningEffort) : provider.reasoningEffort,
     messages: buildMessages(request),
     signal: upstream.signal,
   });
@@ -134,7 +135,8 @@ function* lessonEvents(lesson: Lesson): Generator<StreamEvent> {
   yield lesson.header;
   for (const step of lesson.steps) {
     // Les séances écrites à la main utilisent les mêmes repères {id} que le modèle.
-    const { say, cues } = extractCues(step.say);
+    const { say, cues: explicit } = extractCues(step.say);
+    const cues = inferCues(say, step.do as Parameters<typeof inferCues>[1], explicit);
     yield { kind: "step", ...step, say, cues: Object.keys(cues).length > 0 ? cues : undefined };
   }
   yield lesson.end;

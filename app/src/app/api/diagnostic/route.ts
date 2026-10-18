@@ -60,12 +60,13 @@ export async function GET(request: Request): Promise<Response> {
   // 2. Séance complète, tour par tour : l'élève simulé répond à chaque question
   //    (answers=right : bonne réponse ; answers=wrong, par défaut : une erreur).
   const override = params.get("model")?.trim();
-  const effort = parseEffort(params.get("effort")) ?? config.chat?.reasoningEffort;
+  const effort = parseEffort(params.get("effort")) ?? `${config.chat?.firstTurnEffort} puis ${config.chat?.reasoningEffort}`;
   const base: ChatProvider | null =
     override && config.gatewayToken
       ? { name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: config.gatewayToken, model: override }
       : config.chat;
-  const provider = base ? { ...base, reasoningEffort: effort } : null;
+  const forced = parseEffort(params.get("effort"));
+  const provider = base ? { ...base, ...(forced ? { reasoningEffort: forced, firstTurnEffort: forced } : {}) } : null;
   const answerRight = params.get("answers") === "right";
   const maxTurns = Math.min(Number(params.get("turns") ?? 4) || 4, 6);
 

@@ -21,7 +21,10 @@ export interface ChatProvider {
   apiKey: string;
   model: string;
   extraHeaders?: Record<string, string>;
+  /** Réflexion pour les tours où l'on calcule (réponses de l'élève, questions en cours de séance). */
   reasoningEffort?: ReasoningEffort;
+  /** Réflexion pour le premier tour (accroche et question pour situer l'élève, sans calcul). */
+  firstTurnEffort?: ReasoningEffort;
 }
 
 export interface AiConfig {
@@ -46,11 +49,13 @@ export const DEFAULTS = {
     "à un rythme posé, avec de petites pauses aux virgules. Jamais monotone.",
   transcriptionModel: "openai/whisper-1",
   /**
-   * Sans réflexion préalable : première phrase en moins d'une seconde avec DeepSeek V4.1 Flash,
-   * contre environ 12 s par défaut (mesuré en ligne le 17 octobre 2026, calculs restés justes).
-   * Mettre TUTOR_REASONING_EFFORT=low si les explications perdent en justesse.
+   * Premier tour sans réflexion : Nesa commence à parler en moins de 1,5 s (accroche et question
+   * qualitative, sans calcul). Tours suivants avec une réflexion courte : sans elle, DeepSeek s'est
+   * trompé de calcul dans un test sur six (pente annoncée 3/2 au lieu de 1/2) ; avec, 1,5 à 4 s,
+   * masquées par la réaction de Nesa à la réponse de l'élève (mesures du 17 octobre 2026).
    */
-  reasoningEffort: "none" as ReasoningEffort,
+  firstTurnEffort: "none" as ReasoningEffort,
+  reasoningEffort: "low" as ReasoningEffort,
 } as const;
 
 export function parseEffort(value: string | null | undefined): ReasoningEffort | undefined {
@@ -66,6 +71,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
   const anthropicKey = env.ANTHROPIC_API_KEY?.trim();
   const modelOverride = env.TUTOR_MODEL?.trim() || env.OPENROUTER_MODEL?.trim();
   const reasoningEffort = parseEffort(env.TUTOR_REASONING_EFFORT) ?? DEFAULTS.reasoningEffort;
+  const firstTurnEffort = parseEffort(env.TUTOR_FIRST_TURN_EFFORT) ?? DEFAULTS.firstTurnEffort;
 
   let chat: ChatProvider | null = null;
   if (env.DISABLE_AI === "1") {
@@ -78,6 +84,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
       apiKey: anthropicKey,
       model: modelOverride || DEFAULTS.anthropicModel,
       reasoningEffort,
+      firstTurnEffort,
     };
   } else if (openRouterKey) {
     chat = {
@@ -88,6 +95,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
       model: modelOverride || DEFAULTS.openRouterModel,
       extraHeaders: { "X-Title": "Nesalio", ...(env.NEXT_PUBLIC_APP_URL ? { "HTTP-Referer": env.NEXT_PUBLIC_APP_URL } : {}) },
       reasoningEffort,
+      firstTurnEffort,
     };
   } else if (gatewayToken) {
     chat = {
@@ -97,6 +105,7 @@ export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.
       apiKey: gatewayToken,
       model: modelOverride || DEFAULTS.gatewayModel,
       reasoningEffort,
+      firstTurnEffort,
     };
   }
 
