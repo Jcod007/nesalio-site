@@ -4,7 +4,7 @@
  * référence de l'inscription (ref), pour les relier aux réponses d'avant l'essai.
  */
 import { AfterTrialSchema } from "@/domain/afterTrial";
-import { shortSession } from "@/domain/session";
+import { refFromHeaders, shortSession } from "@/domain/session";
 import { forwardToForm } from "@/server/forms";
 import { jsonError, readJson } from "@/server/http";
 import { createSessionLimits } from "@/server/rateLimit";
@@ -25,9 +25,11 @@ export async function POST(request: Request): Promise<Response> {
   const ok = await forwardToForm({
     etape: "3-apres-essai",
     _subject: "Nesalio · réponses après essai",
-    ref: a.ref ?? "sans inscription",
+    ref: a.ref ?? refFromHeaders(request.headers) ?? "sans inscription",
     aurait_aide: a.helped,
     pourquoi: a.why ?? "",
+    plus_utile: a.useful?.length ? a.useful.join(" · ") : "non répondu",
+    ce_qui_manque: a.missing ?? "",
     derniere_fois: a.whatYouDid ?? "",
     depense_mensuelle: a.spending ?? "non répondu",
     urgence: a.urgency ?? "non répondu",

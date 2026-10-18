@@ -9,7 +9,7 @@ import { encodeLine } from "@/domain/tutor/ndjson";
 import { TutorRequestSchema } from "@/domain/tutor/request";
 import { readAiConfig } from "@/server/config";
 import { createSessionLimits } from "@/server/rateLimit";
-import { shortSession } from "@/domain/session";
+import { refFromHeaders, shortSession } from "@/domain/session";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
 import { after } from "next/server";
@@ -67,6 +67,7 @@ export async function POST(request: Request): Promise<Response> {
   const recorder = createTurnRecorder({
     request: parsed.data,
     session: limit.session,
+    ref: refFromHeaders(request.headers),
     env: recordEnv(),
     source: config.chat ? "model" : "demo",
     model: config.chat?.model,

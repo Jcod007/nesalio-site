@@ -6,9 +6,10 @@
  * questions, lignes refusées). Les événements gardent le format du flux, donc
  * une séance se rejoue image par image (tools/rejeu).
  *
- * Rien qui identifie la personne : pas de nom, de courriel, d'adresse IP ni
- * d'audio. La session est un identifiant tiré au hasard à l'ouverture de la
- * page (domain/session.ts), qui ne dure que le temps de la page.
+ * Pas de nom, de courriel, d'adresse IP ni d'audio. La session est un
+ * identifiant tiré au hasard à l'ouverture de la page (domain/session.ts).
+ * Si la personne s'est inscrite sur le site, la référence de son inscription
+ * est notée : elle relie ses séances à son courriel, gardé dans Formspree.
  */
 import type { StreamEvent } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
@@ -22,6 +23,8 @@ export interface TurnRecord {
   env: RecordEnv;
   /** Identifiant de session de la page (hasard), ou null si le navigateur ne l'a pas envoyé. */
   session: string | null;
+  /** Référence de l'inscription sur le site (relie la séance au courriel, dans Formspree) ; absente sans inscription. */
+  ref?: string;
   /** Début du tour (ISO 8601, UTC). */
   at: string;
   mode: TutorRequest["mode"];
@@ -48,6 +51,7 @@ export interface TurnRecorder {
 export function createTurnRecorder(options: {
   request: TutorRequest;
   session: string | null;
+  ref?: string | null;
   env: RecordEnv;
   source: "model" | "demo";
   model?: string;
@@ -79,6 +83,7 @@ export function createTurnRecorder(options: {
         v: 1,
         env: options.env,
         session: options.session,
+        ...(options.ref ? { ref: options.ref } : {}),
         at: options.startedAt.toISOString(),
         mode: request.mode,
         question: request.question,
@@ -113,6 +118,41 @@ export function turnPath(record: TurnRecord): string {
   const time = at.slice(11, 23).replace(/[:.]/g, "");
   const folder = record.session ? shortSession(record.session) : "sans-session";
   return `${record.env}/${day}/${folder}/${time}-${record.mode}.json`;
+}
+
+/** Une séance (une visite de la page), résumée pour la consultation. */
+export interface SessionSummary {
+  session: string;
+  ref: string | null;
+  debut: string;
+  tours: number;
+  questions: string[];
+  /** Réponses aux questions de vérification : bonnes / données (les questions sans bonne réponse ne comptent pas). */
+  verifications: { bonnes: number; total: number };
+  interrompus: number;
+}
+
+/** Regroupe les tours par séance, dans l'ordre ; la référence est celle du premier tour qui en a une. */
+export function summarizeSessions(turns: readonly TurnRecord[]): SessionSummary[] {
+  const bySession = new Map<string, SessionSummary>();
+  for (const turn of turns) {
+    const key = turn.session ? shortSession(turn.session) : "sans-session";
+    let summary = bySession.get(key);
+    if (!summary) {
+      summary = { session: key, ref: null, debut: turn.at, tours: 0, questions: [], verifications: { bonnes: 0, total: 0 }, interrompus: 0 };
+      bySession.set(key, summary);
+    }
+    summary.tours++;
+    if (!summary.ref && turn.ref) summary.ref = turn.ref;
+    // « question » ouvre une séance, « followUp » est une question posée en cours de route ; « continue » est une réponse.
+    if (turn.mode !== "continue" && turn.question.trim()) summary.questions.push(turn.question.slice(0, 160));
+    if (turn.answer && turn.answer.correct !== null) {
+      summary.verifications.total++;
+      if (turn.answer.correct) summary.verifications.bonnes++;
+    }
+    if (turn.outcome !== "complete") summary.interrompus++;
+  }
+  return [...bySession.values()];
 }
 
 /** Vrai si l'enregistrement a dépassé la durée de conservation (en jours). */
