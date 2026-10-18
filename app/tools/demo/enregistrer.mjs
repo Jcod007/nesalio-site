@@ -4,7 +4,7 @@
  * Nesa), jouée comme un élève : il tape sa question, interrompt Nesa, se trompe
  * une fois, puis réussit. Sert à faire des vidéos de démonstration.
  *
- *   SCENARIO=vecteurs NESALIO_URL=https://app.nesalio.com/ OUT=sortie node tools/demo/enregistrer.mjs
+ *   SCENARIO=vecteurs NESALIO_URL=https://nesalio-app.vercel.app/ OUT=sortie node tools/demo/enregistrer.mjs
  *
  * Produit dans OUT : brut.webm (image), clips/NN.wav (voix de Nesa), chronologie.json
  * (heure de chaque phrase dans la vidéo, attentes, réponses), puis demo.mp4 (image + voix).
@@ -15,7 +15,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const URL = process.env.NESALIO_URL ?? "https://app.nesalio.com/";
+const URL = process.env.NESALIO_URL ?? "https://nesalio-app.vercel.app/";
 const OUT = process.env.OUT ?? "sortie";
 const SIZE = { width: 1080, height: 1080 };
 const SCENARIOS = {
@@ -221,7 +221,7 @@ while (Date.now() - started < MAX_MS) {
 // Carte de fin.
 await page.setContent(`<!doctype html><meta charset="utf-8"><body style="margin:0;height:100vh;display:grid;place-items:center;background:#f6f7fb;font-family:system-ui,sans-serif;color:#18223a">
   <div style="text-align:center"><div style="font-size:84px;font-weight:800;letter-spacing:-2px">Nesalio</div>
-  <div style="font-size:34px;margin-top:18px;color:#5A45D6;font-weight:700">app.nesalio.com</div></div></body>`);
+  <div style="font-size:34px;margin-top:18px;color:#5A45D6;font-weight:700">nesalio.com</div></div></body>`);
 mark("carte-fin");
 await page.waitForTimeout(3500);
 
