@@ -4,7 +4,7 @@
  * Le rendu est une projection du graphe de scène (`BoardState`) : à chaque
  * changement, il compare le graphe reçu à ce qu'il a déjà dessiné et lance
  * les animations de Manim qui manquent — tracer (Create, GrowArrow), écrire,
- * déplacer (Shift), transformer (TransformMatchingShapes, ReplacementTransform),
+ * déplacer (glissement relatif), transformer (TransformMatchingShapes, ReplacementTransform),
  * estomper, faire pulser (Indicate), effacer (FadeOut). Les heures prévues par
  * le lecteur deviennent des horodatages `playWithTimestamps`, ce qui garde le
  * tracé synchronisé avec la voix.
@@ -33,7 +33,6 @@ import {
   Polygon,
   ReplacementTransform,
   Scene,
-  Shift,
   Text,
   UpdateFromAlphaFunc,
   registerTheme,
@@ -79,6 +78,8 @@ interface Rendered {
 }
 
 const HAND_FONT = "Caveat";
+/** En dessous de cette durée d'apparition, un nœud est posé d'un coup (copie). */
+const INSTANT_MS = 1;
 /** Opacité d'un objet estompé (contexte), comme dans les vidéos de 3Blue1Brown. */
 const DIMMED = 0.28;
 
@@ -234,10 +235,16 @@ export class ManimRenderer {
         opacity: 1,
       };
       this.items.set(node.id, rendered);
-      for (const anim of built.animations) {
-        const start = node.reveal.start + anim.delay * node.reveal.duration;
-        const duration = anim.share * node.reveal.duration;
-        batch.push({ animation: anim.make(duration / 1000), ...at(start, duration) });
+      if (node.reveal.duration <= INSTANT_MS) {
+        // Apparition instantanée (une copie posée sur son original) : pas d'animation d'entrée,
+        // qui se battrait avec le glissement qui suit.
+        this.scene.add(...built.mobjects);
+      } else {
+        for (const anim of built.animations) {
+          const start = node.reveal.start + anim.delay * node.reveal.duration;
+          const duration = anim.share * node.reveal.duration;
+          batch.push({ animation: anim.make(duration / 1000), ...at(start, duration) });
+        }
       }
     }
     const current = rendered!;
@@ -279,7 +286,7 @@ export class ManimRenderer {
       current.appliedOffset = motion.to;
       if (delta[0] === 0 && delta[1] === 0) continue;
       for (const mobject of current.mobjects) {
-        batch.push({ animation: new Shift(mobject, { direction: delta, duration: motion.duration / 1000 }), ...at(motion.start, motion.duration) });
+        batch.push({ animation: slide(mobject, delta, motion.duration / 1000), ...at(motion.start, motion.duration) });
       }
     }
 
@@ -750,4 +757,23 @@ function textHalfWidth(mobject: Mobject): number {
 function distance(points: Array<{ x: number; y: number }>) {
   const [a, b] = points;
   return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+}
+
+/**
+ * Glissement relatif : chaque image ajoute la part de chemin parcourue depuis
+ * la précédente. Contrairement à Shift, qui retient sa position de départ dès
+ * que le lot d'animations commence, deux glissements du même objet dans une
+ * étape s'enchaînent correctement (aller, puis retour).
+ */
+function slide(mobject: Mobject, delta: Vec3, seconds: number): Animation {
+  let done = 0;
+  return new UpdateFromAlphaFunc(
+    mobject,
+    (m, alpha) => {
+      const step = alpha - done;
+      done = alpha;
+      if (step !== 0) m.shift([delta[0] * step, delta[1] * step, 0]);
+    },
+    { duration: seconds },
+  );
 }
