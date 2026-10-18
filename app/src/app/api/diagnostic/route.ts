@@ -146,7 +146,7 @@ export async function GET(request: Request): Promise<Response> {
   lesson.actionCount = steps.reduce((n, s) => n + s.do.length, 0);
   lesson.commands = usage;
   /** Gestes : ce qui bouge ou se transforme sous les yeux de l'élève (au moins un par tour attendu). */
-  lesson.gestures = (usage.move ?? 0) + (usage.copy ?? 0) + (usage.transform ?? 0);
+  lesson.gestures = ["move", "copy", "transform", "rotate", "applyMatrix"].reduce((n, type) => n + (usage[type] ?? 0), 0);
   /** Part des objets synchronisés sur la parole (repères {id}). */
   lesson.cueCoverage = cueable > 0 ? `${cued}/${cueable}` : "—";
   lesson.unknownTargets = unknownTargets;

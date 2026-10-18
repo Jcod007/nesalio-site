@@ -298,6 +298,18 @@ describe("outils des notions poussées", () => {
     if (span.type === "segment") expect(span.to).toEqual([3, -3]);
   });
 
+  it("un texte qui accompagne un objet le suit quand la matrice le déforme", () => {
+    let board = run([
+      { type: "axes", x: [-1, 6], y: [-1, 5] },
+      { type: "polygon", id: "sq", points: [[0, 0], [1, 0], [1, 1], [0, 1]], fill: true },
+      { type: "text", id: "u", text: "aire = 1", near: "sq", side: "above" },
+    ]);
+    const before = position(board, "u");
+    board = applyAction(board, { type: "applyMatrix", matrix: [[3, 1], [0, 2]] }, t(100));
+    expect(position(board, "u")[0]).toBeGreaterThan(before[0] + 2);
+    expect(intersects(nodeBox(board.nodes.u!, board.frame), nodeBox(board.nodes.sq!, board.frame))).toBe(false);
+  });
+
   it("transforme un polygone sommet par sommet (le carré devient rectangle)", () => {
     let board = run([{ type: "polygon", id: "sq", points: [[0, 0], [1, 0], [1, 1], [0, 1]] }]);
     board = applyAction(board, { type: "transform", target: "sq", points: [[0, 0], [3, 0], [3, 2], [0, 2]] }, t(100));

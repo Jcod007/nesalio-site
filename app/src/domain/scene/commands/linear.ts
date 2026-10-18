@@ -4,7 +4,7 @@
  * comme chez 3Blue1Brown), et l'écriture d'une matrice en colonnes.
  */
 import { z } from "zod";
-import { figureBox, nodeBox, placeBeside, textNodeExtent, union } from "@/domain/board/layout";
+import { figureBox, followAnchors, nodeBox, placeBeside, textNodeExtent, union } from "@/domain/board/layout";
 import {
   applyMat,
   IDENTITY,
@@ -79,13 +79,17 @@ export const applyMatrixCommand = defineCommand({
   apply(state, action, reveal) {
     const ids = action.targets ? action.targets.flatMap((t) => resolveTargets(state, t)) : visibleNodes(state).map((n) => n.id);
     let next = state;
+    const changed: string[] = [];
     for (const id of new Set(ids)) {
       const node = next.nodes[id];
       if (!isVisible(node)) continue;
       const image = mapped(node, action.matrix);
-      if (image) next = putNode(next, { ...image, morph: reveal });
+      if (image) {
+        next = putNode(next, { ...image, morph: reveal });
+        changed.push(id);
+      }
     }
-    return next;
+    return followAnchors(next, changed, reveal);
   },
 });
 

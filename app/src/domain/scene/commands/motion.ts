@@ -5,7 +5,7 @@
  * chose qui évolue, au lieu de tout réécrire.
  */
 import { z } from "zod";
-import { boxCenter, boxExtent, nodeBox, placeBeside, reflowCalc, union } from "@/domain/board/layout";
+import { boxCenter, boxExtent, followAnchors, nodeBox, placeBeside, reflowCalc, union } from "@/domain/board/layout";
 import {
   anchoredTo,
   isVisible,
@@ -281,6 +281,7 @@ export const transformCommand = defineCommand({
   apply(state, action, reveal) {
     const node = state.nodes[action.target];
     if (!isVisible(node)) return state;
-    return putNode(state, { ...morphed(node, action), morph: reveal });
+    const next = putNode(state, { ...morphed(node, action), morph: reveal });
+    return node.type === "text" ? next : followAnchors(next, [action.target], reveal);
   },
 });

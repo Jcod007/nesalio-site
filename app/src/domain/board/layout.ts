@@ -13,8 +13,10 @@
 import { sampleCurve } from "./geometry";
 import { arcPoints } from "./shapes";
 import {
+  anchoredTo,
   isVisible,
   moveNodes,
+  resolveTargets,
   updateNodes,
   visibleNodes,
   type ArcNode,
@@ -390,4 +392,23 @@ export function makeRoomInCalc(state: BoardState, reveal: Reveal): BoardState {
   let next = updateNodes(state, drop, (node) => ({ ...node, erased: reveal }));
   next = { ...next, calc: state.calc.filter((id) => !drop.includes(id)) };
   return reflowCalc(next, reveal);
+}
+
+/**
+ * Après qu'un objet a changé de forme (matrice appliquée, transformation), les
+ * textes qui l'accompagnent reprennent leur place à côté de lui, en glissant.
+ */
+export function followAnchors(state: BoardState, changed: readonly string[], reveal: Reveal): BoardState {
+  let next = state;
+  for (const id of anchoredTo(state, changed)) {
+    const text = next.nodes[id];
+    if (!isVisible(text) || text.type !== "text" || !text.anchor) continue;
+    const targets = resolveTargets(next, text.anchor.target);
+    if (targets.length === 0) continue;
+    const box = union(targets.map((t) => nodeBox(next.nodes[t]!, next.frame)))!;
+    const placed = placeBeside(next, textNodeExtent(text, next.frame), box, text.anchor.side, new Set([id, ...targets]));
+    const now: Vec2 = [text.at[0] + text.offset[0], text.at[1] + text.offset[1]];
+    next = moveNodes(next, [id], [placed.center[0] - now[0], placed.center[1] - now[1]], reveal);
+  }
+  return next;
 }
