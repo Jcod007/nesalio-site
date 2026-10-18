@@ -25,6 +25,7 @@ vercel env pull .env.local   # jeton OIDC pour AI Gateway (ou voir .env.example)
 npm run dev                  # http://localhost:3000
 npm test                     # tests unitaires (moteur, langage de scène, serveur)
 npm run typecheck
+npm run test:e2e             # parcours réel dans le navigateur (ordinateur + téléphone), app lancée à part
 ```
 
 Sans accès à AI Gateway (ni `OPENROUTER_API_KEY`), l'application joue trois séances de démonstration
