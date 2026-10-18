@@ -1,0 +1,50 @@
+# Enregistre une vraie séance sur app.nesalio.com (vrai modèle, vraie voix de Nesa)
+# pour en faire une vidéo de démonstration. Aucun secret : le navigateur visite
+# l'outil comme un élève. Chaque vidéo est publiée sur la branche demo-video-<scénario>.
+name: Vidéo de démonstration
+
+on:
+  push:
+    branches: [claude/video-demo]
+    paths: [".github/workflows/demo-video.yml", "app/tools/demo/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [vecteurs, parabole, projectile]
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium ffmpeg
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Enregistrer la séance
+        run: node tools/demo/enregistrer.mjs
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+          NESALIO_URL: https://app.nesalio.com/
+          OUT: sortie
+      - name: Publier la vidéo
+        if: always()
+        working-directory: app/sortie
+        run: |
+          git init -q
+          git checkout -q -b demo-video-${{ matrix.scenario }}
+          git add -A
+          git -c user.name=github-actions -c user.email=actions@github.com commit -qm "Vidéo de démonstration : ${{ matrix.scenario }}"
+          git push -f -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" HEAD:demo-video-${{ matrix.scenario }}
