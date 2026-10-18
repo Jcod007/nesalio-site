@@ -352,8 +352,12 @@ describe("outils des notions poussées", () => {
     // Enroulé à sa propre fréquence, le signal penche vers le haut : centre en (0 ; 0,5).
     expect(at(board)[0]).toBeCloseTo(0, 2);
     expect(at(board)[1]).toBeCloseTo(0.5, 2);
+    board = applyAction(board, { type: "text", id: "lbl", text: "fréquence 2", near: "w-masse", side: "right" }, t(50));
+    const label = position(board, "lbl");
     board = applyAction(board, { type: "transform", target: "w", x: "(1+sin(2*t))*cos(3*t)", y: "(1+sin(2*t))*sin(3*t)" }, t(100));
     expect(Math.hypot(...at(board))).toBeLessThan(0.02);
+    // Le texte attaché au centre de masse le suit.
+    expect(position(board, "lbl")[1]).toBeLessThan(label[1] - 0.3);
     expect(board.nodes["w-masse"]!.morph?.start).toBe(100);
   });
 

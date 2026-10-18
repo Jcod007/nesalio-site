@@ -285,10 +285,12 @@ export const transformCommand = defineCommand({
     const changed = morphed(node, action);
     let next = putNode(state, { ...changed, morph: reveal });
     // Le centre de masse d'une courbe paramétrée suit sa nouvelle forme.
+    const moved = [action.target];
     if (changed.type === "polygon" && changed.param && isVisible(state.nodes[massId(action.target)])) {
       const absolute = changed.points.map((p) => [p[0] + changed.offset[0], p[1] + changed.offset[1]] as [number, number]);
       next = putMassPoint(next, action.target, absolute, reveal);
+      moved.push(massId(action.target));
     }
-    return node.type === "text" ? next : followAnchors(next, [action.target], reveal);
+    return node.type === "text" ? next : followAnchors(next, moved, reveal);
   },
 });
