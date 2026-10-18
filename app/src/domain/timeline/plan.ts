@@ -55,11 +55,13 @@ export function planStep(actions: readonly Action[], speechMs: number, cues?: Re
   };
 
   if (cues && actions.some((action) => cueOf(action) !== undefined)) {
-    let cursor = 0;
+    // Un objet sans repère suit celui qui le précède dans la liste (le rayon vient avec son point,
+    // jamais avant) ; avant le premier repère, il ouvre la phrase (le repère du graphique, par exemple).
+    let follow = 0;
     const planned = actions.map((action, i) => {
       const cue = cueOf(action);
-      const offset = cue !== undefined ? Math.max(0, Math.round(cue * speechMs - CUE_LEAD_MS)) : cursor;
-      if (!isQuick(action.type)) cursor = Math.max(cursor, offset + durations[i]! * OVERLAP);
+      const offset = cue !== undefined ? Math.max(0, Math.round(cue * speechMs - CUE_LEAD_MS)) : follow;
+      follow = isQuick(action.type) ? offset : offset + Math.round(durations[i]! * OVERLAP);
       return { action, offset, duration: durations[i]! };
     });
     return { actions: planned, drawingMs: Math.max(...planned.map((p) => p.offset + p.duration)) };

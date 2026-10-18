@@ -48,4 +48,17 @@ describe("repères de synchronisation", () => {
     expect(cues.A).toBeCloseTo("Le a est négatif, et ".length / "Le a est négatif, et A est ici.".length);
     expect(inferCues("Le point A.", [{ type: "point", id: "A" }], { A: 0.9 }).A).toBe(0.9);
   });
+
+  it("un objet sans repère vient avec l'objet qui le précède, jamais avant lui", () => {
+    const plan = planStep(
+      [
+        { type: "point", id: "P", at: [0.87, 0.5] },
+        { type: "segment", id: "r", from: [0, 0], to: [0.87, 0.5] },
+      ],
+      6000,
+      { P: 0.95 },
+    );
+    const [point, radius] = plan.actions;
+    expect(radius!.offset).toBeGreaterThanOrEqual(point!.offset);
+  });
 });
