@@ -20,6 +20,7 @@ import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
 import type { Step } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
+import { talkShow } from "@/domain/tutor/talkShow";
 import type { StudentAnswer } from "@/domain/tutor/request";
 
 export const runtime = "nodejs";
@@ -92,6 +93,7 @@ export async function GET(request: Request): Promise<Response> {
   const answerLog: Array<Omit<StudentAnswer, "choices">> = [];
   let review: string[] = [];
   let unshownTotal = 0;
+  const allSteps: Step[] = [];
   for (let turn = 1; turn <= maxTurns; turn++) {
     const turnStart = Date.now();
     const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
@@ -114,6 +116,7 @@ export async function GET(request: Request): Promise<Response> {
       if (event.kind === "step") {
         const { kind: _kind, ...step } = event;
         turnSteps.push(step);
+        allSteps.push(step);
         if (info.firstStepMs === undefined) info.firstStepMs = Date.now() - turnStart;
         spoken.push(event.say);
         lastCheck = event.check;
@@ -153,10 +156,13 @@ export async function GET(request: Request): Promise<Response> {
       turns.push(info);
       break;
     }
+    const free = params.get("answers") === "free";
     const picked = pickAnswer(lastCheck, answerRight);
-    const correct = lastCheck.answer === undefined ? null : picked === lastCheck.answer;
-    const misconception = correct === false ? lastCheck.why?.[picked]?.trim() || undefined : undefined;
-    info.studentAnswer = `${lastCheck.choices[picked]} (${correct === null ? "situer" : correct ? "juste" : "faux"})${misconception ? ` — erreur visée : ${misconception}` : ""}`;
+    const correct = free ? null : lastCheck.answer === undefined ? null : picked === lastCheck.answer;
+    const misconception = !free && correct === false ? lastCheck.why?.[picked]?.trim() || undefined : undefined;
+    info.studentAnswer = free
+      ? `« ${FREE_ANSWERS[turn % FREE_ANSWERS.length]} » (réponse libre)`
+      : `${lastCheck.choices[picked]} (${correct === null ? "situer" : correct ? "juste" : "faux"})${misconception ? ` — erreur visée : ${misconception}` : ""}`;
     turns.push(info);
     spoken.push(lastCheck.prompt);
     turnRequest = {
@@ -172,14 +178,26 @@ export async function GET(request: Request): Promise<Response> {
         answers: answerLog.length > 0 ? [...answerLog] : undefined,
         review: review.length > 0 ? review : undefined,
       },
-      answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: lastCheck.choices[picked]!, correct, misconception },
+      answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: free ? FREE_ANSWERS[turn % FREE_ANSWERS.length]! : lastCheck.choices[picked]!, correct, misconception },
     };
-    answerLog.push({ prompt: lastCheck.prompt, picked: lastCheck.choices[picked]!, correct, misconception });
+    answerLog.push({ prompt: lastCheck.prompt, picked: free ? FREE_ANSWERS[turn % FREE_ANSWERS.length]! : lastCheck.choices[picked]!, correct, misconception });
   }
   lesson.stepCount = steps.length;
   lesson.actionCount = steps.reduce((n, s) => n + s.do.length, 0);
   lesson.commands = usage;
   /** Gestes : ce qui bouge ou se transforme sous les yeux de l'élève (au moins un par tour attendu). */
+  /** Parle-t-elle plus qu'elle ne montre ? Temps de parole et ce que fait le tableau pendant ce temps. */
+  const ts = talkShow(allSteps);
+  lesson.talkShow = {
+    sentences: ts.sentences,
+    parole_s: Math.round(ts.speechMs / 100) / 10,
+    part_montree: Math.round(ts.shownShare * 100) + " %",
+    ecrit_s: Math.round(ts.byVisual.ecrit / 100) / 10,
+    souligne_s: Math.round(ts.byVisual.souligne / 100) / 10,
+    rien_s: Math.round(ts.byVisual.rien / 100) / 10,
+    plus_long_sans_rien_voir_s: Math.round(ts.longestBlindMs / 100) / 10,
+    avant_premier_dessin_s: Math.round(ts.untilFirstVisualMs / 100) / 10,
+  };
   /** Phrases qui annoncent une action sans la montrer (« les bosses s'annulent » sans aire). */
   lesson.unshown = unshownTotal;
   lesson.gestures = ["move", "copy", "transform", "rotate", "applyMatrix"].reduce((n, type) => n + (usage[type] ?? 0), 0);
@@ -213,6 +231,9 @@ export async function GET(request: Request): Promise<Response> {
   report.totalMs = ms();
   return Response.json(report, { headers: { "Cache-Control": "no-store" } });
 }
+
+/** answers=free : un élève qui répond avec ses mots, flou, comme en vrai. */
+const FREE_ANSWERS = ["euh je sais pas trop", "jcomprend pas ton dessin", "c'est 2 ? ou peut-être 3", "ok mais à quoi ça sert"];
 
 /** Réponse de l'élève simulé : la bonne, ou une erreur ; pour une question pour le situer, « un peu ». */
 function pickAnswer(check: Check, right: boolean): number {
