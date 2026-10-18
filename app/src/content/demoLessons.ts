@@ -13,9 +13,10 @@ import type { Lesson } from "@/domain/scene/schema";
 
 export const quadraticLesson: Lesson = {
   header: { kind: "lesson", title: "Les zéros d'une fonction quadratique", topic: "Fonctions · sec 4" },
+  // Une étape = une phrase courte et les seuls objets dont elle parle (joués en parallèle, au mot repéré par {id}).
   steps: [
     {
-      say: "On va trouver les zéros de f de x {n1} égale moins x moins 2, le tout au carré, plus 3. D'abord, la forme canonique nous donne le sommet directement.",
+      say: "On cherche les zéros de f de x {n1} égale moins x moins 2, le tout au carré, plus 3.",
       mood: "explique",
       do: [
         { type: "axes", x: [-1, 5], y: [-3, 4], xLabel: "x", yLabel: "y" },
@@ -23,18 +24,24 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "Le sommet {sommet} est au point 2, 3. Et le a est négatif, donc la parabole ouvre vers le bas, symétrique autour de cet axe {axe}.",
+      say: "La forme canonique donne directement le sommet {sommet} : 2, 3.",
       mood: "dessine",
-      do: [
-        { type: "point", id: "sommet", at: [2, 3], label: "(2, 3)", color: "violet", ring: true },
-        { type: "segment", id: "axe", from: [2, -3], to: [2, 4], color: "violet", dashed: true },
-      ],
+      do: [{ type: "point", id: "sommet", at: [2, 3], label: "(2, 3)", color: "violet", ring: true }],
     },
     {
-      say: "Imagine une colline {f} : le sommet est au-dessus de l'axe des x, et les deux côtés descendent. Chaque côté finit par croiser l'axe {q1} {q2}, donc il y a deux zéros.",
+      say: "Le a est négatif : la parabole ouvre vers le bas, symétrique autour de cet axe {axe}.",
+      mood: "dessine",
+      do: [{ type: "segment", id: "axe", from: [2, -3], to: [2, 4], color: "violet", dashed: true }],
+    },
+    {
+      say: "Imagine une colline {f} : le sommet est au-dessus de l'axe des x.",
+      mood: "dessine",
+      do: [{ type: "curve", id: "f", fn: "-(x-2)^2+3", color: "blue" }],
+    },
+    {
+      say: "Les deux côtés descendent et finissent par croiser l'axe {q1} {q2} : deux zéros.",
       mood: "dessine",
       do: [
-        { type: "curve", id: "f", fn: "-(x-2)^2+3", color: "blue" },
         { type: "text", id: "q1", at: [0.15, -0.6], text: "?", color: "green" },
         { type: "text", id: "q2", at: [3.65, -0.6], text: "?", color: "green" },
       ],
@@ -48,15 +55,17 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "On isole le carré {n2}, puis on prend la racine carrée des deux côtés, sans oublier le plus ou moins. Donc x égale 2 plus ou moins racine de 3 {n4}.",
-      mood: "idee",
-      do: [
-        { type: "transform", target: "n2", text: "(x − 2)² = 3" },
-        { type: "note", id: "n4", text: "x = 2 ± √3", color: "green" },
-      ],
+      say: "On isole le carré {n2}.",
+      mood: "explique",
+      do: [{ type: "transform", target: "n2", text: "(x − 2)² = 3" }],
     },
     {
-      say: "Ça donne environ 3,73 {z2} et 0,27 {z1}. Regarde le graphique : ce sont exactement les deux points où la courbe coupe l'axe.",
+      say: "Puis on prend la racine des deux côtés, sans oublier le plus ou moins {n4}.",
+      mood: "idee",
+      do: [{ type: "note", id: "n4", text: "x = 2 ± √3", color: "green" }],
+    },
+    {
+      say: "Ça donne environ 3,73 {z2} et 0,27 {z1}.",
       mood: "dessine",
       do: [
         { type: "erase", target: "q1" },
@@ -64,12 +73,18 @@ export const quadraticLesson: Lesson = {
         { type: "point", id: "z1", at: [0.268, 0], label: "0,27", color: "green" },
         { type: "point", id: "z2", at: [3.732, 0], label: "3,73", color: "green" },
         { type: "group", id: "zeros", members: ["z1", "z2"] },
-        { type: "dim", target: "axe" },
-        { type: "highlight", target: "n4" },
       ],
     },
     {
-      say: "À toi maintenant. Même ouverture vers le bas, mais cette fois le sommet est en 2, moins 1 {g}.",
+      say: "Ce sont exactement les points où la courbe coupe l'axe {zeros}.",
+      mood: "dessine",
+      do: [
+        { type: "dim", target: "axe" },
+        { type: "highlight", target: "zeros" },
+      ],
+    },
+    {
+      say: "À toi : même ouverture vers le bas, mais le sommet est en 2, moins 1 {g}.",
       mood: "question",
       do: [{ type: "curve", id: "g", fn: "-(x-2)^2-1", color: "muted", style: "dashed" }],
       check: {

@@ -26,13 +26,14 @@ FORMAT DE RÉPONSE
 Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni bloc de code.
 1. {"kind":"lesson","title":"…","topic":"…"} : titre court de la séance (seulement pour une nouvelle question).
 2. {"kind":"step","say":"…","mood":"…","do":[…],"check":{…}} : une étape.
-   - "say" : ce que tu dis à voix haute (1 ou 2 phrases, 35 mots au plus). Écris les maths comme on les prononce :
+   - "say" : ce que tu dis à voix haute : UNE phrase courte (20 mots au plus). Écris les maths comme on les prononce :
      « x au carré », « racine carrée de 3 », « f de x », « 20 mètres par seconde ». Les symboles vont sur le tableau.
      SYNCHRONISATION : écris {id} juste après le mot qui désigne un objet de "do" (« le sommet {S} est en haut »).
      L'objet apparaît, bouge ou s'estompe à ce moment-là, comme dans une vidéo : jamais avant que tu en parles.
      Un repère par objet ; les repères ne sont pas prononcés.
    - "mood" : "explique" | "dessine" | "question" | "idee" | "bravo".
-   - "do" : les commandes de dessin à jouer pendant la phrase (0 à 6 par étape, dans l'ordre où elles se dessinent).
+   - "do" : SEULEMENT les objets dont parle cette phrase (0 à 3 en général), joués en parallèle pendant qu'elle est dite.
+     Nouvel objet à présenter = nouvelle étape : une phrase, son dessin, puis la phrase suivante (comme une vidéo).
    - "check" : question posée à l'élève, qui termine le tour (voir COMMENT TU ENSEIGNES).
      Question avec une bonne réponse :
      {"prompt":"…","choices":["…","…","…"],"answer":<index du bon choix, à partir de 0>,"ifRight":"…","ifWrong":"…"}
@@ -65,11 +66,11 @@ en mathématiques et en sciences (physique, chimie). Tu suis le programme québ�
 
 COMMENT TU ENSEIGNES
 La séance est un ÉCHANGE, par tours, pas un cours magistral.
-- Un tour = 1 à 3 étapes, dont la dernière porte un "check" : tu poses ta question, puis tu T'ARRÊTES.
+- Un tour = 2 à 6 étapes courtes, dont la dernière porte un "check" : tu poses ta question, puis tu T'ARRÊTES.
   N'écris rien après cette ligne : tu recevras la réponse de l'élève et tu continueras au tour suivant.
-- Premier tour d'une nouvelle question : 1 ou 2 étapes courtes. La première tient en une phrase (tu commences à parler
-  vite) : une accroche concrète. Puis une question pour situer l'élève : ce qu'il connaît déjà (sans "answer"),
-  ou une prédiction qualitative (avec "answer"). PAS de calcul au premier tour : les calculs viennent ensuite.
+- Premier tour d'une nouvelle question : 2 ou 3 étapes courtes (une accroche concrète, ce qu'il faut voir au tableau),
+  puis une question pour situer l'élève : ce qu'il connaît déjà (sans "answer"), ou une prédiction qualitative
+  (avec "answer"). PAS de calcul au premier tour : les calculs viennent ensuite.
 - Tes questions portent sur le raisonnement, pas sur la mémoire. 2 à 4 choix ; les mauvais choix correspondent à des
   erreurs typiques d'élèves. "ifRight" / "ifWrong" : une réaction immédiate d'une phrase (15 mots au plus) ;
   l'explication vient au tour suivant, adaptée à ce que l'élève a répondu.
@@ -88,14 +89,15 @@ La séance est un ÉCHANGE, par tours, pas un cours magistral.
  * réaction à une bonne réponse et la remédiation après une erreur.
  */
 function exampleExchange(): string {
-  const [s0, s1, s2, s3, s4, s5, s6] = quadraticLesson.steps;
+  const beats = quadraticLesson.steps;
   const line = (event: object) => JSON.stringify(event);
   const step = (value: object) => line({ kind: "step", ...value });
   const turn1 = [
     line(quadraticLesson.header),
-    step(s0!),
+    step(beats[0]!),
+    step(beats[1]!),
     step({
-      ...s1!,
+      ...beats[2]!,
       check: {
         prompt: "Selon toi, combien de fois cette parabole va croiser l'axe des x ?",
         choices: ["0", "1", "2"],
@@ -105,29 +107,29 @@ function exampleExchange(): string {
       },
     }),
   ];
-  const lastCheck = s6!.check!;
   const turn2 = [
-    step(s2!),
-    step(s3!),
-    step(s4!),
-    step(s5!),
-    step({ ...s6!, check: { ...lastCheck, ifRight: "Bravo, tu as raisonné sans calculer !", ifWrong: "Pas tout à fait." } }),
+    step(beats[3]!),
+    step(beats[4]!),
+    step(beats[5]!),
+    step(beats[6]!),
+    step({
+      ...beats[7]!,
+      check: { prompt: "Que vaut x ?", choices: ["2 ± √3", "2 ± 3", "± √3"], answer: 0, ifRight: "Exact !", ifWrong: "Pas tout à fait." },
+    }),
   ];
   const turn3 = [
     step({
-      say: "Tu as dit 2 : c'est l'erreur la plus courante, on regarde seulement l'ouverture {g}. Ce qui compte, c'est où est le sommet {s2} : ici, il est sous l'axe {t3}.",
+      say: "Tu as écrit 2 plus ou moins 3 : la racine {n4} a disparu en route.",
       mood: "idee",
-      do: [
-        { type: "point", id: "s2", at: [2, -1], label: "(2, −1)", color: "orange", ring: true },
-        { type: "text", id: "t3", text: "sous l'axe !", near: "s2", side: "below", color: "orange" },
-        { type: "highlight", target: "g" },
-      ],
+      do: [{ type: "highlight", target: "n4" }],
     }),
     step({
-      say: "Et comme la courbe ouvre vers le bas, elle ne fait que descendre à partir de là. Elle ne touche jamais l'axe : zéro zéro {n5}.",
+      say: "Racine de 3, c'est environ 1,73 {t3}, pas 3.",
       mood: "explique",
-      do: [{ type: "note", id: "n5", text: "sommet sous l'axe + ouvre vers le bas → 0 zéro" }],
+      do: [{ type: "text", id: "t3", text: "√3 ≈ 1,73", near: "n4", side: "below", color: "orange" }],
     }),
+    step(beats[8]!),
+    step(beats[9]!),
     line(quadraticLesson.end),
   ];
   return [
@@ -137,7 +139,7 @@ function exampleExchange(): string {
     "Tour 2 (l'élève a répondu « 2 », juste) :",
     ...turn2,
     "",
-    "Tour 3 (l'élève a répondu « 2 », faux : remédiation, puis fin) :",
+    "Tour 3 (l'élève a répondu « 2 ± 3 », faux : remédiation, puis fin) :",
     ...turn3,
   ].join("\n");
 }
@@ -148,7 +150,7 @@ export function buildSystemPrompt(): string {
 
 const FOLLOW_UP_RULES = `
 L'élève t'interrompt ou te pose une question sur la séance en cours. Réponds à SA question, en reprenant là où vous en étiez :
-- pas de ligne "lesson" ; 1 à 3 étapes, puis {"kind":"end","summary":[]} (pas de "check" ici) ;
+- pas de ligne "lesson" ; 1 à 4 étapes courtes, puis {"kind":"end","summary":[]} (pas de "check" ici) ;
 - réutilise les objets déjà au tableau (highlight, erase) au lieu de tout redessiner ; tu peux en ajouter ;
 - s'il dit seulement qu'il ne comprend pas, réexplique la dernière idée autrement (image plus concrète, autre chemin),
   sans répéter les mêmes mots.`.trim();
@@ -162,7 +164,7 @@ L'élève vient de répondre à ta question. Continue la séance (nouveau tour) 
   · fausse : devine l'erreur de raisonnement probable derrière son choix, nomme-la sans jugement, et réexplique
     autrement en t'appuyant sur le tableau (highlight, nouveau dessin) ;
   · question pour le situer : adapte le niveau (il ne connaît pas → pars de plus loin ; il connaît → va plus vite) ;
-- puis 1 à 3 étapes qui finissent par une nouvelle question ("check"), OU la fin de la séance ({"kind":"end"}) si la
+- puis 2 à 6 étapes courtes qui finissent par une nouvelle question ("check"), OU la fin de la séance ({"kind":"end"}) si la
   notion est couverte et que l'élève a réussi un exercice ;
 - après 3 réponses, conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
   puis {"kind":"end"} (pas de nouvelle question) ;
