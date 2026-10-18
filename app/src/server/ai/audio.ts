@@ -3,6 +3,8 @@
  */
 import { GATEWAY_BASE } from "@/server/config";
 import { UpstreamError } from "@/server/tutor/chatCompletions";
+import { detectSpeechSpan } from "@/domain/audio/speechSpan";
+import type { SpeechSpan } from "@/domain/timeline/spokenTime";
 
 const PROTOCOL = { "ai-gateway-protocol-version": "0.0.1" };
 
@@ -122,26 +124,66 @@ export async function transcribeWords(options: TranscriptionOptions): Promise<{ 
   };
 }
 
-/** Durée d'un fichier WAV PCM, lue dans son en-tête (null si ce n'est pas un WAV lisible). */
-export function wavDurationMs(bytes: Uint8Array): number | null {
+interface WavLayout {
+  sampleRate: number;
+  channels: number;
+  bitsPerSample: number;
+  byteRate: number;
+  dataOffset: number;
+  dataBytes: number;
+}
+
+/** Lit l'en-tête d'un WAV PCM (null si ce n'en est pas un, ou s'il est illisible). */
+function readWav(bytes: Uint8Array): WavLayout | null {
   if (bytes.byteLength < 44) return null;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const tag = (offset: number) => String.fromCharCode(...bytes.subarray(offset, offset + 4));
   if (tag(0) !== "RIFF" || tag(8) !== "WAVE") return null;
-  let byteRate = 0;
+  let format: Omit<WavLayout, "dataOffset" | "dataBytes"> | null = null;
   let offset = 12;
   while (offset + 8 <= bytes.byteLength) {
     const id = tag(offset);
     const size = view.getUint32(offset + 4, true);
-    if (id === "fmt " && offset + 16 <= bytes.byteLength) byteRate = view.getUint32(offset + 16, true);
+    if (id === "fmt " && offset + 24 <= bytes.byteLength) {
+      format = {
+        channels: view.getUint16(offset + 10, true),
+        sampleRate: view.getUint32(offset + 12, true),
+        byteRate: view.getUint32(offset + 16, true),
+        bitsPerSample: view.getUint16(offset + 22, true),
+      };
+    }
     if (id === "data") {
-      if (!byteRate) return null;
+      if (!format || !format.byteRate) return null;
       // Certaines voix écrivent une taille de données nulle ou fausse en flux : on prend ce qui est vraiment là.
       const available = bytes.byteLength - (offset + 8);
-      const dataBytes = size > 0 && size <= available ? size : available;
-      return Math.round((dataBytes / byteRate) * 1000);
+      return { ...format, dataOffset: offset + 8, dataBytes: size > 0 && size <= available ? size : available };
     }
     offset += 8 + size + (size % 2);
   }
   return null;
+}
+
+/** Durée d'un fichier WAV PCM, lue dans son en-tête (null si ce n'est pas un WAV lisible). */
+export function wavDurationMs(bytes: Uint8Array): number | null {
+  const wav = readWav(bytes);
+  return wav ? Math.round((wav.dataBytes / wav.byteRate) * 1000) : null;
+}
+
+/** Échantillons d'un WAV PCM 16 bits (premier canal), entre -1 et 1. */
+export function wavSamples(bytes: Uint8Array): { samples: Float32Array; sampleRate: number } | null {
+  const wav = readWav(bytes);
+  if (!wav || wav.bitsPerSample !== 16 || wav.channels < 1) return null;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const stride = 2 * wav.channels;
+  const count = Math.floor(wav.dataBytes / stride);
+  const samples = new Float32Array(count);
+  for (let i = 0; i < count; i++) samples[i] = view.getInt16(wav.dataOffset + i * stride, true) / 32768;
+  return { samples, sampleRate: wav.sampleRate };
+}
+
+/** Partie vraiment parlée d'un audio généré (WAV seulement ; null sinon). */
+export function speechSpanOf(audio: Uint8Array, mediaType: string): SpeechSpan | null {
+  if (!mediaType.includes("wav")) return null;
+  const decoded = wavSamples(audio);
+  return decoded ? detectSpeechSpan(decoded.samples, decoded.sampleRate) : null;
 }

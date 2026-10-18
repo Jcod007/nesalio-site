@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseTimedWords, transcribeWords, wavDurationMs } from "./audio";
+import { parseTimedWords, speechSpanOf, transcribeWords, wavDurationMs, wavSamples } from "./audio";
 
 /** En-tête WAV PCM minimal suivi de `dataBytes` octets de silence. */
 function wav(sampleRate: number, channels: number, bitsPerSample: number, dataBytes: number): Uint8Array {
@@ -67,5 +67,41 @@ describe("transcribeWords", () => {
     const result = await transcribeWords({ token: "t", model: "openai/whisper-1", audioBase64: "AAAA", mediaType: "audio/wav", fetchImpl });
     expect(sent.providerOptions).toEqual({ openai: { timestampGranularities: ["word"] } });
     expect(result.words).toEqual([{ text: "a", startMs: 0, endMs: 200 }]);
+  });
+});
+
+/** WAV 16 bits mono : `before` ms de silence, `voice` ms de son, `after` ms de silence. */
+function voiceWav(rate: number, before: number, voice: number, after: number): Uint8Array {
+  const n = (ms: number) => Math.round((ms / 1000) * rate);
+  const total = n(before) + n(voice) + n(after);
+  const bytes = wav(rate, 1, 16, total * 2);
+  const view = new DataView(bytes.buffer);
+  for (let i = 0; i < n(voice); i++) view.setInt16(44 + (n(before) + i) * 2, Math.round(12000 * Math.sin((2 * Math.PI * 200 * i) / rate)), true);
+  return bytes;
+}
+
+describe("wavSamples", () => {
+  it("lit les échantillons 16 bits entre -1 et 1", () => {
+    const decoded = wavSamples(voiceWav(16_000, 0, 100, 0))!;
+    expect(decoded.sampleRate).toBe(16_000);
+    expect(decoded.samples.length).toBe(1600);
+    expect(Math.max(...decoded.samples)).toBeCloseTo(12000 / 32768, 2);
+  });
+
+  it("renvoie null pour un format qu'il ne sait pas lire", () => {
+    expect(wavSamples(wav(16_000, 1, 8, 100))).toBeNull();
+    expect(wavSamples(new Uint8Array([0, 1, 2]))).toBeNull();
+  });
+});
+
+describe("speechSpanOf", () => {
+  it("trouve la partie parlée d'un WAV", () => {
+    const span = speechSpanOf(voiceWav(24_000, 300, 2000, 400), "audio/wav")!;
+    expect(Math.abs(span.startMs - 300)).toBeLessThanOrEqual(20);
+    expect(Math.abs(span.endMs - 2300)).toBeLessThanOrEqual(20);
+  });
+
+  it("ne devine rien pour un autre format (MP3)", () => {
+    expect(speechSpanOf(new Uint8Array(100), "audio/mpeg")).toBeNull();
   });
 });

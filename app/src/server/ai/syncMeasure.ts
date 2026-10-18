@@ -6,10 +6,11 @@
  */
 import { extractCues } from "@/domain/tutor/cues";
 import { measureCues, summarizeSync, type CueSync } from "@/domain/timeline/syncCheck";
+import type { SpeechSpan } from "@/domain/timeline/spokenTime";
 import type { TimedWord } from "./audio";
 
 export interface SyncPorts {
-  synthesize(text: string): Promise<{ audio: Uint8Array; mediaType: string; durationMs: number | null }>;
+  synthesize(text: string): Promise<{ audio: Uint8Array; mediaType: string; durationMs: number | null; span?: SpeechSpan | null }>;
   transcribe(audio: Uint8Array, mediaType: string): Promise<{ text: string; words: TimedWord[]; keys: string[] }>;
 }
 
@@ -33,7 +34,7 @@ export async function measureSync(rawSentences: readonly string[], ports: SyncPo
         continue;
       }
       const audioMs = speech.durationMs ?? heard.words[heard.words.length - 1]!.endMs;
-      for (const row of measureCues({ say, cues, audioMs, words: heard.words })) rows.push({ say, ...row });
+      for (const row of measureCues({ say, cues, audioMs, words: heard.words, span: speech.span ?? undefined })) rows.push({ say, ...row });
     } catch (error) {
       problems.push(`« ${say.slice(0, 60)} » : ${(error as Error).message.slice(0, 200)}`);
     }

@@ -3,17 +3,22 @@
  * joué dans le navigateur.
  *
  * - Chaque phrase est préparée d'avance (préchargement) pour éviter les blancs.
- * - `prepare()` renvoie la durée réelle de l'audio : les tracés s'y calent.
+ * - `prepare()` renvoie la durée réelle de l'audio, et `speechSpan()` la partie
+ *   vraiment parlée (en-tête X-Speech-Span) : les tracés s'y calent.
  * - Si le serveur ne répond pas (voix non configurée, réseau), on bascule
  *   sur la voix du navigateur, sans interrompre la séance.
  */
 import type { SpeechHandle } from "@/engine/ports";
 import type { BrowserSpeaker } from "./browserSpeaker";
 import { sessionHeaders } from "@/services/session";
+import { parseSpeechSpan, SPEECH_SPAN_HEADER } from "@/domain/audio/speechSpan";
+import type { SpeechSpan } from "@/domain/timeline/spokenTime";
 
 interface Clip {
   url: string;
   durationMs: number;
+  /** Partie vraiment parlée, envoyée par le serveur (absente pour un MP3). */
+  span: SpeechSpan | null;
 }
 
 const MAX_CLIPS = 16;
@@ -25,6 +30,8 @@ export interface CloudSpeaker extends BrowserSpeaker {
 
 export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/voice"): CloudSpeaker {
   const clips = new Map<string, Promise<Clip | null>>();
+  /** Partie parlée des clips déjà arrivés (lecture synchrone pour le lecteur). */
+  const spans = new Map<string, SpeechSpan>();
   let failures = 0;
   let disabled = false;
   let muted = false;
@@ -36,6 +43,7 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
       const oldest = clips.keys().next().value!;
       const evicted = clips.get(oldest);
       clips.delete(oldest);
+      spans.delete(oldest);
       void evicted?.then((c) => c && URL.revokeObjectURL(c.url));
     }
   }
@@ -52,10 +60,12 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
         return null;
       }
       if (!response.ok) throw new Error(String(response.status));
+      const span = parseSpeechSpan(response.headers.get(SPEECH_SPAN_HEADER));
       const url = URL.createObjectURL(await response.blob());
       const durationMs = await measure(url);
       failures = 0;
-      return { url, durationMs };
+      if (span && span.endMs <= durationMs + 50) spans.set(text, span);
+      return { url, durationMs, span };
     } catch {
       failures++;
       if (failures >= FAILURES_BEFORE_FALLBACK) disabled = true;
@@ -90,6 +100,9 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
       if (muted || disabled) return fallback.estimate(text);
       const clip = await load(text);
       return clip?.durationMs ?? fallback.estimate(text);
+    },
+    speechSpan(text) {
+      return muted || disabled ? undefined : spans.get(text);
     },
     speak(text): SpeechHandle {
       current?.finish();

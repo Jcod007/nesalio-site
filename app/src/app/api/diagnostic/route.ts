@@ -12,7 +12,7 @@
  *          comparés à l'heure réelle des mots), sur les phrases des démos.
  * Sans le bon jeton : 404, aucun appel payant.
  */
-import { synthesizeSpeech, transcribeAudio, transcribeWords, wavDurationMs } from "@/server/ai/audio";
+import { speechSpanOf, synthesizeSpeech, transcribeAudio, transcribeWords, wavDurationMs } from "@/server/ai/audio";
 import { measureSync } from "@/server/ai/syncMeasure";
 import { DEMO_LESSONS } from "@/content/demoLessons";
 import type { Check } from "@/domain/scene/schema";
@@ -49,7 +49,7 @@ export async function GET(request: Request): Promise<Response> {
     const report = await measureSync(sentences, {
       synthesize: async (text) => {
         const speech = await synthesizeSpeech({ token, model: config.voice.model, voice: config.voice.voice, instructions: config.voice.instructions, text });
-        return { ...speech, durationMs: wavDurationMs(speech.audio) };
+        return { ...speech, durationMs: wavDurationMs(speech.audio), span: speechSpanOf(speech.audio, speech.mediaType) };
       },
       transcribe: (audio, mediaType) =>
         transcribeWords({ token, model: config.transcription.model, audioBase64: Buffer.from(audio).toString("base64"), mediaType }),
