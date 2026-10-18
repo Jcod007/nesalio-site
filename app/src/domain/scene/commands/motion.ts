@@ -16,7 +16,9 @@ import {
   type BoardState,
   type Vec2,
 } from "@/domain/board/state";
-import { ColorName, Coord, Expression, Id, Side } from "../primitives";
+import { ColorName, Coord, Expression, finite, Id, Range, Side } from "../primitives";
+import { sampleParametric } from "@/domain/board/geometry";
+import { rotate } from "@/domain/board/shapes";
 import { defineCommand } from "./define";
 
 /** Point d'un objet qui sert d'accroche : la queue ou la pointe d'un vecteur, le centre d'une figure. */
@@ -140,19 +142,95 @@ export const copyCommand = defineCommand({
   },
 });
 
+/** Un point d'appui : des coordonnées, ou un objet du tableau (un point, la queue d'un vecteur). */
+const Pivot = z.union([Coord, Id]);
+
+/** Fait tourner la géométrie d'un nœud autour de `about` (coordonnées absolues). */
+function rotated(node: BoardNode, about: Vec2, degrees: number): BoardNode | null {
+  const turn = (p: Vec2): Vec2 => {
+    const abs: Vec2 = [p[0] + node.offset[0], p[1] + node.offset[1]];
+    const r = rotate(abs, about, degrees);
+    return [r[0] - node.offset[0], r[1] - node.offset[1]];
+  };
+  switch (node.type) {
+    case "point":
+      return { ...node, at: turn(node.at) };
+    case "text":
+      return { ...node, at: turn(node.at) };
+    case "vector":
+    case "segment":
+      return { ...node, from: turn(node.from), to: turn(node.to) };
+    case "polygon":
+      return { ...node, points: node.points.map(turn), param: undefined };
+    case "circle":
+      return { ...node, center: turn(node.center) };
+    case "arc":
+      return { ...node, center: turn(node.center), start: node.start + degrees, end: node.end + degrees };
+    case "curve":
+    case "grid":
+      return null; // une courbe y = f(x) ou le quadrillage ne tournent pas
+  }
+}
+
+export const rotateCommand = defineCommand({
+  schema: z.object({ type: z.literal("rotate"), target: Id, about: Pivot, angle: finite.refine((a) => Math.abs(a) <= 720) }),
+  doc:
+    '{"type":"rotate","target":"corde","about":"O","angle":-30} : fait tourner un objet ou un groupe autour d\'un point\n' +
+    '  (nom d\'un point, ou [x,y]) ; angle en degrés, positif = sens antihoraire. Plusieurs rotate du même objet dans une\n' +
+    '  étape s\'enchaînent : un pendule qui oscille, un vecteur qui tourne, une figure qu\'on retourne.',
+  duration: (action) => Math.min(2200, 500 + Math.abs(action.angle) * 8),
+  aliases: ["turn", "spin", "swing"],
+  apply(state, action, reveal) {
+    const targets = resolveTargets(state, action.target);
+    if (targets.length === 0) return state;
+    let about: Vec2;
+    if (typeof action.about === "string") {
+      const pivot = resolveTargets(state, action.about);
+      if (pivot.length === 0) return state;
+      about = partOf(state, pivot, "tail");
+    } else about = action.about;
+
+    const followers = anchoredTo(state, targets);
+    let next = state;
+    for (const id of targets) {
+      const node = next.nodes[id]!;
+      const turned = rotated(node, about, action.angle);
+      if (!turned) continue;
+      const spin = { about, angle: action.angle, start: reveal.start, duration: reveal.duration };
+      next = putNode(next, { ...turned, spins: [...(node.spins ?? []), spin].slice(-8) });
+    }
+    // Les textes qui accompagnent l'objet le suivent (ils glissent, sans tourner sur eux-mêmes).
+    for (const id of followers) {
+      const node = next.nodes[id]!;
+      if (node.type !== "text") continue;
+      const abs: Vec2 = [node.at[0] + node.offset[0], node.at[1] + node.offset[1]];
+      const to = rotate(abs, about, action.angle);
+      next = moveNodes(next, [id], [to[0] - abs[0], to[1] - abs[1]], reveal);
+    }
+    return next;
+  },
+});
+
 const TransformSchema = z
   .object({
     type: z.literal("transform"),
     target: Id,
     text: z.string().trim().min(1).max(60).optional(),
+    rows: z.array(z.array(z.string().trim().min(1).max(12)).min(1).max(4)).min(1).max(4).optional(),
     fn: Expression.optional(),
     at: Coord.optional(),
     from: Coord.optional(),
     to: Coord.optional(),
+    points: z.array(Coord).min(3).max(10).optional(),
+    center: Coord.optional(),
+    radius: finite.positive().optional(),
+    x: z.string().min(1).max(200).optional(),
+    y: z.string().min(1).max(200).optional(),
+    t: Range.optional(),
     label: z.string().max(40).optional(),
     color: ColorName.optional(),
   })
-  .refine((a) => [a.text, a.fn, a.at, a.from, a.to, a.label, a.color].some((v) => v !== undefined), {
+  .refine((a) => Object.entries(a).some(([key, v]) => key !== "type" && key !== "target" && v !== undefined), {
     message: "transform : indiquer au moins une propriété à changer",
   });
 
@@ -162,7 +240,7 @@ function morphed(node: BoardNode, a: z.infer<typeof TransformSchema>): BoardNode
   const color = a.color ?? node.color;
   switch (node.type) {
     case "text":
-      return { ...node, color, text: a.text ?? node.text };
+      return { ...node, color, text: a.text ?? (a.rows ? a.rows.map((r) => r.join(" ")).join(" ; ") : node.text), rows: a.rows ?? node.rows };
     case "curve":
       return { ...node, color, fn: a.fn ?? node.fn, label: a.label ?? node.label };
     case "point":
@@ -170,10 +248,24 @@ function morphed(node: BoardNode, a: z.infer<typeof TransformSchema>): BoardNode
     case "segment":
     case "vector":
       return { ...node, color, from: a.from ? local(a.from) : node.from, to: a.to ? local(a.to) : node.to, label: a.label ?? node.label };
-    case "arc":
     case "circle":
-    case "polygon":
+      return { ...node, color, center: a.center ? local(a.center) : node.center, radius: a.radius ?? node.radius, label: a.label ?? node.label };
+    case "polygon": {
+      if (node.param && (a.x || a.y || a.t)) {
+        // Courbe paramétrée : nouvelles équations, même nombre de points (la courbe se déforme en continu).
+        const param = { x: a.x ?? node.param.x, y: a.y ?? node.param.y, t: a.t ?? node.param.t };
+        const points = sampleParametric(param.x, param.y, param.t);
+        if (points.length > 1) return { ...node, color, param, points: points.map(local), label: a.label ?? node.label };
+      }
+      if (a.points && !node.param) {
+        // Même nombre de sommets : chaque sommet glisse vers sa nouvelle place (le carré devient rectangle).
+        return { ...node, color, points: a.points.map(local), label: a.label ?? node.label };
+      }
       return { ...node, color, label: a.label ?? node.label };
+    }
+    case "arc":
+    case "grid":
+      return { ...node, color, ...("label" in node ? { label: a.label ?? node.label } : {}) } as BoardNode;
   }
 }
 
@@ -181,7 +273,9 @@ export const transformCommand = defineCommand({
   schema: TransformSchema,
   doc:
     '{"type":"transform","target":"eq1","text":"x² = 4"} : l\'objet se transforme sous les yeux de l\'élève (morphing).\n' +
-    '  Texte → nouveau texte (étape de calcul suivante), courbe → "fn", point → "at", segment/vecteur → "from"/"to", ou "color".',
+    '  Texte → "text" (étape de calcul suivante), matrice → "rows", courbe → "fn", point → "at", segment/vecteur →\n' +
+    '  "from"/"to", polygone → "points" (mêmes sommets, nouvelles places : le carré devient rectangle), cercle →\n' +
+    '  "center"/"radius", courbe paramétrée → "x"/"y"/"t", ou "color".',
   duration: 1200,
   aliases: ["morph", "becomes"],
   apply(state, action, reveal) {

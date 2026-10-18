@@ -78,6 +78,29 @@ export function textExtent(text: string, fontSize: number, frame: Frame): Extent
   return { w: (chars * fontSize * WIDTH_PER_POINT_PER_CHAR) / unit, h: (fontSize * HEIGHT_PER_POINT) / unit };
 }
 
+/**
+ * Taille d'une matrice écrite au tableau (cases + crochets), en unités du
+ * monde : partagée par le moteur (placement) et le rendu (dessin).
+ */
+export function matrixLayout(rows: readonly (readonly string[])[], fontSize: number) {
+  const cell = (text: string) => Math.max(1, Array.from(text).length) * fontSize * WIDTH_PER_POINT_PER_CHAR;
+  const columns = Math.max(...rows.map((row) => row.length));
+  const widths = Array.from({ length: columns }, (_, j) => Math.max(...rows.map((row) => cell(row[j] ?? ""))));
+  const gap = fontSize * 0.012;
+  const lineHeight = fontSize * HEIGHT_PER_POINT * 1.35;
+  const bracket = fontSize * 0.006;
+  const width = widths.reduce((a, b) => a + b, 0) + gap * (columns - 1) + 2 * (bracket + gap * 0.6);
+  return { widths, gap, lineHeight, bracket, width, height: lineHeight * rows.length };
+}
+
+/** Taille d'un texte au tableau (une matrice prend plusieurs lignes). */
+export function textNodeExtent(node: TextNode, frame: Frame): Extent {
+  if (!node.rows) return textExtent(node.text, fontSizeOf(node), frame);
+  const unit = worldPerMath(frame);
+  const layout = matrixLayout(node.rows, fontSizeOf(node));
+  return { w: layout.width / unit, h: layout.height / unit };
+}
+
 /* --------------------------------- boîtes --------------------------------- */
 
 export const boxAround = ([x, y]: Vec2, { w, h }: Extent): Box => ({ x0: x - w / 2, y0: y - h / 2, x1: x + w / 2, y1: y + h / 2 });
@@ -117,6 +140,8 @@ export function nodeBox(node: BoardNode, frame: Frame): Box {
     case "curve": {
       const points = sampleCurve(node.fn, frame, node.from, node.to, 80).flat();
       box = points.length > 0 ? fromPoints(points) : frameBox(frame);
+      const size = label(node.label);
+      if (size && node.labelAt) box = union([box, boxAround(node.labelAt, size)])!;
       break;
     }
     case "arc":
@@ -127,8 +152,11 @@ export function nodeBox(node: BoardNode, frame: Frame): Box {
       if (size) box = union([box, boxAround(boxCenter(box), { w: size.w, h: size.h })])!;
       break;
     }
+    case "grid":
+      box = { x0: node.x[0], y0: node.y[0], x1: node.x[1], y1: node.y[1] };
+      break;
     case "text": {
-      const size = textExtent(node.text, fontSizeOf(node), frame);
+      const size = textNodeExtent(node, frame);
       const center: Vec2 = node.align === "left" ? [node.at[0] + size.w / 2, node.at[1]] : node.at;
       box = boxAround(center, size);
       break;
@@ -146,7 +174,9 @@ export function outline(node: ArcNode | CircleNode | PolygonNode): Vec2[] {
       return arcPoints(node.center, node.radius, 0, 360, 32);
     case "polygon": {
       const ring = node.closed ? [...node.points, node.points[0]!] : node.points;
-      return ring.flatMap((p, i) => (i === 0 ? [p] : sampleLine(ring[i - 1]!, p, 8).slice(1)));
+      // Une ligne brisée déjà fine (courbe paramétrée, aire) n'a pas besoin d'être subdivisée.
+      const steps = node.points.length > 12 ? 1 : 8;
+      return ring.flatMap((p, i) => (i === 0 ? [p] : sampleLine(ring[i - 1]!, p, steps).slice(1)));
     }
   }
 }
@@ -239,8 +269,13 @@ export function obstacles(state: BoardState, ignore: ReadonlySet<string>): (box:
   for (const node of visibleNodes(state)) {
     if (ignore.has(node.id)) continue;
     const move = ([x, y]: Vec2): Vec2 => [x + node.offset[0], y + node.offset[1]];
+    if (node.type === "grid") continue; // le quadrillage est un fond, pas un obstacle
     if (node.type === "text" || node.type === "point") boxes.push(nodeBox(node, state.frame));
-    else if (node.type === "curve") traces.push(...sampleCurve(node.fn, state.frame, node.from, node.to, 120).flat().map(move));
+    else if (node.type === "curve") {
+      traces.push(...sampleCurve(node.fn, state.frame, node.from, node.to, 120).flat().map(move));
+      // L'étiquette d'une courbe occupe sa place, comme un texte.
+      if (node.label && node.labelAt) boxes.push(boxAround(move(node.labelAt), textExtent(node.label, FONT_SIZE.label, state.frame)));
+    }
     else if (node.type === "segment" || node.type === "vector") traces.push(...sampleLine(node.from, node.to, 16).map(move));
     else {
       traces.push(...outline(node).map(move));

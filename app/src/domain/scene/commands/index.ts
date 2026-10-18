@@ -12,7 +12,9 @@ import { focusCommand, resetViewCommand } from "./camera";
 import type { CommandSpec } from "./define";
 import { dimCommand, highlightCommand, undimCommand } from "./emphasis";
 import { axesCommand, curveCommand, pointCommand, segmentCommand, vectorCommand } from "./figure";
-import { copyCommand, moveCommand, transformCommand } from "./motion";
+import { areaCommand, parametricCommand } from "./analysis";
+import { applyMatrixCommand, gridCommand, matrixCommand } from "./linear";
+import { copyCommand, moveCommand, rotateCommand, transformCommand } from "./motion";
 import { angleCommand, circleCommand, inclineCommand, polygonCommand, triangleCommand } from "./shapes";
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
 import { noteCommand, tagCommand, textCommand } from "./text";
@@ -29,12 +31,18 @@ export const COMMANDS = {
   circle: circleCommand,
   polygon: polygonCommand,
   incline: inclineCommand,
+  area: areaCommand,
+  parametric: parametricCommand,
+  grid: gridCommand,
+  applyMatrix: applyMatrixCommand,
+  matrix: matrixCommand,
   text: textCommand,
   note: noteCommand,
   tag: tagCommand,
   group: groupCommand,
   move: moveCommand,
   copy: copyCommand,
+  rotate: rotateCommand,
   transform: transformCommand,
   highlight: highlightCommand,
   dim: dimCommand,
@@ -56,12 +64,18 @@ export const Action = z.discriminatedUnion("type", [
   circleCommand.schema,
   polygonCommand.schema,
   inclineCommand.schema,
+  areaCommand.schema,
+  parametricCommand.schema,
+  gridCommand.schema,
+  applyMatrixCommand.schema,
+  matrixCommand.schema,
   textCommand.schema,
   noteCommand.schema,
   tagCommand.schema,
   groupCommand.schema,
   moveCommand.schema,
   copyCommand.schema,
+  rotateCommand.schema,
   transformCommand.schema,
   highlightCommand.schema,
   dimCommand.schema,
@@ -100,6 +114,10 @@ export const ACTION_ALIASES: Readonly<Record<string, ActionType>> = Object.fromE
 
 /** Commandes qui créent un nœud identifié (un identifiant est ajouté s'il manque). */
 export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
+  "area",
+  "parametric",
+  "grid",
+  "matrix",
   "copy",
   "curve",
   "point",

@@ -42,8 +42,8 @@ import {
   type VMobject,
 } from "manim-web";
 import { formatNumber, niceStep, sampleCurve } from "@/domain/board/geometry";
-import { AXES_BOX, contentBox, fontSizeOf, FONT_SIZE } from "@/domain/board/layout";
-import { DEFAULT_FRAME, lastMotion, type BoardNode, type BoardState, type Frame, type Vec2 } from "@/domain/board/state";
+import { AXES_BOX, contentBox, fontSizeOf, FONT_SIZE, matrixLayout } from "@/domain/board/layout";
+import { applyMat, DEFAULT_FRAME, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
 import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
@@ -72,6 +72,8 @@ interface Rendered {
   appliedOffset: Vec2;
   /** Début du dernier déplacement déjà animé (les suivants restent à jouer). */
   motionStart?: number;
+  /** Début de la dernière rotation déjà animée. */
+  spinStart?: number;
   morphStart?: number;
   dimStart?: number;
   opacity: number;
@@ -231,6 +233,8 @@ export class ManimRenderer {
         erased: false,
         appliedOffset: startOffset,
         motionStart: pending.length > 0 ? -Infinity : lastMotion(node)?.start,
+        // Le nœud est dessiné à sa place finale : ses rotations passées n'ont pas à être rejouées.
+        spinStart: node.spins?.at(-1)?.start,
         morphStart: node.morph?.start,
         opacity: 1,
       };
@@ -257,7 +261,13 @@ export class ManimRenderer {
       const seconds = node.morph.duration / 1000;
       const [oldMain, ...oldRest] = current.mobjects;
       const [newMain, ...newRest] = built.mobjects;
-      if (oldMain && newMain) {
+      if (node.type === "grid") {
+        // Chaque ligne du quadrillage devient son image : tout le plan se déforme d'un seul mouvement.
+        current.mobjects.forEach((old, i) => {
+          const fresh = built.mobjects[i];
+          if (fresh) batch.push({ animation: new ReplacementTransform(old, fresh, { duration: seconds }), ...at(node.morph!.start, node.morph!.duration) });
+        });
+      } else if (oldMain && newMain) {
         if (node.type === "text") {
           // Le texte de manim-web n'est pas un tracé vectoriel : l'ancien glisse et s'efface pendant que le nouveau s'écrit.
           batch.push({ animation: new FadeOut(oldMain, { duration: seconds * 0.6, shift: [0, 0.22, 0] }), ...at(node.morph.start, node.morph.duration * 0.6) });
@@ -269,13 +279,14 @@ export class ManimRenderer {
           batch.push({ animation: new ReplacementTransform(oldMain, newMain, { duration: seconds }), ...at(node.morph.start, node.morph.duration) });
         }
       }
-      for (const old of oldRest) batch.push({ animation: new FadeOut(old, { duration: seconds * 0.5 }), ...at(node.morph.start, node.morph.duration * 0.5) });
-      for (const extra of newRest) {
+      for (const old of node.type === "grid" ? [] : oldRest) batch.push({ animation: new FadeOut(old, { duration: seconds * 0.5 }), ...at(node.morph.start, node.morph.duration * 0.5) });
+      for (const extra of node.type === "grid" ? [] : newRest) {
         batch.push({ animation: new FadeIn(extra, { duration: seconds * 0.5 }), ...at(node.morph.start + node.morph.duration * 0.5, node.morph.duration * 0.5) });
       }
       current.mobjects = built.mobjects;
       current.appliedOffset = node.offset;
       current.motionStart = lastMotion(node)?.start;
+      current.spinStart = node.spins?.at(-1)?.start;
     }
 
     // Déplacements : chacun des nouveaux, dans l'ordre (aller puis retour, par exemple).
@@ -288,6 +299,17 @@ export class ManimRenderer {
       for (const mobject of current.mobjects) {
         batch.push({ animation: slide(mobject, delta, motion.duration / 1000), ...at(motion.start, motion.duration) });
       }
+    }
+
+    // Rotations : la forme tourne autour du pivot ; ses étiquettes glissent sur l'arc sans se renverser.
+    const spun = current.spinStart ?? -Infinity;
+    for (const spin of (node.spins ?? []).filter((x) => x.start > spun)) {
+      current.spinStart = spin.start;
+      const pivot = this.p(spin.about[0], spin.about[1]);
+      current.mobjects.forEach((mobject, i) => {
+        const turnShape = i === 0 && node.type !== "text";
+        batch.push({ animation: turn(mobject, pivot, rad(spin.angle), turnShape, spin.duration / 1000), ...at(spin.start, spin.duration) });
+      });
     }
 
     // Estompage
@@ -461,7 +483,8 @@ export class ManimRenderer {
         }));
         const last = pieces.at(-1)?.at(-1);
         if (node.label && last) {
-          const text = this.label(node.label, add(this.p(last[0], last[1]), [0.3, 0.3, 0]), color);
+          const where = node.labelAt ? this.p(node.labelAt[0], node.labelAt[1]) : add(this.p(last[0], last[1]), [0.3, 0.3, 0]);
+          const text = this.label(node.label, where, color);
           mobjects.push(text);
           animations.push({ delay: 0.85, share: 0.15, make: (s) => new FadeIn(text, { duration: s }) });
         }
@@ -543,18 +566,43 @@ export class ManimRenderer {
       }
       case "polygon": {
         const vertices = node.points.map(([x, y]) => this.p(x, y));
-        const polygon = new Polygon({ vertices, color, fillOpacity: node.fill ? 0.16 : 0, strokeWidth: 3.2, closed: node.closed });
+        const polygon = new Polygon({
+          vertices,
+          color,
+          fillOpacity: node.shade ? 0.38 : node.fill ? 0.16 : 0,
+          strokeWidth: node.shade ? 1.5 : node.param ? 3.5 : 3.2,
+          closed: node.closed,
+        });
         const mobjects: Mobject[] = [polygon];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(polygon, { duration: s }) }];
         if (node.label) {
-          const center = vertices.reduce((acc, v) => add(acc, scale(v, 1 / vertices.length)), [0, 0, 0] as Vec3);
+          // Une courbe paramétrée porte son nom au bout ; un polygone, en son centre.
+          const center = node.param
+            ? add(vertices.at(-1)!, [0.3, 0.3, 0])
+            : vertices.reduce((acc, v) => add(acc, scale(v, 1 / vertices.length)), [0, 0, 0] as Vec3);
           const text = this.label(node.label, center, color);
           mobjects.push(text);
           animations.push({ delay: 0.7, share: 0.3, make: (s) => new FadeIn(text, { duration: s }) });
         }
         return { mobjects, animations };
       }
+      case "grid": {
+        // Une ligne par unité, image du quadrillage par la matrice ; en fond, discrète.
+        const lines: Mobject[] = [];
+        const segment = (a: Vec2, b: Vec2) => {
+          const line = new Line({ start: this.p(...applyMat(node.matrix, a)), end: this.p(...applyMat(node.matrix, b)), color: STROKE[node.color ?? "blue"], strokeWidth: 1.6 });
+          line.opacity = 0.45;
+          lines.push(line);
+        };
+        for (let x = Math.ceil(node.x[0]); x <= Math.floor(node.x[1]); x++) segment([x, node.y[0]], [x, node.y[1]]);
+        for (let y = Math.ceil(node.y[0]); y <= Math.floor(node.y[1]); y++) segment([node.x[0], y], [node.x[1], y]);
+        return {
+          mobjects: lines,
+          animations: lines.map((line, i) => ({ delay: (i / lines.length) * 0.5, share: 0.5, make: (s: number) => new Create(line, { duration: s }) })),
+        };
+      }
       case "text": {
+        if (node.rows) return this.buildMatrix({ ...node, rows: node.rows }, color);
         const text = this.label(node.text, this.p(node.at[0], node.at[1]), color, fontSizeOf(node));
         // Ligne de calcul : alignée à gauche sur sa colonne.
         if (node.align === "left") text.shift([textHalfWidth(text), 0, 0]);
@@ -564,6 +612,39 @@ export class ManimRenderer {
         };
       }
     }
+  }
+
+  /** Matrice ou vecteur colonne : les cases en grille, entre deux crochets. */
+  private buildMatrix(node: TextNode & { rows: string[][] }, color: string): { mobjects: Mobject[]; animations: PlannedAnimation[] } {
+    const size = fontSizeOf(node);
+    const layout = matrixLayout(node.rows, size);
+    const center = this.p(node.at[0], node.at[1]);
+    const left = center[0] - layout.width / 2;
+    const top = center[1] + layout.height / 2;
+    const inner = left + layout.bracket + layout.gap * 0.6;
+    const mobjects: Mobject[] = [];
+    node.rows.forEach((row, i) => {
+      let x = inner;
+      row.forEach((cell, j) => {
+        const width = layout.widths[j]!;
+        mobjects.push(this.label(cell, [x + width / 2, top - layout.lineHeight * (i + 0.5), 0], color, size));
+        x += width + layout.gap;
+      });
+    });
+    const bottom = top - layout.height;
+    const right = left + layout.width;
+    const tick = layout.bracket;
+    const bracket = (x: number, dir: 1 | -1) =>
+      new Polygon({ vertices: [[x + dir * tick, top, 0], [x, top, 0], [x, bottom, 0], [x + dir * tick, bottom, 0]], color, strokeWidth: 2.6, closed: false });
+    const brackets = [bracket(left, 1), bracket(right, -1)];
+    const all = [...mobjects, ...brackets];
+    return {
+      mobjects: all,
+      animations: [
+        ...brackets.map((b) => ({ delay: 0, share: 0.4, make: (s: number) => new Create(b, { duration: s }) as Animation })),
+        ...mobjects.map((m, i) => ({ delay: 0.3 + (0.5 * i) / Math.max(1, mobjects.length), share: 0.3, make: (s: number) => new FadeIn(m, { duration: s }) as Animation })),
+      ],
+    };
   }
 
   /* --------------------------------- lecture --------------------------------- */
@@ -773,6 +854,34 @@ function slide(mobject: Mobject, delta: Vec3, seconds: number): Animation {
       const step = alpha - done;
       done = alpha;
       if (step !== 0) m.shift([delta[0] * step, delta[1] * step, 0]);
+    },
+    { duration: seconds },
+  );
+}
+
+/**
+ * Rotation relative autour d'un pivot (monde), image par image, comme `slide` :
+ * plusieurs rotations du même objet dans une étape s'enchaînent (un pendule qui
+ * va et vient). Une étiquette (`turnShape` faux) glisse sur l'arc sans tourner.
+ */
+function turn(mobject: Mobject, pivot: Vec3, radians: number, turnShape: boolean, seconds: number): Animation {
+  let done = 0;
+  return new UpdateFromAlphaFunc(
+    mobject,
+    (m, alpha) => {
+      const step = (alpha - done) * radians;
+      done = alpha;
+      if (step === 0) return;
+      if (turnShape) {
+        m.rotate(step, { aboutPoint: pivot });
+        return;
+      }
+      const [cx, cy] = m.getCenter();
+      const dx = cx - pivot[0];
+      const dy = cy - pivot[1];
+      const c = Math.cos(step);
+      const s = Math.sin(step);
+      m.shift([pivot[0] + dx * c - dy * s - cx, pivot[1] + dx * s + dy * c - cy, 0]);
     },
     { duration: seconds },
   );

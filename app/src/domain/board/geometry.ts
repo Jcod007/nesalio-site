@@ -64,3 +64,39 @@ export function ticks(range: [number, number], target = 8): number[] {
 export function formatNumber(value: number): string {
   return String(Number(value.toPrecision(6))).replace(".", ",");
 }
+
+/** Une expression en t, compilée (la variable s'écrit t ; le compilateur ne connaît que x). */
+export function compileInT(source: string): ((t: number) => number) | null {
+  return tryCompileExpression(source.replace(/\bt\b/g, "x"));
+}
+
+/** Points d'une courbe paramétrée (x(t), y(t)), t de t0 à t1 ; les valeurs non définies sont sautées. */
+export function sampleParametric(x: string, y: string, [t0, t1]: [number, number], samples = 480): Array<[number, number]> {
+  const fx = compileInT(x);
+  const fy = compileInT(y);
+  if (!fx || !fy) return [];
+  const out: Array<[number, number]> = [];
+  for (let i = 0; i <= samples; i++) {
+    const t = t0 + ((t1 - t0) * i) / samples;
+    const p: [number, number] = [fx(t), fy(t)];
+    if (Number.isFinite(p[0]) && Number.isFinite(p[1])) out.push(p);
+  }
+  return out;
+}
+
+/**
+ * Région entre y = f(x) et l'axe des x, de a à b : la partie au-dessus de
+ * l'axe et la partie en dessous, chacune fermée le long de l'axe.
+ */
+export function areaRegions(fn: string, a: number, b: number, samples = 120): { above: Array<[number, number]>; below: Array<[number, number]> } {
+  const f = tryCompileExpression(fn);
+  if (!f || !(b > a)) return { above: [], below: [] };
+  const xs = Array.from({ length: samples + 1 }, (_, i) => a + ((b - a) * i) / samples);
+  const ys = xs.map((x) => (Number.isFinite(f(x)) ? f(x) : 0));
+  const region = (clip: (y: number) => number) => {
+    const edge = xs.map((x, i) => [x, clip(ys[i]!)] as [number, number]);
+    if (edge.every(([, y]) => Math.abs(y) < 1e-9)) return [];
+    return [[a, 0] as [number, number], ...edge, [b, 0] as [number, number]];
+  };
+  return { above: region((y) => Math.max(0, y)), below: region((y) => Math.min(0, y)) };
+}

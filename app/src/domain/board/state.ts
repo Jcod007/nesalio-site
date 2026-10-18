@@ -36,6 +36,26 @@ export interface Frame {
 /** Cadre utilisé tant que le modèle n'a pas tracé d'axes. */
 export const DEFAULT_FRAME: Frame = { x: [-6, 6], y: [-4, 4] };
 
+/** Rotation animée d'un nœud autour d'un point (degrés, sens trigonométrique). */
+export interface Spin {
+  about: Vec2;
+  angle: number;
+  start: number;
+  duration: number;
+}
+
+/** Matrice 2×2, en lignes : [[a, b], [c, d]]. */
+export type Mat2 = [[number, number], [number, number]];
+export const IDENTITY: Mat2 = [
+  [1, 0],
+  [0, 1],
+];
+export const applyMat = (m: Mat2, [x, y]: Vec2): Vec2 => [m[0][0] * x + m[0][1] * y, m[1][0] * x + m[1][1] * y];
+export const mulMat = (a: Mat2, b: Mat2): Mat2 => [
+  [a[0][0] * b[0][0] + a[0][1] * b[1][0], a[0][0] * b[0][1] + a[0][1] * b[1][1]],
+  [a[1][0] * b[0][0] + a[1][1] * b[1][0], a[1][0] * b[0][1] + a[1][1] * b[1][1]],
+];
+
 /** Déplacement animé d'un nœud : de `from` à `to` (déplacements cumulés, coordonnées mathématiques). */
 export interface Motion {
   from: Vec2;
@@ -56,6 +76,8 @@ interface NodeBase {
    * sont possibles : « on le déplace, puis on le ramène ».
    */
   motions?: Motion[];
+  /** Rotations à animer, dans l'ordre (le pendule qui oscille, un vecteur qui tourne). */
+  spins?: Spin[];
   /** Dernière transformation (le nœud a changé de forme ou de texte). */
   morph?: Reveal;
   /** Estompé (contexte) ou rendu à pleine intensité. */
@@ -69,6 +91,8 @@ export type CurveNode = NodeBase & {
   to?: number;
   style?: "solid" | "dashed" | "dotted";
   label?: string;
+  /** Centre de l'étiquette, choisi par le moteur pour ne rien chevaucher. */
+  labelAt?: Vec2;
 };
 export type PointNode = NodeBase & { type: "point"; at: Vec2; label?: string; ring?: boolean };
 export type VectorNode = NodeBase & { type: "vector"; from: Vec2; to: Vec2; label?: string };
@@ -84,13 +108,33 @@ export type TextNode = NodeBase & {
   role: "free" | "calc";
   /** Relation : le texte accompagne cet objet (il le suit et disparaît avec lui). */
   anchor?: { target: string; side: Side };
+  /** Matrice ou vecteur colonne : les cases, ligne par ligne (le texte sert alors de résumé). */
+  rows?: string[][];
 };
 /** Arc de cercle (marque d'angle, par exemple). Angles en degrés, sens trigonométrique. */
 export type ArcNode = NodeBase & { type: "arc"; center: Vec2; radius: number; start: number; end: number; label?: string };
 export type CircleNode = NodeBase & { type: "circle"; center: Vec2; radius: number; dashed?: boolean; label?: string };
+/** Courbe paramétrée : x(t) et y(t), t de t[0] à t[1]. Dessinée comme une ligne brisée fine. */
+export interface Parametric {
+  x: string;
+  y: string;
+  t: [number, number];
+}
 /** Polygone ou ligne brisée (`closed: false`), éventuellement rempli. */
-export type PolygonNode = NodeBase & { type: "polygon"; points: Vec2[]; closed: boolean; fill?: boolean; label?: string };
-export type BoardNode = CurveNode | PointNode | VectorNode | SegmentNode | TextNode | ArcNode | CircleNode | PolygonNode;
+export type PolygonNode = NodeBase & {
+  type: "polygon";
+  points: Vec2[];
+  closed: boolean;
+  fill?: boolean;
+  /** Remplissage plus marqué (une aire sous une courbe). */
+  shade?: boolean;
+  label?: string;
+  /** Si le polygone vient d'une courbe paramétrée : ses équations (pour la transformer). */
+  param?: Parametric;
+};
+/** Quadrillage du plan, déformé par une matrice (transformations linéaires). */
+export type GridNode = NodeBase & { type: "grid"; x: [number, number]; y: [number, number]; matrix: Mat2 };
+export type BoardNode = CurveNode | PointNode | VectorNode | SegmentNode | TextNode | ArcNode | CircleNode | PolygonNode | GridNode;
 export type NodeType = BoardNode["type"];
 
 export interface Group {
@@ -288,6 +332,8 @@ function describeNode(node: BoardNode): string {
       return `centre ${pt(shifted(node.center, node.offset))}, rayon ${fmt(node.radius)}${node.label ? ` « ${node.label} »` : ""}`;
     case "polygon":
       return `${node.points.map((p) => pt(shifted(p, node.offset))).join(" ")}${node.label ? ` « ${node.label} »` : ""}`;
+    case "grid":
+      return `quadrillage, matrice appliquée [[${node.matrix[0].map(fmt).join(", ")}], [${node.matrix[1].map(fmt).join(", ")}]]`;
     case "text":
       if (node.role === "calc") return node.text;
       return `« ${node.text} »${node.anchor ? ` (${sideWord[node.anchor.side]} ${node.anchor.target})` : ` en ${pt(shifted(node.at, node.offset))}`}`;

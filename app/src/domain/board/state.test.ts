@@ -272,3 +272,98 @@ describe("mouvements", () => {
     expect(board.calc).toEqual(["n1"]);
   });
 });
+
+describe("outils des notions poussées", () => {
+  const close = (a: readonly number[], b: readonly number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i]!));
+
+  it("applique une matrice à tout le plan : quadrillage, vecteurs, polygones", () => {
+    let board = run([
+      { type: "axes", x: [-6, 6], y: [-4, 4] },
+      { type: "grid", id: "g" },
+      { type: "vector", id: "v", from: [0, 0], by: [-1, 2] },
+      { type: "polygon", id: "sq", points: [[0, 0], [1, 0], [1, 1], [0, 1]] },
+      { type: "segment", id: "span", from: [-3, 3], to: [3, -3] },
+    ]);
+    expect(board.order[0]).toBe("g"); // le quadrillage passe derrière
+    board = applyAction(board, { type: "applyMatrix", matrix: [[1, 3], [-2, 0]], targets: ["g", "v", "sq"] }, t(100));
+    const v = board.nodes.v!;
+    if (v.type === "vector") close(v.to, [5, 2]);
+    const g = board.nodes.g!;
+    if (g.type === "grid") expect(g.matrix).toEqual([[1, 3], [-2, 0]]);
+    const sq = board.nodes.sq!;
+    if (sq.type === "polygon") close(sq.points[2]!, [4, -2]);
+    expect(v.morph?.start).toBe(100);
+    // Exclu des cibles : la droite reste en place.
+    const span = board.nodes.span!;
+    if (span.type === "segment") expect(span.to).toEqual([3, -3]);
+  });
+
+  it("transforme un polygone sommet par sommet (le carré devient rectangle)", () => {
+    let board = run([{ type: "polygon", id: "sq", points: [[0, 0], [1, 0], [1, 1], [0, 1]] }]);
+    board = applyAction(board, { type: "transform", target: "sq", points: [[0, 0], [3, 0], [3, 2], [0, 2]] }, t(100));
+    const sq = board.nodes.sq!;
+    if (sq.type === "polygon") expect(sq.points[2]).toEqual([3, 2]);
+  });
+
+  it("fait osciller un groupe autour d'un point : les rotations s'enchaînent", () => {
+    let board = run([
+      { type: "point", id: "O", at: [0, 2] },
+      { type: "segment", id: "rope", from: [0, 2], to: [0, -2] },
+      { type: "circle", id: "bob", center: [0, -2], radius: 0.3 },
+      { type: "group", id: "pend", members: ["rope", "bob"] },
+    ]);
+    board = applyAction(board, { type: "rotate", target: "pend", about: "O", angle: 90 }, t(100));
+    board = applyAction(board, { type: "rotate", target: "pend", about: "O", angle: -90 }, t(200));
+    const rope = board.nodes.rope!;
+    if (rope.type === "segment") close(rope.to, [0, -2]);
+    expect(rope.spins?.map((s) => s.angle)).toEqual([90, -90]);
+    const bob = board.nodes.bob!;
+    if (bob.type === "circle") close(bob.center, [0, -2]);
+  });
+
+  it("colorie l'aire au-dessus et en dessous de l'axe en deux parties", () => {
+    let board = run([{ type: "axes", x: [0, 6.3], y: [-2, 2] }, { type: "curve", id: "f", fn: "sin(x)" }]);
+    board = applyAction(board, { type: "area", id: "A", of: "f", from: 0, to: 6.28 }, t(100));
+    expect(resolveTargets(board, "A")).toEqual(["A-plus", "A-moins"]);
+    const plus = board.nodes["A-plus"]!;
+    if (plus.type === "polygon") expect(Math.max(...plus.points.map((p) => p[1]))).toBeCloseTo(1, 1);
+  });
+
+  it("déforme une courbe paramétrée en gardant le même nombre de points", () => {
+    let board = run([{ type: "parametric", id: "c", x: "cos(t)", y: "sin(t)", t: [0, 6.28] }]);
+    const before = board.nodes.c!;
+    board = applyAction(board, { type: "transform", target: "c", x: "2*cos(t)" }, t(100));
+    const after = board.nodes.c!;
+    if (before.type === "polygon" && after.type === "polygon") {
+      expect(after.points).toHaveLength(before.points.length);
+      close(after.points[0]!, [2, 0]);
+    }
+  });
+
+  it("écrit une matrice en colonnes, à côté d'un objet, sans le chevaucher", () => {
+    const board = run([
+      { type: "axes", x: [-6, 6], y: [-4, 4] },
+      { type: "vector", id: "v", from: [0, 0], by: [2, 1] },
+      { type: "matrix", id: "M", rows: [[2, 1], [1, 3]], near: "v", side: "right" },
+    ]);
+    const m = text(board, "M");
+    expect(m.rows).toEqual([["2", "1"], ["1", "3"]]);
+    expect(intersects(nodeBox(m, board.frame), nodeBox(board.nodes.v!, board.frame))).toBe(false);
+    expect(nodeBox(m, board.frame).y1 - nodeBox(m, board.frame).y0).toBeGreaterThan(0.8);
+  });
+
+  it("place les étiquettes de deux courbes qui finissent au même endroit sans les superposer", () => {
+    const board = run([
+      { type: "axes", x: [0, 6.3], y: [-3, 3] },
+      { type: "curve", id: "a", fn: "sin(x)", from: 0, to: 6.28, label: "note grave" },
+      { type: "curve", id: "s", fn: "sin(x)+0.8*sin(3*x)", from: 0, to: 6.28, label: "signal total" },
+    ]);
+    const a = board.nodes.a!;
+    const s = board.nodes.s!;
+    if (a.type === "curve" && s.type === "curve") {
+      expect(a.labelAt).toBeDefined();
+      expect(s.labelAt).toBeDefined();
+      expect(Math.hypot(a.labelAt![0] - s.labelAt![0], a.labelAt![1] - s.labelAt![1])).toBeGreaterThan(0.3);
+    }
+  });
+});

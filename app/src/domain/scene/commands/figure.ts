@@ -2,8 +2,9 @@
  * Commandes qui dessinent la figure : repère, courbe, point, vecteur, segment.
  */
 import { z } from "zod";
-import { reflowCalc } from "@/domain/board/layout";
-import { putNode, type BoardNode, type BoardState, type Frame, type Reveal } from "@/domain/board/state";
+import { sampleCurve } from "@/domain/board/geometry";
+import { boxAround, FONT_SIZE, placeBeside, reflowCalc, textExtent } from "@/domain/board/layout";
+import { putNode, type BoardNode, type BoardState, type CurveNode, type Frame, type Reveal, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, Expression, finite, Id, Range } from "../primitives";
 import { defineCommand } from "./define";
 
@@ -50,9 +51,24 @@ export const curveCommand = defineCommand({
   aliases: ["graph", "plot", "function"],
   apply(state, action, reveal) {
     const { type, id, color, ...rest } = action;
-    return drawNode(state, { ...base(id, reveal, color), type, ...rest }, reveal);
+    const node: CurveNode = { ...base(id, reveal, color), type, ...rest };
+    return drawNode(state, { ...node, labelAt: curveLabelAt(state, node) }, reveal);
   },
 });
+
+/**
+ * Place de l'étiquette d'une courbe : près de son extrémité droite, sur une
+ * place libre (deux courbes qui finissent au même endroit ne superposent plus
+ * leurs noms).
+ */
+function curveLabelAt(state: BoardState, node: CurveNode): Vec2 | undefined {
+  if (!node.label) return undefined;
+  const last = sampleCurve(node.fn, state.frame, node.from, node.to).at(-1)?.at(-1);
+  if (!last) return undefined;
+  const extent = textExtent(node.label, FONT_SIZE.label, state.frame);
+  const end = boxAround(last, { w: 0.01, h: 0.01 });
+  return placeBeside(state, extent, end, "above", new Set([node.id])).center;
+}
 
 export const pointCommand = defineCommand({
   schema: z.object({
