@@ -10,10 +10,17 @@ const MAX_TURNS = Number(process.env.MAX_TURNS ?? 3);
 const SIZE = { width: 1080, height: 1080 };
 mkdirSync(OUT, { recursive: true });
 
-const browser = await chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required", "--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+const browser = await chromium.launch({ channel: "chromium", args: ["--autoplay-policy=no-user-gesture-required", "--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
 const context = await browser.newContext({ viewport: SIZE, deviceScaleFactor: 1, recordVideo: { dir: OUT, size: SIZE }, locale: "fr-CA" });
 
+// L'audio de chaque phrase, envoyé depuis la page (le navigateur le reçoit de /api/voice).
+const audio = new Map();
+await context.exposeFunction("__saveVoice", (text, b64) => {
+  if (!audio.has(text)) audio.set(text, Buffer.from(b64, "base64"));
+});
+
 // Dans la page : associer chaque URL audio à la phrase dite, et noter quand la voix démarre / s'arrête.
+// Les éléments audio de Nesa ne sont pas dans le DOM : on écoute chaque élément au moment où il joue.
 await context.addInitScript(() => {
   const textOfBlob = new WeakMap();
   const textOfUrl = new Map();
@@ -23,6 +30,12 @@ await context.addInitScript(() => {
     const url = typeof input === "string" ? input : input.url;
     if (url.includes("/api/voice") && res.ok) {
       const text = JSON.parse(init?.body ?? "{}").text;
+      res.clone().arrayBuffer().then((buf) => {
+        const bytes = new Uint8Array(buf);
+        let bin = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        window.__saveVoice?.(text, btoa(bin));
+      });
       const origBlob = res.blob.bind(res);
       res.blob = async () => {
         const b = await origBlob();
@@ -39,26 +52,29 @@ await context.addInitScript(() => {
     return u;
   };
   window.__voix = [];
-  for (const kind of ["playing", "pause", "ended"]) {
-    document.addEventListener(kind, (e) => {
-      const el = e.target;
-      if (el instanceof HTMLMediaElement && textOfUrl.has(el.src)) window.__voix.push({ kind, at: Date.now(), text: textOfUrl.get(el.src), pos: el.currentTime });
-    }, true);
-  }
+  const watched = new WeakSet();
+  const origPlay = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function (...args) {
+    if (!watched.has(this)) {
+      watched.add(this);
+      for (const kind of ["playing", "pause", "ended"]) {
+        this.addEventListener(kind, () => {
+          if (textOfUrl.has(this.src)) window.__voix.push({ kind, at: Date.now(), text: textOfUrl.get(this.src), pos: this.currentTime });
+        });
+      }
+    }
+    return origPlay.apply(this, args);
+  };
 });
 
-// Côté Node : garder l'audio de chaque phrase et le contenu de chaque tour.
-const audio = new Map();
+// Côté Node : garder le contenu de chaque tour.
 const turns = [];
 const pageCreated = Date.now();
 const page = await context.newPage();
 page.on("response", async (res) => {
   const u = res.url();
   try {
-    if (u.includes("/api/voice") && res.ok()) {
-      const text = JSON.parse(res.request().postData() ?? "{}").text;
-      audio.set(text, await res.body());
-    } else if (u.includes("/api/tutor")) {
+    if (u.includes("/api/tutor")) {
       const body = await res.text();
       turns.push(body.trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)));
     }
@@ -124,4 +140,13 @@ for (const [text, bytes] of audio) {
 }
 writeFileSync(`${OUT}/voix.json`, JSON.stringify({ pageCreated, clips, events: voix }, null, 1));
 writeFileSync(`${OUT}/tours.json`, JSON.stringify(turns, null, 1));
+for (const [t, events] of turns.entries()) {
+  console.log(`--- tour ${t + 1}`);
+  for (const e of events) {
+    if (e.kind === "step") console.log(`  « ${e.say} » [${e.do.map((a) => a.type + (a.label ? ":" + a.label : a.text ? ":" + a.text : "")).join(", ")}]${e.check ? `\n  ? ${e.check.prompt} ${JSON.stringify(e.check.choices)} bon=${e.check.answer}` : ""}`);
+    if (e.kind === "end") console.log("  FIN", JSON.stringify(e.summary));
+  }
+}
+const played = voix.filter((v) => v.kind === "playing").length;
+console.log(`voix jouées : ${played}, durée : ${Math.round((Date.now() - pageCreated) / 1000)} s`);
 console.log(`fini : ${turns.length} tours, ${clips.length} phrases, ${voix.length} événements de voix`);
