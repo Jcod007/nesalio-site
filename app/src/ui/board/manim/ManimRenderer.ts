@@ -155,7 +155,10 @@ export class ManimRenderer {
     // Repère effacé (commande clear avec le repère).
     if (board.axesCleared && board.axesCleared.start !== this.axesClearedAt) {
       this.axesClearedAt = board.axesCleared.start;
-      for (const old of this.axesMobjects) batch.push({ animation: new FadeOut(old, { duration: 0.4 }), ...at(board.axesCleared.start, 400) });
+      // Chaque morceau du repère s'efface (graduations comprises : un FadeOut du repère seul les laissait à l'écran).
+      for (const old of this.axesMobjects) {
+        for (const part of old.getFamily()) batch.push({ animation: new FadeOut(part, { duration: 0.4 }), ...at(board.axesCleared.start, 400) });
+      }
       this.axesMobjects = [];
       this.axesRevealStart = null;
     }
@@ -552,8 +555,11 @@ export class ManimRenderer {
       case "circle": {
         const center = this.p(node.center[0], node.center[1]);
         const radius = this.worldLength(node.radius);
-        const circle = new Circle({ center, radius, color, strokeWidth: 3.5 });
+        // Le pointillé se calcule sur le cercle centré à l'origine du monde, puis on le place :
+        // DashedVMobject ignore la position d'un cercle déjà centré ailleurs (cercle décalé sinon).
+        const circle = new Circle({ radius, color, strokeWidth: 3.5 });
         const shape = node.dashed ? new DashedVMobject({ vmobject: circle as unknown as VMobject, numDashes: Math.max(16, Math.round(radius * 12)), dashRatio: 0.55 }) : circle;
+        shape.shift(center);
         const mobjects: Mobject[] = [shape];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(shape, { duration: s }) as Animation }];
         if (node.label) {

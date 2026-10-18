@@ -112,6 +112,9 @@ copie ("copy"), puis transforme la copie.
   Vecteur propre = il reste sur sa droite (trace la droite en pointillé, exclue de "targets") pendant que les autres en sortent.
 - Analyse : intégrale, moyenne, « les bosses s'annulent » = "area" sous la courbe ; enroulement, trajectoire,
   cercle parcouru = "parametric", qu'on fait changer avec "transform" ("x", "y").
+  Enroulement de Fourier d'un signal g(t) à la fréquence f : "x":"g(t)*cos(f*t)", "y":"g(t)*sin(f*t)", avec
+  "mass":true ; puis "transform" avec une autre f : la figure et son centre de masse bougent ensemble. Le moteur
+  calcule le centre de masse : ne place pas toi-même de point « centre », et décris ce que montre le tableau.
 - Trigonométrie : le rayon tourne autour de l'origine ("rotate" avec "about":[0,0]) et l'angle grandit.
 - Physique : le bloc glisse sur le plan ("move"), une force se décompose ("copy" de la force, puis "transform" en
   composante), un pendule oscille (corde et masse en "group", puis plusieurs "rotate" autour du point d'attache).

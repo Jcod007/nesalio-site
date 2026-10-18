@@ -4,7 +4,7 @@
  * courbes paramétrées (enroulement de Fourier, trajectoires, cercle).
  */
 import { z } from "zod";
-import { areaRegions, sampleParametric } from "@/domain/board/geometry";
+import { areaRegions, centerOfMass, sampleParametric } from "@/domain/board/geometry";
 import { isVisible, putNode, type BoardNode, type BoardState, type Reveal } from "@/domain/board/state";
 import { ColorName, Expression, finite, Id, Range } from "../primitives";
 import { base, drawNode } from "./figure";
@@ -64,11 +64,13 @@ export const parametricCommand = defineCommand({
     t: Range,
     color: ColorName.optional(),
     label: z.string().max(40).optional(),
+    mass: z.boolean().optional(),
   }),
   doc:
-    '{"type":"parametric","id":"c","x":"cos(t)","y":"sin(t)","t":[0,6.28]} : courbe paramétrée (x(t), y(t)).\n' +
+    '{"type":"parametric","id":"c","x":"cos(t)","y":"sin(t)","t":[0,6.28],"mass":true} : courbe paramétrée (x(t), y(t)).\n' +
     '  Se déforme en continu avec "transform" ("x", "y" ou "t") : enroulement de Fourier quand la fréquence change,\n' +
-    '  trajectoire, cercle trigonométrique parcouru.',
+    '  trajectoire, cercle trigonométrique parcouru. "mass":true : le moteur calcule et place le centre de masse\n' +
+    '  (point "<id>-masse"), qui suit la courbe quand elle se transforme. Ne le calcule pas toi-même.',
   duration: 1800,
   aliases: ["parametriccurve", "path"],
   apply(state, action, reveal) {
@@ -82,6 +84,22 @@ export const parametricCommand = defineCommand({
       label: action.label,
       param: { x: action.x, y: action.y, t: action.t },
     };
-    return drawNode(state, node, reveal);
+    const next = drawNode(state, node, reveal);
+    return action.mass ? putMassPoint(next, action.id, points, reveal) : next;
   },
 });
+
+/** Identifiant du centre de masse d'une courbe paramétrée. */
+export const massId = (curveId: string) => `${curveId}-masse`;
+
+/** Pose (ou déplace, en glissant) le centre de masse calculé d'une courbe paramétrée. */
+export function putMassPoint(state: BoardState, curveId: string, points: ReadonlyArray<readonly [number, number]>, reveal: Reveal): BoardState {
+  const at = centerOfMass(points);
+  const id = massId(curveId);
+  const existing = state.nodes[id];
+  if (isVisible(existing) && existing.type === "point") {
+    return putNode(state, { ...existing, at: [at[0] - existing.offset[0], at[1] - existing.offset[1]], morph: reveal });
+  }
+  const point: BoardNode = { ...base(id, { start: reveal.start + reveal.duration * 0.8, duration: 500 }, "orange"), type: "point", at, label: "centre de masse", ring: true };
+  return putNode(state, point);
+}

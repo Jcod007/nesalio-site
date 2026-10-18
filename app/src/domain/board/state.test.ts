@@ -346,6 +346,17 @@ describe("outils des notions poussées", () => {
     expect(summarizeBoard(board)[0]!.detail).toBe("courbe paramétrée x(t) = cos(t), y(t) = sin(t), t de 0 à 6.28");
   });
 
+  it("calcule le centre de masse d'un enroulement et le déplace quand la fréquence change", () => {
+    let board = run([{ type: "parametric", id: "w", x: "(1+sin(2*t))*cos(2*t)", y: "(1+sin(2*t))*sin(2*t)", t: [0, 6.2832], mass: true }]);
+    const at = (b: BoardState) => position(b, "w-masse");
+    // Enroulé à sa propre fréquence, le signal penche vers le haut : centre en (0 ; 0,5).
+    expect(at(board)[0]).toBeCloseTo(0, 2);
+    expect(at(board)[1]).toBeCloseTo(0.5, 2);
+    board = applyAction(board, { type: "transform", target: "w", x: "(1+sin(2*t))*cos(3*t)", y: "(1+sin(2*t))*sin(3*t)" }, t(100));
+    expect(Math.hypot(...at(board))).toBeLessThan(0.02);
+    expect(board.nodes["w-masse"]!.morph?.start).toBe(100);
+  });
+
   it("déforme une courbe paramétrée en gardant le même nombre de points", () => {
     let board = run([{ type: "parametric", id: "c", x: "cos(t)", y: "sin(t)", t: [0, 6.28] }]);
     const before = board.nodes.c!;

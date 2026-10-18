@@ -100,3 +100,13 @@ export function areaRegions(fn: string, a: number, b: number, samples = 120): { 
   };
   return { above: region((y) => Math.max(0, y)), below: region((y) => Math.min(0, y)) };
 }
+
+/**
+ * Centre de masse d'une courbe paramétrée parcourue à vitesse régulière en t :
+ * la moyenne des points (le dernier, qui referme souvent la boucle, n'est pas compté deux fois).
+ */
+export function centerOfMass(points: ReadonlyArray<readonly [number, number]>): [number, number] {
+  const used = points.length > 1 ? points.slice(0, -1) : points;
+  const n = Math.max(1, used.length);
+  return [used.reduce((a, p) => a + p[0], 0) / n, used.reduce((a, p) => a + p[1], 0) / n];
+}

@@ -19,6 +19,7 @@ import {
 import { ColorName, Coord, Expression, finite, Id, Range, Side } from "../primitives";
 import { sampleParametric } from "@/domain/board/geometry";
 import { rotate } from "@/domain/board/shapes";
+import { massId, putMassPoint } from "./analysis";
 import { defineCommand } from "./define";
 
 /** Point d'un objet qui sert d'accroche : la queue ou la pointe d'un vecteur, le centre d'une figure. */
@@ -281,7 +282,13 @@ export const transformCommand = defineCommand({
   apply(state, action, reveal) {
     const node = state.nodes[action.target];
     if (!isVisible(node)) return state;
-    const next = putNode(state, { ...morphed(node, action), morph: reveal });
+    const changed = morphed(node, action);
+    let next = putNode(state, { ...changed, morph: reveal });
+    // Le centre de masse d'une courbe paramétrée suit sa nouvelle forme.
+    if (changed.type === "polygon" && changed.param && isVisible(state.nodes[massId(action.target)])) {
+      const absolute = changed.points.map((p) => [p[0] + changed.offset[0], p[1] + changed.offset[1]] as [number, number]);
+      next = putMassPoint(next, action.target, absolute, reveal);
+    }
     return node.type === "text" ? next : followAnchors(next, [action.target], reveal);
   },
 });
