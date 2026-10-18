@@ -32,7 +32,8 @@ export interface TurnRecord {
   goals?: string[];
   source: "model" | "demo";
   model?: string;
-  latencyMs: { firstEvent?: number; total: number };
+  /** firstStep : délai avant la première étape (ce que l'élève attend avant que Nesa parle) ; total : tour complet. */
+  latencyMs: { firstStep?: number; total: number };
   outcome: TurnOutcome;
   events: StreamEvent[];
 }
@@ -56,14 +57,15 @@ export function createTurnRecorder(options: {
   const { request, clock } = options;
   const started = clock.now();
   const events: StreamEvent[] = [];
-  let firstEvent: number | undefined;
+  let firstStep: number | undefined;
   let ended: number | undefined;
   let outcome: TurnOutcome | undefined;
 
   return {
     event(event) {
       if (outcome) return;
-      if (firstEvent === undefined) firstEvent = clock.now() - started;
+      // Le serveur envoie d'abord des événements techniques (« source ») : on mesure l'attente de la première étape.
+      if (firstStep === undefined && event.kind === "step") firstStep = clock.now() - started;
       events.push(event);
     },
     finish(result) {
@@ -93,7 +95,7 @@ export function createTurnRecorder(options: {
         ...(request.context?.goals?.length ? { goals: [...request.context.goals] } : {}),
         source: options.source,
         ...(options.model ? { model: options.model } : {}),
-        latencyMs: { ...(firstEvent !== undefined ? { firstEvent } : {}), total: ended ?? clock.now() - started },
+        latencyMs: { ...(firstStep !== undefined ? { firstStep } : {}), total: ended ?? clock.now() - started },
         outcome: outcome ?? "cancelled",
         events: [...events],
       };

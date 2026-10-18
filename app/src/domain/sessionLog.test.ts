@@ -22,14 +22,17 @@ function recorder(request: TutorRequest = question) {
 describe("createTurnRecorder", () => {
   it("garde exactement les événements envoyés à l'élève, dans l'ordre (format de rejeu)", () => {
     const { rec, clock } = recorder();
+    rec.event({ kind: "source", source: "model" });
     clock.advance(800);
     rec.event({ kind: "lesson", title: "La somme" });
     clock.advance(400);
     rec.event({ kind: "step", say: "Voici 3 pommes.", do: [] });
+    clock.advance(300);
     rec.finish("complete");
     const record = rec.record();
-    expect(record.events.map((e) => e.kind)).toEqual(["lesson", "step"]);
-    expect(record.latencyMs).toEqual({ firstEvent: 800, total: 1200 });
+    expect(record.events.map((e) => e.kind)).toEqual(["source", "lesson", "step"]);
+    // Attente de la première étape (ce que l'élève vit), pas du premier événement technique.
+    expect(record.latencyMs).toEqual({ firstStep: 1200, total: 1500 });
     expect(record).toMatchObject({
       v: 1,
       env: "production",
