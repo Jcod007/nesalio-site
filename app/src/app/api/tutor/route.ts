@@ -18,7 +18,8 @@ import { recordEnv, saveTurn } from "@/server/sessionStore";
 import { withRecording } from "@/server/tutor/recording";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+// Un tour où le modèle réfléchit longtemps dépasse parfois 60 s : coupé, il finissait sans question.
+export const maxDuration = 180;
 
 const MAX_BODY_BYTES = 24_000;
 // Par session de navigation : une séance compte plusieurs tours (un appel par réponse de l'élève),

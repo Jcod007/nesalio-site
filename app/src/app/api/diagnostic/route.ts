@@ -29,7 +29,8 @@ import type { StudentAnswer } from "@/domain/tutor/request";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+// Une séance complète de 4 tours prend 90 à 150 s quand le modèle est lent : 300 s laissent la marge.
+export const maxDuration = 300;
 
 export async function GET(request: Request): Promise<Response> {
   const token = process.env.SELFTEST_TOKEN?.trim();
