@@ -21,7 +21,7 @@ import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/doma
 import { applyAction } from "@/domain/scene/commands";
 import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
-import type { Check, Mood, Step } from "@/domain/scene/schema";
+import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import { retimeCues } from "@/domain/timeline/spokenTime";
 import type { StudentAnswer, TutorContext, TutorRequest } from "@/domain/tutor/request";
@@ -55,6 +55,8 @@ export interface PlayerSnapshot {
   caption: Caption | null;
   check: ActiveCheck | null;
   summary: string[];
+  /** Ce que Nesa a remarqué chez l'élève, montré en fin de séance. */
+  noticed: Noticed | null;
   error: string | null;
   /** Vrai pendant que Nesa répond à une interruption. */
   answeringFollowUp: boolean;
@@ -70,6 +72,7 @@ export const INITIAL_SNAPSHOT: PlayerSnapshot = {
   caption: null,
   check: null,
   summary: [],
+  noticed: null,
   error: null,
   answeringFollowUp: false,
 };
@@ -103,6 +106,7 @@ interface Segment {
   /** Commandes refusées par le serveur pendant le tour. */
   rejected: string[];
   summary: string[];
+  noticed: Noticed | null;
   error: string | null;
   abort: AbortController;
 }
@@ -128,6 +132,8 @@ export class Player {
   /** Objectifs de la séance (premier tour) et réponses de l'élève : la mémoire de la séance. */
   private goals: string[] = [];
   private answerLog: StudentAnswer[] = [];
+  /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
+  private diagnosis: Diagnosis | null = null;
   private session = 0;
   private loopSession = -1;
   private stepAbort: AbortController | null = null;
@@ -270,6 +276,7 @@ export class Player {
     this.answeredCount = 0;
     this.goals = [];
     this.answerLog = [];
+    this.diagnosis = null;
     this.transcript = [];
     this.stopCurrentStep();
     this.poke();
@@ -301,6 +308,7 @@ export class Player {
       turnStart: 0,
       rejected: [],
       summary: [],
+      noticed: null,
       error: null,
       abort: new AbortController(),
     };
@@ -363,7 +371,13 @@ export class Player {
           }
           case "end":
             segment.summary = event.summary;
+            segment.noticed = event.noticed && (event.noticed.strengths.length > 0 || event.noticed.toWork.length > 0) ? event.noticed : null;
             break;
+          case "diagnosis": {
+            const { kind: _kind, ...diagnosis } = event;
+            this.diagnosis = diagnosis;
+            break;
+          }
           case "error":
             segment.error = event.message;
             break;
@@ -435,7 +449,7 @@ export class Player {
         }
         this.set({ error: segment.error });
       }
-      if (segment.kind === "question") this.set({ summary: segment.summary });
+      if (segment.kind === "question") this.set({ summary: segment.summary, noticed: segment.noticed });
 
       const parent = this.segments.at(-1);
       if (segment.kind === "followUp") this.set({ answeringFollowUp: false });
@@ -582,6 +596,7 @@ export class Player {
       answered: this.answeredCount,
       goals: this.goals.length > 0 ? this.goals : undefined,
       answers: this.answerLog.length > 0 ? this.answerLog.map(({ choices: _c, ...rest }) => rest) : undefined,
+      diagnosis: this.diagnosis ?? undefined,
     };
   }
 

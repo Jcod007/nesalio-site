@@ -101,6 +101,26 @@ describe("Player", () => {
     expect(player.getSnapshot().summary).toEqual(["À retenir"]);
   });
 
+  it("rend sa fiche de diagnostic au modèle au tour suivant, et montre ce qu'elle a remarqué à la fin", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], answer: 0 };
+    const diagnosis = { gaps: [{ notion: "fractions", status: "suspected" as const }], strengths: ["calcule vite"], next: "vérifier les fractions" };
+    const noticed = { strengths: ["Tu calcules vite."], toWork: ["Le dénominateur commun."] };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question"
+        ? [step("On additionne.", { check }), { kind: "diagnosis", ...diagnosis }, { kind: "await" }]
+        : [step("On répare."), { kind: "end", summary: ["À retenir"], noticed }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("fractions ?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(1);
+    await until(player, () => requests.length === 2);
+    expect(requests[1]!.context?.diagnosis).toEqual(diagnosis);
+    await speakUntil(player, voice, (s) => s.status === "done");
+    expect(player.getSnapshot().noticed).toEqual(noticed);
+  });
+
   it("s'arrête quand on l'interrompt et redit la phrase coupée à la reprise", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [step("Un."), step("Deux."), { kind: "end", summary: [] }]);

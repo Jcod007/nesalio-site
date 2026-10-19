@@ -77,13 +77,49 @@ export const LessonHeaderEvent = z.object({
 
 export const StepEvent = Step.extend({ kind: z.literal("step") });
 
+/**
+ * Ce que Nesa a remarqué chez l'élève, dit à l'élève en fin de séance (« tu ») :
+ * ses forces, et au plus deux choses concrètes à travailler.
+ */
+export const Noticed = z.object({
+  strengths: z.array(z.string().trim().min(1).max(140)).max(3).default([]),
+  toWork: z.array(z.string().trim().min(1).max(140)).max(2).default([]),
+});
+export type Noticed = z.infer<typeof Noticed>;
+
 export const EndEvent = z.object({
   kind: z.literal("end"),
   summary: z.array(z.string().trim().min(1).max(120)).max(5).default([]),
+  noticed: Noticed.optional(),
 });
 
+/**
+ * Fiche de diagnostic de Nesa, invisible pour l'élève : les lacunes d'avant
+ * qu'elle envisage derrière ses erreurs, et où elle en est avec chacune.
+ * Rendue au modèle à chaque tour (elle se met à jour) et gardée dans les
+ * séances enregistrées.
+ */
+export const GapStatus = z.enum(["suspected", "confirmed", "ruled_out", "repaired"]);
+export const Gap = z.object({
+  /** La notion d'avant (« fractions : dénominateur commun »). */
+  notion: z.string().trim().min(1).max(80),
+  /** Où elle s'apprend (« sec 1 »). */
+  level: z.string().trim().max(30).optional(),
+  /** Ce qui, dans les réponses de l'élève, le fait penser. */
+  evidence: z.string().trim().max(200).optional(),
+  status: GapStatus,
+});
+export const Diagnosis = z.object({
+  gaps: z.array(Gap).max(4).default([]),
+  strengths: z.array(z.string().trim().min(1).max(120)).max(3).default([]),
+  /** Ce que Nesa fait au prochain tour (vérifier, réparer, revenir à la notion). */
+  next: z.string().trim().max(160).optional(),
+});
+export type Diagnosis = z.infer<typeof Diagnosis>;
+export const DiagnosisEvent = Diagnosis.extend({ kind: z.literal("diagnosis") });
+
 /** Ce que le modèle a le droit d'émettre. */
-export const ModelEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent]);
+export const ModelEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent]);
 export type ModelEvent = z.infer<typeof ModelEvent>;
 
 /** Ce que le serveur envoie au navigateur : les événements du modèle, plus l'origine et les erreurs. */
@@ -110,6 +146,7 @@ export const StreamEvent = z.discriminatedUnion("kind", [
   LessonHeaderEvent,
   StepEvent,
   EndEvent,
+  DiagnosisEvent,
   ErrorEvent,
   SourceEvent,
   AwaitEvent,
@@ -118,6 +155,7 @@ export type StreamEvent = z.infer<typeof StreamEvent>;
 export type LessonHeader = z.infer<typeof LessonHeaderEvent>;
 export type StepEventT = z.infer<typeof StepEvent>;
 export type EndEventT = z.infer<typeof EndEvent>;
+export type DiagnosisEventT = z.infer<typeof DiagnosisEvent>;
 
 /** Une séance complète (utile pour les séances de démonstration et les tests). */
 export interface Lesson {

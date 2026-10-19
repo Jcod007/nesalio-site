@@ -110,6 +110,25 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
                 <li key={line}>{line}</li>
               ))}
             </ul>
+            {snapshot.noticed ? (
+              <div className={styles.noticed}>
+                <h3>Ce que j&apos;ai remarqué</h3>
+                {snapshot.noticed.strengths.length > 0 ? (
+                  <ul className={styles.strengths} aria-label="Tes forces">
+                    {snapshot.noticed.strengths.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                {snapshot.noticed.toWork.length > 0 ? (
+                  <ul className={styles.toWork} aria-label="À travailler">
+                    {snapshot.noticed.toWork.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
 

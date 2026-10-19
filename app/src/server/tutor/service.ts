@@ -116,6 +116,9 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
             const rejected = parser.issues.slice(0, 6).map((issue) => `${issue.reason} : ${issue.line}`.slice(0, 200));
             yield rejected.length > 0 ? { kind: "await", rejected } : { kind: "await" };
           }
+        } else if (event.kind === "diagnosis") {
+          // Fiche de diagnostic : transmise (gardée par le navigateur et l'enregistrement), sans finir le tour.
+          yield event;
         } else {
           ended = true;
           yield event;

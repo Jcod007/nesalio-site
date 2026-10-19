@@ -102,6 +102,23 @@ describe("tutorEvents", () => {
     expect(prompt).toContain("Réponse de l'élève : « 0 » (faux)");
   });
 
+  it("transmet la fiche de diagnostic sans finir le tour, puis s'arrête à la question", async () => {
+    const lines = [
+      { kind: "step", say: "Tu as écrit 2 sur 7.", do: [] },
+      { kind: "diagnosis", gaps: [{ notion: "fractions : dénominateur commun", level: "sec 1", evidence: "1/3 + 1/4 = 2/7", status: "suspected" }], strengths: [], next: "vérifier les fractions" },
+      { kind: "step", say: "Petite vérification.", do: [], check: { prompt: "1/2 + 1/4 ?", choices: ["2/6", "3/4"], answer: 1 } },
+      { kind: "step", say: "Jamais joué.", do: [] },
+    ].map((l) => JSON.stringify(l)).join("\n");
+    const events = await collect(
+      tutorEvents(
+        { mode: "continue", question: "?", context: { spoken: [], board: [] }, answer: { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], picked: "2/7", correct: false } },
+        { ...base, completion: fakeCompletion(lines) },
+      ),
+    );
+    expect(events.map((e) => e.kind)).toEqual(["source", "step", "diagnosis", "step", "await"]);
+    expect(events[2]).toMatchObject({ gaps: [{ status: "suspected", notion: "fractions : dénominateur commun" }] });
+  });
+
   it("signale une erreur si le modèle échoue avant la première étape", async () => {
     const events = await collect(
       tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("{}", 0) }),

@@ -11,6 +11,7 @@ import { ACTION_ALIASES, COMMANDS, NODE_COMMANDS, type ActionType } from "@/doma
 import {
   Action,
   Check,
+  DiagnosisEvent,
   EndEvent,
   LessonHeaderEvent,
   Mood,
@@ -123,7 +124,15 @@ export function createModelOutputParser(): ModelOutputParser {
         return parseStep(record, line);
       case "end": {
         const parsed = EndEvent.safeParse(record);
-        return parsed.success ? parsed.data : { kind: "end", summary: [] };
+        if (parsed.success) return parsed.data;
+        // Un « noticed » mal formé ne doit pas faire perdre le résumé.
+        const { noticed: _noticed, ...rest } = record;
+        const retry = EndEvent.safeParse(rest);
+        return retry.success ? retry.data : { kind: "end", summary: [] };
+      }
+      case "diagnosis": {
+        const parsed = DiagnosisEvent.safeParse(record);
+        return parsed.success ? parsed.data : reject(line, "Fiche de diagnostic invalide");
       }
       default:
         return reject(line, "Type d'événement inconnu");

@@ -7,7 +7,7 @@
  */
 import { quadraticLesson } from "@/content/demoLessons";
 import { commandReference } from "@/domain/scene/commands";
-import type { Action, Lesson } from "@/domain/scene/schema";
+import type { Action, Diagnosis, Lesson } from "@/domain/scene/schema";
 import type { StudentAnswer, TutorRequest } from "@/domain/tutor/request";
 
 export interface ChatMessage {
@@ -70,7 +70,14 @@ Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni b
      avec la réponse de l'élève : ta remédiation visera la bonne erreur.
      Question pour situer l'élève (ce qu'il sait déjà, comment il s'y prendrait), sans bonne réponse :
      {"prompt":"…","choices":["…","…","…"]}
-3. {"kind":"end","summary":["…","…"]} : fin de la séance, 2 ou 3 points à retenir, écrits avec les symboles.
+3. {"kind":"end","summary":["…","…"],"noticed":{"strengths":["…"],"toWork":["…"]}} : fin de la séance, 2 ou 3 points
+   à retenir, écrits avec les symboles. "noticed" (fin de séance seulement, pas après une interruption) s'adresse à
+   l'élève (« tu ») : 1 à 3 forces précises qu'il a montrées, et au plus 2 choses concrètes à travailler.
+4. {"kind":"diagnosis","gaps":[{"notion":"…","level":"…","evidence":"…","status":"suspected|confirmed|ruled_out|repaired"}],
+   "strengths":["…"],"next":"…"} : ta FICHE DE DIAGNOSTIC, que l'élève ne voit ni n'entend (voir TU DIAGNOSTIQUES).
+   Écris-la à chaque tour où l'élève t'a répondu, JUSTE AVANT l'étape qui porte ta question (ou juste avant "end") :
+   elle doit arriver avant la question, car le tour s'arrête à la question. Reprends les lacunes déjà notées avec leur
+   nouveau statut ; "next" dit ce que tu fais au tour suivant.
 
 COMMANDES DE DESSIN (coordonnées mathématiques, couleurs : violet, blue, green, orange, ink, muted)
 ${commandReference()}
@@ -162,6 +169,22 @@ La séance est un ÉCHANGE, par tours, pas un cours magistral.
   même si la séance en a déjà parlé. Pour toute autre matière, ou une question inappropriée, même chose.
   Refus : une ou deux étapes gentilles sans dessin, sans question, puis "end", et propose une notion de maths, de
   physique ou de chimie.
+TU DIAGNOSTIQUES COMME UN BON PROF
+Derrière une erreur, il y a souvent une notion d'avant mal acquise. Les plus fréquentes au Québec : la fonction vue
+comme une formule plutôt qu'une relation entrée-sortie ; les fractions (dénominateur commun, opérations) ; la priorité
+des opérations et les règles des signes ; la distributivité et les termes semblables ; les exposants et les racines ;
+isoler une inconnue ; la proportionnalité et la règle de trois ; la trigonométrie du triangle rectangle ; lire un
+graphique ; lire l'énoncé d'une situation-problème ; les unités et les conversions.
+- À chaque réponse fausse (ou réponse libre bancale), demande-toi : erreur sur la notion du jour, ou lacune d'avant ?
+  Une lacune d'avant entre dans ta fiche comme "suspected", avec l'indice précis tiré de sa réponse.
+- Soupçon → VÉRIFIE avant de conclure : ta prochaine question porte sur cette notion d'avant TOUTE SEULE, hors du
+  problème, avec des nombres simples (« Que vaut 1/3 + 1/4 ? »). Une seule question, jamais un interrogatoire.
+- Confirmée (il se trompe encore) → RÉPARE : un court détour (2 à 4 étapes, avec un dessin) sur cette notion, une
+  question pour vérifier, puis reviens à la notion du jour en le disant (« maintenant qu'on a cet outil, on revient
+  à … »). Écartée (il réussit) → "ruled_out", et reviens tout de suite à la notion du jour.
+- Au plus deux détours par séance ; ne soupçonne jamais une lacune sans indice dans ses réponses.
+- Ne dis jamais à l'élève qu'il « a une lacune » : dis « on vérifie un petit outil dont on a besoin ».
+- Note aussi ses forces (ce qu'il réussit, sa façon de raisonner) : elles nourrissent "noticed" en fin de séance.
 - Ne te contredis pas d'un tour à l'autre : relis ce que tu as déjà dit. Si tu t'étais trompée, dis-le clairement
   (« je me corrige : … ») au lieu de dire autre chose sans prévenir.`.trim();
 
@@ -198,6 +221,7 @@ function exampleExchange(): string {
     step(beats[4]!),
     step(beats[5]!),
     step(beats[6]!),
+    line({ kind: "diagnosis", gaps: [], strengths: ["prédit bien la forme d'une parabole à partir du sommet"], next: "isoler x ; surveiller la racine carrée" }),
     step({
       ...beats[7]!,
       check: {
@@ -223,7 +247,18 @@ function exampleExchange(): string {
     }),
     step(beats[8]!),
     step(beats[9]!),
-    line(quadraticLesson.end),
+    line({
+      kind: "diagnosis",
+      gaps: [{ notion: "racine carrée d'un nombre non parfait", level: "sec 3", evidence: "a écrit 2 ± 3 au lieu de 2 ± √3", status: "repaired" }],
+      strengths: ["prédit bien la forme d'une parabole à partir du sommet", "isole le carré sans erreur"],
+    }),
+    line({
+      ...quadraticLesson.end,
+      noticed: {
+        strengths: ["Tu lis tout de suite le sommet sur la forme canonique.", "Tu isoles le carré proprement."],
+        toWork: ["Garder la racine carrée jusqu'au bout : √3 n'est pas 3."],
+      },
+    }),
   ];
   return [
     "Tour 1 (nouvelle question « Comment je trouve les zéros de f(x) = −(x − 2)² + 3 ? ») :",
@@ -271,7 +306,7 @@ L'élève vient de répondre à ta question. Continue la séance (nouveau tour) 
 - si sa réponse fausse correspond à une erreur prévue (« erreur visée »), commence par elle ; si la même erreur
   revient dans ses réponses précédentes, change d'approche ;
 - si on te donne un « retour sur ton tour précédent », corrige-le dans ce tour (montre ce que tu avais seulement dit) ;
-- après 4 réponses, conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
+- après 4 réponses (6 si tu as fait un détour pour réparer une lacune), conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
   puis {"kind":"end"} (pas de nouvelle question) ;
 - s'il se trompe encore sur la même idée, change d'angle (autre image, autre exemple) et pose une question différente ;
 - réutilise les objets déjà au tableau au lieu de tout redessiner.`.trim();
@@ -304,6 +339,7 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
         ]
       : []),
     ...(context.review?.length ? ["Retour sur ton tour précédent :", ...context.review.map((r) => `- ${r}`)] : []),
+    ...describeDiagnosis(context.diagnosis),
     "",
     ...(request.mode === "continue" && request.answer ? describeAnswer(request.answer) : [`L'élève : ${request.question}`]),
   ];
@@ -324,5 +360,25 @@ function describeAnswer(answer: StudentAnswer): string[] {
     `Choix proposés : ${answer.choices.map((c) => `« ${c} »`).join(", ")}`,
     `Réponse de l'élève : « ${answer.picked} » ${verdict}`,
     ...(answer.misconception ? [`Erreur visée par ce choix (prévue quand tu as écrit la question) : ${answer.misconception}`] : []),
+  ];
+}
+
+const STATUS_LABEL: Record<Diagnosis["gaps"][number]["status"], string> = {
+  suspected: "soupçon",
+  confirmed: "confirmée",
+  ruled_out: "écartée",
+  repaired: "réparée",
+};
+
+/** Ta fiche de diagnostic, rendue au modèle pour qu'il la poursuive (l'élève ne la voit pas). */
+function describeDiagnosis(diagnosis: Diagnosis | undefined): string[] {
+  if (!diagnosis || (diagnosis.gaps.length === 0 && diagnosis.strengths.length === 0 && !diagnosis.next)) return [];
+  return [
+    "Ta fiche de diagnostic (l'élève ne la voit pas) :",
+    ...diagnosis.gaps.map(
+      (g) => `- lacune ${STATUS_LABEL[g.status]} : ${g.notion}${g.level ? ` (${g.level})` : ""}${g.evidence ? ` — indice : ${g.evidence}` : ""}`,
+    ),
+    ...(diagnosis.strengths.length ? [`- forces : ${diagnosis.strengths.join(" ; ")}`] : []),
+    ...(diagnosis.next ? [`- tu avais prévu : ${diagnosis.next}`] : []),
   ];
 }
