@@ -110,6 +110,44 @@ describe("figures paramétriques", () => {
     expect(resolveTargets(board, "plan")).toEqual(expect.arrayContaining(["plan-bloc", "plan-N", "plan-angle"]));
   });
 
+  it("redemander le plan avec un autre angle le fait pivoter sous les yeux de l'élève (forces comprises)", () => {
+    let board = applyAction(emptyBoard(), { type: "incline", id: "plan", angle: 30, length: 4, at: [0, 0], components: true, normal: true }, t);
+    const later = { start: 5000, duration: 1000 };
+    // L'IA ne redit pas "normal" : la normale déjà au tableau doit suivre le nouvel angle, pas rester à 30°.
+    board = applyAction(board, { type: "incline", id: "plan", angle: 60, length: 4, at: [0, 0], components: true }, later);
+    const slope = board.nodes["plan-pente"] as PolygonNode;
+    close(slope.points[2]!, [4 * Math.cos(Math.PI / 3), 4 * Math.sin(Math.PI / 3)]);
+    expect(slope.morph).toEqual(later);
+    const P = board.nodes["plan-P"] as VectorNode;
+    const Px = board.nodes["plan-Px"] as VectorNode;
+    const N = board.nodes["plan-N"] as VectorNode;
+    const length = (v: VectorNode) => Math.hypot(v.to[0] - v.from[0], v.to[1] - v.from[1]);
+    expect(length(Px)).toBeCloseTo(length(P) * Math.sin(Math.PI / 3), 6);
+    expect(length(N)).toBeCloseTo(length(P) * 0.5, 6);
+    expect(Px.morph).toEqual(later);
+    // Ce qui n'a pas changé (le poids reste vertical, même longueur) n'est pas rejoué.
+    expect((board.nodes["plan-angle"] as ArcNode).end - (board.nodes["plan-angle"] as ArcNode).start).toBeCloseTo(60, 6);
+  });
+
+  it("garde la pointe du poids au-dessus du sol, pour que P et son nom ne tombent pas sur la ligne du sol", () => {
+    for (const angle of [15, 30, 45, 60]) {
+      const board = applyAction(emptyBoard(), { type: "incline", id: "plan", angle, length: 4, at: [0, 0] }, t);
+      const P = board.nodes["plan-P"] as VectorNode;
+      const height = P.from[1]; // le sol est à y = 0
+      expect(P.to[1]).toBeGreaterThan(height * 0.2);
+    }
+  });
+
+  it("marque sur demande l'angle θ entre le poids et P⊥ (le même que celui du plan)", () => {
+    const board = applyAction(emptyBoard(), { type: "incline", id: "plan", angle: 30, length: 4, at: [0, 0], components: true, weightAngle: true }, t);
+    const arc = board.nodes["plan-angleP"] as ArcNode;
+    expect(arc.end - arc.start).toBeCloseTo(30, 6);
+    const P = board.nodes["plan-P"] as VectorNode;
+    close(arc.center, P.from);
+    expect(arc.label).toBe("θ");
+    expect(resolveTargets(board, "plan")).toContain("plan-angleP");
+  });
+
   it("trace un vecteur à partir de ses composantes", () => {
     const board = applyAction(emptyBoard(), { type: "vector", id: "v", from: [1, 1], by: [3, 2] }, t);
     expect(board.nodes.v).toMatchObject({ from: [1, 1], to: [4, 3] });
