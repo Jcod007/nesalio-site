@@ -2,15 +2,21 @@
  * Commandes qui dessinent la figure : repère, courbe, point, vecteur, segment.
  */
 import { z } from "zod";
-import { sampleCurve } from "@/domain/board/geometry";
-import { boxAround, FONT_SIZE, placeBeside, reflowCalc, textExtent } from "@/domain/board/layout";
-import { putNode, type BoardNode, type BoardState, type CurveNode, type Frame, type Reveal, type Vec2 } from "@/domain/board/state";
+import { AXES_OWNER, makeWay, placeLabel, placeText, reflowCalc } from "@/domain/board/layout";
+import { putNode, visibleNodes, type BoardNode, type BoardState, type CurveNode, type Frame, type Reveal } from "@/domain/board/state";
 import { ColorName, Coord, Expression, finite, Id, Range } from "../primitives";
 import { defineCommand } from "./define";
 
-/** Ajoute un nœud de la figure ; la pile de calculs suit si la figure s'agrandit. */
+/**
+ * Ajoute un nœud de la figure. Il occupe son empreinte : un texte se pose à la
+ * place libre la plus proche de celle demandée, l'étiquette de l'objet évite ce
+ * qui est déjà au tableau, et les textes ou étiquettes que l'objet recouvre
+ * glissent juste assez pour lui faire place. La pile de calculs suit si la
+ * figure s'agrandit.
+ */
 export function drawNode(state: BoardState, node: BoardNode, reveal: Reveal): BoardState {
-  const next = putNode(state, node);
+  let next = putNode(state, node.type === "text" && node.role === "free" ? placeText(state, node) : node);
+  next = makeWay(placeLabel(next, node.id), [node.id], reveal);
   return next.axes || next.calc.length === 0 ? next : reflowCalc(next, reveal);
 }
 
@@ -23,13 +29,25 @@ export const axesCommand = defineCommand({
     y: Range,
     xLabel: z.string().max(12).optional(),
     yLabel: z.string().max(12).optional(),
+    xStep: finite.positive().optional(),
+    yStep: finite.positive().optional(),
   }),
-  doc: '{"type":"axes","x":[min,max],"y":[min,max],"xLabel":"x","yLabel":"y"} : repère, à tracer en premier si tu fais un graphique.',
+  doc:
+    '{"type":"axes","x":[min,max],"y":[min,max],"xLabel":"x","yLabel":"y","xStep":10} : repère, à tracer en premier si tu fais\n' +
+    '  un graphique. "xStep"/"yStep" (facultatifs) : écart entre deux graduations (élargi s\'il rendrait les chiffres illisibles).',
   duration: 900,
   apply(state, action, reveal) {
-    const frame: Frame = { x: action.x, y: action.y, xLabel: action.xLabel, yLabel: action.yLabel };
+    const frame: Frame = { x: action.x, y: action.y, xLabel: action.xLabel, yLabel: action.yLabel, xStep: action.xStep, yStep: action.yStep };
+    let next: BoardState = { ...state, frame, axes: { frame, reveal }, axesCleared: null };
+    const changed = state.frame.x.join() !== frame.x.join() || state.frame.y.join() !== frame.y.join();
+    if (changed) {
+      // Nouvelle échelle : les étiquettes reprennent leur place près de leur objet, et les textes
+      // déjà écrits qui tomberaient sur les axes ou leurs chiffres glissent juste à côté.
+      for (const node of visibleNodes(next)) if ("label" in node && node.label) next = placeLabel(next, node.id);
+      next = makeWay(next, [AXES_OWNER], reveal);
+    }
     // La pile de calculs se range à côté du nouveau repère.
-    return reflowCalc({ ...state, frame, axes: { frame, reveal }, axesCleared: null }, reveal);
+    return reflowCalc(next, reveal);
   },
 });
 
@@ -52,23 +70,9 @@ export const curveCommand = defineCommand({
   apply(state, action, reveal) {
     const { type, id, color, ...rest } = action;
     const node: CurveNode = { ...base(id, reveal, color), type, ...rest };
-    return drawNode(state, { ...node, labelAt: curveLabelAt(state, node) }, reveal);
+    return drawNode(state, node, reveal);
   },
 });
-
-/**
- * Place de l'étiquette d'une courbe : près de son extrémité droite, sur une
- * place libre (deux courbes qui finissent au même endroit ne superposent plus
- * leurs noms).
- */
-function curveLabelAt(state: BoardState, node: CurveNode): Vec2 | undefined {
-  if (!node.label) return undefined;
-  const last = sampleCurve(node.fn, state.frame, node.from, node.to).at(-1)?.at(-1);
-  if (!last) return undefined;
-  const extent = textExtent(node.label, FONT_SIZE.label, state.frame);
-  const end = boxAround(last, { w: 0.01, h: 0.01 });
-  return placeBeside(state, extent, end, "above", new Set([node.id])).center;
-}
 
 export const pointCommand = defineCommand({
   schema: z.object({

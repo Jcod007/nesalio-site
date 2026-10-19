@@ -8,10 +8,11 @@
  * - « texte » : sur un autre texte (plus de 20 % de la plus petite boîte) ;
  * - « point » : sur la pastille d'un point (plus de 30 % de la pastille) ;
  * - « trait » : barré par le trait d'un autre objet (courbe, segment, contour, axe) ;
- * - « surface » : dans un polygone rempli d'un autre objet (30 % de la boîte ou plus) ;
+ * - « surface » : dans un polygone rempli d'un autre objet (30 % de la boîte ou plus),
+ *   sauf s'il recouvre déjà ce que le texte nomme (l'étiquette d'un côté sous un carré) ;
  * et « graduations » : deux chiffres d'un même axe qui se touchent.
  */
-import { AXES_OWNER, footprints, intersects, regionCover, tickLabels, type Box } from "./layout";
+import { AXES_OWNER, footprints, intersects, namingRegions, regionCover, tickLabels, type Box } from "./layout";
 import type { BoardState } from "./state";
 
 export type CollisionKind = "texte" | "point" | "trait" | "surface" | "graduations";
@@ -64,8 +65,9 @@ export function collisions(state: BoardState): Collision[] {
       const hits = s.points.filter(([x, y]) => x > inner.x0 && x < inner.x1 && y > inner.y0 && y < inner.y1).length;
       if (hits >= 2) out.push({ a: tName, b: s.owner, kind: "trait", ratio: hits });
     }
+    const allowed = namingRegions(state, t.owner);
     for (const r of prints.regions) {
-      if (r.owner === t.owner) continue;
+      if (r.owner === t.owner || allowed.has(r.owner)) continue;
       const ratio = regionCover(t.box, r.points);
       if (ratio >= 0.3) out.push({ a: tName, b: r.owner, kind: "surface", ratio: round(ratio) });
     }

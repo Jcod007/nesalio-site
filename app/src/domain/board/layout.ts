@@ -16,6 +16,7 @@ import {
   anchoredTo,
   isVisible,
   moveNodes,
+  putNode,
   resolveTargets,
   updateNodes,
   visibleNodes,
@@ -64,10 +65,27 @@ export interface Extent {
 
 /* -------------------------------- échelle -------------------------------- */
 
-/** Unités du monde Manim par unité mathématique, sur chaque axe (même échelle en x et en y). */
+/**
+ * Au-delà de ce rapport entre les échelles naturelles des deux axes, chaque axe
+ * prend sa propre échelle : un repère de 0 à 2000 billets et de 0 à 50 000 $
+ * n'est plus écrasé en une colonne illisible. En deçà, même échelle en x et
+ * en y (angles, cercles et figures restent justes).
+ */
+export const UNIFORM_RATIO = 3;
+
+/** Unités du monde Manim par unité mathématique, sur chaque axe. */
 export function scales(frame: Frame): { x: number; y: number } {
-  const u = Math.min(AXES_BOX.width / (frame.x[1] - frame.x[0]), AXES_BOX.height / (frame.y[1] - frame.y[0]));
+  const x = AXES_BOX.width / (frame.x[1] - frame.x[0]);
+  const y = AXES_BOX.height / (frame.y[1] - frame.y[0]);
+  if (Math.max(x, y) / Math.min(x, y) > UNIFORM_RATIO) return { x, y };
+  const u = Math.min(x, y);
   return { x: u, y: u };
+}
+
+/** Le repère a-t-il la même échelle sur les deux axes ? */
+export function isUniform(frame: Frame): boolean {
+  const s = scales(frame);
+  return Math.abs(s.x - s.y) <= 1e-12 * Math.max(s.x, s.y);
 }
 
 /** La plus petite des deux échelles (tailles qui doivent rester visibles sur les deux axes). */
@@ -128,16 +146,32 @@ export interface AxisTicks {
 
 /** Graduations chiffrées du repère (le rendu dessine exactement celles-ci). */
 export function axisTicks(frame: Frame): { x: AxisTicks; y: AxisTicks; origin: Vec2 } {
+  const s = scales(frame);
   const along = ([a, b]: [number, number], step: number): number[] => {
     const out: number[] = [];
-    for (let v = Math.ceil(a / step) * step; v <= b - step * 0.5; v += step) {
+    for (let v = Math.ceil(a / step - 1e-9) * step; v <= b - step * 0.5; v += step) {
       const rounded = Number((Math.round(v / step) * step).toPrecision(12));
       if (Math.abs(rounded) > 1e-9) out.push(rounded);
     }
     return out;
   };
-  const xStep = niceStep(frame.x[1] - frame.x[0]);
-  const yStep = niceStep(frame.y[1] - frame.y[0], 7);
+  /**
+   * Pas lisible : le pas demandé (ou un pas rond), élargi tant que deux chiffres
+   * voisins se toucheraient. Sur l'axe des x, la largeur du plus long chiffre
+   * plus un blanc ; sur l'axe des y, la hauteur d'un chiffre plus un blanc.
+   */
+  const readable = (range: [number, number], unit: number, requested: number | undefined, target: number, room: (step: number) => number) => {
+    const span = range[1] - range[0];
+    let step = requested && requested > 0 ? requested : niceStep(span, target);
+    // Pas plus de 60 graduations, quel que soit le pas demandé.
+    while (span / step > 60) step = nextStep(step, requested);
+    for (let guard = 0; guard < 40 && step * unit < room(step); guard++) step = nextStep(step, requested);
+    return step;
+  };
+  const widest = (range: [number, number], step: number) =>
+    Math.max(1, ...along(range, step).map((v) => Array.from(tickText(v)).length)) * TICK_WIDTH_PER_CHAR;
+  const xStep = readable(frame.x, s.x, frame.xStep, 8, (step) => widest(frame.x, step) + 0.12);
+  const yStep = readable(frame.y, s.y, frame.yStep, 7, () => TICK_HEIGHT + 0.16);
   return {
     x: { step: xStep, values: along(frame.x, xStep) },
     y: { step: yStep, values: along(frame.y, yStep) },
@@ -145,8 +179,30 @@ export function axisTicks(frame: Frame): { x: AxisTicks; y: AxisTicks; origin: V
   };
 }
 
-/** Chiffre d'une graduation. */
-export const tickText = (value: number) => formatNumber(value);
+/**
+ * Pas suivant, plus large : un multiple du pas demandé (10 → 20 → 50 → 100…),
+ * sinon le pas rond suivant (1, 2, 5 × 10ⁿ).
+ */
+function nextStep(step: number, requested: number | undefined): number {
+  if (requested && requested > 0) {
+    const k = step / requested;
+    const power = Math.pow(10, Math.floor(Math.log10(k) + 1e-9));
+    const unit = k / power;
+    const next = unit < 1.5 ? 2 : unit < 3.5 ? 5 : 10;
+    return requested * next * power;
+  }
+  return niceStep(step * 1.5, 1);
+}
+
+/** Chiffre d'une graduation, à la québécoise : virgule décimale, espace entre les milliers (25 000). */
+export function tickText(value: number): string {
+  const text = formatNumber(value);
+  const [whole, decimals] = text.split(",");
+  const sign = whole!.startsWith("-") ? "-" : "";
+  const digits = whole!.replace("-", "");
+  const grouped = digits.length > 4 ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ") : digits;
+  return sign + grouped + (decimals ? `,${decimals}` : "");
+}
 
 /** Centre et taille (coordonnées mathématiques) de chaque chiffre des graduations. */
 export function tickLabels(frame: Frame): Array<{ axis: "x" | "y"; value: number; text: string; at: Vec2; size: Extent }> {
@@ -155,7 +211,11 @@ export function tickLabels(frame: Frame): Array<{ axis: "x" | "y"; value: number
   const size = (text: string) => mathSize(frame, Array.from(text).length * TICK_WIDTH_PER_CHAR, TICK_HEIGHT);
   return [
     ...x.values.map((v) => ({ axis: "x" as const, value: v, text: tickText(v), at: [v, origin[1] - 0.28 / s.y] as Vec2, size: size(tickText(v)) })),
-    ...y.values.map((v) => ({ axis: "y" as const, value: v, text: tickText(v), at: [origin[0] - 0.3 / s.x, v] as Vec2, size: size(tickText(v)) })),
+    // Chiffres de l'axe des y alignés à droite, à distance fixe de l'axe (« 45 000 » ne mord pas sur l'axe).
+    ...y.values.map((v) => {
+      const extent = size(tickText(v));
+      return { axis: "y" as const, value: v, text: tickText(v), at: [origin[0] - 0.18 / s.x - extent.w / 2, v] as Vec2, size: extent };
+    }),
   ];
 }
 
@@ -178,40 +238,33 @@ const shift = (b: Box, [dx, dy]: Vec2): Box => ({ x0: b.x0 + dx, y0: b.y0 + dy, 
 
 /** Boîte englobante d'un nœud, étiquette comprise, à sa position actuelle. */
 export function nodeBox(node: BoardNode, frame: Frame): Box {
-  const unit = worldPerMath(frame);
-  const label = (text: string | undefined) => (text ? textExtent(text, FONT_SIZE.label, frame) : null);
+  const moved = bodyBox(node, frame);
+  // L'étiquette fait partie de l'objet : exactement là où le rendu la dessine.
+  const label = labelBox(node, frame);
+  return label ? union([moved, label])! : moved;
+}
+
+/** Boîte de l'objet seul, sans son étiquette (à sa position actuelle) : ce à côté de quoi on pose un texte. */
+export function bodyBox(node: BoardNode, frame: Frame): Box {
   let box: Box;
   switch (node.type) {
-    case "point": {
-      const r = 0.15 / unit;
-      box = boxAround(node.at, { w: 2 * r, h: 2 * r });
-      const size = label(node.label);
-      // Même placement que le rendu : au-dessus à droite du point.
-      if (size) box = union([box, { x0: node.at[0] + 0.25 / unit, y0: node.at[1] + 0.42 / unit - size.h / 2, x1: node.at[0] + 0.25 / unit + size.w, y1: node.at[1] + 0.42 / unit + size.h / 2 }])!;
+    case "point":
+      box = boxAround(node.at, mathSize(frame, 0.3, 0.3));
       break;
-    }
     case "segment":
-    case "vector": {
+    case "vector":
       box = fromPoints([node.from, node.to]);
-      const size = label(node.label);
-      if (size) box = union([box, boxAround(boxCenter(box), { w: size.w + 0.76 / unit, h: size.h + 0.76 / unit })])!;
       break;
-    }
     case "curve": {
       const points = sampleCurve(node.fn, frame, node.from, node.to, 80).flat();
       box = points.length > 0 ? fromPoints(points) : frameBox(frame);
-      const size = label(node.label);
-      if (size && node.labelAt) box = union([box, boxAround(node.labelAt, size)])!;
       break;
     }
     case "arc":
     case "circle":
-    case "polygon": {
+    case "polygon":
       box = fromPoints(outline(node));
-      const size = label(node.label);
-      if (size) box = union([box, boxAround(boxCenter(box), { w: size.w, h: size.h })])!;
       break;
-    }
     case "grid":
       box = { x0: node.x[0], y0: node.y[0], x1: node.x[1], y1: node.y[1] };
       break;
@@ -437,17 +490,17 @@ export function contentBox(state: BoardState): Box {
 const SIDES: Side[] = ["right", "above", "below", "left"];
 
 /** Centre d'une boîte de taille `size` posée du côté `side` de `target`. */
-function besideCenter(target: Box, size: Extent, side: Side, gap: number): Vec2 {
+function besideCenter(target: Box, size: Extent, side: Side, gap: Extent): Vec2 {
   const [cx, cy] = boxCenter(target);
   switch (side) {
     case "right":
-      return [target.x1 + gap + size.w / 2, cy];
+      return [target.x1 + gap.w + size.w / 2, cy];
     case "left":
-      return [target.x0 - gap - size.w / 2, cy];
+      return [target.x0 - gap.w - size.w / 2, cy];
     case "above":
-      return [cx, target.y1 + gap + size.h / 2];
+      return [cx, target.y1 + gap.h + size.h / 2];
     case "below":
-      return [cx, target.y0 - gap - size.h / 2];
+      return [cx, target.y0 - gap.h - size.h / 2];
   }
 }
 
@@ -456,15 +509,26 @@ function besideCenter(target: Box, size: Extent, side: Side, gap: number): Vec2 
  * s'il est libre, sinon le premier côté libre, sinon le côté demandé quand même.
  * `ignore` : nœuds à ne pas considérer comme des obstacles (la cible, ce qui bouge avec).
  */
-export function placeBeside(state: BoardState, size: Extent, target: Box, side: Side | undefined, ignore: ReadonlySet<string>): { center: Vec2; side: Side } {
-  const gap = GAP / worldPerMath(state.frame);
-  const clutter = obstacles(state, ignore);
+export function placeBeside(
+  state: BoardState,
+  size: Extent,
+  target: Box,
+  side: Side | undefined,
+  ignore: ReadonlySet<string>,
+  keep: ReadonlySet<string> = new Set(),
+): { center: Vec2; side: Side } {
+  const s = scales(state.frame);
+  // Les objets ignorés (la cible) ne gênent pas, sauf leurs étiquettes (`keep`) : un texte posé
+  // à côté d'un point ne recouvre pas le nom du point.
+  const clutter = obstacles(state, new Set(), (owner, part) => ignore.has(owner) && !(part === "label" && keep.has(owner)));
   const order = side ? [side, ...SIDES.filter((s) => s !== side)] : SIDES;
   // Le côté demandé s'il est libre ; sinon le premier côté libre ; sinon un peu plus loin ;
   // en dernier recours, l'emplacement le moins encombré.
   let best: { center: Vec2; side: Side; score: number } | null = null;
   const candidates = (distance: number): Array<{ side: Side; center: Vec2 }> => {
-    const away = gap * distance + (distance > 1 ? size.h * (distance - 1) * 0.5 : 0);
+    // Écart en unités du monde (le même à l'écran sur les deux axes), puis en coordonnées mathématiques.
+    const world = GAP * distance + (distance > 1 ? size.h * s.y * (distance - 1) * 0.5 : 0);
+    const away = mathSize(state.frame, world, world);
     const sides = order.map((candidate) => ({ side: candidate, center: besideCenter(target, size, candidate, away) }));
     // Les coins (en diagonale de l'objet), après les quatre côtés.
     const corners = (["right", "left"] as const).flatMap((horizontal) =>
@@ -476,62 +540,205 @@ export function placeBeside(state: BoardState, size: Extent, target: Box, side: 
     );
     return [...sides, ...corners];
   };
-  for (const distance of [1, 2.5, 4.5]) {
+  for (const distance of [1, 2.5]) {
     for (const { side: candidate, center } of candidates(distance)) {
-      const crowd = clutter(boxAround(center, size));
-      if (crowd === 0) return { center, side: candidate };
+      const crowd = clutter(padded(state.frame, boxAround(center, size)));
+      if (crowd < FREE) return { center, side: candidate };
       const score = crowd + (distance - 1) * 0.01;
       if (!best || score < best.score) best = { center, side: candidate, score };
     }
   }
-  return { center: best!.center, side: best!.side };
+  // Aucun côté libre : la place libre la plus proche du côté demandé.
+  const preferred = candidates(1)[0]!;
+  return { center: placeNear(state, size, preferred.center, clutter), side: preferred.side };
 }
 
 const inside = ([x, y]: Vec2, b: Box) => x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1;
 
+/** En dessous de ce score, une place est libre. */
+const FREE = 0.02;
+
 /**
- * Mesure de l'encombrement d'une zone (0 = libre). Ce qu'un texte ne doit pas recouvrir : les autres textes et points (leur
- * boîte), les traits des courbes et des segments (points échantillonnés), et
- * les axes avec leurs graduations chiffrées.
+ * Mesure de l'encombrement d'une zone (0 = libre), sur les empreintes de ce qui
+ * est au tableau : boîtes recouvertes (textes, étiquettes, pastilles des
+ * points, chiffres des axes), traits qui la traversent, surfaces remplies.
+ * `ignore` : objets à ne pas compter du tout ; `skip` : morceaux précis à ne
+ * pas compter (l'étiquette ou la surface d'un objet qui place sa propre étiquette).
  */
-export function obstacles(state: BoardState, ignore: ReadonlySet<string>): (box: Box) => number {
-  const unit = worldPerMath(state.frame);
-  const boxes: Box[] = [];
-  const traces: Vec2[] = [];
-  for (const node of visibleNodes(state)) {
-    if (ignore.has(node.id)) continue;
-    const move = ([x, y]: Vec2): Vec2 => [x + node.offset[0], y + node.offset[1]];
-    if (node.type === "grid") continue; // le quadrillage est un fond, pas un obstacle
-    if (node.type === "text" || node.type === "point") boxes.push(nodeBox(node, state.frame));
-    else if (node.type === "curve") {
-      traces.push(...sampleCurve(node.fn, state.frame, node.from, node.to, 120).flat().map(move));
-      // L'étiquette d'une courbe occupe sa place, comme un texte.
-      if (node.label && node.labelAt) boxes.push(boxAround(move(node.labelAt), textExtent(node.label, FONT_SIZE.label, state.frame)));
-    }
-    else if (node.type === "segment" || node.type === "vector") traces.push(...sampleLine(node.from, node.to, 16).map(move));
-    else {
-      traces.push(...outline(node).map(move));
-      // Une forme remplie (le bloc d'un plan incliné) se contourne entièrement.
-      if (node.type === "polygon" && node.fill) boxes.push(nodeBox(node, state.frame));
-    }
-  }
-  if (state.axes) {
-    const { x, y } = state.axes.frame;
-    // Axe des x et ses chiffres (en dessous), axe des y et ses chiffres (à gauche).
-    if (y[0] <= 0 && y[1] >= 0) boxes.push({ x0: x[0], x1: x[1], y0: -0.45 / unit, y1: 0.08 / unit });
-    if (x[0] <= 0 && x[1] >= 0) boxes.push({ x0: -0.55 / unit, x1: 0.08 / unit, y0: y[0], y1: y[1] });
-  }
-  /** Encombrement : surface recouverte (relative à la boîte) plus la part de traits qui la traversent. */
+export function obstacles(state: BoardState, ignore: ReadonlySet<string>, skip?: (owner: string, part: Part) => boolean): (box: Box) => number {
+  return crowding(footprints(state, (owner, part) => ignore.has(owner) || (skip?.(owner, part) ?? false)));
+}
+
+/** Encombrement d'une boîte par des empreintes données. */
+export function crowding(prints: Footprints): (box: Box) => number {
   return (box) => {
     const area = (box.x1 - box.x0) * (box.y1 - box.y0) || 1;
     let score = 0;
-    for (const b of boxes) {
+    for (const { box: b } of prints.boxes) {
       if (!intersects(b, box)) continue;
-      score += ((Math.min(b.x1, box.x1) - Math.max(b.x0, box.x0)) * (Math.min(b.y1, box.y1) - Math.max(b.y0, box.y0))) / area;
+      // Part recouverte de la plus petite des deux boîtes : un chiffre entièrement caché sous un long texte compte plein.
+      const inter = (Math.min(b.x1, box.x1) - Math.max(b.x0, box.x0)) * (Math.min(b.y1, box.y1) - Math.max(b.y0, box.y0));
+      score += inter / Math.min(area, (b.x1 - b.x0) * (b.y1 - b.y0) || area);
     }
-    for (const p of traces) if (inside(p, box)) score += 0.05;
+    for (const { points } of prints.strokes) for (const p of points) if (inside(p, box)) score += 0.05;
+    for (const { points } of prints.regions) score += regionCover(box, points);
     return score;
   };
+}
+
+/** La boîte, agrandie d'un petit blanc tout autour (unités du monde) : deux textes ne se collent pas. */
+function padded(frame: Frame, box: Box, margin = 0.06): Box {
+  const pad = mathSize(frame, margin, margin);
+  return { x0: box.x0 - pad.w, x1: box.x1 + pad.w, y0: box.y0 - pad.h, y1: box.y1 + pad.h };
+}
+
+/**
+ * La place libre la plus proche de `desired` pour une boîte de taille `size` :
+ * l'endroit demandé s'il est libre, sinon on s'en éloigne par petits pas (anneaux
+ * de 0,12 unité du monde), et l'on garde la première place libre trouvée, la plus
+ * proche. Faute de place libre à moins de 4 unités, la moins encombrée.
+ */
+export function placeNear(state: BoardState, size: Extent, desired: Vec2, score: (box: Box) => number): Vec2 {
+  const frame = state.frame;
+  const s = scales(frame);
+  const cost = (center: Vec2) => score(padded(frame, boxAround(center, size)));
+  const here = cost(desired);
+  if (here < FREE) return desired;
+  let best = { center: desired, value: here };
+  const STEP = 0.12;
+  for (let k = 1; k <= 34; k++) {
+    const r = k * STEP;
+    const n = Math.min(48, Math.max(8, Math.round((2 * Math.PI * r) / STEP)));
+    let found: Vec2 | null = null;
+    for (let i = 0; i < n; i++) {
+      // Tour de l'anneau en partant du haut, alternativement à droite et à gauche.
+      const turn = Math.ceil(i / 2) * (i % 2 === 0 ? -1 : 1);
+      const a = Math.PI / 2 + (turn * 2 * Math.PI) / n;
+      const center: Vec2 = [desired[0] + (Math.cos(a) * r) / s.x, desired[1] + (Math.sin(a) * r) / s.y];
+      const value = cost(center);
+      if (value < FREE) {
+        found = center;
+        break;
+      }
+      if (value + r * 0.02 < best.value) best = { center, value: value + r * 0.02 };
+    }
+    if (found) return found;
+  }
+  return best.center;
+}
+
+/* --------------------------- place des étiquettes --------------------------- */
+
+/**
+ * Surfaces remplies qui recouvrent déjà les objets donnés (le milieu d'un côté
+ * sous un carré, un point dans un polygone) : un texte qui nomme ces objets
+ * peut s'y poser, sinon il serait exilé loin de ce qu'il désigne.
+ */
+function regionsOver(state: BoardState, ids: readonly string[]): Set<string> {
+  const centers = ids.flatMap((id) => {
+    const node = state.nodes[id];
+    return isVisible(node) ? [boxCenter(bodyBox(node, state.frame))] : [];
+  });
+  const over = new Set<string>();
+  for (const node of visibleNodes(state)) {
+    if (node.type !== "polygon" || !node.fill || node.shade || !node.closed || ids.includes(node.id)) continue;
+    const ring = node.points.map(([x, y]) => [x + node.offset[0], y + node.offset[1]] as Vec2);
+    // Franchement à l'intérieur : un côté qui borde le carré (le milieu sur son bord) n'est pas recouvert.
+    const e = mathSize(state.frame, 0.02, 0.02);
+    const within = (c: Vec2) => [[0, 0], [e.w, 0], [-e.w, 0], [0, e.h], [0, -e.h]].every(([dx, dy]) => insidePolygon([c[0] + dx!, c[1] + dy!], ring));
+    if (centers.some(within)) over.add(node.id);
+  }
+  return over;
+}
+
+/**
+ * Surfaces sur lesquelles le texte (ou l'étiquette) de `owner` a le droit de se
+ * poser : celles qui recouvrent déjà ce qu'il nomme. Partagé avec la mesure.
+ */
+export function namingRegions(state: BoardState, owner: string): Set<string> {
+  const node = state.nodes[owner];
+  if (!isVisible(node)) return new Set();
+  if (node.type === "text") return node.anchor ? regionsOver(state, resolveTargets(state, node.anchor.target)) : new Set();
+  return regionsOver(state, [owner]);
+}
+
+/** Ce que l'on ne compte pas comme obstacle pour un texte qui nomme `targets` (`self` : le texte, ou l'objet de l'étiquette). */
+function namingSkip(state: BoardState, self: string, targets: readonly string[], ownBody: boolean): (owner: string, part: Part) => boolean {
+  const over = regionsOver(state, targets);
+  return (owner, part) =>
+    (owner === self && (ownBody ? part === "body" || part === "label" || part === "region" : part === "label" || part === "region")) ||
+    (part === "region" && over.has(owner));
+}
+
+/** Ce qu'un objet ne compte pas comme obstacle pour sa propre étiquette : l'étiquette elle-même, sa surface, et les surfaces qui le recouvrent. */
+const ownLabel = (state: BoardState, id: string) => namingSkip(state, id, [id], false);
+
+/** Ce qu'un texte ne compte pas : lui-même, et les surfaces qui recouvrent déjà l'objet qu'il accompagne. */
+const ownText = (state: BoardState, node: TextNode) => {
+  const targets = node.anchor ? resolveTargets(state, node.anchor.target) : [];
+  return namingSkip(state, node.id, targets, true);
+};
+
+/**
+ * Pose l'étiquette d'un objet (déjà au tableau) à la place libre la plus proche
+ * de sa place habituelle : à côté du point, du milieu du segment, du bout du
+ * vecteur… Elle évite les textes, les autres étiquettes, les points, les traits
+ * (y compris celui de l'objet) et les surfaces remplies.
+ */
+export function placeLabel(state: BoardState, id: string): BoardState {
+  const node = state.nodes[id];
+  if (!isVisible(node) || !hasLabel(node)) return state;
+  const desired = defaultLabelCenter(node, state.frame);
+  if (!desired) return state;
+  const size = textExtent(node.label, FONT_SIZE.label, state.frame);
+  const [dx, dy] = node.offset;
+  const at = placeNear(state, size, [desired[0] + dx, desired[1] + dy], obstacles(state, new Set(), ownLabel(state, id)));
+  return putNode(state, { ...node, labelAt: [at[0] - dx, at[1] - dy] });
+}
+
+/** Un texte libre (posé avec "at", ou étiquette d'une figure) : à la place libre la plus proche de celle demandée. */
+export function placeText(state: BoardState, node: TextNode): TextNode {
+  const box = nodeBox(node, state.frame);
+  const center = boxCenter(box);
+  const to = placeNear(state, boxExtent(box), center, obstacles(state, new Set(), ownText(state, node)));
+  if (to === center) return node;
+  return { ...node, at: [node.at[0] + to[0] - center[0], node.at[1] + to[1] - center[1]] };
+}
+
+/**
+ * Fait de la place à des objets qui viennent d'arriver (`arrived` : leurs
+ * identifiants, ou AXES_OWNER pour un nouveau repère). Les textes libres et les
+ * étiquettes déjà au tableau qu'ils recouvrent glissent jusqu'à la place libre
+ * la plus proche ; rien d'autre ne bouge. Les objets eux-mêmes gardent leur
+ * place (elle a un sens mathématique) et la pile de calculs se range seule.
+ */
+export function makeWay(state: BoardState, arrived: readonly string[], reveal: Reveal): BoardState {
+  const fresh = new Set(arrived);
+  const calc = new Set(state.calc);
+  let next = state;
+  /** Les nouveaux venus gênent-ils cette boîte (hors ce que `skip` permet) ? */
+  const hit = (box: Box, skip: (owner: string, part: Part) => boolean) => crowding(footprints(next, (owner, part) => !fresh.has(owner) || skip(owner, part)))(box) >= FREE;
+  for (const id of state.order) {
+    const node = next.nodes[id];
+    if (!isVisible(node) || fresh.has(id) || calc.has(id)) continue;
+    if (node.type === "text") {
+      const box = nodeBox(node, next.frame);
+      const skip = ownText(next, node);
+      if (!hit(box, skip)) continue;
+      const center = boxCenter(box);
+      const to = placeNear(next, boxExtent(box), center, obstacles(next, new Set(), skip));
+      next = moveNodes(next, [id], [to[0] - center[0], to[1] - center[1]], reveal);
+    } else if (hasLabel(node)) {
+      const box = labelBox(node, next.frame);
+      const skip = ownLabel(next, id);
+      if (!box || !hit(box, skip)) continue;
+      const center = boxCenter(box);
+      const to = placeNear(next, boxExtent(box), center, obstacles(next, new Set(), skip));
+      // L'étiquette change de place : le rendu la fait glisser (transformation de l'objet).
+      next = putNode(next, { ...node, labelAt: [to[0] - node.offset[0], to[1] - node.offset[1]], morph: reveal });
+    }
+  }
+  return next;
 }
 
 /* ----------------------------- pile de calculs ----------------------------- */
@@ -547,13 +754,13 @@ interface CalcColumn {
 
 /** La colonne de calculs, écrite sur le tableau à droite de la figure. */
 export function calcColumn(state: BoardState): CalcColumn {
-  const unit = worldPerMath(state.frame);
+  const s = scales(state.frame);
   const figure = figureBox(state);
-  const lineHeight = (FONT_SIZE.calc * HEIGHT_PER_POINT) / unit;
+  const lineHeight = (FONT_SIZE.calc * HEIGHT_PER_POINT) / s.y;
   const spacing = lineHeight * CALC_LINE_SPACING;
   const height = figure.y1 - figure.y0;
   return {
-    x: figure.x1 + CALC_MARGIN / unit,
+    x: figure.x1 + CALC_MARGIN / s.x,
     top: figure.y1 - lineHeight / 2,
     spacing,
     capacity: Math.max(4, Math.min(9, Math.floor(height / spacing))),
@@ -635,8 +842,8 @@ export function followAnchors(state: BoardState, changed: readonly string[], rev
     if (!isVisible(text) || text.type !== "text" || !text.anchor) continue;
     const targets = resolveTargets(next, text.anchor.target);
     if (targets.length === 0) continue;
-    const box = union(targets.map((t) => nodeBox(next.nodes[t]!, next.frame)))!;
-    const placed = placeBeside(next, textNodeExtent(text, next.frame), box, text.anchor.side, new Set([id, ...targets]));
+    const box = union(targets.map((t) => bodyBox(next.nodes[t]!, next.frame)))!;
+    const placed = placeBeside(next, textNodeExtent(text, next.frame), box, text.anchor.side, new Set([id, ...targets]), new Set(targets));
     const now: Vec2 = [text.at[0] + text.offset[0], text.at[1] + text.offset[1]];
     next = moveNodes(next, [id], [placed.center[0] - now[0], placed.center[1] - now[1]], reveal);
   }

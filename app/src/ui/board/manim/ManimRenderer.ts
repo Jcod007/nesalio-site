@@ -42,7 +42,8 @@ import {
   type VMobject,
 } from "manim-web";
 import { sampleCurve } from "@/domain/board/geometry";
-import { axisTicks, contentBox, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, TICK_FONT, tickLabels } from "@/domain/board/layout";
+import { arcPoints } from "@/domain/board/shapes";
+import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, TICK_FONT, tickLabels } from "@/domain/board/layout";
 import { applyMat, DEFAULT_FRAME, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
@@ -164,8 +165,11 @@ export class ManimRenderer {
     if (board.axes && board.axes.reveal.start !== this.axesRevealStart) {
       for (const old of this.axesMobjects) batch.push(...fadeAll(old, 0.3, at(board.axes.reveal.start, 300)));
       const { start, duration } = board.axes.reveal;
+      const reproject = this.items.size > 0 && JSON.stringify(this.frame) !== JSON.stringify(board.axes.frame);
       this.frame = board.axes.frame;
       this.axes = this.coordinatesFor(board.axes.frame);
+      // Ce qui était déjà dessiné garde ses coordonnées mathématiques : on le redessine dans le nouveau repère.
+      if (reproject) this.reproject(board);
       const labels = this.axesLabels(board.axes.frame);
       this.axesMobjects = [this.axes, ...labels];
       this.axesRevealStart = start;
@@ -213,6 +217,26 @@ export class ManimRenderer {
     }
 
     if (batch.length > 0) this.enqueue(batch);
+  }
+
+  /**
+   * Redessine les nœuds déjà à l'écran dans le repère courant (nouvelle échelle),
+   * à leur place finale, sans animation d'entrée.
+   */
+  private reproject(board: BoardState) {
+    for (const [id, rendered] of this.items) {
+      const node = board.nodes[id];
+      if (rendered.erased || !node) continue;
+      this.scene.remove(...rendered.mobjects);
+      const built = this.build(node, node.offset);
+      for (const mobject of built.mobjects) mobject.opacity = rendered.opacity;
+      this.scene.add(...built.mobjects);
+      rendered.mobjects = built.mobjects;
+      rendered.appliedOffset = node.offset;
+      rendered.motionStart = lastMotion(node)?.start;
+      rendered.spinStart = node.spins?.at(-1)?.start;
+      rendered.morphStart = node.morph?.start;
+    }
   }
 
   /** Un nœud : apparition, déplacement, transformation, estompage, effacement. */
@@ -531,7 +555,10 @@ export class ManimRenderer {
       case "arc": {
         const center = this.p(node.center[0], node.center[1]);
         const radius = this.worldLength(node.radius);
-        const arc = new Arc({ center, radius, startAngle: rad(node.start), angle: rad(node.end - node.start), color, strokeWidth: 3 });
+        // Échelles différentes en x et en y : l'arc se dessine point par point (comme le moteur le voit).
+        const arc = isUniform(this.frame)
+          ? new Arc({ center, radius, startAngle: rad(node.start), angle: rad(node.end - node.start), color, strokeWidth: 3 })
+          : new Polygon({ vertices: arcPoints(node.center, node.radius, node.start, node.end, 32).map(([x, y]) => this.p(x, y)), color, strokeWidth: 3, closed: false });
         const mobjects: Mobject[] = [arc];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.7, make: (s) => new Create(arc, { duration: s }) }];
         if (node.label) {
@@ -547,7 +574,11 @@ export class ManimRenderer {
         const radius = this.worldLength(node.radius);
         // Le pointillé se calcule sur le cercle centré à l'origine du monde, puis on le place :
         // DashedVMobject ignore la position d'un cercle déjà centré ailleurs (cercle décalé sinon).
-        const circle = new Circle({ radius, color, strokeWidth: 3.5 });
+        // Échelles différentes en x et en y : le cercle devient l'ellipse que montre le repère.
+        const uniform = isUniform(this.frame);
+        const circle = uniform
+          ? new Circle({ radius, color, strokeWidth: 3.5 })
+          : new Polygon({ vertices: arcPoints([0, 0], node.radius, 0, 360, 72).map(([x, y]) => sub3(this.p(x, y), this.p(0, 0))), color, strokeWidth: 3.5, closed: true });
         const shape = node.dashed ? new DashedVMobject({ vmobject: circle as unknown as VMobject, numDashes: Math.max(16, Math.round(radius * 12)), dashRatio: 0.55 }) : circle;
         shape.shift(center);
         const mobjects: Mobject[] = [shape];
@@ -799,6 +830,7 @@ function clampTo(v: number, [a, b]: [number, number]) {
   return v < a ? a : v > b ? b : v;
 }
 const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub3 = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const rad = (degrees: number) => (degrees * Math.PI) / 180;
 function textHalfWidth(mobject: Mobject): number {
   try {

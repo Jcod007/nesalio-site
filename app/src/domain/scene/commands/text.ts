@@ -4,7 +4,7 @@
  * diagnostic.
  */
 import { z } from "zod";
-import { boxAround, makeRoomInCalc, nextCalcSlot, nodeBox, obstacles, placeBeside, textExtent, FONT_SIZE, union } from "@/domain/board/layout";
+import { bodyBox, makeRoomInCalc, nextCalcSlot, placeBeside, placeText, textExtent, FONT_SIZE, union } from "@/domain/board/layout";
 import { isVisible, putNode, resolveTargets, type BoardState, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, Id, ShortText, Side, TextSize } from "../primitives";
 import { defineCommand } from "./define";
@@ -63,15 +63,13 @@ export const textCommand = defineCommand({
     let at: Vec2;
     let anchor: TextNode["anchor"];
     if (targets.length > 0) {
-      const target = union(targets.map((id) => nodeBox(state.nodes[id]!, state.frame)))!;
-      const placed = placeBeside(state, extent, target, action.side, new Set([...targets, action.id]));
+      const target = union(targets.map((id) => bodyBox(state.nodes[id]!, state.frame)))!;
+      const placed = placeBeside(state, extent, target, action.side, new Set([...targets, action.id]), new Set(targets));
       at = placed.center;
       anchor = { target: action.near!, side: placed.side };
     } else {
-      // Position demandée ; si elle est prise, le texte se pose juste à côté, à la première place libre.
+      // Position demandée ; si elle est prise, le texte se pose à la place libre la plus proche.
       at = action.at!;
-      const ignore = new Set([action.id]);
-      if (obstacles(state, ignore)(boxAround(at, extent)) > 0) at = placeBeside(state, extent, boxAround(at, extent), action.side, ignore).center;
     }
     const node: TextNode = {
       id: action.id,
@@ -86,7 +84,8 @@ export const textCommand = defineCommand({
       reveal,
       offset: [0, 0],
     };
-    return putNode({ ...state, calc: state.calc.filter((c) => c !== action.id) }, node);
+    const rest = { ...state, calc: state.calc.filter((c) => c !== action.id) };
+    return putNode(rest, anchor ? node : placeText(rest, node));
   },
 });
 

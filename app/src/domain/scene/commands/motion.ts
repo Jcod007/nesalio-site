@@ -5,7 +5,7 @@
  * chose qui évolue, au lieu de tout réécrire.
  */
 import { z } from "zod";
-import { boxCenter, boxExtent, followAnchors, nodeBox, placeBeside, reflowCalc, union } from "@/domain/board/layout";
+import { bodyBox, boxCenter, boxExtent, followAnchors, makeWay, nodeBox, placeBeside, placeLabel, placeText, reflowCalc, union } from "@/domain/board/layout";
 import {
   anchoredTo,
   isVisible,
@@ -68,8 +68,8 @@ function destinationDelta(state: BoardState, targets: readonly string[], spec: D
   }
   const others = resolveTargets(state, spec.near!);
   if (others.length === 0) return null;
-  const otherBox = union(others.map((id) => nodeBox(state.nodes[id]!, state.frame)))!;
-  const placed = placeBeside(state, boxExtent(box), otherBox, spec.side, new Set([...targets, ...ignore, ...others]));
+  const otherBox = union(others.map((id) => bodyBox(state.nodes[id]!, state.frame)))!;
+  const placed = placeBeside(state, boxExtent(box), otherBox, spec.side, new Set([...targets, ...ignore, ...others]), new Set(others));
   return [placed.center[0] - center[0], placed.center[1] - center[1]];
 }
 
@@ -153,6 +153,13 @@ function rotated(node: BoardNode, about: Vec2, degrees: number): BoardNode | nul
     const r = rotate(abs, about, degrees);
     return [r[0] - node.offset[0], r[1] - node.offset[1]];
   };
+  const shape = rotatedShape(node, turn, degrees);
+  // L'étiquette glisse sur l'arc avec l'objet (le rendu la fait tourner autour du pivot).
+  if (shape && "labelAt" in shape && shape.labelAt) return { ...shape, labelAt: turn(shape.labelAt) };
+  return shape;
+}
+
+function rotatedShape(node: BoardNode, turn: (p: Vec2) => Vec2, degrees: number): BoardNode | null {
   switch (node.type) {
     case "point":
       return { ...node, at: turn(node.at) };
@@ -284,12 +291,24 @@ export const transformCommand = defineCommand({
     if (!isVisible(node)) return state;
     const changed = morphed(node, action);
     let next = putNode(state, { ...changed, morph: reveal });
+    if (changed.type === "text" && changed.role === "free" && !changed.anchor) {
+      // Un texte qui s'allonge ne déborde pas sur ses voisins : il se décale juste assez.
+      next = putNode(next, placeText(next, next.nodes[action.target] as typeof changed));
+    }
+    // L'étiquette d'un objet qui change de forme ou de place reprend sa place à côté de lui.
+
     // Le centre de masse d'une courbe paramétrée suit sa nouvelle forme.
     const moved = [action.target];
     if (changed.type === "polygon" && changed.param && isVisible(state.nodes[massId(action.target)])) {
       const absolute = changed.points.map((p) => [p[0] + changed.offset[0], p[1] + changed.offset[1]] as [number, number]);
       next = putMassPoint(next, action.target, absolute, reveal);
       moved.push(massId(action.target));
+    }
+    if (node.type !== "text") {
+      // L'étiquette d'un objet qui change de forme ou de place reprend sa place à côté de lui,
+      // et ce qu'il recouvre maintenant glisse juste assez.
+      for (const id of moved) next = placeLabel(next, id);
+      next = makeWay(next, moved, reveal);
     }
     return node.type === "text" ? next : followAnchors(next, moved, reveal);
   },

@@ -4,7 +4,7 @@
  * comme chez 3Blue1Brown), et l'écriture d'une matrice en colonnes.
  */
 import { z } from "zod";
-import { figureBox, followAnchors, nodeBox, placeBeside, textNodeExtent, union } from "@/domain/board/layout";
+import { bodyBox, figureBox, followAnchors, placeBeside, placeLabel, textNodeExtent, union } from "@/domain/board/layout";
 import {
   applyMat,
   IDENTITY,
@@ -89,6 +89,8 @@ export const applyMatrixCommand = defineCommand({
         changed.push(id);
       }
     }
+    // Les étiquettes des objets déformés reprennent leur place à côté d'eux.
+    for (const id of changed) next = placeLabel(next, id);
     return followAnchors(next, changed, reveal);
   },
 });
@@ -127,8 +129,8 @@ export const matrixCommand = defineCommand({
     let at: Vec2;
     let anchor: TextNode["anchor"];
     if (targets.length > 0) {
-      const box = union(targets.map((id) => nodeBox(state.nodes[id]!, state.frame)))!;
-      const placed = placeBeside(state, extent, box, action.side, new Set([...ignore, ...targets]));
+      const box = union(targets.map((id) => bodyBox(state.nodes[id]!, state.frame)))!;
+      const placed = placeBeside(state, extent, box, action.side, new Set([...ignore, ...targets]), new Set(targets));
       at = placed.center;
       anchor = { target: action.near!, side: placed.side };
     } else if (action.at) {
