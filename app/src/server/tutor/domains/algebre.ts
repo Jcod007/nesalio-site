@@ -14,8 +14,9 @@ export const algebre: DomainGuide = {
     "Équation : écris-la UNE fois (\"note\", id \"eq\") et fais-la évoluer par \"transform\". Chaque opération en deux temps : " +
       "d'abord l'opération écrite des DEUX côtés (\"2x − 1 − 2x = 3x − 4 − 2x\"), puis le résultat simplifié (\"−1 = x − 4\").",
     // Des textes posés à droite ou à gauche de l'équation se faisaient recouvrir quand elle s'allongeait.
-    "Rien à côté d'une ligne de calcul (pas de \"text\" avec \"near\":\"eq\") : elle s'allonge en se transformant et la colonne " +
-      "bouge. Un calcul d'appoint (\"2 × (−3) = −6\", \"−6 + 5 = −1\") est une \"note\" à part, sous l'équation.",
+    "Rien accroché à une ligne de calcul (aucun \"text\" avec \"near\":\"eq\", même \"below\") : elle s'allonge en se " +
+      "transformant et la colonne bouge sans ses étiquettes. Un calcul d'appoint (\"2 × (−3) = −6\", \"−6 + 5 = −1\") est une " +
+      "\"note\" à part, sous l'équation.",
     "Une ligne « −6 + 5 = ? » se complète par \"transform\" (\"−6 + 5 = −1\") quand la réponse vient ; estompe (\"dim\") les " +
       "calculs d'appoint terminés.",
     "Distributivité : le facteur multiplie chaque terme AVEC son signe. Dis et écris « 2 fois moins 3 » (\"2 × (−3) = −6\"), " +
@@ -29,9 +30,12 @@ export const algebre: DomainGuide = {
     "Signes (addition d'entiers) : droite des nombres = \"axes\" avec \"y\":[-1,1], un point au départ, une flèche " +
       "(\"vector\" avec \"by\":[5,0]) pour le saut, un point à l'arrivée.",
     // Séance 1 + … + 100 : des segments de longueur 1 étiquetés « 1 + 100 », sans rapport avec la quantité.
-    "Somme 1 + 2 + … + n : sur un petit n (4), escalier de carrés \"polygon\" ([[0,0],[4,0],[4,4],[3,4],[3,3],[2,3],[2,2]," +
-      "[1,2],[1,1],[0,1]], dans des axes x:[-1,7], y:[-1,6]), puis \"copy\" (\"by\":[0,0]) et \"rotate\" de la copie de 180° autour " +
-      "de [2,2.5] : les deux escaliers forment un rectangle 4 × 5, donc 2S = 4 × 5. Ensuite seulement, 100 × 101 ÷ 2.",
+    // Séance suivante : barres de largeur 1, 2, 3, 4 qui sortaient des axes ; d'où le polygone exact, à recopier tel quel.
+    "Somme 1 + 2 + … + n : sur un petit n (4), UN SEUL \"polygon\" en escalier, colonnes de largeur 1 (la colonne k va de " +
+      "x = k − 1 à x = k, hauteur k) : copie exactement [[0,0],[4,0],[4,4],[3,4],[3,3],[2,3],[2,2],[1,2],[1,1],[0,1]], dans des " +
+      "axes x:[-1,7], y:[-1,6]. Puis \"copy\" (\"by\":[0,0]) et \"rotate\" de la copie de 180° autour de [2,2.5] : les deux " +
+      "escaliers forment un rectangle 4 × 5, donc 2S = 4 × 5. Prédiction : « un rectangle 4 × 5 », « un carré 4 × 4 », " +
+      "« un rectangle 4 × 4,5 ». Ensuite seulement, 100 × 101 ÷ 2.",
     "Fractions : une unité = un rectangle (\"polygon\" de 2 sur 1) coupé en parts égales par des segments pointillés ; " +
       "jamais un cercle entier pour « une demie ».",
     // Séance diviser par une fraction : 6 pizzas en cercles entiers, aucune moitié visible.
