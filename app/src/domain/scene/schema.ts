@@ -102,18 +102,18 @@ export const EndEvent = z.object({
 export const GapStatus = z.enum(["suspected", "confirmed", "ruled_out", "repaired"]);
 export const Gap = z.object({
   /** La notion d'avant (« fractions : dénominateur commun »). */
-  notion: z.string().trim().min(1).max(80),
+  notion: z.string().trim().min(1).transform((t) => t.slice(0, 120)),
   /** Où elle s'apprend (« sec 1 »). */
   level: z.string().trim().max(30).optional(),
   /** Ce qui, dans les réponses de l'élève, le fait penser. */
-  evidence: z.string().trim().max(200).optional(),
+  evidence: z.string().trim().transform((t) => t.slice(0, 240)).optional(),
   status: GapStatus,
 });
 export const Diagnosis = z.object({
   gaps: z.array(Gap).max(4).default([]),
   strengths: z.array(z.string().trim().min(1).max(120)).max(3).default([]),
   /** Ce que Nesa fait au prochain tour (vérifier, réparer, revenir à la notion). */
-  next: z.string().trim().max(160).optional(),
+  next: z.string().trim().transform((t) => t.slice(0, 200)).optional(),
 });
 export type Diagnosis = z.infer<typeof Diagnosis>;
 export const DiagnosisEvent = Diagnosis.extend({ kind: z.literal("diagnosis") });

@@ -27,8 +27,9 @@ export const axesCommand = defineCommand({
     type: z.literal("axes"),
     x: Range,
     y: Range,
-    xLabel: z.string().max(12).optional(),
-    yLabel: z.string().max(12).optional(),
+    // Un nom d'axe trop long ne doit pas faire perdre tout le graphique : on le raccourcit.
+    xLabel: z.string().transform((t) => t.slice(0, 20)).optional(),
+    yLabel: z.string().transform((t) => t.slice(0, 20)).optional(),
     xStep: finite.positive().optional(),
     yStep: finite.positive().optional(),
   }),
