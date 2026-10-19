@@ -235,16 +235,21 @@ export const triangleCommand = defineCommand({
     }
     const center = centroid([A, B, C]);
     const id = action.id;
+    // Redemander la figure sans "sides" garde les longueurs déjà écrites (elles se replacent au besoin).
+    const written = (sid: string): string | undefined => {
+      const node = state.nodes[`${sid}-l`];
+      return isVisible(node) && node.type === "text" ? node.text : undefined;
+    };
     const sides: Array<[string, Vec2, Vec2, string | undefined]> = right
       ? [
-          [`${id}-base`, A, B, action.sides?.base],
-          [`${id}-haut`, B, C, action.sides?.height],
-          [`${id}-hyp`, A, C, action.sides?.hyp],
+          [`${id}-base`, A, B, action.sides?.base ?? written(`${id}-base`)],
+          [`${id}-haut`, B, C, action.sides?.height ?? written(`${id}-haut`)],
+          [`${id}-hyp`, A, C, action.sides?.hyp ?? written(`${id}-hyp`)],
         ]
       : [
-          [`${id}-ab`, A, B, action.sides?.ab],
-          [`${id}-bc`, B, C, action.sides?.bc],
-          [`${id}-ca`, C, A, action.sides?.ca],
+          [`${id}-ab`, A, B, action.sides?.ab ?? written(`${id}-ab`)],
+          [`${id}-bc`, B, C, action.sides?.bc ?? written(`${id}-bc`)],
+          [`${id}-ca`, C, A, action.sides?.ca ?? written(`${id}-ca`)],
         ];
 
     // Carrés construits sur les côtés (Pythagore), vers l'extérieur du triangle.

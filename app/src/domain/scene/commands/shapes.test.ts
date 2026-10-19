@@ -72,6 +72,20 @@ describe("figures paramétriques", () => {
     expect(resolveTargets(board, "tri")).toContain("tri-carre-hyp");
   });
 
+  it("fait glisser les longueurs déjà écrites à l'intérieur quand on ajoute les carrés sans redonner \"sides\"", () => {
+    // Séance observée : le modèle redemande le triangle avec "squares" seulement ; les longueurs restaient dans les carrés.
+    const spec = { type: "triangle" as const, id: "tri", base: 4, height: 3, at: [0, 0] as [number, number] };
+    let board = applyAction(emptyBoard(), { ...spec, sides: { base: "4", height: "3", hyp: "5" } }, t);
+    const before = board.nodes["tri-base-l"] as { at: number[]; offset: number[] };
+    expect(before.at[1]!).toBeLessThan(0);
+    board = applyAction(board, { ...spec, squares: { base: "16", height: "9", hyp: "25" } }, { start: 3000, duration: 1000 });
+    const after = board.nodes["tri-base-l"] as { at: number[]; offset: number[]; text: string };
+    expect(after.text).toBe("4");
+    expect(after.at[1]! + after.offset[1]!).toBeGreaterThan(0);
+    const haut = board.nodes["tri-haut-l"] as { at: number[]; offset: number[] };
+    expect(haut.at[0]! + haut.offset[0]!).toBeLessThan(4);
+  });
+
   it("marque un angle entre deux points nommés", () => {
     let board = emptyBoard();
     for (const [id, at] of [["A", [0, 0]], ["B", [2, 0]], ["C", [0, 2]]] as const) board = applyAction(board, { type: "point", id, at: [...at] }, t);
