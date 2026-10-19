@@ -7,6 +7,7 @@
  */
 import { quadraticLesson } from "@/content/demoLessons";
 import { commandReference } from "@/domain/scene/commands";
+import { domainSection } from "./domains";
 import type { Action, Diagnosis, Lesson } from "@/domain/scene/schema";
 import type { StudentAnswer, TutorRequest } from "@/domain/tutor/request";
 
@@ -273,7 +274,9 @@ function exampleExchange(): string {
 }
 
 export function buildSystemPrompt(): string {
-  return [PERSONA, SCENE_SPEC, "EXEMPLE D'ÉCHANGE (trois tours, chacun est une réponse séparée)", exampleExchange()].join("\n\n");
+  return [PERSONA, SCENE_SPEC, domainSection(), "EXEMPLE D'ÉCHANGE (trois tours, chacun est une réponse séparée)", exampleExchange()]
+    .filter((part) => part !== "")
+    .join("\n\n");
 }
 
 const FOLLOW_UP_RULES = `
