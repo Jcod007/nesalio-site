@@ -39,6 +39,14 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
       if (event.kind === "step") steps++;
       yield event;
     }
+    // Tour vide (le modèle n'a rien écrit d'utilisable) : une seconde chance avant d'afficher une erreur.
+    if (steps === 0 && !config.signal?.aborted) {
+      config.log?.("tutor: tour vide, nouvel essai");
+      for await (const event of modelEvents(request, config)) {
+        if (event.kind === "step") steps++;
+        yield event;
+      }
+    }
   } catch (error) {
     config.log?.("tutor: échec de l'appel au modèle", error);
     if (config.signal?.aborted) return;
@@ -93,8 +101,12 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     signal: upstream.signal,
   });
 
+  let received = 0;
+  let head = "";
   try {
     for await (const chunk of text) {
+      received += chunk.length;
+      if (head.length < 300) head += chunk.slice(0, 300 - head.length);
       for (const objectText of scanner.push(chunk)) {
         const event = parser.parseLine(objectText);
         if (!event || ended) continue;
@@ -132,6 +144,8 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     upstream.abort();
   }
   if (parser.issues.length > 0) config.log?.("tutor: lignes du modèle écartées", parser.issues);
+  // Tour vide : on garde de quoi comprendre pourquoi (rien reçu, ou texte sans étape valable).
+  if (steps === 0) config.log?.(`tutor: aucune étape (${received} caractères reçus) : ${head.replace(/\s+/g, " ").slice(0, 300)}`);
   if (!ended && steps > 0) yield { kind: "end", summary: [] };
 }
 

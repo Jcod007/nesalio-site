@@ -127,8 +127,9 @@ export async function GET(request: Request): Promise<Response> {
     const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
     let lastCheck: Check | undefined;
     let awaiting = false;
-    const log = (_message: string, detail?: unknown) => {
+    const log = (message: string, detail?: unknown) => {
       if (Array.isArray(detail)) rejected.push(...(detail as Array<{ line: string; reason: string }>));
+      else info.logs = [...((info.logs as string[] | undefined) ?? []), `${message}${detail instanceof Error ? ` : ${detail.message}` : ""}`.slice(0, 400)];
     };
     const turnEvents: unknown[] = [];
     const turnSteps: Step[] = [];

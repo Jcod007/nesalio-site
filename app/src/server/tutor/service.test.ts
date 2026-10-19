@@ -119,6 +119,28 @@ describe("tutorEvents", () => {
     expect(events[2]).toMatchObject({ gaps: [{ status: "suspected", notion: "fractions : dénominateur commun" }] });
   });
 
+  it("redemande une fois quand le modèle ne renvoie aucune étape, puis joue le second essai", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      calls++;
+      return fakeCompletion(calls === 1 ? "Je réfléchis encore…" : '{"kind":"step","say":"Voici.","do":[]}\n{"kind":"end","summary":[]}')(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "end"]);
+  });
+
+  it("n'insiste pas plus d'une fois : deux tours vides donnent l'erreur", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      calls++;
+      return fakeCompletion("rien d'utilisable")(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.at(-1)).toMatchObject({ kind: "error", code: "empty" });
+  });
+
   it("signale une erreur si le modèle échoue avant la première étape", async () => {
     const events = await collect(
       tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("{}", 0) }),
