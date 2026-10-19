@@ -21,7 +21,7 @@ import {
   sub,
   rad,
 } from "@/domain/board/shapes";
-import { isVisible, type BoardNode, type BoardState, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
+import { isVisible, putNode, type BoardNode, type BoardState, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, finite, Id } from "../primitives";
 import { base, drawNode } from "./figure";
 import { defineCommand } from "./define";
@@ -62,8 +62,31 @@ function drawFigure(state: BoardState, id: string, parts: BoardNode[], reveal: R
   fresh.forEach((part, i) => {
     next = drawNode(next, { ...part, reveal: stagger(reveal, i, fresh.length) }, reveal);
   });
+  // Une partie déjà au tableau dont la géométrie change (le plan passe de 30° à 60°) se
+  // transforme sous les yeux de l'élève, au lieu de rester figée à l'ancienne valeur.
+  for (const part of parts) {
+    const existing = state.nodes[part.id];
+    if (!isVisible(existing) || existing.type !== part.type || sameShape(existing, part)) continue;
+    next = putNode(next, {
+      ...part,
+      reveal: existing.reveal,
+      offset: existing.offset,
+      motions: existing.motions,
+      spins: existing.spins,
+      dim: existing.dim,
+      morph: reveal,
+    } as BoardNode);
+  }
   const members = [...new Set([...(state.groups[id]?.members ?? []), ...parts.map((p) => p.id)])];
   return { ...next, groups: { ...next.groups, [id]: { id, members } } };
+}
+
+/** Même géométrie (au millième près) : seuls comptent la forme, pas l'état d'animation. */
+const ANIMATION_KEYS = new Set(["reveal", "offset", "motions", "spins", "morph", "dim", "erased"]);
+function sameShape(a: BoardNode, b: BoardNode): boolean {
+  const shape = (node: BoardNode) =>
+    JSON.stringify(node, (key, value) => (ANIMATION_KEYS.has(key) ? undefined : typeof value === "number" ? Math.round(value * 1000) / 1000 : value));
+  return shape(a) === shape(b);
 }
 
 /** Texte posé à une position calculée, attaché à une partie de la figure (il la suit). */
@@ -254,11 +277,14 @@ export const inclineCommand = defineCommand({
     components: z.boolean().optional(),
     normal: z.boolean().optional(),
     angleLabel: z.string().max(12).optional(),
+    weightAngle: z.boolean().optional(),
   }),
   doc:
     '{"type":"incline","id":"plan","angle":25,"block":true,"weight":true,"components":true,"normal":false}\n' +
     '  Plan incliné (angle en degrés) avec un bloc, son poids P et, si demandé, ses composantes P∥ et P⊥ et la normale N.\n' +
-    '  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N.\n' +
+    '  "weightAngle":true marque l\'angle θ entre P et P⊥ (le même angle que le plan : c\'est ce qui donne P∥ = P sin θ).\n' +
+    '  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N, plan-angleP.\n' +
+    '  Changer "angle" en redemandant la même figure la fait pivoter : le plan, le bloc et les forces suivent.\n' +
     '  Pour présenter les forces une à une, redemande la même figure (même id) avec une option de plus : seules les\n' +
     '  nouvelles parties apparaissent (d\'abord "weight":false, puis "weight":true, puis "components":true…).',
   duration: 3000,
@@ -272,6 +298,12 @@ export const inclineCommand = defineCommand({
     const u: Vec2 = [Math.cos(t), Math.sin(t)];
     const n: Vec2 = [-Math.sin(t), Math.cos(t)];
     const id = action.id;
+    // Une force déjà au tableau reste dessinée quand on redemande la figure sans la redire
+    // (on change l'angle : la normale suit, elle ne disparaît pas et ne reste pas à l'ancien angle).
+    const shown = (part: string) => isVisible(state.nodes[`${id}-${part}`]);
+    const components = action.components ?? shown("Px");
+    const normal = action.normal ?? shown("N");
+    const weightAngle = action.weightAngle ?? shown("angleP");
 
     const parts: BoardNode[] = [
       { ...base(`${id}-pente`, reveal, "muted"), type: "polygon", points: [A, B, C], closed: true, fill: true },
@@ -289,13 +321,18 @@ export const inclineCommand = defineCommand({
         closed: true,
         fill: true,
       });
-      const w = L * 0.34;
-      if (action.weight ?? true) parts.push(vector(`${id}-P`, center, add(center, [0, -w]), "P", reveal, "orange"));
-      if (action.components) {
+      // Le poids s'arrête au-dessus du sol (sur une pente douce, il le traversait et son nom
+      // tombait sur la ligne du sol) ; ses composantes restent exactes, à la même échelle.
+      const w = Math.min(L * 0.34, (center[1] - A[1]) * 0.75);
+      const tipP = add(center, [0, -w]);
+      const tipPy = add(center, scale(n, -w * Math.cos(t)));
+      if (action.weight ?? true) parts.push(vector(`${id}-P`, center, tipP, "P", reveal, "orange"));
+      if (components) {
         parts.push(vector(`${id}-Px`, center, add(center, scale(u, -w * Math.sin(t))), "P∥", reveal, "green"));
-        parts.push(vector(`${id}-Py`, center, add(center, scale(n, -w * Math.cos(t))), "P⊥", reveal, "blue"));
+        parts.push(vector(`${id}-Py`, center, tipPy, "P⊥", reveal, "blue"));
+        if (weightAngle) parts.push(angleMark(state, `${id}-angleP`, center, tipP, tipPy, action.angleLabel ?? "θ", false, reveal));
       }
-      if (action.normal) parts.push(vector(`${id}-N`, center, add(center, scale(n, w * Math.cos(t))), "N", reveal, "violet"));
+      if (normal) parts.push(vector(`${id}-N`, center, add(center, scale(n, w * Math.cos(t))), "N", reveal, "violet"));
     }
     return drawFigure(state, id, parts, reveal);
   },
