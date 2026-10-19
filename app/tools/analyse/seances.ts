@@ -6,8 +6,9 @@
  *   npx tsx tools/analyse/seances.ts seances.json > rapport.md
  *
  * Par séance : questions, réponses de l'élève, attente, puis les mesures :
- * - chevauchements : deux textes (ou un texte sur une forme fermée) qui se
- *   recouvrent à plus de 25 % de la plus petite boîte (tailles de texte estimées) ;
+ * - chevauchements (domain/board/collisions, sur les empreintes du moteur) : un
+ *   texte ou une étiquette posé sur un autre texte, sur un point, barré par un
+ *   trait, dans une surface remplie ; chiffres de graduations qui se touchent ;
  * - objets sans repère : dessinés sans être rattachés à un mot de la phrase ({id}) ;
  * - relecture du tour (domain/tutor/turnReview) : « dit sans montrer », cibles
  *   absentes, phrases trop longues, gestes ;
@@ -16,40 +17,35 @@
  */
 import { readFileSync } from "node:fs";
 import type { TurnRecord } from "@/domain/sessionLog";
-import { emptyBoard, visibleNodes, type BoardNode, type BoardState } from "@/domain/board/state";
-import { nodeBox, type Box } from "@/domain/board/layout";
+import { emptyBoard, type BoardState } from "@/domain/board/state";
+import { collisions, type CollisionKind } from "@/domain/board/collisions";
 import { applyAction } from "@/domain/scene/commands";
 import type { Step } from "@/domain/scene/schema";
 import { reviewTurn } from "@/domain/tutor/turnReview";
 
 type Input = { turns?: TurnRecord[] } | TurnRecord[];
 
-const area = (b: Box) => Math.max(0, b.x1 - b.x0) * Math.max(0, b.y1 - b.y0);
-function overlapRatio(a: Box, b: Box): number {
-  const inter = area({ x0: Math.max(a.x0, b.x0), y0: Math.max(a.y0, b.y0), x1: Math.min(a.x1, b.x1), y1: Math.min(a.y1, b.y1) });
-  const smaller = Math.min(area(a), area(b));
-  return smaller > 0 ? inter / smaller : 0;
+/** Paires d'objets qui se gênent au tableau (voir domain/board/collisions). */
+export function overlaps(state: BoardState): Array<{ a: string; b: string; kind: CollisionKind; ratio: number }> {
+  return collisions(state);
 }
 
-const isText = (n: BoardNode) => n.type === "text";
-const isClosedShape = (n: BoardNode) => n.type === "circle" || n.type === "polygon" || n.type === "point";
-const label = (n: BoardNode) => ("label" in n && n.label) || ("text" in n && typeof n.text === "string" ? n.text : "") || "";
+/** Commandes dont le but est de faire bouger des objets : leurs mouvements sont voulus. */
+const MOVING = new Set(["move", "rotate", "transform", "applyMatrix", "copy"]);
 
-/** Paires d'objets qui se recouvrent : texte sur texte, ou texte sur une forme fermée / un point. */
-export function overlaps(state: BoardState): Array<{ a: string; b: string; ratio: number }> {
-  const nodes = visibleNodes(state);
-  const out: Array<{ a: string; b: string; ratio: number }> = [];
-  for (let i = 0; i < nodes.length; i++) {
-    for (let j = i + 1; j < nodes.length; j++) {
-      const a = nodes[i]!;
-      const b = nodes[j]!;
-      const relevant = (isText(a) && (isText(b) || isClosedShape(b))) || (isText(b) && isClosedShape(a));
-      if (!relevant) continue;
-      const ratio = overlapRatio(nodeBox(a, state.frame), nodeBox(b, state.frame));
-      if (ratio > 0.25) out.push({ a: a.id, b: b.id, ratio: Math.round(ratio * 100) / 100 });
-    }
+/** Objets déjà là (non effacés) dont la place ou l'étiquette a changé à cause d'une commande qui ne les visait pas. */
+function imposedMoves(before: BoardState, after: BoardState, action: Step["do"] extends (infer A)[] | undefined ? A : never): number {
+  if (MOVING.has(action.type)) return 0;
+  let count = 0;
+  for (const id of before.order) {
+    const a = before.nodes[id];
+    const b = after.nodes[id];
+    if (!a || !b || a.erased || b.erased) continue;
+    const moved = a.offset[0] !== b.offset[0] || a.offset[1] !== b.offset[1];
+    const relabelled = "labelAt" in a && "labelAt" in b && JSON.stringify(a.labelAt) !== JSON.stringify(b.labelAt);
+    if (moved || relabelled) count++;
   }
-  return out;
+  return count;
 }
 
 interface SessionReport {
@@ -57,8 +53,10 @@ interface SessionReport {
   ref: string | null;
   start: string;
   turns: TurnRecord[];
-  overlaps: Map<string, { ratio: number; say: string }>;
+  overlaps: Map<string, { ratio: number; kind: CollisionKind; say: string }>;
   uncued: number;
+  /** Objets déjà au tableau que le moteur a déplacés sans que le modèle le demande (pile de calculs, textes poussés…). */
+  shifted: number;
   drawn: number;
   replayErrors: string[];
   unshown: Array<{ say: string; word: string }>;
@@ -85,7 +83,7 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
     let s = sessions.get(key);
     if (!s) {
       s = {
-        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), uncued: 0, drawn: 0, replayErrors: [],
+        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
         unshown: [], missingTargets: new Set(), longSentences: 0, gestures: 0, steps: 0, rejected: [], checks: { right: 0, total: 0 },
         firstStepMs: [], cancelled: 0, errors: [],
       };
@@ -100,7 +98,9 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
       const before = new Set(Object.keys(board.nodes));
       for (const action of step.do ?? []) {
         try {
+          const previous = board;
           board = applyAction(board, action, { start: 0, duration: 0 });
+          s.shifted += imposedMoves(previous, board, action);
         } catch (error) {
           s.replayErrors.push(`${action.type} : ${(error as Error).message}`.slice(0, 160));
         }
@@ -109,8 +109,8 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
       s.drawn += created.length;
       s.uncued += created.filter((id) => !(step.cues && id in step.cues)).length;
       for (const o of overlaps(board)) {
-        const pair = `${o.a} × ${o.b}`;
-        if (!s.overlaps.has(pair)) s.overlaps.set(pair, { ratio: o.ratio, say: step.say.slice(0, 90) });
+        const pair = o.kind === "graduations" ? `graduations ${o.a}` : `${o.a} × ${o.b}`;
+        if (!s.overlaps.has(pair)) s.overlaps.set(pair, { ratio: o.ratio, kind: o.kind, say: step.say.slice(0, 90) });
       }
     }
     boards.set(key, board);
@@ -144,7 +144,11 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
   lines.push(`# Séances : ${sessions.length} séances, ${sum((s) => s.turns.length)} tours, ${sum((s) => s.steps)} phrases`);
   lines.push("");
   lines.push(`- Attente avant la première phrase : médiane ${sec(median(allFirst))}, max ${sec(Math.max(0, ...allFirst))}`);
-  lines.push(`- Chevauchements (paires distinctes) : ${sum((s) => s.overlaps.size)}`);
+  const byKind = (kind: CollisionKind) => sum((s) => [...s.overlaps.values()].filter((o) => o.kind === kind).length);
+  lines.push(
+    `- Chevauchements (paires distinctes) : ${sum((s) => s.overlaps.size)} · texte sur texte ${byKind("texte")} · sur un point ${byKind("point")} · barré par un trait ${byKind("trait")} · dans une surface ${byKind("surface")} · graduations ${byKind("graduations")}`,
+  );
+  lines.push(`- Déplacements imposés par le moteur (objets déjà au tableau) : ${sum((s) => s.shifted)}`);
   lines.push(`- Objets dessinés sans repère dans la phrase : ${sum((s) => s.uncued)} sur ${sum((s) => s.drawn)}`);
   lines.push(`- « Dit sans montrer » : ${sum((s) => s.unshown.length)} · cibles absentes : ${sum((s) => s.missingTargets.size)} · phrases trop longues : ${sum((s) => s.longSentences)}`);
   lines.push(`- Commandes refusées : ${sum((s) => s.rejected.length)} · erreurs au rejeu : ${sum((s) => s.replayErrors.length)} · erreurs envoyées : ${sum((s) => s.errors.length)}`);
@@ -154,7 +158,10 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
     lines.push(
       `Attente médiane ${sec(median(s.firstStepMs))} · ${s.steps} phrases, ${s.gestures} gestes · sans repère ${s.uncued}/${s.drawn} · vérifications ${s.checks.right}/${s.checks.total} · interrompus ${s.cancelled}`,
     );
-    for (const [pair, o] of s.overlaps) lines.push(`- Chevauchement ${pair} (${Math.round(o.ratio * 100)} %) pendant « ${o.say} »`);
+    for (const [pair, o] of s.overlaps) {
+      const amount = o.kind === "trait" ? `${o.ratio} points du trait` : o.kind === "graduations" ? `${o.ratio} chiffres` : `${Math.round(o.ratio * 100)} %`;
+      lines.push(`- Chevauchement (${o.kind}) ${pair} (${amount}) pendant « ${o.say} »`);
+    }
     for (const u of s.unshown) lines.push(`- Dit sans montrer (« ${u.word} ») : « ${u.say} »`);
     if (s.missingTargets.size) lines.push(`- Cibles absentes : ${[...s.missingTargets].join(", ")}`);
     for (const r of s.rejected) lines.push(`- Refusé : ${r}`);

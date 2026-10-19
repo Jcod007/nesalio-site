@@ -41,8 +41,8 @@ import {
   type Mobject,
   type VMobject,
 } from "manim-web";
-import { formatNumber, niceStep, sampleCurve } from "@/domain/board/geometry";
-import { AXES_BOX, contentBox, fontSizeOf, FONT_SIZE, matrixLayout } from "@/domain/board/layout";
+import { sampleCurve } from "@/domain/board/geometry";
+import { axisTicks, contentBox, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, TICK_FONT, tickLabels } from "@/domain/board/layout";
 import { applyMat, DEFAULT_FRAME, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
@@ -387,12 +387,13 @@ export class ManimRenderer {
   private coordinatesFor(frame: Frame): Axes {
     const dx = frame.x[1] - frame.x[0];
     const dy = frame.y[1] - frame.y[0];
-    const unit = Math.min(AXES_BOX.width / dx, AXES_BOX.height / dy);
+    const unit = scales(frame);
+    const ticks = axisTicks(frame);
     return new Axes({
-      xRange: [frame.x[0], frame.x[1], niceStep(dx)],
-      yRange: [frame.y[0], frame.y[1], niceStep(dy, 7)],
-      xLength: dx * unit,
-      yLength: dy * unit,
+      xRange: [frame.x[0], frame.x[1], ticks.x.step],
+      yRange: [frame.y[0], frame.y[1], ticks.y.step],
+      xLength: dx * unit.x,
+      yLength: dy * unit.y,
       color: BRAND.ink,
       axisConfig: { color: BRAND.ink, strokeWidth: 2.5, tickSize: 0.12 },
       tips: true,
@@ -402,22 +403,19 @@ export class ManimRenderer {
 
   /** Graduations chiffrées et noms des axes (le repère courant doit être `this.axes`). */
   private axesLabels(frame: Frame): Mobject[] {
-    const labels: Mobject[] = [];
-    const xStep = niceStep(frame.x[1] - frame.x[0]);
-    const yStep = niceStep(frame.y[1] - frame.y[0], 7);
+    // Les chiffres sont ceux que le moteur connaît (il les évite en plaçant les textes).
+    const labels: Mobject[] = tickLabels(frame).map((tick) => this.label(tick.text, this.p(tick.at[0], tick.at[1]), BRAND.muted, TICK_FONT, "body"));
     const oy = clampTo(0, frame.y);
     const ox = clampTo(0, frame.x);
-    for (let v = Math.ceil(frame.x[0] / xStep) * xStep; v <= frame.x[1] - xStep * 0.5; v += xStep) {
-      if (Math.abs(v) < 1e-9) continue;
-      labels.push(this.label(formatNumber(v), add(this.p(v, oy), [0, -0.28, 0]), BRAND.muted, 20, "body"));
-    }
-    for (let v = Math.ceil(frame.y[0] / yStep) * yStep; v <= frame.y[1] - yStep * 0.5; v += yStep) {
-      if (Math.abs(v) < 1e-9) continue;
-      labels.push(this.label(formatNumber(v), add(this.p(ox, v), [-0.3, 0, 0]), BRAND.muted, 20, "body"));
-    }
     if (frame.xLabel) labels.push(this.label(frame.xLabel, add(this.p(frame.x[1], oy), [-0.15, 0.35, 0]), BRAND.ink, FONT_SIZE.label));
     if (frame.yLabel) labels.push(this.label(frame.yLabel, add(this.p(ox, frame.y[1]), [0.4, -0.1, 0]), BRAND.ink, FONT_SIZE.label));
     return labels;
+  }
+
+  /** Centre de l'étiquette d'un nœud, à l'écran (la même place que celle que le moteur évite). */
+  private labelPoint(node: BoardNode): Vec3 | null {
+    const at = labelCenter(node, this.frame);
+    return at ? this.p(at[0], at[1]) : null;
   }
 
   private p(x: number, y: number): Vec3 {
@@ -483,8 +481,7 @@ export class ManimRenderer {
         }));
         const last = pieces.at(-1)?.at(-1);
         if (node.label && last) {
-          const where = node.labelAt ? this.p(node.labelAt[0], node.labelAt[1]) : add(this.p(last[0], last[1]), [0.3, 0.3, 0]);
-          const text = this.label(node.label, where, color);
+          const text = this.label(node.label, this.labelPoint(node)!, color);
           mobjects.push(text);
           animations.push({ delay: 0.85, share: 0.15, make: (s) => new FadeIn(text, { duration: s }) });
         }
@@ -501,8 +498,7 @@ export class ManimRenderer {
           animations.push({ delay: 0.2, share: 0.8, make: (s) => new Create(ring, { duration: s }) });
         }
         if (node.label) {
-          const text = this.label(node.label, add(center, [0.25, 0.42, 0]), BRAND.ink);
-          text.shift([textHalfWidth(text), 0, 0]);
+          const text = this.label(node.label, this.labelPoint(node)!, BRAND.ink);
           mobjects.push(text);
           animations.push({ delay: 0.4, share: 0.6, make: (s) => new FadeIn(text, { duration: s }) });
         }
@@ -526,9 +522,7 @@ export class ManimRenderer {
           animations.push({ delay: 0, share: 1, make: (s) => new Create(line, { duration: s }) });
         }
         if (node.label) {
-          const anchor = node.type === "vector" ? to : mid(from, to);
-          const normal = perpendicular(from, to, this.p(0, 0));
-          const text = this.label(node.label, add(anchor, scale(normal, 0.38)), color);
+          const text = this.label(node.label, this.labelPoint(node)!, color);
           mobjects.push(text);
           animations.push({ delay: 0.6, share: 0.4, make: (s) => new FadeIn(text, { duration: s }) });
         }
@@ -541,9 +535,8 @@ export class ManimRenderer {
         const mobjects: Mobject[] = [arc];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.7, make: (s) => new Create(arc, { duration: s }) }];
         if (node.label) {
-          // Étiquette sur la bissectrice, juste à l'extérieur de l'arc.
-          const middle = rad((node.start + node.end) / 2);
-          const text = this.label(node.label, add(center, [Math.cos(middle) * (radius + 0.32), Math.sin(middle) * (radius + 0.32), 0]), color);
+          // Étiquette sur la bissectrice, juste à l'extérieur de l'arc (place choisie par le moteur).
+          const text = this.label(node.label, this.labelPoint(node)!, color);
           mobjects.push(text);
           animations.push({ delay: 0.5, share: 0.5, make: (s) => new FadeIn(text, { duration: s }) });
         }
@@ -560,8 +553,7 @@ export class ManimRenderer {
         const mobjects: Mobject[] = [shape];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(shape, { duration: s }) as Animation }];
         if (node.label) {
-          const text = this.label(node.label, add(center, [radius * 0.72 + 0.2, radius * 0.72 + 0.25, 0]), color);
-          text.shift([textHalfWidth(text), 0, 0]);
+          const text = this.label(node.label, this.labelPoint(node)!, color);
           mobjects.push(text);
           animations.push({ delay: 0.7, share: 0.3, make: (s) => new FadeIn(text, { duration: s }) });
         }
@@ -579,11 +571,8 @@ export class ManimRenderer {
         const mobjects: Mobject[] = [polygon];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(polygon, { duration: s }) }];
         if (node.label) {
-          // Une courbe paramétrée porte son nom au bout ; un polygone, en son centre.
-          const center = node.param
-            ? add(vertices.at(-1)!, [0.3, 0.3, 0])
-            : vertices.reduce((acc, v) => add(acc, scale(v, 1 / vertices.length)), [0, 0, 0] as Vec3);
-          const text = this.label(node.label, center, color);
+          // Une courbe paramétrée porte son nom au bout ; un polygone, en son centre (place choisie par le moteur).
+          const text = this.label(node.label, this.labelPoint(node)!, color);
           mobjects.push(text);
           animations.push({ delay: 0.7, share: 0.3, make: (s) => new FadeIn(text, { duration: s }) });
         }
@@ -811,26 +800,6 @@ function clampTo(v: number, [a, b]: [number, number]) {
 }
 const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 const rad = (degrees: number) => (degrees * Math.PI) / 180;
-const scale = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
-const mid = (a: Vec3, b: Vec3): Vec3 => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 0];
-/**
- * Normale unitaire du trait, du côté opposé à l'origine du repère : l'étiquette
- * ne tombe pas sur les axes. À défaut (trait qui part de l'origine), vers le haut.
- */
-function perpendicular(a: Vec3, b: Vec3, origin: Vec3): Vec3 {
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const length = Math.hypot(dx, dy) || 1;
-  let n: Vec3 = [-dy / length, dx / length, 0];
-  const m = mid(a, b);
-  const away = n[0] * (m[0] - origin[0]) + n[1] * (m[1] - origin[1]);
-  if (Math.abs(away) > 1e-6) {
-    if (away < 0) n = [-n[0], -n[1], 0];
-  } else if (n[1] < 0 || (n[1] === 0 && n[0] < 0)) {
-    n = [-n[0], -n[1], 0];
-  }
-  return n;
-}
 function textHalfWidth(mobject: Mobject): number {
   try {
     return mobject.getWidth() / 2;
