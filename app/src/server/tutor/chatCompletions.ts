@@ -59,7 +59,9 @@ async function* streamOpenAi(options: CompletionOptions): AsyncGenerator<string>
       model: options.model,
       messages: options.messages,
       stream: true,
-      max_tokens: options.maxTokens ?? 6000,
+      // La réflexion du modèle compte dans cette limite : à 6000, un tour « continue » (longue consigne,
+      // fiche de diagnostic) s'arrêtait en plein milieu, sans question, ou sans aucune étape.
+      max_tokens: options.maxTokens ?? 16000,
       // Extension d'AI Gateway, traduite vers le réglage propre à chaque modèle.
       ...(options.reasoningEffort ? { reasoning: { effort: options.reasoningEffort } } : {}),
     }),
@@ -148,7 +150,7 @@ async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string
 export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
   for await (const data of sseData(body)) {
     if (data === "[DONE]") return;
-    let payload: { choices?: { delta?: { content?: string } }[]; error?: { message?: string } };
+    let payload: { choices?: { delta?: { content?: string }; finish_reason?: string | null }[]; error?: { message?: string } };
     try {
       payload = JSON.parse(data);
     } catch {
@@ -157,5 +159,7 @@ export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerato
     if (payload.error) throw new UpstreamError(payload.error.message ?? "Erreur du modèle");
     const text = payload.choices?.[0]?.delta?.content;
     if (text) yield text;
+    // Réponse coupée par la limite de jetons : à surveiller dans les journaux (le tour finit incomplet).
+    if (payload.choices?.[0]?.finish_reason === "length") console.warn("modèle : réponse coupée (limite de jetons atteinte)");
   }
 }

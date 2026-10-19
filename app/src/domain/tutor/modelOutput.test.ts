@@ -88,3 +88,20 @@ describe("createModelOutputParser", () => {
     expect(parser.parseLine('{"kind":"step","say":""}')).toBeNull();
   });
 });
+
+describe("tolérance aux textes un peu longs (séances du 19 octobre)", () => {
+  it("garde un repère dont le nom d'axe est long, en le raccourcissant", () => {
+    const parser = createModelOutputParser();
+    const event = parser.parseLine(
+      JSON.stringify({ kind: "step", say: "Le repère.", do: [{ type: "axes", x: [0, 4], y: [0, 9], xLabel: "nombre de doubles", yLabel: "valeur" }] }),
+    );
+    expect(event).toMatchObject({ kind: "step", do: [{ type: "axes", xLabel: "nombre de doubles" }] });
+  });
+
+  it("garde une fiche de diagnostic dont la notion est longue", () => {
+    const parser = createModelOutputParser();
+    const notion = "appliquer la règle complète d'une fonction (les deux gestes, pas seulement le premier), vue en sec 3";
+    const event = parser.parseLine(JSON.stringify({ kind: "diagnosis", gaps: [{ notion, status: "suspected" }], strengths: [] }));
+    expect(event).toMatchObject({ kind: "diagnosis", gaps: [{ status: "suspected" }] });
+  });
+});

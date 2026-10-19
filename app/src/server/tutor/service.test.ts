@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { serializeLesson } from "./prompt";
 import { derivativeLesson } from "@/content/demoLessons";
 import type { StreamEvent } from "@/domain/scene/schema";
@@ -102,6 +102,45 @@ describe("tutorEvents", () => {
     expect(prompt).toContain("Réponse de l'élève : « 0 » (faux)");
   });
 
+  it("transmet la fiche de diagnostic sans finir le tour, puis s'arrête à la question", async () => {
+    const lines = [
+      { kind: "step", say: "Tu as écrit 2 sur 7.", do: [] },
+      { kind: "diagnosis", gaps: [{ notion: "fractions : dénominateur commun", level: "sec 1", evidence: "1/3 + 1/4 = 2/7", status: "suspected" }], strengths: [], next: "vérifier les fractions" },
+      { kind: "step", say: "Petite vérification.", do: [], check: { prompt: "1/2 + 1/4 ?", choices: ["2/6", "3/4"], answer: 1 } },
+      { kind: "step", say: "Jamais joué.", do: [] },
+    ].map((l) => JSON.stringify(l)).join("\n");
+    const events = await collect(
+      tutorEvents(
+        { mode: "continue", question: "?", context: { spoken: [], board: [] }, answer: { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], picked: "2/7", correct: false } },
+        { ...base, completion: fakeCompletion(lines) },
+      ),
+    );
+    expect(events.map((e) => e.kind)).toEqual(["source", "step", "diagnosis", "step", "await"]);
+    expect(events[2]).toMatchObject({ gaps: [{ status: "suspected", notion: "fractions : dénominateur commun" }] });
+  });
+
+  it("redemande une fois quand le modèle ne renvoie aucune étape, puis joue le second essai", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      calls++;
+      return fakeCompletion(calls === 1 ? "Je réfléchis encore…" : '{"kind":"step","say":"Voici.","do":[]}\n{"kind":"end","summary":[]}')(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "end"]);
+  });
+
+  it("n'insiste pas plus d'une fois : deux tours vides donnent l'erreur", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      calls++;
+      return fakeCompletion("rien d'utilisable")(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.at(-1)).toMatchObject({ kind: "error", code: "empty" });
+  });
+
   it("signale une erreur si le modèle échoue avant la première étape", async () => {
     const events = await collect(
       tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("{}", 0) }),
@@ -172,6 +211,14 @@ describe("parseSse", () => {
     const out: string[] = [];
     for await (const text of parseSse(stream(body))) out.push(text);
     expect(out.join("")).toBe("Bonjour");
+  });
+
+  it("signale une réponse coupée par la limite de jetons", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const body = 'data: {"choices":[{"delta":{"content":"{\\"kind\\":"},"finish_reason":"length"}]}\n\ndata: [DONE]\n\n';
+    for await (const _ of parseSse(stream(body))) void _;
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("limite de jetons"));
+    warn.mockRestore();
   });
 
   it("transforme une erreur en cours de flux en exception", async () => {

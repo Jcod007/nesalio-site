@@ -29,7 +29,8 @@ import type { StudentAnswer } from "@/domain/tutor/request";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+// Une séance complète de 4 tours prend 90 à 150 s quand le modèle est lent : 300 s laissent la marge.
+export const maxDuration = 300;
 
 export async function GET(request: Request): Promise<Response> {
   const token = process.env.SELFTEST_TOKEN?.trim();
@@ -126,8 +127,9 @@ export async function GET(request: Request): Promise<Response> {
     const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
     let lastCheck: Check | undefined;
     let awaiting = false;
-    const log = (_message: string, detail?: unknown) => {
+    const log = (message: string, detail?: unknown) => {
       if (Array.isArray(detail)) rejected.push(...(detail as Array<{ line: string; reason: string }>));
+      else info.logs = [...((info.logs as string[] | undefined) ?? []), `${message}${detail instanceof Error ? ` : ${detail.message}` : ""}`.slice(0, 400)];
     };
     const turnEvents: unknown[] = [];
     const turnSteps: Step[] = [];

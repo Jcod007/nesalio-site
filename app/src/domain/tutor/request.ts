@@ -9,6 +9,7 @@
  *   réponse et poursuit la séance (tour suivant).
  */
 import { z } from "zod";
+import { Diagnosis } from "@/domain/scene/schema";
 
 export const MAX_QUESTION_LENGTH = 500;
 
@@ -44,6 +45,8 @@ export const TutorContextSchema = z.object({
     .optional(),
   /** Relecture du tour précédent (dit sans montrer, objets absents…), rendue au modèle pour qu'il se corrige. */
   review: z.array(z.string().max(240)).max(4).optional(),
+  /** Dernière fiche de diagnostic de Nesa dans la séance (lacunes envisagées, forces, suite prévue). */
+  diagnosis: Diagnosis.optional(),
 });
 
 /** Réponse de l'élève à la dernière question de Nesa. */

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Rejoue une séance complète (plusieurs tours) et capture chaque phrase : image + ce que dit Nesa."""
-import json, sys
+import json, os, sys
 from playwright.sync_api import sync_playwright
 
 S, path, tag = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -19,7 +19,7 @@ with sync_playwright() as p:
     pg = b.new_page(viewport={"width": 1280, "height": 760})
     pg.route("**/api/tutor", handle)
     pg.route("**/api/voice", lambda r: r.fulfill(status=503, body="{}"))
-    pg.goto("http://localhost:3100/")
+    pg.goto(os.environ.get("APP_URL", "http://localhost:3100/"))
     pg.wait_for_timeout(1500)
     pg.get_by_role("button", name="Couper la voix de Nesa").click()
     pg.get_by_role("textbox").first.fill("vecteurs")

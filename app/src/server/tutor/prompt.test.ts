@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { emptyBoard } from "@/domain/board/state";
 import { applyAction } from "@/domain/scene/commands";
 import { ModelEvent } from "@/domain/scene/schema";
-import { buildSystemPrompt } from "./prompt";
+import { buildMessages, buildSystemPrompt } from "./prompt";
 
 describe("consigne du modèle", () => {
   it("ne montre que des exemples valides, qui produisent bien le geste annoncé", () => {
@@ -45,5 +45,21 @@ describe("mémoire de la séance", () => {
     expect(text).toContain("erreur visée : confond pente et fréquence");
     expect(text).toContain("Erreur visée par ce choix (prévue quand tu as écrit la question) : confond hauteur et fréquence");
     expect(text).toContain("Retour sur ton tour précédent");
+  });
+});
+
+describe("consignes tirées des séances enregistrées", () => {
+  it("refuse la biologie, sépare un nouveau sujet, gère les au revoir et nomme les axes", () => {
+    const system = buildMessages({ mode: "question", question: "?" })[0]!.content;
+    expect(system).toMatch(/biologie n'est pas couverte/);
+    expect(system).toMatch(/"xLabel"/);
+    expect(system).toMatch(/N'efface pas ce que l'élève/);
+    const followUp = buildMessages({
+      mode: "followUp",
+      question: "Et les atomes ?",
+      context: { spoken: [], board: [], goals: ["La mitose"] },
+    } as never)[1]!.content;
+    expect(followUp).toMatch(/CHANGE DE SUJET/);
+    expect(followUp).toMatch(/au revoir/);
   });
 });

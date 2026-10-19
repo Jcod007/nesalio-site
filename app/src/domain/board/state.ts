@@ -31,6 +31,9 @@ export interface Frame {
   y: [number, number];
   xLabel?: string;
   yLabel?: string;
+  /** Pas des graduations demandé (le moteur l'élargit s'il rendrait les chiffres illisibles). */
+  xStep?: number;
+  yStep?: number;
 }
 
 /** Cadre utilisé tant que le modèle n'a pas tracé d'axes. */
@@ -94,9 +97,14 @@ export type CurveNode = NodeBase & {
   /** Centre de l'étiquette, choisi par le moteur pour ne rien chevaucher. */
   labelAt?: Vec2;
 };
-export type PointNode = NodeBase & { type: "point"; at: Vec2; label?: string; ring?: boolean };
-export type VectorNode = NodeBase & { type: "vector"; from: Vec2; to: Vec2; label?: string };
-export type SegmentNode = NodeBase & { type: "segment"; from: Vec2; to: Vec2; label?: string; dashed?: boolean };
+/**
+ * `labelAt` : centre de l'étiquette (coordonnées mathématiques, avant le
+ * déplacement cumulé), choisi par le moteur pour ne rien chevaucher. Absent :
+ * place par défaut (voir `labelCenter` dans layout.ts).
+ */
+export type PointNode = NodeBase & { type: "point"; at: Vec2; label?: string; ring?: boolean; labelAt?: Vec2 };
+export type VectorNode = NodeBase & { type: "vector"; from: Vec2; to: Vec2; label?: string; labelAt?: Vec2 };
+export type SegmentNode = NodeBase & { type: "segment"; from: Vec2; to: Vec2; label?: string; dashed?: boolean; labelAt?: Vec2 };
 export type TextNode = NodeBase & {
   type: "text";
   text: string;
@@ -112,8 +120,8 @@ export type TextNode = NodeBase & {
   rows?: string[][];
 };
 /** Arc de cercle (marque d'angle, par exemple). Angles en degrés, sens trigonométrique. */
-export type ArcNode = NodeBase & { type: "arc"; center: Vec2; radius: number; start: number; end: number; label?: string };
-export type CircleNode = NodeBase & { type: "circle"; center: Vec2; radius: number; dashed?: boolean; label?: string };
+export type ArcNode = NodeBase & { type: "arc"; center: Vec2; radius: number; start: number; end: number; label?: string; labelAt?: Vec2 };
+export type CircleNode = NodeBase & { type: "circle"; center: Vec2; radius: number; dashed?: boolean; label?: string; labelAt?: Vec2 };
 /** Courbe paramétrée : x(t) et y(t), t de t[0] à t[1]. Dessinée comme une ligne brisée fine. */
 export interface Parametric {
   x: string;
@@ -129,6 +137,7 @@ export type PolygonNode = NodeBase & {
   /** Remplissage plus marqué (une aire sous une courbe). */
   shade?: boolean;
   label?: string;
+  labelAt?: Vec2;
   /** Si le polygone vient d'une courbe paramétrée : ses équations (pour la transformer). */
   param?: Parametric;
 };

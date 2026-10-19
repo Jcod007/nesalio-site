@@ -101,6 +101,26 @@ describe("Player", () => {
     expect(player.getSnapshot().summary).toEqual(["À retenir"]);
   });
 
+  it("rend sa fiche de diagnostic au modèle au tour suivant, et montre ce qu'elle a remarqué à la fin", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], answer: 0 };
+    const diagnosis = { gaps: [{ notion: "fractions", status: "suspected" as const }], strengths: ["calcule vite"], next: "vérifier les fractions" };
+    const noticed = { strengths: ["Tu calcules vite."], toWork: ["Le dénominateur commun."] };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question"
+        ? [step("On additionne.", { check }), { kind: "diagnosis", ...diagnosis }, { kind: "await" }]
+        : [step("On répare."), { kind: "end", summary: ["À retenir"], noticed }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("fractions ?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(1);
+    await until(player, () => requests.length === 2);
+    expect(requests[1]!.context?.diagnosis).toEqual(diagnosis);
+    await speakUntil(player, voice, (s) => s.status === "done");
+    expect(player.getSnapshot().noticed).toEqual(noticed);
+  });
+
   it("s'arrête quand on l'interrompt et redit la phrase coupée à la reprise", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [step("Un."), step("Deux."), { kind: "end", summary: [] }]);
@@ -390,6 +410,23 @@ describe("Player", () => {
     player.answerText("Parce que la courbe descend des deux côtés");
     await until(player, () => requests.length === 2);
     expect(requests[1]!.answer).toMatchObject({ picked: "Parce que la courbe descend des deux côtés", correct: null });
+    await speakUntil(player, voice, (s) => s.status === "done");
+  });
+
+  it("garde une réponse dite à voix haute en entier, même longue (un raisonnement complet)", async () => {
+    const voice = fakeSpeaker();
+    const check = { prompt: "Que vaut l'hypoténuse ?", choices: ["7", "5", "25"], answer: 1 };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question" ? [step("Calcule.", { check }), { kind: "await" }] : [step("Voyons."), { kind: "end", summary: [] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("?");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    const reasoning =
+      "On va faire 3 au carré, ça fait 3 fois 3, ça fait 9, plus 4 au carré, ça fait 4 fois 4, ça fait 16, on va faire 9 plus 16, ça fait 25, on va prendre la racine de 25 et ça donne 5";
+    player.answerText(reasoning);
+    await until(player, () => requests.length === 2);
+    expect(requests[1]!.answer!.picked).toBe(reasoning);
     await speakUntil(player, voice, (s) => s.status === "done");
   });
 });

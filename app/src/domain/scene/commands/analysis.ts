@@ -5,6 +5,7 @@
  */
 import { z } from "zod";
 import { areaRegions, centerOfMass, sampleParametric } from "@/domain/board/geometry";
+import { placeLabel } from "@/domain/board/layout";
 import { isVisible, putNode, type BoardNode, type BoardState, type Reveal } from "@/domain/board/state";
 import { ColorName, Expression, finite, Id, Range } from "../primitives";
 import { base, drawNode } from "./figure";
@@ -101,5 +102,5 @@ export function putMassPoint(state: BoardState, curveId: string, points: Readonl
     return putNode(state, { ...existing, at: [at[0] - existing.offset[0], at[1] - existing.offset[1]], morph: reveal });
   }
   const point: BoardNode = { ...base(id, { start: reveal.start + reveal.duration * 0.8, duration: 500 }, "orange"), type: "point", at, label: "centre de masse", ring: true };
-  return putNode(state, point);
+  return placeLabel(putNode(state, point), id);
 }

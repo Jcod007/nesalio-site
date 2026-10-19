@@ -21,7 +21,7 @@ import {
   sub,
   rad,
 } from "@/domain/board/shapes";
-import { isVisible, type BoardNode, type BoardState, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
+import { isVisible, moveNodes, putNode, type BoardNode, type BoardState, type Group, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, finite, Id } from "../primitives";
 import { base, drawNode } from "./figure";
 import { defineCommand } from "./define";
@@ -53,7 +53,7 @@ function stagger(reveal: Reveal, index: number, count: number): Reveal {
  * les parties déjà au tableau restent en place, seules les nouvelles
  * apparaissent (on présente les forces une à une, par exemple).
  */
-function drawFigure(state: BoardState, id: string, parts: BoardNode[], reveal: Reveal): BoardState {
+function drawFigure(state: BoardState, id: string, parts: BoardNode[], reveal: Reveal, extraGroups: Record<string, string[]> = {}): BoardState {
   const fresh = parts.filter((part) => {
     const existing = state.nodes[part.id];
     return !isVisible(existing) || existing.type !== part.type;
@@ -62,8 +62,43 @@ function drawFigure(state: BoardState, id: string, parts: BoardNode[], reveal: R
   fresh.forEach((part, i) => {
     next = drawNode(next, { ...part, reveal: stagger(reveal, i, fresh.length) }, reveal);
   });
+  for (const part of parts) {
+    const existing = next.nodes[part.id];
+    if (fresh.includes(part) || !isVisible(existing) || existing.type !== part.type) continue;
+    if (part.type === "text" && existing.type === "text") {
+      // Une étiquette déjà au tableau dont la place calculée change (on ajoute les carrés, par exemple)
+      // glisse vers sa nouvelle place au lieu de rester sous la nouvelle partie.
+      const delta: Vec2 = [part.at[0] - existing.at[0] - existing.offset[0], part.at[1] - existing.at[1] - existing.offset[1]];
+      if (Math.hypot(delta[0], delta[1]) > 1e-9) next = moveNodes(next, [part.id], delta, reveal);
+      continue;
+    }
+    // Une partie déjà au tableau dont la géométrie change (le plan passe de 30° à 60°) se
+    // transforme sous les yeux de l'élève, au lieu de rester figée à l'ancienne valeur.
+    if (sameShape(existing, part)) continue;
+    next = putNode(next, {
+      ...part,
+      reveal: existing.reveal,
+      offset: existing.offset,
+      motions: existing.motions,
+      spins: existing.spins,
+      dim: existing.dim,
+      morph: reveal,
+    } as BoardNode);
+  }
   const members = [...new Set([...(state.groups[id]?.members ?? []), ...parts.map((p) => p.id)])];
-  return { ...next, groups: { ...next.groups, [id]: { id, members } } };
+  const groups: Record<string, Group> = { ...next.groups, [id]: { id, members } };
+  for (const [gid, ids] of Object.entries(extraGroups)) {
+    if (ids.length > 0) groups[gid] = { id: gid, members: [...new Set([...(next.groups[gid]?.members ?? []), ...ids])] };
+  }
+  return { ...next, groups };
+}
+
+/** Même géométrie (au millième près) : seuls comptent la forme, pas l'état d'animation. */
+const ANIMATION_KEYS = new Set(["reveal", "offset", "motions", "spins", "morph", "dim", "erased"]);
+function sameShape(a: BoardNode, b: BoardNode): boolean {
+  const shape = (node: BoardNode) =>
+    JSON.stringify(node, (key, value) => (ANIMATION_KEYS.has(key) ? undefined : typeof value === "number" ? Math.round(value * 1000) / 1000 : value));
+  return shape(a) === shape(b);
 }
 
 /** Texte posé à une position calculée, attaché à une partie de la figure (il la suit). */
@@ -160,6 +195,9 @@ export const angleCommand = defineCommand({
 
 /* -------------------------------- triangle -------------------------------- */
 
+/** Texte écrit au centre d'un carré de Pythagore (son aire) ; "" = carré sans texte. */
+const SquareText = z.string().trim().max(24);
+
 const TriangleSchema = z
   .object({
     type: z.literal("triangle"),
@@ -177,6 +215,9 @@ const TriangleSchema = z
       .partial()
       .optional(),
     angleLabel: z.string().max(12).optional(),
+    squares: z
+      .union([z.literal(true), z.object({ base: SquareText, height: SquareText, hyp: SquareText, ab: SquareText, bc: SquareText, ca: SquareText }).partial()])
+      .optional(),
     color: ColorName.optional(),
   })
   .refine((a) => a.points !== undefined || solveRightTriangle(a) !== null, {
@@ -189,8 +230,12 @@ export const triangleCommand = defineCommand({
     '{"type":"triangle","id":"tri","angle":30,"hyp":5,"names":["A","B","C"],"sides":{"hyp":"5 m","height":"h"},"angleLabel":"30°"}\n' +
     '  Triangle rectangle en B à partir de DEUX mesures parmi base, height, hyp, angle (angle aigu en A, en degrés) :\n' +
     '  le moteur calcule les sommets exacts. Options : "at":[x,y] (position de A), "rotate" (degrés).\n' +
-    '  Parties : tri-base, tri-haut, tri-hyp, tri-droit (angle droit), tri-angle. Triangle quelconque :\n' +
-    '  "points":[[x,y],[x,y],[x,y]], côtés tri-ab, tri-bc, tri-ca ("sides" : ab, bc, ca).',
+    '  Parties : tri-base (= tri-adjacent, côté adjacent à A), tri-haut (= tri-oppose, opposé à A), tri-hyp,\n' +
+    '  tri-droit (angle droit), tri-angle. Triangle quelconque : "points":[[x,y],[x,y],[x,y]], côtés tri-ab, tri-bc, tri-ca\n' +
+    '  ("sides" : ab, bc, ca).\n' +
+    '  "squares":{"base":"16","height":"9","hyp":"25"} : le moteur construit le carré sur chaque côté nommé, à l\'extérieur,\n' +
+    '  avec ce texte (son aire) au centre ; "squares":true pour les trois sans texte. Parties tri-carre-base,\n' +
+    '  tri-carre-haut, tri-carre-hyp, groupe tri-carres. Les longueurs ("sides") passent alors à l\'intérieur du triangle.',
   duration: 2400,
   apply(state, action, reveal) {
     const unit = worldPerMath(state.frame);
@@ -213,30 +258,69 @@ export const triangleCommand = defineCommand({
     }
     const center = centroid([A, B, C]);
     const id = action.id;
+    // Redemander la figure sans "sides" garde les longueurs déjà écrites (elles se replacent au besoin).
+    const written = (sid: string): string | undefined => {
+      const node = state.nodes[`${sid}-l`];
+      return isVisible(node) && node.type === "text" ? node.text : undefined;
+    };
     const sides: Array<[string, Vec2, Vec2, string | undefined]> = right
       ? [
-          [`${id}-base`, A, B, action.sides?.base],
-          [`${id}-haut`, B, C, action.sides?.height],
-          [`${id}-hyp`, A, C, action.sides?.hyp],
+          [`${id}-base`, A, B, action.sides?.base ?? written(`${id}-base`)],
+          [`${id}-haut`, B, C, action.sides?.height ?? written(`${id}-haut`)],
+          [`${id}-hyp`, A, C, action.sides?.hyp ?? written(`${id}-hyp`)],
         ]
       : [
-          [`${id}-ab`, A, B, action.sides?.ab],
-          [`${id}-bc`, B, C, action.sides?.bc],
-          [`${id}-ca`, C, A, action.sides?.ca],
+          [`${id}-ab`, A, B, action.sides?.ab ?? written(`${id}-ab`)],
+          [`${id}-bc`, B, C, action.sides?.bc ?? written(`${id}-bc`)],
+          [`${id}-ca`, C, A, action.sides?.ca ?? written(`${id}-ca`)],
         ];
 
+    // Carrés construits sur les côtés (Pythagore), vers l'extérieur du triangle.
+    const squareKeys = right ? (["base", "height", "hyp"] as const) : (["ab", "bc", "ca"] as const);
+    const squareText = (i: number): string | undefined => {
+      if (action.squares === undefined) return undefined;
+      if (action.squares === true) return "";
+      return action.squares[squareKeys[i]!];
+    };
+    const SQUARE_COLORS: Color[] = ["green", "orange", "violet"];
+    const squares: BoardNode[] = [];
+    sides.forEach(([sid, from, to], i) => {
+      const text = squareText(i);
+      if (text === undefined) return;
+      const [dx, dy] = sub(to, from);
+      let normal: Vec2 = [-dy, dx];
+      const middle = scale(add(from, to), 0.5);
+      if ((center[0] - middle[0]) * normal[0] + (center[1] - middle[1]) * normal[1] > 0) normal = [dy, -dx];
+      squares.push({
+        ...base(`${id}-carre-${sid.slice(id.length + 1)}`, reveal, SQUARE_COLORS[i]),
+        type: "polygon",
+        points: [from, to, add(to, normal), add(from, normal)],
+        closed: true,
+        fill: true,
+        label: text || undefined,
+      });
+    });
+    const hasSquare = (i: number) => squareText(i) !== undefined;
+
     const parts: BoardNode[] = sides.map(([sid, from, to]) => segment(sid, from, to, reveal, color));
+    parts.push(...squares);
     if (right) parts.push(angleMark(state, `${id}-droit`, B, A, C, undefined, true, reveal));
     if (right && (action.angleLabel !== undefined || action.angle !== undefined)) {
       parts.push(angleMark(state, `${id}-angle`, A, B, C, action.angleLabel ?? `${action.angle}°`, false, reveal));
     }
-    for (const [sid, from, to, text] of sides) {
-      if (text) parts.push(label(`${sid}-l`, text, outward(scale(add(from, to), 0.5), center, 0.42 / unit), sid, reveal, color));
-    }
+    sides.forEach(([sid, from, to, text], i) => {
+      // Un carré occupe l'extérieur du côté : la longueur s'écrit alors du côté intérieur.
+      const distance = (hasSquare(i) ? -0.36 : 0.42) / unit;
+      if (text) parts.push(label(`${sid}-l`, text, outward(scale(add(from, to), 0.5), center, distance), sid, reveal, color));
+    });
     if (action.names) {
       [A, B, C].forEach((vertex, i) => parts.push(label(`${id}-${action.names![i]!.replace(/[^\w-]/g, "") || i}`, action.names![i]!, outward(vertex, center, 0.36 / unit), sides[0]![0], reveal)));
     }
-    return drawFigure(state, id, parts, reveal);
+    // Autres noms des côtés d'un triangle rectangle (le modèle les emploie souvent) : ab, bc, ca, opposé, adjacent.
+    const aliases: Record<string, string[]> = right
+      ? { [`${id}-ab`]: [`${id}-base`], [`${id}-bc`]: [`${id}-haut`], [`${id}-ca`]: [`${id}-hyp`], [`${id}-oppose`]: [`${id}-haut`], [`${id}-adjacent`]: [`${id}-base`] }
+      : {};
+    return drawFigure(state, id, parts, reveal, { ...aliases, [`${id}-carres`]: squares.map((s) => s.id) });
   },
 });
 
@@ -254,11 +338,14 @@ export const inclineCommand = defineCommand({
     components: z.boolean().optional(),
     normal: z.boolean().optional(),
     angleLabel: z.string().max(12).optional(),
+    weightAngle: z.boolean().optional(),
   }),
   doc:
     '{"type":"incline","id":"plan","angle":25,"block":true,"weight":true,"components":true,"normal":false}\n' +
     '  Plan incliné (angle en degrés) avec un bloc, son poids P et, si demandé, ses composantes P∥ et P⊥ et la normale N.\n' +
-    '  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N.\n' +
+    '  "weightAngle":true marque l\'angle θ entre P et P⊥ (le même angle que le plan : c\'est ce qui donne P∥ = P sin θ).\n' +
+    '  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N, plan-angleP.\n' +
+    '  Changer "angle" en redemandant la même figure la fait pivoter : le plan, le bloc et les forces suivent.\n' +
     '  Pour présenter les forces une à une, redemande la même figure (même id) avec une option de plus : seules les\n' +
     '  nouvelles parties apparaissent (d\'abord "weight":false, puis "weight":true, puis "components":true…).',
   duration: 3000,
@@ -272,6 +359,12 @@ export const inclineCommand = defineCommand({
     const u: Vec2 = [Math.cos(t), Math.sin(t)];
     const n: Vec2 = [-Math.sin(t), Math.cos(t)];
     const id = action.id;
+    // Une force déjà au tableau reste dessinée quand on redemande la figure sans la redire
+    // (on change l'angle : la normale suit, elle ne disparaît pas et ne reste pas à l'ancien angle).
+    const shown = (part: string) => isVisible(state.nodes[`${id}-${part}`]);
+    const components = action.components ?? shown("Px");
+    const normal = action.normal ?? shown("N");
+    const weightAngle = action.weightAngle ?? shown("angleP");
 
     const parts: BoardNode[] = [
       { ...base(`${id}-pente`, reveal, "muted"), type: "polygon", points: [A, B, C], closed: true, fill: true },
@@ -289,13 +382,18 @@ export const inclineCommand = defineCommand({
         closed: true,
         fill: true,
       });
-      const w = L * 0.34;
-      if (action.weight ?? true) parts.push(vector(`${id}-P`, center, add(center, [0, -w]), "P", reveal, "orange"));
-      if (action.components) {
+      // Le poids s'arrête au-dessus du sol (sur une pente douce, il le traversait et son nom
+      // tombait sur la ligne du sol) ; ses composantes restent exactes, à la même échelle.
+      const w = Math.min(L * 0.34, (center[1] - A[1]) * 0.75);
+      const tipP = add(center, [0, -w]);
+      const tipPy = add(center, scale(n, -w * Math.cos(t)));
+      if (action.weight ?? true) parts.push(vector(`${id}-P`, center, tipP, "P", reveal, "orange"));
+      if (components) {
         parts.push(vector(`${id}-Px`, center, add(center, scale(u, -w * Math.sin(t))), "P∥", reveal, "green"));
-        parts.push(vector(`${id}-Py`, center, add(center, scale(n, -w * Math.cos(t))), "P⊥", reveal, "blue"));
+        parts.push(vector(`${id}-Py`, center, tipPy, "P⊥", reveal, "blue"));
+        if (weightAngle) parts.push(angleMark(state, `${id}-angleP`, center, tipP, tipPy, action.angleLabel ?? "θ", false, reveal));
       }
-      if (action.normal) parts.push(vector(`${id}-N`, center, add(center, scale(n, w * Math.cos(t))), "N", reveal, "violet"));
+      if (normal) parts.push(vector(`${id}-N`, center, add(center, scale(n, w * Math.cos(t))), "N", reveal, "violet"));
     }
     return drawFigure(state, id, parts, reveal);
   },
