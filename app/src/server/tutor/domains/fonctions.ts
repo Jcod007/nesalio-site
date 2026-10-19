@@ -12,7 +12,8 @@ export const fonctions: DomainGuide = {
     // Repère : le moteur garde la même échelle en x et en y (un y très étendu écrase le graphique en une colonne).
     'Repère : même échelle en x et en y. Garde l\'étendue en y au plus 2 fois celle en x (x [0,5] → y au plus [0,10]) ; ' +
       "une courbe qui « explose » sort par le haut du repère, et ses grandes valeurs vont dans un tableau (\"note\"), pas en points hors cadre.",
-    'Étiquette de courbe = sa règle, courte ("label":"2ˣ", "2x + 1", "x²"), jamais une phrase ; chaque axe dit ce qu\'il compte ("heures", "bactéries").',
+    'Étiquette de courbe = sa règle, courte ("label":"2ˣ", "2x + 1", "x²"), jamais une phrase ; chaque axe dit ce qu\'il compte ("heures", "bactéries"). ' +
+      'Une droite tracée avec "curve" : "from"/"to" qui la gardent dans le repère (l\'étiquette se pose à son bout).',
     "Chaque point posé sur une courbe : calcule son y avec la règle exacte avant de l'écrire (f(3) = 3² = 9). Choisis des règles " +
       "et des x qui donnent des valeurs entières.",
     // Fonction : relation entrée-sortie, pas une formule.
@@ -27,10 +28,13 @@ export const fonctions: DomainGuide = {
     'Dérivée : f(x) = x² (x [-1,4], y [-1,9]), A(1, 1) fixe et P(3, 9) sur la courbe (pente de la sécante 4, puis P(2, 4) : 3, ' +
       'P(1,5 ; 2,25) : 2,5, tangente en A : 2) ; la sécante est une droite ' +
       'entière ("curve" avec "fn":"m*(x-a)+f(a)") ; P glisse vers A ("transform" "at") PENDANT que la sécante tourne ("transform" "fn") et ' +
-      "que sa pente écrite change ; à la fin, c'est la tangente. N'écris la formule de f′ qu'après avoir montré d'où elle vient.",
+      "que sa pente écrite change ; à la fin, c'est la tangente. N'écris la formule de f′ qu'après avoir montré d'où elle vient. " +
+      'Le "transform" d\'une droite ou d\'une courbe ne change que "fn" (pas de "from"/"to" : refusé).',
     "Un nom = un seul objet : ne réutilise pas A ou B pour un deuxième point ; efface (\"erase\") le dessin d'introduction avant d'en faire un autre.",
     // Exponentielle : multiplier vs additionner.
-    "Exponentielle : compare ×2 et +2 côte à côte (deux courbes nommées et un tableau de valeurs). L'augmentation d'un pas est une " +
+    "Exponentielle 2ˣ : repère x [0,4], y [0,8] (1, 2, 4, 8 visibles ; la courbe sort par le haut : c'est l'explosion). " +
+      "16, 32, 1024 vont dans le tableau (\"note\"), jamais un y de 20 ou 35. " +
+      "Compare ×2 et +2 côte à côte (deux courbes nommées et un tableau de valeurs). L'augmentation d'un pas est une " +
       'flèche VERTICALE ("vector" avec "by":[0,Δy]) posée au bout du pas, jamais une flèche le long de la courbe. ' +
       '"copy" d\'une flèche : toujours avec sa destination ("by":[1,4]), sinon elle est refusée.',
     // Logarithme : lire l'exponentielle à l'envers.
@@ -40,7 +44,9 @@ export const fonctions: DomainGuide = {
     // Diagnostic : les notions d'avant typiques du domaine.
     "Notions d'avant typiques : f(4) lu comme « f fois 4 » ; exposant pris pour un produit (2⁵ = 2 × 5) ; règles des signes ; " +
       "pente d'une droite (montée ÷ avancée). Soupçon → la question suivante porte sur cette notion SEULE (« Que vaut 2⁴ ? »).",
-    "Chaque mauvais choix d'une question est vraiment faux, et la réponse n'est pas déjà écrite au tableau (pas d'étiquette « pente 3 » avant de demander la pente).",
-    '"noticed" : seulement ce que ses réponses montrent (une bonne réponse, une erreur corrigée à la question suivante) ; jamais une réussite qu\'il n\'a pas eue.',
+    "Chaque mauvais choix d'une question est vraiment faux, et la réponse n'est pas déjà écrite au tableau : pas d'étiquette " +
+      "« tangente (pente 2) » dans l'étape qui demande la pente ; écris « tangente », et la pente après sa réponse.",
+    '"noticed" : seulement ce que ses réponses montrent (une bonne réponse, une erreur corrigée à la question suivante). ' +
+      "S'il n'a eu aucune réponse juste, pas de réussite inventée : une démarche vraie (« tu as répondu à chaque question ») ou rien.",
   ],
 };
