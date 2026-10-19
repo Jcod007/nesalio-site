@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { serializeLesson } from "./prompt";
 import { derivativeLesson } from "@/content/demoLessons";
 import type { StreamEvent } from "@/domain/scene/schema";
@@ -189,6 +189,14 @@ describe("parseSse", () => {
     const out: string[] = [];
     for await (const text of parseSse(stream(body))) out.push(text);
     expect(out.join("")).toBe("Bonjour");
+  });
+
+  it("signale une réponse coupée par la limite de jetons", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const body = 'data: {"choices":[{"delta":{"content":"{\\"kind\\":"},"finish_reason":"length"}]}\n\ndata: [DONE]\n\n';
+    for await (const _ of parseSse(stream(body))) void _;
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("limite de jetons"));
+    warn.mockRestore();
   });
 
   it("transforme une erreur en cours de flux en exception", async () => {
