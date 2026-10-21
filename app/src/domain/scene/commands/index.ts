@@ -15,7 +15,8 @@ import { axesCommand, curveCommand, pointCommand, segmentCommand, vectorCommand 
 import { areaCommand, parametricCommand } from "./analysis";
 import { applyMatrixCommand, gridCommand, matrixCommand } from "./linear";
 import { copyCommand, moveCommand, rotateCommand, transformCommand } from "./motion";
-import { angleCommand, circleCommand, cylinderCommand, inclineCommand, polygonCommand, sectorCommand, triangleCommand } from "./shapes";
+import { angleCommand, circleCommand, inclineCommand, polygonCommand, regularPolygonCommand, sectorCommand, triangleCommand } from "./shapes";
+import { coneCommand, cylinderCommand, prismCommand, pyramidCommand, sphereCommand } from "./solids";
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
 import { constructCommand } from "./constructions";
 import { imageCommand } from "./images";
@@ -35,7 +36,12 @@ export const COMMANDS = {
   circle: circleCommand,
   sector: sectorCommand,
   polygon: polygonCommand,
+  regularPolygon: regularPolygonCommand,
+  prism: prismCommand,
+  pyramid: pyramidCommand,
   cylinder: cylinderCommand,
+  cone: coneCommand,
+  sphere: sphereCommand,
   incline: inclineCommand,
   area: areaCommand,
   parametric: parametricCommand,
@@ -72,7 +78,12 @@ export const Action = z.discriminatedUnion("type", [
   circleCommand.schema,
   sectorCommand.schema,
   polygonCommand.schema,
+  regularPolygonCommand.schema,
+  prismCommand.schema,
+  pyramidCommand.schema,
   cylinderCommand.schema,
+  coneCommand.schema,
+  sphereCommand.schema,
   inclineCommand.schema,
   areaCommand.schema,
   parametricCommand.schema,
@@ -141,7 +152,12 @@ export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
   "circle",
   "sector",
   "polygon",
+  "regularPolygon",
+  "prism",
+  "pyramid",
   "cylinder",
+  "cone",
+  "sphere",
   "incline",
 ]);
 

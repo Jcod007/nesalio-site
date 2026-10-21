@@ -43,6 +43,18 @@ export function reflectAcross(p: Vec2, a: Vec2, b: Vec2): Vec2 {
   return sub(scale(footOnLine(p, a, b), 2), p);
 }
 
+/**
+ * Sommets d'un polygone régulier à `n` côtés de longueur `side`, centré en `center`, dans le sens
+ * antihoraire, posé sur un côté horizontal en bas.
+ */
+export function regularPolygon(n: number, side: number, center: Vec2 = [0, 0]): Vec2[] {
+  const R = side / (2 * Math.sin(Math.PI / n));
+  return Array.from({ length: n }, (_, k) => {
+    const t = -Math.PI / 2 - Math.PI / n + (2 * Math.PI * k) / n;
+    return [center[0] + R * Math.cos(t), center[1] + R * Math.sin(t)] as Vec2;
+  });
+}
+
 /** Rotation de `p` autour de `origin`. */
 export function rotate(p: Vec2, origin: Vec2, degrees: number): Vec2 {
   const [dx, dy] = sub(p, origin);

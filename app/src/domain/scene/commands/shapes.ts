@@ -23,6 +23,7 @@ import {
   solveTriangle,
   sub,
   rad,
+  regularPolygon,
 } from "@/domain/board/shapes";
 import { isVisible, type BoardNode, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, finite, Id } from "../primitives";
@@ -155,72 +156,73 @@ export const sectorCommand = defineCommand({
   },
 });
 
-/* -------------------------------- cylindre -------------------------------- */
+/* --------------------------- polygone régulier --------------------------- */
 
-/** Ellipse d'un cercle vu en perspective (axe vertical) : de start à end degrés. */
-function ellipse(center: Vec2, rx: number, ry: number, start: number, end: number, samples = 32): Vec2[] {
-  return Array.from({ length: samples + 1 }, (_, i) => {
-    const t = rad(start + ((end - start) * i) / samples);
-    return [center[0] + rx * Math.cos(t), center[1] + ry * Math.sin(t)] as Vec2;
-  });
-}
-
-export const cylinderCommand = defineCommand({
+export const regularPolygonCommand = defineCommand({
   schema: z.object({
-    type: z.literal("cylinder"),
+    type: z.literal("regularPolygon"),
     id: ShapeId,
-    radius: finite.positive().max(10_000),
-    height: finite.positive().max(10_000),
-    at: Coord.optional(),
-    slices: z.number().int().min(0).max(12).optional(),
-    labels: z.object({ radius: Name, height: Name, base: Name }).partial().optional(),
+    sides: z.number().int().min(3).max(12),
+    side: finite.positive().max(10_000),
+    center: PointRef.optional(),
+    rotate: finite.optional(),
+    names: z.array(Name).max(12).optional(),
+    apothem: z.boolean().optional(),
+    radius: z.boolean().optional(),
+    triangles: z.boolean().optional(),
+    labels: z.object({ side: Name, apothem: Name, radius: Name, area: Name }).partial().optional(),
+    fill: z.boolean().optional(),
     color: ColorName.optional(),
   }),
   doc:
-    '{"type":"cylinder","id":"cyl","radius":2,"height":3,"slices":4,"labels":{"radius":"r","height":"h","base":"aire de la base"}}\n' +
-    '  Cylindre en perspective (centre de la base en "at", sinon centré) : base et dessus en ellipses, côtés, rayon et\n' +
-    '  hauteur nommés. "slices" : la pile de tranches identiques (pièces de monnaie) qui montre V = aire de la base × h ;\n' +
-    '  redemander la figure avec plus de tranches les ajoute. Parties : cyl-base, cyl-dessus (rempli : l\'aire de la base),\n' +
-    '  cyl-cotes, cyl-rayon, cyl-hauteur, cyl-tranche-1…, groupe cyl-tranches. Jamais de cercles empilés à plat.',
-  duration: 2600,
-  aliases: ["cylindre"],
+    '{"type":"regularPolygon","id":"hex","sides":6,"side":2,"apothem":true,"triangles":true,"labels":{"side":"2 cm","apothem":"a"}}\n' +
+    '  Polygone régulier exact (côté en bas, centré en "center"). "apothem" : l\'apothème en pointillés (centre → milieu du\n' +
+    '  côté du bas, angle droit) ; "radius" : un rayon (centre → sommet) ; "triangles" : le découpage en triangles isocèles\n' +
+    '  depuis le centre (aire = périmètre × apothème ÷ 2). Parties : hex-contour, hex-centre, hex-apotheme, hex-rayon,\n' +
+    '  hex-triangle-1…, groupe hex-triangles ; sommets nommés avec "names" (sinon A, B, C…).',
+  duration: 2000,
+  aliases: ["regular", "hexagon", "pentagon"],
   apply(state, action, reveal) {
-    const { radius: r, height: h, id } = action;
-    const color = action.color ?? "blue";
-    const ry = r * 0.32;
-    const bottom: Vec2 = action.at ?? [0, -h / 2];
-    const top = add(bottom, [0, h]);
-    // La cote de hauteur, à gauche, compte dans la figure.
-    state = fitFrame(state, pointsBox([add(bottom, [-r * 1.4 - 0.8, -ry]), add(top, [r, ry + 0.8])]));
+    const c = action.center !== undefined ? resolvePoint(state, action.center) : ([0, 0] as Vec2);
+    if (!c) return state;
+    let corners = regularPolygon(action.sides, action.side, c);
+    if (action.rotate) corners = corners.map((p) => rotate(p, c, action.rotate!));
+    state = fitFrame(state, pointsBox(corners));
     const unit = worldPerMath(state.frame);
+    const color = action.color ?? "blue";
+    const id = action.id;
     const parts: BoardNode[] = [
-      // Arrière de la base : caché, d'un trait plus clair.
-      { ...base(`${id}-base-arriere`, reveal, "muted"), type: "polygon", points: ellipse(bottom, r, ry, 0, 180), closed: false },
-      { ...base(`${id}-base`, reveal, color), type: "polygon", points: ellipse(bottom, r, ry, 180, 360), closed: false },
-      segment(`${id}-gauche`, add(bottom, [-r, 0]), add(top, [-r, 0]), reveal, color),
-      segment(`${id}-droite`, add(bottom, [r, 0]), add(top, [r, 0]), reveal, color),
+      { ...base(`${id}-contour`, reveal, color), type: "polygon", points: corners, closed: true, fill: action.fill ?? false, label: action.labels?.area },
+      { ...base(`${id}-centre`, reveal, "ink"), type: "point", at: c },
     ];
-    const slices = action.slices ?? 0;
-    for (let k = 1; k < slices; k++) {
-      const c = add(bottom, [0, (h * k) / slices]);
-      parts.push({ ...base(`${id}-tranche-${k}`, reveal, "muted"), type: "polygon", points: ellipse(c, r, ry, 180, 360), closed: false });
+    const triangles: string[] = [];
+    if (action.triangles) {
+      corners.forEach((p, k) => {
+        const tid = `${id}-triangle-${k + 1}`;
+        triangles.push(tid);
+        parts.push(segment(tid, c, p, reveal, "muted"));
+      });
     }
-    parts.push({
-      ...base(`${id}-dessus`, reveal, color),
-      type: "polygon",
-      points: ellipse(top, r, ry, 0, 360).slice(0, -1),
-      closed: true,
-      fill: true,
-      label: action.labels?.base,
-      labelAt: add(top, [0, ry + 0.4 / unit]),
+    const [p0, p1] = [corners[0]!, corners[1]!];
+    const middle = scale(add(p0, p1), 0.5);
+    if (action.apothem || action.labels?.apothem) {
+      parts.push(segment(`${id}-apotheme`, c, middle, reveal, "orange", true));
+      parts.push(angleMark(state, `${id}-apotheme-droit`, middle, c, p1, undefined, true, reveal));
+      if (action.labels?.apothem) parts.push(label(`${id}-apotheme-l`, action.labels.apothem, add(scale(add(c, middle), 0.5), [0.3 / unit, 0]), `${id}-apotheme`, reveal, "orange"));
+    }
+    if (action.radius || action.labels?.radius) {
+      parts.push(segment(`${id}-rayon`, c, p1, reveal, "violet"));
+      if (action.labels?.radius) parts.push(label(`${id}-rayon-l`, action.labels.radius, add(scale(add(c, p1), 0.5), [0, 0.3 / unit]), `${id}-rayon`, reveal, "violet"));
+    }
+    if (action.labels?.side) parts.push(label(`${id}-side-l`, action.labels.side, outward(middle, c, 0.42 / unit), `${id}-contour`, reveal, color));
+    const names = action.names ?? corners.map((_, k) => String.fromCharCode(65 + k));
+    const vertices: Record<string, Vec2> = { O: c };
+    corners.forEach((p, k) => {
+      if (!names[k]) return;
+      vertices[names[k]!] = p;
+      if (action.names) parts.push(label(`${id}-${names[k]!.replace(/[^\w-]/g, "") || k}`, names[k]!, outward(p, c, 0.36 / unit), `${id}-contour`, reveal));
     });
-    parts.push(segment(`${id}-rayon`, top, add(top, [r, 0]), reveal, "violet"));
-    if (action.labels?.radius) parts.push(label(`${id}-rayon-l`, action.labels.radius, add(top, [r / 2, -0.28 / unit]), `${id}-rayon`, reveal, "violet"));
-    const hx = bottom[0] - r - 0.45 / unit;
-    parts.push(segment(`${id}-hauteur`, [hx, bottom[1]], [hx, top[1]], reveal, "orange", true));
-    if (action.labels?.height) parts.push(label(`${id}-hauteur-l`, action.labels.height, [hx - 0.3 / unit, bottom[1] + h / 2], `${id}-hauteur`, reveal, "orange"));
-    const tranches = Array.from({ length: Math.max(0, slices - 1) }, (_, k) => `${id}-tranche-${k + 1}`);
-    return drawFigure(state, id, parts, reveal, { [`${id}-tranches`]: tranches, [`${id}-cotes`]: [`${id}-gauche`, `${id}-droite`] });
+    return drawFigure(state, id, parts, reveal, { [`${id}-triangles`]: triangles }, vertices);
   },
 });
 
