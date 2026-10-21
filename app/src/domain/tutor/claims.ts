@@ -84,12 +84,40 @@ function readRatios(clause: string): RatioClaim | null {
   }
   if (found.length === 0) return null;
   const numbers: number[] = [];
-  // Seulement les nombres reliés à la chaîne par « = » (pas « CD vaut 3 »).
-  for (const part of clause.split("=").slice(1)) {
-    const t = part.trim();
+  // Seulement les nombres de la chaîne : juste après « = », quand ce qui précède le « = » finit par un
+  // rapport ou par un nombre de la chaîne (« AD/AJ = 1/3 et AK = 12 » : le 12 est la longueur de AK).
+  const parts = clause.split("=");
+  let chained = false;
+  for (let i = 0; i < parts.length; i++) {
+    const before = parts[i]!.trimEnd();
+    const endsWithRatio = [RATIO_LATEX, RATIO_SLASH, RATIO_WORDS].some((re) => [...before.matchAll(re)].some((m) => (m.index ?? 0) + m[0].length >= before.length - 1));
+    if (i === 0) {
+      chained = endsWithRatio;
+      continue;
+    }
+    if (!(chained || endsWithRatio)) {
+      chained = false;
+      continue;
+    }
+    const t = parts[i]!.trim();
+    // Un autre rapport de la chaîne (« = \frac{CE}{CB} = ») : la chaîne continue s'il finit le terme.
+    const ratioHere = [RATIO_LATEX, RATIO_SLASH, RATIO_WORDS].flatMap((re) => [...t.matchAll(re)]).find((m) => m.index === 0);
+    if (ratioHere) {
+      chained = ratioHere[0].length >= t.replace(/[$\s]+$/, "").length - 1;
+      continue;
+    }
     const frac = [...t.matchAll(NUMBER_FRAC)][0];
-    if (frac && frac.index === 0) numbers.push(toNumber(frac[1]!) / toNumber(frac[2]!));
-    else if (/^\d+(?:[.,]\d+)?(?![\d/])/.test(t) && !/^\d+(?:[.,]\d+)?\s*[a-zA-Z×x]/.test(t)) numbers.push(toNumber(t.match(/^\d+(?:[.,]\d+)?/)![0]));
+    const plain = t.match(/^(\d+(?:[.,]\d+)?)(?:\s*\/\s*(\d+(?:[.,]\d+)?))?/);
+    const value = frac && frac.index === 0 ? toNumber(frac[1]!) / toNumber(frac[2]!) : plain ? toNumber(plain[1]!) / (plain[2] ? toNumber(plain[2]) : 1) : null;
+    const rest = (frac && frac.index === 0 ? t.slice(frac[0].length) : plain ? t.slice(plain[0].length) : t).trim();
+    // Une unité ou un autre terme collé au nombre (« 3 cm », « 2x ») : ce n'est pas une valeur de rapport.
+    if (value === null || !Number.isFinite(value) || /^[a-zA-Z×x]/.test(rest)) {
+      chained = false;
+      continue;
+    }
+    numbers.push(value);
+    // La chaîne continue seulement si rien d'autre ne suit le nombre avant le « = » suivant.
+    chained = rest === "" || /^[$\s]*$/.test(rest);
   }
   const pairs = found.sort((a, b) => a.at - b.at).map((f) => f.pair);
   if (pairs.length + numbers.length < 2) return null;

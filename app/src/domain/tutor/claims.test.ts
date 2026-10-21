@@ -39,6 +39,9 @@ describe("vérificateur géométrique : ce que Nesa affirme, recalculé sur la f
     ["Thalès dit que les rapports AD sur AC et AE sur AB sont égaux.", "AD/AC = AE/AB"],
     ["Mais AE sur AB garde le même rapport que CD sur CA.", "AE/AB = CD/CA"],
     ["$\\frac{CD}{CA} = 0{,}4$", "CD/CA = 0,4"],
+    ["CD/CA = 1/3", "CD/CA = 0,33"],
+    // Banc du 21 octobre : la figure a D au milieu, la ligne annonce un tiers.
+    ["$\\frac{CD}{CA} = \\frac{CE}{CB} = \\frac{1}{3}$", "CD/CA = CE/CB = 0,33"],
     ["Le triangle A D E est une réduction de A C B : même forme.", "ADE semblable à ACB"],
     ["Parce que DE est parallèle à AB : les triangles ADE et ABC ont les mêmes angles", "ADE semblable à ABC"],
     ["DE est parallèle à AC.", "(DE) // (AC)"],
@@ -58,6 +61,8 @@ describe("vérificateur géométrique : ce que Nesa affirme, recalculé sur la f
     "Autre triangle, autres nombres : CD/CA = 0,4.",
     "XY/ZW = PQ/RS",
     "CD vaut 3 et CA vaut 7,5.",
+    // Banc du 21 octobre : le 12 est la longueur de AK, pas une valeur du rapport.
+    "Avec CD/CA = 1/2 et AK = 12, que vaut AE ?",
   ])("ignoré (hypothèse, négation, autre exemple, points absents, pas d'égalité) : %s", (text) => {
     expect(claims(text)).toEqual([]);
   });
