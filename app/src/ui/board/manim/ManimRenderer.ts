@@ -208,9 +208,11 @@ export class ManimRenderer {
     for (const [id, start] of Object.entries(board.highlights)) {
       if (this.highlightsSeen.get(id) === start) continue;
       this.highlightsSeen.set(id, start);
-      const target = this.items.get(id)?.mobjects[0];
+      const highlighted = board.nodes[id];
+      // Point vide : on fait pulser son cercle (le 2e mobject), pas le disque qui le remplit.
+      const target = this.items.get(id)?.mobjects[highlighted?.type === "point" && highlighted.open ? 1 : 0];
       if (!target) continue;
-      const isCurve = board.nodes[id]?.type === "curve";
+      const isCurve = highlighted?.type === "curve";
       batch.push({
         animation: new Indicate(target, { duration: 1.2, scaleFactor: isCurve ? 1 : 1.2, color: BRAND.violet }),
         ...at(start, 1200),
@@ -562,9 +564,12 @@ export class ManimRenderer {
       }
       case "point": {
         const center = this.p(node.at[0], node.at[1]);
-        const dot = new Dot({ point: center, radius: 0.085, color });
-        const mobjects: Mobject[] = [dot];
-        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.6, make: (s) => new GrowFromCenter(dot, { duration: s }) }];
+        // Point vide : un disque couleur du tableau masque le bout du segment, puis un cercle non rempli
+        // par-dessus (c'est lui que la mise en évidence fait pulser : il reste vide).
+        const disc = node.open ? new Dot({ point: center, radius: 0.085, color: BRAND.paper }) : null;
+        const dot = node.open ? new Circle({ radius: 0.085, color, strokeWidth: 3.5, center }) : new Dot({ point: center, radius: 0.085, color });
+        const mobjects: Mobject[] = disc ? [disc, dot] : [dot];
+        const animations: PlannedAnimation[] = mobjects.map((m) => ({ delay: 0, share: 0.6, make: (s: number) => new GrowFromCenter(m, { duration: s }) as Animation }));
         if (node.ring) {
           const ring = new Circle({ radius: 0.2, color, strokeWidth: 3, center });
           mobjects.push(ring);
@@ -648,8 +653,11 @@ export class ManimRenderer {
           strokeWidth: node.shade ? 1.5 : node.param ? 3.5 : 3.2,
           closed: node.closed,
         });
-        const mobjects: Mobject[] = [polygon];
-        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(polygon, { duration: s }) }];
+        const outline = node.dashed
+          ? new DashedVMobject({ vmobject: polygon as unknown as VMobject, numDashes: Math.max(12, node.points.length * 6), dashRatio: 0.55 })
+          : polygon;
+        const mobjects: Mobject[] = [outline];
+        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(outline, { duration: s }) }];
         if (node.label) {
           // Une courbe paramétrée porte son nom au bout ; un polygone, en son centre (place choisie par le moteur).
           const text = this.label(node.label, this.labelPoint(node)!, color);

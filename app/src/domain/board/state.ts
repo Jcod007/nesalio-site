@@ -102,7 +102,15 @@ export type CurveNode = NodeBase & {
  * déplacement cumulé), choisi par le moteur pour ne rien chevaucher. Absent :
  * place par défaut (voir `labelCenter` dans layout.ts).
  */
-export type PointNode = NodeBase & { type: "point"; at: Vec2; label?: string; ring?: boolean; labelAt?: Vec2 };
+export type PointNode = NodeBase & {
+  type: "point";
+  at: Vec2;
+  label?: string;
+  ring?: boolean;
+  /** Point vide (bout exclu d'une marche, d'un intervalle) : un cercle non rempli. */
+  open?: boolean;
+  labelAt?: Vec2;
+};
 export type VectorNode = NodeBase & { type: "vector"; from: Vec2; to: Vec2; label?: string; labelAt?: Vec2 };
 export type SegmentNode = NodeBase & { type: "segment"; from: Vec2; to: Vec2; label?: string; dashed?: boolean; labelAt?: Vec2 };
 export type TextNode = NodeBase & {
@@ -136,6 +144,8 @@ export type PolygonNode = NodeBase & {
   fill?: boolean;
   /** Remplissage plus marqué (une aire sous une courbe). */
   shade?: boolean;
+  /** Contour en pointillé (une pièce à compléter). */
+  dashed?: boolean;
   label?: string;
   labelAt?: Vec2;
   /** Si le polygone vient d'une courbe paramétrée : ses équations (pour la transformer). */
@@ -155,6 +165,8 @@ export interface Group {
    * réelle suit les déplacements de la figure (décalage de sa première partie).
    */
   vertices?: Readonly<Record<string, Vec2>>;
+  /** Ce que la figure représente, rendu au modèle pour qu'il la reprenne (« escalier f(x) = 2[x] + 1 »). */
+  rule?: string;
 }
 
 export interface AxesItem {
@@ -327,7 +339,7 @@ export function summarizeBoard(state: BoardState): BoardSummaryItem[] {
   }
   for (const group of Object.values(state.groups)) {
     const members = group.members.filter((m) => isVisible(state.nodes[m]));
-    if (members.length > 0) out.push({ id: group.id, type: "group", detail: members.join(", ").slice(0, 160) });
+    if (members.length > 0) out.push({ id: group.id, type: "group", detail: `${group.rule ? `${group.rule} ; ` : ""}${members.join(", ")}`.slice(0, 160) });
   }
   return out;
 }
@@ -337,7 +349,7 @@ function describeNode(node: BoardNode): string {
     case "curve":
       return `y = ${node.fn}${node.label ? ` (« ${node.label} »)` : ""}`;
     case "point":
-      return `${pt(shifted(node.at, node.offset))}${node.label ? ` « ${node.label} »` : ""}`;
+      return `${pt(shifted(node.at, node.offset))}${node.open ? " (point vide)" : ""}${node.label ? ` « ${node.label} »` : ""}`;
     case "vector":
     case "segment":
       return `de ${pt(shifted(node.from, node.offset))} à ${pt(shifted(node.to, node.offset))}${node.label ? ` « ${node.label} »` : ""}`;

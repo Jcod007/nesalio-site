@@ -112,7 +112,8 @@ de lignes JSON :
 {"kind":"end","summary":["Forme canonique : lire le sommet"]}
 ```
 
-Commandes (registre `src/domain/scene/commands/`) : `axes`, `curve`, `point`,
+Commandes (registre `src/domain/scene/commands/`) : `axes`, `curve`, `stepFunction`
+(partie entière exacte, SN 4), `areaModel` (modèle d'aire, SN 4), `point`,
 `vector`, `segment`, `text` (posé à côté d'un objet avec `near`), `note`
 (ligne de calcul), `tag`, `group`, `move`, `transform`, `highlight`, `dim`,
 `undim`, `erase`, `clear`, `focus`, `resetView`.
@@ -175,6 +176,9 @@ Le rapport donne, tour par tour, le délai avant la première phrase, les gestes
   dans `tools/eval/resultats/` (gestes, dit sans montrer, rejets, cibles absentes,
   latence). À lancer avant et après chaque changement de consigne ou du moteur :
   `NESALIO_URL=https://app.nesalio.com SELFTEST_TOKEN=… node tools/eval/evaluer.mjs`.
+  `--set=sn4` joue `questions-sn4.json` (1re étape de SN 4 : factorisation, division de
+  polynômes, expressions rationnelles, partie entière) et vérifie aussi le contenu du programme
+  (méthode de la classe, bon résultat, notation québécoise) : « Programme : n/N critères respectés ».
 - **Rejeu visuel** : `tools/rejeu/seance.py` rejoue une séance enregistrée (les
   événements du diagnostic avec `raw=1`) dans le navigateur, sur un serveur
   local (`npx next start -p 3100`), et capture une image par phrase ;
