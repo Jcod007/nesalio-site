@@ -59,6 +59,13 @@ export function createModelOutputParser(): ModelOutputParser {
     if (typeof action.type === "string" && NODE_COMMANDS.has(action.type as ActionType) && typeof action.id !== "string") {
       action.id = nextId(action.type);
     }
+    // Étiquette vide dans un objet d'étiquettes ("sides":{"ab":""}, vu le 21 octobre) : « pas d'étiquette »,
+    // plutôt que tout le triangle refusé.
+    for (const [key, value] of Object.entries(action)) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+      const kept = Object.entries(value as Record<string, unknown>).filter(([, v]) => !(typeof v === "string" && v.trim() === ""));
+      action[key] = Object.fromEntries(kept);
+    }
     // { x, y } au lieu de at: [x, y]
     if (action.type === "point" || action.type === "text") {
       if (!Array.isArray(action.at) && typeof action.x === "number" && typeof action.y === "number") {
