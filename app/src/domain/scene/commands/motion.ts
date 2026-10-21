@@ -16,11 +16,13 @@ import {
   type BoardState,
   type Vec2,
 } from "@/domain/board/state";
-import { ColorName, Coord, Expression, finite, Id, Range, Side } from "../primitives";
+import { BoardText, ColorName, Coord, Expression, finite, Id, Range, Side } from "../primitives";
 import { sampleParametric } from "@/domain/board/geometry";
 import { rotate } from "@/domain/board/shapes";
 import { massId, putMassPoint } from "./analysis";
 import { defineCommand } from "./define";
+import { withRoom } from "./parts";
+import { resolvePoint } from "./points";
 
 /** Point d'un objet qui sert d'accroche : la queue ou la pointe d'un vecteur, le centre d'une figure. */
 const Part = z.enum(["tail", "tip", "center"]);
@@ -103,18 +105,22 @@ export const moveCommand = defineCommand({
 export const copyCommand = defineCommand({
   schema: z
     .object({ type: z.literal("copy"), target: Id, id: Id, color: ColorName.optional(), ...Destination })
-    .refine(oneDestination, { message: "copy : indiquer exactement un de to, by, near ou onto" }),
+    // Sans destination, la copie reste sur l'original (on la fait ensuite tourner ou glisser) :
+    // refusée, elle faisait échouer tout ce qui la suivait (arc de cercle, 19 octobre).
+    .transform((a) => ([a.to, a.by, a.near, a.onto].every((v) => v === undefined) ? { ...a, by: [0, 0] as Vec2 } : a))
+    .refine(oneDestination, { message: "copy : indiquer un seul de to, by, near ou onto" }),
   doc:
     '{"type":"copy","target":"lx","id":"lx2","near":"eq","side":"left"} : une copie se détache de l\'objet et glisse\n' +
     '  jusqu\'à sa destination (mêmes destinations que move) ; l\'original reste. Pour faire voir d\'où vient un nombre\n' +
-    '  (la composante −2 part dans l\'équation) ou dupliquer un vecteur avant de le déplacer.',
+    '  (la composante −2 part dans l\'équation) ou dupliquer un vecteur avant de le déplacer. Sans destination,\n' +
+    '  la copie reste sur l\'original (pour la faire tourner ensuite avec "rotate").',
   duration: 900,
   aliases: ["duplicate", "clone"],
   apply(state, action, reveal) {
     if (isVisible(state.nodes[action.id])) return state; // identifiant déjà pris
     const sources = resolveTargets(state, action.target);
     if (sources.length === 0) return state;
-    const delta = destinationDelta(state, sources, action, []);
+    const delta = [action.to, action.by, action.near, action.onto].every((v) => v === undefined) ? ([0, 0] as Vec2) : destinationDelta(state, sources, action, []);
     if (!delta) return state;
 
     // La copie apparaît d'un coup sur l'original (invisible), puis s'en détache.
@@ -193,9 +199,11 @@ export const rotateCommand = defineCommand({
     if (targets.length === 0) return state;
     let about: Vec2;
     if (typeof action.about === "string") {
-      const pivot = resolveTargets(state, action.about);
-      if (pivot.length === 0) return state;
-      about = partOf(state, pivot, "tail");
+      // Un point (ou un sommet de triangle, un point construit) par son nom, sinon un objet du tableau.
+      const named = resolvePoint(state, action.about);
+      const pivot = named ? [] : resolveTargets(state, action.about);
+      if (!named && pivot.length === 0) return state;
+      about = named ?? partOf(state, pivot, "tail");
     } else about = action.about;
 
     const followers = anchoredTo(state, targets);
@@ -223,7 +231,7 @@ const TransformSchema = z
   .object({
     type: z.literal("transform"),
     target: Id,
-    text: z.string().trim().min(1).max(60).optional(),
+    text: BoardText.optional(),
     rows: z.array(z.array(z.string().trim().min(1).max(12)).min(1).max(4)).min(1).max(4).optional(),
     fn: Expression.optional(),
     at: Coord.optional(),
@@ -289,7 +297,7 @@ export const transformCommand = defineCommand({
   apply(state, action, reveal) {
     const node = state.nodes[action.target];
     if (!isVisible(node)) return state;
-    const changed = morphed(node, action);
+    const changed = withRoom(state, morphed(node, action), new Set([action.target]));
     let next = putNode(state, { ...changed, morph: reveal });
     if (changed.type === "text" && changed.role === "free" && !changed.anchor) {
       // Un texte qui s'allonge ne déborde pas sur ses voisins : il se décale juste assez.

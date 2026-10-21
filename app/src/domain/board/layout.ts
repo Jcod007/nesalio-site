@@ -11,7 +11,8 @@
  * convertit avec l'échelle du repère courant.
  */
 import { formatNumber, niceStep, sampleCurve } from "./geometry";
-import { arcPoints } from "./shapes";
+import { hasMath, mathSize as texSize } from "./tex";
+import { arcPoints, insidePolygon } from "./shapes";
 import {
   anchoredTo,
   isVisible,
@@ -106,8 +107,22 @@ export function fontSizeOf(node: TextNode): number {
 
 /** Taille d'un texte, en coordonnées mathématiques. */
 export function textExtent(text: string, fontSize: number, frame: Frame): Extent {
+  const world = textWorldExtent(text, fontSize);
+  return mathSize(frame, world.w, world.h);
+}
+
+/**
+ * Taille d'un texte dans le monde de Manim (indépendante du repère). Une formule entre dollars
+ * (board/tex.ts) prend la place estimée de la formule rendue : plus large, plus haute pour une
+ * fraction. Le rendu fait tenir la formule dans cette boîte.
+ */
+export function textWorldExtent(text: string, fontSize: number): Extent {
+  if (hasMath(text)) {
+    const size = texSize(text);
+    return { w: size.w * fontSize * WIDTH_PER_POINT_PER_CHAR, h: size.h * fontSize * HEIGHT_PER_POINT };
+  }
   const chars = Math.max(1, Array.from(text).length);
-  return mathSize(frame, chars * fontSize * WIDTH_PER_POINT_PER_CHAR, fontSize * HEIGHT_PER_POINT);
+  return { w: chars * fontSize * WIDTH_PER_POINT_PER_CHAR, h: fontSize * HEIGHT_PER_POINT };
 }
 
 /**
@@ -447,17 +462,6 @@ export function footprints(state: BoardState, skip: (owner: string, part: Part) 
   return out;
 }
 
-/** Le point est-il à l'intérieur du polygone (règle pair-impair) ? */
-export function insidePolygon([x, y]: Vec2, polygon: readonly Vec2[]): boolean {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [xi, yi] = polygon[i]!;
-    const [xj, yj] = polygon[j]!;
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
 /** Part d'une boîte recouverte par un polygone (grille de 5 × 3 points). */
 export function regionCover(box: Box, polygon: readonly Vec2[]): number {
   let hits = 0;
@@ -477,6 +481,27 @@ export function figureBox(state: BoardState): Box {
     .filter((node) => node.type !== "text")
     .map((node) => nodeBox(node, state.frame));
   return union(drawn) ?? frameBox(state.frame);
+}
+
+/**
+ * Sans repère, le cadre s'agrandit pour contenir une figure qui en déborde (Pythagore 6-8 avec
+ * ses carrés, un cercle de rayon 5). Sinon la caméra dézoome pour tout montrer et le texte,
+ * de taille fixe dans le monde, devient illisible (séances du 19 octobre). Le cadre ne
+ * rapetisse jamais (sauf "clear") ; les étiquettes déjà posées reprennent leur place.
+ * `box` : la figure qui arrive, en coordonnées mathématiques.
+ */
+export function fitFrame(state: BoardState, box: Box): BoardState {
+  if (state.axes) return state;
+  const f = state.frame;
+  const margin = Math.max(box.x1 - box.x0, box.y1 - box.y0) * 0.1 + 0.6;
+  const x0 = box.x0 < f.x[0] ? box.x0 - margin : f.x[0];
+  const x1 = box.x1 > f.x[1] ? box.x1 + margin : f.x[1];
+  const y0 = box.y0 < f.y[0] ? box.y0 - margin : f.y[0];
+  const y1 = box.y1 > f.y[1] ? box.y1 + margin : f.y[1];
+  if (x0 === f.x[0] && x1 === f.x[1] && y0 === f.y[0] && y1 === f.y[1]) return state;
+  let next: BoardState = { ...state, frame: { ...f, x: [x0, x1], y: [y0, y1] } };
+  for (const node of visibleNodes(next)) if (hasLabel(node)) next = placeLabel(next, node.id);
+  return next;
 }
 
 /** Tout ce qui est au tableau : la caméra cadre cette zone. */

@@ -15,8 +15,14 @@ import { axesCommand, curveCommand, pointCommand, segmentCommand, vectorCommand 
 import { areaCommand, parametricCommand } from "./analysis";
 import { applyMatrixCommand, gridCommand, matrixCommand } from "./linear";
 import { copyCommand, moveCommand, rotateCommand, transformCommand } from "./motion";
-import { angleCommand, circleCommand, inclineCommand, polygonCommand, triangleCommand } from "./shapes";
+import { angleCommand, circleCommand, inclineCommand, polygonCommand, regularPolygonCommand, sectorCommand, triangleCommand } from "./shapes";
+import { coneCommand, cylinderCommand, prismCommand, pyramidCommand, sphereCommand } from "./solids";
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
+import { constructCommand } from "./constructions";
+import { imageCommand } from "./images";
+import { vectorOpCommand } from "./vectors";
+import { unitCircleCommand } from "./trigCircle";
+import { conicCommand } from "./conics";
 import { noteCommand, tagCommand, textCommand } from "./text";
 
 /** Dans l'ordre où elles sont présentées au modèle. */
@@ -28,8 +34,20 @@ export const COMMANDS = {
   segment: segmentCommand,
   triangle: triangleCommand,
   angle: angleCommand,
+  construct: constructCommand,
+  image: imageCommand,
+  vectorOp: vectorOpCommand,
+  unitCircle: unitCircleCommand,
+  conic: conicCommand,
   circle: circleCommand,
+  sector: sectorCommand,
   polygon: polygonCommand,
+  regularPolygon: regularPolygonCommand,
+  prism: prismCommand,
+  pyramid: pyramidCommand,
+  cylinder: cylinderCommand,
+  cone: coneCommand,
+  sphere: sphereCommand,
   incline: inclineCommand,
   area: areaCommand,
   parametric: parametricCommand,
@@ -61,8 +79,20 @@ export const Action = z.discriminatedUnion("type", [
   segmentCommand.schema,
   triangleCommand.schema,
   angleCommand.schema,
+  constructCommand.schema,
+  imageCommand.schema,
+  vectorOpCommand.schema,
+  unitCircleCommand.schema,
+  conicCommand.schema,
   circleCommand.schema,
+  sectorCommand.schema,
   polygonCommand.schema,
+  regularPolygonCommand.schema,
+  prismCommand.schema,
+  pyramidCommand.schema,
+  cylinderCommand.schema,
+  coneCommand.schema,
+  sphereCommand.schema,
   inclineCommand.schema,
   areaCommand.schema,
   parametricCommand.schema,
@@ -126,8 +156,20 @@ export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
   "text",
   "triangle",
   "angle",
+  "construct",
+  "image",
+  "vectorOp",
+  "unitCircle",
+  "conic",
   "circle",
+  "sector",
   "polygon",
+  "regularPolygon",
+  "prism",
+  "pyramid",
+  "cylinder",
+  "cone",
+  "sphere",
   "incline",
 ]);
 

@@ -47,6 +47,16 @@ describe("tutorEvents", () => {
     expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "step", "end"]);
   });
 
+  // Homothétie, 21 octobre : une accolade oubliée avalait la question, et la séance s'arrêtait au premier tour.
+  it("garde l'étape et la question qui suivent un objet resté ouvert", async () => {
+    const text =
+      '{"kind":"step","say":"Voici le centre O.","do":[{"type":"point","id":"O","at":[0,0]}]\n' +
+      '{"kind":"step","say":"Que devient AB ?","check":{"prompt":"Que devient AB ?","choices":["Il double","Il reste pareil"],"answer":0}}';
+    const events = await collect(tutorEvents({ mode: "question", question: "homothétie ?" }, { ...base, completion: fakeCompletion(text) }));
+    expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "step", "await"]);
+    expect(events[2]).toMatchObject({ say: "Voici le centre O.", do: [{ type: "point", id: "O" }] });
+  });
+
   it("ne renvoie pas d'en-tête pour une réponse à une interruption", async () => {
     const text = '{"kind":"lesson","title":"x"}\n{"kind":"step","say":"Je reformule."}\n{"kind":"end","summary":[]}';
     const events = await collect(

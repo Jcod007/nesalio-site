@@ -11,11 +11,17 @@
  * - « surface » : dans un polygone rempli d'un autre objet (30 % de la boîte ou plus),
  *   sauf s'il recouvre déjà ce que le texte nomme (l'étiquette d'un côté sous un carré) ;
  * et « graduations » : deux chiffres d'un même axe qui se touchent.
+ *
+ * Deux dessins se gênent aussi (« dessins ») : deux surfaces fermées (polygone, cercle, secteur)
+ * de figures différentes qui se recouvrent en partie, de 10 % à 90 % de la plus petite ; un
+ * carré posé sur un côté (bord commun) ou une partie coloriée dans sa figure ne comptent pas.
+ * Vu le 19 octobre : un exemple dessiné par-dessus le carré de l'hypoténuse.
  */
 import { AXES_OWNER, footprints, intersects, namingRegions, regionCover, tickLabels, type Box } from "./layout";
-import type { BoardState } from "./state";
+import { insidePolygon } from "./shapes";
+import { visibleNodes, type BoardNode, type BoardState, type Vec2 } from "./state";
 
-export type CollisionKind = "texte" | "point" | "trait" | "surface" | "graduations";
+export type CollisionKind = "texte" | "point" | "trait" | "surface" | "graduations" | "dessins";
 export interface Collision {
   a: string;
   b: string;
@@ -80,6 +86,64 @@ export function collisions(state: BoardState): Collision[] {
       const row = labels.filter((l) => l.axis === axis).map((l) => ({ x0: l.at[0] - l.size.w / 2, x1: l.at[0] + l.size.w / 2, y0: l.at[1] - l.size.h / 2, y1: l.at[1] + l.size.h / 2 }));
       const touching = row.filter((b, k) => k > 0 && intersects(row[k - 1]!, b)).length;
       if (touching > 0) out.push({ a: `${AXES_OWNER}-${axis}`, b: `${AXES_OWNER}-${axis}`, kind: "graduations", ratio: touching });
+    }
+  }
+  out.push(...shapeOverlaps(state));
+  return out;
+}
+
+/** Contour d'une surface fermée, à sa place (décalage compris), ou null. */
+export function outline(node: BoardNode): Vec2[] | null {
+  const [dx, dy] = node.offset;
+  if (node.type === "polygon" && node.closed && node.points.length >= 3) return node.points.map(([x, y]) => [x + dx, y + dy] as Vec2);
+  if (node.type === "circle") {
+    return Array.from({ length: 40 }, (_, i) => {
+      const t = (2 * Math.PI * i) / 40;
+      return [node.center[0] + dx + node.radius * Math.cos(t), node.center[1] + dy + node.radius * Math.sin(t)] as Vec2;
+    });
+  }
+  return null;
+}
+
+export const bounds = (poly: Vec2[]): Box => ({
+  x0: Math.min(...poly.map((p) => p[0])),
+  y0: Math.min(...poly.map((p) => p[1])),
+  x1: Math.max(...poly.map((p) => p[0])),
+  y1: Math.max(...poly.map((p) => p[1])),
+});
+
+/** Part de la surface `small` recouverte par `big` (échantillonnage sur une grille). */
+export function covered(small: Vec2[], big: Vec2[]): number {
+  const b = bounds(small);
+  const n = 24;
+  let inSmall = 0;
+  let inBoth = 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const p: Vec2 = [b.x0 + ((i + 0.5) * (b.x1 - b.x0)) / n, b.y0 + ((j + 0.5) * (b.y1 - b.y0)) / n];
+      if (!insidePolygon(p, small)) continue;
+      inSmall++;
+      if (insidePolygon(p, big)) inBoth++;
+    }
+  }
+  return inSmall === 0 ? 0 : inBoth / inSmall;
+}
+
+function shapeOverlaps(state: BoardState): Collision[] {
+  const shapes = visibleNodes(state)
+    .map((node) => ({ id: node.id, poly: outline(node) }))
+    .filter((s): s is { id: string; poly: Vec2[] } => s.poly !== null);
+  // Deux parties d'une même figure (un groupe) se touchent exprès.
+  const together = (a: string, b: string) => Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));
+  const out: Collision[] = [];
+  for (let i = 0; i < shapes.length; i++) {
+    for (let j = i + 1; j < shapes.length; j++) {
+      const a = shapes[i]!;
+      const b = shapes[j]!;
+      if (together(a.id, b.id) || !intersects(bounds(a.poly), bounds(b.poly))) continue;
+      const [small, big] = area(bounds(a.poly)) <= area(bounds(b.poly)) ? [a, b] : [b, a];
+      const ratio = covered(small.poly, big.poly);
+      if (ratio >= 0.1 && ratio <= 0.9) out.push({ a: small.id, b: big.id, kind: "dessins", ratio: round(ratio) });
     }
   }
   return out;

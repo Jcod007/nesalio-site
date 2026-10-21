@@ -370,7 +370,8 @@ export class Player {
             break;
           }
           case "end":
-            segment.summary = event.summary;
+            // Une fin sans résumé (vu le 19 octobre) laissait l'élève sans bilan : on reprend les objectifs de la séance.
+            segment.summary = event.summary.length > 0 ? event.summary : this.goals.slice(0, 3);
             segment.noticed = event.noticed && (event.noticed.strengths.length > 0 || event.noticed.toWork.length > 0) ? event.noticed : null;
             break;
           case "diagnosis": {

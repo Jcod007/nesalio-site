@@ -20,6 +20,7 @@ import {
 } from "@/domain/scene/schema";
 import { z } from "zod";
 import { extractCues, inferCues } from "./cues";
+import { plainText } from "@/domain/board/tex";
 
 /** Noms de commandes que les modèles inventent : ceux du registre, plus quelques synonymes de type. */
 const TYPE_ALIASES: Readonly<Record<string, string>> = {
@@ -58,6 +59,13 @@ export function createModelOutputParser(): ModelOutputParser {
     if (typeof action.type === "string" && NODE_COMMANDS.has(action.type as ActionType) && typeof action.id !== "string") {
       action.id = nextId(action.type);
     }
+    // Étiquette vide dans un objet d'étiquettes ("sides":{"ab":""}, vu le 21 octobre) : « pas d'étiquette »,
+    // plutôt que tout le triangle refusé.
+    for (const [key, value] of Object.entries(action)) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+      const kept = Object.entries(value as Record<string, unknown>).filter(([, v]) => !(typeof v === "string" && v.trim() === ""));
+      action[key] = Object.fromEntries(kept);
+    }
     // { x, y } au lieu de at: [x, y]
     if (action.type === "point" || action.type === "text") {
       if (!Array.isArray(action.at) && typeof action.x === "number" && typeof action.y === "number") {
@@ -70,7 +78,8 @@ export function createModelOutputParser(): ModelOutputParser {
   }
 
   function parseStep(obj: Record<string, unknown>, line: string): ModelEvent | null {
-    const cued = typeof obj.say === "string" ? extractCues(obj.say) : null;
+    // La voix et les sous-titres disent la formule en clair (« $\\frac{3}{5}$ » devient « 3/5 »).
+    const cued = typeof obj.say === "string" ? extractCues(plainText(obj.say)) : null;
     const say = z.string().trim().min(1).max(320).safeParse(cued?.say);
     if (!say.success) return reject(line, "Étape sans phrase valide");
 
@@ -100,19 +109,40 @@ export function createModelOutputParser(): ModelOutputParser {
   }
 
   function parseLine(line: string): ModelEvent | null {
-    const json = extractJsonObject(line);
+    const found = extractJsonObject(line);
+    const json = found === null ? null : escapeLatex(found);
     if (json === null) return line.startsWith("```") ? null : reject(line, "Pas d'objet JSON");
 
     let obj: unknown;
     try {
       obj = JSON.parse(json);
     } catch {
-      return reject(line, "JSON invalide");
+      // {"kind":"check":{…}} : la question écrite seule, en JSON cassé (vu le 21 octobre).
+      const lone = /^\{\s*"kind"\s*:\s*"check"\s*:\s*(\{[\s\S]*\})\s*\}$/.exec(json);
+      try {
+        if (!lone) throw new Error();
+        obj = { check: JSON.parse(lone[1]!) };
+      } catch {
+        return reject(line, "JSON invalide");
+      }
     }
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return reject(line, "Objet attendu");
-    const record = obj as Record<string, unknown>;
+    let record = obj as Record<string, unknown>;
 
-    // Un modèle oublie parfois « kind » sur une étape.
+    // Un modèle oublie parfois « kind » sur une étape, ou écrit « type » à la place
+    // ({"type":"diagnosis",…}, vu le 21 octobre).
+    const EVENT_KINDS = ["lesson", "step", "end", "diagnosis"];
+    if (typeof record.kind !== "string" && typeof record.type === "string" && EVENT_KINDS.includes(record.type)) {
+      const { type, ...rest } = record;
+      record = { ...rest, kind: type };
+    }
+    // La question écrite seule sur sa ligne ({"kind":"check",prompt…} ou {"check":{…}}) : une
+    // étape qui la pose à voix haute, plutôt qu'une leçon qui finit sans question.
+    if (!("say" in record) && (record.kind === "check" || (record.kind === undefined && typeof record.check === "object"))) {
+      const { kind: _kind, check, ...fields } = record;
+      const question = (check ?? fields) as Record<string, unknown>;
+      return parseStep({ say: question.prompt, do: [], check: question }, line);
+    }
     const kind = typeof record.kind === "string" ? record.kind : "say" in record ? "step" : undefined;
 
     switch (kind) {
@@ -148,9 +178,29 @@ export function createModelOutputParser(): ModelOutputParser {
 }
 
 /**
+ * Commandes LaTeX qu'un modèle écrit souvent sans doubler la barre oblique dans le JSON :
+ * « \frac » deviendrait un saut de page suivi de « rac », « \times » une tabulation,
+ * « \sqrt » ferait rejeter toute la ligne. On les double avant de lire le JSON.
+ */
+const LATEX_COMMANDS =
+  "frac|dfrac|tfrac|sqrt|times|cdot|div|pm|text|mathrm|textbf|operatorname|left|right|leq|le|geq|ge|neq|ne|approx|" +
+  "infty|circ|degree|pi|theta|alpha|beta|gamma|delta|Delta|lambda|mu|sigma|omega|varphi|phi|sin|cos|tan|log|ln|exp|" +
+  "to|rightarrow|Rightarrow|angle|parallel|perp|triangle|sim|cong|overline|vec|hat|quad|in|cdots|ldots|dots";
+const UNDOUBLED_LATEX = new RegExp(`(?<!\\\\)\\\\(${LATEX_COMMANDS})(?![a-zA-Z])`, "g");
+
+export function escapeLatex(json: string): string {
+  return json.includes("$") ? json.replace(UNDOUBLED_LATEX, "\\$&") : json;
+}
+
+/**
  * Repère les objets JSON de premier niveau dans un flux de texte, qu'ils
  * soient sur une ligne ou étalés sur plusieurs. Le texte hors des objets
  * (clôtures de code, phrases d'introduction) est ignoré.
+ *
+ * Un objet resté ouvert (accolade oubliée, chaîne non fermée) n'avale plus la
+ * suite du tour : quand un nouvel événement commence en début de ligne
+ * ({"kind":"step"…), ou à la fin du flux (`flush`), l'objet ouvert est refermé
+ * par `closeJson` et rendu comme les autres.
  */
 export class JsonObjectScanner {
   private current = "";
@@ -162,13 +212,17 @@ export class JsonObjectScanner {
     const complete: string[] = [];
     for (const ch of chunk) {
       if (this.depth === 0) {
-        if (ch === "{") {
-          this.depth = 1;
-          this.current = "{";
-        }
+        if (ch === "{") this.open("{");
         continue;
       }
       this.current += ch;
+      if (ch === '"' && NEW_EVENT.test(this.current.slice(-48))) {
+        // Un nouvel événement commence alors que le précédent n'est pas refermé.
+        const cut = this.current.lastIndexOf("\n");
+        complete.push(closeJson(this.current.slice(0, cut)));
+        this.open(this.current.slice(cut + 1).trimStart());
+        continue;
+      }
       if (this.inString) {
         if (this.escaped) this.escaped = false;
         else if (ch === "\\") this.escaped = true;
@@ -185,14 +239,50 @@ export class JsonObjectScanner {
         }
       }
       // Garde-fou : un objet démesuré est abandonné.
-      if (this.current.length > 20_000) {
-        this.current = "";
-        this.depth = 0;
-        this.inString = false;
-      }
+      if (this.current.length > 20_000) this.open("", 0);
     }
     return complete;
   }
+
+  /** Fin du flux : l'objet encore ouvert (réponse coupée), refermé. */
+  flush(): string[] {
+    const rest = this.depth > 0 ? [closeJson(this.current)] : [];
+    this.open("", 0);
+    return rest;
+  }
+
+  /** Repart sur un objet qui commence par `text` (hors chaîne, une accolade ouverte). */
+  private open(text: string, depth = 1): void {
+    this.current = text;
+    this.depth = depth;
+    this.inString = false;
+    this.escaped = false;
+  }
+}
+
+/** Début d'un événement en début de ligne : {"kind":"step", "end", "lesson", "diagnosis" ou "check". */
+const NEW_EVENT = /\n[ \t]*\{\s*"kind"\s*:\s*"(?:step|end|lesson|diagnosis|check)"$/;
+
+/**
+ * Referme un objet JSON coupé : la chaîne ouverte, puis les crochets et accolades
+ * dans l'ordre inverse. Une virgule ou une clé laissée en suspens est retirée.
+ */
+export function closeJson(text: string): string {
+  const open: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+    } else if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") open.push(ch);
+    else if (ch === "}" || ch === "]") open.pop();
+  }
+  let out = text.trimEnd() + (inString ? '"' : "");
+  out = out.replace(/,\s*$/, "").replace(/,\s*"[^"]*"\s*:\s*$/, "");
+  return out + open.reverse().map((c) => (c === "{" ? "}" : "]")).join("");
 }
 
 /** Retire les clôtures de code et le texte autour du premier objet JSON de la ligne. */

@@ -3,7 +3,7 @@
  */
 import { z } from "zod";
 import { reflowCalc } from "@/domain/board/layout";
-import { anchoredTo, isVisible, resolveTargets, updateNodes, visibleNodes } from "@/domain/board/state";
+import { anchoredTo, DEFAULT_FRAME, isVisible, resolveTargets, updateNodes, visibleNodes } from "@/domain/board/state";
 import { Id } from "../primitives";
 import { defineCommand } from "./define";
 
@@ -47,7 +47,8 @@ export const clearCommand = defineCommand({
   apply(state, action, reveal) {
     const ids = visibleNodes(state).map((node) => node.id);
     const next = updateNodes(state, ids, (node) => ({ ...node, erased: reveal }));
-    const cleared = { ...next, calc: [], groups: {}, highlights: {}, tag: null };
+    // Sans repère, le cadre agrandi pour la figure d'avant (fitFrame) reprend sa taille.
+    const cleared = { ...next, calc: [], groups: {}, highlights: {}, tag: null, ...(state.axes ? {} : { frame: DEFAULT_FRAME }) };
     return action.axes && state.axes ? { ...cleared, axes: null, axesCleared: reveal } : cleared;
   },
 });

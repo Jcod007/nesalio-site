@@ -30,6 +30,7 @@ import {
   GrowFromCenter,
   Indicate,
   Line,
+  MathTex,
   Polygon,
   ReplacementTransform,
   Scene,
@@ -43,8 +44,9 @@ import {
 } from "manim-web";
 import { sampleCurve } from "@/domain/board/geometry";
 import { arcPoints } from "@/domain/board/shapes";
-import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, TICK_FONT, tickLabels } from "@/domain/board/layout";
-import { applyMat, DEFAULT_FRAME, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
+import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, textWorldExtent, TICK_FONT, tickLabels } from "@/domain/board/layout";
+import { hasMath, plainText, toLatex } from "@/domain/board/tex";
+import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
 import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
@@ -136,6 +138,8 @@ export class ManimRenderer {
     observer.observe(container);
     this.detach.push(() => observer.disconnect());
     this.applyView(fitView(this.homeBox(), this.viewport), false);
+    // MathJax se charge à la première formule (gros module) : on le prépare pendant que l'élève lit.
+    setTimeout(() => void new MathTex({ latex: "x" }).waitForRender().catch(() => undefined), 1500);
   }
 
   /* --------------------------------- état --------------------------------- */
@@ -176,6 +180,20 @@ export class ManimRenderer {
       batch.push({ animation: new Create(this.axes, { duration: duration / 1000 }), ...at(start, duration) });
       for (const label of labels) {
         batch.push({ animation: new FadeIn(label, { duration: (duration * 0.5) / 1000 }), ...at(start + duration * 0.5, duration * 0.5) });
+      }
+    }
+
+    // Sans repère, le cadre s'agrandit quand une figure en déborde (moteur : fitFrame) : le texte garde
+    // sa taille à l'écran au lieu de rapetisser avec la caméra. Ce qui est déjà dessiné est redessiné
+    // dans le nouveau cadre, et la vue compensée pour que l'image ne saute pas ; la caméra recadre ensuite.
+    if (!board.axes && JSON.stringify(this.frame) !== JSON.stringify(board.frame)) {
+      const before = this.frame;
+      this.frame = board.frame;
+      this.axes = this.coordinatesFor(board.frame);
+      // Ce qui s'efface (un "clear" remet le cadre à sa taille) finit de disparaître où il est.
+      if (board.order.some((id) => this.items.has(id) && isVisible(board.nodes[id]))) {
+        this.reproject(board);
+        this.keepPicture(before, board.frame);
       }
     }
 
@@ -226,7 +244,7 @@ export class ManimRenderer {
   private reproject(board: BoardState) {
     for (const [id, rendered] of this.items) {
       const node = board.nodes[id];
-      if (rendered.erased || !node) continue;
+      if (rendered.erased || !node || node.erased) continue;
       this.scene.remove(...rendered.mobjects);
       const built = this.build(node, node.offset);
       for (const mobject of built.mobjects) mobject.opacity = rendered.opacity;
@@ -460,6 +478,7 @@ export class ManimRenderer {
   }
 
   private label(text: string, at: Vec3, color: string, size: number = FONT_SIZE.label, font: "hand" | "body" = "hand"): Mobject {
+    if (hasMath(text)) return this.math(text, at, color, size);
     const mobject = new Text({
       text,
       fontSize: size,
@@ -468,6 +487,36 @@ export class ManimRenderer {
       color,
     });
     mobject.moveTo(at);
+    return mobject;
+  }
+
+  /**
+   * Texte avec formules (entre dollars) : rendu par MathJax, puis ajusté à la boîte que le moteur
+   * lui a réservée (textWorldExtent) pour ne pas déborder sur ses voisins. Le rendu est asynchrone ;
+   * l'ajustement garde le centre où il est (un déplacement déjà appliqué est conservé). Si la
+   * formule ne se compile pas, elle s'écrit en texte simple.
+   */
+  private math(text: string, at: Vec3, color: string, size: number): Mobject {
+    const box = textWorldExtent(text, size);
+    const mobject = new MathTex({ latex: toLatex(text), color, fontSize: size, position: at });
+    const generation = this.generation;
+    void mobject.waitForRender().then(() => {
+      if (generation !== this.generation) return;
+      const center = mobject.getCenter();
+      if (mobject.getRenderError()) {
+        const fallback = new Text({ text: plainText(text), fontSize: size, fontFamily: HAND_FONT, fontWeight: 600, color });
+        fallback.moveTo(center);
+        mobject.add(fallback);
+      } else {
+        const w = mobject.getWidth();
+        const h = mobject.getHeight();
+        if (w > 0 && h > 0) {
+          mobject.scale(Math.min(box.w / w, box.h / h));
+          mobject.moveTo(center);
+        }
+      }
+      this.scene.render();
+    });
     return mobject;
   }
 
@@ -626,9 +675,12 @@ export class ManimRenderer {
       }
       case "text": {
         if (node.rows) return this.buildMatrix({ ...node, rows: node.rows }, color);
-        const text = this.label(node.text, this.p(node.at[0], node.at[1]), color, fontSizeOf(node));
-        // Ligne de calcul : alignée à gauche sur sa colonne.
-        if (node.align === "left") text.shift([textHalfWidth(text), 0, 0]);
+        const at = this.p(node.at[0], node.at[1]);
+        const math = hasMath(node.text);
+        // Ligne de calcul : alignée à gauche sur sa colonne (une formule, d'après sa boîte : elle se rend plus tard).
+        const half = math && node.align === "left" ? textWorldExtent(node.text, fontSizeOf(node)).w / 2 : 0;
+        const text = this.label(node.text, [at[0] + half, at[1], at[2]], color, fontSizeOf(node));
+        if (node.align === "left" && !math) text.shift([textHalfWidth(text), 0, 0]);
         return {
           mobjects: [text],
           animations: [{ delay: 0, share: 1, make: (s) => new FadeIn(text, { duration: s, shift: [0, -0.12, 0] }) }],
@@ -714,6 +766,24 @@ export class ManimRenderer {
       width: Math.abs(x1 - x0) + margin * 2,
       height: Math.abs(y1 - y0) + margin * 2,
     };
+  }
+
+  /** Vue qui montre la même image après un changement de cadre (même échelle en x et en y). */
+  private keepPicture(before: Frame, after: Frame) {
+    if (this.cameraTimer) clearTimeout(this.cameraTimer);
+    cancelAnimationFrame(this.cameraTween);
+    const u0 = scales(before).x;
+    const u1 = scales(after).x;
+    const k = u1 / u0;
+    const mid = (f: Frame, axis: "x" | "y") => (f[axis][0] + f[axis][1]) / 2;
+    this.applyView(
+      {
+        s: this.view.s / k,
+        cx: (mid(before, "x") - mid(after, "x")) * u1 + k * this.view.cx,
+        cy: (mid(before, "y") - mid(after, "y")) * u1 + k * this.view.cy,
+      },
+      this.userMoved,
+    );
   }
 
   private applyView(view: View, userMoved: boolean) {
