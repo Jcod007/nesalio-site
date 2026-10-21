@@ -6,9 +6,10 @@ import { algebre } from "./algebre";
 import { fonctions } from "./fonctions";
 import { geometrie } from "./geometrie";
 import { physique } from "./physique";
+import { polynomes } from "./polynomes";
 import type { DomainGuide } from "./types";
 
-export const DOMAIN_GUIDES: readonly DomainGuide[] = [fonctions, algebre, geometrie, physique];
+export const DOMAIN_GUIDES: readonly DomainGuide[] = [fonctions, algebre, polynomes, geometrie, physique];
 
 /** La section « PAR DOMAINE » de la consigne (vide tant qu'aucun domaine n'a de règle). */
 export function domainSection(guides: readonly DomainGuide[] = DOMAIN_GUIDES): string {
