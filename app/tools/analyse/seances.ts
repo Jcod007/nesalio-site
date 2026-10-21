@@ -122,7 +122,9 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
       for (const o of overlaps(board)) {
         const pair = o.kind === "graduations" ? `graduations ${o.a}` : `${o.a} × ${o.b}`;
         const into = o.kind !== "graduations" && (intended(o.a) || intended(o.b)) ? s.wanted : s.overlaps;
-        if (!into.has(pair) && !s.overlaps.has(pair)) into.set(pair, { ratio: o.ratio, kind: o.kind, say: step.say.slice(0, 90) });
+        // Une superposition voulue le reste tant qu'elle dure (les phrases suivantes ne la recomptent pas).
+        if (s.wanted.has(pair) || s.overlaps.has(pair)) continue;
+        into.set(pair, { ratio: o.ratio, kind: o.kind, say: step.say.slice(0, 90) });
       }
     }
     boards.set(key, board);
