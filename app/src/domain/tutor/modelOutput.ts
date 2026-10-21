@@ -110,7 +110,14 @@ export function createModelOutputParser(): ModelOutputParser {
     try {
       obj = JSON.parse(json);
     } catch {
-      return reject(line, "JSON invalide");
+      // {"kind":"check":{…}} : la question écrite seule, en JSON cassé (vu le 21 octobre).
+      const lone = /^\{\s*"kind"\s*:\s*"check"\s*:\s*(\{[\s\S]*\})\s*\}$/.exec(json);
+      try {
+        if (!lone) throw new Error();
+        obj = { check: JSON.parse(lone[1]!) };
+      } catch {
+        return reject(line, "JSON invalide");
+      }
     }
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return reject(line, "Objet attendu");
     let record = obj as Record<string, unknown>;
@@ -121,6 +128,13 @@ export function createModelOutputParser(): ModelOutputParser {
     if (typeof record.kind !== "string" && typeof record.type === "string" && EVENT_KINDS.includes(record.type)) {
       const { type, ...rest } = record;
       record = { ...rest, kind: type };
+    }
+    // La question écrite seule sur sa ligne ({"kind":"check",prompt…} ou {"check":{…}}) : une
+    // étape qui la pose à voix haute, plutôt qu'une leçon qui finit sans question.
+    if (!("say" in record) && (record.kind === "check" || (record.kind === undefined && typeof record.check === "object"))) {
+      const { kind: _kind, check, ...fields } = record;
+      const question = (check ?? fields) as Record<string, unknown>;
+      return parseStep({ say: question.prompt, do: [], check: question }, line);
     }
     const kind = typeof record.kind === "string" ? record.kind : "say" in record ? "step" : undefined;
 

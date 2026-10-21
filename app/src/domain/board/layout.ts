@@ -12,7 +12,7 @@
  */
 import { formatNumber, niceStep, sampleCurve } from "./geometry";
 import { hasMath, mathSize as texSize } from "./tex";
-import { arcPoints } from "./shapes";
+import { arcPoints, insidePolygon } from "./shapes";
 import {
   anchoredTo,
   isVisible,
@@ -460,17 +460,6 @@ export function footprints(state: BoardState, skip: (owner: string, part: Part) 
     for (const tick of tickLabels(state.axes.frame)) box(AXES_OWNER, "label", boxAround(tick.at, tick.size), tick.text);
   }
   return out;
-}
-
-/** Le point est-il à l'intérieur du polygone (règle pair-impair) ? */
-export function insidePolygon([x, y]: Vec2, polygon: readonly Vec2[]): boolean {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [xi, yi] = polygon[i]!;
-    const [xj, yj] = polygon[j]!;
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
 }
 
 /** Part d'une boîte recouverte par un polygone (grille de 5 × 3 points). */

@@ -38,6 +38,47 @@ export function intersectLines(p1: Vec2, p2: Vec2, q1: Vec2, q2: Vec2): Vec2 | n
   return add(p1, scale(r, t));
 }
 
+/** Le point est-il à l'intérieur du polygone (règle pair-impair) ? */
+export function insidePolygon([x, y]: Vec2, polygon: readonly Vec2[]): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i]!;
+    const [xj, yj] = polygon[j]!;
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/**
+ * La corde de la droite passant par `p` (direction `u`) dans le polygone : le morceau de droite
+ * intérieur qui contient `p` (ou qui part de `p` s'il est sur un côté). null si la droite ne
+ * traverse pas le polygone. Sert à arrêter une parallèle aux côtés d'un triangle (Thalès).
+ */
+export function chordThrough(p: Vec2, u: Vec2, polygon: readonly Vec2[]): [Vec2, Vec2] | null {
+  const ts: number[] = [];
+  for (let i = 0; i < polygon.length; i++) {
+    const a = polygon[i]!;
+    const b = polygon[(i + 1) % polygon.length]!;
+    const e = sub(b, a);
+    const cross = u[0] * e[1] - u[1] * e[0];
+    if (Math.abs(cross) < 1e-12) continue;
+    const w = sub(a, p);
+    const t = (w[0] * e[1] - w[1] * e[0]) / cross;
+    const s = (w[0] * u[1] - w[1] * u[0]) / cross;
+    if (s >= -1e-9 && s <= 1 + 1e-9) ts.push(t);
+  }
+  const cuts = [...new Set(ts.map((t) => Math.round(t * 1e9) / 1e9))].sort((a, b) => a - b);
+  const at = (t: number) => add(p, scale(u, t));
+  // Les morceaux intérieurs qui touchent p ; s'il y en a deux (p sur un côté), le plus long.
+  let best: [number, number] | null = null;
+  for (let i = 0; i + 1 < cuts.length; i++) {
+    const [t0, t1] = [cuts[i]!, cuts[i + 1]!];
+    if (t0 > 1e-9 || t1 < -1e-9 || !insidePolygon(at((t0 + t1) / 2), polygon)) continue;
+    if (!best || t1 - t0 > best[1] - best[0]) best = [t0, t1];
+  }
+  return best ? [at(best[0]), at(best[1])] : null;
+}
+
 /** Symétrique de `p` par rapport à la droite (a, b). */
 export function reflectAcross(p: Vec2, a: Vec2, b: Vec2): Vec2 {
   return sub(scale(footOnLine(p, a, b), 2), p);

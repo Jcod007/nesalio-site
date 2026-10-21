@@ -18,6 +18,7 @@
  * Vu le 19 octobre : un exemple dessiné par-dessus le carré de l'hypoténuse.
  */
 import { AXES_OWNER, footprints, intersects, namingRegions, regionCover, tickLabels, type Box } from "./layout";
+import { insidePolygon } from "./shapes";
 import { visibleNodes, type BoardNode, type BoardState, type Vec2 } from "./state";
 
 export type CollisionKind = "texte" | "point" | "trait" | "surface" | "graduations" | "dessins";
@@ -104,16 +105,6 @@ export function outline(node: BoardNode): Vec2[] | null {
   return null;
 }
 
-function inside([x, y]: Vec2, poly: Vec2[]): boolean {
-  let hit = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i]!;
-    const [xj, yj] = poly[j]!;
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit;
-  }
-  return hit;
-}
-
 export const bounds = (poly: Vec2[]): Box => ({
   x0: Math.min(...poly.map((p) => p[0])),
   y0: Math.min(...poly.map((p) => p[1])),
@@ -130,9 +121,9 @@ export function covered(small: Vec2[], big: Vec2[]): number {
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       const p: Vec2 = [b.x0 + ((i + 0.5) * (b.x1 - b.x0)) / n, b.y0 + ((j + 0.5) * (b.y1 - b.y0)) / n];
-      if (!inside(p, small)) continue;
+      if (!insidePolygon(p, small)) continue;
       inSmall++;
-      if (inside(p, big)) inBoth++;
+      if (insidePolygon(p, big)) inBoth++;
     }
   }
   return inSmall === 0 ? 0 : inBoth / inSmall;

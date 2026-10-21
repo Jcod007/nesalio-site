@@ -9,7 +9,17 @@ import { add } from "@/domain/board/shapes";
 import { isVisible, type BoardState, type Vec2 } from "@/domain/board/state";
 import { Coord, Id } from "../primitives";
 
-export const PointRef = z.union([Coord, Id]);
+/**
+ * Le nom d'un point : un identifiant, avec un ou deux primes pour une image (A', A'').
+ * Le prime typographique (A′) est ramené à l'apostrophe que le moteur donne aux images.
+ */
+const PointName = z
+  .string()
+  .trim()
+  .transform((name) => name.replace(/[′’]/g, "'"))
+  .pipe(z.string().regex(/^[a-zA-Z][\w-]{0,31}'{0,2}$/, "Point : un nom (A, M, A') ou des coordonnées"));
+
+export const PointRef = z.union([Coord, PointName]);
 export type PointRef = z.infer<typeof PointRef>;
 
 export function resolvePoint(state: BoardState, ref: PointRef): Vec2 | null {
@@ -29,7 +39,11 @@ export function resolvePoint(state: BoardState, ref: PointRef): Vec2 | null {
 }
 
 /** Une droite : un segment du tableau (ou une construction qui en contient un), ou deux points. */
-export const LineRef = z.union([Id, z.tuple([PointRef, PointRef])]);
+export const LineRef = z.preprocess(
+  // ["d"] : un id de droite mis dans une liste (vu le 21 octobre, axe de réflexion).
+  (ref) => (Array.isArray(ref) && ref.length === 1 && typeof ref[0] === "string" ? ref[0] : ref),
+  z.union([Id, z.tuple([PointRef, PointRef])]),
+);
 export type LineRef = z.infer<typeof LineRef>;
 
 export function resolveLine(state: BoardState, ref: LineRef): [Vec2, Vec2] | null {

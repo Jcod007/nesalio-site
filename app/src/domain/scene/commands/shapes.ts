@@ -111,28 +111,34 @@ export const sectorCommand = defineCommand({
   schema: z.object({
     type: z.literal("sector"),
     id: ShapeId,
-    center: Coord,
+    center: PointRef.optional(),
     radius: finite.positive().max(10_000),
     from: finite.min(-720).max(720),
     to: finite.min(-720).max(720),
     label: z.string().max(24).optional(),
     arcLabel: z.string().max(24).optional(),
+    /** Le cercle entier découpé en parts égales à celle-ci (60° → 6 parts), en couleurs alternées. */
+    parts: z.number().int().min(2).max(12).optional(),
     color: ColorName.optional(),
   }),
   doc:
     '{"type":"sector","id":"s","center":[0,0],"radius":5,"from":0,"to":60,"label":"60°","arcLabel":"arc ≈ 5,2"} : secteur\n' +
     '  de disque (une part de pizza) entre deux angles en degrés, avec ses deux rayons et son arc. Parties : s-surface\n' +
     '  (la part, remplie), s-arc (l\'arc seul, pour sa longueur), s-r1, s-r2 (les rayons). Un "rotate" sur "s" la fait\n' +
-    '  tourner autour du centre ("about" = le centre) ; pour une fraction du cercle, dessine les parts une à une.',
+    '  tourner autour du centre ("about" = le centre). "parts":6 découpe tout le cercle en 6 parts égales à celle-ci,\n' +
+    '  en couleurs alternées (60° = 1/6 du tour) ; seule la première porte les étiquettes. Parties : s-part-2… s-part-6.',
   duration: 1400,
   aliases: ["wedge", "part"],
   apply(state, action, reveal) {
-    const { center, radius, id } = action;
+    const { radius, id } = action;
+    const center = action.center === undefined ? ([0, 0] as Vec2) : resolvePoint(state, action.center);
+    if (!center) return state;
     const color = action.color ?? "orange";
     const [start, end] = action.from <= action.to ? [action.from, action.to] : [action.to, action.from];
     const samples = Math.max(8, Math.ceil((end - start) / 6));
     const arc = arcPoints(center, radius, start, end, samples);
-    state = fitFrame(state, pointsBox([center, ...arc]));
+    const disc: Vec2[] = action.parts ? [[center[0] - radius, center[1] - radius], [center[0] + radius, center[1] + radius]] : [];
+    state = fitFrame(state, pointsBox([center, ...arc, ...disc]));
     const unit = worldPerMath(state.frame);
     const middle = rad((start + end) / 2);
     const dir: Vec2 = [Math.cos(middle), Math.sin(middle)];
@@ -152,7 +158,15 @@ export const sectorCommand = defineCommand({
       { ...base(`${id}-arc`, reveal, color), type: "polygon", points: arc, closed: false },
     ];
     if (action.arcLabel) parts.push(label(`${id}-arc-l`, action.arcLabel, add(center, scale(dir, radius + 0.45 / unit)), `${id}-arc`, reveal, color));
-    return drawFigure(state, id, parts, reveal, {}, { [`${id}-centre`]: center });
+    // Les autres parts du tour, sans étiquette, une couleur sur deux.
+    const span = end - start;
+    const others: BoardNode[] = [];
+    for (let k = 1; action.parts && k < action.parts && span > 0; k++) {
+      const ring = arcPoints(center, radius, start + k * span, end + k * span, samples);
+      others.push({ ...base(`${id}-part-${k + 1}`, reveal, k % 2 === 0 ? color : "blue"), type: "polygon", points: [center, ...ring], closed: true, fill: true });
+    }
+    const next = drawFigure(state, id, parts, reveal, {}, { [`${id}-centre`]: center });
+    return others.length ? drawFigure(next, `${id}-parts`, others, { start: reveal.start + reveal.duration * 0.5, duration: reveal.duration * 0.5 }) : next;
   },
 });
 

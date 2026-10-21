@@ -281,6 +281,14 @@ describe("tableau sans repère (séances du 19 octobre)", () => {
     board = applyAction(board, { type: "rotate", target: "s", about: [0, 0], angle: 60 }, t);
     expect(board.nodes["s-surface"]!.spins?.length).toBe(1);
 
+    // 60° = 1/6 du tour : le moteur découpe le cercle en 6 parts (au lieu de 6 copies tournées, chacune étiquetée).
+    board = applyAction(emptyBoard(), { type: "sector", id: "s", radius: 5, from: 0, to: 60, label: "60°", parts: 6 }, t);
+    expect(resolveTargets(board, "s-parts")).toEqual(["s-part-2", "s-part-3", "s-part-4", "s-part-5", "s-part-6"]);
+    const last = board.nodes["s-part-6"] as PolygonNode;
+    expect(Math.atan2(last.points.at(-1)![1], last.points.at(-1)![0])).toBeCloseTo(0, 6);
+    expect(last.label).toBeUndefined();
+    expect(board.frame.y[1]).toBeGreaterThanOrEqual(5);
+
     board = applyAction(emptyBoard(), { type: "cylinder", id: "cyl", radius: 2, height: 3, slices: 4, labels: { radius: "r", height: "h" } }, t);
     expect(resolveTargets(board, "cyl-tranches")).toEqual(["cyl-tranche-1", "cyl-tranche-2", "cyl-tranche-3"]);
     const left = board.nodes["cyl-gauche"] as SegmentNode;

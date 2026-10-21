@@ -127,4 +127,14 @@ describe("formules et étiquettes d'événement (séances du 21 octobre)", () =>
     const event = parser.parseLine('{"type":"diagnosis","gaps":[{"notion":"fraction d\'un tour","status":"suspected"}]}');
     expect(event?.kind).toBe("diagnosis");
   });
+
+  // Vu le 21 octobre (homothétie, médiatrice) : la question arrive seule sur sa ligne, parfois
+  // en JSON cassé ; refusée, elle laissait la leçon finir sans question.
+  it("fait de la question écrite seule sur sa ligne une étape qui la pose", () => {
+    const check = '{"prompt":"Que devient AB ?","choices":["Il double","Il reste pareil"],"answer":0}';
+    for (const line of [`{"kind":"check":${check}}`, `{"kind":"check",${check.slice(1)}`, `{"check":${check}}`]) {
+      const event = createModelOutputParser().parseLine(line);
+      expect(event, line).toMatchObject({ kind: "step", say: "Que devient AB ?", do: [], check: { choices: ["Il double", "Il reste pareil"], answer: 0 } });
+    }
+  });
 });

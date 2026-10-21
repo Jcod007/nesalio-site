@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { emptyBoard, resolveTargets, type BoardState, type PointNode, type SegmentNode } from "@/domain/board/state";
 import { applyAction } from "./index";
+import { Action } from "../schema";
 
 const t = { start: 0, duration: 1000 };
 const at = (board: BoardState, id: string) => {
@@ -68,5 +69,37 @@ describe("objets visés par des points nommés", () => {
     close((board.nodes["c"] as { center: number[] }).center, [2.56, 1.92]);
     board = applyAction(board, { type: "rotate", target: "petit", about: "A", angle: 90 }, t);
     expect(board.nodes["petit"]!.spins?.[0]?.about).toEqual([0, 0]);
+  });
+});
+
+// Séances du 21 octobre : ce que le modèle écrit passe par le validateur, comme au tableau.
+describe("constructions telles que le modèle les écrit", () => {
+  const play = (board: BoardState, raw: unknown) => {
+    const parsed = Action.safeParse(raw);
+    expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    return applyAction(board, parsed.data!, t);
+  };
+
+  it("Thalès : la parallèle s'arrête aux côtés du triangle, et le moteur place E", () => {
+    let board = triangle(); // A(0,0) B(6,0) C(2,4)
+    board = play(board, { type: "construct", id: "D", kind: "divide", of: ["C", "A"], ratio: "1:2" });
+    close(at(board, "D"), [4 / 3, 8 / 3]);
+    board = play(board, { type: "construct", id: "de", kind: "parallel", through: "D", of: ["A", "B"], within: "tri", meets: "E" });
+    const de = board.nodes["de"] as SegmentNode;
+    close([...de.from, ...de.to].map((v) => Math.round(v * 1e6) / 1e6).sort(), [4 / 3, 8 / 3, 10 / 3, 8 / 3].map((v) => Math.round(v * 1e6) / 1e6).sort());
+    close(at(board, "de-E"), [10 / 3, 8 / 3]);
+    // E se vise ensuite par son nom.
+    board = play(board, { type: "segment", id: "eb", from: "E", to: "B" });
+    close((board.nodes["eb"] as SegmentNode).from, [10 / 3, 8 / 3]);
+  });
+
+  it("vise les sommets d'une image (A', A′) et accepte un axe écrit dans une liste", () => {
+    let board = triangle();
+    board = play(board, { type: "segment", id: "D", from: [-1, -1], to: [-1, 5] });
+    board = play(board, { type: "image", id: "img", target: "tri", kind: "reflection", axis: ["D"] });
+    board = play(board, { type: "construct", id: "M", kind: "midpoint", of: ["A", "A'"], marks: true });
+    close(at(board, "M"), [-1, 0]);
+    board = play(board, { type: "segment", id: "s", from: "B", to: "B′" });
+    close((board.nodes["s"] as SegmentNode).to, [-8, 0]);
   });
 });
