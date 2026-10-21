@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { emptyBoard, resolveTargets, type SegmentNode, type TextNode } from "@/domain/board/state";
+import { emptyBoard, resolveTargets, type PointNode, type SegmentNode, type TextNode } from "@/domain/board/state";
 import { applyAction } from "./index";
 import { Action } from "../schema";
-import { collisions } from "@/domain/board/collisions";
+import { collisions, covered, figureOutline } from "@/domain/board/collisions";
 
 const t = { start: 0, duration: 1000 };
 const close = (a: number[], b: number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i]!, 6));
@@ -75,7 +75,10 @@ describe("le moteur place l'image à côté de l'original", () => {
   });
 
   it("le détecteur voit bien une image posée sur la figure (contrôle du test)", () => {
-    const board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[2, -1], [2, 3]] });
+    // Avec un repère, l'axe x = 2 fait partie du problème : le moteur le garde, même à travers la figure.
+    const withAxes = applyAction(emptyBoard(), { type: "axes", x: [-6, 6], y: [-4, 4] }, t);
+    let board = applyAction(withAxes, { type: "triangle", id: "tri", points: [[1, 0], [3, 0], [1, 2]], names: ["A", "B", "C"] }, t);
+    board = play(board, { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[2, -1], [2, 3]] });
     expect(clashes(board).map((c) => c.kind)).toContain("dessins");
   });
 
@@ -86,5 +89,109 @@ describe("le moteur place l'image à côté de l'original", () => {
     board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[1, -1], [1, 3]] });
     close(ends(board.nodes["img-tri-ab"] as SegmentNode), [1, 0, -1, 0]);
     expect(board.nodes["img-axe"]).toBeUndefined();
+  });
+});
+
+// Séances du 21 octobre (après la PR #11) : 9 homothéties sur 10 avec un point O posé à la main,
+// souvent dans le triangle. Sans repère, cette position est libre : le moteur la déplace si l'image
+// tombe sur une figure, et garde les relations (sommet, construction) et tout ce qui est dans un repère.
+describe("positions libres : le moteur déplace ce qui gêne, garde les relations", () => {
+  const play = (board: ReturnType<typeof triangle>, raw: unknown) => {
+    const parsed = Action.safeParse(raw);
+    expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    return applyAction(board, parsed.data!, t);
+  };
+  const clashes = (board: ReturnType<typeof triangle>) =>
+    collisions(board).filter((c) => c.kind === "dessins" && [c.a, c.b].some((id) => id.startsWith("img")));
+  const pointAt = (board: ReturnType<typeof triangle>, id: string) => {
+    const node = board.nodes[id] as PointNode;
+    return [node.at[0] + node.offset[0], node.at[1] + node.offset[1]];
+  };
+  const withO = (at: [number, number]) => play(triangle(), { type: "point", id: "O", at, label: "O" });
+
+  it("homothétie de centre O posé dans le triangle : O glisse à côté, l'image ne recouvre plus la figure", () => {
+    const board = play(withO([1.5, 0.5]), { type: "image", id: "img", target: "tri", kind: "homothety", center: "O", ratio: 2 });
+    expect(covered(figureOutline(board, "tri")!, figureOutline(board, "img")!)).toBeLessThan(0.05);
+    const o = pointAt(board, "O");
+    expect(o[0]).toBeLessThan(1);
+    // Le rayon issu du centre part bien du nouveau O.
+    close((board.nodes["img-trace-1"] as SegmentNode).from, o);
+    expect((board.nodes["O"] as PointNode).motions?.length).toBe(1);
+  });
+
+  it("centre donné en coordonnées : le point O dessiné à cette place suit", () => {
+    const board = play(withO([2, 0.5]), { type: "image", id: "img", target: "tri", kind: "homothety", center: [2, 0.5], ratio: 2 });
+    expect(clashes(board)).toEqual([]);
+    expect(pointAt(board, "O")).not.toEqual([2, 0.5]);
+  });
+
+  it("un trait tiré depuis O avant l'image suit son bout", () => {
+    let board = withO([1.5, 0.5]);
+    board = play(board, { type: "segment", id: "ray", from: "O", to: [6, 0.5] });
+    board = play(board, { type: "image", id: "img", target: "tri", kind: "homothety", center: "O", ratio: 2 });
+    close((board.nodes["ray"] as SegmentNode).from, pointAt(board, "O"));
+    close((board.nodes["ray"] as SegmentNode).to, [6, 0.5]);
+  });
+
+  it("O posé loin de la figure, l'image ne gêne pas : rien ne bouge", () => {
+    const board = play(withO([-4, 1]), { type: "image", id: "img", target: "tri", kind: "homothety", center: "O", ratio: 2 });
+    expect(pointAt(board, "O")).toEqual([-4, 1]);
+    expect((board.nodes["O"] as PointNode).motions).toBeUndefined();
+  });
+
+  it("une relation est gardée : homothétie centrée sur le sommet C", () => {
+    const board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "homothety", center: "C", ratio: 2 });
+    close((board.nodes["img-trace-1"] as SegmentNode).from, [1, 2]);
+  });
+
+  it("un point posé exactement sur un sommet est une relation : gardé", () => {
+    const board = play(withO([1, 2]), { type: "image", id: "img", target: "tri", kind: "homothety", center: "O", ratio: 2 });
+    expect(pointAt(board, "O")).toEqual([1, 2]);
+  });
+
+  it("avec un repère, O(1,5 ; 0,5) fait partie du problème : gardé", () => {
+    let board = applyAction(emptyBoard(), { type: "axes", x: [-6, 6], y: [-4, 4] }, t);
+    board = applyAction(board, { type: "triangle", id: "tri", points: [[1, 0], [3, 0], [1, 2]], names: ["A", "B", "C"] }, t);
+    board = play(board, { type: "point", id: "O", at: [1.5, 0.5], label: "O" });
+    board = play(board, { type: "image", id: "img", target: "tri", kind: "homothety", center: "O", ratio: 2 });
+    expect(pointAt(board, "O")).toEqual([1.5, 0.5]);
+  });
+
+  it("réflexion par un axe tracé seul à travers la figure : l'axe glisse parallèlement, à côté", () => {
+    let board = play(triangle(), { type: "segment", id: "axe", from: [1.5, -1], to: [2.5, 3] });
+    board = play(board, { type: "image", id: "img", target: "tri", kind: "reflection", axis: "axe" });
+    expect(clashes(board)).toEqual([]);
+    const s = board.nodes["axe"] as SegmentNode;
+    // Même direction, déplacé en bloc.
+    close([s.to[0] - s.from[0], s.to[1] - s.from[1]], [1, 4]);
+    expect(Math.hypot(...s.offset)).toBeGreaterThan(0);
+  });
+
+  it("axe de symétrie de la figure (l'image est la figure elle-même) : gardé", () => {
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [2, 0], [1, 2]], names: ["A", "B", "C"] }, t);
+    board = play(board, { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[1, -1], [1, 3]] });
+    close(ends(board.nodes["img-tri-ab"] as SegmentNode), [2, 0, 0, 0]);
+  });
+
+  it("rotation autour d'un O posé dans la figure : O glisse, l'image est à côté", () => {
+    const board = play(withO([1.5, 0.5]), { type: "image", id: "img", target: "tri", kind: "rotation", center: "O", angle: 90 });
+    expect(clashes(board)).toEqual([]);
+    expect(pointAt(board, "O")).not.toEqual([1.5, 0.5]);
+  });
+
+  it.each([2, 3, 0.5, -1])("homothétie de rapport %s, O au hasard dans la figure : jamais d'image sur l'original", (k) => {
+    let seed = 7;
+    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 25; i++) {
+      // Un point au hasard dans le triangle (1,0) (3,0) (1,2).
+      let [u, v] = [rand(), rand()];
+      if (u + v > 1) [u, v] = [1 - u, 1 - v];
+      const at: [number, number] = [1 + 2 * u, 2 * v];
+      const board = play(withO(at), { type: "image", id: "img", target: "tri", kind: "homothety", center: "O", ratio: k });
+      // Le détecteur tolère une figure entièrement dans une autre ; ici, on mesure le recouvrement lui-même.
+      const tri = figureOutline(board, "tri")!;
+      const img = figureOutline(board, "img")!;
+      expect(Math.max(covered(tri, img), covered(img, tri)), JSON.stringify({ k, at })).toBeLessThan(0.05);
+    }
   });
 });
