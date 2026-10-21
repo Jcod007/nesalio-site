@@ -103,42 +103,48 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
 
   let received = 0;
   let head = "";
+  /** Les événements tirés d'objets JSON complets ; met `ended` à vrai quand le tour est fini. */
+  function* handle(objects: string[]): Generator<StreamEvent> {
+    for (const objectText of objects) {
+      const event = parser.parseLine(objectText);
+      if (!event || ended) continue;
+      if (event.kind === "lesson") {
+        if (headerSent || !wantsHeader) continue;
+        headerSent = true;
+        yield event;
+      } else if (event.kind === "step") {
+        if (steps >= MAX_STEPS) continue;
+        if (!headerSent && wantsHeader) {
+          headerSent = true;
+          yield { kind: "lesson", title: request.question.slice(0, 80) };
+        }
+        steps++;
+        yield event;
+        if (event.check) {
+          // Question posée : le tour est fini, Nesa attend la réponse (avec ce qui a été refusé dans le tour).
+          ended = true;
+          const rejected = parser.issues.slice(0, 6).map((issue) => `${issue.reason} : ${issue.line}`.slice(0, 200));
+          yield rejected.length > 0 ? { kind: "await", rejected } : { kind: "await" };
+        }
+      } else if (event.kind === "diagnosis") {
+        // Fiche de diagnostic : transmise (gardée par le navigateur et l'enregistrement), sans finir le tour.
+        yield event;
+      } else {
+        ended = true;
+        yield event;
+      }
+      if (ended) break;
+    }
+  }
   try {
     for await (const chunk of text) {
       received += chunk.length;
       if (head.length < 300) head += chunk.slice(0, 300 - head.length);
-      for (const objectText of scanner.push(chunk)) {
-        const event = parser.parseLine(objectText);
-        if (!event || ended) continue;
-        if (event.kind === "lesson") {
-          if (headerSent || !wantsHeader) continue;
-          headerSent = true;
-          yield event;
-        } else if (event.kind === "step") {
-          if (steps >= MAX_STEPS) continue;
-          if (!headerSent && wantsHeader) {
-            headerSent = true;
-            yield { kind: "lesson", title: request.question.slice(0, 80) };
-          }
-          steps++;
-          yield event;
-          if (event.check) {
-            // Question posée : le tour est fini, Nesa attend la réponse (avec ce qui a été refusé dans le tour).
-            ended = true;
-            const rejected = parser.issues.slice(0, 6).map((issue) => `${issue.reason} : ${issue.line}`.slice(0, 200));
-            yield rejected.length > 0 ? { kind: "await", rejected } : { kind: "await" };
-          }
-        } else if (event.kind === "diagnosis") {
-          // Fiche de diagnostic : transmise (gardée par le navigateur et l'enregistrement), sans finir le tour.
-          yield event;
-        } else {
-          ended = true;
-          yield event;
-        }
-        if (ended) break;
-      }
+      yield* handle(scanner.push(chunk));
       if (ended) break;
     }
+    // Réponse coupée ou objet resté ouvert : ce qui reste, refermé.
+    if (!ended) yield* handle(scanner.flush());
   } finally {
     config.signal?.removeEventListener("abort", onAbort);
     upstream.abort();

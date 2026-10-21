@@ -189,6 +189,11 @@ export function escapeLatex(json: string): string {
  * Repère les objets JSON de premier niveau dans un flux de texte, qu'ils
  * soient sur une ligne ou étalés sur plusieurs. Le texte hors des objets
  * (clôtures de code, phrases d'introduction) est ignoré.
+ *
+ * Un objet resté ouvert (accolade oubliée, chaîne non fermée) n'avale plus la
+ * suite du tour : quand un nouvel événement commence en début de ligne
+ * ({"kind":"step"…), ou à la fin du flux (`flush`), l'objet ouvert est refermé
+ * par `closeJson` et rendu comme les autres.
  */
 export class JsonObjectScanner {
   private current = "";
@@ -200,13 +205,17 @@ export class JsonObjectScanner {
     const complete: string[] = [];
     for (const ch of chunk) {
       if (this.depth === 0) {
-        if (ch === "{") {
-          this.depth = 1;
-          this.current = "{";
-        }
+        if (ch === "{") this.open("{");
         continue;
       }
       this.current += ch;
+      if (ch === '"' && NEW_EVENT.test(this.current.slice(-48))) {
+        // Un nouvel événement commence alors que le précédent n'est pas refermé.
+        const cut = this.current.lastIndexOf("\n");
+        complete.push(closeJson(this.current.slice(0, cut)));
+        this.open(this.current.slice(cut + 1).trimStart());
+        continue;
+      }
       if (this.inString) {
         if (this.escaped) this.escaped = false;
         else if (ch === "\\") this.escaped = true;
@@ -223,14 +232,50 @@ export class JsonObjectScanner {
         }
       }
       // Garde-fou : un objet démesuré est abandonné.
-      if (this.current.length > 20_000) {
-        this.current = "";
-        this.depth = 0;
-        this.inString = false;
-      }
+      if (this.current.length > 20_000) this.open("", 0);
     }
     return complete;
   }
+
+  /** Fin du flux : l'objet encore ouvert (réponse coupée), refermé. */
+  flush(): string[] {
+    const rest = this.depth > 0 ? [closeJson(this.current)] : [];
+    this.open("", 0);
+    return rest;
+  }
+
+  /** Repart sur un objet qui commence par `text` (hors chaîne, une accolade ouverte). */
+  private open(text: string, depth = 1): void {
+    this.current = text;
+    this.depth = depth;
+    this.inString = false;
+    this.escaped = false;
+  }
+}
+
+/** Début d'un événement en début de ligne : {"kind":"step", "end", "lesson", "diagnosis" ou "check". */
+const NEW_EVENT = /\n[ \t]*\{\s*"kind"\s*:\s*"(?:step|end|lesson|diagnosis|check)"$/;
+
+/**
+ * Referme un objet JSON coupé : la chaîne ouverte, puis les crochets et accolades
+ * dans l'ordre inverse. Une virgule ou une clé laissée en suspens est retirée.
+ */
+export function closeJson(text: string): string {
+  const open: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+    } else if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") open.push(ch);
+    else if (ch === "}" || ch === "]") open.pop();
+  }
+  let out = text.trimEnd() + (inString ? '"' : "");
+  out = out.replace(/,\s*$/, "").replace(/,\s*"[^"]*"\s*:\s*$/, "");
+  return out + open.reverse().map((c) => (c === "{" ? "}" : "]")).join("");
 }
 
 /** Retire les clôtures de code et le texte autour du premier objet JSON de la ligne. */

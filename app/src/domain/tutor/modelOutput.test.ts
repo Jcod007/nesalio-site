@@ -11,6 +11,30 @@ describe("JsonObjectScanner", () => {
     expect(JSON.parse(found[0]!)).toEqual({ kind: "lesson", title: "A {b}" });
     expect(JSON.parse(found[1]!).say).toBe('x " }');
   });
+
+  // Une accolade oubliée faisait avaler tout le reste du tour (homothétie, 21 octobre : deux étapes, puis plus rien).
+  it("répare un objet resté ouvert quand l'événement suivant commence, et à la fin du flux", () => {
+    const scanner = new JsonObjectScanner();
+    const text =
+      '{"kind":"step","say":"Un","do":[{"type":"note","text":"a"}]\n' +
+      '{"kind":"step","say":"Deux","do":[],"check":{"prompt":"Alors ?","choices":["x","y"]\n' +
+      '{"kind":"end","summary":["fin"]}\n' +
+      '{"kind":"step","say":"Coupé","do":[{"type":"note","text":"b';
+    const found: string[] = [];
+    for (const ch of text.match(/.{1,5}/gs)!) found.push(...scanner.push(ch));
+    found.push(...scanner.flush());
+    const events = found.map((f) => JSON.parse(f));
+    expect(events.map((e) => e.say ?? e.kind)).toEqual(["Un", "Deux", "end", "Coupé"]);
+    expect(events[1].check.choices).toEqual(["x", "y"]);
+    expect(events[3].do[0].text).toBe("b");
+  });
+
+  it("n'ouvre pas d'événement sur une action multiligne qui a aussi un « kind »", () => {
+    const scanner = new JsonObjectScanner();
+    const found = scanner.push('{"kind":"step","say":"S","do":[\n{"type":"construct","id":"M","kind":"midpoint","of":["A","B"]}\n]}');
+    expect(found).toHaveLength(1);
+    expect(JSON.parse(found[0]!).do[0].kind).toBe("midpoint");
+  });
 });
 
 describe("createModelOutputParser", () => {
