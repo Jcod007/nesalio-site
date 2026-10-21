@@ -6,8 +6,15 @@
  * (réflexion), flèches de translation, rayons issus du centre (homothétie).
  * Les sommets nommés de l'image prennent un prime (A devient A') et se visent
  * ensuite par ce nom.
+ *
+ * Sans indication précise ("axis":"vertical", "center":"auto", "by":"auto", ou rien),
+ * le moteur pose l'axe, le centre ou le vecteur pour que l'image se lise à côté de
+ * l'original (domain/board/apart). Une position donnée par le modèle est gardée : elle
+ * peut être voulue (axe de symétrie de la figure, homothétie centrée sur un sommet).
  */
 import { z } from "zod";
+import { axisBeside, homothetyCenter, translationBeside } from "@/domain/board/apart";
+import { nodeBox, union, type Box } from "@/domain/board/layout";
 import { add, deg, rad, reflectAcross, rotate, scale, sub } from "@/domain/board/shapes";
 import { isVisible, resolveTargets, type BoardNode, type Reveal, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, finite, Id } from "../primitives";
@@ -59,22 +66,27 @@ export const imageCommand = defineCommand({
     id: ShapeId,
     target: Id,
     kind: z.enum(KINDS),
-    /** Réflexion : l'axe (id d'un segment ou deux points). */
-    axis: LineRef.optional(),
-    /** Translation : les composantes, ou l'id d'un vecteur du tableau. */
-    by: z.union([Coord, Id]).optional(),
-    /** Rotation et homothétie : le centre (point nommé ou [x,y]). */
-    center: PointRef.optional(),
+    /** Réflexion : "vertical" ou "horizontal" (le moteur le pose à côté), ou l'axe donné (id d'un segment ou deux points). */
+    axis: z.union([z.enum(["vertical", "horizontal"]), LineRef]).optional(),
+    /** Translation : "auto" (l'image juste à côté), les composantes, ou l'id d'un vecteur du tableau. */
+    by: z.union([z.literal("auto"), Coord, Id]).optional(),
+    /** Rotation et homothétie : le centre (point nommé ou [x,y]) ; homothétie : "auto" pour que l'image soit à côté. */
+    center: z.union([z.literal("auto"), PointRef]).optional(),
+    /** Le nom de l'axe posé par le moteur (« d »). */
+    axisLabel: z.string().trim().max(12).optional(),
     angle: finite.refine((a) => Math.abs(a) <= 360).optional(),
     ratio: finite.refine((k) => k !== 0 && Math.abs(k) <= 10).optional(),
     traces: z.boolean().optional(),
     color: ColorName.optional(),
   }),
   doc:
-    '{"type":"image","id":"img","target":"tri","kind":"reflection","axis":["D","E"]} : dessine l\'IMAGE d\'une figure (l\'original\n' +
-    '  reste) par une transformation calculée par le moteur. "kind" : "reflection" ("axis" : id d\'un segment ou deux points),\n' +
-    '  "translation" ("by" : [dx,dy] ou l\'id d\'un vecteur), "rotation" ("center", "angle" en degrés, antihoraire),\n' +
-    '  "homothety" ("center", "ratio" : 2 agrandit, 0.5 réduit, négatif de l\'autre côté du centre). Les traits de\n' +
+    '{"type":"image","id":"img","target":"tri","kind":"reflection","axis":"vertical"} : dessine l\'IMAGE d\'une figure\n' +
+    '  (l\'original reste) par une transformation calculée par le moteur. "kind" : "reflection" ("axis" : "vertical" ou\n' +
+    '  "horizontal" et le moteur pose l\'axe à côté de la figure, nommé "axisLabel" ; ou l\'axe de l\'énoncé : id d\'un segment\n' +
+    '  ou deux points), "translation" ("by" : "auto", [dx,dy] ou l\'id d\'un vecteur), "rotation" ("center", "angle" en\n' +
+    '  degrés, antihoraire), "homothety" ("center" : "auto" pour une image à côté, ou un point ; "ratio" : 2 agrandit,\n' +
+    '  0.5 réduit, négatif de l\'autre côté du centre). Sans repère, laisse le moteur placer ("vertical", "auto") ; donne\n' +
+    '  un axe ou un centre précis seulement s\'il fait partie du problème. Parties : img-axe, img-centre. Les traits de\n' +
     '  construction (perpendiculaires à l\'axe, flèches, rayons depuis le centre) sont tracés ("traces":false pour non).\n' +
     '  Les sommets de l\'image prennent un prime (A devient A\') et se visent par ce nom ; parties img-<partie>.\n' +
     '  Pour des figures semblables : "homothety" ; isométriques : réflexion, translation ou rotation.',
@@ -84,19 +96,27 @@ export const imageCommand = defineCommand({
     const targets = resolveTargets(state, action.target);
     if (targets.length === 0 || isVisible(state.nodes[action.id])) return state;
 
+    // La figure, étiquettes comprises : ce à côté de quoi le moteur pose l'image.
+    const box: Box | null = union(targets.map((tid) => state.nodes[tid]).filter(isVisible).filter((n) => n.type !== "text").map((n) => nodeBox(n, state.frame)));
+    if (!box) return state;
     let m: Mapping;
     let center: Vec2 | null = null;
     let axis: [Vec2, Vec2] | null = null;
     let shift: Vec2 | null = null;
+    /** L'axe posé par le moteur, à dessiner avec l'image. */
+    let placedAxis: [Vec2, Vec2] | null = null;
     switch (action.kind) {
       case "reflection":
-        axis = action.axis !== undefined ? resolveLine(state, action.axis) : null;
+        if (action.axis === undefined || action.axis === "vertical" || action.axis === "horizontal") {
+          placedAxis = axisBeside(box, action.axis ?? "vertical");
+          axis = placedAxis;
+        } else axis = resolveLine(state, action.axis);
         if (!axis) return state;
         m = { map: (p) => reflectAcross(p, ...axis!), k: 1, mirror: true };
         break;
       case "translation": {
-        if (action.by === undefined) return state;
-        if (typeof action.by === "string") {
+        if (action.by === undefined || action.by === "auto") shift = translationBeside(box);
+        else if (typeof action.by === "string") {
           const v = state.nodes[action.by];
           if (!isVisible(v) || v.type !== "vector") return state;
           shift = sub(v.to, v.from);
@@ -106,13 +126,14 @@ export const imageCommand = defineCommand({
         break;
       }
       case "rotation":
-        center = action.center !== undefined ? resolvePoint(state, action.center) : null;
+        center = action.center !== undefined && action.center !== "auto" ? resolvePoint(state, action.center) : null;
         if (!center || action.angle === undefined) return state;
         m = { map: (p) => rotate(p, center!, action.angle!), k: 1, mirror: false };
         break;
       case "homothety": {
-        center = action.center !== undefined ? resolvePoint(state, action.center) : null;
-        if (!center || action.ratio === undefined) return state;
+        if (action.ratio === undefined) return state;
+        center = action.center === undefined || action.center === "auto" ? homothetyCenter(box, action.ratio) : resolvePoint(state, action.center);
+        if (!center) return state;
         const k = action.ratio;
         const o = center;
         m = { map: (p) => add(o, scale(sub(p, o), k)), k, mirror: false };
@@ -168,7 +189,10 @@ export const imageCommand = defineCommand({
     // Les traits d'abord, puis l'image ; l'image se vise par son id, ses sommets par leur nom prime (A').
     const vertices: Record<string, Vec2> = {};
     for (const [name, p] of named) vertices[`${name}'`] = m.map(add(p, offsetOf));
+    // Les sommets ordonnés (@0, @1…) : l'image est une figure comme l'original (contour, "within").
+    for (const [name, p] of Object.entries(source)) if (name.startsWith("@")) vertices[name] = m.map(add(p, offsetOf));
+    if (placedAxis) traces.unshift(segment(`${action.id}-axe`, ...placedAxis, reveal, "ink", false, action.axisLabel ?? "d"));
     const next = drawFigure(state, `${action.id}-traces`, traces, reveal);
-    return drawFigure(next, action.id, parts, { start: reveal.start + reveal.duration * 0.35, duration: reveal.duration * 0.65 }, {}, named.length > 0 ? vertices : undefined);
+    return drawFigure(next, action.id, parts, { start: reveal.start + reveal.duration * 0.35, duration: reveal.duration * 0.65 }, {}, Object.keys(vertices).length > 0 ? vertices : undefined);
   },
 });

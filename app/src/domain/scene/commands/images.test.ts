@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { emptyBoard, resolveTargets, type SegmentNode, type TextNode } from "@/domain/board/state";
 import { applyAction } from "./index";
+import { Action } from "../schema";
+import { collisions } from "@/domain/board/collisions";
 
 const t = { start: 0, duration: 1000 };
 const close = (a: number[], b: number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i]!, 6));
@@ -34,5 +36,45 @@ describe("transformations géométriques", () => {
     close(ends(board.nodes["tr-tri-ca"] as SegmentNode), [3, 3, 3, 1]);
     board = applyAction(board, { type: "image", id: "ro", target: "tri", kind: "rotation", center: "A", angle: 90 }, t);
     close(ends(board.nodes["ro-tri-ab"] as SegmentNode), [1, 0, 1, 2]);
+  });
+});
+
+// Séances du 21 octobre : un axe de réflexion à travers le triangle, une homothétie sur la figure.
+describe("le moteur place l'image à côté de l'original", () => {
+  const play = (board: ReturnType<typeof triangle>, raw: unknown) => {
+    const parsed = Action.safeParse(raw);
+    expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    return applyAction(board, parsed.data!, t);
+  };
+  /** Les chevauchements entre l'original (tri) et l'image (img). */
+  const clashes = (board: ReturnType<typeof triangle>) =>
+    collisions(board).filter((c) => [c.a, c.b].some((id) => id.startsWith("tri")) && [c.a, c.b].some((id) => id.startsWith("img")));
+
+  it.each([
+    ["réflexion d'axe vertical", { kind: "reflection", axis: "vertical" }],
+    ["réflexion sans axe donné", { kind: "reflection" }],
+    ["réflexion d'axe horizontal", { kind: "reflection", axis: "horizontal" }],
+    ["translation", { kind: "translation", by: "auto" }],
+    ["homothétie de rapport 2", { kind: "homothety", ratio: 2 }],
+    ["homothétie de rapport 0,5", { kind: "homothety", center: "auto", ratio: 0.5 }],
+    ["homothétie de rapport −1", { kind: "homothety", ratio: -1 }],
+  ])("%s : aucune image sur la figure", (_, spec) => {
+    const board = play(triangle(), { type: "image", id: "img", target: "tri", ...spec });
+    expect(Object.keys(board.nodes).some((id) => id.startsWith("img-tri"))).toBe(true);
+    expect(clashes(board)).toEqual([]);
+  });
+
+  it("le détecteur voit bien une image posée sur la figure (contrôle du test)", () => {
+    const board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[2, -1], [2, 3]] });
+    expect(clashes(board).map((c) => c.kind)).toContain("dessins");
+  });
+
+  it("dessine l'axe posé par le moteur, nommé, et garde l'axe donné par l'énoncé", () => {
+    let board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: "vertical", axisLabel: "d" });
+    expect(board.nodes["img-axe"]).toMatchObject({ type: "segment", label: "d" });
+    // Axe de symétrie voulu (sur la figure) : gardé tel quel.
+    board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[1, -1], [1, 3]] });
+    close(ends(board.nodes["img-tri-ab"] as SegmentNode), [1, 0, -1, 0]);
+    expect(board.nodes["img-axe"]).toBeUndefined();
   });
 });

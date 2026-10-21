@@ -12,7 +12,7 @@
  */
 import { z } from "zod";
 import { figureBox, worldPerMath, type Box } from "@/domain/board/layout";
-import { outline } from "@/domain/board/collisions";
+import { figureOutline } from "@/domain/board/collisions";
 import { add, angleArc, chordThrough, footOnLine, intersectLines, norm, rightAngleMark, scale, sub, unit } from "@/domain/board/shapes";
 import { isVisible, type BoardNode, type BoardState, type Reveal, type Vec2 } from "@/domain/board/state";
 import { ColorName, finite } from "../primitives";
@@ -48,23 +48,6 @@ function across(state: BoardState, P: Vec2, u: Vec2, extra: Vec2[] = []): [Vec2,
   }
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [P, add(P, u)];
   return [add(P, scale(u, lo)), add(P, scale(u, hi))];
-}
-
-/**
- * Le contour d'une figure du tableau, ou null : une surface fermée (polygone, cercle), ou les
- * sommets ordonnés d'une figure tracée côté par côté (@0, @1, @2 d'un triangle).
- */
-function figureOutline(state: BoardState, id: string): Vec2[] | null {
-  const group = state.groups[id];
-  const ids = state.nodes[id] ? [id] : (group?.members ?? []);
-  for (const member of ids) {
-    const node = state.nodes[member];
-    const ring = isVisible(node) ? outline(node) : null;
-    if (ring) return ring;
-  }
-  const shown = ids.map((member) => state.nodes[member]).find(isVisible);
-  const ordered = Array.from({ length: 12 }, (_, i) => group?.vertices?.[`@${i}`]).filter((p): p is Vec2 => p !== undefined);
-  return shown && ordered.length >= 3 ? ordered.map((p) => add(p, shown.offset)) : null;
 }
 
 /**

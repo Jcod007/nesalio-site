@@ -18,8 +18,8 @@
  * Vu le 19 octobre : un exemple dessiné par-dessus le carré de l'hypoténuse.
  */
 import { AXES_OWNER, footprints, intersects, namingRegions, regionCover, tickLabels, type Box } from "./layout";
-import { insidePolygon } from "./shapes";
-import { visibleNodes, type BoardNode, type BoardState, type Vec2 } from "./state";
+import { add, insidePolygon } from "./shapes";
+import { isVisible, visibleNodes, type BoardNode, type BoardState, type Vec2 } from "./state";
 
 export type CollisionKind = "texte" | "point" | "trait" | "surface" | "graduations" | "dessins";
 export interface Collision {
@@ -92,6 +92,29 @@ export function collisions(state: BoardState): Collision[] {
   return out;
 }
 
+/**
+ * Le contour d'une figure du tableau (nœud ou groupe), ou null : une surface fermée (polygone,
+ * cercle), ou les sommets ordonnés d'une figure tracée côté par côté (@0, @1, @2 d'un triangle).
+ */
+export function figureOutline(state: BoardState, id: string): Vec2[] | null {
+  const group = state.groups[id];
+  const ids = state.nodes[id] ? [id] : (group?.members ?? []);
+  for (const member of ids) {
+    const node = state.nodes[member];
+    const ring = isVisible(node) ? outline(node) : null;
+    if (ring) return ring;
+  }
+  return orderedOutline(state, id);
+}
+
+/** Les sommets ordonnés d'un groupe (@0, @1…), à leur place, s'il en a au moins trois et qu'il est visible. */
+function orderedOutline(state: BoardState, id: string): Vec2[] | null {
+  const group = state.groups[id];
+  const shown = group?.members.map((member) => state.nodes[member]).find(isVisible);
+  const ordered = Array.from({ length: 12 }, (_, i) => group?.vertices?.[`@${i}`]).filter((p): p is Vec2 => p !== undefined);
+  return shown && ordered.length >= 3 ? ordered.map((p) => add(p, shown.offset)) : null;
+}
+
 /** Contour d'une surface fermée, à sa place (décalage compris), ou null. */
 export function outline(node: BoardNode): Vec2[] | null {
   const [dx, dy] = node.offset;
@@ -130,11 +153,14 @@ export function covered(small: Vec2[], big: Vec2[]): number {
 }
 
 function shapeOverlaps(state: BoardState): Collision[] {
-  const shapes = visibleNodes(state)
-    .map((node) => ({ id: node.id, poly: outline(node) }))
-    .filter((s): s is { id: string; poly: Vec2[] } => s.poly !== null);
-  // Deux parties d'une même figure (un groupe) se touchent exprès.
-  const together = (a: string, b: string) => Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));
+  const shapes = [
+    ...visibleNodes(state).map((node) => ({ id: node.id, poly: outline(node) })),
+    // Une figure tracée côté par côté (un triangle) : son contour, par ses sommets ordonnés.
+    ...Object.keys(state.groups).map((id) => ({ id, poly: orderedOutline(state, id) })),
+  ].filter((s): s is { id: string; poly: Vec2[] } => s.poly !== null);
+  // Deux parties d'une même figure (un groupe), ou une figure et l'une de ses parties, se touchent exprès.
+  const together = (a: string, b: string) =>
+    state.groups[a]?.members.includes(b) || state.groups[b]?.members.includes(a) || Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));
   const out: Collision[] = [];
   for (let i = 0; i < shapes.length; i++) {
     for (let j = i + 1; j < shapes.length; j++) {

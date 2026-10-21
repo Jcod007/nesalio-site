@@ -1,0 +1,52 @@
+/**
+ * Où poser l'axe, le centre ou le vecteur d'une transformation pour que l'image se lise À CÔTÉ
+ * de l'original (séances du 21 octobre : un axe de réflexion à travers le triangle, une
+ * homothétie dont l'image recouvrait la figure). Sans repère, la position n'a pas de sens
+ * mathématique : le modèle dit l'intention (« réflexion d'axe vertical »), le moteur choisit la
+ * place. Fonctions pures : la boîte de la figure (étiquettes comprises) et un écart.
+ */
+import type { Box } from "./layout";
+import type { Vec2 } from "./state";
+
+/** L'écart entre la figure et son image : lisible sans éloigner l'image de son original. */
+export function gapFor(box: Box): number {
+  return Math.max(0.6, 0.2 * Math.max(box.x1 - box.x0, box.y1 - box.y0));
+}
+
+/**
+ * L'axe d'une réflexion posé à côté de la figure : vertical à droite (l'image se forme à droite,
+ * à 2 × écart), horizontal dessous. Un peu plus long que la figure, pour qu'on le voie comme une droite.
+ */
+export function axisBeside(box: Box, orientation: "vertical" | "horizontal", gap = gapFor(box)): [Vec2, Vec2] {
+  if (orientation === "vertical") {
+    const x = box.x1 + gap;
+    const pad = 0.25 * (box.y1 - box.y0) + 0.4;
+    return [[x, box.y0 - pad], [x, box.y1 + pad]];
+  }
+  const y = box.y0 - gap;
+  const pad = 0.25 * (box.x1 - box.x0) + 0.4;
+  return [[box.x0 - pad, y], [box.x1 + pad, y]];
+}
+
+/** Le vecteur d'une translation qui pose l'image juste à droite de la figure. */
+export function translationBeside(box: Box, gap = gapFor(box)): Vec2 {
+  return [box.x1 - box.x0 + 2 * gap, 0];
+}
+
+/**
+ * Le centre d'une homothétie de rapport k qui sépare l'image de la figure, à mi-hauteur :
+ * - k > 1, centre à gauche à la distance D : l'image commence en c + k·D, après la figure si
+ *   (k − 1)·D ≥ w + écart ;
+ * - 0 < k < 1, centre à gauche : l'image finit en c + k·(D + w), avant la figure si
+ *   (1 − k)·D ≥ k·w + écart ;
+ * - k < 0, centre à droite : l'image passe de l'autre côté du centre ;
+ * - k = 1 (l'image est la figure) : centre à gauche, à l'écart.
+ */
+export function homothetyCenter(box: Box, k: number, gap = gapFor(box)): Vec2 {
+  const w = box.x1 - box.x0;
+  const y = (box.y0 + box.y1) / 2;
+  if (k < 0) return [box.x1 + gap, y];
+  if (Math.abs(k - 1) < 1e-9) return [box.x0 - gap, y];
+  const D = k > 1 ? (w + gap) / (k - 1) : (k * w + gap) / (1 - k);
+  return [box.x0 - D, y];
+}
