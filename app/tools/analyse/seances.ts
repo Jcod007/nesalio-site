@@ -118,7 +118,11 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
       s.drawn += created.length;
       s.uncued += created.filter((id) => !(step.cues && id in step.cues)).length;
       const groupsOf = (id: string) => Object.values(board.groups).filter((g) => g.members.includes(id)).map((g) => g.id);
-      const intended = (id: string) => [id, ...groupsOf(id)].some((x) => moved.has(x) || [...moved].some((m) => x.startsWith(`${m}-`)));
+      // « A·étiquette » : l'étiquette du point A, qui bouge avec lui.
+      const intended = (raw: string) => {
+        const id = raw.split("·")[0]!;
+        return [id, ...groupsOf(id)].some((x) => moved.has(x) || [...moved].some((m) => x.startsWith(`${m}-`)));
+      };
       for (const o of overlaps(board)) {
         const pair = o.kind === "graduations" ? `graduations ${o.a}` : `${o.a} × ${o.b}`;
         const into = o.kind !== "graduations" && (intended(o.a) || intended(o.b)) ? s.wanted : s.overlaps;

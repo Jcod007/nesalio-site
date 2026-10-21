@@ -13,14 +13,15 @@
  * peut être voulue (axe de symétrie de la figure, homothétie centrée sur un sommet).
  */
 import { z } from "zod";
-import { axisBeside, homothetyCenter, translationBeside } from "@/domain/board/apart";
+import { axisBeside, firstFree, homothetyCenter, translationBeside, type Side } from "@/domain/board/apart";
+import { bounds, closedShapes } from "@/domain/board/collisions";
 import { nodeBox, union, type Box } from "@/domain/board/layout";
 import { add, deg, rad, reflectAcross, rotate, scale, sub } from "@/domain/board/shapes";
 import { isVisible, resolveTargets, type BoardNode, type Reveal, type Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, finite, Id } from "../primitives";
 import { base } from "./figure";
 import { defineCommand } from "./define";
-import { drawFigure, point, segment, ShapeId, vector, type Color } from "./parts";
+import { drawFigure, point, pointsBox, segment, ShapeId, vector, type Color } from "./parts";
 import { LineRef, PointRef, resolveLine, resolvePoint } from "./points";
 type Mapping = { map: (p: Vec2) => Vec2; k: number; mirror: boolean };
 
@@ -99,6 +100,12 @@ export const imageCommand = defineCommand({
     // La figure, étiquettes comprises : ce à côté de quoi le moteur pose l'image.
     const box: Box | null = union(targets.map((tid) => state.nodes[tid]).filter(isVisible).filter((n) => n.type !== "text").map((n) => nodeBox(n, state.frame)));
     if (!box) return state;
+    // Les autres figures du tableau : l'image se pose du côté où elle n'en touche aucune.
+    const others = closedShapes(state)
+      .filter(({ id }) => id !== action.target && !targets.includes(id))
+      .map(({ poly }) => bounds(poly));
+    const corners: Vec2[] = [[box.x0, box.y0], [box.x1, box.y0], [box.x1, box.y1], [box.x0, box.y1]];
+    const imageBox = (f: (p: Vec2) => Vec2) => pointsBox(corners.map(f));
     let m: Mapping;
     let center: Vec2 | null = null;
     let axis: [Vec2, Vec2] | null = null;
@@ -108,14 +115,19 @@ export const imageCommand = defineCommand({
     switch (action.kind) {
       case "reflection":
         if (action.axis === undefined || action.axis === "vertical" || action.axis === "horizontal") {
-          placedAxis = axisBeside(box, action.axis ?? "vertical");
+          const orientation = action.axis ?? "vertical";
+          const side = firstFree<Side>([1, -1], (sd) => imageBox((p) => reflectAcross(p, ...axisBeside(box, orientation, undefined, sd))), others);
+          placedAxis = axisBeside(box, orientation, undefined, side);
           axis = placedAxis;
         } else axis = resolveLine(state, action.axis);
         if (!axis) return state;
         m = { map: (p) => reflectAcross(p, ...axis!), k: 1, mirror: true };
         break;
       case "translation": {
-        if (action.by === undefined || action.by === "auto") shift = translationBeside(box);
+        if (action.by === undefined || action.by === "auto") {
+          const toward = firstFree(["right", "left", "down", "up"] as const, (t) => imageBox((p) => add(p, translationBeside(box, undefined, t))), others);
+          shift = translationBeside(box, undefined, toward);
+        }
         else if (typeof action.by === "string") {
           const v = state.nodes[action.by];
           if (!isVisible(v) || v.type !== "vector") return state;
@@ -132,11 +144,14 @@ export const imageCommand = defineCommand({
         break;
       case "homothety": {
         if (action.ratio === undefined) return state;
-        center = action.center === undefined || action.center === "auto" ? homothetyCenter(box, action.ratio) : resolvePoint(state, action.center);
-        if (!center) return state;
         const k = action.ratio;
-        const o = center;
-        m = { map: (p) => add(o, scale(sub(p, o), k)), k, mirror: false };
+        const around = (c: Vec2) => (p: Vec2) => add(c, scale(sub(p, c), k));
+        if (action.center === undefined || action.center === "auto") {
+          const side = firstFree<Side>([-1, 1], (sd) => imageBox(around(homothetyCenter(box, k, undefined, sd))), others);
+          center = homothetyCenter(box, k, undefined, side);
+        } else center = resolvePoint(state, action.center);
+        if (!center) return state;
+        m = { map: around(center), k, mirror: false };
         break;
       }
     }

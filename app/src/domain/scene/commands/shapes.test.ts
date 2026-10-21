@@ -338,3 +338,21 @@ describe("triangle quelconque par ses mesures", () => {
     expect((right.nodes["r-carre-hyp"] as PolygonNode).label).toBe("25");
   });
 });
+
+// Séance du 21 octobre (triangles isométriques) : un second triangle posé à 61 % sur le premier.
+describe("un nouveau triangle ne se pose pas à moitié sur une autre figure", () => {
+  const overlapping = (board: ReturnType<typeof emptyBoard>) => collisions(board).filter((c) => c.kind === "dessins");
+  it("glisse juste à côté s'il tombe en partie sur un triangle", () => {
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "t1", points: [[0, 0], [4, 0], [0, 3]] }, t);
+    board = applyAction(board, { type: "triangle", id: "t2", points: [[1, 0], [5, 0], [1, 3]] }, t);
+    expect(overlapping(board)).toEqual([]);
+  });
+  it("reste en place s'il est dessiné dans l'autre (petit triangle dans le grand) ou redessiné", () => {
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "grand", points: [[0, 0], [6, 0], [0, 6]] }, t);
+    board = applyAction(board, { type: "triangle", id: "petit", points: [[0.5, 0.5], [2, 0.5], [0.5, 2]] }, t);
+    expect((board.nodes["petit-ab"] as SegmentNode).from).toEqual([0.5, 0.5]);
+    const before = (board.nodes["petit-ab"] as SegmentNode).from;
+    board = applyAction(board, { type: "triangle", id: "petit", marks: { ab: 1 } }, t);
+    expect((board.nodes["petit-ab"] as SegmentNode).from).toEqual(before);
+  });
+});

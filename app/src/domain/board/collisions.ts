@@ -107,6 +107,25 @@ export function figureOutline(state: BoardState, id: string): Vec2[] | null {
   return orderedOutline(state, id);
 }
 
+/**
+ * Les surfaces fermées du tableau : les nœuds (polygone fermé, cercle) et les figures tracées
+ * côté par côté (un triangle, par ses sommets ordonnés). `filled` : une surface coloriée, ou
+ * une figure (on ne pose pas une figure à moitié sur une autre) ; deux cercles vides d'un
+ * diagramme, eux, se recouvrent exprès. Partagé par la détection des chevauchements et par
+ * le moteur qui fait de la place (room).
+ */
+export function closedShapes(state: BoardState): Array<{ id: string; poly: Vec2[]; filled: boolean }> {
+  const nodes = visibleNodes(state).flatMap((node) => {
+    const poly = outline(node);
+    return poly ? [{ id: node.id, poly, filled: node.type === "polygon" && (node.fill === true || node.shade === true) }] : [];
+  });
+  const figures = Object.keys(state.groups).flatMap((id) => {
+    const poly = orderedOutline(state, id);
+    return poly ? [{ id, poly, filled: true }] : [];
+  });
+  return [...nodes, ...figures];
+}
+
 /** Les sommets ordonnés d'un groupe (@0, @1…), à leur place, s'il en a au moins trois et qu'il est visible. */
 function orderedOutline(state: BoardState, id: string): Vec2[] | null {
   const group = state.groups[id];
@@ -153,11 +172,7 @@ export function covered(small: Vec2[], big: Vec2[]): number {
 }
 
 function shapeOverlaps(state: BoardState): Collision[] {
-  const shapes = [
-    ...visibleNodes(state).map((node) => ({ id: node.id, poly: outline(node) })),
-    // Une figure tracée côté par côté (un triangle) : son contour, par ses sommets ordonnés.
-    ...Object.keys(state.groups).map((id) => ({ id, poly: orderedOutline(state, id) })),
-  ].filter((s): s is { id: string; poly: Vec2[] } => s.poly !== null);
+  const shapes = closedShapes(state);
   // Deux parties d'une même figure (un groupe), ou une figure et l'une de ses parties, se touchent exprès.
   const together = (a: string, b: string) =>
     state.groups[a]?.members.includes(b) || state.groups[b]?.members.includes(a) || Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));

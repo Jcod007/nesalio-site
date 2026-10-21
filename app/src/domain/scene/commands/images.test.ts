@@ -64,6 +64,16 @@ describe("le moteur place l'image à côté de l'original", () => {
     expect(clashes(board)).toEqual([]);
   });
 
+  it("évite aussi les autres figures du tableau : l'image passe de l'autre côté", () => {
+    // Une autre figure juste à droite du triangle (là où l'image irait d'abord).
+    let board = applyAction(triangle(), { type: "triangle", id: "autre", points: [[4.2, 0], [6.2, 0], [4.2, 2]] }, t);
+    for (const spec of [{ kind: "reflection", axis: "vertical" }, { kind: "translation" }, { kind: "homothety", ratio: 0.5 }]) {
+      const next = play(board, { type: "image", id: "img", target: "tri", ...spec });
+      const hits = collisions(next).filter((c) => [c.a, c.b].some((id) => id.startsWith("img")) && [c.a, c.b].some((id) => id.startsWith("autre") || id.startsWith("tri")));
+      expect(hits, JSON.stringify(spec)).toEqual([]);
+    }
+  });
+
   it("le détecteur voit bien une image posée sur la figure (contrôle du test)", () => {
     const board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[2, -1], [2, 3]] });
     expect(clashes(board).map((c) => c.kind)).toContain("dessins");
