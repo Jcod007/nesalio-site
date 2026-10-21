@@ -17,6 +17,7 @@ import { applyMatrixCommand, gridCommand, matrixCommand } from "./linear";
 import { copyCommand, moveCommand, rotateCommand, transformCommand } from "./motion";
 import { angleCommand, circleCommand, cylinderCommand, inclineCommand, polygonCommand, sectorCommand, triangleCommand } from "./shapes";
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
+import { constructCommand } from "./constructions";
 import { noteCommand, tagCommand, textCommand } from "./text";
 
 /** Dans l'ordre où elles sont présentées au modèle. */
@@ -28,6 +29,7 @@ export const COMMANDS = {
   segment: segmentCommand,
   triangle: triangleCommand,
   angle: angleCommand,
+  construct: constructCommand,
   circle: circleCommand,
   sector: sectorCommand,
   polygon: polygonCommand,
@@ -63,6 +65,7 @@ export const Action = z.discriminatedUnion("type", [
   segmentCommand.schema,
   triangleCommand.schema,
   angleCommand.schema,
+  constructCommand.schema,
   circleCommand.schema,
   sectorCommand.schema,
   polygonCommand.schema,
@@ -130,6 +133,7 @@ export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
   "text",
   "triangle",
   "angle",
+  "construct",
   "circle",
   "sector",
   "polygon",

@@ -21,6 +21,7 @@ import {
   rotate,
   scale,
   solveRightTriangle,
+  solveTriangle,
   sub,
   rad,
 } from "@/domain/board/shapes";
@@ -162,7 +163,7 @@ export const circleCommand = defineCommand({
   schema: z.object({
     type: z.literal("circle"),
     id: Id,
-    center: Coord,
+    center: PointRef,
     radius: finite.positive().max(10_000),
     dashed: z.boolean().optional(),
     label: z.string().max(24).optional(),
@@ -172,7 +173,11 @@ export const circleCommand = defineCommand({
   duration: 1200,
   apply(state, action, reveal) {
     const { type, id, color, ...rest } = action;
-    return drawNode(state, withRoom(state, { ...base(id, reveal, color), type, ...rest } as BoardNode), reveal);
+    const center = resolvePoint(state, action.center);
+    if (!center) return state;
+    // Centré sur un point nommé : le cercle tient à ce point, il ne se déplace pas.
+    const node = { ...base(id, reveal, color), type, ...rest, center } as BoardNode;
+    return drawNode(state, typeof action.center === "string" ? node : withRoom(state, node), reveal);
   },
 });
 
@@ -180,16 +185,23 @@ export const polygonCommand = defineCommand({
   schema: z.object({
     type: z.literal("polygon"),
     id: Id,
-    points: z.array(Coord).min(3).max(10),
+    points: z.array(PointRef).min(3).max(10),
     fill: z.boolean().optional(),
     label: z.string().max(24).optional(),
     color: ColorName.optional(),
   }),
-  doc: '{"type":"polygon","id":"p","points":[[0,0],[4,0],[4,3]],"fill":true,"label":"…"} : polygone fermé (rempli si "fill").',
+  doc:
+    '{"type":"polygon","id":"p","points":[[0,0],[4,0],[4,3]],"fill":true,"label":"…"} : polygone fermé (rempli si "fill").\n' +
+    '  Les sommets peuvent être nommés : "points":["A","B","H"] (un petit triangle dans la figure, exact).',
   duration: 1200,
   apply(state, action, reveal) {
     const { type, id, color, ...rest } = action;
-    return drawNode(state, withRoom(state, { ...base(id, reveal, color), type, ...rest, closed: true } as BoardNode), reveal);
+    const points = action.points.map((ref) => resolvePoint(state, ref));
+    if (points.some((p) => p === null)) return state;
+    // Sommets nommés (« le triangle ABH ») : la figure tient à ces points, elle ne se déplace pas.
+    const named = action.points.some((ref) => typeof ref === "string");
+    const node = { ...base(id, reveal, color), type, ...rest, points: points as Vec2[], closed: true } as BoardNode;
+    return drawNode(state, named ? node : withRoom(state, node), reveal);
   },
 });
 
@@ -359,6 +371,13 @@ const TriangleSchema = z
       .partial()
       .optional(),
     angleLabel: z.string().max(12).optional(),
+    // Triangle quelconque par ses mesures (a = BC, b = CA, c = AB ; angles en A, B, C).
+    lengths: z.object({ ab: finite.positive(), bc: finite.positive(), ca: finite.positive() }).partial().optional(),
+    angles: z.object({ A: finite.gt(0).lt(180), B: finite.gt(0).lt(180), C: finite.gt(0).lt(180) }).partial().optional(),
+    obtuse: z.boolean().optional(),
+    angleLabels: z.record(z.string().max(12), z.string().max(16)).optional(),
+    marks: z.record(z.string().max(12), z.number().int().min(1).max(3)).optional(),
+    angleMarks: z.record(z.string().max(12), z.number().int().min(1).max(3)).optional(),
     altitude: z
       .union([
         Name,
@@ -375,9 +394,22 @@ const TriangleSchema = z
       .optional(),
     color: ColorName.optional(),
   })
-  .refine((a) => a.points !== undefined || solveRightTriangle(a) !== null, {
-    message: "triangle : donner deux mesures parmi base, height, hyp, angle (ou les trois points)",
+  .refine((a) => a.points !== undefined || solveRightTriangle(a) !== null || generalSpec(a) !== undefined || !hasMeasures(a), {
+    message:
+      "triangle : rectangle avec deux mesures parmi base, height, hyp, angle ; quelconque avec trois mesures dans lengths (ab, bc, ca) et angles (A, B, C), dont au moins une longueur ; ou les trois points",
   });
+
+/** Mesures données (rectangle ou quelconque) : sans aucune, on redemande la même figure (même id). */
+function hasMeasures(a: { base?: number; height?: number; hyp?: number; angle?: number; lengths?: object; angles?: object; points?: unknown }): boolean {
+  return [a.base, a.height, a.hyp, a.angle, a.points].some((v) => v !== undefined) || Object.keys(a.lengths ?? {}).length > 0 || Object.keys(a.angles ?? {}).length > 0;
+}
+
+/** Triangle quelconque résolu à partir de "lengths" et "angles" (côté c = AB posé à l'horizontale). */
+function generalSpec(a: { lengths?: { ab?: number; bc?: number; ca?: number }; angles?: { A?: number; B?: number; C?: number }; obtuse?: boolean }) {
+  if (!a.lengths && !a.angles) return undefined;
+  const solved = solveTriangle({ a: a.lengths?.bc, b: a.lengths?.ca, c: a.lengths?.ab, ...a.angles }, a.obtuse ?? false);
+  return solved && [solved.a, solved.b, solved.c, solved.A].every(Number.isFinite) ? solved : undefined;
+}
 
 export const triangleCommand = defineCommand({
   schema: TriangleSchema,
@@ -395,6 +427,12 @@ export const triangleCommand = defineCommand({
     '  (pointillés, angle droit au pied, pied nommé H), exactement perpendiculaire au côté opposé (prolongé s\'il le faut).\n' +
     '  "parts" écrit la longueur des deux morceaux du côté coupé, dans l\'ordre des sommets (hauteur issue de B : AH puis HC).\n' +
     '  Parties : tri-hauteur, tri-pied (angle droit), tri-proj1, tri-proj2 (les deux morceaux). "altitude":"B" suffit.\n' +
+    '  TRIANGLE QUELCONQUE par ses mesures, calculé par le moteur (côté AB à l\'horizontale) : trois mesures dans\n' +
+    '  "lengths":{"ab":5,"bc":7,"ca":6} et "angles":{"A":40,"B":60}, dont au moins une longueur (CCC, CAC, ACA, AAC ;\n' +
+    '  CCA donne l\'angle aigu, "obtuse":true l\'autre). Côtés tri-ab, tri-bc, tri-ca ("sides" pour leurs noms).\n' +
+    '  "angleLabels":{"A":"40°","C":"?"} écrit les angles ; "marks":{"ab":1,"ca":1} met 1 à 3 traits sur les côtés égaux,\n' +
+    '  "angleMarks":{"B":2} 1 à 3 arcs sur les angles égaux (triangles isométriques ou semblables). Parties tri-angle-A…\n' +
+    '  Redemander le même triangle (même id) sans mesures garde ses sommets et ajoute ce qui est nouveau.\n' +
     '  Les sommets (A, B, C ou "names", et le pied H) se visent par leur nom : {"type":"angle","at":"A","from":"B","to":"C"},\n' +
     '  {"type":"segment","from":"B","to":"H"}.',
   duration: 2400,
@@ -404,9 +442,29 @@ export const triangleCommand = defineCommand({
     let A: Vec2;
     let B: Vec2;
     let C: Vec2;
-    const right = action.points === undefined;
+    const general = generalSpec(action);
+    const previous = state.groups[action.id]?.vertices;
+    let right = action.points === undefined && general === undefined;
     if (action.points) {
       [A, B, C] = action.points;
+    } else if (general) {
+      // A à l'origine, AB à l'horizontale, C au-dessus ; puis centré (ou A en "at").
+      const { b, c, A: angleA } = general;
+      const raw: Vec2[] = [[0, 0], [c, 0], [b * Math.cos(rad(angleA)), b * Math.sin(rad(angleA))]];
+      const xs = raw.map((p) => p[0]);
+      const ys = raw.map((p) => p[1]);
+      const shift: Vec2 = action.at ?? [-(Math.min(...xs) + Math.max(...xs)) / 2, -(Math.min(...ys) + Math.max(...ys)) / 2];
+      [A, B, C] = raw.map((p) => add(p, shift)) as [Vec2, Vec2, Vec2];
+      if (action.rotate) {
+        B = rotate(B, A, action.rotate);
+        C = rotate(C, A, action.rotate);
+      }
+    } else if (!hasMeasures(action) && previous?.["@0"] && previous["@1"] && previous["@2"]) {
+      // Même figure redemandée sans mesures (pour ajouter des carrés, une hauteur, des marques) : on garde ses sommets.
+      [A, B, C] = [previous["@0"], previous["@1"], previous["@2"]];
+      right = isVisible(state.nodes[`${action.id}-hyp`]);
+    } else if (!hasMeasures(action)) {
+      return state;
     } else {
       const { base: b, height: h } = solveRightTriangle(action)!;
       A = action.at ?? [-b / 2, -h / 2];
@@ -485,8 +543,55 @@ export const triangleCommand = defineCommand({
     // Hauteur issue d'un sommet, calculée exactement (le modèle la faisait tomber à côté du côté opposé).
     const vertexNames = action.names ?? ["A", "B", "C"];
     const corners: Vec2[] = [A, B, C];
-    const vertices: Record<string, Vec2> = {};
+    // "@0", "@1", "@2" : les sommets dans l'ordre, pour redessiner la figure sans redonner ses mesures.
+    const vertices: Record<string, Vec2> = { "@0": A, "@1": B, "@2": C };
     vertexNames.forEach((name, i) => (vertices[name] = corners[i]!));
+    const vertexIndex = (key: string) => {
+      const byName = vertexNames.indexOf(key);
+      return byName >= 0 ? byName : ["A", "B", "C"].indexOf(key.toUpperCase());
+    };
+    // Angles : étiquette ("angleLabels") et marques d'égalité ("angleMarks" : 1, 2 ou 3 arcs).
+    const angleKeys = new Set([...Object.keys(action.angleLabels ?? {}), ...Object.keys(action.angleMarks ?? {})]);
+    for (const key of angleKeys) {
+      const i = vertexIndex(key);
+      // Triangle rectangle : l'angle droit a déjà sa marque, et l'angle en A son arc s'il est donné.
+      if (i < 0 || (right && i === 1) || (right && i === 0 && parts.some((part) => part.id === `${id}-angle`))) continue;
+      const letter = "ABC"[i]!;
+      const V = corners[i]!;
+      const P = corners[(i + 1) % 3]!;
+      const Q = corners[(i + 2) % 3]!;
+      const count = action.angleMarks?.[key] ?? 1;
+      const text = action.angleLabels?.[key];
+      const { start, end } = angleArc(V, P, Q);
+      for (let k = 0; k < count; k++) {
+        parts.push({
+          ...base(k === 0 ? `${id}-angle-${letter}` : `${id}-angle-${letter}-${k + 1}`, reveal, "violet"),
+          type: "arc",
+          center: V,
+          radius: (0.5 + 0.1 * k) / unit,
+          start,
+          end,
+          label: k === 0 && text ? text : undefined,
+        });
+      }
+    }
+    // Côtés égaux : 1, 2 ou 3 petits traits au milieu du côté ("marks":{"ab":1,"ca":1}).
+    const sideIndex: Record<string, number> = { ab: 0, bc: 1, ca: 2, base: 0, height: 1, hyp: 2 };
+    const markIds: string[] = [];
+    for (const [key, count] of Object.entries(action.marks ?? {})) {
+      const i = sideIndex[key.toLowerCase()];
+      if (i === undefined) continue;
+      const [sid, from, to] = sides[i]!;
+      const dir = scale(sub(to, from), 1 / Math.hypot(to[0] - from[0], to[1] - from[1]));
+      const normal: Vec2 = [-dir[1], dir[0]];
+      const middle = scale(add(from, to), 0.5);
+      for (let k = 0; k < count; k++) {
+        const at = add(middle, scale(dir, ((k - (count - 1) / 2) * 0.1) / unit));
+        const mid = `${sid}-marque-${k + 1}`;
+        markIds.push(mid);
+        parts.push(segment(mid, add(at, scale(normal, 0.13 / unit)), add(at, scale(normal, -0.13 / unit)), reveal, color));
+      }
+    }
     const extra: Record<string, string[]> = {};
     if (action.altitude !== undefined) {
       const spec = typeof action.altitude === "string" ? { from: action.altitude } : action.altitude;
@@ -536,7 +641,7 @@ export const triangleCommand = defineCommand({
     const aliases: Record<string, string[]> = right
       ? { [`${id}-ab`]: [`${id}-base`], [`${id}-bc`]: [`${id}-haut`], [`${id}-ca`]: [`${id}-hyp`], [`${id}-oppose`]: [`${id}-haut`], [`${id}-adjacent`]: [`${id}-base`] }
       : {};
-    return drawFigure(state, id, parts, reveal, { ...aliases, ...extra, [`${id}-carres`]: squares.map((s) => s.id) }, vertices);
+    return drawFigure(state, id, parts, reveal, { ...aliases, ...extra, [`${id}-carres`]: squares.map((s) => s.id), [`${id}-marques`]: markIds }, vertices);
   },
 });
 

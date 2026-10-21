@@ -288,3 +288,45 @@ describe("tableau sans repère (séances du 19 octobre)", () => {
     expect(board.nodes["cyl-rayon-l"]).toMatchObject({ type: "text", text: "r" });
   });
 });
+
+describe("triangle quelconque par ses mesures", () => {
+  const len = (s: SegmentNode) => Math.hypot(s.to[0] - s.from[0], s.to[1] - s.from[1]);
+  it("construit CCC, CAC et ACA aux bonnes mesures", () => {
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "t", lengths: { ab: 5, bc: 7, ca: 6 } }, t);
+    expect(len(board.nodes["t-ab"] as SegmentNode)).toBeCloseTo(5, 9);
+    expect(len(board.nodes["t-bc"] as SegmentNode)).toBeCloseTo(7, 9);
+    expect(len(board.nodes["t-ca"] as SegmentNode)).toBeCloseTo(6, 9);
+    // CAC : 2 côtés et l'angle compris, loi des cosinus.
+    board = applyAction(emptyBoard(), { type: "triangle", id: "t", lengths: { ab: 4, ca: 3 }, angles: { A: 90 } }, t);
+    expect(len(board.nodes["t-bc"] as SegmentNode)).toBeCloseTo(5, 9);
+    // ACA : loi des sinus.
+    board = applyAction(emptyBoard(), { type: "triangle", id: "t", lengths: { ab: 10 }, angles: { A: 30, B: 30 }, angleLabels: { C: "120°" } }, t);
+    expect(len(board.nodes["t-ca"] as SegmentNode)).toBeCloseTo(10 / Math.sqrt(3), 9);
+    const arc = board.nodes["t-angle-C"] as ArcNode;
+    expect(arc.end - arc.start).toBeCloseTo(120, 6);
+    expect(arc.label).toBe("120°");
+  });
+
+  it("refuse des mesures impossibles et choisit l'angle aigu dans le cas ambigu", () => {
+    expect(Action.safeParse({ type: "triangle", id: "t", lengths: { ab: 1, bc: 1, ca: 5 } }).success).toBe(false);
+    expect(Action.safeParse({ type: "triangle", id: "t", angles: { A: 30, B: 40 } }).success).toBe(false);
+    const board = applyAction(emptyBoard(), { type: "triangle", id: "t", lengths: { bc: 4, ab: 5 }, angles: { A: 40 } }, t);
+    expect((board.nodes["t-angle-C"] as ArcNode | undefined)).toBeUndefined();
+    const sides = ["t-ab", "t-bc", "t-ca"].map((k) => len(board.nodes[k] as SegmentNode));
+    expect(sides[0]).toBeCloseTo(5, 9);
+    expect(sides[1]).toBeCloseTo(4, 9);
+  });
+
+  it("marque les côtés et les angles égaux, et se redessine sans redonner les mesures", () => {
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "t", lengths: { ab: 6, bc: 5, ca: 5 }, names: ["P", "Q", "R"] }, t);
+    board = applyAction(board, { type: "triangle", id: "t", names: ["P", "Q", "R"], marks: { bc: 1, ca: 1 }, angleMarks: { P: 2, Q: 2 } }, t);
+    expect(resolveTargets(board, "t-marques")).toEqual(["t-bc-marque-1", "t-ca-marque-1"]);
+    expect(board.nodes["t-angle-A-2"]).toMatchObject({ type: "arc" });
+    expect(board.nodes["t-angle-B"]).toMatchObject({ type: "arc" });
+    expect(len(board.nodes["t-ab"] as SegmentNode)).toBeCloseTo(6, 9);
+    // Pythagore : les carrés s'ajoutent au même triangle rectangle, redemandé sans ses mesures.
+    let right = applyAction(emptyBoard(), { type: "triangle", id: "r", base: 4, height: 3 }, t);
+    right = applyAction(right, { type: "triangle", id: "r", squares: { hyp: "25" } }, t);
+    expect((right.nodes["r-carre-hyp"] as PolygonNode).label).toBe("25");
+  });
+});

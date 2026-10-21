@@ -42,6 +42,85 @@ export function solveRightTriangle({ base, height, hyp, angle }: RightTriangleSp
   return null;
 }
 
+/**
+ * Triangle quelconque ABC à partir de trois mesures, comme en classe : a = BC, b = CA, c = AB,
+ * angles A, B, C en degrés. Cas CCC, CAC, ACA, AAC, et CCA (le cas ambigu donne l'angle aigu ;
+ * "obtuse" choisit l'autre solution). `null` si les mesures ne forment pas de triangle.
+ */
+export interface TriangleMeasures {
+  a?: number;
+  b?: number;
+  c?: number;
+  A?: number;
+  B?: number;
+  C?: number;
+}
+export interface SolvedTriangle {
+  a: number;
+  b: number;
+  c: number;
+  A: number;
+  B: number;
+  C: number;
+}
+export function solveTriangle(given: TriangleMeasures, obtuse = false): SolvedTriangle | null {
+  let { a, b, c, A, B, C } = given;
+  const angles = [A, B, C].filter((x) => x !== undefined).length;
+  if (angles === 2) {
+    A ??= 180 - B! - C!;
+    B ??= 180 - A - C!;
+    C ??= 180 - A - B;
+  }
+  if ([A, B, C].some((x) => x !== undefined && (x <= 0 || x >= 180))) return null;
+  const sides = [a, b, c].filter((x) => x !== undefined).length;
+  if (sides === 0) return null;
+  const law = (side: number, opposite: number, angle: number) => (side * Math.sin(rad(angle))) / Math.sin(rad(opposite));
+  if (A !== undefined && B !== undefined && C !== undefined) {
+    if (Math.abs(A + B + C - 180) > 1e-6) return null;
+    // Loi des sinus à partir du côté connu.
+    const [side, opp] = a !== undefined ? [a, A] : b !== undefined ? [b, B] : [c!, C];
+    a ??= law(side, opp, A);
+    b ??= law(side, opp, B);
+    c ??= law(side, opp, C);
+    return { a, b, c, A, B, C };
+  }
+  const cosLaw = (x: number, y: number, angle: number) => Math.sqrt(x * x + y * y - 2 * x * y * Math.cos(rad(angle)));
+  const angleFrom = (opp: number, x: number, y: number) => {
+    const v = (x * x + y * y - opp * opp) / (2 * x * y);
+    return v < -1 || v > 1 ? NaN : deg(Math.acos(v));
+  };
+  if (sides === 3) {
+    if (a! + b! <= c! || b! + c! <= a! || a! + c! <= b!) return null;
+    return { a: a!, b: b!, c: c!, A: angleFrom(a!, b!, c!), B: angleFrom(b!, a!, c!), C: angleFrom(c!, a!, b!) };
+  }
+  if (sides === 2 && angles === 1) {
+    // CAC : l'angle est entre les deux côtés connus.
+    if (A !== undefined && b !== undefined && c !== undefined) a = cosLaw(b, c, A);
+    else if (B !== undefined && a !== undefined && c !== undefined) b = cosLaw(a, c, B);
+    else if (C !== undefined && a !== undefined && b !== undefined) c = cosLaw(a, b, C);
+    else {
+      // CCA : un angle opposé à un côté connu.
+      const pairs: Array<["a" | "b" | "c", "A" | "B" | "C"]> = [["a", "A"], ["b", "B"], ["c", "C"]];
+      const known = { a, b, c, A, B, C } as Record<string, number | undefined>;
+      const pair = pairs.find(([s, ang]) => known[s] !== undefined && known[ang] !== undefined);
+      if (!pair) return null;
+      const other = pairs.find(([s]) => s !== pair[0] && known[s] !== undefined)!;
+      const sine = (known[other[0]]! * Math.sin(rad(known[pair[1]]!))) / known[pair[0]]!;
+      if (sine > 1) return null;
+      let otherAngle = deg(Math.asin(sine));
+      if (obtuse) otherAngle = 180 - otherAngle;
+      known[other[1]] = otherAngle;
+      if (known[pair[1]]! + otherAngle >= 180) return null;
+      const rest = pairs.find(([s]) => s !== pair[0] && s !== other[0])!;
+      known[rest[1]] = 180 - known[pair[1]]! - otherAngle;
+      known[rest[0]] = law(known[pair[0]]!, known[pair[1]]!, known[rest[1]]!);
+      return { a: known.a!, b: known.b!, c: known.c!, A: known.A!, B: known.B!, C: known.C! };
+    }
+    return solveTriangle({ a, b, c });
+  }
+  return null;
+}
+
 /** Arc qui marque l'angle en `vertex` entre les directions vers `a` et vers `b` (le plus petit des deux). */
 export function angleArc(vertex: Vec2, a: Vec2, b: Vec2): { start: number; end: number } {
   let start = deg(Math.atan2(a[1] - vertex[1], a[0] - vertex[0]));

@@ -22,6 +22,7 @@ import { rotate } from "@/domain/board/shapes";
 import { massId, putMassPoint } from "./analysis";
 import { defineCommand } from "./define";
 import { withRoom } from "./shapes";
+import { resolvePoint } from "./points";
 
 /** Point d'un objet qui sert d'accroche : la queue ou la pointe d'un vecteur, le centre d'une figure. */
 const Part = z.enum(["tail", "tip", "center"]);
@@ -198,9 +199,11 @@ export const rotateCommand = defineCommand({
     if (targets.length === 0) return state;
     let about: Vec2;
     if (typeof action.about === "string") {
-      const pivot = resolveTargets(state, action.about);
-      if (pivot.length === 0) return state;
-      about = partOf(state, pivot, "tail");
+      // Un point (ou un sommet de triangle, un point construit) par son nom, sinon un objet du tableau.
+      const named = resolvePoint(state, action.about);
+      const pivot = named ? [] : resolveTargets(state, action.about);
+      if (!named && pivot.length === 0) return state;
+      about = named ?? partOf(state, pivot, "tail");
     } else about = action.about;
 
     const followers = anchoredTo(state, targets);

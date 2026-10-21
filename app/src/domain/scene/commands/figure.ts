@@ -113,8 +113,8 @@ export const vectorCommand = defineCommand({
     .object({
       type: z.literal("vector"),
       id: Id,
-      from: Coord,
-      to: Coord.optional(),
+      from: PointRef,
+      to: PointRef.optional(),
       by: Coord.optional(),
       label: z.string().max(24).optional(),
       color: ColorName.optional(),
@@ -125,8 +125,11 @@ export const vectorCommand = defineCommand({
   aliases: ["arrow"],
   apply(state, action, reveal) {
     const { type, id, color, by, to, ...rest } = action;
-    const tip: [number, number] = to ?? [action.from[0] + by![0], action.from[1] + by![1]];
-    return drawNode(state, { ...base(id, reveal, color), type, ...rest, to: tip }, reveal);
+    const from = resolvePoint(state, action.from);
+    const end = to === undefined ? null : resolvePoint(state, to);
+    if (!from || (to !== undefined && !end)) return state;
+    const tip: [number, number] = end ?? [from[0] + by![0], from[1] + by![1]];
+    return drawNode(state, { ...base(id, reveal, color), type, ...rest, from, to: tip }, reveal);
   },
 });
 
