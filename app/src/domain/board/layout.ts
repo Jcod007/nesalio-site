@@ -11,6 +11,7 @@
  * convertit avec l'échelle du repère courant.
  */
 import { formatNumber, niceStep, sampleCurve } from "./geometry";
+import { hasMath, mathSize as texSize } from "./tex";
 import { arcPoints } from "./shapes";
 import {
   anchoredTo,
@@ -106,8 +107,22 @@ export function fontSizeOf(node: TextNode): number {
 
 /** Taille d'un texte, en coordonnées mathématiques. */
 export function textExtent(text: string, fontSize: number, frame: Frame): Extent {
+  const world = textWorldExtent(text, fontSize);
+  return mathSize(frame, world.w, world.h);
+}
+
+/**
+ * Taille d'un texte dans le monde de Manim (indépendante du repère). Une formule entre dollars
+ * (board/tex.ts) prend la place estimée de la formule rendue : plus large, plus haute pour une
+ * fraction. Le rendu fait tenir la formule dans cette boîte.
+ */
+export function textWorldExtent(text: string, fontSize: number): Extent {
+  if (hasMath(text)) {
+    const size = texSize(text);
+    return { w: size.w * fontSize * WIDTH_PER_POINT_PER_CHAR, h: size.h * fontSize * HEIGHT_PER_POINT };
+  }
   const chars = Math.max(1, Array.from(text).length);
-  return mathSize(frame, chars * fontSize * WIDTH_PER_POINT_PER_CHAR, fontSize * HEIGHT_PER_POINT);
+  return { w: chars * fontSize * WIDTH_PER_POINT_PER_CHAR, h: fontSize * HEIGHT_PER_POINT };
 }
 
 /**

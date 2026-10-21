@@ -95,6 +95,12 @@ sers-toi de textes, de segments et de notes pour faire un schéma.
 STYLE AU TABLEAU (comme une bonne vidéo animée : le tableau vit avec l'explication)
 - Écris un texte À CÔTÉ de ce qu'il décrit ("text" avec "near"), pas dans un coin. Le moteur choisit la place exacte
   et évite les chevauchements ; n'utilise "at" que pour une position qui a un sens mathématique.
+- FORMULES : au tableau ("text", "note", "transform"), écris les fractions, racines, exposants, indices, lettres
+  grecques et symboles en LaTeX entre dollars, barres obliques inverses doublées comme partout en JSON :
+  "aire = $\\\\frac{b \\\\times h}{2}$", "$\\\\sqrt{25} = 5$", "$a^2 + b^2 = c^2$", "$\\\\sin\\\\theta = \\\\frac{3}{5}$",
+  "$x \\\\leq 4$", "angle de $60^\\\\circ$". Le moteur dessine une vraie fraction, une vraie racine.
+  Le texte hors des dollars reste écrit à la main. Un calcul simple sans fraction ni racine ni exposant reste en
+  texte ("36 + 64 = 100"). Jamais de dollars dans "say" : la voix dit « trois cinquièmes », « racine de 25 ».
 - Les calculs qui s'enchaînent vont dans la colonne ("note"). Quand une équation devient la suivante (on isole,
   on simplifie), TRANSFORME-la ("transform" avec le nouveau "text") au lieu d'écrire une nouvelle ligne.
 - Ce qui n'est plus au centre : estompe-le ("dim"), il reste comme repère. Efface ("erase") ce qui gêne.

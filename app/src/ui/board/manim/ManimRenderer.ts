@@ -30,6 +30,7 @@ import {
   GrowFromCenter,
   Indicate,
   Line,
+  MathTex,
   Polygon,
   ReplacementTransform,
   Scene,
@@ -43,7 +44,8 @@ import {
 } from "manim-web";
 import { sampleCurve } from "@/domain/board/geometry";
 import { arcPoints } from "@/domain/board/shapes";
-import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, TICK_FONT, tickLabels } from "@/domain/board/layout";
+import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, textWorldExtent, TICK_FONT, tickLabels } from "@/domain/board/layout";
+import { hasMath, plainText, toLatex } from "@/domain/board/tex";
 import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
@@ -136,6 +138,8 @@ export class ManimRenderer {
     observer.observe(container);
     this.detach.push(() => observer.disconnect());
     this.applyView(fitView(this.homeBox(), this.viewport), false);
+    // MathJax se charge à la première formule (gros module) : on le prépare pendant que l'élève lit.
+    setTimeout(() => void new MathTex({ latex: "x" }).waitForRender().catch(() => undefined), 1500);
   }
 
   /* --------------------------------- état --------------------------------- */
@@ -474,6 +478,7 @@ export class ManimRenderer {
   }
 
   private label(text: string, at: Vec3, color: string, size: number = FONT_SIZE.label, font: "hand" | "body" = "hand"): Mobject {
+    if (hasMath(text)) return this.math(text, at, color, size);
     const mobject = new Text({
       text,
       fontSize: size,
@@ -482,6 +487,36 @@ export class ManimRenderer {
       color,
     });
     mobject.moveTo(at);
+    return mobject;
+  }
+
+  /**
+   * Texte avec formules (entre dollars) : rendu par MathJax, puis ajusté à la boîte que le moteur
+   * lui a réservée (textWorldExtent) pour ne pas déborder sur ses voisins. Le rendu est asynchrone ;
+   * l'ajustement garde le centre où il est (un déplacement déjà appliqué est conservé). Si la
+   * formule ne se compile pas, elle s'écrit en texte simple.
+   */
+  private math(text: string, at: Vec3, color: string, size: number): Mobject {
+    const box = textWorldExtent(text, size);
+    const mobject = new MathTex({ latex: toLatex(text), color, fontSize: size, position: at });
+    const generation = this.generation;
+    void mobject.waitForRender().then(() => {
+      if (generation !== this.generation) return;
+      const center = mobject.getCenter();
+      if (mobject.getRenderError()) {
+        const fallback = new Text({ text: plainText(text), fontSize: size, fontFamily: HAND_FONT, fontWeight: 600, color });
+        fallback.moveTo(center);
+        mobject.add(fallback);
+      } else {
+        const w = mobject.getWidth();
+        const h = mobject.getHeight();
+        if (w > 0 && h > 0) {
+          mobject.scale(Math.min(box.w / w, box.h / h));
+          mobject.moveTo(center);
+        }
+      }
+      this.scene.render();
+    });
     return mobject;
   }
 
@@ -640,9 +675,12 @@ export class ManimRenderer {
       }
       case "text": {
         if (node.rows) return this.buildMatrix({ ...node, rows: node.rows }, color);
-        const text = this.label(node.text, this.p(node.at[0], node.at[1]), color, fontSizeOf(node));
-        // Ligne de calcul : alignée à gauche sur sa colonne.
-        if (node.align === "left") text.shift([textHalfWidth(text), 0, 0]);
+        const at = this.p(node.at[0], node.at[1]);
+        const math = hasMath(node.text);
+        // Ligne de calcul : alignée à gauche sur sa colonne (une formule, d'après sa boîte : elle se rend plus tard).
+        const half = math && node.align === "left" ? textWorldExtent(node.text, fontSizeOf(node)).w / 2 : 0;
+        const text = this.label(node.text, [at[0] + half, at[1], at[2]], color, fontSizeOf(node));
+        if (node.align === "left" && !math) text.shift([textHalfWidth(text), 0, 0]);
         return {
           mobjects: [text],
           animations: [{ delay: 0, share: 1, make: (s) => new FadeIn(text, { duration: s, shift: [0, -0.12, 0] }) }],

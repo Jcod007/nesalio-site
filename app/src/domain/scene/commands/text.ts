@@ -5,11 +5,12 @@
  */
 import { z } from "zod";
 import { bodyBox, makeRoomInCalc, nextCalcSlot, placeBeside, placeText, textExtent, FONT_SIZE, union } from "@/domain/board/layout";
+import { plainText } from "@/domain/board/tex";
 import { isVisible, putNode, resolveTargets, type BoardState, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
-import { ColorName, Coord, Id, ShortText, Side, TextSize } from "../primitives";
+import { BoardText, ColorName, Coord, Id, ShortText, Side, TextSize } from "../primitives";
 import { defineCommand } from "./define";
 
-const writingTime = (text: string, base: number) => base + 32 * text.length;
+const writingTime = (text: string, base: number) => base + 32 * plainText(text).length;
 
 /** Ajoute une ligne en bas de la pile de calculs (en faisant de la place si elle est pleine). */
 export function writeCalcLine(state: BoardState, id: string, text: string, reveal: Reveal, color?: z.infer<typeof ColorName>): BoardState {
@@ -39,7 +40,7 @@ export const textCommand = defineCommand({
   schema: z.object({
     type: z.literal("text"),
     id: Id,
-    text: z.string().trim().min(1).max(60),
+    text: BoardText,
     at: Coord.optional(),
     near: Id.optional(),
     side: Side.optional(),
@@ -93,7 +94,7 @@ export const noteCommand = defineCommand({
   schema: z.object({
     type: z.literal("note"),
     id: Id.optional(),
-    text: z.string().trim().min(1).max(60),
+    text: BoardText,
     color: ColorName.optional(),
   }),
   doc:

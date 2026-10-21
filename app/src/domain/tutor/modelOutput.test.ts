@@ -105,3 +105,26 @@ describe("tolérance aux textes un peu longs (séances du 19 octobre)", () => {
     expect(event).toMatchObject({ kind: "diagnosis", gaps: [{ status: "suspected" }] });
   });
 });
+
+describe("formules et étiquettes d'événement (séances du 21 octobre)", () => {
+  it("double les barres obliques LaTeX oubliées dans le JSON", () => {
+    const parser = createModelOutputParser();
+    const line = String.raw`{"kind":"step","say":"L'aire, c'est la moitié.","do":[{"type":"note","id":"n","text":"aire = $\frac{b \times h}{2}$ ou $\sqrt{4}$"}]}`;
+    const event = parser.parseLine(line);
+    expect(event?.kind).toBe("step");
+    const note = (event as { do: Array<{ text: string }> }).do[0]!;
+    expect(note.text).toBe(String.raw`aire = $\frac{b \times h}{2}$ ou $\sqrt{4}$`);
+  });
+
+  it("dit la formule en clair dans la phrase", () => {
+    const parser = createModelOutputParser();
+    const event = parser.parseLine(String.raw`{"kind":"step","say":"Ça fait $\frac{3}{5}$.","do":[]}`);
+    expect((event as { say: string }).say).toBe("Ça fait 3/5.");
+  });
+
+  it("accepte « type » à la place de « kind » pour une fiche de diagnostic", () => {
+    const parser = createModelOutputParser();
+    const event = parser.parseLine('{"type":"diagnosis","gaps":[{"notion":"fraction d\'un tour","status":"suspected"}]}');
+    expect(event?.kind).toBe("diagnosis");
+  });
+});

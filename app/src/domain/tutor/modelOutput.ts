@@ -20,6 +20,7 @@ import {
 } from "@/domain/scene/schema";
 import { z } from "zod";
 import { extractCues, inferCues } from "./cues";
+import { plainText } from "@/domain/board/tex";
 
 /** Noms de commandes que les modèles inventent : ceux du registre, plus quelques synonymes de type. */
 const TYPE_ALIASES: Readonly<Record<string, string>> = {
@@ -70,7 +71,8 @@ export function createModelOutputParser(): ModelOutputParser {
   }
 
   function parseStep(obj: Record<string, unknown>, line: string): ModelEvent | null {
-    const cued = typeof obj.say === "string" ? extractCues(obj.say) : null;
+    // La voix et les sous-titres disent la formule en clair (« $\\frac{3}{5}$ » devient « 3/5 »).
+    const cued = typeof obj.say === "string" ? extractCues(plainText(obj.say)) : null;
     const say = z.string().trim().min(1).max(320).safeParse(cued?.say);
     if (!say.success) return reject(line, "Étape sans phrase valide");
 
@@ -100,7 +102,8 @@ export function createModelOutputParser(): ModelOutputParser {
   }
 
   function parseLine(line: string): ModelEvent | null {
-    const json = extractJsonObject(line);
+    const found = extractJsonObject(line);
+    const json = found === null ? null : escapeLatex(found);
     if (json === null) return line.startsWith("```") ? null : reject(line, "Pas d'objet JSON");
 
     let obj: unknown;
@@ -110,9 +113,15 @@ export function createModelOutputParser(): ModelOutputParser {
       return reject(line, "JSON invalide");
     }
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return reject(line, "Objet attendu");
-    const record = obj as Record<string, unknown>;
+    let record = obj as Record<string, unknown>;
 
-    // Un modèle oublie parfois « kind » sur une étape.
+    // Un modèle oublie parfois « kind » sur une étape, ou écrit « type » à la place
+    // ({"type":"diagnosis",…}, vu le 21 octobre).
+    const EVENT_KINDS = ["lesson", "step", "end", "diagnosis"];
+    if (typeof record.kind !== "string" && typeof record.type === "string" && EVENT_KINDS.includes(record.type)) {
+      const { type, ...rest } = record;
+      record = { ...rest, kind: type };
+    }
     const kind = typeof record.kind === "string" ? record.kind : "say" in record ? "step" : undefined;
 
     switch (kind) {
@@ -145,6 +154,21 @@ export function createModelOutputParser(): ModelOutputParser {
       return issues;
     },
   };
+}
+
+/**
+ * Commandes LaTeX qu'un modèle écrit souvent sans doubler la barre oblique dans le JSON :
+ * « \frac » deviendrait un saut de page suivi de « rac », « \times » une tabulation,
+ * « \sqrt » ferait rejeter toute la ligne. On les double avant de lire le JSON.
+ */
+const LATEX_COMMANDS =
+  "frac|dfrac|tfrac|sqrt|times|cdot|div|pm|text|mathrm|textbf|operatorname|left|right|leq|le|geq|ge|neq|ne|approx|" +
+  "infty|circ|degree|pi|theta|alpha|beta|gamma|delta|Delta|lambda|mu|sigma|omega|varphi|phi|sin|cos|tan|log|ln|exp|" +
+  "to|rightarrow|Rightarrow|angle|parallel|perp|triangle|sim|cong|overline|vec|hat|quad|in|cdots|ldots|dots";
+const UNDOUBLED_LATEX = new RegExp(`(?<!\\\\)\\\\(${LATEX_COMMANDS})(?![a-zA-Z])`, "g");
+
+export function escapeLatex(json: string): string {
+  return json.includes("$") ? json.replace(UNDOUBLED_LATEX, "\\$&") : json;
 }
 
 /**

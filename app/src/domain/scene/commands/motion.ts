@@ -16,7 +16,7 @@ import {
   type BoardState,
   type Vec2,
 } from "@/domain/board/state";
-import { ColorName, Coord, Expression, finite, Id, Range, Side } from "../primitives";
+import { BoardText, ColorName, Coord, Expression, finite, Id, Range, Side } from "../primitives";
 import { sampleParametric } from "@/domain/board/geometry";
 import { rotate } from "@/domain/board/shapes";
 import { massId, putMassPoint } from "./analysis";
@@ -228,7 +228,7 @@ const TransformSchema = z
   .object({
     type: z.literal("transform"),
     target: Id,
-    text: z.string().trim().min(1).max(60).optional(),
+    text: BoardText.optional(),
     rows: z.array(z.array(z.string().trim().min(1).max(12)).min(1).max(4)).min(1).max(4).optional(),
     fn: Expression.optional(),
     at: Coord.optional(),
