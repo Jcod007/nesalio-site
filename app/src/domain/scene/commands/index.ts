@@ -20,6 +20,9 @@ import { coneCommand, cylinderCommand, prismCommand, pyramidCommand, sphereComma
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
 import { constructCommand } from "./constructions";
 import { imageCommand } from "./images";
+import { vectorOpCommand } from "./vectors";
+import { unitCircleCommand } from "./trigCircle";
+import { conicCommand } from "./conics";
 import { noteCommand, tagCommand, textCommand } from "./text";
 
 /** Dans l'ordre où elles sont présentées au modèle. */
@@ -33,6 +36,9 @@ export const COMMANDS = {
   angle: angleCommand,
   construct: constructCommand,
   image: imageCommand,
+  vectorOp: vectorOpCommand,
+  unitCircle: unitCircleCommand,
+  conic: conicCommand,
   circle: circleCommand,
   sector: sectorCommand,
   polygon: polygonCommand,
@@ -75,6 +81,9 @@ export const Action = z.discriminatedUnion("type", [
   angleCommand.schema,
   constructCommand.schema,
   imageCommand.schema,
+  vectorOpCommand.schema,
+  unitCircleCommand.schema,
+  conicCommand.schema,
   circleCommand.schema,
   sectorCommand.schema,
   polygonCommand.schema,
@@ -149,6 +158,9 @@ export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
   "angle",
   "construct",
   "image",
+  "vectorOp",
+  "unitCircle",
+  "conic",
   "circle",
   "sector",
   "polygon",

@@ -12,7 +12,7 @@
 import type { Step } from "@/domain/scene/schema";
 import { estimateSpeechMs } from "@/domain/timeline/plan";
 
-const DRAWS = new Set(["axes", "curve", "point", "vector", "segment", "triangle", "angle", "construct", "image", "circle", "sector", "polygon", "regularPolygon", "prism", "pyramid", "cylinder", "cone", "sphere", "incline", "area", "parametric", "grid"]);
+const DRAWS = new Set(["axes", "curve", "point", "vector", "segment", "triangle", "angle", "construct", "image", "vectorOp", "unitCircle", "conic", "circle", "sector", "polygon", "regularPolygon", "prism", "pyramid", "cylinder", "cone", "sphere", "incline", "area", "parametric", "grid"]);
 const MOVES = new Set(["move", "copy", "rotate", "applyMatrix"]);
 const WRITES = new Set(["text", "note", "matrix", "tag"]);
 
