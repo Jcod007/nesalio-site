@@ -24,6 +24,7 @@ import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
 import type { Step } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
+import { claimNotes, verifyStep, type ClaimIssue } from "@/domain/tutor/claims";
 import { talkShow } from "@/domain/tutor/talkShow";
 import type { StudentAnswer } from "@/domain/tutor/request";
 
@@ -121,6 +122,8 @@ export async function GET(request: Request): Promise<Response> {
   const answerLog: Array<Omit<StudentAnswer, "choices">> = [];
   let review: string[] = [];
   let unshownTotal = 0;
+  /** Affirmations que la figure contredit (domain/tutor/claims), comme le lecteur les relève. */
+  const falseClaims: Array<ClaimIssue & { turn: number }> = [];
   const allSteps: Step[] = [];
   for (let turn = 1; turn <= maxTurns; turn++) {
     const turnStart = Date.now();
@@ -134,6 +137,7 @@ export async function GET(request: Request): Promise<Response> {
     const turnEvents: unknown[] = [];
     const turnSteps: Step[] = [];
     let turnRejected: string[] = [];
+    const turnClaims: ClaimIssue[] = [];
     raw.push(turnEvents);
     for await (const event of tutorEvents(turnRequest, { provider, completion: streamChatCompletion, log })) {
       turnEvents.push(event);
@@ -159,6 +163,9 @@ export async function GET(request: Request): Promise<Response> {
           if ("target" in action && resolveTargets(board, action.target).length === 0) unknownTargets.push(`${action.type} ${action.target}`);
           board = applyAction(board, action, { start: 0, duration: 0 });
         }
+        const issues = verifyStep(step, board);
+        turnClaims.push(...issues);
+        falseClaims.push(...issues.map((i) => ({ ...i, turn })));
         steps.push({
           turn,
           say: event.say,
@@ -180,7 +187,7 @@ export async function GET(request: Request): Promise<Response> {
     info.gestures = turnReview.gestures;
     if (turnReview.unshown.length > 0) info.unshown = turnReview.unshown.map((u) => `${u.word} : ${u.say}`);
     unshownTotal += turnReview.unshown.length;
-    review = reviewNotes(turnReview, turnRejected);
+    review = [...claimNotes(turnClaims), ...reviewNotes(turnReview, turnRejected)].slice(0, 4);
     if (!awaiting || !lastCheck) {
       turns.push(info);
       break;
@@ -233,6 +240,7 @@ export async function GET(request: Request): Promise<Response> {
   /** Part des objets synchronisés sur la parole (repères {id}). */
   lesson.cueCoverage = cueable > 0 ? `${cued}/${cueable}` : "—";
   lesson.unknownTargets = unknownTargets;
+  lesson.falseClaims = falseClaims.map((c) => `tour ${c.turn} (${c.source}) ${c.claim} : ${c.measured}`);
   lesson.rejected = { count: rejected.length, examples: rejected.slice(0, 6).map((r) => `${r.reason} : ${r.line.slice(0, 120)}`) };
   report.lesson = lesson;
   report.turns = turns;

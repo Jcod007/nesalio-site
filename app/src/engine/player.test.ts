@@ -305,6 +305,35 @@ describe("Player", () => {
     expect(requests[2]!.answer?.misconception).toBe("croit que tout s'additionne");
   });
 
+  it("n'écrit pas une ligne de calcul que la figure contredit, et la rend au modèle pour qu'il se corrige", async () => {
+    const voice = fakeSpeaker();
+    const figure: Step["do"] = [
+      { type: "triangle", id: "tri", points: [[0, 0], [4, 0], [2, 4]], names: ["A", "B", "C"] },
+      { type: "point", id: "D", at: [1, 2], label: "D" },
+      { type: "point", id: "p2", at: [3, 2], label: "E" },
+      { type: "note", id: "juste", text: "$\\frac{CD}{CA} = \\frac{CE}{CB}$" },
+      { type: "note", id: "faux", text: "$\\frac{AE}{AB} = \\frac{CD}{CA}$" },
+    ];
+    const check = { prompt: "Pourquoi ?", choices: ["a", "b"], answer: 0 };
+    const { source, requests } = scriptedSource((request) =>
+      request.mode === "question"
+        ? [{ kind: "lesson", title: "Thalès" }, step("Thalès dit que AD/AC = AE/AB.", { do: figure }), step("À toi.", { check }), { kind: "await" }]
+        : [step("Je me corrige."), { kind: "end", summary: [] }],
+    );
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+
+    player.ask("Démontre-moi le théorème de Thalès");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    const board = player.getSnapshot().board;
+    expect(board.nodes["juste"]).toBeDefined();
+    expect(board.nodes["faux"]).toBeUndefined();
+    player.answer(0);
+    await until(player, () => requests.length === 2);
+    const review = requests[1]!.context?.review ?? [];
+    expect(review[0]).toMatch(/Affirmation fausse.*AD\/AC = AE\/AB/);
+    expect(review.some((r) => r.includes("AE/AB = CD/CA"))).toBe(true);
+  });
+
   it("garde l'enregistrement exact de la séance, pour qu'un signalement puisse être rejoué", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [{ kind: "lesson", title: "Zéros" }, step("Voici la parabole."), { kind: "end", summary: [] }]);
