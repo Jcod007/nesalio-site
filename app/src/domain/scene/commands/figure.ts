@@ -2,10 +2,11 @@
  * Commandes qui dessinent la figure : repère, courbe, point, vecteur, segment.
  */
 import { z } from "zod";
-import { AXES_OWNER, makeWay, placeLabel, placeText, reflowCalc } from "@/domain/board/layout";
-import { putNode, visibleNodes, type BoardNode, type BoardState, type CurveNode, type Frame, type Reveal } from "@/domain/board/state";
+import { AXES_OWNER, fitFrame, makeWay, nodeBox, placeLabel, placeText, reflowCalc } from "@/domain/board/layout";
+import { putNode, updateNodes, visibleNodes, type BoardNode, type BoardState, type CurveNode, type Frame, type Reveal } from "@/domain/board/state";
 import { ColorName, Coord, Expression, finite, Id, Range } from "../primitives";
 import { defineCommand } from "./define";
+import { PointRef, resolvePoint } from "./points";
 
 /**
  * Ajoute un nœud de la figure. Il occupe son empreinte : un texte se pose à la
@@ -15,7 +16,9 @@ import { defineCommand } from "./define";
  * figure s'agrandit.
  */
 export function drawNode(state: BoardState, node: BoardNode, reveal: Reveal): BoardState {
-  let next = putNode(state, node.type === "text" && node.role === "free" ? placeText(state, node) : node);
+  // Sans repère, une figure qui déborde du cadre l'agrandit (le texte reste lisible).
+  const fitted = node.type === "text" || node.type === "curve" || node.type === "grid" ? state : fitFrame(state, nodeBox(node, state.frame));
+  let next = putNode(fitted, node.type === "text" && node.role === "free" ? placeText(fitted, node) : node);
   next = makeWay(placeLabel(next, node.id), [node.id], reveal);
   return next.axes || next.calc.length === 0 ? next : reflowCalc(next, reveal);
 }
@@ -35,11 +38,23 @@ export const axesCommand = defineCommand({
   }),
   doc:
     '{"type":"axes","x":[min,max],"y":[min,max],"xLabel":"x","yLabel":"y","xStep":10} : repère, à tracer en premier si tu fais\n' +
-    '  un graphique. "xStep"/"yStep" (facultatifs) : écart entre deux graduations (élargi s\'il rendrait les chiffres illisibles).',
+    '  un graphique (un premier repère efface la figure dessinée sans repère ; la colonne de calculs reste). "xStep"/"yStep" (facultatifs) : écart entre deux graduations (élargi s\'il rendrait les chiffres illisibles).',
   duration: 900,
   apply(state, action, reveal) {
     const frame: Frame = { x: action.x, y: action.y, xLabel: action.xLabel, yLabel: action.yLabel, xStep: action.xStep, yStep: action.yStep };
-    let next: BoardState = { ...state, frame, axes: { frame, reveal }, axesCleared: null };
+    // Un premier repère sur une figure dessinée sans repère : cette figure était dans d'autres
+    // coordonnées, elle se retrouverait mêlée au graphique (aire du triangle, 19 octobre). Elle
+    // s'efface ; la colonne de calculs reste.
+    const before = state.axes
+      ? state
+      : updateNodes(
+          state,
+          visibleNodes(state)
+            .filter((node) => !(node.type === "text" && node.role === "calc"))
+            .map((node) => node.id),
+          (node) => ({ ...node, erased: reveal }),
+        );
+    let next: BoardState = { ...before, frame, axes: { frame, reveal }, axesCleared: null };
     const changed = state.frame.x.join() !== frame.x.join() || state.frame.y.join() !== frame.y.join();
     if (changed) {
       // Nouvelle échelle : les étiquettes reprennent leur place près de leur objet, et les textes
@@ -119,17 +134,22 @@ export const segmentCommand = defineCommand({
   schema: z.object({
     type: z.literal("segment"),
     id: Id,
-    from: Coord,
-    to: Coord,
+    from: PointRef,
+    to: PointRef,
     label: z.string().max(24).optional(),
     color: ColorName.optional(),
     dashed: z.boolean().optional(),
   }),
-  doc: '{"type":"segment","id":"s","from":[x,y],"to":[x,y],"label":"…","dashed":true}',
+  doc:
+    '{"type":"segment","id":"s","from":[x,y],"to":[x,y],"label":"…","dashed":true} ; "from"/"to" peuvent aussi nommer\n' +
+    '  un point ou un sommet de triangle ("from":"B","to":"H").',
   duration: 650,
   aliases: ["line"],
   apply(state, action, reveal) {
     const { type, id, color, ...rest } = action;
-    return drawNode(state, { ...base(id, reveal, color), type, ...rest }, reveal);
+    const from = resolvePoint(state, action.from);
+    const to = resolvePoint(state, action.to);
+    if (!from || !to) return state;
+    return drawNode(state, { ...base(id, reveal, color), type, ...rest, from, to }, reveal);
   },
 });

@@ -479,6 +479,27 @@ export function figureBox(state: BoardState): Box {
   return union(drawn) ?? frameBox(state.frame);
 }
 
+/**
+ * Sans repère, le cadre s'agrandit pour contenir une figure qui en déborde (Pythagore 6-8 avec
+ * ses carrés, un cercle de rayon 5). Sinon la caméra dézoome pour tout montrer et le texte,
+ * de taille fixe dans le monde, devient illisible (séances du 19 octobre). Le cadre ne
+ * rapetisse jamais (sauf "clear") ; les étiquettes déjà posées reprennent leur place.
+ * `box` : la figure qui arrive, en coordonnées mathématiques.
+ */
+export function fitFrame(state: BoardState, box: Box): BoardState {
+  if (state.axes) return state;
+  const f = state.frame;
+  const margin = Math.max(box.x1 - box.x0, box.y1 - box.y0) * 0.1 + 0.6;
+  const x0 = box.x0 < f.x[0] ? box.x0 - margin : f.x[0];
+  const x1 = box.x1 > f.x[1] ? box.x1 + margin : f.x[1];
+  const y0 = box.y0 < f.y[0] ? box.y0 - margin : f.y[0];
+  const y1 = box.y1 > f.y[1] ? box.y1 + margin : f.y[1];
+  if (x0 === f.x[0] && x1 === f.x[1] && y0 === f.y[0] && y1 === f.y[1]) return state;
+  let next: BoardState = { ...state, frame: { ...f, x: [x0, x1], y: [y0, y1] } };
+  for (const node of visibleNodes(next)) if (hasLabel(node)) next = placeLabel(next, node.id);
+  return next;
+}
+
 /** Tout ce qui est au tableau : la caméra cadre cette zone. */
 export function contentBox(state: BoardState): Box {
   const parts = [figureBox(state), ...visibleNodes(state).map((node) => nodeBox(node, state.frame))];

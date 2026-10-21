@@ -44,7 +44,7 @@ import {
 import { sampleCurve } from "@/domain/board/geometry";
 import { arcPoints } from "@/domain/board/shapes";
 import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, TICK_FONT, tickLabels } from "@/domain/board/layout";
-import { applyMat, DEFAULT_FRAME, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
+import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
 import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
@@ -179,6 +179,20 @@ export class ManimRenderer {
       }
     }
 
+    // Sans repère, le cadre s'agrandit quand une figure en déborde (moteur : fitFrame) : le texte garde
+    // sa taille à l'écran au lieu de rapetisser avec la caméra. Ce qui est déjà dessiné est redessiné
+    // dans le nouveau cadre, et la vue compensée pour que l'image ne saute pas ; la caméra recadre ensuite.
+    if (!board.axes && JSON.stringify(this.frame) !== JSON.stringify(board.frame)) {
+      const before = this.frame;
+      this.frame = board.frame;
+      this.axes = this.coordinatesFor(board.frame);
+      // Ce qui s'efface (un "clear" remet le cadre à sa taille) finit de disparaître où il est.
+      if (board.order.some((id) => this.items.has(id) && isVisible(board.nodes[id]))) {
+        this.reproject(board);
+        this.keepPicture(before, board.frame);
+      }
+    }
+
     // Nœuds du graphe
     for (const id of board.order) {
       const node = board.nodes[id];
@@ -226,7 +240,7 @@ export class ManimRenderer {
   private reproject(board: BoardState) {
     for (const [id, rendered] of this.items) {
       const node = board.nodes[id];
-      if (rendered.erased || !node) continue;
+      if (rendered.erased || !node || node.erased) continue;
       this.scene.remove(...rendered.mobjects);
       const built = this.build(node, node.offset);
       for (const mobject of built.mobjects) mobject.opacity = rendered.opacity;
@@ -714,6 +728,24 @@ export class ManimRenderer {
       width: Math.abs(x1 - x0) + margin * 2,
       height: Math.abs(y1 - y0) + margin * 2,
     };
+  }
+
+  /** Vue qui montre la même image après un changement de cadre (même échelle en x et en y). */
+  private keepPicture(before: Frame, after: Frame) {
+    if (this.cameraTimer) clearTimeout(this.cameraTimer);
+    cancelAnimationFrame(this.cameraTween);
+    const u0 = scales(before).x;
+    const u1 = scales(after).x;
+    const k = u1 / u0;
+    const mid = (f: Frame, axis: "x" | "y") => (f[axis][0] + f[axis][1]) / 2;
+    this.applyView(
+      {
+        s: this.view.s / k,
+        cx: (mid(before, "x") - mid(after, "x")) * u1 + k * this.view.cx,
+        cy: (mid(before, "y") - mid(after, "y")) * u1 + k * this.view.cy,
+      },
+      this.userMoved,
+    );
   }
 
   private applyView(view: View, userMoved: boolean) {

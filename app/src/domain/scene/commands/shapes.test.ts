@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { emptyBoard, resolveTargets, type ArcNode, type PolygonNode, type SegmentNode, type VectorNode } from "@/domain/board/state";
 import { solveRightTriangle } from "@/domain/board/shapes";
+import { collisions } from "@/domain/board/collisions";
 import { Action, applyAction } from "./index";
 
 const t = { start: 0, duration: 1000 };
@@ -161,5 +162,129 @@ describe("figures paramétriques", () => {
     expect(board.nodes["plan-bloc"]!.reveal).toEqual(blockReveal);
     expect(board.nodes["plan-P"]!.reveal.start).toBe(5000);
     expect(resolveTargets(board, "plan")).toContain("plan-P");
+  });
+});
+
+describe("géométrie des séances du 19 octobre", () => {
+  it("trace la hauteur issue de l'angle droit, exactement perpendiculaire à l'hypoténuse", () => {
+    // Séance observée : la « hauteur » tombait à la verticale sur la base, pas sur l'hypoténuse.
+    const board = applyAction(
+      emptyBoard(),
+      { type: "triangle", id: "tri", base: 4, height: 3, at: [0, 0], names: ["A", "B", "C"], altitude: { from: "B", label: "h", parts: ["m", "n"] } },
+      t,
+    );
+    const h = board.nodes["tri-hauteur"] as SegmentNode;
+    // A(0,0), B(4,0), C(4,3) : le pied de la hauteur issue de B sur AC est (2,56 ; 1,92).
+    close([...h.from, ...h.to], [4, 0, 2.56, 1.92]);
+    const along = [4, 3];
+    const dir = [h.to[0] - h.from[0], h.to[1] - h.from[1]];
+    expect(dir[0]! * along[0]! + dir[1]! * along[1]!).toBeCloseTo(0, 9);
+    // Les morceaux de l'hypoténuse : AH = 3,2 (16/5) et HC = 1,8 (9/5).
+    const p1 = board.nodes["tri-proj1"] as SegmentNode;
+    const p2 = board.nodes["tri-proj2"] as SegmentNode;
+    expect(Math.hypot(p1.to[0] - p1.from[0], p1.to[1] - p1.from[1])).toBeCloseTo(3.2, 9);
+    expect(Math.hypot(p2.to[0] - p2.from[0], p2.to[1] - p2.from[1])).toBeCloseTo(1.8, 9);
+    expect(board.nodes["tri-proj1-l"]).toMatchObject({ type: "text", text: "m" });
+    expect(board.nodes["tri-H"]).toMatchObject({ type: "text", text: "H" });
+    expect(board.nodes["tri-hauteur-l"]).toMatchObject({ type: "text", text: "h" });
+    expect(board.nodes["tri-pied"]).toMatchObject({ type: "polygon", closed: false });
+  });
+
+  it("prolonge le côté quand le pied de la hauteur tombe en dehors (triangle obtus)", () => {
+    const board = applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [2, 0], [4, 2]], altitude: "C" }, t);
+    const h = board.nodes["tri-hauteur"] as SegmentNode;
+    close([...h.from, ...h.to], [4, 2, 4, 0]);
+    expect(board.nodes["tri-prolongement"]).toMatchObject({ type: "segment", dashed: true });
+  });
+
+  it("vise les sommets d'un triangle par leur nom, même sans points nommés", () => {
+    // Séance observée : angle "at":"A" sur un triangle donné par ses points ne dessinait rien.
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [5, 0], [1.5, 3]] }, t);
+    board = applyAction(board, { type: "angle", id: "a1", at: "A", from: "B", to: "C", label: "1" }, t);
+    expect((board.nodes["a1"] as ArcNode).center).toEqual([0, 0]);
+    board = applyAction(board, { type: "triangle", id: "r", base: 4, height: 3, at: [10, 0], names: ["P", "Q", "R"], altitude: "Q" }, t);
+    board = applyAction(board, { type: "segment", id: "s", from: "P", to: "H" }, t);
+    close([...(board.nodes["s"] as SegmentNode).from, ...(board.nodes["s"] as SegmentNode).to], [10, 0, 12.56, 1.92]);
+    // Le triangle déplacé : ses sommets suivent.
+    board = applyAction(board, { type: "move", target: "tri", by: [1, 1] }, t);
+    board = applyAction(board, { type: "angle", id: "a2", at: "A", from: "B", to: "C" }, t);
+    expect((board.nodes["a2"] as ArcNode).center).toEqual([1, 1]);
+  });
+
+  it("écrit « 90° » sur l'angle droit, pas sur l'angle aigu", () => {
+    const board = applyAction(emptyBoard(), { type: "triangle", id: "tri", base: 4, height: 3, angleLabel: "90°" }, t);
+    expect((board.nodes["tri-droit"] as PolygonNode).label).toBe("90°");
+    expect(board.nodes["tri-angle"]).toBeUndefined();
+  });
+
+  it("copie sur place quand aucune destination n'est donnée", () => {
+    // Séance observée : la copie refusée laissait « 90° » écrit à côté de rien.
+    let board = applyAction(emptyBoard(), { type: "segment", id: "r", from: [0, 0], to: [5, 0] }, t);
+    expect(Action.safeParse({ type: "copy", target: "r", id: "r2" }).success).toBe(true);
+    board = applyAction(board, { type: "copy", target: "r", id: "r2" }, t);
+    board = applyAction(board, { type: "rotate", target: "r2", about: [0, 0], angle: 90 }, t);
+    expect(board.nodes["r2"]).toBeDefined();
+    expect(board.nodes["r2"]!.spins?.length).toBe(1);
+  });
+});
+
+describe("tableau sans repère (séances du 19 octobre)", () => {
+  it("agrandit le cadre pour une grande figure, sans repère : le texte reste lisible", () => {
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", base: 6, height: 8, at: [0, 0], names: ["A", "B", "C"], sides: { base: "6", height: "8" } }, t);
+    expect(board.frame.y[1]).toBeGreaterThan(8);
+    board = applyAction(board, { type: "triangle", id: "tri", base: 6, height: 8, names: ["A", "B", "C"], squares: { base: "36", height: "64", hyp: "?" } }, t);
+    // Les carrés débordent de partout : le cadre les contient tous.
+    const hyp = board.nodes["tri-carre-hyp"] as PolygonNode;
+    for (const [x, y] of hyp.points) {
+      expect(x).toBeGreaterThanOrEqual(board.frame.x[0]);
+      expect(x).toBeLessThanOrEqual(board.frame.x[1]);
+      expect(y).toBeGreaterThanOrEqual(board.frame.y[0]);
+      expect(y).toBeLessThanOrEqual(board.frame.y[1]);
+    }
+    // "clear" remet le cadre par défaut.
+    board = applyAction(board, { type: "clear" }, t);
+    expect(board.frame).toEqual(emptyBoard().frame);
+  });
+
+  it("ne touche pas au cadre d'un repère", () => {
+    let board = applyAction(emptyBoard(), { type: "axes", x: [-2, 2], y: [-2, 2] }, t);
+    board = applyAction(board, { type: "circle", id: "c", center: [0, 0], radius: 5 }, t);
+    expect(board.frame.x).toEqual([-2, 2]);
+  });
+
+  it("pose à côté un exemple dessiné par-dessus la figure", () => {
+    // Séance observée : un carré de côté 3 tombé sur le carré de l'hypoténuse.
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", base: 6, height: 8, at: [0, 0], squares: { base: "36", height: "64", hyp: "100" } }, t);
+    board = applyAction(board, { type: "polygon", id: "sq3", points: [[-6, -3], [-3, -3], [-3, 0], [-6, 0]], label: "9" }, t);
+    expect(collisions(board).filter((c) => c.kind === "dessins")).toEqual([]);
+    // Il grandit plus tard avec les coordonnées du modèle : il reste à l'écart.
+    board = applyAction(board, { type: "transform", target: "sq3", points: [[-8, -5], [-3, -5], [-3, 0], [-8, 0]] }, t);
+    expect(collisions(board).filter((c) => c.kind === "dessins")).toEqual([]);
+    // Une partie coloriée dans la figure, elle, reste où elle est.
+    board = applyAction(board, { type: "polygon", id: "part", points: [[0, 0], [3, 0], [3, 4]], fill: true }, t);
+    expect((board.nodes["part"] as PolygonNode).points[0]).toEqual([0, 0]);
+  });
+
+  it("efface une figure sans repère quand un premier repère arrive, garde les calculs", () => {
+    let board = applyAction(emptyBoard(), { type: "polygon", id: "para", points: [[4, 2], [10, 2], [12, -2], [6, -2]] }, t);
+    board = applyAction(board, { type: "note", id: "n", text: "aire = 24" }, t);
+    board = applyAction(board, { type: "axes", x: [-1, 11], y: [-1, 7] }, t);
+    expect(board.nodes["para"]!.erased).toBeDefined();
+    expect(board.nodes["n"]!.erased).toBeUndefined();
+  });
+
+  it("dessine un secteur de disque (et pas un triangle) et un cylindre en perspective", () => {
+    let board = applyAction(emptyBoard(), { type: "sector", id: "s", center: [0, 0], radius: 5, from: 0, to: 60, label: "60°", arcLabel: "≈ 5,2" }, t);
+    const arc = board.nodes["s-arc"] as PolygonNode;
+    for (const [x, y] of arc.points) expect(Math.hypot(x, y)).toBeCloseTo(5, 9);
+    expect(resolveTargets(board, "s")).toEqual(expect.arrayContaining(["s-surface", "s-arc", "s-r1", "s-r2", "s-arc-l"]));
+    board = applyAction(board, { type: "rotate", target: "s", about: [0, 0], angle: 60 }, t);
+    expect(board.nodes["s-surface"]!.spins?.length).toBe(1);
+
+    board = applyAction(emptyBoard(), { type: "cylinder", id: "cyl", radius: 2, height: 3, slices: 4, labels: { radius: "r", height: "h" } }, t);
+    expect(resolveTargets(board, "cyl-tranches")).toEqual(["cyl-tranche-1", "cyl-tranche-2", "cyl-tranche-3"]);
+    const left = board.nodes["cyl-gauche"] as SegmentNode;
+    expect(left.to[1] - left.from[1]).toBeCloseTo(3, 9);
+    expect(board.nodes["cyl-rayon-l"]).toMatchObject({ type: "text", text: "r" });
   });
 });

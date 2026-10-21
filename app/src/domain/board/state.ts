@@ -149,6 +149,12 @@ export type NodeType = BoardNode["type"];
 export interface Group {
   id: string;
   members: readonly string[];
+  /**
+   * Sommets nommés d'une figure (triangle : A, B, C, pied de la hauteur H), à leur place
+   * d'origine : un angle ou un segment peut les viser par leur nom ("at":"A"). La place
+   * réelle suit les déplacements de la figure (décalage de sa première partie).
+   */
+  vertices?: Readonly<Record<string, Vec2>>;
 }
 
 export interface AxesItem {

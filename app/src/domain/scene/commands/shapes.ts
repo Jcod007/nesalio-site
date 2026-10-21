@@ -8,10 +8,13 @@
  * en évidence l'hypoténuse, estomper le bloc ou déplacer toute la figure.
  */
 import { z } from "zod";
-import { worldPerMath } from "@/domain/board/layout";
+import { fitFrame, worldPerMath, type Box } from "@/domain/board/layout";
+import { outline } from "@/domain/board/collisions";
+import { roomFor } from "@/domain/board/room";
 import {
   add,
   angleArc,
+  arcPoints,
   centroid,
   outward,
   rightAngleMark,
@@ -25,6 +28,7 @@ import { isVisible, moveNodes, putNode, type BoardNode, type BoardState, type Gr
 import { ColorName, Coord, finite, Id } from "../primitives";
 import { base, drawNode } from "./figure";
 import { defineCommand } from "./define";
+import { PointRef, resolvePoint } from "./points";
 
 type Color = z.infer<typeof ColorName>;
 
@@ -32,13 +36,11 @@ type Color = z.infer<typeof ColorName>;
 const ShapeId = Id.refine((id) => id.length <= 24, { message: "Identifiant de figure : 24 caractères au plus" });
 const Name = z.string().trim().min(1).max(24);
 
-/** Un point donné par ses coordonnées, ou par le nom d'un point déjà au tableau. */
-const PointRef = z.union([Coord, Id]);
-function resolvePoint(state: BoardState, ref: z.infer<typeof PointRef>): Vec2 | null {
-  if (typeof ref !== "string") return ref;
-  const node = state.nodes[ref];
-  if (!isVisible(node) || node.type !== "point") return null;
-  return add(node.at, node.offset);
+/** Boîte englobante de quelques points (coordonnées mathématiques). */
+function pointsBox(points: Vec2[]): Box {
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
 }
 
 /** Les parties d'une figure apparaissent l'une après l'autre dans le temps de la commande. */
@@ -53,7 +55,14 @@ function stagger(reveal: Reveal, index: number, count: number): Reveal {
  * les parties déjà au tableau restent en place, seules les nouvelles
  * apparaissent (on présente les forces une à une, par exemple).
  */
-function drawFigure(state: BoardState, id: string, parts: BoardNode[], reveal: Reveal, extraGroups: Record<string, string[]> = {}): BoardState {
+function drawFigure(
+  state: BoardState,
+  id: string,
+  parts: BoardNode[],
+  reveal: Reveal,
+  extraGroups: Record<string, string[]> = {},
+  vertices?: Record<string, Vec2>,
+): BoardState {
   const fresh = parts.filter((part) => {
     const existing = state.nodes[part.id];
     return !isVisible(existing) || existing.type !== part.type;
@@ -86,7 +95,7 @@ function drawFigure(state: BoardState, id: string, parts: BoardNode[], reveal: R
     } as BoardNode);
   }
   const members = [...new Set([...(state.groups[id]?.members ?? []), ...parts.map((p) => p.id)])];
-  const groups: Record<string, Group> = { ...next.groups, [id]: { id, members } };
+  const groups: Record<string, Group> = { ...next.groups, [id]: { id, members, ...(vertices ? { vertices: { ...state.groups[id]?.vertices, ...vertices } } : {}) } };
   for (const [gid, ids] of Object.entries(extraGroups)) {
     if (ids.length > 0) groups[gid] = { id: gid, members: [...new Set([...(next.groups[gid]?.members ?? []), ...ids])] };
   }
@@ -134,6 +143,21 @@ function angleMark(state: BoardState, id: string, vertex: Vec2, a: Vec2, b: Vec2
 
 /* --------------------------------- formes --------------------------------- */
 
+/**
+ * Un dessin à part posé par-dessus un autre (sans repère) glisse juste à côté (board/room.ts).
+ * Le décalage entre dans ses coordonnées : le tableau rendu au modèle donne sa vraie place.
+ */
+export function withRoom<N extends BoardNode>(state: BoardState, node: N, ignore: ReadonlySet<string> = new Set([node.id])): N {
+  const poly = outline(node);
+  if (!poly) return node;
+  const filled = node.type === "polygon" && (node.fill === true || node.shade === true);
+  const [dx, dy] = roomFor(state, poly, filled, ignore);
+  if (dx === 0 && dy === 0) return node;
+  if (node.type === "polygon") return { ...node, points: node.points.map(([x, y]) => [x + dx, y + dy] as Vec2), labelAt: undefined };
+  if (node.type === "circle") return { ...node, center: [node.center[0] + dx, node.center[1] + dy] as Vec2 };
+  return node;
+}
+
 export const circleCommand = defineCommand({
   schema: z.object({
     type: z.literal("circle"),
@@ -148,7 +172,7 @@ export const circleCommand = defineCommand({
   duration: 1200,
   apply(state, action, reveal) {
     const { type, id, color, ...rest } = action;
-    return drawNode(state, { ...base(id, reveal, color), type, ...rest }, reveal);
+    return drawNode(state, withRoom(state, { ...base(id, reveal, color), type, ...rest } as BoardNode), reveal);
   },
 });
 
@@ -165,7 +189,7 @@ export const polygonCommand = defineCommand({
   duration: 1200,
   apply(state, action, reveal) {
     const { type, id, color, ...rest } = action;
-    return drawNode(state, { ...base(id, reveal, color), type, ...rest, closed: true }, reveal);
+    return drawNode(state, withRoom(state, { ...base(id, reveal, color), type, ...rest, closed: true } as BoardNode), reveal);
   },
 });
 
@@ -193,6 +217,126 @@ export const angleCommand = defineCommand({
   },
 });
 
+/* --------------------------------- secteur --------------------------------- */
+
+export const sectorCommand = defineCommand({
+  schema: z.object({
+    type: z.literal("sector"),
+    id: ShapeId,
+    center: Coord,
+    radius: finite.positive().max(10_000),
+    from: finite.min(-720).max(720),
+    to: finite.min(-720).max(720),
+    label: z.string().max(24).optional(),
+    arcLabel: z.string().max(24).optional(),
+    color: ColorName.optional(),
+  }),
+  doc:
+    '{"type":"sector","id":"s","center":[0,0],"radius":5,"from":0,"to":60,"label":"60°","arcLabel":"arc ≈ 5,2"} : secteur\n' +
+    '  de disque (une part de pizza) entre deux angles en degrés, avec ses deux rayons et son arc. Parties : s-surface\n' +
+    '  (la part, remplie), s-arc (l\'arc seul, pour sa longueur), s-r1, s-r2 (les rayons). Un "rotate" sur "s" la fait\n' +
+    '  tourner autour du centre ("about" = le centre) ; pour une fraction du cercle, dessine les parts une à une.',
+  duration: 1400,
+  aliases: ["wedge", "part"],
+  apply(state, action, reveal) {
+    const { center, radius, id } = action;
+    const color = action.color ?? "orange";
+    const [start, end] = action.from <= action.to ? [action.from, action.to] : [action.to, action.from];
+    const samples = Math.max(8, Math.ceil((end - start) / 6));
+    const arc = arcPoints(center, radius, start, end, samples);
+    state = fitFrame(state, pointsBox([center, ...arc]));
+    const unit = worldPerMath(state.frame);
+    const middle = rad((start + end) / 2);
+    const dir: Vec2 = [Math.cos(middle), Math.sin(middle)];
+    const parts: BoardNode[] = [
+      {
+        ...base(`${id}-surface`, reveal, color),
+        type: "polygon",
+        points: [center, ...arc],
+        closed: true,
+        fill: true,
+        label: action.label,
+        // L'angle s'écrit dans la part, près du centre ; la longueur de l'arc, dehors.
+        labelAt: add(center, scale(dir, Math.min(radius * 0.55, radius - 0.4 / unit))),
+      },
+      segment(`${id}-r1`, center, arc[0]!, reveal, color),
+      segment(`${id}-r2`, center, arc[arc.length - 1]!, reveal, color),
+      { ...base(`${id}-arc`, reveal, color), type: "polygon", points: arc, closed: false },
+    ];
+    if (action.arcLabel) parts.push(label(`${id}-arc-l`, action.arcLabel, add(center, scale(dir, radius + 0.45 / unit)), `${id}-arc`, reveal, color));
+    return drawFigure(state, id, parts, reveal, {}, { [`${id}-centre`]: center });
+  },
+});
+
+/* -------------------------------- cylindre -------------------------------- */
+
+/** Ellipse d'un cercle vu en perspective (axe vertical) : de start à end degrés. */
+function ellipse(center: Vec2, rx: number, ry: number, start: number, end: number, samples = 32): Vec2[] {
+  return Array.from({ length: samples + 1 }, (_, i) => {
+    const t = rad(start + ((end - start) * i) / samples);
+    return [center[0] + rx * Math.cos(t), center[1] + ry * Math.sin(t)] as Vec2;
+  });
+}
+
+export const cylinderCommand = defineCommand({
+  schema: z.object({
+    type: z.literal("cylinder"),
+    id: ShapeId,
+    radius: finite.positive().max(10_000),
+    height: finite.positive().max(10_000),
+    at: Coord.optional(),
+    slices: z.number().int().min(0).max(12).optional(),
+    labels: z.object({ radius: Name, height: Name, base: Name }).partial().optional(),
+    color: ColorName.optional(),
+  }),
+  doc:
+    '{"type":"cylinder","id":"cyl","radius":2,"height":3,"slices":4,"labels":{"radius":"r","height":"h","base":"aire de la base"}}\n' +
+    '  Cylindre en perspective (centre de la base en "at", sinon centré) : base et dessus en ellipses, côtés, rayon et\n' +
+    '  hauteur nommés. "slices" : la pile de tranches identiques (pièces de monnaie) qui montre V = aire de la base × h ;\n' +
+    '  redemander la figure avec plus de tranches les ajoute. Parties : cyl-base, cyl-dessus (rempli : l\'aire de la base),\n' +
+    '  cyl-cotes, cyl-rayon, cyl-hauteur, cyl-tranche-1…, groupe cyl-tranches. Jamais de cercles empilés à plat.',
+  duration: 2600,
+  aliases: ["cylindre"],
+  apply(state, action, reveal) {
+    const { radius: r, height: h, id } = action;
+    const color = action.color ?? "blue";
+    const ry = r * 0.32;
+    const bottom: Vec2 = action.at ?? [0, -h / 2];
+    const top = add(bottom, [0, h]);
+    // La cote de hauteur, à gauche, compte dans la figure.
+    state = fitFrame(state, pointsBox([add(bottom, [-r * 1.4 - 0.8, -ry]), add(top, [r, ry + 0.8])]));
+    const unit = worldPerMath(state.frame);
+    const parts: BoardNode[] = [
+      // Arrière de la base : caché, d'un trait plus clair.
+      { ...base(`${id}-base-arriere`, reveal, "muted"), type: "polygon", points: ellipse(bottom, r, ry, 0, 180), closed: false },
+      { ...base(`${id}-base`, reveal, color), type: "polygon", points: ellipse(bottom, r, ry, 180, 360), closed: false },
+      segment(`${id}-gauche`, add(bottom, [-r, 0]), add(top, [-r, 0]), reveal, color),
+      segment(`${id}-droite`, add(bottom, [r, 0]), add(top, [r, 0]), reveal, color),
+    ];
+    const slices = action.slices ?? 0;
+    for (let k = 1; k < slices; k++) {
+      const c = add(bottom, [0, (h * k) / slices]);
+      parts.push({ ...base(`${id}-tranche-${k}`, reveal, "muted"), type: "polygon", points: ellipse(c, r, ry, 180, 360), closed: false });
+    }
+    parts.push({
+      ...base(`${id}-dessus`, reveal, color),
+      type: "polygon",
+      points: ellipse(top, r, ry, 0, 360).slice(0, -1),
+      closed: true,
+      fill: true,
+      label: action.labels?.base,
+      labelAt: add(top, [0, ry + 0.4 / unit]),
+    });
+    parts.push(segment(`${id}-rayon`, top, add(top, [r, 0]), reveal, "violet"));
+    if (action.labels?.radius) parts.push(label(`${id}-rayon-l`, action.labels.radius, add(top, [r / 2, -0.28 / unit]), `${id}-rayon`, reveal, "violet"));
+    const hx = bottom[0] - r - 0.45 / unit;
+    parts.push(segment(`${id}-hauteur`, [hx, bottom[1]], [hx, top[1]], reveal, "orange", true));
+    if (action.labels?.height) parts.push(label(`${id}-hauteur-l`, action.labels.height, [hx - 0.3 / unit, bottom[1] + h / 2], `${id}-hauteur`, reveal, "orange"));
+    const tranches = Array.from({ length: Math.max(0, slices - 1) }, (_, k) => `${id}-tranche-${k + 1}`);
+    return drawFigure(state, id, parts, reveal, { [`${id}-tranches`]: tranches, [`${id}-cotes`]: [`${id}-gauche`, `${id}-droite`] });
+  },
+});
+
 /* -------------------------------- triangle -------------------------------- */
 
 /** Texte écrit au centre d'un carré de Pythagore (son aire) ; "" = carré sans texte. */
@@ -215,6 +359,17 @@ const TriangleSchema = z
       .partial()
       .optional(),
     angleLabel: z.string().max(12).optional(),
+    altitude: z
+      .union([
+        Name,
+        z.object({
+          from: Name,
+          foot: Name.optional(),
+          label: z.string().trim().max(12).optional(),
+          parts: z.tuple([z.string().trim().max(12), z.string().trim().max(12)]).optional(),
+        }),
+      ])
+      .optional(),
     squares: z
       .union([z.literal(true), z.object({ base: SquareText, height: SquareText, hyp: SquareText, ab: SquareText, bc: SquareText, ca: SquareText }).partial()])
       .optional(),
@@ -235,10 +390,16 @@ export const triangleCommand = defineCommand({
     '  ("sides" : ab, bc, ca).\n' +
     '  "squares":{"base":"16","height":"9","hyp":"25"} : le moteur construit le carré sur chaque côté nommé, à l\'extérieur,\n' +
     '  avec ce texte (son aire) au centre ; "squares":true pour les trois sans texte. Parties tri-carre-base,\n' +
-    '  tri-carre-haut, tri-carre-hyp, groupe tri-carres. Les longueurs ("sides") passent alors à l\'intérieur du triangle.',
+    '  tri-carre-haut, tri-carre-hyp, groupe tri-carres. Les longueurs ("sides") passent alors à l\'intérieur du triangle.\n' +
+    '  "altitude":{"from":"B","foot":"H","label":"h","parts":["m","n"]} : le moteur trace la hauteur issue de ce sommet\n' +
+    '  (pointillés, angle droit au pied, pied nommé H), exactement perpendiculaire au côté opposé (prolongé s\'il le faut).\n' +
+    '  "parts" écrit la longueur des deux morceaux du côté coupé, dans l\'ordre des sommets (hauteur issue de B : AH puis HC).\n' +
+    '  Parties : tri-hauteur, tri-pied (angle droit), tri-proj1, tri-proj2 (les deux morceaux). "altitude":"B" suffit.\n' +
+    '  Les sommets (A, B, C ou "names", et le pied H) se visent par leur nom : {"type":"angle","at":"A","from":"B","to":"C"},\n' +
+    '  {"type":"segment","from":"B","to":"H"}.',
   duration: 2400,
   apply(state, action, reveal) {
-    const unit = worldPerMath(state.frame);
+    let unit = worldPerMath(state.frame);
     const color = action.color;
     let A: Vec2;
     let B: Vec2;
@@ -301,12 +462,17 @@ export const triangleCommand = defineCommand({
       });
     });
     const hasSquare = (i: number) => squareText(i) !== undefined;
+    // Le cadre s'agrandit d'abord si la figure en déborde : la place des étiquettes (en 1/unit) en dépend.
+    state = fitFrame(state, pointsBox([A, B, C, ...squares.flatMap((sq) => (sq.type === "polygon" ? sq.points : []))]));
+    unit = worldPerMath(state.frame);
 
     const parts: BoardNode[] = sides.map(([sid, from, to]) => segment(sid, from, to, reveal, color));
     parts.push(...squares);
-    if (right) parts.push(angleMark(state, `${id}-droit`, B, A, C, undefined, true, reveal));
-    if (right && (action.angleLabel !== undefined || action.angle !== undefined)) {
-      parts.push(angleMark(state, `${id}-angle`, A, B, C, action.angleLabel ?? `${action.angle}°`, false, reveal));
+    // « 90° » désigne l'angle droit (en B), jamais l'angle aigu en A (séance du 19 octobre).
+    const rightLabel = right && action.angleLabel !== undefined && /^90\s*°?$/.test(action.angleLabel.trim()) ? action.angleLabel : undefined;
+    if (right) parts.push(angleMark(state, `${id}-droit`, B, A, C, rightLabel, true, reveal));
+    if (right && ((action.angleLabel !== undefined && rightLabel === undefined) || action.angle !== undefined)) {
+      parts.push(angleMark(state, `${id}-angle`, A, B, C, (rightLabel ? undefined : action.angleLabel) ?? `${action.angle}°`, false, reveal));
     }
     sides.forEach(([sid, from, to, text], i) => {
       // Un carré occupe l'extérieur du côté : la longueur s'écrit alors du côté intérieur.
@@ -316,11 +482,61 @@ export const triangleCommand = defineCommand({
     if (action.names) {
       [A, B, C].forEach((vertex, i) => parts.push(label(`${id}-${action.names![i]!.replace(/[^\w-]/g, "") || i}`, action.names![i]!, outward(vertex, center, 0.36 / unit), sides[0]![0], reveal)));
     }
+    // Hauteur issue d'un sommet, calculée exactement (le modèle la faisait tomber à côté du côté opposé).
+    const vertexNames = action.names ?? ["A", "B", "C"];
+    const corners: Vec2[] = [A, B, C];
+    const vertices: Record<string, Vec2> = {};
+    vertexNames.forEach((name, i) => (vertices[name] = corners[i]!));
+    const extra: Record<string, string[]> = {};
+    if (action.altitude !== undefined) {
+      const spec = typeof action.altitude === "string" ? { from: action.altitude } : action.altitude;
+      const byName = vertexNames.indexOf(spec.from);
+      const i = byName >= 0 ? byName : ["A", "B", "C"].indexOf(spec.from.toUpperCase());
+      if (i >= 0) {
+        const P = corners[i]!;
+        // Les deux autres sommets, dans l'ordre des noms (hauteur issue de B : A puis C).
+        const [q, r] = [(i + 1) % 3, (i + 2) % 3].sort((u, v) => u - v) as [number, number];
+        const Q = corners[q]!;
+        const R = corners[r]!;
+        const d = sub(R, Q);
+        const t = ((P[0] - Q[0]) * d[0] + (P[1] - Q[1]) * d[1]) / (d[0] * d[0] + d[1] * d[1]);
+        const H = add(Q, scale(d, t));
+        if (Math.hypot(P[0] - H[0], P[1] - H[1]) > 1e-9) {
+          const footName = spec.foot ?? "H";
+          vertices[footName] = H;
+          parts.push(segment(`${id}-hauteur`, P, H, reveal, "violet", true));
+          // L'angle droit au pied, du côté du sommet ; contre le côté (ou son prolongement).
+          parts.push(angleMark(state, `${id}-pied`, H, P, t < 1 ? R : Q, undefined, true, reveal, "violet"));
+          if (t < 0 || t > 1) parts.push(segment(`${id}-prolongement`, t < 0 ? Q : R, H, reveal, "muted", true));
+          const away = scale(sub(H, P), 1 / Math.hypot(H[0] - P[0], H[1] - P[1]));
+          parts.push(label(`${id}-${footName.replace(/[^\w-]/g, "") || "H"}`, footName, add(H, scale(away, 0.36 / unit)), `${id}-hauteur`, reveal, "violet"));
+          if (spec.label) {
+            const middle = scale(add(P, H), 0.5);
+            const side = sub(Q, middle);
+            const normal: Vec2 = [-away[1], away[0]];
+            const toward = normal[0] * side[0] + normal[1] * side[1] > 0 ? normal : scale(normal, -1);
+            parts.push(label(`${id}-hauteur-l`, spec.label, add(middle, scale(toward, 0.3 / unit)), `${id}-hauteur`, reveal, "violet"));
+          }
+          if (t >= 0 && t <= 1) {
+            const pieces: Array<[string, Vec2, Vec2, Color, string | undefined]> = [
+              [`${id}-proj1`, Q, H, "orange", spec.parts?.[0]],
+              [`${id}-proj2`, H, R, "green", spec.parts?.[1]],
+            ];
+            for (const [pid, from, to, tone, text] of pieces) {
+              if (!spec.parts) continue;
+              parts.push(segment(pid, from, to, reveal, tone));
+              if (text) parts.push(label(`${pid}-l`, text, outward(scale(add(from, to), 0.5), center, 0.42 / unit), pid, reveal, tone));
+            }
+          }
+          extra[`${id}-hauteurs`] = [`${id}-hauteur`, `${id}-pied`];
+        }
+      }
+    }
     // Autres noms des côtés d'un triangle rectangle (le modèle les emploie souvent) : ab, bc, ca, opposé, adjacent.
     const aliases: Record<string, string[]> = right
       ? { [`${id}-ab`]: [`${id}-base`], [`${id}-bc`]: [`${id}-haut`], [`${id}-ca`]: [`${id}-hyp`], [`${id}-oppose`]: [`${id}-haut`], [`${id}-adjacent`]: [`${id}-base`] }
       : {};
-    return drawFigure(state, id, parts, reveal, { ...aliases, [`${id}-carres`]: squares.map((s) => s.id) });
+    return drawFigure(state, id, parts, reveal, { ...aliases, ...extra, [`${id}-carres`]: squares.map((s) => s.id) }, vertices);
   },
 });
 

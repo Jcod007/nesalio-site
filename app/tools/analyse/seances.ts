@@ -146,7 +146,7 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
   lines.push(`- Attente avant la première phrase : médiane ${sec(median(allFirst))}, max ${sec(Math.max(0, ...allFirst))}`);
   const byKind = (kind: CollisionKind) => sum((s) => [...s.overlaps.values()].filter((o) => o.kind === kind).length);
   lines.push(
-    `- Chevauchements (paires distinctes) : ${sum((s) => s.overlaps.size)} · texte sur texte ${byKind("texte")} · sur un point ${byKind("point")} · barré par un trait ${byKind("trait")} · dans une surface ${byKind("surface")} · graduations ${byKind("graduations")}`,
+    `- Chevauchements (paires distinctes) : ${sum((s) => s.overlaps.size)} · texte sur texte ${byKind("texte")} · sur un point ${byKind("point")} · barré par un trait ${byKind("trait")} · dans une surface ${byKind("surface")} · graduations ${byKind("graduations")} · dessins l'un sur l'autre ${byKind("dessins")}`,
   );
   lines.push(`- Déplacements imposés par le moteur (objets déjà au tableau) : ${sum((s) => s.shifted)}`);
   lines.push(`- Objets dessinés sans repère dans la phrase : ${sum((s) => s.uncued)} sur ${sum((s) => s.drawn)}`);

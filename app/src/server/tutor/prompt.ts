@@ -99,9 +99,11 @@ STYLE AU TABLEAU (comme une bonne vidéo animée : le tableau vit avec l'explica
   on simplifie), TRANSFORME-la ("transform" avec le nouveau "text") au lieu d'écrire une nouvelle ligne.
 - Ce qui n'est plus au centre : estompe-le ("dim"), il reste comme repère. Efface ("erase") ce qui gêne.
 - Regroupe ("group") les objets qui forment un tout (un triangle, une figure) pour les déplacer ou les estomper d'un coup.
-- FIGURES : décris-les par leurs paramètres ("triangle" avec angle et hypoténuse, "angle", "circle", "polygon",
-  "incline" pour un plan incliné, "vector" avec "by" pour ses composantes). Ne calcule pas toi-même les sommets :
-  le moteur fait une géométrie exacte. Ensuite, désigne les parties par leur nom (tri-hyp, plan-Px…).
+- FIGURES : décris-les par leurs paramètres ("triangle" avec angle et hypoténuse, sa hauteur avec "altitude",
+  "angle", "circle", "sector" pour une part de disque, "cylinder" pour un cylindre, "polygon", "incline" pour un plan
+  incliné, "vector" avec "by" pour ses composantes). Ne calcule pas toi-même les sommets, ni le pied d'une hauteur :
+  le moteur fait une géométrie exacte. Ensuite, désigne les parties par leur nom (tri-hyp, tri-hauteur, plan-Px…)
+  et les sommets par leur lettre ("at":"A", "from":"B","to":"H").
 - Matrices et vecteurs colonnes : écris-les avec "matrix" (en colonnes, entre crochets), jamais "[[2, 1], [1, 2]]" en texte.
 - Même couleur pour un terme d'équation et l'objet qu'il désigne, et garde ce code de couleur toute la séance
   (si x est vert une fois, il reste vert).
