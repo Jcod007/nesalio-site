@@ -21,7 +21,7 @@ import { sampleParametric } from "@/domain/board/geometry";
 import { rotate } from "@/domain/board/shapes";
 import { massId, putMassPoint } from "./analysis";
 import { defineCommand } from "./define";
-import { withRoom } from "./shapes";
+import { withRoom } from "./parts";
 import { resolvePoint } from "./points";
 
 /** Point d'un objet qui sert d'accroche : la queue ou la pointe d'un vecteur, le centre d'une figure. */

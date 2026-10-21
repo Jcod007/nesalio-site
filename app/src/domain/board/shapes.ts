@@ -14,6 +14,35 @@ export const norm = (a: Vec2) => Math.hypot(a[0], a[1]);
 export const unit = (a: Vec2): Vec2 => scale(a, 1 / (norm(a) || 1));
 export const centroid = (points: readonly Vec2[]): Vec2 => scale(points.reduce(add, [0, 0]), 1 / Math.max(1, points.length));
 
+export const dot = (a: Vec2, b: Vec2) => a[0] * b[0] + a[1] * b[1];
+
+/** Pied de la perpendiculaire abaissée de `p` sur la droite (a, b). */
+export function footOnLine(p: Vec2, a: Vec2, b: Vec2): Vec2 {
+  const d = sub(b, a);
+  return add(a, scale(d, dot(sub(p, a), d) / dot(d, d)));
+}
+
+/** Position du pied de `p` sur (a, b) : 0 en a, 1 en b (hors de [0, 1] : sur le prolongement). */
+export function footParameter(p: Vec2, a: Vec2, b: Vec2): number {
+  const d = sub(b, a);
+  return dot(sub(p, a), d) / dot(d, d);
+}
+
+/** Intersection des droites (p1, p2) et (q1, q2) ; null si elles sont parallèles. */
+export function intersectLines(p1: Vec2, p2: Vec2, q1: Vec2, q2: Vec2): Vec2 | null {
+  const r = sub(p2, p1);
+  const s = sub(q2, q1);
+  const cross = r[0] * s[1] - r[1] * s[0];
+  if (Math.abs(cross) < 1e-12) return null;
+  const t = ((q1[0] - p1[0]) * s[1] - (q1[1] - p1[1]) * s[0]) / cross;
+  return add(p1, scale(r, t));
+}
+
+/** Symétrique de `p` par rapport à la droite (a, b). */
+export function reflectAcross(p: Vec2, a: Vec2, b: Vec2): Vec2 {
+  return sub(scale(footOnLine(p, a, b), 2), p);
+}
+
 /** Rotation de `p` autour de `origin`. */
 export function rotate(p: Vec2, origin: Vec2, degrees: number): Vec2 {
   const [dx, dy] = sub(p, origin);

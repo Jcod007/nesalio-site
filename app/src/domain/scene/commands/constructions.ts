@@ -12,54 +12,16 @@
  */
 import { z } from "zod";
 import { figureBox, worldPerMath, type Box } from "@/domain/board/layout";
-import { add, angleArc, rightAngleMark, scale, sub } from "@/domain/board/shapes";
-import { isVisible, type BoardNode, type BoardState, type Group, type Reveal, type Vec2 } from "@/domain/board/state";
-import { ColorName, finite, Id } from "../primitives";
+import { add, angleArc, footOnLine, intersectLines, rightAngleMark, scale, sub, unit } from "@/domain/board/shapes";
+import { type BoardNode, type BoardState, type Reveal, type Vec2 } from "@/domain/board/state";
+import { ColorName, finite } from "../primitives";
 import { base, drawNode } from "./figure";
 import { defineCommand } from "./define";
-import { PointRef, resolvePoint } from "./points";
+import { drawFigure, equalTicks, point, segment, ShapeId } from "./parts";
+import { LineRef, PointRef, resolveLine, resolvePoint } from "./points";
 
-type Color = z.infer<typeof ColorName>;
-
-/** Une droite : un segment du tableau (par son id) ou deux points. */
-const LineRef = z.union([Id, z.tuple([PointRef, PointRef])]);
-type LineRef = z.infer<typeof LineRef>;
-
-function resolveLine(state: BoardState, ref: LineRef): [Vec2, Vec2] | null {
-  if (typeof ref === "string") {
-    // Un segment, ou une construction (son trait : médiatrice, bissectrice, médiane).
-    const ids = state.nodes[ref] ? [ref] : (state.groups[ref]?.members ?? []);
-    for (const nid of ids) {
-      const node = state.nodes[nid];
-      if (isVisible(node) && (node.type === "segment" || node.type === "vector")) return [add(node.from, node.offset), add(node.to, node.offset)];
-    }
-    return null;
-  }
-  const p = resolvePoint(state, ref[0]);
-  const q = resolvePoint(state, ref[1]);
-  if (!p || !q || (p[0] === q[0] && p[1] === q[1])) return null;
-  return [p, q];
-}
-
-const dot = (u: Vec2, v: Vec2) => u[0] * v[0] + u[1] * v[1];
 const len = (u: Vec2) => Math.hypot(u[0], u[1]);
-const dir = (p: Vec2, q: Vec2): Vec2 => scale(sub(q, p), 1 / (len(sub(q, p)) || 1));
-
-/** Pied de la perpendiculaire abaissée de P sur la droite (Q, R). */
-function footOf(P: Vec2, Q: Vec2, R: Vec2): Vec2 {
-  const d = sub(R, Q);
-  return add(Q, scale(d, dot(sub(P, Q), d) / dot(d, d)));
-}
-
-/** Intersection des droites (P1, P2) et (Q1, Q2), ou null si elles sont parallèles. */
-function intersect([P1, P2]: [Vec2, Vec2], [Q1, Q2]: [Vec2, Vec2]): Vec2 | null {
-  const r = sub(P2, P1);
-  const s = sub(Q2, Q1);
-  const cross = r[0] * s[1] - r[1] * s[0];
-  if (Math.abs(cross) < 1e-12) return null;
-  const t = ((Q1[0] - P1[0]) * s[1] - (Q1[1] - P1[1]) * s[0]) / cross;
-  return add(P1, scale(r, t));
-}
+const dir = (p: Vec2, q: Vec2): Vec2 => unit(sub(q, p));
 
 /**
  * La droite passant par P de direction u, coupée aux bords de la figure (un peu au-delà) :
@@ -87,42 +49,9 @@ function across(state: BoardState, P: Vec2, u: Vec2, extra: Vec2[] = []): [Vec2,
   return [add(P, scale(u, lo)), add(P, scale(u, hi))];
 }
 
-const point = (id: string, at: Vec2, label: string | undefined, reveal: Reveal, color?: Color): BoardNode => ({
-  ...base(id, reveal, color),
-  type: "point",
-  at,
-  label,
-});
-const segment = (id: string, from: Vec2, to: Vec2, reveal: Reveal, color?: Color, dashed?: boolean, label?: string): BoardNode => ({
-  ...base(id, reveal, color),
-  type: "segment",
-  from,
-  to,
-  dashed,
-  label,
-});
-
-/** Petits traits d'égalité au milieu d'un segment. */
-function ticks(id: string, from: Vec2, to: Vec2, count: number, unit: number, reveal: Reveal, color?: Color): BoardNode[] {
-  const u = dir(from, to);
-  const n: Vec2 = [-u[1], u[0]];
-  const middle = scale(add(from, to), 0.5);
-  return Array.from({ length: count }, (_, k) => {
-    const at = add(middle, scale(u, ((k - (count - 1) / 2) * 0.1) / unit));
-    return segment(`${id}-${k + 1}`, add(at, scale(n, 0.13 / unit)), add(at, scale(n, -0.13 / unit)), reveal, color);
-  });
-}
-
-/** Dessine les parties d'une construction l'une après l'autre et les réunit sous l'id de la construction. */
+/** Une construction : ses parties apparaissent l'une après l'autre, réunies sous son id (un point seul garde son id). */
 function draw(state: BoardState, id: string, parts: BoardNode[], reveal: Reveal): BoardState {
-  let next = state;
-  const slot = reveal.duration / (parts.length * 0.6 + 0.4);
-  parts.forEach((part, i) => {
-    next = drawNode(next, { ...part, reveal: { start: reveal.start + i * slot * 0.6, duration: slot } }, reveal);
-  });
-  if (parts.length === 1 && parts[0]!.id === id) return next;
-  const group: Group = { id, members: parts.map((p) => p.id) };
-  return { ...next, groups: { ...next.groups, [id]: group } };
+  return parts.length === 1 && parts[0]!.id === id ? drawFigure(state, `${id}-construction`, parts, reveal) : drawFigure(state, id, parts, reveal);
 }
 
 const KINDS = ["midpoint", "divide", "foot", "intersection", "line", "parallel", "perpendicular", "perpBisector", "angleBisector", "median"] as const;
@@ -130,7 +59,7 @@ const KINDS = ["midpoint", "divide", "foot", "intersection", "line", "parallel",
 export const constructCommand = defineCommand({
   schema: z.object({
     type: z.literal("construct"),
-    id: Id,
+    id: ShapeId,
     kind: z.enum(KINDS),
     /** Les points (ou les droites) de la construction, selon "kind". */
     of: z.array(z.union([PointRef, LineRef])).min(1).max(3),
@@ -173,7 +102,7 @@ export const constructCommand = defineCommand({
         if (!a || !b) return state;
         const M = scale(add(a, b), 0.5);
         const parts = [point(id, M, name, reveal, color)];
-        if (action.marks) parts.push(...ticks(`${id}-moitie1`, a, M, 1, unit, reveal, color), ...ticks(`${id}-moitie2`, M, b, 1, unit, reveal, color));
+        if (action.marks) parts.push(...equalTicks(`${id}-moitie1`, a, M, 1, unit, reveal, color), ...equalTicks(`${id}-moitie2`, M, b, 1, unit, reveal, color));
         return draw(state, id, parts, reveal);
       }
       case "divide": {
@@ -190,7 +119,7 @@ export const constructCommand = defineCommand({
       case "foot": {
         const [q, r] = [P(0), P(1)];
         if (!through || !q || !r) return state;
-        const H = footOf(through, q, r);
+        const H = footOnLine(through, q, r);
         if (len(sub(through, H)) < 1e-9) return state;
         return draw(
           state,
@@ -206,7 +135,7 @@ export const constructCommand = defineCommand({
       case "intersection": {
         const lines = action.of.slice(0, 2).map((ref) => resolveLine(state, ref as LineRef));
         if (lines.length < 2 || !lines[0] || !lines[1]) return state;
-        const X = intersect(lines[0], lines[1]);
+        const X = intersectLines(...lines[0], ...lines[1]);
         if (!X) return state;
         return draw(state, id, [point(id, X, name, reveal, color)], reveal);
       }
@@ -225,7 +154,7 @@ export const constructCommand = defineCommand({
         const [a, b] = across(state, through, d);
         const parts: BoardNode[] = [segment(`${id}`, a, b, reveal, color ?? "orange", false, action.label)];
         if (action.kind === "perpendicular") {
-          const X = intersect([a, b], line);
+          const X = intersectLines(a, b, ...line);
           if (X) parts.push({ ...base(`${id}-droit`, reveal, "muted"), type: "polygon", points: rightAngleMark(X, add(X, d), add(X, u), 0.24 / unit), closed: false });
         }
         return parts.length === 1 ? drawNode(state, parts[0]!, reveal) : draw(state, `${id}-construction`, parts, reveal);
@@ -243,8 +172,8 @@ export const constructCommand = defineCommand({
           [
             segment(`${id}-droite`, e1, e2, reveal, color ?? "orange", false, action.label),
             { ...base(`${id}-droit`, reveal, "muted"), type: "polygon", points: rightAngleMark(M, add(M, n), b, 0.24 / unit), closed: false },
-            ...ticks(`${id}-moitie1`, a, M, 1, unit, reveal, color),
-            ...ticks(`${id}-moitie2`, M, b, 1, unit, reveal, color),
+            ...equalTicks(`${id}-moitie1`, a, M, 1, unit, reveal, color),
+            ...equalTicks(`${id}-moitie2`, M, b, 1, unit, reveal, color),
           ],
           reveal,
         );
@@ -272,8 +201,8 @@ export const constructCommand = defineCommand({
           [
             segment(`${id}-trait`, through, M, reveal, color ?? "orange"),
             point(`${id}-milieu`, M, action.label, reveal, color ?? "orange"),
-            ...ticks(`${id}-moitie1`, b, M, 1, unit, reveal, color),
-            ...ticks(`${id}-moitie2`, M, c, 1, unit, reveal, color),
+            ...equalTicks(`${id}-moitie1`, b, M, 1, unit, reveal, color),
+            ...equalTicks(`${id}-moitie2`, M, c, 1, unit, reveal, color),
           ],
           reveal,
         );

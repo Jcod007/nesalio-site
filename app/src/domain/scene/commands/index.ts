@@ -18,6 +18,7 @@ import { copyCommand, moveCommand, rotateCommand, transformCommand } from "./mot
 import { angleCommand, circleCommand, cylinderCommand, inclineCommand, polygonCommand, sectorCommand, triangleCommand } from "./shapes";
 import { clearCommand, eraseCommand, groupCommand } from "./structure";
 import { constructCommand } from "./constructions";
+import { imageCommand } from "./images";
 import { noteCommand, tagCommand, textCommand } from "./text";
 
 /** Dans l'ordre où elles sont présentées au modèle. */
@@ -30,6 +31,7 @@ export const COMMANDS = {
   triangle: triangleCommand,
   angle: angleCommand,
   construct: constructCommand,
+  image: imageCommand,
   circle: circleCommand,
   sector: sectorCommand,
   polygon: polygonCommand,
@@ -66,6 +68,7 @@ export const Action = z.discriminatedUnion("type", [
   triangleCommand.schema,
   angleCommand.schema,
   constructCommand.schema,
+  imageCommand.schema,
   circleCommand.schema,
   sectorCommand.schema,
   polygonCommand.schema,
@@ -134,6 +137,7 @@ export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
   "triangle",
   "angle",
   "construct",
+  "image",
   "circle",
   "sector",
   "polygon",
