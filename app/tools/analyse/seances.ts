@@ -22,6 +22,7 @@ import { collisions, covered, figureOutline, type CollisionKind } from "@/domain
 import { applyAction } from "@/domain/scene/commands";
 import type { Step } from "@/domain/scene/schema";
 import { reviewTurn } from "@/domain/tutor/turnReview";
+import { verifyStep } from "@/domain/tutor/claims";
 
 type Input = { turns?: TurnRecord[] } | TurnRecord[];
 
@@ -64,6 +65,8 @@ interface SessionReport {
   imagesOnFigure: Array<{ image: string; ratio: number; say: string }>;
   /** Transformations dessinées (image d'une figure). */
   images: number;
+  /** Affirmations que la figure contredit (rapports, triangles semblables, parallèles : domain/tutor/claims). */
+  falseClaims: Array<{ claim: string; measured: string; source: string; say: string }>;
   uncued: number;
   /** Objets déjà au tableau que le moteur a déplacés sans que le modèle le demande (pile de calculs, textes poussés…). */
   shifted: number;
@@ -94,7 +97,7 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
     let s = sessions.get(key);
     if (!s) {
       s = {
-        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), wanted: new Map(), imagesOnFigure: [], images: 0, uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
+        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), wanted: new Map(), imagesOnFigure: [], images: 0, falseClaims: [], uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
         unshown: [], missingTargets: new Set(), longSentences: 0, gestures: 0, steps: 0, rejected: [], checks: { right: 0, total: 0 },
         firstStepMs: [], cancelled: 0, errors: [],
       };
@@ -134,6 +137,7 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
           s.replayErrors.push(`${action.type} : ${(error as Error).message}`.slice(0, 160));
         }
       }
+      for (const issue of verifyStep(step, board)) s.falseClaims.push({ claim: issue.claim, measured: issue.measured, source: issue.source, say: step.say.slice(0, 90) });
       const created = Object.keys(board.nodes).filter((id) => !before.has(id) && board.nodes[id]?.type !== "text");
       s.drawn += created.length;
       s.uncued += created.filter((id) => !(step.cues && id in step.cues)).length;
@@ -188,6 +192,7 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
   );
   lines.push(`- Superpositions voulues (l'objet que la phrase fait glisser, copie ou tourne) : ${sum((s) => s.wanted.size)}`);
   lines.push(`- Images posées sur leur original (englobée comprise) : ${sum((s) => s.imagesOnFigure.length)} sur ${sum((s) => s.images)} transformations`);
+  lines.push(`- Affirmations contredites par la figure : ${sum((s) => s.falseClaims.length)}`);
   lines.push(`- Déplacements imposés par le moteur (objets déjà au tableau) : ${sum((s) => s.shifted)}`);
   lines.push(`- Objets dessinés sans repère dans la phrase : ${sum((s) => s.uncued)} sur ${sum((s) => s.drawn)}`);
   lines.push(`- « Dit sans montrer » : ${sum((s) => s.unshown.length)} · cibles absentes : ${sum((s) => s.missingTargets.size)} · phrases trop longues : ${sum((s) => s.longSentences)}`);
@@ -203,6 +208,7 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
       lines.push(`- Chevauchement (${o.kind}) ${pair} (${amount}) pendant « ${o.say} »`);
     }
     for (const o of s.imagesOnFigure) lines.push(`- Image sur l'original ${o.image} (${Math.round(o.ratio * 100)} %) pendant « ${o.say} »`);
+    for (const c of s.falseClaims) lines.push(`- Affirmation fausse (${c.source}) « ${c.claim} » : ${c.measured}, pendant « ${c.say} »`);
     for (const u of s.unshown) lines.push(`- Dit sans montrer (« ${u.word} ») : « ${u.say} »`);
     if (s.missingTargets.size) lines.push(`- Cibles absentes : ${[...s.missingTargets].join(", ")}`);
     for (const r of s.rejected) lines.push(`- Refusé : ${r}`);
