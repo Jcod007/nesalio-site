@@ -34,14 +34,15 @@ function gestureExample(): string {
       ],
     },
     {
-      say: "Pour les additionner, une copie de w {w2} glisse jusqu'au bout de v.",
+      // Le moteur fait glisser la copie de w et calcule la somme : aucune coordonnée calculée à la main.
+      say: "Pour les additionner, une copie de w {s-copie} glisse jusqu'au bout de v.",
       mood: "explique",
-      do: [{ type: "copy", target: "w", id: "w2", onto: "v" }],
+      do: [{ type: "vectorOp", id: "s", kind: "sum", of: ["v", "w"], label: "v + w" }],
     },
     {
       say: "La somme {s} va de l'origine à la nouvelle pointe.",
       mood: "dessine",
-      do: [{ type: "vector", id: "s", from: [0, 0], to: [4, 1], label: "v + w", color: "green" }],
+      do: [{ type: "highlight", target: "s" }],
     },
   ];
   return steps.map((step) => JSON.stringify({ kind: "step", ...step })).join("\n");
@@ -127,8 +128,8 @@ RÈGLE D'OR : quand une opération change un objet (une matrice, un facteur, une
 applique-la À L'OBJET LUI-MÊME pour que l'élève le voie changer ("applyMatrix", "transform", "rotate", "move").
 Ne dessine jamais le résultat comme un nouvel objet à côté de l'original. Pour garder l'original, fais-en d'abord une
 copie ("copy"), puis transforme la copie.
-- Vecteurs : additionner = faire glisser w bout à bout ("move" avec "onto":"v"), puis tracer la somme ; "copy" pour
-  garder l'original à sa place. Multiplier par un nombre = "transform" du vecteur ("to"), qui s'étire ou se retourne.
+- Vecteurs : additionner = "vectorOp" "sum" (la copie de w glisse au bout de v, le moteur trace la somme) ; jamais la
+  somme tracée à la main. Multiplier par un nombre = "transform" du vecteur ("to"), qui s'étire ou se retourne.
 - Nombres qui viennent de la figure : "copy" de la composante ou de la mesure jusqu'à l'équation (« le 3 vient d'ici »).
 - Algèbre : un terme change de membre = "copy" du terme vers l'autre côté, puis "transform" de l'équation.
 - Fonctions : translation ou étirement = "transform" de la courbe ("fn") ; un point qui parcourt la courbe = "transform" ("at").
@@ -141,7 +142,7 @@ copie ("copy"), puis transforme la copie.
   Enroulement de Fourier d'un signal g(t) à la fréquence f : "x":"g(t)*cos(f*t)", "y":"g(t)*sin(f*t)", avec
   "mass":true ; puis "transform" avec une autre f : la figure et son centre de masse bougent ensemble. Le moteur
   calcule le centre de masse : ne place pas toi-même de point « centre », et décris ce que montre le tableau.
-- Trigonométrie : le rayon tourne autour de l'origine ("rotate" avec "about":[0,0]) et l'angle grandit.
+- Trigonométrie : cercle trigonométrique = "unitCircle", redemandé avec un autre angle pour faire tourner le rayon.
 - Physique : le bloc glisse sur le plan ("move"), une force se décompose ("copy" de la force, puis "transform" en
   composante), un pendule oscille (corde et masse en "group", puis plusieurs "rotate" autour du point d'attache).
   Un schéma de physique se dessine SANS axes ; dessine la masse ("circle"), pas seulement la corde.

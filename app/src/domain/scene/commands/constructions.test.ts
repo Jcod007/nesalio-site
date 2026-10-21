@@ -101,5 +101,8 @@ describe("constructions telles que le modèle les écrit", () => {
     close(at(board, "M"), [-1, 0]);
     board = play(board, { type: "segment", id: "s", from: "B", to: "B′" });
     close((board.nodes["s"] as SegmentNode).to, [-8, 0]);
+    // Le pied de la perpendiculaire sur l'axe nommé par son id (vu en réflexion : "of":["D"]).
+    board = play(board, { type: "construct", id: "H", kind: "foot", through: "C", of: ["D"] });
+    close(at(board, "H"), [-1, 4]);
   });
 });

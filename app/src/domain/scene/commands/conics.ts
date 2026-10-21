@@ -12,6 +12,8 @@
  */
 import { z } from "zod";
 import { type BoardNode, type BoardState, type Reveal, type Vec2 } from "@/domain/board/state";
+import { formatNumber } from "@/domain/board/geometry";
+import { norm, sub } from "@/domain/board/shapes";
 import { ColorName, Coord, finite } from "../primitives";
 import { base } from "./figure";
 import { defineCommand } from "./define";
@@ -47,6 +49,10 @@ export const conicCommand = defineCommand({
     orientation: z.enum(["horizontal", "vertical"]).optional(),
     foci: z.boolean().optional(),
     elements: z.boolean().optional(),
+    /** Des points de la courbe, donnés par leur abscisse (le moteur calcule l'ordonnée ; "below" pour l'autre moitié). */
+    points: z.array(z.object({ name: z.string().trim().min(1).max(4), x: finite, below: z.boolean().optional() })).max(3).optional(),
+    /** Avec "points" : les distances de chaque point aux foyers (et à la directrice d'une parabole), mesurées. */
+    distances: z.boolean().optional(),
     color: ColorName.optional(),
   }),
   doc:
@@ -55,7 +61,10 @@ export const conicCommand = defineCommand({
     '  "orientation":"vertical" pour (y−k)²/b² − (x−h)²/a² = 1 ; "parabola" de sommet "center" et de paramètre "c" :\n' +
     '  (x−h)² = 4c(y−k), "orientation":"horizontal" pour (y−k)² = 4c(x−h). Le moteur place les foyers ("foci", calculés),\n' +
     '  et avec "elements" : sommets, asymptotes (hyperbole), directrice (parabole). Parties : e-courbe, e-F1, e-F2, e-centre,\n' +
-    '  e-asymptote-1, e-directrice ; les foyers se visent par leur nom (F1, F2, F).',
+    '  e-asymptote-1, e-directrice ; les foyers se visent par leur nom (F1, F2, F).\n' +
+    '  "points":[{"name":"P","x":3}] place P sur la courbe (le moteur calcule y ; "below":true pour la moitié du bas) et,\n' +
+    '  avec "distances":true, trace PF₁ et PF₂ avec leurs longueurs (parabole : PF et la distance à la directrice).\n' +
+    '  Redemande la conique avec un autre "x" pour promener P : les distances changent, leur somme non.',
   duration: 2400,
   aliases: ["ellipse", "hyperbola", "parabola"],
   apply(state, action, reveal) {
@@ -66,6 +75,12 @@ export const conicCommand = defineCommand({
     const vertices: Record<string, Vec2> = { centre: [h, k] };
     const f = bounds(state);
     const vertical = action.orientation === "vertical";
+    /** Ce qu'il faut pour placer des points sur la courbe : ses foyers, y en fonction de x, la directrice. */
+    let foci: Vec2[] = [];
+    let yAt: (x: number, below: boolean) => number | null = () => null;
+    let directrixFoot: ((p: Vec2) => Vec2) | null = null;
+    const root = (v: number) => (v >= -1e-12 ? Math.sqrt(Math.max(0, v)) : null);
+    const side = (below: boolean, r: number | null, center: number) => (r === null ? null : center + (below ? -r : r));
 
     switch (action.kind) {
       case "circle": {
@@ -74,6 +89,8 @@ export const conicCommand = defineCommand({
         parts.push({ ...base(`${id}-courbe`, reveal, color), type: "circle", center: [h, k], radius: r });
         parts.push(point(`${id}-centre`, [h, k], undefined, reveal, "ink"));
         if (action.elements) parts.push(segment(`${id}-rayon`, [h, k], [h + r, k], reveal, "violet"));
+        foci = [[h, k]];
+        yAt = (x, below) => side(below, root(r * r - (x - h) ** 2), k);
         break;
       }
       case "ellipse": {
@@ -94,6 +111,11 @@ export const conicCommand = defineCommand({
           parts.push(point(`${id}-centre`, [h, k], undefined, reveal, "ink"));
           parts.push(segment(`${id}-grand-axe`, [h - a, k], [h + a, k], reveal, "muted", true), segment(`${id}-petit-axe`, [h, k - b], [h, k + b], reveal, "muted", true));
         }
+        foci = [F1, F2];
+        yAt = (x, below) => {
+          const r = root(1 - ((x - h) / a) ** 2);
+          return side(below, r === null ? null : b * r, k);
+        };
         break;
       }
       case "hyperbola": {
@@ -121,6 +143,11 @@ export const conicCommand = defineCommand({
           parts.push(segment(`${id}-asymptote-1`, p1, q1, reveal, "muted", true), segment(`${id}-asymptote-2`, p2, q2, reveal, "muted", true));
           parts.push(point(`${id}-centre`, [h, k], undefined, reveal, "ink"));
         }
+        foci = [F1, F2];
+        yAt = (x, below) => {
+          const r = vertical ? root(1 + ((x - h) / a) ** 2) : root(((x - h) / a) ** 2 - 1);
+          return side(below, r === null ? null : b * r, k);
+        };
         break;
       }
       case "parabola": {
@@ -144,8 +171,27 @@ export const conicCommand = defineCommand({
           parts.push(segment(`${id}-directrice`, p, q, reveal, "muted", true), point(`${id}-sommet`, [h, k], "S", reveal, "ink"));
           vertices.S = [h, k];
         }
+        foci = [F];
+        yAt = (x, below) => (horizontal ? side(below, root(4 * c * (x - h)), k) : k + (x - h) ** 2 / (4 * c));
+        directrixFoot = ([x, y]) => (horizontal ? [h - c, y] : [x, k - c]);
         break;
       }
+    }
+    // Les points de la courbe, et leurs distances mesurées par le moteur.
+    const length = (p: Vec2, q: Vec2) => {
+      const d = norm(sub(q, p));
+      const rounded = Math.round(d * 10) / 10;
+      return `${Math.abs(d - rounded) < 1e-6 ? "" : "≈ "}${formatNumber(rounded)}`;
+    };
+    for (const { name, x, below } of action.points ?? []) {
+      const y = yAt(x, below ?? false);
+      if (y === null) continue;
+      const P: Vec2 = [x, y];
+      parts.push(point(`${id}-${name}`, P, name, reveal, "violet"));
+      vertices[name] = P;
+      if (!action.distances || action.kind === "circle") continue;
+      foci.forEach((F, i) => parts.push(segment(`${id}-${name}-F${i + 1}`, P, F, reveal, "green", false, length(P, F))));
+      if (directrixFoot) parts.push(segment(`${id}-${name}-d`, P, directrixFoot(P), reveal, "green", true, length(P, directrixFoot(P))));
     }
     return drawFigure(state, id, parts, reveal, {}, vertices);
   },

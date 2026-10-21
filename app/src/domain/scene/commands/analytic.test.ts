@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyBoard, type ArcNode, type PointNode, type PolygonNode, type SegmentNode, type VectorNode } from "@/domain/board/state";
+import { emptyBoard, resolveTargets, type ArcNode, type PointNode, type PolygonNode, type SegmentNode, type VectorNode } from "@/domain/board/state";
 import { applyAction } from "./index";
 
 const t = { start: 0, duration: 1000 };
@@ -12,9 +12,12 @@ describe("vecteurs, cercle trigonométrique, coniques", () => {
     board = applyAction(board, { type: "vector", id: "v", from: [1, 3], by: [1, 2], label: "v" }, t);
     board = applyAction(board, { type: "vectorOp", id: "s", kind: "sum", of: ["u", "v"] }, t);
     close([...(board.nodes["s"] as VectorNode).to], [4, 3]);
-    close([...(board.nodes["s-copie"] as VectorNode).from], [3, 1]);
+    // La copie de v glisse (décalage) jusqu'au bout de u.
+    const tail = (id: string) => { const n = board.nodes[id] as VectorNode; return [n.from[0] + n.offset[0], n.from[1] + n.offset[1]]; };
+    close(tail("s-copie"), [3, 1]);
+    expect(resolveTargets(board, "s-construction")).toContain("s-copie");
     board = applyAction(board, { type: "vectorOp", id: "p", kind: "sum", of: ["u", "v"], method: "parallelogram" }, t);
-    close([...(board.nodes["s-copie"] as VectorNode).from, ...(board.nodes["p-copie"] as VectorNode).from], [3, 1, 0, 0]);
+    close([...tail("s-copie"), ...tail("p-copie")], [3, 1, 0, 0]);
     board = applyAction(board, { type: "vectorOp", id: "d", kind: "difference", of: ["u", "v"] }, t);
     close([...(board.nodes["d"] as VectorNode).to], [2, -1]);
     board = applyAction(board, { type: "vectorOp", id: "k", kind: "scale", of: ["u"], k: 2 }, t);
@@ -50,5 +53,21 @@ describe("vecteurs, cercle trigonométrique, coniques", () => {
     // Un foyer se vise par son nom.
     board = applyAction(board, { type: "segment", id: "s", from: "F1", to: "F2" }, t);
     expect(board.nodes["s"]).toBeDefined();
+  });
+
+  // Séance du 21 octobre (foyers d'une ellipse) : le modèle calculait lui-même P(3 ; 2,4) et les distances 7,4 et 2,6.
+  it("place un point de la conique par son abscisse et mesure ses distances aux foyers", () => {
+    let board = applyAction(emptyBoard(), { type: "axes", x: [-6, 6], y: [-4, 4] }, t);
+    board = applyAction(board, { type: "conic", id: "e", kind: "ellipse", a: 5, b: 3, foci: true, points: [{ name: "P", x: 3 }], distances: true }, t);
+    close((board.nodes["e-P"] as PointNode).at, [3, 2.4]);
+    expect((board.nodes["e-P-F1"] as SegmentNode).label).toBe("7,4");
+    expect((board.nodes["e-P-F2"] as SegmentNode).label).toBe("2,6");
+    // Redemandée avec un autre x, P se promène ; la somme reste 10.
+    board = applyAction(board, { type: "conic", id: "e", kind: "ellipse", a: 5, b: 3, foci: true, points: [{ name: "P", x: 0 }], distances: true }, t);
+    close((board.nodes["e-P"] as PointNode).at, [0, 3]);
+    expect((board.nodes["e-P-F1"] as SegmentNode).label).toBe("5");
+    // Parabole : distance au foyer = distance à la directrice.
+    board = applyAction(board, { type: "conic", id: "pa", kind: "parabola", c: 1, foci: true, points: [{ name: "M", x: 2 }], distances: true }, t);
+    expect((board.nodes["pa-M-F1"] as SegmentNode).label).toBe((board.nodes["pa-M-d"] as SegmentNode).label);
   });
 });

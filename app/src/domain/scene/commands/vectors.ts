@@ -15,6 +15,7 @@ import { add, scale, sub } from "@/domain/board/shapes";
 import { isVisible, type BoardNode, type BoardState, type Vec2 } from "@/domain/board/state";
 import { ColorName, finite, Id } from "../primitives";
 import { defineCommand } from "./define";
+import { copyCommand } from "./motion";
 import { drawFigure, label, segment, ShapeId, vector } from "./parts";
 
 /** Queue et pointe d'un vecteur du tableau (décalage compris). */
@@ -55,6 +56,8 @@ export const vectorOpCommand = defineCommand({
     const id = action.id;
     const parts: BoardNode[] = [];
     let result: BoardNode | null = null;
+    /** Le tableau après la copie glissée de v (somme), sinon inchangé. */
+    let moved = state;
 
     switch (action.kind) {
       case "sum":
@@ -64,11 +67,15 @@ export const vectorOpCommand = defineCommand({
         const sign = action.kind === "difference" ? -1 : 1;
         const dv = scale(sub(v.tip, v.tail), sign);
         const name = (v.label ?? action.of[1]!) as string;
-        const copyLabel = sign < 0 ? `−${name}` : name;
-        if ((action.method ?? "chain") === "chain") {
-          parts.push(vector(`${id}-copie`, u.tip, add(u.tip, dv), copyLabel, reveal, "muted"));
+        const chain = (action.method ?? "chain") === "chain";
+        const start = chain ? u.tip : u.tail;
+        if (sign > 0) {
+          // La copie de v se détache et glisse jusqu'à sa place, comme un "copy" (le geste qu'on voit faire au tableau).
+          moved = copyCommand.apply(state, { type: "copy", target: action.of[1]!, id: `${id}-copie`, by: sub(start, v.tail), color: "muted" }, { start: reveal.start, duration: reveal.duration * 0.4 });
         } else {
-          parts.push(vector(`${id}-copie`, u.tail, add(u.tail, dv), copyLabel, reveal, "muted"));
+          parts.push(vector(`${id}-copie`, start, add(start, dv), `−${name}`, reveal, "muted"));
+        }
+        if (!chain) {
           parts.push(segment(`${id}-cote1`, u.tip, add(u.tip, dv), reveal, "muted", true));
           parts.push(segment(`${id}-cote2`, add(u.tail, dv), add(u.tail, add(du, dv)), reveal, "muted", true));
         }
@@ -89,7 +96,13 @@ export const vectorOpCommand = defineCommand({
         return drawFigure(state, id, parts, reveal);
       }
     }
-    const next = drawFigure(state, `${id}-construction`, parts, reveal);
+    let next = drawFigure(moved, `${id}-construction`, parts, reveal);
+    if (moved !== state) {
+      // La copie glissée fait partie de la construction (on l'estompe ou l'efface avec elle).
+      const group = next.groups[`${id}-construction`];
+      const members = [...new Set([...(group?.members ?? []), `${id}-copie`])];
+      next = { ...next, groups: { ...next.groups, [`${id}-construction`]: { ...group, id: `${id}-construction`, members } } };
+    }
     return drawFigure(next, `${id}-resultat`, [result!], { start: reveal.start + reveal.duration * 0.45, duration: reveal.duration * 0.55 });
   },
 });

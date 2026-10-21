@@ -143,6 +143,8 @@ export const constructCommand = defineCommand({
     const pts = action.of.map((ref) => (Array.isArray(ref) && ref.length === 2 && typeof ref[0] !== "number" ? null : resolvePoint(state, ref as PointRef)));
     const P = (i: number) => pts[i] ?? null;
     const through = action.through !== undefined ? resolvePoint(state, action.through) : null;
+    /** La droite visée : deux points ("of":["A","B"]) ou un segment par son id ("of":["d"]). */
+    const lineOf = () => resolveLine(state, (action.of.length >= 2 ? [action.of[0], action.of[1]] : action.of[0]) as LineRef);
     const name = action.label ?? action.id;
     const { id } = action;
 
@@ -167,8 +169,9 @@ export const constructCommand = defineCommand({
         return draw(state, id, [point(id, add(a, scale(sub(b, a), t)), name, reveal, color)], reveal);
       }
       case "foot": {
-        const [q, r] = [P(0), P(1)];
-        if (!through || !q || !r) return state;
+        const line = lineOf();
+        if (!through || !line) return state;
+        const [q, r] = line;
         const H = footOnLine(through, q, r);
         if (len(sub(through, H)) < 1e-9) return state;
         return draw(
@@ -190,7 +193,7 @@ export const constructCommand = defineCommand({
         return draw(state, id, [point(id, X, name, reveal, color)], reveal);
       }
       case "line": {
-        const line = resolveLine(state, (action.of.length >= 2 ? [action.of[0], action.of[1]] : action.of[0]) as LineRef);
+        const line = lineOf();
         if (!line) return state;
         if (action.within) {
           const { parts, vertices } = lineThrough(state, id, line[0], dir(line[0], line[1]), action.within, action.meets, reveal, color, action.label);
@@ -201,7 +204,7 @@ export const constructCommand = defineCommand({
       }
       case "parallel":
       case "perpendicular": {
-        const line = resolveLine(state, (action.of.length >= 2 ? [action.of[0], action.of[1]] : action.of[0]) as LineRef);
+        const line = lineOf();
         if (!through || !line) return state;
         const u = dir(line[0], line[1]);
         const d: Vec2 = action.kind === "parallel" ? u : [-u[1], u[0]];
