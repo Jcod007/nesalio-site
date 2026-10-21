@@ -9,6 +9,7 @@
  */
 import { z } from "zod";
 import { fitFrame, worldPerMath } from "@/domain/board/layout";
+import { roomFor } from "@/domain/board/room";
 import {
   add,
   angleArc,
@@ -365,6 +366,12 @@ export const triangleCommand = defineCommand({
         B = rotate(B, A, action.rotate);
         C = rotate(C, A, action.rotate);
       }
+    }
+    // Un nouveau triangle posé librement (sans repère) qui tomberait à moitié sur une autre figure glisse
+    // juste à côté (séance du 21 octobre : deux triangles l'un sur l'autre, à 61 %). Redessiné, il reste en place.
+    if (!previous) {
+      const [dx, dy] = roomFor(state, [A, B, C], true, new Set([action.id]));
+      if (dx !== 0 || dy !== 0) [A, B, C] = [A, B, C].map((p) => add(p, [dx, dy])) as [Vec2, Vec2, Vec2];
     }
     const center = centroid([A, B, C]);
     const id = action.id;

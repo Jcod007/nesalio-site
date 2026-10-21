@@ -18,8 +18,8 @@
  * Vu le 19 octobre : un exemple dessiné par-dessus le carré de l'hypoténuse.
  */
 import { AXES_OWNER, footprints, intersects, namingRegions, regionCover, tickLabels, type Box } from "./layout";
-import { insidePolygon } from "./shapes";
-import { visibleNodes, type BoardNode, type BoardState, type Vec2 } from "./state";
+import { add, insidePolygon } from "./shapes";
+import { isVisible, visibleNodes, type BoardNode, type BoardState, type Vec2 } from "./state";
 
 export type CollisionKind = "texte" | "point" | "trait" | "surface" | "graduations" | "dessins";
 export interface Collision {
@@ -92,6 +92,48 @@ export function collisions(state: BoardState): Collision[] {
   return out;
 }
 
+/**
+ * Le contour d'une figure du tableau (nœud ou groupe), ou null : une surface fermée (polygone,
+ * cercle), ou les sommets ordonnés d'une figure tracée côté par côté (@0, @1, @2 d'un triangle).
+ */
+export function figureOutline(state: BoardState, id: string): Vec2[] | null {
+  const group = state.groups[id];
+  const ids = state.nodes[id] ? [id] : (group?.members ?? []);
+  for (const member of ids) {
+    const node = state.nodes[member];
+    const ring = isVisible(node) ? outline(node) : null;
+    if (ring) return ring;
+  }
+  return orderedOutline(state, id);
+}
+
+/**
+ * Les surfaces fermées du tableau : les nœuds (polygone fermé, cercle) et les figures tracées
+ * côté par côté (un triangle, par ses sommets ordonnés). `filled` : une surface coloriée, ou
+ * une figure (on ne pose pas une figure à moitié sur une autre) ; deux cercles vides d'un
+ * diagramme, eux, se recouvrent exprès. Partagé par la détection des chevauchements et par
+ * le moteur qui fait de la place (room).
+ */
+export function closedShapes(state: BoardState): Array<{ id: string; poly: Vec2[]; filled: boolean }> {
+  const nodes = visibleNodes(state).flatMap((node) => {
+    const poly = outline(node);
+    return poly ? [{ id: node.id, poly, filled: node.type === "polygon" && (node.fill === true || node.shade === true) }] : [];
+  });
+  const figures = Object.keys(state.groups).flatMap((id) => {
+    const poly = orderedOutline(state, id);
+    return poly ? [{ id, poly, filled: true }] : [];
+  });
+  return [...nodes, ...figures];
+}
+
+/** Les sommets ordonnés d'un groupe (@0, @1…), à leur place, s'il en a au moins trois et qu'il est visible. */
+function orderedOutline(state: BoardState, id: string): Vec2[] | null {
+  const group = state.groups[id];
+  const shown = group?.members.map((member) => state.nodes[member]).find(isVisible);
+  const ordered = Array.from({ length: 12 }, (_, i) => group?.vertices?.[`@${i}`]).filter((p): p is Vec2 => p !== undefined);
+  return shown && ordered.length >= 3 ? ordered.map((p) => add(p, shown.offset)) : null;
+}
+
 /** Contour d'une surface fermée, à sa place (décalage compris), ou null. */
 export function outline(node: BoardNode): Vec2[] | null {
   const [dx, dy] = node.offset;
@@ -130,11 +172,10 @@ export function covered(small: Vec2[], big: Vec2[]): number {
 }
 
 function shapeOverlaps(state: BoardState): Collision[] {
-  const shapes = visibleNodes(state)
-    .map((node) => ({ id: node.id, poly: outline(node) }))
-    .filter((s): s is { id: string; poly: Vec2[] } => s.poly !== null);
-  // Deux parties d'une même figure (un groupe) se touchent exprès.
-  const together = (a: string, b: string) => Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));
+  const shapes = closedShapes(state);
+  // Deux parties d'une même figure (un groupe), ou une figure et l'une de ses parties, se touchent exprès.
+  const together = (a: string, b: string) =>
+    state.groups[a]?.members.includes(b) || state.groups[b]?.members.includes(a) || Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));
   const out: Collision[] = [];
   for (let i = 0; i < shapes.length; i++) {
     for (let j = i + 1; j < shapes.length; j++) {
