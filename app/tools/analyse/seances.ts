@@ -54,6 +54,8 @@ interface SessionReport {
   start: string;
   turns: TurnRecord[];
   overlaps: Map<string, { ratio: number; kind: CollisionKind; say: string }>;
+  /** Superpositions demandées par la phrase (« je fais glisser l'image sur l'original ») : voulues, comptées à part. */
+  wanted: Map<string, { ratio: number; kind: CollisionKind; say: string }>;
   uncued: number;
   /** Objets déjà au tableau que le moteur a déplacés sans que le modèle le demande (pile de calculs, textes poussés…). */
   shifted: number;
@@ -83,7 +85,7 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
     let s = sessions.get(key);
     if (!s) {
       s = {
-        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
+        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), wanted: new Map(), uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
         unshown: [], missingTargets: new Set(), longSentences: 0, gestures: 0, steps: 0, rejected: [], checks: { right: 0, total: 0 },
         firstStepMs: [], cancelled: 0, errors: [],
       };
@@ -96,6 +98,13 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
     const turnSteps = steps(turn);
     for (const step of turnSteps) {
       const before = new Set(Object.keys(board.nodes));
+      /** Ce que la phrase fait bouger exprès (glisser sur l'original, copie sur place, rotation) : sa superposition est voulue. */
+      const moved = new Set<string>();
+      for (const action of step.do ?? []) {
+        if (!MOVING.has(action.type)) continue;
+        const a = action as { id?: string; target?: string; targets?: string[] };
+        for (const id of [a.id, a.target, ...(a.targets ?? [])]) if (id) moved.add(id);
+      }
       for (const action of step.do ?? []) {
         try {
           const previous = board;
@@ -108,9 +117,12 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
       const created = Object.keys(board.nodes).filter((id) => !before.has(id) && board.nodes[id]?.type !== "text");
       s.drawn += created.length;
       s.uncued += created.filter((id) => !(step.cues && id in step.cues)).length;
+      const groupsOf = (id: string) => Object.values(board.groups).filter((g) => g.members.includes(id)).map((g) => g.id);
+      const intended = (id: string) => [id, ...groupsOf(id)].some((x) => moved.has(x) || [...moved].some((m) => x.startsWith(`${m}-`)));
       for (const o of overlaps(board)) {
         const pair = o.kind === "graduations" ? `graduations ${o.a}` : `${o.a} × ${o.b}`;
-        if (!s.overlaps.has(pair)) s.overlaps.set(pair, { ratio: o.ratio, kind: o.kind, say: step.say.slice(0, 90) });
+        const into = o.kind !== "graduations" && (intended(o.a) || intended(o.b)) ? s.wanted : s.overlaps;
+        if (!into.has(pair) && !s.overlaps.has(pair)) into.set(pair, { ratio: o.ratio, kind: o.kind, say: step.say.slice(0, 90) });
       }
     }
     boards.set(key, board);
@@ -148,6 +160,7 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
   lines.push(
     `- Chevauchements (paires distinctes) : ${sum((s) => s.overlaps.size)} · texte sur texte ${byKind("texte")} · sur un point ${byKind("point")} · barré par un trait ${byKind("trait")} · dans une surface ${byKind("surface")} · graduations ${byKind("graduations")} · dessins l'un sur l'autre ${byKind("dessins")}`,
   );
+  lines.push(`- Superpositions voulues (l'objet que la phrase fait glisser, copie ou tourne) : ${sum((s) => s.wanted.size)}`);
   lines.push(`- Déplacements imposés par le moteur (objets déjà au tableau) : ${sum((s) => s.shifted)}`);
   lines.push(`- Objets dessinés sans repère dans la phrase : ${sum((s) => s.uncued)} sur ${sum((s) => s.drawn)}`);
   lines.push(`- « Dit sans montrer » : ${sum((s) => s.unshown.length)} · cibles absentes : ${sum((s) => s.missingTargets.size)} · phrases trop longues : ${sum((s) => s.longSentences)}`);
