@@ -12,6 +12,7 @@
  *          comparés à l'heure réelle des mots), sur les phrases des démos.
  * Sans le bon jeton : 404, aucun appel payant.
  */
+import { pedagogyFor, phaseLabel } from "@/domain/tutor/pedagogy";
 import { speechSpanOf, synthesizeSpeech, transcribeAudio, transcribeWords, wavDurationMs } from "@/server/ai/audio";
 import { measureSync } from "@/server/ai/syncMeasure";
 import { DEMO_LESSONS } from "@/content/demoLessons";
@@ -124,7 +125,8 @@ export async function GET(request: Request): Promise<Response> {
   const allSteps: Step[] = [];
   for (let turn = 1; turn <= maxTurns; turn++) {
     const turnStart = Date.now();
-    const info: Record<string, unknown> = { turn, mode: turnRequest.mode };
+    const pedagogy = pedagogyFor(turnRequest);
+    const info: Record<string, unknown> = { turn, mode: turnRequest.mode, ...(pedagogy ? { phase: phaseLabel(pedagogy) } : {}) };
     let lastCheck: Check | undefined;
     let awaiting = false;
     const log = (message: string, detail?: unknown) => {
