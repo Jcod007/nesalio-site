@@ -74,6 +74,7 @@ for (const q of questions) {
     cueCoverage: lesson.cueCoverage,
     goals: lesson.goals?.length ?? 0,
     firstStepMs: (report.turns ?? []).map((t) => t.firstStepMs),
+    phases: (report.turns ?? []).map((t) => t.phase).filter(Boolean),
     totalMs: Date.now() - started,
     error: lesson.error,
   };

@@ -12,6 +12,7 @@
  * est notée : elle relie ses séances à son courriel, gardé dans Formspree.
  */
 import type { StreamEvent } from "@/domain/scene/schema";
+import { pedagogyFor, phaseLabel } from "@/domain/tutor/pedagogy";
 import type { TutorRequest } from "@/domain/tutor/request";
 import { shortSession } from "@/domain/session";
 
@@ -28,6 +29,8 @@ export interface TurnRecord {
   /** Début du tour (ISO 8601, UTC). */
   at: string;
   mode: TutorRequest["mode"];
+  /** Phase pédagogique du tour (montrer, guider, pratiquer…), absente pour une interruption. */
+  phase?: string;
   question: string;
   /** Réponse de l'élève à la question précédente de Nesa (tour « continue »). */
   answer?: { prompt: string; picked: string; correct: boolean | null; misconception?: string };
@@ -79,6 +82,7 @@ export function createTurnRecorder(options: {
     },
     record() {
       const answer = request.answer;
+      const pedagogy = pedagogyFor(request);
       return {
         v: 1,
         env: options.env,
@@ -86,6 +90,7 @@ export function createTurnRecorder(options: {
         ...(options.ref ? { ref: options.ref } : {}),
         at: options.startedAt.toISOString(),
         mode: request.mode,
+        ...(pedagogy ? { phase: phaseLabel(pedagogy) } : {}),
         question: request.question,
         ...(answer
           ? {
