@@ -34,21 +34,41 @@ const FORMATS: { id: VideoFormat; label: string; example: string }[] = [
 ];
 
 const CODE_KEY = "nesalio-studio-code";
+const API_KEY = "nesalio-studio-api-key";
+const MODEL_KEY = "nesalio-studio-model";
 const LEAD_MS = 220;
 
-function readCode(): string {
+/** Un exemple de scénario détaillé, écrit comme on l'écrirait à la main. */
+const SCENARIO_EXAMPLE = `Exemple de scénario détaillé :
+Accroche : « Cette équation dessine… quoi ? »
+Plan 1 (2 s) : l'équation r = 3 sin(4θ) s'écrit en haut. Texte : « Une seule équation. »
+Plan 2 (6 s, la révélation) : la courbe se trace lentement, c'est une fleur à 8 pétales.
+Plan 3 (4 s) : on remplace 4 par 5, la fleur se transforme en 5 pétales.
+Fin : « Essaie avec 7 ! ». Musique calme, lo-fi.`;
+
+function readStored(key: string): string {
   try {
-    return localStorage.getItem(CODE_KEY) ?? "";
+    return localStorage.getItem(key) ?? "";
   } catch {
     return "";
   }
 }
-function saveCode(code: string) {
+function store(key: string, value: string) {
   try {
-    localStorage.setItem(CODE_KEY, code);
+    if (value) localStorage.setItem(key, value);
+    else localStorage.removeItem(key);
   } catch {
-    // stockage indisponible : le code reste pour la page en cours
+    // stockage indisponible : la valeur reste pour la page en cours
   }
+}
+
+/** Fournisseur reconnu à la forme de la clé (même règle que le serveur, server/studio/ownKey.ts). */
+function keyProvider(key: string): string | null {
+  const k = key.trim();
+  if (!k) return null;
+  if (k.startsWith("sk-ant-")) return "Claude (Anthropic)";
+  if (k.startsWith("sk-or-")) return "OpenRouter";
+  return "non reconnue : il faut une clé Claude (sk-ant-…) ou OpenRouter (sk-or-…)";
 }
 
 const describeAction = (action: Shot["do"][number]) => {
@@ -70,6 +90,8 @@ export function StudioApp() {
   const [format, setFormat] = useState<VideoFormat>("devine");
   const [prompt, setPrompt] = useState("");
   const [entry, setEntry] = useState<"idee" | "coller">("idee");
+  const [apiKey, setApiKey] = useState("");
+  const [model, setModel] = useState("");
   const [pasted, setPasted] = useState("");
   const [origin, setOrigin] = useState("Exemple");
   const [busy, setBusy] = useState<null | "generate" | "revise" | "export" | "track">(null);
@@ -93,7 +115,9 @@ export function StudioApp() {
 
   useEffect(() => {
     deck.current = new MusicDeck();
-    setCode(readCode());
+    setCode(readStored(CODE_KEY));
+    setApiKey(readStored(API_KEY));
+    setModel(readStored(MODEL_KEY));
     fetch("/api/studio")
       .then((r) => r.json())
       .then((data: { locked: boolean; ai: boolean }) => setAccess(data))
@@ -190,7 +214,8 @@ export function StudioApp() {
     const response = await fetch("/api/studio", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-studio-code": code },
-      body: JSON.stringify(body),
+      // Avec sa propre clé, l'auteur passe par son compte : le code du studio n'est alors pas demandé.
+      body: JSON.stringify(apiKey.trim() ? { ...(body as object), apiKey: apiKey.trim(), model: model.trim() || undefined } : body),
     });
     const data = (await response.json().catch(() => ({}))) as T & { error?: string };
     if (!response.ok) throw new Error(data.error ?? `Erreur ${response.status}`);
@@ -351,7 +376,7 @@ export function StudioApp() {
   // Connu seulement dans le navigateur (après le premier rendu, pour que le HTML du serveur corresponde).
   const [recordingType, setRecordingType] = useState<ReturnType<typeof pickRecordingType> | "unknown">("unknown");
   useEffect(() => setRecordingType(pickRecordingType()), []);
-  const needsCode = access?.locked === true;
+  const needsCode = access?.locked === true && !apiKey.trim();
   const playing = snapshot.status === "playing";
   const activePosition = playing ? snapshot.position : -1;
   const activeIndex = activePosition >= 0 ? timeline.shots[activePosition]?.index : undefined;
@@ -400,7 +425,7 @@ export function StudioApp() {
                   value={code}
                   onChange={(e) => {
                     setCode(e.target.value);
-                    saveCode(e.target.value);
+                    store(CODE_KEY, e.target.value);
                   }}
                   autoComplete="off"
                 />
@@ -426,33 +451,75 @@ export function StudioApp() {
             </div>
             <div className={styles.chips} role="group" aria-label="Source du scénario">
               <button type="button" className={styles.chip} aria-pressed={entry === "idee"} onClick={() => setEntry("idee")}>
-                Décrire l'idée (IA du studio)
+                Écrire le scénario
               </button>
               <button type="button" className={styles.chip} aria-pressed={entry === "coller"} onClick={() => setEntry("coller")}>
-                Coller un script (autre IA)
+                Script JSON (avancé)
               </button>
             </div>
 
             {entry === "idee" ? (
               <>
+                <p className={styles.hint}>
+                  Écris en texte libre : une simple idée, ou ton scénario plan par plan (ce qui se dessine, le texte à l'écran, les durées, la
+                  musique). L'IA le transforme pour le moteur et suit ce que tu précises.
+                </p>
                 <textarea
                   className={styles.textarea}
                   value={prompt}
+                  maxLength={12_000}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={FORMATS.find((f) => f.id === format)?.example || "Décris la vidéo : le sujet, la chute, le ton, ce qui doit se dessiner…"}
-                  rows={5}
+                  placeholder={format === "devine" ? SCENARIO_EXAMPLE : FORMATS.find((f) => f.id === format)?.example || "Décris ta vidéo…"}
+                  rows={10}
                 />
+                <details>
+                  <summary className={styles.hint} style={{ cursor: "pointer" }}>
+                    Utiliser ma clé API (facultatif){apiKey.trim() ? ` · ${keyProvider(apiKey)}` : ""}
+                  </summary>
+                  <div className={styles.row} style={{ marginTop: 8 }}>
+                    <label className={`${styles.field} ${styles.grow}`}>
+                      Clé Claude (sk-ant-…) ou OpenRouter (sk-or-…)
+                      <input
+                        className={styles.input}
+                        type="password"
+                        autoComplete="off"
+                        value={apiKey}
+                        onChange={(e) => {
+                          setApiKey(e.target.value);
+                          store(API_KEY, e.target.value.trim());
+                        }}
+                      />
+                    </label>
+                    <label className={`${styles.field} ${styles.grow}`}>
+                      Modèle (facultatif)
+                      <input
+                        className={styles.input}
+                        value={model}
+                        placeholder={apiKey.trim().startsWith("sk-or-") ? "ex. anthropic/claude-sonnet-4.5" : "modèle par défaut"}
+                        onChange={(e) => {
+                          setModel(e.target.value);
+                          store(MODEL_KEY, e.target.value.trim());
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className={styles.hint}>
+                    Avec ta clé, c'est ton compte qui paie et le code du studio n'est pas demandé. Elle reste dans ce navigateur et sert à
+                    chaque appel ; le serveur ne la garde pas. Pour un modèle OpenAI, passe par OpenRouter.
+                  </p>
+                </details>
                 <div className={styles.row}>
                   <button type="button" className="cta" onClick={() => void generate()} disabled={busy !== null || prompt.trim().length < 3}>
-                    {busy === "generate" ? "Écriture du script…" : "Générer le script"}
+                    {busy === "generate" ? "Écriture du script…" : "Générer la vidéo"}
                   </button>
-                  {access && !access.ai ? <span className={styles.hint}>Aucune IA branchée : un exemple sera proposé.</span> : null}
+                  {access && !access.ai && !apiKey.trim() ? <span className={styles.hint}>Aucune IA branchée : un exemple sera proposé.</span> : null}
                 </div>
               </>
             ) : (
               <>
                 <p className={styles.hint}>
-                  Donne les consignes à ton autre IA avec ton idée, puis colle sa réponse ici (lignes JSON). Le texte autour est ignoré.
+                  Seulement si une autre IA écrit le script JSON à ta place : donne-lui les consignes avec ton idée, puis colle sa réponse ici. Le
+                  texte autour est ignoré. Sinon, utilise « Écrire le scénario ».
                 </p>
                 <div className={styles.row}>
                   <button type="button" className="btn-line" onClick={() => void copyInstructions()}>

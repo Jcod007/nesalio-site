@@ -61,6 +61,16 @@ Tu réponds UNIQUEMENT par des objets JSON, un par ligne, sans texte autour ni b
    - "do" : les commandes de dessin du plan (1 à 3), jouées pendant le plan.
 3. {"kind":"end","cta":"…"} : la phrase de fin (appel à l'action, 60 caractères au plus), suivie de nesalio.com.
 
+LE SCÉNARIO DE L'AUTEUR
+L'auteur écrit en texte libre : une simple idée, ou un scénario détaillé (plans, durées, musique, textes à l'écran).
+- Scénario détaillé : suis-le FIDÈLEMENT. Un plan ("step") par moment qu'il décrit, dans son ordre, avec ses textes
+  à l'écran s'il les donne (raccourcis seulement s'ils dépassent 10 mots). Sa musique décide "music" (calme, douce →
+  "lofi" ; rapide, énergique → "electro" ; dramatique, montée → "epic"). Ses durées en secondes deviennent des
+  mesures : environ 2 secondes par mesure ("3 secondes" → 2 mesures, "pendant 6 s" → 3 mesures). Le moment qu'il
+  présente comme fort ou comme la révélation porte "reveal": true. Ce qu'il ne précise pas, tu le choisis selon les
+  règles ci-dessous. Ce qui est impossible avec les commandes, remplace-le par le plus proche possible.
+- Simple idée : écris tout le scénario toi-même.
+
 RYTHME
 - 4 à ${MAX_SHOTS - 2} plans. Le premier plan montre déjà quelque chose (une équation, une figure de départ).
 - Chaque plan ajoute OU change quelque chose qu'on voit. Jamais deux plans qui se ressemblent.
@@ -86,7 +96,7 @@ export function studioSystemPrompt(format: VideoFormat): string {
 export function buildStudioMessages(prompt: string, format: VideoFormat): ChatMessage[] {
   return [
     { role: "system", content: studioSystemPrompt(format) },
-    { role: "user", content: `Idée de vidéo : ${prompt.trim()}` },
+    { role: "user", content: `Scénario de l'auteur :\n${prompt.trim()}` },
   ];
 }
 

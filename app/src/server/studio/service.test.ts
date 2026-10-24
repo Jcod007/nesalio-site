@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { roseVideo } from "@/content/studioDemos";
 import type { ChatProvider } from "@/server/config";
-import type { CompletionOptions } from "@/server/tutor/chatCompletions";
-import { buildRevisionMessages, serializeVideo, studioSystemPrompt } from "./prompt";
-import { generateVideo, pickDemo, reviseShot } from "./service";
+import { UpstreamError, type CompletionOptions } from "@/server/tutor/chatCompletions";
+import { providerFromKey } from "./ownKey";
+import { buildRevisionMessages, buildStudioMessages, serializeVideo, studioSystemPrompt } from "./prompt";
+import { generateVideo, pickDemo, reviseShot, upstreamMessage } from "./service";
 
 const provider: ChatProvider = { name: "gateway", protocol: "openai", endpoint: "https://x", apiKey: "k", model: "m" };
 
@@ -67,5 +68,35 @@ describe("service du studio", () => {
   it("la révision signale les identifiants dont dépendent les plans suivants", () => {
     const messages = buildRevisionMessages({ script: roseVideo, shot: 1, instruction: "plus lent", board: [] }, "devine");
     expect(messages[1]!.content).toContain("utilisent ces identifiants : rose");
+  });
+
+  it("donne au modèle le scénario écrit à la main, avec la consigne de le suivre", () => {
+    const messages = buildStudioMessages("Plan 1 (2 s) : un cercle. Musique calme.", "libre");
+    expect(messages[0]!.content).toContain("suis-le FIDÈLEMENT");
+    expect(messages[1]!.content).toContain("Plan 1 (2 s) : un cercle.");
+  });
+});
+
+describe("clé API de l'auteur", () => {
+  it("reconnaît une clé Claude ou OpenRouter, avec le modèle demandé", () => {
+    const claude = providerFromKey(" sk-ant-abc ");
+    expect(claude.ok && claude.provider.protocol).toBe("anthropic");
+    expect(claude.ok && claude.provider.apiKey).toBe("sk-ant-abc");
+    const router = providerFromKey("sk-or-xyz", "openai/gpt-5");
+    expect(router.ok && router.provider.endpoint).toContain("openrouter.ai");
+    expect(router.ok && router.provider.model).toBe("openai/gpt-5");
+  });
+
+  it("refuse une clé OpenAI directe ou inconnue, avec une explication", () => {
+    const openai = providerFromKey("sk-proj-123");
+    expect(openai.ok).toBe(false);
+    expect(!openai.ok && openai.message).toContain("OpenRouter");
+    expect(providerFromKey("abc").ok).toBe(false);
+  });
+
+  it("explique une erreur du fournisseur sans jamais répéter la clé", () => {
+    expect(upstreamMessage(new UpstreamError("sk-ant-secret refusée", 401))).toContain("Clé API refusée");
+    expect(upstreamMessage(new UpstreamError("x", 404))).toContain("modèle");
+    expect(upstreamMessage(new UpstreamError("sk-ant-secret", 401))).not.toContain("sk-ant");
   });
 });

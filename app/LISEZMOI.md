@@ -222,8 +222,9 @@ python3 tools/rejeu/seance.py /tmp seance.json essai "[]"
 Outil interne pour produire des vidéos verticales (1080 × 1920) à partir du même moteur : le tableau se
 dessine tout seul, sans voix, sur une musique composée pour la vidéo.
 
-1. **Scénario** : une idée décrite au modèle (`POST /api/studio`, action `generate`), ou un script collé
-   depuis une autre IA. « Copier les consignes » (`GET /api/studio?consignes=<format>`) donne le format exact
+1. **Scénario** : écrit en texte libre, d'une simple idée à un scénario détaillé plan par plan (durées,
+   textes, musique), que le modèle suit fidèlement et transforme pour le moteur (`POST /api/studio`, action
+   `generate`). Option avancée : un script JSON collé depuis une autre IA. « Copier les consignes » (`GET /api/studio?consignes=<format>`) donne le format exact
    à cette autre IA. Quatre formats : « devine ce que ça dessine », « une notion en 30 s », « la physique
    cachée », libre. Le script est en lignes JSON, comme les séances : `lesson` (titre, `hook`, `music`),
    `step` (`say` = texte à l'écran, `bars`, `reveal`, `do`), `end` (`cta`).
@@ -241,5 +242,7 @@ dessine tout seul, sans voix, sur une musique composée pour la vidéo.
    de fin) et la musique sont enregistrés en temps réel (MediaRecorder) : MP4 H.264 dans Chrome, Edge et
    Safari, WebM ailleurs. Les à-coups pendant l'enregistrement sont comptés et signalés.
 
-Accès : les appels au modèle exigent le code `STUDIO_TOKEN` (ou `SELFTEST_TOKEN`), saisi une fois dans la
-page. Les exemples, le script collé, l'aperçu et l'export marchent sans code et sans IA.
+Accès : les appels au modèle du serveur exigent le code `STUDIO_TOKEN` (ou `SELFTEST_TOKEN`), saisi une fois
+dans la page. L'auteur peut aussi donner sa propre clé (Claude `sk-ant-…` ou OpenRouter `sk-or-…`, champ
+« Utiliser ma clé API ») : son compte paie, sans code ; la clé n'est ni gardée ni journalisée par le serveur
+(`server/studio/ownKey.ts`). Les exemples, le script collé, l'aperçu et l'export marchent sans code et sans IA.

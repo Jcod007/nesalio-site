@@ -10,7 +10,7 @@ import { createStudioParser, type Shot, type StudioScript, type VideoFormat } fr
 import { JsonObjectScanner } from "@/domain/tutor/modelOutput";
 import type { ChatProvider } from "@/server/config";
 import type { ChatMessage } from "@/server/tutor/prompt";
-import type { CompletionStream } from "@/server/tutor/chatCompletions";
+import { UpstreamError, type CompletionStream } from "@/server/tutor/chatCompletions";
 import { buildRevisionMessages, buildStudioMessages, type RevisionRequest } from "./prompt";
 
 export interface StudioServiceConfig {
@@ -45,6 +45,16 @@ async function collect(messages: ChatMessage[], config: StudioServiceConfig, fal
   return { script: parser.result(fallbackTitle), issues: parser.issues.map((i) => `${i.reason} : ${i.line}`.slice(0, 200)) };
 }
 
+/** Message d'erreur du modèle, assez précis pour que l'auteur sache quoi changer (clé, modèle, crédit). */
+export function upstreamMessage(error: unknown): string {
+  const status = error instanceof UpstreamError ? error.status : undefined;
+  if (status === 401 || status === 403) return "Clé API refusée : vérifie-la (et ses droits) chez le fournisseur.";
+  if (status === 402) return "Crédit insuffisant sur le compte de cette clé API.";
+  if (status === 400 || status === 404) return "Le fournisseur a refusé la demande : vérifie le nom du modèle.";
+  if (status === 429) return "Le fournisseur limite les appels pour l'instant : réessaie dans une minute.";
+  return "Le modèle ne répond pas pour le moment. Réessaie dans un instant.";
+}
+
 /** Sans service d'IA : l'exemple le plus proche de l'idée (mots en commun), annoncé comme tel. */
 export function pickDemo(prompt: string): StudioScript {
   const fold = (t: string) => t.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -71,8 +81,8 @@ export async function generateVideo(prompt: string, format: VideoFormat, config:
     if (!result.script) return { ok: false, status: 502, message: "Le modèle n'a pas écrit de plan utilisable. Reformule ton idée ?" };
     return { ok: true, source: "model", script: result.script, issues: result.issues };
   } catch (error) {
-    config.log?.("studio: échec de l'appel au modèle", error);
-    return { ok: false, status: 502, message: "Le modèle ne répond pas pour le moment. Réessaie dans un instant." };
+    config.log?.("studio: échec de l'appel au modèle", error instanceof UpstreamError ? `${error.status ?? ""}` : "erreur");
+    return { ok: false, status: 502, message: upstreamMessage(error) };
   }
 }
 
@@ -85,7 +95,7 @@ export async function reviseShot(request: RevisionRequest, format: VideoFormat, 
     if (!script) return { ok: false, status: 502, message: "Le modèle n'a pas proposé de plan utilisable. Reformule ta consigne ?" };
     return { ok: true, shots: script.shots.slice(0, 2), issues };
   } catch (error) {
-    config.log?.("studio: échec de la révision", error);
-    return { ok: false, status: 502, message: "Le modèle ne répond pas pour le moment. Réessaie dans un instant." };
+    config.log?.("studio: échec de la révision", error instanceof UpstreamError ? `${error.status ?? ""}` : "erreur");
+    return { ok: false, status: 502, message: upstreamMessage(error) };
   }
 }
