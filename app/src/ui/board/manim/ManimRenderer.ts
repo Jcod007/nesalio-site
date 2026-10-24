@@ -96,6 +96,11 @@ function ensureTheme() {
   themeReady = true;
 }
 
+export interface RendererOptions {
+  /** Densité de pixels du canevas (par défaut celle de l'écran, 2 au plus). Le studio impose 2 pour une vidéo 1080 × 1920. */
+  pixelRatio?: number;
+}
+
 export interface RendererCallbacks {
   /** La caméra a bougé (pour le quadrillage CSS et le bouton « recentrer »). */
   onViewChange?(view: View, userMoved: boolean): void;
@@ -127,10 +132,14 @@ export class ManimRenderer {
   private generation = 0;
   private readonly detach: Array<() => void> = [];
 
-  constructor(container: HTMLElement, private readonly callbacks: RendererCallbacks = {}) {
+  constructor(container: HTMLElement, private readonly callbacks: RendererCallbacks = {}, options: RendererOptions = {}) {
     ensureTheme();
     this.container = container;
-    this.scene = new Scene(container, { backgroundColor: BRAND.paper, backgroundOpacity: 0 });
+    this.scene = new Scene(container, {
+      backgroundColor: BRAND.paper,
+      backgroundOpacity: 0,
+      ...(options.pixelRatio ? { pixelRatio: options.pixelRatio } : {}),
+    });
     this.viewport = { width: container.clientWidth, height: container.clientHeight, insets: { top: 0, right: 0, bottom: 0, left: 0 } };
     this.axes = this.coordinatesFor(DEFAULT_FRAME);
     this.attachInteractions();
@@ -382,6 +391,11 @@ export class ManimRenderer {
   }
 
   /** Marges de l'interface : la caméra cadre le contenu dans la zone libre. */
+  /** Le canevas WebGL du tableau (le studio le recopie dans l'image de la vidéo). */
+  get canvas(): HTMLCanvasElement {
+    return this.scene.getCanvas();
+  }
+
   setInsets(insets: Viewport["insets"]): void {
     const changed = JSON.stringify(insets) !== JSON.stringify(this.viewport.insets);
     this.viewport = { ...this.viewport, insets };
