@@ -74,7 +74,7 @@ describe("createModelOutputParser", () => {
     expect(event.do[1]).toMatchObject({ at: [1, 2] });
   });
 
-  it("garde la phrase quand une commande est invalide, et l'écarte", () => {
+  it("rejette une étape entière si une commande visuelle est invalide", () => {
     const parser = createModelOutputParser();
     const event = parser.parseLine(
       JSON.stringify({
@@ -87,9 +87,9 @@ describe("createModelOutputParser", () => {
         ],
       }),
     );
-    if (event?.kind !== "step") throw new Error();
-    expect(event.do).toEqual([{ type: "point", id: "ok", at: [0, 0] }]);
+    expect(event).toBeNull();
     expect(parser.issues.length).toBe(2);
+    expect(parser.metrics).toMatchObject({ acceptedSteps: 0, rejectedSteps: 1, rejectedActions: 2 });
   });
 
   it("écarte une question de vérification incohérente sans perdre l'étape", () => {
