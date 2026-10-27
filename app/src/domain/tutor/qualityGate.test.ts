@@ -27,6 +27,27 @@ describe("quality gate", () => {
     expect(arithmeticError("1.5 + 2.5 = 4")).toBeUndefined();
     expect(arithmeticError("2 × 3 = 6")).toBeUndefined();
   });
+  it("vérifie les références de destination et les identifiants dupliqués", () => {
+    expect(validateStep({ say: "Déplacement.", do: [{ type: "point", id: "A", at: [0, 0] }, { type: "move", target: "A", near: "B", side: "left" }] }, { ids: new Set() }).ok).toBe(false);
+    expect(validateStep({ say: "Deux points.", do: [{ type: "point", id: "A", at: [0, 0] }, { type: "point", id: "A", at: [1, 0] }] }, { ids: new Set() }).ok).toBe(false);
+  });
+  it("suit les groupes, l'effacement et la remise à zéro", () => {
+    const state = { ids: new Set(["A", "B"]) };
+    const grouped = validateStep({ say: "Groupe.", do: [{ type: "group", id: "G", members: ["A", "B"] }] }, state);
+    expect(grouped.ok).toBe(true);
+    const moved = validateStep({ say: "G bouge.", do: [{ type: "highlight", target: "G" }] }, grouped.next);
+    expect(moved.ok).toBe(true);
+    const erased = validateStep({ say: "On efface.", do: [{ type: "erase", target: "G" }] }, moved.next);
+    expect(erased.ok).toBe(true);
+    expect(validateStep({ say: "G bouge.", do: [{ type: "highlight", target: "G" }] }, erased.next).ok).toBe(false);
+    const cleared = validateStep({ say: "Tableau vierge.", do: [{ type: "clear" }] }, grouped.next);
+    expect(cleared.next.ids.size).toBe(0);
+    expect(validateStep({ say: "G bouge.", do: [{ type: "highlight", target: "G" }] }, cleared.next).ok).toBe(false);
+    expect(state.ids.size).toBe(2);
+  });
+  it("rejette un groupe avec membre inexistant", () => {
+    expect(validateStep({ say: "Groupe.", do: [{ type: "group", id: "G", members: ["absent"] }] }, { ids: new Set() }).ok).toBe(false);
+  });
   it("conserve les objets des tours précédents", () => {
     expect(validateStep({ say: "A bouge.", do: [{ type: "highlight", target: "A" }] }, { ids: new Set(["A"]) }).ok).toBe(true);
   });
