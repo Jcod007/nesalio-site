@@ -201,6 +201,30 @@ npx next build && npx next start -p 3100
 python3 tools/rejeu/seance.py /tmp seance.json essai "[]"
 ```
 
+## Le moteur pédagogique
+
+`src/domain/tutor/pedagogy.ts` décide, à chaque tour, la **phase** de la séance ; le modèle écrit
+toujours les mots, les exemples et les dessins, la phase lui dit seulement quoi faire ce tour-ci
+(consigne ajoutée à la fin du message, voir `buildMessages`).
+
+- **Situer** : la question est-elle une découverte (« c'est quoi… ») ou un exercice précis
+  (« factorise 3x² + 10x − 8 ») ? Un exercice commence par « par où tu commencerais ? », sans le résoudre.
+- **Montrer** : un exemple résolu, chaque étape justifiée, en deux tours ; la question du tour est un
+  « pourquoi ? » sur une étape montrée (elle fait expliquer, elle ne fait pas deviner).
+- **Guider** : un exemple semblable que l'élève complète (une étape à faire).
+- **Pratiquer** : l'élève fait seul, son exercice ou un nouveau ; indices gradués (coup de pouce, indice
+  précis, étape montrée), jamais la réponse finale.
+- **Conclure** : bilan.
+
+Passages : juste → phase suivante ; deux erreurs d'affilée → retour à un autre exemple résolu ;
+7 réponses → conclure. La phase se rejoue à partir de la question de départ et des réponses
+(`stateFor`), sans état côté serveur. Elle est enregistrée avec chaque tour (`phase` dans les
+séances) et donnée par tour dans `/api/diagnostic`.
+
+Fondements : exemple résolu pour un débutant (Sweller), aide qui se retire (Kalyuga), montrer puis
+faire ensemble puis seul avec ~80 % de réussite (Rosenshine), indices plutôt que réponses
+(Bastani et al., 2025 ; Kestin et al., 2025).
+
 ## La boucle d'une séance
 
 1. Premier tour : Nesa fixe 2 ou 3 objectifs (le dernier est l'idée centrale),

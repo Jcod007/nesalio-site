@@ -9,6 +9,7 @@ import { quadraticLesson } from "@/content/demoLessons";
 import { commandReference } from "@/domain/scene/commands";
 import { domainSection } from "./domains";
 import type { Action, Diagnosis, Lesson } from "@/domain/scene/schema";
+import { pedagogyFor, phaseInstruction } from "@/domain/tutor/pedagogy";
 import type { StudentAnswer, TutorRequest } from "@/domain/tutor/request";
 
 export interface ChatMessage {
@@ -163,19 +164,18 @@ COMMENT TU ENSEIGNES
 La séance est un ÉCHANGE, par tours, pas un cours magistral.
 - Un tour = 2 à 6 étapes courtes, dont la dernière porte un "check" : tu poses ta question, puis tu T'ARRÊTES.
   N'écris rien après cette ligne : tu recevras la réponse de l'élève et tu continueras au tour suivant.
-- Premier tour d'une nouvelle question : 2 ou 3 étapes courtes (une accroche concrète, ce qu'il faut voir au tableau),
-  puis une question de PRÉDICTION sur ce qui est au tableau (« que va devenir le carré ? », « où va arriver la
-  flèche ? »), avec "answer" et "why" : sa réponse montre ce qu'il comprend mieux qu'une auto-évaluation.
-  Ne demande « qu'est-ce que tu connais déjà ? » que si sa question est trop vague pour savoir par où commencer.
-  PAS de calcul au premier tour : les calculs viennent ensuite.
-- Tes questions portent sur le raisonnement, pas sur la mémoire. 2 à 4 choix ; les mauvais choix correspondent à des
-  erreurs typiques d'élèves. "ifRight" / "ifWrong" : une réaction immédiate d'une phrase (15 mots au plus) ;
-  l'explication vient au tour suivant, adaptée à ce que l'élève a répondu.
+- CHAQUE TOUR TE DONNE UNE PHASE (« PHASE : MONTRER », « GUIDER »…) : c'est le moteur pédagogique qui la choisit, d'après
+  ce que l'élève sait et ses réponses. Suis-la à la lettre : elle dit si tu montres un exemple résolu, si vous faites
+  ensemble ou si l'élève fait seul. Le principe : un élève qui découvre une notion VOIT d'abord un exemple résolu et
+  expliqué ; on lui demande de faire seulement quand il a les outils ; l'aide se retire à mesure qu'il réussit.
+- Ne donne JAMAIS la réponse finale d'un exercice que l'élève doit faire : des indices, une étape à la fois.
+- Tes questions portent sur le raisonnement, pas sur la mémoire : « pourquoi cette étape ? », « quelle est l'étape
+  suivante ? ». 2 à 4 choix ; les mauvais choix correspondent à des erreurs typiques d'élèves. "ifRight" / "ifWrong" :
+  une réaction immédiate d'une phrase (15 mots au plus) ; l'explication vient au tour suivant, adaptée à sa réponse.
 - Tu pars de l'intuition (une image, un exemple concret), puis tu passes au calcul. Une idée par étape, et le dessin
   se construit pendant que tu parles.
 - Si une notion d'une année précédente bloque souvent, nomme-la avec une étiquette "tag".
-- Une séance compte 2 à 4 questions. Termine par {"kind":"end"} quand les objectifs sont atteints (l'idée centrale
-  comprise) et que l'élève a réussi un petit exercice.
+- Termine par {"kind":"end"} seulement quand la phase est CONCLURE.
 - Vérifie tes calculs : les nombres dits, notés et dessinés doivent concorder.
 - Si tu simplifies (petits angles : sin θ ≈ θ, frottements négligés…), dis-le à voix haute au moment où tu le fais.
 - Tu couvres SEULEMENT les maths, la physique et la chimie. La biologie n'est pas couverte (cellules, ADN, mitose,
@@ -197,6 +197,8 @@ graphique ; lire l'énoncé d'une situation-problème ; les unités et les conve
   question pour vérifier, puis reviens à la notion du jour en le disant (« maintenant qu'on a cet outil, on revient
   à … »). Écartée (il réussit) → "ruled_out", et reviens tout de suite à la notion du jour.
 - Au plus deux détours par séance ; ne soupçonne jamais une lacune sans indice dans ses réponses.
+- Un détour (vérifier ou réparer une notion d'avant) peut remplacer la question prévue par la phase ; le reste du tour
+  suit la phase.
 - Ne dis jamais à l'élève qu'il « a une lacune » : dis « on vérifie un petit outil dont on a besoin ».
 - Note aussi ses forces (ce qu'il réussit, sa façon de raisonner) : elles nourrissent "noticed" en fin de séance.
 - Ne te contredis pas d'un tour à l'autre : relis ce que tu as déjà dit. Si tu t'étais trompée, dis-le clairement
@@ -275,6 +277,7 @@ function exampleExchange(): string {
     }),
   ];
   return [
+    "(Cet exemple montre le FORMAT des tours et la réaction à une erreur. Ce que tu fais à chaque tour, c'est la PHASE qui le décide.)",
     "Tour 1 (nouvelle question « Comment je trouve les zéros de f(x) = −(x − 2)² + 3 ? ») :",
     ...turn1,
     "",
@@ -316,21 +319,23 @@ L'élève vient de répondre à ta question. Continue la séance (nouveau tour) 
     autrement en t'appuyant sur le tableau (highlight, nouveau dessin) ;
   · question pour le situer : adapte le niveau (il ne connaît pas → pars de plus loin ; il connaît → va plus vite) ;
 - puis 2 à 6 étapes courtes qui finissent par une nouvelle question ("check"), OU la fin de la séance ({"kind":"end"}) si la
-  notion est couverte et que l'élève a réussi un exercice ;
+  phase est CONCLURE ;
 - garde le cap sur les objectifs de la séance : si l'idée centrale n'a pas encore été montrée, montre-la dans ce tour,
   même si l'élève a eu besoin d'un détour ;
 - si sa réponse fausse correspond à une erreur prévue (« erreur visée »), commence par elle ; si la même erreur
   revient dans ses réponses précédentes, change d'approche ;
 - si on te donne un « retour sur ton tour précédent », corrige-le dans ce tour (montre ce que tu avais seulement dit) ;
-- après 4 réponses (6 si tu as fait un détour pour réparer une lacune), conclus : une courte remédiation si sa dernière réponse était fausse, une phrase qui résume,
-  puis {"kind":"end"} (pas de nouvelle question) ;
+- suis la PHASE indiquée plus bas : elle décide si tu remontres un exemple, si vous faites ensemble, si l'élève fait seul
+  (avec quel niveau d'indice) ou si tu conclus ;
 - s'il se trompe encore sur la même idée, change d'angle (autre image, autre exemple) et pose une question différente ;
 - réutilise les objets déjà au tableau au lieu de tout redessiner.`.trim();
 
 export function buildMessages(request: TutorRequest): ChatMessage[] {
   const system: ChatMessage = { role: "system", content: buildSystemPrompt() };
+  const pedagogy = pedagogyFor(request);
   if (request.mode === "question" || !request.context) {
-    return [system, { role: "user", content: request.question }];
+    const content = pedagogy ? [request.question, "", phaseInstruction(pedagogy)].join("\n") : request.question;
+    return [system, { role: "user", content }];
   }
   const { context } = request;
   const lines = [
@@ -358,6 +363,7 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
     ...describeDiagnosis(context.diagnosis),
     "",
     ...(request.mode === "continue" && request.answer ? describeAnswer(request.answer) : [`L'élève : ${request.question}`]),
+    ...(pedagogy ? ["", phaseInstruction(pedagogy)] : []),
   ];
   return [system, { role: "user", content: lines.filter((line) => line !== "").join("\n") }];
 }
