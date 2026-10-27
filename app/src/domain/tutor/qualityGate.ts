@@ -40,9 +40,13 @@ export function validateStep(step: Step, state: QualityState): QualityResult {
   const exists = (id: string): boolean => ids.has(id) || (groups.get(id)?.size ?? 0) > 0;
   const reject = (reason: string): QualityResult => ({ ok: false, reason, next: state });
   for (const action of step.do) {
-    if ("target" in action && typeof action.target === "string" && TARGET_COMMANDS.has(action.type) && !exists(action.target)) {
+    if ("target" in action && typeof action.target === "string" && (TARGET_COMMANDS.has(action.type) || action.type === "image") && !exists(action.target)) {
       return reject(`Cible absente du tableau : ${action.target}`);
     }
+    if (action.type === "applyMatrix" && action.targets?.some((id) => !exists(id))) return reject("Une cible de la matrice est absente du tableau");
+    if ("from" in action && typeof action.from === "string" && !exists(action.from)) return reject("Point de départ absent : " + action.from);
+    if ("to" in action && typeof action.to === "string" && !exists(action.to)) return reject("Point d'arrivée absent : " + action.to);
+    if ("center" in action && typeof action.center === "string" && action.center !== "auto" && !exists(action.center)) return reject("Centre absent : " + action.center);
     if ("near" in action && typeof action.near === "string" && !exists(action.near)) {
       return reject(`Repère near absent du tableau : ${action.near}`);
     }
