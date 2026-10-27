@@ -48,6 +48,13 @@ describe("quality gate", () => {
   it("rejette un groupe avec membre inexistant", () => {
     expect(validateStep({ say: "Groupe.", do: [{ type: "group", id: "G", members: ["absent"] }] }, { ids: new Set() }).ok).toBe(false);
   });
+  it("valide les références de points et les cibles de matrices", () => {
+    const state = { ids: new Set(["A"]) };
+    expect(validateStep({ say: "Segment.", do: [{ type: "segment", id: "s", from: "A", to: "B" }] }, state).ok).toBe(false);
+    expect(validateStep({ say: "Vecteur.", do: [{ type: "vector", id: "v", from: "B", by: [1, 0] }] }, state).ok).toBe(false);
+    expect(validateStep({ say: "Matrice.", do: [{ type: "applyMatrix", matrix: [[1, 0], [0, 1]], targets: ["B"] }] }, state).ok).toBe(false);
+    expect(validateStep({ say: "Segment.", do: [{ type: "segment", id: "s", from: "A", to: [1, 2] }] }, state).ok).toBe(true);
+  });
   it("conserve les objets des tours précédents", () => {
     expect(validateStep({ say: "A bouge.", do: [{ type: "highlight", target: "A" }] }, { ids: new Set(["A"]) }).ok).toBe(true);
   });
