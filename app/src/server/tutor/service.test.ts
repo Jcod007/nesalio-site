@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { serializeLesson } from "./prompt";
 import { derivativeLesson } from "@/content/demoLessons";
 import type { StreamEvent } from "@/domain/scene/schema";
@@ -158,13 +158,13 @@ describe("tutorEvents", () => {
     expect(events.at(-1)).toMatchObject({ kind: "error", code: "upstream" });
   });
 
-  it("termine proprement si le modèle coupe en cours de séance", async () => {
+  it("signale une interruption si le modèle coupe en cours de séance", async () => {
     const text = '{"kind":"step","say":"Une."}\n{"kind":"step","say":"Deux."}\n{"kind":"step","say":"Trois."}';
     const events = await collect(
       tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion(text, 30) }),
     );
     expect(events.filter((e) => e.kind === "step").length).toBeGreaterThan(0);
-    expect(events.at(-1)).toEqual({ kind: "end", summary: [] });
+    expect(events.at(-1)).toMatchObject({ kind: "error", code: "upstream" });
   });
 
   it("joue la démonstration si le service d'IA refuse l'accès (paiement requis)", async () => {
@@ -224,11 +224,16 @@ describe("parseSse", () => {
   });
 
   it("signale une réponse coupée par la limite de jetons", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const body = 'data: {"choices":[{"delta":{"content":"{\\"kind\\":"},"finish_reason":"length"}]}\n\ndata: [DONE]\n\n';
-    for await (const _ of parseSse(stream(body))) void _;
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("limite de jetons"));
-    warn.mockRestore();
+    await expect(async () => {
+      for await (const _ of parseSse(stream(body))) void _;
+    }).rejects.toThrow("limite de jetons");
+  });
+
+  it("détecte une coupure réseau sans marqueur DONE", async () => {
+    await expect(async () => {
+      for await (const _ of parseSse(stream('data: {"choices":[{"delta":{"content":"Bonjour"}}]}\\n\\n'))) void _;
+    }).rejects.toThrow("interrompu");
   });
 
   it("transforme une erreur en cours de flux en exception", async () => {
@@ -263,6 +268,12 @@ describe("parseAnthropicSse", () => {
     const out: string[] = [];
     for await (const text of parseAnthropicSse(stream(body))) out.push(text);
     expect(out.join("")).toBe("Bonjour");
+  });
+
+  it("détecte une coupure Anthropic sans message_stop", async () => {
+    await expect(async () => {
+      for await (const _ of parseAnthropicSse(stream('data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Bonjour"}}\\n\\n'))) void _;
+    }).rejects.toThrow("interrompu");
   });
 
   it("transforme un événement d'erreur en exception", async () => {
