@@ -54,7 +54,7 @@ export function simulate(circuit: Circuit, previous?: Snapshot): Snapshot {
     if (!c) throw Error("Unknown component " + id);
     if (visiting.has(id)) throw Error("Combinational cycle at " + id);
     visiting.add(id);
-    const pin = (name: string): Bit => resolve(c.pins![name].slice(0, -2));
+    const pin = (name: string): Bit => resolve(c.pins![name]!.slice(0, -2));
     let q: Bit;
     switch (c.type) {
       case "INPUT": case "CONST": q = c.value!; break;
@@ -76,9 +76,9 @@ export function simulate(circuit: Circuit, previous?: Snapshot): Snapshot {
   for (const c of circuit.components) resolve(c.id);
   for (const c of circuit.components) {
     if (!sequential.has(c.type)) continue;
-    const pin = (name: string): Bit => values[c.pins![name].slice(0, -2)];
+    const pin = (name: string): Bit => values[c.pins![name]!.slice(0, -2)]!;
     const reset = c.pins?.RESET ? values[c.pins.RESET.slice(0, -2)] : 0;
-    const clockId = c.pins!.CLK.slice(0, -2);
+    const clockId = c.pins!.CLK!.slice(0, -2);
     const rising = (previous?.values[clockId] ?? 0) === 0 && values[clockId] === 1;
     let next = old(c.id);
     if (c.resetMode === "async" && reset) next = 0;
@@ -110,7 +110,7 @@ export function simulate(circuit: Circuit, previous?: Snapshot): Snapshot {
     if (active.has(id)) throw Error("Combinational cycle at " + id);
     active.add(id);
     const c = byId.get(id)!;
-    const p = (name: string) => final(c.pins![name].slice(0, -2));
+    const p = (name: string) => final(c.pins![name]!.slice(0, -2));
     let v: Bit;
     switch (c.type) {
       case "INPUT": case "CONST": v = c.value!; break;
@@ -122,7 +122,7 @@ export function simulate(circuit: Circuit, previous?: Snapshot): Snapshot {
       case "XOR": v = bit(p("A") ^ p("B")); break;
       case "XNOR": v = bit(1-(p("A") ^ p("B"))); break;
       case "MUX2": v = p("S") ? p("B") : p("A"); break;
-      default: v = state[id]; break;
+      default: v = state[id]!; break;
     }
     active.delete(id);
     finalValues[id] = v;
