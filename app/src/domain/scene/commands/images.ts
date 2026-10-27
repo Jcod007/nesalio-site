@@ -9,12 +9,16 @@
  *
  * Sans indication précise ("axis":"vertical", "center":"auto", "by":"auto", ou rien),
  * le moteur pose l'axe, le centre ou le vecteur pour que l'image se lise à côté de
- * l'original (domain/board/apart). Une position donnée par le modèle est gardée : elle
- * peut être voulue (axe de symétrie de la figure, homothétie centrée sur un sommet).
+ * l'original (domain/board/apart). Une RELATION donnée par le modèle est gardée : elle est
+ * voulue (axe = (BC), homothétie centrée sur le sommet C, axe de symétrie de la figure).
+ * Une position LIBRE (sans repère : un point O posé à la main, des coordonnées brutes, un
+ * segment tracé seul, voir domain/board/free) est gardée tant que l'image ne tombe sur
+ * aucune figure ; sinon le moteur la déplace, avec ce qui la porte (le point O glisse).
  */
 import { z } from "zod";
-import { axisBeside, firstFree, homothetyCenter, translationBeside, type Side } from "@/domain/board/apart";
-import { bounds, closedShapes } from "@/domain/board/collisions";
+import { axisBeside, axisShift, firstFree, gapFor, homothetyCenter, rotationCenter, translationBeside, type Side } from "@/domain/board/apart";
+import { bounds, closedShapes, covered, figureOutline } from "@/domain/board/collisions";
+import { freeLine, freePoint, moveFree } from "@/domain/board/free";
 import { nodeBox, union, type Box } from "@/domain/board/layout";
 import { add, deg, rad, reflectAcross, rotate, scale, sub } from "@/domain/board/shapes";
 import { isVisible, resolveTargets, type BoardNode, type Reveal, type Vec2 } from "@/domain/board/state";
@@ -87,7 +91,8 @@ export const imageCommand = defineCommand({
     '  ou deux points), "translation" ("by" : "auto", [dx,dy] ou l\'id d\'un vecteur), "rotation" ("center", "angle" en\n' +
     '  degrés, antihoraire), "homothety" ("center" : "auto" pour une image à côté, ou un point ; "ratio" : 2 agrandit,\n' +
     '  0.5 réduit, négatif de l\'autre côté du centre). Sans repère, laisse le moteur placer ("vertical", "auto") ; donne\n' +
-    '  un axe ou un centre précis seulement s\'il fait partie du problème. Parties : img-axe, img-centre. Les traits de\n' +
+    '  un axe ou un centre précis seulement s\'il fait partie du problème (un sommet, une droite (BC)) : un point posé\n' +
+    '  à la main est déplacé si l\'image tombe sur une figure. Parties : img-axe, img-centre. Les traits de\n' +
     '  construction (perpendiculaires à l\'axe, flèches, rayons depuis le centre) sont tracés ("traces":false pour non).\n' +
     '  Les sommets de l\'image prennent un prime (A devient A\') et se visent par ce nom ; parties img-<partie>.\n' +
     '  Pour des figures semblables : "homothety" ; isométriques : réflexion, translation ou rotation.',
@@ -106,6 +111,21 @@ export const imageCommand = defineCommand({
       .map(({ poly }) => bounds(poly));
     const corners: Vec2[] = [[box.x0, box.y0], [box.x1, box.y0], [box.x1, box.y1], [box.x0, box.y1]];
     const imageBox = (f: (p: Vec2) => Vec2) => pointsBox(corners.map(f));
+    // L'image tombe-t-elle sur une figure ? Sur l'original (sauf s'il est sa propre image : axe de
+    // symétrie de la figure), ou sur une autre figure du tableau. Sert à juger une position libre.
+    const outline = figureOutline(state, action.target);
+    const otherShapes = closedShapes(state)
+      .filter(({ id }) => id !== action.target && !targets.includes(id))
+      .map(({ poly }) => poly);
+    const overlap = (a: Vec2[], b: Vec2[]) => Math.max(covered(a, b), covered(b, a));
+    const landsOnFigure = (f: (p: Vec2) => Vec2): boolean => {
+      if (!outline) return false;
+      const img = outline.map(f);
+      const itself = Math.min(covered(img, outline), covered(outline, img)) > 0.95;
+      return (!itself && overlap(img, outline) > 0.05) || otherShapes.some((o) => overlap(img, o) > 0.05);
+    };
+    /** Une position libre que le moteur déplace : ce qui la porte, ses places d'origine, le décalage. */
+    let relocate: { nodes: string[]; at: Vec2[]; delta: Vec2 } | null = null;
     let m: Mapping;
     let center: Vec2 | null = null;
     let axis: [Vec2, Vec2] | null = null;
@@ -119,7 +139,26 @@ export const imageCommand = defineCommand({
           const side = firstFree<Side>([1, -1], (sd) => imageBox((p) => reflectAcross(p, ...axisBeside(box, orientation, undefined, sd))), others);
           placedAxis = axisBeside(box, orientation, undefined, side);
           axis = placedAxis;
-        } else axis = resolveLine(state, action.axis);
+        } else {
+          axis = resolveLine(state, action.axis);
+          const free = axis ? freeLine(state, action.axis) : null;
+          if (axis && free && landsOnFigure((p) => reflectAcross(p, ...axis!))) {
+            // L'axe glisse parallèlement à lui-même, du côté où le modèle l'avait mis.
+            const given = axis;
+            const pts = outline ?? corners;
+            const n: Vec2 = [-(given[1][1] - given[0][1]), given[1][0] - given[0][0]];
+            const dot = (v: Vec2) => v[0] * n[0] + v[1] * n[1];
+            const pref: Side = dot(given[0]) >= pts.reduce((sum, v) => sum + dot(v), 0) / pts.length ? 1 : -1;
+            const shifted = (sd: Side): [Vec2, Vec2] => {
+              const d = axisShift(given, pts, sd, gapFor(box));
+              return [add(given[0], d), add(given[1], d)];
+            };
+            const side = firstFree<Side>([pref, pref === 1 ? -1 : 1], (sd) => imageBox((p) => reflectAcross(p, ...shifted(sd))), others);
+            const delta = axisShift(given, pts, side, gapFor(box));
+            relocate = { nodes: free.nodes, at: [...given], delta };
+            axis = shifted(side);
+          }
+        }
         if (!axis) return state;
         m = { map: (p) => reflectAcross(p, ...axis!), k: 1, mirror: true };
         break;
@@ -140,6 +179,19 @@ export const imageCommand = defineCommand({
       case "rotation":
         center = action.center !== undefined && action.center !== "auto" ? resolvePoint(state, action.center) : null;
         if (!center || action.angle === undefined) return state;
+        {
+          const angle = action.angle;
+          const free = freePoint(state, action.center!);
+          if (free && landsOnFigure((p) => rotate(p, center!, angle))) {
+            const options = (["down", "left", "right", "up"] as const).filter((t) => rotationCenter(box, angle, undefined, t) !== null);
+            if (options.length > 0) {
+              const toward = firstFree(options, (t) => imageBox((p) => rotate(p, rotationCenter(box, angle, undefined, t)!, angle)), others);
+              const placed = rotationCenter(box, angle, undefined, toward)!;
+              relocate = { nodes: free.nodes, at: [center], delta: sub(placed, center) };
+              center = placed;
+            }
+          }
+        }
         m = { map: (p) => rotate(p, center!, action.angle!), k: 1, mirror: false };
         break;
       case "homothety": {
@@ -149,7 +201,18 @@ export const imageCommand = defineCommand({
         if (action.center === undefined || action.center === "auto") {
           const side = firstFree<Side>([-1, 1], (sd) => imageBox(around(homothetyCenter(box, k, undefined, sd))), others);
           center = homothetyCenter(box, k, undefined, side);
-        } else center = resolvePoint(state, action.center);
+        } else {
+          center = resolvePoint(state, action.center);
+          const free = center ? freePoint(state, action.center) : null;
+          if (center && free && landsOnFigure(around(center))) {
+            // Le centre glisse à côté de la figure, du côté où le modèle l'avait mis.
+            const pref: Side = center[0] <= (box.x0 + box.x1) / 2 ? -1 : 1;
+            const side = firstFree<Side>([pref, pref === 1 ? -1 : 1], (sd) => imageBox(around(homothetyCenter(box, k, undefined, sd))), others);
+            const placed = homothetyCenter(box, k, undefined, side);
+            relocate = { nodes: free.nodes, at: [center], delta: sub(placed, center) };
+            center = placed;
+          }
+        }
         if (!center) return state;
         m = { map: around(center), k, mirror: false };
         break;
@@ -207,7 +270,15 @@ export const imageCommand = defineCommand({
     // Les sommets ordonnés (@0, @1…) : l'image est une figure comme l'original (contour, "within").
     for (const [name, p] of Object.entries(source)) if (name.startsWith("@")) vertices[name] = m.map(add(p, offsetOf));
     if (placedAxis) traces.unshift(segment(`${action.id}-axe`, ...placedAxis, reveal, "ink", false, action.axisLabel ?? "d"));
-    const next = drawFigure(state, `${action.id}-traces`, traces, reveal);
+    // Une position libre déplacée glisse d'abord à sa place (le point O, l'axe tracé seul), puis on construit.
+    let start = state;
+    let traceReveal = reveal;
+    if (relocate) {
+      const slide = { start: reveal.start, duration: reveal.duration * 0.3 };
+      start = moveFree(state, relocate.nodes, relocate.at, relocate.delta, slide);
+      traceReveal = { start: reveal.start + slide.duration, duration: reveal.duration - slide.duration };
+    }
+    const next = drawFigure(start, `${action.id}-traces`, traces, traceReveal);
     return drawFigure(next, action.id, parts, { start: reveal.start + reveal.duration * 0.35, duration: reveal.duration * 0.65 }, {}, Object.keys(vertices).length > 0 ? vertices : undefined);
   },
 });

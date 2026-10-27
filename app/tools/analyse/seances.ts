@@ -18,7 +18,7 @@
 import { readFileSync } from "node:fs";
 import type { TurnRecord } from "@/domain/sessionLog";
 import { emptyBoard, type BoardState } from "@/domain/board/state";
-import { collisions, type CollisionKind } from "@/domain/board/collisions";
+import { collisions, covered, figureOutline, type CollisionKind } from "@/domain/board/collisions";
 import { applyAction } from "@/domain/scene/commands";
 import type { Step } from "@/domain/scene/schema";
 import { reviewTurn } from "@/domain/tutor/turnReview";
@@ -56,6 +56,14 @@ interface SessionReport {
   overlaps: Map<string, { ratio: number; kind: CollisionKind; say: string }>;
   /** Superpositions demandées par la phrase (« je fais glisser l'image sur l'original ») : voulues, comptées à part. */
   wanted: Map<string, { ratio: number; kind: CollisionKind; say: string }>;
+  /**
+   * Images d'une transformation posées sur leur original (y compris l'image qui l'englobe, que le
+   * détecteur de chevauchements tolère) ; hors l'image que la phrase fait glisser exprès et la figure
+   * qui est sa propre image (axe de symétrie).
+   */
+  imagesOnFigure: Array<{ image: string; ratio: number; say: string }>;
+  /** Transformations dessinées (image d'une figure). */
+  images: number;
   uncued: number;
   /** Objets déjà au tableau que le moteur a déplacés sans que le modèle le demande (pile de calculs, textes poussés…). */
   shifted: number;
@@ -81,11 +89,12 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
   const sessions = new Map<string, SessionReport>();
   const boards = new Map<string, BoardState>();
   for (const turn of turns) {
-    const key = (turn.session ?? "sans-session").replace(/-/g, "").slice(0, 8);
+    // L'identifiant entier : deux séances dont l'identifiant commence pareil restent distinctes.
+    const key = turn.session ?? "sans-session";
     let s = sessions.get(key);
     if (!s) {
       s = {
-        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), wanted: new Map(), uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
+        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), wanted: new Map(), imagesOnFigure: [], images: 0, uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
         unshown: [], missingTargets: new Set(), longSentences: 0, gestures: 0, steps: 0, rejected: [], checks: { right: 0, total: 0 },
         firstStepMs: [], cancelled: 0, errors: [],
       };
@@ -110,6 +119,17 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
           const previous = board;
           board = applyAction(board, action, { start: 0, duration: 0 });
           s.shifted += imposedMoves(previous, board, action);
+          if (action.type === "image" && board.groups[action.id] && !previous.groups[action.id]) {
+            s.images++;
+            const original = figureOutline(board, action.target);
+            const image = figureOutline(board, action.id);
+            if (original && image && !moved.has(action.id)) {
+              const a = covered(original, image);
+              const b = covered(image, original);
+              const itself = Math.min(a, b) > 0.95;
+              if (!itself && Math.max(a, b) > 0.05) s.imagesOnFigure.push({ image: action.id, ratio: Math.round(Math.max(a, b) * 100) / 100, say: step.say.slice(0, 90) });
+            }
+          }
         } catch (error) {
           s.replayErrors.push(`${action.type} : ${(error as Error).message}`.slice(0, 160));
         }
@@ -167,13 +187,14 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
     `- Chevauchements (paires distinctes) : ${sum((s) => s.overlaps.size)} · texte sur texte ${byKind("texte")} · sur un point ${byKind("point")} · barré par un trait ${byKind("trait")} · dans une surface ${byKind("surface")} · graduations ${byKind("graduations")} · dessins l'un sur l'autre ${byKind("dessins")}`,
   );
   lines.push(`- Superpositions voulues (l'objet que la phrase fait glisser, copie ou tourne) : ${sum((s) => s.wanted.size)}`);
+  lines.push(`- Images posées sur leur original (englobée comprise) : ${sum((s) => s.imagesOnFigure.length)} sur ${sum((s) => s.images)} transformations`);
   lines.push(`- Déplacements imposés par le moteur (objets déjà au tableau) : ${sum((s) => s.shifted)}`);
   lines.push(`- Objets dessinés sans repère dans la phrase : ${sum((s) => s.uncued)} sur ${sum((s) => s.drawn)}`);
   lines.push(`- « Dit sans montrer » : ${sum((s) => s.unshown.length)} · cibles absentes : ${sum((s) => s.missingTargets.size)} · phrases trop longues : ${sum((s) => s.longSentences)}`);
   lines.push(`- Commandes refusées : ${sum((s) => s.rejected.length)} · erreurs au rejeu : ${sum((s) => s.replayErrors.length)} · erreurs envoyées : ${sum((s) => s.errors.length)}`);
   lines.push(`- Vérifications réussies : ${sum((s) => s.checks.right)} / ${sum((s) => s.checks.total)} · tours interrompus : ${sum((s) => s.cancelled)}`);
   for (const s of sessions) {
-    lines.push("", `## Séance ${s.session}${s.ref ? ` (inscription ${s.ref})` : ""} · ${s.start.slice(11, 16)} UTC · ${s.turns.length} tours`);
+    lines.push("", `## Séance ${s.session.replace(/-/g, "").slice(0, 8)}${s.ref ? ` (inscription ${s.ref})` : ""} · ${s.start.slice(11, 16)} UTC · ${s.turns.length} tours`);
     lines.push(
       `Attente médiane ${sec(median(s.firstStepMs))} · ${s.steps} phrases, ${s.gestures} gestes · sans repère ${s.uncued}/${s.drawn} · vérifications ${s.checks.right}/${s.checks.total} · interrompus ${s.cancelled}`,
     );
@@ -181,6 +202,7 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
       const amount = o.kind === "trait" ? `${o.ratio} points du trait` : o.kind === "graduations" ? `${o.ratio} chiffres` : `${Math.round(o.ratio * 100)} %`;
       lines.push(`- Chevauchement (${o.kind}) ${pair} (${amount}) pendant « ${o.say} »`);
     }
+    for (const o of s.imagesOnFigure) lines.push(`- Image sur l'original ${o.image} (${Math.round(o.ratio * 100)} %) pendant « ${o.say} »`);
     for (const u of s.unshown) lines.push(`- Dit sans montrer (« ${u.word} ») : « ${u.say} »`);
     if (s.missingTargets.size) lines.push(`- Cibles absentes : ${[...s.missingTargets].join(", ")}`);
     for (const r of s.rejected) lines.push(`- Refusé : ${r}`);

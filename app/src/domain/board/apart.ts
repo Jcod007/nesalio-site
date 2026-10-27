@@ -69,3 +69,35 @@ export function homothetyCenter(box: Box, k: number, gap = gapFor(box), side: Si
   const D = k > 1 ? (w + gap) / (k - 1) : (k * w + gap) / (1 - k);
   return [box.x0 - D, y];
 }
+
+/**
+ * Le centre d'une rotation d'angle θ (degrés) qui sépare l'image de la figure : à la distance D du
+ * milieu de la figure, l'image se forme à 2·D·|sin(θ/2)| de l'original ; D est choisi pour que cet
+ * écart dépasse la diagonale de la figure plus l'écart. `toward` : du côté où poser le centre.
+ * null pour une petite rotation (moins de 20°) : le centre serait trop loin pour rester au tableau.
+ */
+export function rotationCenter(box: Box, angle: number, gap = gapFor(box), toward: "down" | "left" | "right" | "up" = "down"): Vec2 | null {
+  const half = Math.abs(Math.sin((angle * Math.PI) / 360));
+  if (half < Math.sin((20 * Math.PI) / 360)) return null;
+  const diag = Math.hypot(box.x1 - box.x0, box.y1 - box.y0);
+  const D = (diag + gap) / (2 * half);
+  const cx = (box.x0 + box.x1) / 2;
+  const cy = (box.y0 + box.y1) / 2;
+  const [ux, uy] = toward === "down" ? [0, -1] : toward === "up" ? [0, 1] : toward === "left" ? [-1, 0] : [1, 0];
+  return [cx + D * ux, cy + D * uy];
+}
+
+/**
+ * Un axe de réflexion de direction quelconque, glissé parallèlement à lui-même juste à côté de la
+ * figure (ses points `outline`) : l'image se forme de l'autre côté, sans toucher l'original.
+ * `side` : 1 du côté où pointe la normale, −1 de l'autre. Renvoie le décalage à appliquer à l'axe.
+ */
+export function axisShift(axis: readonly [Vec2, Vec2], outline: readonly Vec2[], side: Side, gap: number): Vec2 {
+  const [p, q] = axis;
+  const len = Math.hypot(q[0] - p[0], q[1] - p[1]);
+  const n: Vec2 = [-(q[1] - p[1]) / len, (q[0] - p[0]) / len];
+  const proj = outline.map((v) => v[0] * n[0] + v[1] * n[1]);
+  const target = side > 0 ? Math.max(...proj) + gap : Math.min(...proj) - gap;
+  const c = p[0] * n[0] + p[1] * n[1];
+  return [(target - c) * n[0], (target - c) * n[1]];
+}
