@@ -9,6 +9,7 @@ import { matchDemoLesson, DEMO_LESSONS } from "@/content/demoLessons";
 import type { Lesson, StreamEvent } from "@/domain/scene/schema";
 import { extractCues, inferCues } from "@/domain/tutor/cues";
 import { createModelOutputParser, JsonObjectScanner } from "@/domain/tutor/modelOutput";
+import { validateStep } from "@/domain/tutor/qualityGate";
 import type { TutorRequest } from "@/domain/tutor/request";
 import type { ChatProvider } from "@/server/config";
 import { UpstreamError, type CompletionStream } from "./chatCompletions";
@@ -34,18 +35,59 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
 
   yield { kind: "source", source: "model" };
   let steps = 0;
+  const rejected: string[] = [];
+  let endedNormally = false;
+  const delivered: Extract<StreamEvent, { kind: "step" }>[] = [];
+  let deferredEnd: Extract<StreamEvent, { kind: "end" }> | undefined;
   try {
-    for await (const event of modelEvents(request, config)) {
-      if (event.kind === "step") steps++;
+    for await (const event of modelEvents(request, config, rejected)) {
+      if (event.kind === "step") { steps++; delivered.push(event); }
+      if (event.kind === "await") endedNormally = true;
+      if (event.kind === "end") { deferredEnd = event; continue; }
       yield event;
     }
     // Tour vide (le modèle n'a rien écrit d'utilisable) : une seconde chance avant d'afficher une erreur.
     if (steps === 0 && !config.signal?.aborted) {
-      config.log?.("tutor: tour vide, nouvel essai");
-      for await (const event of modelEvents(request, config)) {
+      config.log?.("tutor: tour vide, nouvel essai avec corrections", rejected.slice(0, 4));
+      const feedback = rejected.slice(0, 3).map((reason) => reason.slice(0, 180));
+      for await (const event of modelEvents(request, config, undefined, feedback)) {
         if (event.kind === "step") steps++;
+        if (event.kind === "await" || event.kind === "end") endedNormally = true;
         yield event;
       }
+    }
+    // Réparation ciblée : ne pas rejouer les étapes déjà prononcées.
+    if (steps > 0 && rejected.length > 0 && !endedNormally && !config.signal?.aborted) {
+      const existing = new Map(request.context?.board.map((item) => [item.id, item]) ?? []);
+      for (const step of delivered) {
+        for (const action of step.do) {
+          if (action.type === "clear") existing.clear();
+          else if (action.type === "erase") existing.delete(action.target);
+          else if ("id" in action && typeof action.id === "string") existing.set(action.id, { id: action.id, type: action.type, detail: "" });
+        }
+      }
+      const continuation: TutorRequest = {
+        ...request,
+        mode: "followUp",
+        context: {
+          ...(request.context ?? { spoken: [], board: [] }),
+          spoken: [...(request.context?.spoken ?? []), ...delivered.map((step) => step.say)].slice(-16),
+          board: [...existing.values()].slice(-40),
+        },
+      };
+      const feedback = [
+        "Continue UNIQUEMENT à partir du dernier dessin valide. Ne répète aucune étape déjà prononcée.",
+        "Répare les étapes rejetées : " + rejected.slice(0, 3).join("; "),
+      ];
+      config.log?.("tutor: récupération ciblée des étapes rejetées", feedback);
+      for await (const event of modelEvents(continuation, config, undefined, feedback)) {
+        if (event.kind === "step") steps++;
+        if (event.kind === "await" || event.kind === "end") endedNormally = true;
+        yield event;
+      }
+    } else if (deferredEnd) {
+      endedNormally = true;
+      yield deferredEnd;
     }
   } catch (error) {
     config.log?.("tutor: échec de l'appel au modèle", error);
@@ -67,6 +109,8 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
 
   if (steps === 0) {
     yield { kind: "error", code: "empty", message: "Nesa n'a pas réussi à construire une explication. Reformule ta question ?" };
+  } else if (!endedNormally && rejected.length > 0) {
+    yield { kind: "error", code: "empty", message: "Une partie de l'explication n'a pas pu être validée. Tu peux demander de reprendre à partir du dernier dessin." };
   }
 }
 
@@ -75,7 +119,7 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
  * première question posée à l'élève. Là, le tour s'arrête (« await ») et
  * l'appel au modèle est coupé : la suite dépendra de la réponse de l'élève.
  */
-async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): AsyncGenerator<StreamEvent> {
+async function* modelEvents(request: TutorRequest, config: TutorServiceConfig, rejected?: string[], feedback: readonly string[] = []): AsyncGenerator<StreamEvent> {
   const parser = createModelOutputParser();
   const scanner = new JsonObjectScanner();
   let steps = 0;
@@ -97,12 +141,17 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     extraHeaders: provider.extraHeaders,
     // Premier tour : réponse immédiate (pas de calcul) ; ensuite, un peu de réflexion pour la justesse.
     reasoningEffort: request.mode === "question" ? (provider.firstTurnEffort ?? provider.reasoningEffort) : provider.reasoningEffort,
-    messages: buildMessages(request),
+    messages: [
+      ...buildMessages(request),
+      ...(feedback.length ? [{ role: "user" as const, content: `La tentative précédente a été refusée. Recommence correctement la même explication. Erreurs à corriger : ${feedback.join("; ")}` }] : []),
+    ],
     signal: upstream.signal,
   });
 
   let received = 0;
   let head = "";
+  let quality = { ids: new Set(request.context?.board.map((item) => item.id) ?? []) };
+  let qualityRejected = 0;
   /** Les événements tirés d'objets JSON complets ; met `ended` à vrai quand le tour est fini. */
   function* handle(objects: string[]): Generator<StreamEvent> {
     for (const objectText of objects) {
@@ -114,6 +163,14 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
         yield event;
       } else if (event.kind === "step") {
         if (steps >= MAX_STEPS) continue;
+        const checked = validateStep(event, quality);
+        if (!checked.ok) {
+          qualityRejected++;
+          if (checked.reason) rejected?.push(checked.reason);
+          config.log?.("tutor: étape refusée avant diffusion", checked.reason);
+          continue;
+        }
+        quality = checked.next;
         if (!headerSent && wantsHeader) {
           headerSent = true;
           yield { kind: "lesson", title: request.question.slice(0, 80) };
@@ -149,7 +206,15 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     config.signal?.removeEventListener("abort", onAbort);
     upstream.abort();
   }
-  if (parser.issues.length > 0) config.log?.("tutor: lignes du modèle écartées", parser.issues);
+  if (parser.issues.length > 0) {
+    rejected?.push(...parser.issues.slice(0, 4).map((issue) => issue.reason));
+    config.log?.("tutor: lignes du modèle écartées", parser.issues);
+  }
+  config.log?.("tutor: métriques de validation", {
+    ...parser.metrics,
+    rejectedByQualityGate: qualityRejected,
+    deliveredSteps: steps,
+  });
   // Tour vide : on garde de quoi comprendre pourquoi (rien reçu, ou texte sans étape valable).
   if (steps === 0) config.log?.(`tutor: aucune étape (${received} caractères reçus) : ${head.replace(/\s+/g, " ").slice(0, 300)}`);
   if (!ended && steps > 0) yield { kind: "end", summary: [] };
