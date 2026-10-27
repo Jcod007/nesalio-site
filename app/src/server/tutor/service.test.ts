@@ -232,7 +232,7 @@ describe("parseSse", () => {
 
   it("détecte une coupure réseau sans marqueur DONE", async () => {
     await expect(async () => {
-      for await (const _ of parseSse(stream('data: {"choices":[{"delta":{"content":"Bonjour"}}]}\\n\\n'))) void _;
+      for await (const _ of parseSse(stream('data: {"choices":[{"delta":{"content":"Bonjour"}}]}\n\n'))) void _;
     }).rejects.toThrow("interrompu");
   });
 
@@ -272,7 +272,7 @@ describe("parseAnthropicSse", () => {
 
   it("détecte une coupure Anthropic sans message_stop", async () => {
     await expect(async () => {
-      for await (const _ of parseAnthropicSse(stream('data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Bonjour"}}\\n\\n'))) void _;
+      for await (const _ of parseAnthropicSse(stream('data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Bonjour"}}\n\n'))) void _;
     }).rejects.toThrow("interrompu");
   });
 
