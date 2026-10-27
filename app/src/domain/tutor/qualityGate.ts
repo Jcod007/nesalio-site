@@ -3,6 +3,7 @@
  * certaine sont rejetés. Ne prétend pas prouver un raisonnement général.
  */
 import type { Step } from "@/domain/scene/schema";
+import { verifyNumericalClaims, verifyGeometryClaims } from "./mathClaims";
 
 export interface QualityState {
   readonly ids: Set<string>;
@@ -31,7 +32,7 @@ export function arithmeticError(say: string): string | undefined {
 
 /** Validation transactionnelle : ne modifie jamais l'état du tableau si une action échoue. */
 export function validateStep(step: Step, state: QualityState): QualityResult {
-  const mathError = arithmeticError(step.say);
+  const mathError = arithmeticError(step.say) ?? verifyNumericalClaims(step.say) ?? verifyGeometryClaims(step.say);
   if (mathError) return { ok: false, reason: mathError, next: state };
   const ids = new Set(state.ids);
   const groups = new Map<string, Set<string>>(
