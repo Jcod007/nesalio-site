@@ -21,6 +21,7 @@ import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/doma
 import { applyAction } from "@/domain/scene/commands";
 import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
+import { boardAfter, claimNotes, verifyStep, type ClaimIssue } from "@/domain/tutor/claims";
 import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import { retimeCues } from "@/domain/timeline/spokenTime";
@@ -105,6 +106,8 @@ interface Segment {
   turnStart: number;
   /** Commandes refusées par le serveur pendant le tour. */
   rejected: string[];
+  /** Affirmations que la figure contredit, relevées pendant le tour (domain/tutor/claims). */
+  claimIssues: ClaimIssue[];
   summary: string[];
   noticed: Noticed | null;
   error: string | null;
@@ -307,6 +310,7 @@ export class Player {
       answeredStep: -1,
       turnStart: 0,
       rejected: [],
+      claimIssues: [],
       summary: [],
       noticed: null,
       error: null,
@@ -331,9 +335,14 @@ export class Player {
     segment.awaiting = false;
     segment.streamDone = false;
     // Relecture du tour qui se termine : rendue au modèle pour qu'il se corrige au tour suivant.
-    const review = reviewNotes(reviewTurn(segment.steps.slice(segment.turnStart, segment.cursor + 1), this.snapshot.board), segment.rejected);
+    // Les affirmations fausses d'abord : le modèle doit se corriger devant l'élève.
+    const review = [
+      ...claimNotes(segment.claimIssues),
+      ...reviewNotes(reviewTurn(segment.steps.slice(segment.turnStart, segment.cursor + 1), this.snapshot.board), segment.rejected),
+    ].slice(0, 4);
     segment.turnStart = segment.steps.length;
     segment.rejected = [];
+    segment.claimIssues = [];
     const request: TutorRequest = {
       mode: "continue",
       question: this.snapshot.question ?? answer.prompt,
@@ -494,7 +503,12 @@ export class Player {
     if (segment.appliedUpTo <= segment.cursor) {
       // Repères au prorata du temps de parole, sur la partie vraiment parlée de l'audio (voir spokenTime.ts).
       const cues = step.cues ? retimeCues(step.say, step.cues, speechMs, speaker.speechSpan?.(step.say)) : undefined;
-      const plan = planStep(step.do, speechMs, cues);
+      // Vérificateur : ce que l'étape affirme est recalculé sur la figure. Une ligne de calcul ou un
+      // texte que la figure contredit n'est pas écrit ; tout est rendu au modèle au tour suivant.
+      const issues = verifyStep(step, boardAfter(this.snapshot.board, step, (b, a) => applyAction(b, a, { start: 0, duration: 0 })));
+      segment.claimIssues.push(...issues);
+      const dropped = new Set(issues.flatMap((i) => (i.action === undefined ? [] : [i.action])));
+      const plan = planStep(step.do?.filter((_, i) => !dropped.has(i)), speechMs, cues);
       let board = pruneErased(this.snapshot.board, now);
       for (const planned of plan.actions) {
         board = applyAction(board, planned.action, { start: now + planned.offset, duration: planned.duration });

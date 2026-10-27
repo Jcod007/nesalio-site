@@ -31,6 +31,11 @@ export function resolvePoint(state: BoardState, ref: PointRef): Vec2 | null {
   for (const group of groups) {
     const vertex = group.vertices?.[ref];
     if (!vertex) continue;
+    // Le point dessiné de ce sommet (un point construit, nommé E) : sa place réelle, même s'il a été
+    // déplacé seul (transform), ce que la place enregistrée du sommet ne suit pas (séance du 21 octobre :
+    // E glissé vers le haut, mais « E » visait encore l'ancienne place).
+    const drawn = group.members.map((id) => state.nodes[id]).find((n) => isVisible(n) && n.type === "point" && n.label?.trim() === ref);
+    if (drawn?.type === "point") return add(drawn.at, drawn.offset);
     const part = group.members.map((id) => state.nodes[id]).find(isVisible);
     if (!part) continue;
     return add(vertex, part.offset);
