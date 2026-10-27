@@ -41,6 +41,21 @@ export const fonctions: DomainGuide = {
     "Logarithme = l'exposant qu'il faut : dessine 2ˣ, pars de 8 sur l'axe des y, va à l'horizontale jusqu'à la courbe puis descends à x = 3 " +
       '(segments pointillés) : log₂(8) = 3. Ou compte les sauts ×2 de 1 à 8 sur une droite graduée. Pas de séance de logarithme sans dessin.',
     'Écris les bases avec des chiffres en indice (log₂, log₃, log₁₀), jamais « log_b ». Dans "fn", log est en base 10 : log₂(x) s\'écrit "ln(x)/ln(2)".',
+    // Partie entière (SN 4, 1re étape) : notation, forme canonique et lecture du graphique comme en classe.
+    'PARTIE ENTIÈRE : toujours "stepFunction" (jamais "curve" avec floor). Notation de la classe : [x], « le plus grand entier ' +
+      "inférieur ou égal à x » : [3,7] = 3, [5] = 5, [−2,3] = −3 (piège classique : −2). Forme canonique f(x) = a[b(x − h)] + k, " +
+      "écrite telle quelle au tableau.",
+    "Rôle des paramètres (pose les nombres comme en classe) : |a| = écart vertical entre deux marches ; 1/|b| = longueur d'une " +
+      "marche ; (h, k) = un point plein, le début d'une marche ; a et b de même signe → escalier croissant, de signes contraires → " +
+      "décroissant ; b > 0 → point plein à gauche de chaque marche, b < 0 → à droite. Montre chaque rôle en redemandant le même " +
+      'escalier avec un seul paramètre changé (k : il monte ; b : les marches s\'allongent ou raccourcissent ; signe de b : les points se retournent).',
+    "Règle à partir du graphique : (h, k) lu sur un point plein, |a| sur l'écart entre deux marches, 1/|b| sur la longueur d'une " +
+      "marche, puis les signes (croissante ou non, côté du point plein). Vérifie en calculant f(h) = k.",
+    "Zéros : a[b(x − h)] + k = 0 → [b(x − h)] = −k/a ; si −k/a n'est pas entier, aucun zéro ; sinon les zéros forment un " +
+      "INTERVALLE (toute une marche sur l'axe des x), écrit comme en classe : [2, 3[ (le crochet tourné vers l'extérieur exclut " +
+      "la borne). Domaine ℝ ; image : les valeurs atteintes {…, k − |a|, k, k + |a|, …}.",
+    "Situation-problème de partie entière (stationnement, appels, livraison facturés par tranche) : fais d'abord un tableau de " +
+      "valeurs (\"note\"), puis l'escalier ; demande ce que vaut le prix pile à la fin d'une tranche (point plein ou vide ?).",
     // Diagnostic : les notions d'avant typiques du domaine.
     "Notions d'avant typiques : f(4) lu comme « f fois 4 » ; exposant pris pour un produit (2⁵ = 2 × 5) ; règles des signes ; " +
       "pente d'une droite (montée ÷ avancée). Soupçon → la question suivante porte sur cette notion SEULE (« Que vaut 2⁴ ? »).",

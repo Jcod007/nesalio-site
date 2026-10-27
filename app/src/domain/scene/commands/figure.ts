@@ -98,8 +98,11 @@ export const pointCommand = defineCommand({
     label: z.string().max(40).optional(),
     color: ColorName.optional(),
     ring: z.boolean().optional(),
+    open: z.boolean().optional(),
   }),
-  doc: '{"type":"point","id":"A","at":[x,y],"label":"(2, 3)","color":"violet","ring":true}',
+  doc:
+    '{"type":"point","id":"A","at":[x,y],"label":"(2, 3)","color":"violet","ring":true} ; "open":true = point vide (bout exclu\n' +
+    '  d\'un intervalle, x ≠ 2 sur une droite numérique).',
   duration: 450,
   aliases: ["dot"],
   apply(state, action, reveal) {

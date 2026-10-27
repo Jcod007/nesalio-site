@@ -24,11 +24,14 @@ import { vectorOpCommand } from "./vectors";
 import { unitCircleCommand } from "./trigCircle";
 import { conicCommand } from "./conics";
 import { noteCommand, tagCommand, textCommand } from "./text";
+import { stepFunctionCommand } from "./steps";
+import { areaModelCommand } from "./areaModel";
 
 /** Dans l'ordre où elles sont présentées au modèle. */
 export const COMMANDS = {
   axes: axesCommand,
   curve: curveCommand,
+  stepFunction: stepFunctionCommand,
   point: pointCommand,
   vector: vectorCommand,
   segment: segmentCommand,
@@ -42,6 +45,7 @@ export const COMMANDS = {
   circle: circleCommand,
   sector: sectorCommand,
   polygon: polygonCommand,
+  areaModel: areaModelCommand,
   regularPolygon: regularPolygonCommand,
   prism: prismCommand,
   pyramid: pyramidCommand,
@@ -74,6 +78,7 @@ export const COMMANDS = {
 export const Action = z.discriminatedUnion("type", [
   axesCommand.schema,
   curveCommand.schema,
+  stepFunctionCommand.schema,
   pointCommand.schema,
   vectorCommand.schema,
   segmentCommand.schema,
@@ -87,6 +92,7 @@ export const Action = z.discriminatedUnion("type", [
   circleCommand.schema,
   sectorCommand.schema,
   polygonCommand.schema,
+  areaModelCommand.schema,
   regularPolygonCommand.schema,
   prismCommand.schema,
   pyramidCommand.schema,
@@ -150,6 +156,7 @@ export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
   "matrix",
   "copy",
   "curve",
+  "stepFunction",
   "point",
   "vector",
   "segment",
@@ -164,6 +171,7 @@ export const NODE_COMMANDS: ReadonlySet<ActionType> = new Set([
   "circle",
   "sector",
   "polygon",
+  "areaModel",
   "regularPolygon",
   "prism",
   "pyramid",

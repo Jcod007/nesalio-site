@@ -31,14 +31,43 @@ export function sampleCurve(
     const x = a + ((b - a) * i) / samples;
     const y = f(x);
     const inside = Number.isFinite(y) && y >= ymin - margin && y <= ymax + margin;
-    if (inside) current.push([x, y]);
-    else if (current.length > 0) {
+    if (inside) {
+      // Un saut (partie entière, fonction définie par parties) coupe la courbe au lieu d'être
+      // relié par un trait vertical qui n'appartient pas au graphique.
+      const prev = current.at(-1);
+      const jump = prev ? findJump(f, prev[0], x, prev[1], y, (ymax - ymin) * 0.01) : null;
+      if (jump) {
+        current.push([jump[0], f(jump[0])]);
+        pieces.push(current);
+        current = [[jump[1], f(jump[1])]];
+      }
+      current.push([x, y]);
+    } else if (current.length > 0) {
       pieces.push(current);
       current = [];
     }
   }
   if (current.length > 1) pieces.push(current);
-  return pieces.filter((piece) => piece.length > 1);
+  // Un morceau sans largeur (le point isolé au bord d'un saut) ne se trace pas.
+  return pieces.filter((piece) => piece.length > 1 && piece.at(-1)![0] - piece[0]![0] > 1e-9);
+}
+
+/**
+ * Discontinuité entre x0 et x1 : on resserre l'intervalle là où la valeur change ; si l'écart
+ * reste grand quand l'intervalle est minuscule, c'est un saut (une pente raide, elle, s'aplatit).
+ * Renvoie les deux bords du saut, ou null.
+ */
+function findJump(f: (x: number) => number, x0: number, x1: number, y0: number, y1: number, minGap: number): [number, number] | null {
+  if (!(Math.abs(y1 - y0) > minGap)) return null;
+  let [l, r, fl, fr] = [x0, x1, y0, y1];
+  for (let i = 0; i < 50 && r - l > 1e-12; i++) {
+    const m = (l + r) / 2;
+    const fm = f(m);
+    if (!Number.isFinite(fm)) return null;
+    if (Math.abs(fm - fl) >= Math.abs(fr - fm)) [r, fr] = [m, fm];
+    else [l, fl] = [m, fm];
+  }
+  return Math.abs(fr - fl) > minGap ? [l, r] : null;
 }
 
 /** Pas de graduation « rond » (1, 2, 5 × 10ⁿ) pour environ `target` graduations. */
