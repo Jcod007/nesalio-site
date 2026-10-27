@@ -42,6 +42,8 @@ export function recordPresentation(state: LearningState, teaching?: TeachingAnno
   if (!teaching?.completes || (teaching.role !== "explanation" && teaching.role !== "worked-example")) return state;
   const role = teaching.role;
   return updateConcept(state, teaching.concept, (entry) => {
+    // Une résolution expliquée jusqu'au résultat clôt aussi l'explication de cette notion.
+    if (role === "worked-example" && !entry.presented.includes("explanation")) entry.presented.push("explanation");
     if (!entry.presented.includes(role)) entry.presented.push(role);
   });
 }

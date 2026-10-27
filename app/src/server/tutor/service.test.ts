@@ -72,6 +72,13 @@ describe("tutorEvents", () => {
     expect(events.some((e) => e.kind === "end")).toBe(false);
   });
 
+  it("laisse finir un exemple après douze petites étapes au lieu de le couper avant son résultat", async () => {
+    const text = Array.from({ length: 13 }, (_, i) => JSON.stringify({ kind: "step", say: `Étape ${i + 1}.` })).join("\n") + '\n{"kind":"end","summary":["Résultat"]}';
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique un calcul." }, { ...base, completion: fakeCompletion(text) }));
+    expect(events.filter((e) => e.kind === "step")).toHaveLength(13);
+    expect(events.at(-1)).toMatchObject({ kind: "end", summary: ["Résultat"] });
+  });
+
   it("demande le complément manquant avant d'accepter la fin d'une découverte", async () => {
     let calls = 0;
     const completion: CompletionStream = (options) => {

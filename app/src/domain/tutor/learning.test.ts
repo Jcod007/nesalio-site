@@ -6,7 +6,7 @@ describe("observations par notion", () => {
     const initial = emptyLearning();
     const next = recordPresentation(initial, { concept: "thales.configuration", role: "worked-example", completes: true });
     expect(initial.concepts).toEqual([]);
-    expect(next.concepts[0]).toEqual({ id: "thales.configuration", presented: ["worked-example"], observations: [] });
+    expect(next.concepts[0]).toEqual({ id: "thales.configuration", presented: ["explanation", "worked-example"], observations: [] });
     expect(recordPresentation(next, { concept: "thales.configuration", role: "worked-example", completes: true })).toEqual(next);
   });
 

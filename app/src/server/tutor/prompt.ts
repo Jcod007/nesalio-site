@@ -396,6 +396,7 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
       `Notion visée : ${decision.target.id} (${decision.target.label}).`,
       "Pour chaque étape, ajoute teaching:{concept:<identifiant ci-dessous>,role:explanation|worked-example|guided-practice|independent-practice,completes:true|false}. completes=true seulement sur la DERNIÈRE étape d'une explication ou d'un exemple entièrement résolu (résultat et justification inclus). Une étape avec check porte un rôle de pratique. Un exemple travaillé est une résolution expliquée jusqu'au résultat, pas une invitation à deviner.",
       "Progression (prévoir un exemple travaillé complet ; ne pas remplacer la demande par un test des prérequis) :",
+      "Un même problème peut expliquer les prérequis puis résoudre la notion visée : pas d'exemple supplémentaire obligatoire pour chaque prérequis. Clôture chaque explication par completes=true ; un worked-example entièrement résolu clôt aussi l'explication de sa notion.",
       ...decision.sequence.map((c) => `${c.id} — ${c.label}. Sens : ${c.explain} Exemple de référence : ${c.example}`),
       `Pas encore présentées complètement dans cette séance : ${decision.toPresent.map((c) => c.id).join(", ") || "aucune d'après les annotations de lecture"}. Présenté ne signifie pas compris ; ne jamais annoncer une maîtrise sur cette base.`,
     ] : []),

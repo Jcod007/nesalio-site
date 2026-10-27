@@ -108,7 +108,7 @@ describe("Player", () => {
     await speakUntil(player, voice, (s) => s.status === "checking");
     player.answer(0);
     await until(player, () => requests.length === 2);
-    expect(requests[1]?.context?.learning?.concepts[0]).toEqual({ id: "fractions.parts", presented: ["worked-example"], observations: [{ task: "Le 4 indique quoi ?", outcome: "correct", format: "choice", support: "guided" }] });
+    expect(requests[1]?.context?.learning?.concepts[0]).toEqual({ id: "fractions.parts", presented: ["explanation", "worked-example"], observations: [{ task: "Le 4 indique quoi ?", outcome: "correct", format: "choice", support: "guided" }] });
     expect(requests[1]?.answer?.concept).toBe("fractions.parts");
     player.dispose();
   });

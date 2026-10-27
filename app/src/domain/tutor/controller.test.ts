@@ -58,6 +58,16 @@ describe("contrôleur pédagogique", () => {
     expect(constructionViolation(construction, new Set(["tri"]))).toBeNull();
   });
 
+  it("accepte un exemple intégré à Thalès sans exiger un second exemple de configuration", () => {
+    const request = q("Explique Thalès depuis zéro.");
+    const decision = decideTeaching(request);
+    const steps = [
+      { say: "Les points sont alignés et les segments parallèles.", do: [], teaching: { concept: "thales.configuration", role: "explanation" as const, completes: true } },
+      { say: "SD/SA = 2/6 = 1/3, donc DE = 9/3 = 3.", do: [], teaching: { concept: "thales.ratios", role: "worked-example" as const, completes: true } },
+    ];
+    expect(completionViolation(steps, decision, request)).toBeNull();
+  });
+
   it("tous les prérequis existent et précèdent leur notion", () => {
     for (const target of CONCEPTS) {
       const sequence = conceptSequence(target).map((c) => c.id);

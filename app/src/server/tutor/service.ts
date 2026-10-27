@@ -16,8 +16,8 @@ import { buildMessages } from "./prompt";
 import type { ChatMessage } from "./prompt";
 import { checkViolation, completionViolation, constructionViolation, decideTeaching } from "@/domain/tutor/controller";
 
-/** Étapes au plus par tour (un tour se termine normalement bien avant, sur une question). */
-export const MAX_STEPS = 12;
+/** Limite technique : une découverte peut inclure vocabulaire, construction et résolution complète. */
+export const MAX_STEPS = 18;
 
 export interface TutorServiceConfig {
   /** Sans fournisseur, on joue les séances de démonstration. */
@@ -122,7 +122,7 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
       if (attempt > 0 && !completed) yield { kind: "error", code: "upstream", message: "Nesa n’a pas réussi à compléter cette explication. Tu peux réessayer." };
       return;
     }
-    config.log?.("tutor: sortie refusée par le contrôleur", { action: decision.action, attempt });
+    config.log?.("tutor: sortie refusée par le contrôleur", { action: decision.action, attempt, reason: violation.slice(0, 240) });
     repair = [
       ...(accepted.length ? [{ role: "assistant" as const, content: accepted.map((e) => JSON.stringify(e)).join("\n") }] : []),
       { role: "user", content: `CORRECTION DU CONTRÔLEUR : ${violation}\nLes étapes précédentes ont déjà été envoyées. Continue sans les répéter ni les redessiner, sans nouvel en-tête. Il reste ${MAX_STEPS - steps} étapes au plus. Termine l'explication par end.` },

@@ -26,7 +26,7 @@ export function decideTeaching(request: TutorRequest): TeachingDecision {
   const sequence = target ? conceptSequence(target) : [];
   const toPresent = sequence.filter((concept) => {
     const seen = request.context?.learning?.concepts.find((c) => c.id === concept.id);
-    return !seen?.presented.includes("explanation") || !seen.presented.includes("worked-example");
+    return !seen?.presented.includes("explanation") || (concept.id === target?.id && !seen.presented.includes("worked-example"));
   });
   return { policy, action, target, sequence, toPresent,
     allowCheck: policy.questions !== "defer" && action !== "remediate" };
@@ -64,8 +64,11 @@ export function completionViolation(steps: readonly Step[], decision: TeachingDe
   if (request.mode !== "question" || decision.action !== "explain-and-model" || decision.policy.scaffolding === "light") return null;
   const missing = decision.toPresent.flatMap((concept) => {
     const already = request.context?.learning?.concepts.find((c) => c.id === concept.id)?.presented ?? [];
-    return (["explanation", "worked-example"] as const)
-      .filter((role) => !already.includes(role) && !steps.some((s) => s.teaching?.concept === concept.id && s.teaching.role === role && s.teaching.completes))
+    const expected = concept.id === decision.target?.id ? ["explanation", "worked-example"] as const : ["explanation"] as const;
+    const worked = steps.some((s) => s.teaching?.concept === concept.id && s.teaching.role === "worked-example" && s.teaching.completes);
+    return expected
+      .filter((role) => !already.includes(role) && !(role === "explanation" && worked)
+        && !steps.some((s) => s.teaching?.concept === concept.id && s.teaching.role === role && s.teaching.completes))
       .map((role) => `${concept.id} : ${role}`);
   });
   return missing.length ? `Le bloc n'a pas encore présenté les rôles suivants : ${missing.join(" ; ")}. Ajoute les explications et exemples entièrement résolus nécessaires, avec leurs annotations teaching et completes=true sur la dernière étape de chaque explication ou exemple, puis termine. Ne pose pas de question.` : null;
