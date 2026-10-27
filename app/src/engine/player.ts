@@ -441,9 +441,9 @@ export class Player {
 
       // Séquence terminée.
       this.segments.pop();
-      if (segment.error && segment.steps.length === 0) {
+      if (segment.error) {
         if (segment.kind === "question") {
-          this.set({ status: "error", error: segment.error, caption: null });
+          this.set({ status: "error", error: segment.error, caption: null, check: null });
           this.segments = [];
           this.loopSession = -1;
           return;

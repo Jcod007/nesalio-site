@@ -113,6 +113,7 @@ async function ensureOk(response: Response) {
 
 /** Flux SSE de l'API Messages : on garde le texte (text_delta), on ignore la réflexion. */
 export async function* parseAnthropicSse(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  let completed = false;
   for await (const data of sseData(body)) {
     let event: { type?: string; delta?: { type?: string; text?: string }; error?: { message?: string; type?: string } };
     try {
@@ -125,8 +126,9 @@ export async function* parseAnthropicSse(body: ReadableStream<Uint8Array>): Asyn
       throw new UpstreamError(event.error?.message ?? "Erreur du modèle", status);
     }
     if (event.type === "content_block_delta" && event.delta?.type === "text_delta" && event.delta.text) yield event.delta.text;
-    if (event.type === "message_stop") return;
+    if (event.type === "message_stop") { completed = true; break; }
   }
+  if (!completed) throw new UpstreamError("Flux Anthropic interrompu avant la fin du message");
 }
 
 /** Les charges utiles « data: » d'un flux SSE. */
@@ -148,8 +150,9 @@ async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string
 
 /** Lit un flux SSE (format OpenAI) et en extrait le texte généré. */
 export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  let completed = false;
   for await (const data of sseData(body)) {
-    if (data === "[DONE]") return;
+    if (data === "[DONE]") { completed = true; break; }
     let payload: { choices?: { delta?: { content?: string }; finish_reason?: string | null }[]; error?: { message?: string } };
     try {
       payload = JSON.parse(data);
@@ -160,6 +163,7 @@ export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerato
     const text = payload.choices?.[0]?.delta?.content;
     if (text) yield text;
     // Réponse coupée par la limite de jetons : à surveiller dans les journaux (le tour finit incomplet).
-    if (payload.choices?.[0]?.finish_reason === "length") console.warn("modèle : réponse coupée (limite de jetons atteinte)");
+    if (payload.choices?.[0]?.finish_reason === "length") throw new UpstreamError("Réponse coupée : limite de jetons atteinte");
   }
+  if (!completed) throw new UpstreamError("Flux OpenAI interrompu avant le marqueur de fin");
 }
