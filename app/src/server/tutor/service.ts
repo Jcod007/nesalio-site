@@ -37,10 +37,13 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
   let steps = 0;
   const rejected: string[] = [];
   let endedNormally = false;
+  const delivered: Extract<StreamEvent, { kind: "step" }>[] = [];
+  let deferredEnd: Extract<StreamEvent, { kind: "end" }> | undefined;
   try {
     for await (const event of modelEvents(request, config, rejected)) {
-      if (event.kind === "step") steps++;
-      if (event.kind === "await" || event.kind === "end") endedNormally = true;
+      if (event.kind === "step") { steps++; delivered.push(event); }
+      if (event.kind === "await") endedNormally = true;
+      if (event.kind === "end") { deferredEnd = event; continue; }
       yield event;
     }
     // Tour vide (le modèle n'a rien écrit d'utilisable) : une seconde chance avant d'afficher une erreur.
@@ -52,6 +55,39 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
         if (event.kind === "await" || event.kind === "end") endedNormally = true;
         yield event;
       }
+    }
+    // Réparation ciblée : ne pas rejouer les étapes déjà prononcées.
+    if (steps > 0 && rejected.length > 0 && !endedNormally && !config.signal?.aborted) {
+      const existing = new Map(request.context?.board.map((item) => [item.id, item]) ?? []);
+      for (const step of delivered) {
+        for (const action of step.do) {
+          if (action.type === "clear") existing.clear();
+          else if (action.type === "erase") existing.delete(action.target);
+          else if ("id" in action && typeof action.id === "string") existing.set(action.id, { id: action.id, type: action.type, detail: "" });
+        }
+      }
+      const continuation: TutorRequest = {
+        ...request,
+        mode: "followUp",
+        context: {
+          ...(request.context ?? { spoken: [], board: [] }),
+          spoken: [...(request.context?.spoken ?? []), ...delivered.map((step) => step.say)].slice(-16),
+          board: [...existing.values()].slice(-40),
+        },
+      };
+      const feedback = [
+        "Continue UNIQUEMENT à partir du dernier dessin valide. Ne répète aucune étape déjà prononcée.",
+        "Répare les étapes rejetées : " + rejected.slice(0, 3).join("; "),
+      ];
+      config.log?.("tutor: récupération ciblée des étapes rejetées", feedback);
+      for await (const event of modelEvents(continuation, config, undefined, feedback)) {
+        if (event.kind === "step") steps++;
+        if (event.kind === "await" || event.kind === "end") endedNormally = true;
+        yield event;
+      }
+    } else if (deferredEnd) {
+      endedNormally = true;
+      yield deferredEnd;
     }
   } catch (error) {
     config.log?.("tutor: échec de l'appel au modèle", error);
