@@ -60,8 +60,8 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
       yield { kind: "error", code: "upstream", message: "Nesa n'arrive pas à répondre pour le moment. Réessaie dans un instant." };
       return;
     }
-    // La séance a commencé : on la termine proprement plutôt que d'afficher une erreur.
-    yield { kind: "end", summary: [] };
+    // Ne jamais présenter une génération interrompue comme une séance terminée.
+    yield { kind: "error", code: "upstream", message: "L’explication a été interrompue. Tu peux réessayer." };
     return;
   }
 
