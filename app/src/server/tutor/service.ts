@@ -36,9 +36,11 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
   yield { kind: "source", source: "model" };
   let steps = 0;
   const rejected: string[] = [];
+  let endedNormally = false;
   try {
     for await (const event of modelEvents(request, config, rejected)) {
       if (event.kind === "step") steps++;
+      if (event.kind === "await" || event.kind === "end") endedNormally = true;
       yield event;
     }
     // Tour vide (le modèle n'a rien écrit d'utilisable) : une seconde chance avant d'afficher une erreur.
@@ -47,6 +49,7 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
       const feedback = rejected.slice(0, 3).map((reason) => reason.slice(0, 180));
       for await (const event of modelEvents(request, config, undefined, feedback)) {
         if (event.kind === "step") steps++;
+        if (event.kind === "await" || event.kind === "end") endedNormally = true;
         yield event;
       }
     }
@@ -70,6 +73,8 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
 
   if (steps === 0) {
     yield { kind: "error", code: "empty", message: "Nesa n'a pas réussi à construire une explication. Reformule ta question ?" };
+  } else if (!endedNormally && rejected.length > 0) {
+    yield { kind: "error", code: "empty", message: "Une partie de l'explication n'a pas pu être validée. Tu peux demander de reprendre à partir du dernier dessin." };
   }
 }
 
