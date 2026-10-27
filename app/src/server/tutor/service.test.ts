@@ -25,6 +25,33 @@ const fakeCompletion =
 
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
+describe("quality gate and bounded recovery", () => {
+  it("rejette une erreur arithmétique puis corrige au deuxième essai", async () => {
+    const prompts: string[] = [];
+    const completion: CompletionStream = async function* (args) {
+      prompts.push(JSON.stringify(args.messages));
+      yield prompts.length === 1
+        ? '{"kind":"step","say":"3 × 4 = 13","do":[]}\n'
+        : '{"kind":"step","say":"3 × 4 = 12","do":[]}\n';
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "3 fois 4 ?" }, { ...base, completion }));
+    expect(prompts).toHaveLength(2);
+    expect(prompts[1]).toContain("Égalité arithmétique incorrecte");
+    expect(events.filter((e) => e.kind === "step")).toHaveLength(1);
+    expect(events.find((e) => e.kind === "step")).toMatchObject({ say: "3 × 4 = 12" });
+  });
+  it("ne dépasse pas deux tentatives en cas de réponses toujours invalides", async () => {
+    let attempts = 0;
+    const completion: CompletionStream = async function* () {
+      attempts++;
+      yield '{"kind":"step","say":"3 × 4 = 13","do":[]}\n';
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "3 fois 4 ?" }, { ...base, completion }));
+    expect(attempts).toBe(2);
+    expect(events.at(-1)).toMatchObject({ kind: "error", code: "empty" });
+  });
+});
+
 describe("tutorEvents", () => {
   it("relaie le tour du modèle, validé étape par étape", async () => {
     const text = "```json\n" + serializeLesson(derivativeLesson) + "\n```";
