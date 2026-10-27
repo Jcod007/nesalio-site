@@ -125,7 +125,7 @@ export default function LogicLab() {
           return <path key={i} d={`M${a.x+55} ${a.y} L${(a.x+b.x)/2} ${a.y} L${(a.x+b.x)/2} ${b.y} L${b.x-55} ${b.y}`}
             fill="none" stroke={active?"#16a34a":"#64748b"} strokeWidth="2.5" opacity=".85"/>;
         })}
-        {model.nodes.map(n=>{const p=positions[n.id];return <g key={n.id} transform={`translate(${p.x},${p.y})`}>
+        {model.nodes.map(n=>{const p=positions[n.id]!;return <g key={n.id} transform={`translate(${p.x},${p.y})`}>
           <rect x="-54" y="-28" width="108" height="56" rx="9" fill={signals[n.id]===1?"#dcfce7":"#f1f5f9"} stroke={signals[n.id]===1?"#16a34a":"#64748b"} strokeWidth="2"/>
           <text textAnchor="middle" y="-4" fontSize="12" fontWeight="bold" fill="#0f172a">{n.id}</text>
           <text textAnchor="middle" y="15" fontSize="11" fill="#334155">{n.kind} · {signals[n.id]??"—"}</text>
