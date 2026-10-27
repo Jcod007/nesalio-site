@@ -25,6 +25,28 @@ const fakeCompletion =
 
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
+describe("selective recovery", () => {
+  it("conserve la première étape et répare la seconde sans la rejouer", async () => {
+    const prompts: string[] = [];
+    const completion: CompletionStream = async function* (args) {
+      prompts.push(JSON.stringify(args.messages));
+      if (prompts.length === 1) {
+        yield '{"kind":"step","say":"Voici A.","do":[{"type":"point","id":"A","at":[0,0]}]}\n';
+        yield '{"kind":"step","say":"Erreur 3 × 4 = 13.","do":[]}\n';
+        yield '{"kind":"end","summary":[]}\n';
+      } else {
+        yield '{"kind":"step","say":"La réponse est 3 × 4 = 12.","do":[{"type":"highlight","target":"A"}]}\n';
+        yield '{"kind":"end","summary":[]}\n';
+      }
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "Combien ?" }, { ...base, completion }));
+    expect(prompts).toHaveLength(2);
+    expect(prompts[1]).toContain("dernier dessin valide");
+    expect(prompts[1]).toContain("Voici A.");
+    expect(events.filter((e) => e.kind === "step").map((e) => e.kind === "step" ? e.say : "")).toEqual(["Voici A.", "La réponse est 3 × 4 = 12."]);
+    expect(events.at(-1)?.kind).toBe("end");
+  });
+});
 describe("quality gate and bounded recovery", () => {
   it("rejette une erreur arithmétique puis corrige au deuxième essai", async () => {
     const prompts: string[] = [];
