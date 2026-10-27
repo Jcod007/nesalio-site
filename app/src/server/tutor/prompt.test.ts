@@ -5,6 +5,36 @@ import { ModelEvent } from "@/domain/scene/schema";
 import { buildMessages, buildSystemPrompt } from "./prompt";
 
 describe("consigne du modèle", () => {
+  it("explique d'abord pour un débutant et n'impose pas un quota de questions", () => {
+    const system = buildMessages({ mode: "question", question: "Je débute complètement. Explique-moi une dérivée depuis zéro." })[0]!.content;
+    expect(system).toContain('aucun "check", aucune réponse exigée');
+    expect(system).toContain("Aide forte");
+    expect(system).toContain("exemple entièrement résolu");
+    expect(system).not.toContain("après 4 réponses");
+    expect(system).not.toContain("PAS de calcul au premier tour");
+    expect(system).not.toContain("dont la dernière porte un");
+  });
+
+  it("enseigne après 'je ne sais pas' et conserve un parcours de pratique demandé", () => {
+    const context = { spoken: [], board: [], originalQuestion: "Explique-moi Thalès." };
+    const remedial = buildMessages({ mode: "continue", question: "Explique-moi Thalès.", context,
+      answer: { prompt: "Quel rapport ?", choices: ["a", "b"], picked: "Je ne sais pas", correct: null },
+    })[0]!.content;
+    expect(remedial).toContain('aucun "check", aucune réponse exigée');
+    expect(remedial).toContain("besoin d'enseignement");
+    const practice = buildMessages({ mode: "followUp", question: "Propose-moi un exercice guidé.", context })[0]!.content;
+    expect(practice).toContain("L’élève demande à pratiquer");
+  });
+
+  it("relie les représentations et vérifie les choix plutôt que demander un dessin décoratif", () => {
+    const system = buildSystemPrompt();
+    expect(system).toContain("correspondance et les hypothèses");
+    expect(system).toContain("alignements et le parallélisme AVANT les rapports");
+    expect(system).toContain("une lettre flottante n'est pas un point identifié");
+    expect(system).toContain("DIMINUE de 4 vers 2");
+    expect(system).not.toContain("CHAQUE étape de ta réponse dessine");
+  });
+
   it("ne montre que des exemples valides, qui produisent bien le geste annoncé", () => {
     const lines = buildSystemPrompt()
       .split("\n")

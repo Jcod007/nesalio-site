@@ -21,6 +21,7 @@ import {
 import { z } from "zod";
 import { extractCues, inferCues } from "./cues";
 import { plainText } from "@/domain/board/tex";
+import { TeachingAnnotation } from "./learning";
 
 /** Noms de commandes que les modèles inventent : ceux du registre, plus quelques synonymes de type. */
 const TYPE_ALIASES: Readonly<Record<string, string>> = {
@@ -93,6 +94,7 @@ export function createModelOutputParser(): ModelOutputParser {
 
     const mood = Mood.safeParse(obj.mood);
     const check = obj.check === undefined ? undefined : Check.safeParse(obj.check);
+    const teaching = TeachingAnnotation.safeParse(obj.teaching);
     if (check && !check.success) issues.push({ line: JSON.stringify(obj.check).slice(0, 200), reason: "Question de vérification invalide" });
 
     const step: Step = {
@@ -100,6 +102,7 @@ export function createModelOutputParser(): ModelOutputParser {
       mood: mood.success ? mood.data : undefined,
       do: actions,
       check: check?.success ? check.data : undefined,
+      teaching: teaching.success ? teaching.data : undefined,
       cues: undefined,
     };
     // Repères écrits par le modèle, complétés par ceux qu'on déduit des mots de la phrase.

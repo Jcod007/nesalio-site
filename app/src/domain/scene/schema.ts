@@ -13,6 +13,7 @@
  */
 import { z } from "zod";
 import { Action } from "./commands";
+import { TeachingAnnotation } from "@/domain/tutor/learning";
 
 export { ColorName } from "./primitives";
 export { Action, type ActionType } from "./commands";
@@ -57,6 +58,8 @@ export const Step = z.object({
   mood: Mood.optional(),
   do: z.array(Action).max(12).default([]),
   check: Check.optional(),
+  /** Rôle pédagogique déclaré ; sa lecture complète est suivie séparément des réponses. */
+  teaching: TeachingAnnotation.optional(),
   /**
    * Moment où chaque objet apparaît, en fraction de la phrase (0 = début).
    * Calculé à partir des repères {id} écrits dans « say » (voir tutor/cues.ts).

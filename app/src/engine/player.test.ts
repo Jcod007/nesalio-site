@@ -79,6 +79,56 @@ async function speakUntil(player: Player, voice: ReturnType<typeof fakeSpeaker>,
 }
 
 describe("Player", () => {
+  it("ne compte ni une étape seulement reçue ni une phrase interrompue comme présentée", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("Une fraction compte des parts.", { teaching: { concept: "fractions.parts", role: "explanation", completes: true } }),
+      step("Je partage en quatre et prends trois parts.", { teaching: { concept: "fractions.parts", role: "worked-example", completes: true } }),
+      { kind: "end", summary: [] },
+    ] : [step("Je reformule."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Fraction ?");
+    await until(player, (s) => s.caption?.text === "Une fraction compte des parts.");
+    player.interrupt();
+    player.followUp("Je ne comprends pas.");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.context?.learning?.concepts).toEqual([]);
+    player.dispose();
+  });
+
+  it("transmet une présentation terminée et une réponse QCM comme deux observations distinctes", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("Trois quarts : trois parts prises parmi quatre parts égales.", { teaching: { concept: "fractions.parts", role: "worked-example", completes: true } }),
+      step("À toi.", { teaching: { concept: "fractions.parts", role: "guided-practice" }, check: { prompt: "Le 4 indique quoi ?", choices: ["Le partage", "Les parts prises"], answer: 0 } }),
+      { kind: "await" },
+    ] : [step("Continuons."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Teste-moi sur les fractions.");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(0);
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.context?.learning?.concepts[0]).toEqual({ id: "fractions.parts", presented: ["worked-example"], observations: [{ task: "Le 4 indique quoi ?", outcome: "correct", format: "choice", support: "guided" }] });
+    expect(requests[1]?.answer?.concept).toBe("fractions.parts");
+    player.dispose();
+  });
+
+  it("ne note pas une demande d'aide libre comme une mauvaise réponse", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("À toi.", { teaching: { concept: "thales.ratios", role: "guided-practice" }, check: { prompt: "Quel rapport ?", choices: ["1/3", "3"], answer: 0 } }),
+      { kind: "await" },
+    ] : [step("Je montre un exemple."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Teste-moi sur Thalès.");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answerText("Je ne sais pas. Montre-moi d'abord.");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.answer?.correct).toBeNull();
+    expect(requests[1]?.context?.learning?.concepts[0]?.observations[0]).toMatchObject({ outcome: "help-requested", format: "free" });
+    player.dispose();
+  });
+
   it("joue les étapes dans l'ordre, dessine, puis termine avec le résumé", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [

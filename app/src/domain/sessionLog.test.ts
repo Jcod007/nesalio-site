@@ -20,6 +20,17 @@ function recorder(request: TutorRequest = question) {
 }
 
 describe("createTurnRecorder", () => {
+  it("conserve les observations pédagogiques pour rejouer les décisions sans réécrire les anciens tours", () => {
+    const learning = { v: 1 as const, concepts: [{ id: "fractions.parts", presented: ["worked-example" as const], observations: [] }] };
+    const { rec } = recorder({ mode: "continue", question: "Fractions", context: { spoken: [], board: [], learning },
+      answer: { prompt: "Le 4 ?", choices: ["Partage", "Prises"], picked: "Je ne sais pas", correct: null, concept: "fractions.parts", support: "guided" } });
+    const record = rec.record();
+    expect(record.learning).toEqual(learning);
+    expect(record.answer).toMatchObject({ correct: null, concept: "fractions.parts", support: "guided" });
+    record.learning!.concepts[0]!.presented.length = 0;
+    expect(learning.concepts[0]!.presented).toEqual(["worked-example"]);
+    expect(recorder().rec.record()).not.toHaveProperty("learning");
+  });
   it("garde exactement les événements envoyés à l'élève, dans l'ordre (format de rejeu)", () => {
     const { rec, clock } = recorder();
     rec.event({ kind: "source", source: "model" });

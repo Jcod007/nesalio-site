@@ -21,6 +21,7 @@ import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/doma
 import { applyAction } from "@/domain/scene/commands";
 import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
+import { emptyLearning, recordObservation, recordPresentation, type LearningState } from "@/domain/tutor/learning";
 import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import { retimeCues } from "@/domain/timeline/spokenTime";
@@ -132,6 +133,9 @@ export class Player {
   /** Objectifs de la séance (premier tour) et réponses de l'élève : la mémoire de la séance. */
   private goals: string[] = [];
   private answerLog: StudentAnswer[] = [];
+  private learning: LearningState = emptyLearning();
+  /** Une présentation est comptée une fois, seulement après la fin de la parole et du dessin. */
+  private presentedSteps = new WeakSet<Step>();
   /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
   private diagnosis: Diagnosis | null = null;
   private session = 0;
@@ -276,6 +280,8 @@ export class Player {
     this.answeredCount = 0;
     this.goals = [];
     this.answerLog = [];
+    this.learning = emptyLearning();
+    this.presentedSteps = new WeakSet();
     this.diagnosis = null;
     this.transcript = [];
     this.stopCurrentStep();
@@ -541,12 +547,20 @@ export class Player {
       segment.answeredStep = segment.cursor;
       // Le tour suivant est demandé tout de suite : il s'écrit pendant que Nesa réagit.
       const misconception = picked !== null && right === false ? check.why?.[picked]?.trim() || undefined : undefined;
+      const concept = step.teaching?.concept;
+      const support = step.teaching?.role === "independent-practice" ? "independent" as const : "guided" as const;
+      if (concept) this.learning = recordObservation(this.learning, concept, {
+        task: check.prompt, outcome: right === true ? "correct" : right === false ? "incorrect"
+          : /\b(?:sais pas|comprends? pas|montre-moi|aide-moi)\b/i.test(pickedText) ? "help-requested" : "ungraded",
+        format: picked === null ? "free" : "choice", support,
+      });
       this.answered(segment, {
         prompt: check.prompt,
         choices: check.choices,
         picked: pickedText,
         correct: right,
         misconception,
+        ...(concept ? { concept, support } : {}),
       });
       this.set({ status: "playing", check: { ...check, picked } });
       if (right !== null) {
@@ -559,6 +573,10 @@ export class Player {
       }
     }
 
+    if (!abort.signal.aborted && !this.presentedSteps.has(step)) {
+      this.learning = recordPresentation(this.learning, step.teaching);
+      this.presentedSteps.add(step);
+    }
     await clock.sleep(PAUSE_BETWEEN_STEPS_MS, abort.signal);
     return !abort.signal.aborted;
   }
@@ -598,6 +616,7 @@ export class Player {
       goals: this.goals.length > 0 ? this.goals : undefined,
       answers: this.answerLog.length > 0 ? this.answerLog.map(({ choices: _c, ...rest }) => rest) : undefined,
       diagnosis: this.diagnosis ?? undefined,
+      learning: this.learning,
     };
   }
 

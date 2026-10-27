@@ -145,6 +145,9 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
               <button type="button" className="btn-line" onClick={actions.interrupt}>
                 <PauseIcon /> Je comprends pas
               </button>
+              <button type="button" className="btn-line" onClick={() => actions.answerText("Je ne sais pas encore. Montre-moi d'abord un exemple résolu, sans me poser une autre question.")}>
+                Montre-moi d&apos;abord
+              </button>
             </>
           ) : null}
 
@@ -184,6 +187,11 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
                 onListeningChange={actions.setListening}
                 submitLabel="Demander"
               />
+              {snapshot.source === "model" ? (
+                <button type="button" className="btn-line" onClick={() => actions.followUp("Maintenant, propose-moi un exercice guidé sur cette notion et laisse-moi essayer une étape.")}>
+                  Essayer un exercice guidé
+                </button>
+              ) : null}
               <button type="button" className="btn-line" onClick={actions.newTopic}>
                 Nouvelle notion
               </button>

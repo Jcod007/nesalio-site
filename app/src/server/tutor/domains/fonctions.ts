@@ -30,7 +30,10 @@ export const fonctions: DomainGuide = {
       'entière ("curve" avec "fn":"m*(x-a)+f(a)") ; P glisse vers A ("transform" "at") PENDANT que la sécante tourne ("transform" "fn") et ' +
       "que sa pente écrite change ; à la fin, c'est la tangente. N'écris la formule de f′ qu'après avoir montré d'où elle vient. " +
       'Le "transform" d\'une droite ou d\'une courbe ne change que "fn" (pas de "from"/"to" : refusé).',
-    "Un nom = un seul objet : ne réutilise pas A ou B pour un deuxième point ; efface (\"erase\") le dessin d'introduction avant d'en faire un autre.",
+    "Pour f(x) = x², point fixe (1,1) et point mobile (q,q²), la pente sécante vaut q + 1 : quand q passe de 3 à 1, " +
+      "elle DIMINUE de 4 vers 2. La limite n'est ni une verticale ni une horizontale : c'est la tangente y = 2x − 1. " +
+      "Ne propose pas de QCM dont tous les choix sont faux. Une piste qui descend ne peut pas être représentée par x² croissante sans expliquer le changement d'orientation.",
+    "Un nom = un seul objet : ne réutilise pas A ou B pour un deuxième point ; explique la correspondance entre les deux supports avant d'effacer le dessin d'introduction.",
     // Exponentielle : multiplier vs additionner.
     "Exponentielle 2ˣ : repère x [0,4], y [0,8] (1, 2, 4, 8 visibles ; la courbe sort par le haut : c'est l'explosion). " +
       "16, 32, 1024 vont dans le tableau (\"note\"), jamais un y de 20 ou 35. " +

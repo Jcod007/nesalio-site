@@ -26,10 +26,74 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
+  it("répare une question interdite sans la faire entendre ni attendre sa réponse", async () => {
+    let calls = 0;
+    const signals: AbortSignal[] = [];
+    const completion: CompletionStream = (options) => {
+      signals.push(options.signal!);
+      const text = calls++ === 0
+        ? '{"kind":"step","say":"Une entrée donne une sortie."}\n{"kind":"step","say":"Devine la sortie.","check":{"prompt":"Combien ?","choices":["3","6"],"answer":1}}'
+        : '{"kind":"step","say":"Par exemple, doubler 3 donne 3 fois 2, donc 6."}\n{"kind":"end","summary":["Doubler, c’est multiplier par deux"]}';
+      if (calls === 2) {
+        expect(options.messages.at(-1)?.content).toContain("CORRECTION DU CONTRÔLEUR");
+        expect(options.messages.at(-2)?.content).toContain("Une entrée donne une sortie.");
+        expect(options.messages.at(-2)?.content).not.toContain("Devine");
+      }
+      return fakeCompletion(text)(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique le double." }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.filter((e) => e.kind === "step").map((e) => e.say)).toEqual(["Une entrée donne une sortie.", "Par exemple, doubler 3 donne 3 fois 2, donc 6."]);
+    expect(events.some((e) => e.kind === "await" || (e.kind === "step" && e.check))).toBe(false);
+    expect(events.at(-1)?.kind).toBe("end");
+    expect(signals.every((s) => s.aborted)).toBe(true);
+  });
+
+  it("s'arrête après une réparation refusée et ne présente pas une réussite fictive", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      calls++;
+      return fakeCompletion('{"kind":"step","say":"Devine.","check":{"prompt":"?","choices":["1","2"],"answer":0}}')(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique sans quiz." }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.filter((e) => e.kind === "step")).toEqual([]);
+    expect(events.filter((e) => e.kind === "error")).toHaveLength(1);
+    expect(events.some((e) => e.kind === "end" || e.kind === "await")).toBe(false);
+  });
+
+  it("ne relance pas un cycle de génération si la réparation est vide", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => fakeCompletion(calls++ === 0
+      ? '{"kind":"step","say":"Devine.","check":{"prompt":"?","choices":["1","2"],"answer":0}}' : "")(options);
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique sans quiz." }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.at(-1)?.kind).toBe("error");
+    expect(events.some((e) => e.kind === "end")).toBe(false);
+  });
+
+  it("demande le complément manquant avant d'accepter la fin d'une découverte", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      const events = calls++ === 0 ? [
+        { kind: "step", say: "Une fraction compte des parts égales d'un tout.", teaching: { concept: "fractions.parts", role: "explanation", completes: true } },
+        { kind: "end", summary: [] },
+      ] : [
+        { kind: "step", say: "Je partage une unité en 4 parts égales et j'en prends 3 : cela donne trois quarts, soit 3/4.", teaching: { concept: "fractions.parts", role: "worked-example", completes: true } },
+        { kind: "end", summary: ["Le 4 décrit le partage, le 3 ce qu'on prend"] },
+      ];
+      return fakeCompletion(events.map((e) => JSON.stringify(e)).join("\n"))(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi une fraction ?" }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.filter((e) => e.kind === "end")).toHaveLength(1);
+    expect(events.filter((e) => e.kind === "step")).toHaveLength(2);
+  });
+
   it("relaie le tour du modèle, validé étape par étape", async () => {
     const text = "```json\n" + serializeLesson(derivativeLesson) + "\n```";
     const events = await collect(
-      tutorEvents({ mode: "question", question: "dérivée ?" }, { ...base, completion: fakeCompletion(text) }),
+      tutorEvents({ mode: "question", question: "Teste-moi." }, { ...base, completion: fakeCompletion(text) }),
     );
     expect(events[0]).toEqual({ kind: "source", source: "model" });
     expect(events[1]).toMatchObject({ kind: "lesson", title: derivativeLesson.header.title });
@@ -52,7 +116,7 @@ describe("tutorEvents", () => {
     const text =
       '{"kind":"step","say":"Voici le centre O.","do":[{"type":"point","id":"O","at":[0,0]}]\n' +
       '{"kind":"step","say":"Que devient AB ?","check":{"prompt":"Que devient AB ?","choices":["Il double","Il reste pareil"],"answer":0}}';
-    const events = await collect(tutorEvents({ mode: "question", question: "homothétie ?" }, { ...base, completion: fakeCompletion(text) }));
+    const events = await collect(tutorEvents({ mode: "question", question: "Teste-moi sur l'homothétie." }, { ...base, completion: fakeCompletion(text) }));
     expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "step", "await"]);
     expect(events[2]).toMatchObject({ say: "Voici le centre O.", do: [{ type: "point", id: "O" }] });
   });
@@ -76,7 +140,7 @@ describe("tutorEvents", () => {
       signal = options.signal;
       return fakeCompletion(text)(options);
     };
-    const events = await collect(tutorEvents({ mode: "question", question: "zéros ?" }, { ...base, completion }));
+    const events = await collect(tutorEvents({ mode: "question", question: "Teste-moi sur les zéros." }, { ...base, completion }));
     expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "await"]);
     expect(signal?.aborted).toBe(true);
   });
@@ -85,7 +149,7 @@ describe("tutorEvents", () => {
     const check = '{"prompt":"Combien ?","choices":["0","2"],"answer":1}';
     const bad = '{"type":"transform","target":"e1","points":[[0,0],[1,1]]}';
     const text = `{"kind":"lesson","title":"Fourier"}\n{"kind":"step","say":"La courbe se déforme.","do":[${bad}]}\n{"kind":"step","say":"À toi.","check":${check}}`;
-    const events = await collect(tutorEvents({ mode: "question", question: "fourier ?" }, { ...base, completion: fakeCompletion(text) }));
+    const events = await collect(tutorEvents({ mode: "question", question: "Teste-moi sur Fourier." }, { ...base, completion: fakeCompletion(text) }));
     const done = events.at(-1);
     expect(done?.kind).toBe("await");
     expect(done?.kind === "await" && done.rejected?.[0]).toContain("transform");
@@ -121,7 +185,7 @@ describe("tutorEvents", () => {
     ].map((l) => JSON.stringify(l)).join("\n");
     const events = await collect(
       tutorEvents(
-        { mode: "continue", question: "?", context: { spoken: [], board: [] }, answer: { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], picked: "2/7", correct: false } },
+        { mode: "continue", question: "?", context: { spoken: [], board: [] }, answer: { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], picked: "2/7", correct: null } },
         { ...base, completion: fakeCompletion(lines) },
       ),
     );

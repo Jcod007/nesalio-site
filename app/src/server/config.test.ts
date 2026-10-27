@@ -31,6 +31,10 @@ describe("readAiConfig", () => {
 });
 
 describe("réflexion des tours de suite", () => {
+  it("prépare un exemple calculé dès le premier tour et respecte un réglage explicite", () => {
+    expect(readAiConfig(headers("oidc"), {} as NodeJS.ProcessEnv).chat?.firstTurnEffort).toBe("low");
+    expect(readAiConfig(headers("oidc"), { TUTOR_FIRST_TURN_EFFORT: "none" } as unknown as NodeJS.ProcessEnv).chat?.firstTurnEffort).toBe("none");
+  });
   it("dépend du modèle sans réglage explicite : aucune pour Claude, courte pour les autres", async () => {
     const { readAiConfig } = await import("./config");
     const headers = new Headers({ "x-vercel-oidc-token": "jeton" });

@@ -13,6 +13,8 @@ import type { TutorRequest } from "@/domain/tutor/request";
 import type { ChatProvider } from "@/server/config";
 import { UpstreamError, type CompletionStream } from "./chatCompletions";
 import { buildMessages } from "./prompt";
+import type { ChatMessage } from "./prompt";
+import { checkViolation, completionViolation, constructionViolation, decideTeaching } from "@/domain/tutor/controller";
 
 /** Étapes au plus par tour (un tour se termine normalement bien avant, sur une question). */
 export const MAX_STEPS = 12;
@@ -34,16 +36,19 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
 
   yield { kind: "source", source: "model" };
   let steps = 0;
+  let terminalError = false;
   try {
     for await (const event of modelEvents(request, config)) {
       if (event.kind === "step") steps++;
+      if (event.kind === "error") terminalError = true;
       yield event;
     }
     // Tour vide (le modèle n'a rien écrit d'utilisable) : une seconde chance avant d'afficher une erreur.
-    if (steps === 0 && !config.signal?.aborted) {
+    if (steps === 0 && !terminalError && !config.signal?.aborted) {
       config.log?.("tutor: tour vide, nouvel essai");
       for await (const event of modelEvents(request, config)) {
         if (event.kind === "step") steps++;
+        if (event.kind === "error") terminalError = true;
         yield event;
       }
     }
@@ -65,7 +70,7 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
     return;
   }
 
-  if (steps === 0) {
+  if (steps === 0 && !terminalError) {
     yield { kind: "error", code: "empty", message: "Nesa n'a pas réussi à construire une explication. Reformule ta question ?" };
   }
 }
@@ -76,6 +81,57 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
  * l'appel au modèle est coupé : la suite dépendra de la réponse de l'élève.
  */
 async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): AsyncGenerator<StreamEvent> {
+  const decision = decideTeaching(request);
+  const accepted: StreamEvent[] = [];
+  const knownIds = new Set(request.context?.board.map((item) => item.id) ?? []);
+  let headerSent = false;
+  let steps = 0;
+  let repair: ChatMessage[] = [];
+  // Une seule réparation : pas de boucle d'appels au modèle en cas de refus persistant.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let violation: string | null = null;
+    let completed = false;
+    for await (const event of rawModelEvents(request, config, repair)) {
+      if (config.signal?.aborted) return;
+      if (event.kind === "lesson") {
+        if (headerSent) continue;
+        headerSent = true;
+      }
+      if (event.kind === "step") {
+        violation = checkViolation(event, decision, request) ?? constructionViolation(event, knownIds);
+        if (violation) break; // La phrase interrogative et son dessin ne sont jamais transmis.
+        if (steps >= MAX_STEPS) {
+          yield { kind: "error", code: "upstream", message: "L’explication est trop longue pour ce tour. Tu peux demander la suite." };
+          return;
+        }
+        steps++;
+        for (const action of event.do) {
+          if (action.type === "clear") knownIds.clear();
+          if ("id" in action && typeof action.id === "string") knownIds.add(action.id);
+        }
+      }
+      if (event.kind === "end") {
+        violation = completionViolation(accepted.filter((e) => e.kind === "step"), decision, request);
+        if (violation) break;
+      }
+      accepted.push(event);
+      if (event.kind === "end" || event.kind === "await" || event.kind === "error") completed = true;
+      yield event;
+    }
+    if (!violation) {
+      if (attempt > 0 && !completed) yield { kind: "error", code: "upstream", message: "Nesa n’a pas réussi à compléter cette explication. Tu peux réessayer." };
+      return;
+    }
+    config.log?.("tutor: sortie refusée par le contrôleur", { action: decision.action, attempt });
+    repair = [
+      ...(accepted.length ? [{ role: "assistant" as const, content: accepted.map((e) => JSON.stringify(e)).join("\n") }] : []),
+      { role: "user", content: `CORRECTION DU CONTRÔLEUR : ${violation}\nLes étapes précédentes ont déjà été envoyées. Continue sans les répéter ni les redessiner, sans nouvel en-tête. Il reste ${MAX_STEPS - steps} étapes au plus. Termine l'explication par end.` },
+    ];
+  }
+  yield { kind: "error", code: "upstream", message: "Nesa n’a pas réussi à terminer cette explication. Tu peux réessayer." };
+}
+
+async function* rawModelEvents(request: TutorRequest, config: TutorServiceConfig, repair: ChatMessage[] = []): AsyncGenerator<StreamEvent> {
   const parser = createModelOutputParser();
   const scanner = new JsonObjectScanner();
   let steps = 0;
@@ -95,9 +151,9 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     apiKey: provider.apiKey,
     model: provider.model,
     extraHeaders: provider.extraHeaders,
-    // Premier tour : réponse immédiate (pas de calcul) ; ensuite, un peu de réflexion pour la justesse.
+    // Un exemple travaillé peut nécessiter des calculs dès le premier tour.
     reasoningEffort: request.mode === "question" ? (provider.firstTurnEffort ?? provider.reasoningEffort) : provider.reasoningEffort,
-    messages: buildMessages(request),
+    messages: [...buildMessages(request), ...repair],
     signal: upstream.signal,
   });
 

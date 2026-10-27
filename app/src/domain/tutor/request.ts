@@ -10,6 +10,7 @@
  */
 import { z } from "zod";
 import { Diagnosis } from "@/domain/scene/schema";
+import { LearningState } from "./learning";
 
 export const MAX_QUESTION_LENGTH = 500;
 
@@ -47,6 +48,8 @@ export const TutorContextSchema = z.object({
   review: z.array(z.string().max(240)).max(4).optional(),
   /** Dernière fiche de diagnostic de Nesa dans la séance (lacunes envisagées, forces, suite prévue). */
   diagnosis: Diagnosis.optional(),
+  /** Observations par notion dans cette séance ; enseigné ne signifie jamais appris. */
+  learning: LearningState.optional(),
 });
 
 /** Réponse de l'élève à la dernière question de Nesa. */
@@ -59,6 +62,8 @@ export const StudentAnswerSchema = z.object({
   correct: z.boolean().nullable(),
   /** L'erreur de raisonnement que ce choix révèle, telle que Nesa l'a prévue en écrivant la question. */
   misconception: z.string().max(160).optional(),
+  concept: z.string().trim().min(1).max(80).optional(),
+  support: z.enum(["guided", "independent"]).optional(),
 });
 
 export const TutorRequestSchema = z.object({
