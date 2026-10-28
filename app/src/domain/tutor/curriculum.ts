@@ -27,7 +27,7 @@ export const CONCEPTS: readonly ConceptPlan[] = [
     explain: "Distinguer hauteur et variation : pente = variation verticale / variation horizontale entre deux points.",
     example: "Pour x², P=(1,1) et Q=(3,9), calculer (9−1)/(3−1)=4 et relier chaque différence au dessin." },
   { id: "derivatives.local", label: "Sens local de la dérivée", prerequisites: ["derivatives.slope"],
-    explain: "La dérivée mesure une variation locale ; rapprocher le second point transforme la sécante en tangente, sans confondre pente et hauteur.",
+    explain: "La dérivée mesure une variation locale ; rapprocher le second point fait tendre la sécante vers la tangente, sans confondre pente et hauteur. La tangente est une approximation linéaire locale : elle ne se confond pas avec toute la courbe. Au point confondu, on prend une limite ; on ne calcule pas 0/0.",
     example: "Pour x² en x=1, la pente de P(1,1)Q(q,q²) vaut q+1 : 4 pour q=3, 3 pour q=2, puis tend vers 2. La tangente y=2x−1 reste oblique. Toute annonce de déplacement doit correspondre aux commandes." },
 ];
 

@@ -26,6 +26,31 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
+  it("réessaie une seule fois sans réflexion si le budget est épuisé avant de parler", async () => {
+    const efforts: Array<string | undefined> = [];
+    const completion: CompletionStream = async function* (options) {
+      efforts.push(options.reasoningEffort);
+      if (efforts.length === 1) throw new UpstreamError("limite", undefined, "token_limit");
+      yield '{"kind":"step","say":"Voici un exemple résolu."}\n{"kind":"end","summary":[]}';
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique le double." }, { provider: { ...base.provider, firstTurnEffort: "low" }, completion }));
+    expect(efforts).toEqual(["low", "none"]);
+    expect(events.at(-1)?.kind).toBe("end");
+  });
+
+  it("ne boucle pas et ne rejoue pas les étapes déjà transmises après une limite", async () => {
+    let calls = 0;
+    const exhausted: CompletionStream = async function* () { calls++; throw new UpstreamError("limite", undefined, "token_limit"); };
+    const config = { provider: { ...base.provider, firstTurnEffort: "low" as const }, completion: exhausted };
+    const empty = await collect(tutorEvents({ mode: "question", question: "Explique." }, config));
+    expect(calls).toBe(2);
+    expect(empty.at(-1)?.kind).toBe("error");
+    calls = 0;
+    const partial: CompletionStream = async function* () { calls++; yield '{"kind":"step","say":"Déjà dit."}\n'; throw new UpstreamError("limite", undefined, "token_limit"); };
+    const interrupted = await collect(tutorEvents({ mode: "question", question: "Explique." }, { ...config, completion: partial }));
+    expect(calls).toBe(1);
+    expect(interrupted.at(-1)?.kind).toBe("error");
+  });
   it("répare une question interdite sans la faire entendre ni attendre sa réponse", async () => {
     let calls = 0;
     const signals: AbortSignal[] = [];

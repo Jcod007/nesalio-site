@@ -55,6 +55,14 @@ export async function* tutorEvents(request: TutorRequest, config: TutorServiceCo
   } catch (error) {
     config.log?.("tutor: échec de l'appel au modèle", error);
     if (config.signal?.aborted) return;
+    const effort = request.mode === "question" ? config.provider.firstTurnEffort ?? config.provider.reasoningEffort : config.provider.reasoningEffort;
+    if (steps === 0 && error instanceof UpstreamError && error.code === "token_limit" && effort && effort !== "none") {
+      // Rien n'a été présenté : un seul nouvel essai sans réflexion cachée, avec le même contrôleur.
+      // « none » empêche cette branche de se rappeler si le second essai échoue aussi.
+      config.log?.("tutor: budget épuisé avant la première étape, nouvel essai sans réflexion");
+      yield* tutorEvents(request, { ...config, provider: { ...config.provider, firstTurnEffort: "none", reasoningEffort: "none" } });
+      return;
+    }
     if (steps === 0 && isUnavailable(error)) {
       // Service d'IA non activé (paiement, droits) : la démonstration plutôt qu'une erreur.
       yield { kind: "source", source: "demo" };

@@ -49,11 +49,10 @@ export const DEFAULTS = {
     "à un rythme posé, avec de petites pauses aux virgules. Jamais monotone.",
   transcriptionModel: "openai/whisper-1",
   /**
-   * Le premier tour peut maintenant contenir un exemple calculé, pas seulement une accroche.
-   * Une réflexion courte est donc activée dès le départ. Le réglage explicite
-   * TUTOR_FIRST_TURN_EFFORT reste prioritaire ; le surcroît de latence dépend du fournisseur.
+   * Garder le démarrage sans réflexion cachée par défaut : les essais avec « low » ont
+   * parfois épuisé 16 000 jetons avant la première étape. Un réglage explicite reste prioritaire.
    */
-  firstTurnEffort: "low" as ReasoningEffort,
+  firstTurnEffort: "none" as ReasoningEffort,
 } as const;
 
 /**

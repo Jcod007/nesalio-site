@@ -31,9 +31,9 @@ describe("readAiConfig", () => {
 });
 
 describe("réflexion des tours de suite", () => {
-  it("prépare un exemple calculé dès le premier tour et respecte un réglage explicite", () => {
-    expect(readAiConfig(headers("oidc"), {} as NodeJS.ProcessEnv).chat?.firstTurnEffort).toBe("low");
-    expect(readAiConfig(headers("oidc"), { TUTOR_FIRST_TURN_EFFORT: "none" } as unknown as NodeJS.ProcessEnv).chat?.firstTurnEffort).toBe("none");
+  it("garde le démarrage réactif et respecte un réglage de réflexion explicite", () => {
+    expect(readAiConfig(headers("oidc"), {} as NodeJS.ProcessEnv).chat?.firstTurnEffort).toBe("none");
+    expect(readAiConfig(headers("oidc"), { TUTOR_FIRST_TURN_EFFORT: "low" } as unknown as NodeJS.ProcessEnv).chat?.firstTurnEffort).toBe("low");
   });
   it("dépend du modèle sans réglage explicite : aucune pour Claude, courte pour les autres", async () => {
     const { readAiConfig } = await import("./config");
