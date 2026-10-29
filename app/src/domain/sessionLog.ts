@@ -14,7 +14,7 @@
 import type { SourceKind, StreamEvent } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
 import type { LearningState } from "@/domain/tutor/learning";
-import type { TeachingProgram } from "@/domain/tutor/program";
+import type { TeachingPlan } from "@/domain/tutor/plan";
 import { shortSession } from "@/domain/session";
 
 export type RecordEnv = "production" | "preview" | "development";
@@ -35,7 +35,8 @@ export interface TurnRecord {
   answer?: { prompt: string; picked: string; correct: boolean | null; misconception?: string; concept?: string; support?: "guided" | "independent" };
   /** État déclaré par le lecteur avant ce tour ; absent des anciens enregistrements. */
   learning?: LearningState;
-  program?: TeachingProgram;
+  /** Plan dynamique reçu avant le tour, pour pouvoir analyser les décisions. */
+  plan?: TeachingPlan;
   /** Objectifs de la séance, tels que Nesa les a fixés au premier tour. */
   goals?: string[];
   source: SourceKind;
@@ -107,7 +108,7 @@ export function createTurnRecorder(options: {
           : {}),
         ...(request.context?.goals?.length ? { goals: [...request.context.goals] } : {}),
         ...(request.context?.learning ? { learning: structuredClone(request.context.learning) } : {}),
-        ...(request.context?.program ? { program: { ...request.context.program } } : {}),
+        ...(request.context?.plan ? { plan: structuredClone(request.context.plan) } : {}),
         source,
         ...(source === "model" && options.model ? { model: options.model } : {}),
         latencyMs: { ...(firstStep !== undefined ? { firstStep } : {}), total: ended ?? clock.now() - started },

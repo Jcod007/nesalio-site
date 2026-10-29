@@ -17,6 +17,7 @@ try {
       requests.push(request);
       const events = request.mode === "question" ? [
         { kind: "source", source: "model" }, { kind: "lesson", title: "Fractions" },
+        { kind: "plan", plan: { goal: "Comprendre les parts", target: "fractions.parts", concepts: [{ id: "fractions.parts", label: "Parts égales", prerequisites: [] }] } },
         { kind: "step", say: "Quatre parts égales.", do: [], teaching: { concept: "fractions.parts", role: "explanation", completes: true } },
         { kind: "step", say: "Trois parts sur quatre : trois quarts.", do: [], teaching: { concept: "fractions.parts", role: "worked-example", completes: true } },
         { kind: "end", summary: ["Des parts égales"] },
@@ -37,6 +38,7 @@ try {
     await page.locator("form[data-size=large] input").press("Enter");
     await page.getByRole("button", { name: "Essayer un exercice guidé", exact: true }).click({ timeout: 45_000 });
     assert.equal(requests[1]?.mode, "followUp");
+    assert.equal(requests[1]?.context?.plan?.target, "fractions.parts");
     assert.deepEqual(requests[1]?.context?.learning?.concepts[0]?.presented, ["explanation", "worked-example"]);
     await page.getByRole("button", { name: "Montre-moi d'abord", exact: true }).click({ timeout: 30_000 });
     await page.getByRole("button", { name: "Essayer un exercice guidé", exact: true }).waitFor({ timeout: 45_000 });
@@ -44,6 +46,8 @@ try {
     assert.equal(requests[2]?.answer?.correct, null);
     assert.equal(requests[2]?.answer?.concept, "fractions.parts");
     assert.equal(requests[2]?.context?.learning?.concepts[0]?.observations[0]?.outcome, "help-requested");
+    assert.equal(requests[2]?.context?.learning?.recent[0]?.outcome, "help-requested");
+    assert.equal(requests[2]?.context?.plan?.target, "fractions.parts");
     assert.deepEqual(errors, []);
     await context.close();
     process.stdout.write(`Pédagogie OK (${viewport.width} × ${viewport.height}, flux simulés).\n`);

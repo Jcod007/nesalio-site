@@ -23,7 +23,7 @@ import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { emptyLearning, recordObservation, recordPresentation, type LearningState } from "@/domain/tutor/learning";
 import { isHelpRequest } from "@/domain/tutor/teachingPolicy";
-import { isGeneralProgramHelp, type TeachingProgram } from "@/domain/tutor/program";
+import type { TeachingPlan } from "@/domain/tutor/plan";
 import type { SourceKind } from "@/domain/scene/schema";
 import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
@@ -137,7 +137,7 @@ export class Player {
   private goals: string[] = [];
   private answerLog: StudentAnswer[] = [];
   private learning: LearningState = emptyLearning();
-  private program: TeachingProgram | undefined;
+  private teachingPlan: TeachingPlan | undefined;
   /** Une présentation est comptée une fois, seulement après la fin de la parole et du dessin. */
   private presentedSteps = new WeakSet<Step>();
   /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
@@ -211,7 +211,7 @@ export class Player {
     }
     this.stopCurrentStep();
 
-    if (this.program && isGeneralProgramHelp(text)) this.learning = recordObservation(this.learning, "thales.ratios", {
+    if (isHelpRequest(text)) this.learning = recordObservation(this.learning, undefined, {
       task: text.slice(0, 300), outcome: "help-requested", format: "free", support: "guided",
     });
     const context = this.buildContext(interrupted);
@@ -288,7 +288,7 @@ export class Player {
     this.goals = [];
     this.answerLog = [];
     this.learning = emptyLearning();
-    this.program = undefined;
+    this.teachingPlan = undefined;
     this.presentedSteps = new WeakSet();
     this.diagnosis = null;
     this.transcript = [];
@@ -368,10 +368,10 @@ export class Player {
         switch (event.kind) {
           case "source":
             this.set({ source: event.source });
-            if (event.source !== "curriculum") this.program = undefined;
+            if (event.source === "demo") this.teachingPlan = undefined;
             break;
-          case "program":
-            this.program = event.program;
+          case "plan":
+            this.teachingPlan = event.plan;
             break;
           case "lesson":
             if (segment.kind === "question") {
@@ -561,7 +561,7 @@ export class Player {
       const misconception = picked !== null && right === false ? check.why?.[picked]?.trim() || undefined : undefined;
       const concept = step.teaching?.concept;
       const support = step.teaching?.role === "independent-practice" ? "independent" as const : "guided" as const;
-      if (concept) this.learning = recordObservation(this.learning, concept, {
+      this.learning = recordObservation(this.learning, concept, {
         task: check.prompt, outcome: right === true ? "correct" : right === false ? "incorrect"
           : isHelpRequest(pickedText) ? "help-requested" : "ungraded",
         format: picked === null ? "free" : "choice", support,
@@ -629,7 +629,7 @@ export class Player {
       answers: this.answerLog.length > 0 ? this.answerLog.map(({ choices: _c, ...rest }) => rest) : undefined,
       diagnosis: this.diagnosis ?? undefined,
       learning: this.learning,
-      program: this.program,
+      plan: this.teachingPlan,
     };
   }
 

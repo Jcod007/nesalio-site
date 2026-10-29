@@ -14,7 +14,7 @@
 import { z } from "zod";
 import { Action } from "./commands";
 import { TeachingAnnotation } from "@/domain/tutor/learning";
-import { TeachingProgram } from "@/domain/tutor/program";
+import { TeachingPlan } from "@/domain/tutor/plan";
 
 export { ColorName } from "./primitives";
 export { Action, type ActionType } from "./commands";
@@ -134,7 +134,8 @@ export type Diagnosis = z.infer<typeof Diagnosis>;
 export const DiagnosisEvent = Diagnosis.extend({ kind: z.literal("diagnosis") });
 
 /** Ce que le modèle a le droit d'émettre. */
-export const ModelEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent]);
+export const PlanEvent = z.object({ kind: z.literal("plan"), plan: TeachingPlan });
+export const ModelEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, PlanEvent]);
 export type ModelEvent = z.infer<typeof ModelEvent>;
 
 /** Ce que le serveur envoie au navigateur : les événements du modèle, plus l'origine et les erreurs. */
@@ -152,13 +153,12 @@ export const AwaitEvent = z.object({
   /** Commandes du tour refusées par le validateur (raison courte) : rendues au modèle au tour suivant. */
   rejected: z.array(z.string().max(200)).max(6).optional(),
 });
-export const SourceKind = z.enum(["model", "demo", "curriculum"]);
+export const SourceKind = z.enum(["model", "demo"]);
 export type SourceKind = z.infer<typeof SourceKind>;
 export const SourceEvent = z.object({
   kind: z.literal("source"),
   source: SourceKind,
 });
-export const ProgramEvent = z.object({ kind: z.literal("program"), program: TeachingProgram });
 
 export const StreamEvent = z.discriminatedUnion("kind", [
   LessonHeaderEvent,
@@ -167,7 +167,7 @@ export const StreamEvent = z.discriminatedUnion("kind", [
   DiagnosisEvent,
   ErrorEvent,
   SourceEvent,
-  ProgramEvent,
+  PlanEvent,
   AwaitEvent,
 ]);
 export type StreamEvent = z.infer<typeof StreamEvent>;

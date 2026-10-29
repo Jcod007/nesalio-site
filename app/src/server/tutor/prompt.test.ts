@@ -29,7 +29,7 @@ describe("consigne du modèle", () => {
   it("relie les représentations et vérifie les choix plutôt que demander un dessin décoratif", () => {
     const system = buildSystemPrompt();
     expect(system).toContain("correspondance et les hypothèses");
-    expect(system).toContain("alignements et le parallélisme AVANT les rapports");
+    expect(system).toContain("conditions d'application d'une règle AVANT sa formule");
     expect(system).toContain("une lettre flottante n'est pas un point identifié");
     expect(system).toContain("DIMINUE de 4 vers 2");
     expect(system).not.toContain("CHAQUE étape de ta réponse dessine");
@@ -56,6 +56,16 @@ describe("consigne du modèle", () => {
 });
 
 describe("mémoire de la séance", () => {
+  it("transmet un plan inédit et la stratégie décidée après deux besoins d'aide", () => {
+    const help = { task: "Je ne comprends pas", outcome: "help-requested" as const, format: "free" as const, support: "guided" as const };
+    const system = buildMessages({ mode: "followUp", question: "Je ne comprends toujours pas.", context: {
+      spoken: [], board: [], plan: { goal: "Comprendre", target: "notion-inédite", concepts: [{ id: "notion-inédite", label: "Objectif libre", prerequisites: [] }] },
+      learning: { v: 1, concepts: [], recent: [help, help] },
+    } })[0]!.content;
+    expect(system).toContain('"target":"notion-inédite"');
+    expect(system).toContain("Stratégie décidée par le contrôleur : alternate-representation");
+    expect(system).toContain("Conserve les noms, les données et l'objectif");
+  });
   it("rend au modèle les objectifs, les réponses passées, l'erreur visée et la relecture du tour", async () => {
     const { buildMessages } = await import("./prompt");
     const [, user] = buildMessages({

@@ -19,6 +19,8 @@ export type Observation = z.infer<typeof Observation>;
 
 export const LearningState = z.object({
   v: z.literal(1),
+  /** Observations récentes, y compris lorsqu'aucune notion n'a pu être identifiée. */
+  recent: z.array(Observation.extend({ concept: z.string().trim().min(1).max(80).optional() })).max(12).optional(),
   concepts: z.array(z.object({
     id: z.string().trim().min(1).max(80),
     /** Le modèle a déclaré ce rôle et la lecture s'est terminée : pas une preuve de compréhension. */
@@ -34,7 +36,7 @@ function updateConcept(state: LearningState, id: string, update: (entry: Learnin
   const entry = current ? { ...current, presented: [...current.presented], observations: [...current.observations] }
     : { id, presented: [], observations: [] };
   update(entry);
-  return { v: 1, concepts: [...state.concepts.filter((c) => c.id !== id), entry].slice(-16) };
+  return { ...state, concepts: [...state.concepts.filter((c) => c.id !== id), entry].slice(-16) };
 }
 
 /** Appelé après la lecture complète, jamais à la réception du flux. Rejouer est idempotent. */
@@ -48,8 +50,9 @@ export function recordPresentation(state: LearningState, teaching?: TeachingAnno
   });
 }
 
-export function recordObservation(state: LearningState, concept: string, observation: Observation): LearningState {
-  return updateConcept(state, concept, (entry) => {
+export function recordObservation(state: LearningState, concept: string | undefined, observation: Observation): LearningState {
+  const next = concept ? updateConcept(state, concept, (entry) => {
     entry.observations = [...entry.observations, observation].slice(-8);
-  });
+  }) : state;
+  return { ...next, recent: [...(state.recent ?? []), { ...observation, ...(concept ? { concept } : {}) }].slice(-12) };
 }

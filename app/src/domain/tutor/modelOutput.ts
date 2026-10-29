@@ -15,6 +15,7 @@ import {
   EndEvent,
   LessonHeaderEvent,
   Mood,
+  PlanEvent,
   type ModelEvent,
   type Step,
 } from "@/domain/scene/schema";
@@ -134,7 +135,7 @@ export function createModelOutputParser(): ModelOutputParser {
 
     // Un modèle oublie parfois « kind » sur une étape, ou écrit « type » à la place
     // ({"type":"diagnosis",…}, vu le 21 octobre).
-    const EVENT_KINDS = ["lesson", "step", "end", "diagnosis"];
+    const EVENT_KINDS = ["lesson", "step", "end", "diagnosis", "plan"];
     if (typeof record.kind !== "string" && typeof record.type === "string" && EVENT_KINDS.includes(record.type)) {
       const { type, ...rest } = record;
       record = { ...rest, kind: type };
@@ -149,6 +150,10 @@ export function createModelOutputParser(): ModelOutputParser {
     const kind = typeof record.kind === "string" ? record.kind : "say" in record ? "step" : undefined;
 
     switch (kind) {
+      case "plan": {
+        const parsed = PlanEvent.safeParse(record);
+        return parsed.success ? parsed.data : reject(line, "Plan pédagogique invalide");
+      }
       case "lesson": {
         const parsed = LessonHeaderEvent.safeParse(record);
         return parsed.success ? parsed.data : reject(line, "En-tête invalide");
@@ -263,8 +268,8 @@ export class JsonObjectScanner {
   }
 }
 
-/** Début d'un événement en début de ligne : {"kind":"step", "end", "lesson", "diagnosis" ou "check". */
-const NEW_EVENT = /\n[ \t]*\{\s*"kind"\s*:\s*"(?:step|end|lesson|diagnosis|check)"$/;
+/** Début d'un événement en début de ligne, même après un objet resté ouvert. */
+const NEW_EVENT = /\n[ \t]*\{\s*"kind"\s*:\s*"(?:step|end|lesson|diagnosis|check|plan)"$/;
 
 /**
  * Referme un objet JSON coupé : la chaîne ouverte, puis les crochets et accolades

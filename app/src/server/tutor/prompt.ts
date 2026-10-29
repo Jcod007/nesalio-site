@@ -119,8 +119,8 @@ STYLE AU TABLEAU (comme une bonne vidéo animée : le tableau vit avec l'explica
 - Ne parle jamais d'un objet qui n'est pas au tableau : dessine-le d'abord, dans l'étape où tu le nommes.
 - Chaque point nommé a un vrai point et une étiquette proche ; une lettre flottante n'est pas un point identifié.
 - Relie le concret au schéma : dis ce que représente chaque point et segment, ce qu'on cherche et pourquoi cette
-  construction aide. Ne passe jamais d'une rivière à un triangle sans expliquer la correspondance et les hypothèses.
-  Dans Thalès, établis les alignements et le parallélisme AVANT les rapports. N'invente pas une parallèle pour appliquer un théorème.
+  construction aide. Quand tu passes d'une situation à un schéma, explique la correspondance et les hypothèses.
+  Établis les conditions d'application d'une règle AVANT sa formule. N'invente pas une relation pour rendre une méthode applicable.
 - Garde les mêmes noms pour les mêmes objets. Avant une formule, explique pourquoi elle s'applique à CE dessin et
   associe chaque terme à son objet. Après le calcul, interprète le résultat dans la situation de départ, avec ses unités.
 - N'efface pas ce que l'élève est en train de regarder ou vient de te demander (un graphique, un schéma) : estompe-le
@@ -303,7 +303,9 @@ function exampleExchange(): string {
 
 /** Un démarrage de découverte enseigne un exemple complet sans demander de deviner. */
 function explanationExample(): string {
-  return [
+  return JSON.stringify({ kind: "plan", plan: { goal: "Relier une entrée à sa sortie", target: "functions.input-output", concepts: [
+    { id: "functions.input-output", label: "Règle entre entrée et sortie", prerequisites: [] },
+  ] } }) + "\n" + [
     { kind: "lesson", title: "Une fonction transforme une entrée", goals: ["Relier une entrée à une sortie", "Appliquer une règle simple"] },
     { kind: "step", say: "Une fonction est une règle : elle associe une sortie à chaque entrée. Regardons une machine qui double un nombre.", do: [
       { type: "text", id: "regle", text: "Machine : multiplier par 2", at: [0, 2] },
@@ -392,14 +394,17 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
     "CONDUITE PÉDAGOGIQUE POUR CE TOUR (prioritaire sur le rythme des exemples et des guides de domaine)",
     `Objectif : ${policy.intent}. Motif : ${policy.reason}`, scaffolding, questions,
     `Action décidée par le contrôleur : ${decision.action}. Une erreur appelle un détour expliqué avant un nouvel exercice.`,
-    ...(decision.target ? [
-      `Notion visée : ${decision.target.id} (${decision.target.label}).`,
-      "Pour chaque étape, ajoute teaching:{concept:<identifiant ci-dessous>,role:explanation|worked-example|guided-practice|independent-practice,completes:true|false}. completes=true seulement sur la DERNIÈRE étape d'une explication ou d'un exemple entièrement résolu (résultat et justification inclus). Une étape avec check porte un rôle de pratique. Un exemple travaillé est une résolution expliquée jusqu'au résultat, pas une invitation à deviner.",
-      "Progression (prévoir un exemple travaillé complet ; ne pas remplacer la demande par un test des prérequis) :",
-      "Un même problème peut expliquer les prérequis puis résoudre la notion visée : pas d'exemple supplémentaire obligatoire pour chaque prérequis. Clôture chaque explication par completes=true ; un worked-example entièrement résolu clôt aussi l'explication de sa notion.",
-      ...decision.sequence.map((c) => `${c.id} — ${c.label}. Sens : ${c.explain} Exemple de référence : ${c.example}`),
-      `Sans confirmation structurée de présentation complète : ${decision.toPresent.map((c) => c.id).join(", ") || "aucune d'après les annotations de lecture"}. Une annotation absente ne prouve pas une explication absente : consulte aussi les paroles précédentes et évite de répéter un exemple déjà résolu. Présenté ne signifie pas compris ; ne jamais annoncer une maîtrise sur cette base.`,
-    ] : []),
+    "PLAN DE SÉANCE GÉNÉRIQUE : construis un plan adapté à la demande ; aucune liste de notions n'est imposée par le moteur. Déclare avant les étapes un événement plan avec goal, target et concepts (id, label, prerequisites). Utilise des identifiants stables ; tous les prérequis doivent appartenir au plan, sans cycle. Un plan est une proposition de contenu, pas une preuve de connaissances de l'élève.",
+    '{"kind":"plan","plan":{"goal":"Comprendre et appliquer l’objectif demandé","target":"objectif","concepts":[{"id":"outil","label":"Prérequis utile","prerequisites":[]},{"id":"objectif","label":"Objectif demandé","prerequisites":["outil"]}]}}',
+    "Pour chaque étape, ajoute teaching:{concept:<id du plan>,role:explanation|worked-example|guided-practice|independent-practice,completes:true|false}. completes=true clôt l'explication ou l'exemple résolu. Une étape avec check porte un rôle de pratique. Un même exemple peut éclairer les prérequis et l'objectif : ne crée pas une leçon supplémentaire pour chaque nœud.",
+    ...(decision.plan ? ["Plan courant à réutiliser si l'objectif reste le même ; déclare un nouveau plan si le sujet change :", JSON.stringify(decision.plan),
+      `Sans confirmation structurée de présentation : ${decision.toPresent.map((c) => c.id).join(", ") || "aucune selon les annotations disponibles"}. Une annotation absente ne prouve pas une explication absente : consulte les paroles déjà dites avant de répéter.`] : []),
+    `Stratégie décidée par le contrôleur : ${decision.strategy}. Difficultés récentes consécutives observées : ${decision.difficultyStreak}. Ce compteur n'est pas un score de niveau.`,
+    decision.strategy === "alternate-representation"
+      ? "Change de représentation ou de chemin de raisonnement et explique le lien avec le précédent. Conserve les noms, les données et l'objectif ; si un nouvel exemple est nécessaire, annonce pourquoi. Ne répète pas les mêmes phrases."
+      : decision.strategy === "decompose" ? "Isole l'étape qui bloque, rends le prérequis utile accessible et montre chaque opération avec sa raison."
+        : decision.strategy === "guided-step" ? "Propose une étape accessible avec une aide adaptée, puis laisse l'élève agir sans déclarer une maîtrise générale."
+          : "Donne le sens, les liens entre représentations et un exemple entièrement expliqué, en répondant à la demande réelle.",
     ...(request.context?.learning ? ["Observations de séance par notion (les réponses libres non notées restent non évaluées ; un QCM réussi ne prouve pas la maîtrise) :", JSON.stringify(request.context.learning)] : []),
     "Un QCM doit avoir exactement une réponse correcte. Vérifie chaque choix avec les valeurs du dessin. Ne qualifie pas de faute un simple « je ne sais pas ».",
   ].join("\n\n") };

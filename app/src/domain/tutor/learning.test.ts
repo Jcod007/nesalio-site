@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 import { LearningState, emptyLearning, recordObservation, recordPresentation } from "./learning";
 
 describe("observations par notion", () => {
+  it("garde une demande d'aide non attribuée et la préserve après une présentation", () => {
+    const initial = emptyLearning();
+    const observation = { task: "Je ne comprends pas", outcome: "help-requested" as const, format: "free" as const, support: "guided" as const };
+    const next = recordObservation(initial, undefined, observation);
+    expect(initial).toEqual(emptyLearning());
+    expect(next.concepts).toEqual([]);
+    expect(next.recent).toEqual([observation]);
+    const presented = recordPresentation(next, { concept: "notion-nouvelle", role: "explanation", completes: true });
+    expect(presented.recent).toEqual([observation]);
+    expect(LearningState.safeParse(presented).success).toBe(true);
+  });
   it("sépare une présentation d'une preuve d'apprentissage, sans changer l'état initial", () => {
     const initial = emptyLearning();
     const next = recordPresentation(initial, { concept: "thales.configuration", role: "worked-example", completes: true });
@@ -32,5 +43,6 @@ describe("observations par notion", () => {
     expect(state.concepts).toHaveLength(16);
     expect(state.concepts[0]?.id).toBe("notion-4");
     expect(state.concepts.every((c) => c.observations.length === 8)).toBe(true);
+    expect(state.recent).toHaveLength(12);
   });
 });

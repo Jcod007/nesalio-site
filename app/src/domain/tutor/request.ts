@@ -11,7 +11,7 @@
 import { z } from "zod";
 import { Diagnosis } from "@/domain/scene/schema";
 import { LearningState } from "./learning";
-import { TeachingProgram } from "./program";
+import { TeachingPlan } from "./plan";
 
 export const MAX_QUESTION_LENGTH = 500;
 
@@ -51,7 +51,8 @@ export const TutorContextSchema = z.object({
   diagnosis: Diagnosis.optional(),
   /** Observations par notion dans cette séance ; enseigné ne signifie jamais appris. */
   learning: LearningState.optional(),
-  program: TeachingProgram.optional(),
+  /** Plan proposé et validé structurellement ; son contenu n'est pas une preuve de maîtrise. */
+  plan: TeachingPlan.optional(),
 });
 
 /** Réponse de l'élève à la dernière question de Nesa. */

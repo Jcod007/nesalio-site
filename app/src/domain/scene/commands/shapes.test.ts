@@ -8,6 +8,14 @@ const t = { start: 0, duration: 1000 };
 const close = (a: number[], b: number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i]!, 6));
 
 describe("figures paramétriques", () => {
+  it("place un point visible sur un sommet nommé sans recalcul et ignore une référence absente", () => {
+    let board = applyAction(emptyBoard(), { type: "triangle", id: "figure", base: 4, height: 3, at: [1, 2], names: ["K", "L", "M"] }, t);
+    const vertex = board.groups.figure!.vertices!.M!;
+    board = applyAction(board, Action.parse({ type: "point", id: "repere", at: "M", label: "M" }), t);
+    expect(board.nodes.repere).toMatchObject({ type: "point", at: vertex, label: "M" });
+    const unchanged = applyAction(board, Action.parse({ type: "point", id: "absent", at: "Z" }), t);
+    expect(unchanged.nodes.absent).toBeUndefined();
+  });
   it("résout un triangle rectangle à partir de deux mesures quelconques", () => {
     const expected = { base: Math.sqrt(3), height: 1 };
     for (const spec of [{ angle: 30, hyp: 2 }, { angle: 30, base: Math.sqrt(3) }, { angle: 30, height: 1 }, { base: Math.sqrt(3), hyp: 2 }, { height: 1, hyp: 2 }]) {

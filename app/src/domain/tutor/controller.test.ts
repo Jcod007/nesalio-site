@@ -1,85 +1,79 @@
 import { describe, expect, it } from "vitest";
+import type { Step } from "@/domain/scene/schema";
 import { checkViolation, completionViolation, constructionViolation, decideTeaching } from "./controller";
+import { emptyLearning, recordObservation, recordPresentation } from "./learning";
 import type { TutorRequest } from "./request";
-import { emptyLearning, recordPresentation } from "./learning";
-import { CONCEPTS, conceptSequence } from "./curriculum";
 
-const q = (question: string): TutorRequest => ({ mode: "question", question });
-const candidate = { say: "À toi.", do: [], check: { prompt: "Quel rapport ?", choices: ["1/3", "3"], answer: 0 } };
+const plan = { goal: "Comprendre une idée", target: "nouveau", concepts: [
+  { id: "base", label: "Prérequis", prerequisites: [] },
+  { id: "nouveau", label: "Idée demandée", prerequisites: ["base"] },
+] };
+const request: TutorRequest = { mode: "question", question: "Explique cette idée depuis zéro.", context: { spoken: [], board: [], plan } };
+const step = (concept: string, role: "explanation" | "worked-example", completes = true): Step =>
+  ({ say: "Une étape expliquée.", do: [], teaching: { concept, role, completes } });
+const check: Step = { say: "À toi.", do: [], teaching: { concept: "nouveau", role: "guided-practice" },
+  check: { prompt: "Quelle réponse ?", choices: ["A", "B"], answer: 0 } };
 
-describe("contrôleur pédagogique", () => {
-  it("refuse une question malgré une sortie de modèle valide", () => {
-    const request = q("Explique-moi Thalès depuis zéro.");
-    expect(checkViolation(candidate, decideTeaching(request), request)).toContain("sans demander de réponse");
+describe("contrôleur pédagogique générique", () => {
+  it("reste utilisable sans plan et ne déduit pas la matière depuis les mots de la demande", () => {
+    const decision = decideTeaching({ mode: "question", question: "Explique Thalès." });
+    expect(decision.target).toBeUndefined();
+    expect(decision.sequence).toEqual([]);
+    expect(decision.strategy).toBe("worked-example");
+    expect(checkViolation(check, decision, request)).toBeTruthy();
+    expect(completionViolation([step("inconnu", "explanation")], decision, request)).toBeNull();
   });
 
-  it("prévoit le passage par la configuration avant les rapports de Thalès", () => {
-    const request = q("Explique Thalès.");
-    const decision = decideTeaching(request);
-    expect(decision.sequence.map((c) => c.id)).toEqual(["thales.configuration", "thales.ratios"]);
-    const learning = recordPresentation(recordPresentation(emptyLearning(), { concept: "thales.configuration", role: "explanation", completes: true }), { concept: "thales.configuration", role: "worked-example", completes: true });
-    expect(decideTeaching({ ...request, context: { spoken: [], board: [], learning } }).toPresent.map((c) => c.id)).toEqual(["thales.ratios"]);
+  it.each(["bascule-D", "principe-inédit", "grammaire", "énergie"])("applique les mêmes décisions à un identifiant arbitraire %s", (id) => {
+    const generic = { ...request, context: { ...request.context!, plan: { ...plan, target: id, concepts: [{ id, label: id, prerequisites: [] }] } } };
+    const decision = decideTeaching(generic);
+    expect(decision.target?.id).toBe(id);
+    expect(completionViolation([step(id, "explanation")], decision, generic)).toContain(id);
+    expect(completionViolation([step(id, "worked-example")], decision, generic)).toBeNull();
   });
 
-  it.each([false, null])("répare une erreur ou un besoin d'aide sans imposer une nouvelle question (%s)", (correct) => {
-    const request: TutorRequest = { mode: "continue", question: "Thalès", answer: { prompt: "?", choices: ["1", "2"], picked: correct === null ? "Je ne sais pas" : "2", correct } };
-    expect(decideTeaching(request)).toMatchObject({ action: "remediate", allowCheck: false, policy: { scaffolding: "high" } });
+  it("suit les présentations terminées sans les transformer en acquis", () => {
+    const learning = recordPresentation(emptyLearning(), { concept: "base", role: "explanation", completes: true });
+    const decision = decideTeaching({ ...request, context: { ...request.context!, learning } });
+    expect(decision.sequence.map((c) => c.id)).toEqual(["base", "nouveau"]);
+    expect(decision.toPresent.map((c) => c.id)).toEqual(["nouveau"]);
+    expect(decision.policy.scaffolding).not.toBe("light");
+    expect(completionViolation([step("nouveau", "worked-example", false)], decision, request)).toContain("nouveau");
+    expect(completionViolation([step("nouveau", "worked-example")], decision, request)).toBeNull();
+    expect(completionViolation([{ say: "Sans annotation.", do: [] }], decision, request)).toBeNull();
   });
 
-  it("autorise une pratique demandée sans convertir un prérequis en lacune", () => {
-    const request = q("Donne-moi un exercice sur Thalès.");
-    const decision = decideTeaching(request);
-    expect(decision.allowCheck).toBe(true);
-    expect(checkViolation({ ...candidate, teaching: { concept: "thales.ratios", role: "guided-practice" } }, decision, request)).toBeNull();
-    expect(checkViolation({ ...candidate, teaching: { concept: "derivatives.local", role: "guided-practice" } }, decision, request)).not.toBeNull();
-    expect(checkViolation({ ...candidate, teaching: { concept: "thales.ratios", role: "explanation" } }, decision, request)).not.toBeNull();
+  it("change de stratégie après deux difficultés, sans confondre une autre notion avec la cible", () => {
+    let learning = recordObservation(emptyLearning(), undefined, { task: "Aide", outcome: "help-requested", format: "free", support: "guided" });
+    const followUp = (state = learning): TutorRequest => ({ ...request, mode: "followUp", question: "Je ne comprends toujours pas.", context: { ...request.context!, learning: state } });
+    expect(decideTeaching(followUp()).strategy).toBe("decompose");
+    learning = recordObservation(learning, "ailleurs", { task: "Autre", outcome: "incorrect", format: "choice", support: "guided" });
+    expect(decideTeaching(followUp()).difficultyStreak).toBe(1);
+    learning = recordObservation(learning, "nouveau", { task: "Aide", outcome: "help-requested", format: "free", support: "guided" });
+    const decision = decideTeaching(followUp());
+    expect(decision.strategy).toBe("alternate-representation");
+    expect(decision.allowCheck).toBe(false);
+    expect(completionViolation([step("nouveau", "explanation")], decision, followUp())).toBeTruthy();
+    expect(completionViolation([step("nouveau", "worked-example")], decision, followUp())).toBeNull();
+    learning = recordObservation(learning, "nouveau", { task: "Réponse", outcome: "correct", format: "free", support: "independent" });
+    expect(decideTeaching(followUp()).difficultyStreak).toBe(0);
   });
 
-  it("ne fait pas semblant d'avoir un catalogue pour tout le programme", () => {
-    expect(decideTeaching(q("Explique les orbitales atomiques.")).sequence).toEqual([]);
+  it("permet une pratique demandée, refuse un objectif inconnu et conserve le choix sans quiz", () => {
+    const practice = { ...request, question: "Teste-moi." };
+    const decision = decideTeaching(practice);
+    expect(checkViolation(check, decision, practice)).toBeNull();
+    expect(checkViolation({ ...check, teaching: { concept: "absent", role: "guided-practice" } }, decision, practice)).toBeTruthy();
+    const noQuiz = { ...practice, question: "Teste-moi sans quiz." };
+    expect(checkViolation(check, decideTeaching(noQuiz), noQuiz)).toBeTruthy();
+    const stale: TutorRequest = { ...request, mode: "continue", answer: { prompt: "?", choices: [], picked: "Je ne sais pas", correct: null, concept: "ancien-plan" } };
+    expect(decideTeaching(stale).target?.id).toBe("nouveau");
   });
 
-  it("ne transporte pas Thalès dans un changement de sujet", () => {
-    const request: TutorRequest = { mode: "followUp", question: "Explique les orbitales atomiques.", context: { originalQuestion: "Thalès", spoken: [], board: [] } };
-    expect(decideTeaching(request).target).toBeUndefined();
-  });
-
-  it("refuse une fin sans exemple annoncé sur les notions du catalogue", () => {
-    const request = q("Explique une fraction.");
-    const decision = decideTeaching(request);
-    const explained = { say: "On partage en parts égales.", do: [], teaching: { concept: "fractions.parts", role: "explanation" as const, completes: true } };
-    expect(completionViolation([explained], decision, request)).toContain("worked-example");
-    expect(completionViolation([explained, { ...explained, teaching: { concept: "fractions.parts", role: "worked-example", completes: true } }], decision, request)).toBeNull();
-  });
-
-  it("détecte la référence au triangle tri jamais créé dans la séance rivière", () => {
-    const construction = { say: "Une parallèle coupe le triangle.", do: [{ type: "construct" as const, id: "E", kind: "parallel" as const, of: ["A", "B"] as [string, string], through: "D", within: "tri", meets: "E" }] };
-    expect(constructionViolation(construction, new Set(["A", "B", "S", "D"]))).toContain("tri");
-    expect(constructionViolation(construction, new Set(["tri"]))).toBeNull();
-  });
-
-  it("accepte un exemple intégré à Thalès sans exiger un second exemple de configuration", () => {
-    const request = q("Explique Thalès depuis zéro.");
-    const decision = decideTeaching(request);
-    const steps = [
-      { say: "Les points sont alignés et les segments parallèles.", do: [], teaching: { concept: "thales.configuration", role: "explanation" as const, completes: true } },
-      { say: "SD/SA = 2/6 = 1/3, donc DE = 9/3 = 3.", do: [], teaching: { concept: "thales.ratios", role: "worked-example" as const, completes: true } },
-    ];
-    expect(completionViolation(steps, decision, request)).toBeNull();
-  });
-
-  it("ne fait pas répéter le contenu pour compléter des annotations absentes", () => {
-    const request = q("Explique les dérivées.");
-    expect(completionViolation([{ say: "La pente vaut 2, c'est la dérivée en 1.", do: [] }], decideTeaching(request), request)).toBeNull();
-  });
-
-  it("tous les prérequis existent et précèdent leur notion", () => {
-    for (const target of CONCEPTS) {
-      const sequence = conceptSequence(target).map((c) => c.id);
-      for (const concept of conceptSequence(target)) for (const id of concept.prerequisites) {
-        expect(CONCEPTS.some((c) => c.id === id)).toBe(true);
-        expect(sequence.indexOf(id)).toBeLessThan(sequence.indexOf(concept.id));
-      }
-    }
+  it("refuse une construction dans une figure absente, y compris après effacement", () => {
+    const construction: Step = { say: "Construction.", do: [{ type: "construct", id: "p", kind: "parallel", through: [0, 0], of: [[[0, 0], [1, 0]]], within: "figure" }] };
+    expect(constructionViolation(construction, new Set())).toContain("figure");
+    expect(constructionViolation(construction, new Set(["figure"]))).toBeNull();
+    expect(constructionViolation({ ...construction, do: [{ type: "clear" }, ...construction.do] }, new Set(["figure"]))).toBeTruthy();
   });
 });

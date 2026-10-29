@@ -26,12 +26,31 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
-  it("sert le parcours de Thalès sans appeler un modèle, avec sa provenance", async () => {
+  it("utilise le même pipeline génératif quelle que soit la notion demandée", async () => {
     let calls = 0;
-    const completion: CompletionStream = async function* () { calls++; yield ""; };
+    const completion: CompletionStream = async function* () { calls++; yield '{"kind":"step","say":"Je construis une explication adaptée."}\n{"kind":"end","summary":[]}'; };
     const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi le théorème de Thalès ?" }, { ...base, completion }));
-    expect(calls).toBe(0);
-    expect(events[0]).toEqual({ kind: "source", source: "curriculum" });
+    expect(calls).toBe(1);
+    expect(events[0]).toEqual({ kind: "source", source: "model" });
+    expect(events.at(-1)?.kind).toBe("end");
+  });
+  it("un plan dynamique ne permet pas de contourner la préférence sans quiz", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      const events = calls++ === 0 ? [
+        { kind: "plan", plan: { goal: "Comprendre", target: "nouveau", concepts: [{ id: "nouveau", label: "Idée", prerequisites: [] }] } },
+        { kind: "step", say: "Question prématurée.", teaching: { concept: "nouveau", role: "guided-practice" }, check: { prompt: "?", choices: ["A", "B"], answer: 0 } },
+      ] : [
+        { kind: "step", say: "Voici une résolution complète.", teaching: { concept: "nouveau", role: "worked-example", completes: true } },
+        { kind: "end", summary: [] },
+      ];
+      return fakeCompletion(events.map((e) => JSON.stringify(e)).join("\n"))(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique sans quiz." }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.some((e) => e.kind === "plan")).toBe(true);
+    expect(events.some((e) => e.kind === "await" || e.kind === "step" && e.check)).toBe(false);
+    expect(events.filter((e) => e.kind === "step").map((e) => e.say)).toEqual(["Voici une résolution complète."]);
     expect(events.at(-1)?.kind).toBe("end");
   });
   it("réessaie une seule fois sans réflexion si le budget est épuisé avant de parler", async () => {
@@ -116,10 +135,11 @@ describe("tutorEvents", () => {
     let calls = 0;
     const completion: CompletionStream = (options) => {
       const events = calls++ === 0 ? [
-        { kind: "step", say: "Une fraction compte des parts égales d'un tout.", teaching: { concept: "fractions.parts", role: "explanation", completes: true } },
+        { kind: "plan", plan: { goal: "Comprendre", target: "parts-séance", concepts: [{ id: "parts-séance", label: "Parts égales", prerequisites: [] }] } },
+        { kind: "step", say: "Une fraction compte des parts égales d'un tout.", teaching: { concept: "parts-séance", role: "explanation", completes: true } },
         { kind: "end", summary: [] },
       ] : [
-        { kind: "step", say: "Je partage une unité en 4 parts égales et j'en prends 3 : cela donne trois quarts, soit 3/4.", teaching: { concept: "fractions.parts", role: "worked-example", completes: true } },
+        { kind: "step", say: "Je partage une unité en 4 parts égales et j'en prends 3 : cela donne trois quarts, soit 3/4.", teaching: { concept: "parts-séance", role: "worked-example", completes: true } },
         { kind: "end", summary: ["Le 4 décrit le partage, le 3 ce qu'on prend"] },
       ];
       return fakeCompletion(events.map((e) => JSON.stringify(e)).join("\n"))(options);

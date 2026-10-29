@@ -20,11 +20,19 @@ function recorder(request: TutorRequest = question) {
 }
 
 describe("createTurnRecorder", () => {
-  it("enregistre la provenance réelle du parcours, sans lui attribuer un modèle", () => {
+  it("conserve une copie du plan dynamique utilisé pour le tour", () => {
+    const plan = { goal: "Comprendre", target: "nouveau", concepts: [{ id: "nouveau", label: "Objectif", prerequisites: [] }] };
+    const { rec } = recorder({ ...question, context: { spoken: [], board: [], plan } });
+    const recorded = rec.record();
+    expect(recorded.plan).toEqual(plan);
+    recorded.plan!.concepts[0]!.label = "Autre";
+    expect(plan.concepts[0]!.label).toBe("Objectif");
+    expect(recorder().rec.record()).not.toHaveProperty("plan");
+  });
+  it("enregistre la provenance réelle d'un repli, sans lui attribuer un modèle", () => {
     const { rec } = recorder();
-    rec.event({ kind: "source", source: "curriculum" });
-    rec.event({ kind: "program", program: { id: "thales-v1", exercise: 0, phase: "explanation" } });
-    expect(rec.record().source).toBe("curriculum");
+    rec.event({ kind: "source", source: "demo" });
+    expect(rec.record().source).toBe("demo");
     expect(rec.record()).not.toHaveProperty("model");
   });
   it("conserve les observations pédagogiques pour rejouer les décisions sans réécrire les anciens tours", () => {
