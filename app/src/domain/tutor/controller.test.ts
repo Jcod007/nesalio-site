@@ -68,6 +68,11 @@ describe("contrôleur pédagogique", () => {
     expect(completionViolation(steps, decision, request)).toBeNull();
   });
 
+  it("ne fait pas répéter le contenu pour compléter des annotations absentes", () => {
+    const request = q("Explique les dérivées.");
+    expect(completionViolation([{ say: "La pente vaut 2, c'est la dérivée en 1.", do: [] }], decideTeaching(request), request)).toBeNull();
+  });
+
   it("tous les prérequis existent et précèdent leur notion", () => {
     for (const target of CONCEPTS) {
       const sequence = conceptSequence(target).map((c) => c.id);

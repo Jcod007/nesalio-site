@@ -119,6 +119,8 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
         }
       }
       if (event.kind === "end") {
+        if (decision.target && accepted.some((e) => e.kind === "step" && !e.teaching))
+          config.log?.("tutor: couverture pédagogique non vérifiable, annotations absentes");
         violation = completionViolation(accepted.filter((e) => e.kind === "step"), decision, request);
         if (violation) break;
       }

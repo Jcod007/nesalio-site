@@ -398,7 +398,7 @@ export function buildMessages(request: TutorRequest): ChatMessage[] {
       "Progression (prévoir un exemple travaillé complet ; ne pas remplacer la demande par un test des prérequis) :",
       "Un même problème peut expliquer les prérequis puis résoudre la notion visée : pas d'exemple supplémentaire obligatoire pour chaque prérequis. Clôture chaque explication par completes=true ; un worked-example entièrement résolu clôt aussi l'explication de sa notion.",
       ...decision.sequence.map((c) => `${c.id} — ${c.label}. Sens : ${c.explain} Exemple de référence : ${c.example}`),
-      `Pas encore présentées complètement dans cette séance : ${decision.toPresent.map((c) => c.id).join(", ") || "aucune d'après les annotations de lecture"}. Présenté ne signifie pas compris ; ne jamais annoncer une maîtrise sur cette base.`,
+      `Sans confirmation structurée de présentation complète : ${decision.toPresent.map((c) => c.id).join(", ") || "aucune d'après les annotations de lecture"}. Une annotation absente ne prouve pas une explication absente : consulte aussi les paroles précédentes et évite de répéter un exemple déjà résolu. Présenté ne signifie pas compris ; ne jamais annoncer une maîtrise sur cette base.`,
     ] : []),
     ...(request.context?.learning ? ["Observations de séance par notion (les réponses libres non notées restent non évaluées ; un QCM réussi ne prouve pas la maîtrise) :", JSON.stringify(request.context.learning)] : []),
     "Un QCM doit avoir exactement une réponse correcte. Vérifie chaque choix avec les valeurs du dessin. Ne qualifie pas de faute un simple « je ne sais pas ».",

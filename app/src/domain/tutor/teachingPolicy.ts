@@ -45,9 +45,9 @@ function requestsPractice(text: string): boolean {
 }
 
 function needsExplanation(text: string): boolean {
-  return /\bje (?:ne )?sais pas\b/.test(text)
+  return /\bje (?:ne )?sais (?:toujours |vraiment |encore |absolument )?(?:pas|rien)\b/.test(text)
     || /\b(?:aucune idee|pas compris|rien compris)\b/.test(text)
-    || /\bje (?:ne )?comprends? (?:pas|rien)\b/.test(text);
+    || /\bje (?:ne )?comprends? (?:toujours |vraiment |encore )?(?:pas|rien)\b/.test(text);
 }
 
 function declaresNovice(text: string): boolean {
@@ -64,6 +64,12 @@ function declaresExperience(text: string): boolean {
   return /\bje (?:connais|maitrise|comprends) (?:deja |bien |tres bien )*(?:les bases|cette notion|ce concept)\b/.test(text)
     || /\bje suis (?:un |une )?expert(?:e)?\b/.test(text)
     || /\b(?:mon niveau est|j'ai un niveau|je suis de niveau|je suis) avance(?:e)?\b/.test(text);
+}
+
+/** Même repérage pour la conduite du tour et l'observation d'une réponse libre. */
+export function isHelpRequest(text: string): boolean {
+  const normalized = normalize(text);
+  return declaresNovice(normalized) || /\b(?:montre|aide)[ -]moi\b/.test(normalized);
 }
 
 /**

@@ -22,6 +22,7 @@ import { applyAction } from "@/domain/scene/commands";
 import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { emptyLearning, recordObservation, recordPresentation, type LearningState } from "@/domain/tutor/learning";
+import { isHelpRequest } from "@/domain/tutor/teachingPolicy";
 import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import { retimeCues } from "@/domain/timeline/spokenTime";
@@ -551,7 +552,7 @@ export class Player {
       const support = step.teaching?.role === "independent-practice" ? "independent" as const : "guided" as const;
       if (concept) this.learning = recordObservation(this.learning, concept, {
         task: check.prompt, outcome: right === true ? "correct" : right === false ? "incorrect"
-          : /\b(?:sais pas|comprends? pas|montre-moi|aide-moi)\b/i.test(pickedText) ? "help-requested" : "ungraded",
+          : isHelpRequest(pickedText) ? "help-requested" : "ungraded",
         format: picked === null ? "free" : "choice", support,
       });
       this.answered(segment, {

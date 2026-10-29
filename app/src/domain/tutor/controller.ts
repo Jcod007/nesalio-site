@@ -56,6 +56,9 @@ export function checkViolation(step: Step, decision: TeachingDecision, request: 
 
 /** Contrôle de couverture déclaré : il ne certifie pas la justesse de l'explication. */
 export function completionViolation(steps: readonly Step[], decision: TeachingDecision, request: TutorRequest): string | null {
+  // Une annotation absente n'est pas une preuve d'enseignement manquant. Ne pas faire
+  // répéter une explication potentiellement complète pour réparer sa seule télémétrie.
+  if (steps.some((step) => !step.teaching)) return null;
   if (decision.action === "remediate" && decision.target) {
     const target = decision.target.id;
     return steps.some((s) => s.teaching?.concept === target && s.teaching.role === "worked-example" && s.teaching.completes) ? null

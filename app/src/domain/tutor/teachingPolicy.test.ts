@@ -12,6 +12,9 @@ const continuation = (picked: string, correct: boolean | null = null, originalQu
 });
 
 describe("politique pédagogique", () => {
+  it.each(["Je ne sais toujours pas.", "Je ne comprends toujours pas.", "Je ne sais vraiment pas."])("réexplique après un besoin d'aide répété : %s", (text) => {
+    expect(resolveTeachingPolicy(continuation(text))).toMatchObject({ intent: "remediation", questions: "defer" });
+  });
   it("traite une déclaration de débutant dans une réponse comme un besoin d'explication", () => {
     expect(resolveTeachingPolicy(continuation("Je ne connais rien à ce concept."))).toMatchObject({ intent: "remediation", scaffolding: "high", questions: "defer" });
   });
