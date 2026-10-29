@@ -58,6 +58,22 @@ flowchart LR
 
 L'interface conserve les questions guidées, mais permet « Montre-moi d'abord ». Après une explication, l'élève peut demander un exercice guidé. Les calculs et figures existants restent utilisables.
 
+## Premier parcours dont le contenu est calculé : Thalès
+
+`server/tutor/programs/thales.ts` ajoute un parcours restreint d'introduction à Thalès. Il est servi par le moteur sans génération de texte par un modèle : objectif, construction progressive de S/A/B/D/E, alignements, parallèle, correspondances, rapports, exemple résolu et vérification. Il commence directement par une construction géométrique ; aucune histoire de rivière sans correspondance explicite n'est ajoutée. Les sommets reçoivent aussi des points visibles ; la commande `point` peut désormais viser un sommet nommé avec `at:"S"`, sans coordonnées calculées par l'IA.
+
+Quatre jeux de mesures alimentent à la fois le triangle, le placement de D, la parallèle, les phrases numériques, les choix du QCM et la correction. La résolution est `DE = AB × SD / SA`. Les mesures invalides sont rejetées. Les tests rejouent les commandes dans le moteur réel et vérifient les cinq points, les rapports SD/SA, SE/SB et DE/AB, ainsi que le parallélisme : ils ne se limitent pas à comparer des chaînes JSON.
+
+L'exercice n'apparaît qu'après une demande explicite de pratique. Une erreur ou une demande d'aide reçoit une résolution, sans nouveau test imposé. La correction numérique du parcours est calculée à partir de la réponse et des mesures ; elle ne dépend pas du booléen `correct` envoyé par le navigateur. Une réponse libre non interprétable ne reçoit pas de verdict inventé.
+
+Le navigateur transmet un état de parcours versionné (`thales-v1`, numéro d'exercice, phase). La provenance `curriculum` est distinguée de `model` et `demo` dans le flux et les enregistrements ; aucun modèle n'est attribué à une leçon qui n'en utilise pas. Un besoin d'aide général reconnu reste dans le parcours ; une question précise libre repasse par le modèle et le quitte. Les demandes spécialisées, la réciproque, une preuve, un problème chiffré personnel ou une application à une rivière ne sont pas remplacés par cette introduction standard.
+
+Après deux observations consécutives de difficulté sur les rapports (erreur ou besoin d'aide), le parcours essaie une autre représentation : coefficient d'agrandissement `SA/SD`, puis opération inverse pour retrouver `DE`. Les points et les mesures sont conservés. Ce seuil de deux est une première règle de produit testable, à évaluer ; il n'est pas présenté comme une prescription issue de la recherche ni comme une estimation du niveau de l'élève.
+
+Ce contenu rédigé et ces calculs vérifiés constituent un premier périmètre borné. Ils ne représentent pas encore un vérificateur général de toute explication ni une adaptation calibrée de la difficulté. Les fractions et les dérivées utilisent encore la génération sous contrôle décrite plus haut. Le passage à d'autres notions doit ajouter des relations vérifiables et des critères de réussite, pas seulement recopier un script.
+
+Validation technique : 410 tests unitaires, vérification TypeScript et build de production réussis. Le scénario `node tools/e2e/thales.mjs` a parcouru le vrai serveur sur ordinateur et téléphone : explication sans QCM, exercice demandé, demande d'aide, puis nouvelle difficulté déclenchant le coefficient d'agrandissement avec les mêmes mesures. La voix était coupée et l'horloge d'affichage accélérée ; ce test ne mesure ni le débit vocal réel ni l'efficacité d'apprentissage. Les captures ont aussi montré que le bilan peut laisser des formules petites sur téléphone : la lisibilité du cadrage reste un chantier distinct.
+
 ## Limites et validation
 
 Le détecteur d'intention reste lexical : il ne comprend pas toutes les paraphrases. Le contrôleur garantit les contraintes structurelles décrites ci-dessus, pas la pertinence de toute phrase interrogative ni la qualité d'un exemple. Les annotations `teaching` sont déclarées par le modèle ; les avoir lues prouve uniquement leur présentation, sans certifier qu'elles enseignent correctement. Il n'existe pas encore de vérificateur sémantique général des calculs, des QCM, des hypothèses de Thalès ou des correspondances d'un dessin. Le garde-fou `within` ne valide pas toutes les références géométriques. Ne pas annoncer ces problèmes comme résolus.

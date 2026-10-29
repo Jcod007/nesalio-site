@@ -20,6 +20,13 @@ function recorder(request: TutorRequest = question) {
 }
 
 describe("createTurnRecorder", () => {
+  it("enregistre la provenance réelle du parcours, sans lui attribuer un modèle", () => {
+    const { rec } = recorder();
+    rec.event({ kind: "source", source: "curriculum" });
+    rec.event({ kind: "program", program: { id: "thales-v1", exercise: 0, phase: "explanation" } });
+    expect(rec.record().source).toBe("curriculum");
+    expect(rec.record()).not.toHaveProperty("model");
+  });
   it("conserve les observations pédagogiques pour rejouer les décisions sans réécrire les anciens tours", () => {
     const learning = { v: 1 as const, concepts: [{ id: "fractions.parts", presented: ["worked-example" as const], observations: [] }] };
     const { rec } = recorder({ mode: "continue", question: "Fractions", context: { spoken: [], board: [], learning },

@@ -79,6 +79,41 @@ async function speakUntil(player: Player, voice: ReturnType<typeof fakeSpeaker>,
 }
 
 describe("Player", () => {
+  it("garde les besoins d'aide généraux du parcours pour pouvoir changer d'approche", async () => {
+    const voice = fakeSpeaker();
+    const program = { id: "thales-v1" as const, exercise: 1, phase: "practice" as const };
+    const { source, requests } = scriptedSource(() => [{ kind: "source", source: "curriculum" }, { kind: "program", program }, step("Je montre."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Thalès ?");
+    await speakUntil(player, voice, (s) => s.status === "done");
+    for (let i = 0; i < 2; i++) {
+      player.followUp("Je ne comprends toujours pas.");
+      await until(player, () => requests.length === i + 2);
+      expect(requests[i + 1]?.context?.learning?.concepts[0]?.observations).toHaveLength(i + 1);
+      await speakUntil(player, voice, (s) => s.status === "done");
+    }
+    expect(requests[2]?.context?.program?.exercise).toBe(1);
+    player.dispose();
+  });
+  it("transmet le parcours structuré et l'oublie après une réponse libre du modèle", async () => {
+    const voice = fakeSpeaker();
+    const program = { id: "thales-v1" as const, exercise: 0, phase: "explanation" as const };
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      { kind: "source", source: "curriculum" }, { kind: "program", program }, step("Voici la figure."), { kind: "end", summary: [] },
+    ] : [{ kind: "source", source: "model" }, step("Je réponds à ta question."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Thalès ?");
+    await speakUntil(player, voice, (s) => s.status === "done");
+    expect(player.getSnapshot().source).toBe("curriculum");
+    player.followUp("Pourquoi ?");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.context?.program).toEqual(program);
+    await speakUntil(player, voice, (s) => s.status === "done");
+    player.followUp("Encore une question.");
+    await until(player, () => requests.length === 3);
+    expect(requests[2]?.context?.program).toBeUndefined();
+    player.dispose();
+  });
   it("ne compte ni une étape seulement reçue ni une phrase interrompue comme présentée", async () => {
     const voice = fakeSpeaker();
     const { source, requests } = scriptedSource((request) => request.mode === "question" ? [

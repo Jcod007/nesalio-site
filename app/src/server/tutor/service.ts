@@ -15,6 +15,7 @@ import { UpstreamError, type CompletionStream } from "./chatCompletions";
 import { buildMessages } from "./prompt";
 import type { ChatMessage } from "./prompt";
 import { checkViolation, completionViolation, constructionViolation, decideTeaching } from "@/domain/tutor/controller";
+import { thalesProgramEvents } from "./programs/thales";
 
 /** Limite technique : une découverte peut inclure vocabulaire, construction et résolution complète. */
 export const MAX_STEPS = 18;
@@ -28,6 +29,8 @@ export interface TutorServiceConfig {
 }
 
 export async function* tutorEvents(request: TutorRequest, config: TutorServiceConfig): AsyncGenerator<StreamEvent> {
+  const program = thalesProgramEvents(request);
+  if (program) { yield* program; return; }
   if (!config.provider) {
     yield { kind: "source", source: "demo" };
     yield* demoEvents(request);

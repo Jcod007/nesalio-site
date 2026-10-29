@@ -23,6 +23,8 @@ import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { emptyLearning, recordObservation, recordPresentation, type LearningState } from "@/domain/tutor/learning";
 import { isHelpRequest } from "@/domain/tutor/teachingPolicy";
+import { isGeneralProgramHelp, type TeachingProgram } from "@/domain/tutor/program";
+import type { SourceKind } from "@/domain/scene/schema";
 import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import { retimeCues } from "@/domain/timeline/spokenTime";
@@ -51,7 +53,7 @@ export interface PlayerSnapshot {
   board: BoardState;
   title: string | null;
   topic: string | null;
-  source: "model" | "demo" | null;
+  source: SourceKind | null;
   /** Question qui a ouvert la séance. */
   question: string | null;
   caption: Caption | null;
@@ -135,6 +137,7 @@ export class Player {
   private goals: string[] = [];
   private answerLog: StudentAnswer[] = [];
   private learning: LearningState = emptyLearning();
+  private program: TeachingProgram | undefined;
   /** Une présentation est comptée une fois, seulement après la fin de la parole et du dessin. */
   private presentedSteps = new WeakSet<Step>();
   /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
@@ -208,6 +211,9 @@ export class Player {
     }
     this.stopCurrentStep();
 
+    if (this.program && isGeneralProgramHelp(text)) this.learning = recordObservation(this.learning, "thales.ratios", {
+      task: text.slice(0, 300), outcome: "help-requested", format: "free", support: "guided",
+    });
     const context = this.buildContext(interrupted);
     this.set({ status: "thinking", check: null, error: null, answeringFollowUp: true });
     this.openSegment("followUp", { mode: "followUp", question: text, context });
@@ -282,6 +288,7 @@ export class Player {
     this.goals = [];
     this.answerLog = [];
     this.learning = emptyLearning();
+    this.program = undefined;
     this.presentedSteps = new WeakSet();
     this.diagnosis = null;
     this.transcript = [];
@@ -361,6 +368,10 @@ export class Player {
         switch (event.kind) {
           case "source":
             this.set({ source: event.source });
+            if (event.source !== "curriculum") this.program = undefined;
+            break;
+          case "program":
+            this.program = event.program;
             break;
           case "lesson":
             if (segment.kind === "question") {
@@ -618,6 +629,7 @@ export class Player {
       answers: this.answerLog.length > 0 ? this.answerLog.map(({ choices: _c, ...rest }) => rest) : undefined,
       diagnosis: this.diagnosis ?? undefined,
       learning: this.learning,
+      program: this.program,
     };
   }
 

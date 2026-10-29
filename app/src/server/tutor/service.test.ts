@@ -26,6 +26,14 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
+  it("sert le parcours de Thalès sans appeler un modèle, avec sa provenance", async () => {
+    let calls = 0;
+    const completion: CompletionStream = async function* () { calls++; yield ""; };
+    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi le théorème de Thalès ?" }, { ...base, completion }));
+    expect(calls).toBe(0);
+    expect(events[0]).toEqual({ kind: "source", source: "curriculum" });
+    expect(events.at(-1)?.kind).toBe("end");
+  });
   it("réessaie une seule fois sans réflexion si le budget est épuisé avant de parler", async () => {
     const efforts: Array<string | undefined> = [];
     const completion: CompletionStream = async function* (options) {

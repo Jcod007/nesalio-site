@@ -11,9 +11,10 @@
  * Si la personne s'est inscrite sur le site, la référence de son inscription
  * est notée : elle relie ses séances à son courriel, gardé dans Formspree.
  */
-import type { StreamEvent } from "@/domain/scene/schema";
+import type { SourceKind, StreamEvent } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
 import type { LearningState } from "@/domain/tutor/learning";
+import type { TeachingProgram } from "@/domain/tutor/program";
 import { shortSession } from "@/domain/session";
 
 export type RecordEnv = "production" | "preview" | "development";
@@ -34,9 +35,10 @@ export interface TurnRecord {
   answer?: { prompt: string; picked: string; correct: boolean | null; misconception?: string; concept?: string; support?: "guided" | "independent" };
   /** État déclaré par le lecteur avant ce tour ; absent des anciens enregistrements. */
   learning?: LearningState;
+  program?: TeachingProgram;
   /** Objectifs de la séance, tels que Nesa les a fixés au premier tour. */
   goals?: string[];
-  source: "model" | "demo";
+  source: SourceKind;
   model?: string;
   /** firstStep : délai avant la première étape (ce que l'élève attend avant que Nesa parle) ; total : tour complet. */
   latencyMs: { firstStep?: number; total: number };
@@ -56,7 +58,7 @@ export function createTurnRecorder(options: {
   session: string | null;
   ref?: string | null;
   env: RecordEnv;
-  source: "model" | "demo";
+  source: SourceKind;
   model?: string;
   startedAt: Date;
   clock: { now(): number };
@@ -64,6 +66,7 @@ export function createTurnRecorder(options: {
   const { request, clock } = options;
   const started = clock.now();
   const events: StreamEvent[] = [];
+  let source = options.source;
   let firstStep: number | undefined;
   let ended: number | undefined;
   let outcome: TurnOutcome | undefined;
@@ -74,6 +77,7 @@ export function createTurnRecorder(options: {
       // Le serveur envoie d'abord des événements techniques (« source ») : on mesure l'attente de la première étape.
       if (firstStep === undefined && event.kind === "step") firstStep = clock.now() - started;
       events.push(event);
+      if (event.kind === "source") source = event.source;
     },
     finish(result) {
       if (outcome) return;
@@ -103,8 +107,9 @@ export function createTurnRecorder(options: {
           : {}),
         ...(request.context?.goals?.length ? { goals: [...request.context.goals] } : {}),
         ...(request.context?.learning ? { learning: structuredClone(request.context.learning) } : {}),
-        source: options.source,
-        ...(options.model ? { model: options.model } : {}),
+        ...(request.context?.program ? { program: { ...request.context.program } } : {}),
+        source,
+        ...(source === "model" && options.model ? { model: options.model } : {}),
         latencyMs: { ...(firstStep !== undefined ? { firstStep } : {}), total: ended ?? clock.now() - started },
         outcome: outcome ?? "cancelled",
         events: [...events],

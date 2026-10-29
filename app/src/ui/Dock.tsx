@@ -187,7 +187,7 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
                 onListeningChange={actions.setListening}
                 submitLabel="Demander"
               />
-              {snapshot.source === "model" ? (
+              {snapshot.source === "model" || snapshot.source === "curriculum" ? (
                 <button type="button" className="btn-line" onClick={() => actions.followUp("Maintenant, propose-moi un exercice guidé sur cette notion et laisse-moi essayer une étape.")}>
                   Essayer un exercice guidé
                 </button>

@@ -14,6 +14,7 @@
 import { z } from "zod";
 import { Action } from "./commands";
 import { TeachingAnnotation } from "@/domain/tutor/learning";
+import { TeachingProgram } from "@/domain/tutor/program";
 
 export { ColorName } from "./primitives";
 export { Action, type ActionType } from "./commands";
@@ -151,10 +152,13 @@ export const AwaitEvent = z.object({
   /** Commandes du tour refusées par le validateur (raison courte) : rendues au modèle au tour suivant. */
   rejected: z.array(z.string().max(200)).max(6).optional(),
 });
+export const SourceKind = z.enum(["model", "demo", "curriculum"]);
+export type SourceKind = z.infer<typeof SourceKind>;
 export const SourceEvent = z.object({
   kind: z.literal("source"),
-  source: z.enum(["model", "demo"]),
+  source: SourceKind,
 });
+export const ProgramEvent = z.object({ kind: z.literal("program"), program: TeachingProgram });
 
 export const StreamEvent = z.discriminatedUnion("kind", [
   LessonHeaderEvent,
@@ -163,6 +167,7 @@ export const StreamEvent = z.discriminatedUnion("kind", [
   DiagnosisEvent,
   ErrorEvent,
   SourceEvent,
+  ProgramEvent,
   AwaitEvent,
 ]);
 export type StreamEvent = z.infer<typeof StreamEvent>;
