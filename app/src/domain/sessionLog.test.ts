@@ -20,6 +20,32 @@ function recorder(request: TutorRequest = question) {
 }
 
 describe("createTurnRecorder", () => {
+  it("conserve une copie du plan dynamique utilisé pour le tour", () => {
+    const plan = { goal: "Comprendre", target: "nouveau", concepts: [{ id: "nouveau", label: "Objectif", prerequisites: [] }] };
+    const { rec } = recorder({ ...question, context: { spoken: [], board: [], plan } });
+    const recorded = rec.record();
+    expect(recorded.plan).toEqual(plan);
+    recorded.plan!.concepts[0]!.label = "Autre";
+    expect(plan.concepts[0]!.label).toBe("Objectif");
+    expect(recorder().rec.record()).not.toHaveProperty("plan");
+  });
+  it("enregistre la provenance réelle d'un repli, sans lui attribuer un modèle", () => {
+    const { rec } = recorder();
+    rec.event({ kind: "source", source: "demo" });
+    expect(rec.record().source).toBe("demo");
+    expect(rec.record()).not.toHaveProperty("model");
+  });
+  it("conserve les observations pédagogiques pour rejouer les décisions sans réécrire les anciens tours", () => {
+    const learning = { v: 1 as const, concepts: [{ id: "fractions.parts", presented: ["worked-example" as const], observations: [] }] };
+    const { rec } = recorder({ mode: "continue", question: "Fractions", context: { spoken: [], board: [], learning },
+      answer: { prompt: "Le 4 ?", choices: ["Partage", "Prises"], picked: "Je ne sais pas", correct: null, concept: "fractions.parts", support: "guided" } });
+    const record = rec.record();
+    expect(record.learning).toEqual(learning);
+    expect(record.answer).toMatchObject({ correct: null, concept: "fractions.parts", support: "guided" });
+    record.learning!.concepts[0]!.presented.length = 0;
+    expect(learning.concepts[0]!.presented).toEqual(["worked-example"]);
+    expect(recorder().rec.record()).not.toHaveProperty("learning");
+  });
   it("garde exactement les événements envoyés à l'élève, dans l'ordre (format de rejeu)", () => {
     const { rec, clock } = recorder();
     rec.event({ kind: "source", source: "model" });

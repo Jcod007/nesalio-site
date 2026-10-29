@@ -94,7 +94,7 @@ export const pointCommand = defineCommand({
   schema: z.object({
     type: z.literal("point"),
     id: Id,
-    at: Coord,
+    at: PointRef,
     label: z.string().max(40).optional(),
     color: ColorName.optional(),
     ring: z.boolean().optional(),
@@ -102,12 +102,14 @@ export const pointCommand = defineCommand({
   }),
   doc:
     '{"type":"point","id":"A","at":[x,y],"label":"(2, 3)","color":"violet","ring":true} ; "open":true = point vide (bout exclu\n' +
-    '  d\'un intervalle, x ≠ 2 sur une droite numérique).',
+    '  d\'un intervalle, x ≠ 2 sur une droite numérique). "at":"S" marque un sommet ou point déjà nommé sans recalculer ses coordonnées.',
   duration: 450,
   aliases: ["dot"],
   apply(state, action, reveal) {
-    const { type, id, color, ...rest } = action;
-    return drawNode(state, { ...base(id, reveal, color), type, ...rest }, reveal);
+    const { type, id, color, at: reference, ...rest } = action;
+    const at = resolvePoint(state, reference);
+    if (!at) return state;
+    return drawNode(state, { ...base(id, reveal, color), type, ...rest, at }, reveal);
   },
 });
 

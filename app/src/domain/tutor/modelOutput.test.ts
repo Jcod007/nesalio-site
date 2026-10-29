@@ -38,6 +38,14 @@ describe("JsonObjectScanner", () => {
 });
 
 describe("createModelOutputParser", () => {
+  it("valide un plan dynamique et refuse un cycle sans perdre la suite du flux", () => {
+    const parser = createModelOutputParser();
+    const plan = { goal: "Comprendre", target: "id-libre", concepts: [{ id: "id-libre", label: "Notion libre", prerequisites: [] as string[] }] };
+    expect(parser.parseLine(JSON.stringify({ kind: "plan", plan }))).toEqual({ kind: "plan", plan });
+    expect(parser.parseLine(JSON.stringify({ kind: "plan", plan: { ...plan, concepts: [{ ...plan.concepts[0], prerequisites: ["id-libre"] }] } }))).toBeNull();
+    expect(parser.issues).toHaveLength(1);
+    expect(parser.parseLine('{"kind":"step","say":"La suite reste disponible."}')).toMatchObject({ kind: "step" });
+  });
   it("valide une étape complète", () => {
     const parser = createModelOutputParser();
     const event = parser.parseLine(

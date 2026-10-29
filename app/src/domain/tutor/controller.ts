@@ -1,0 +1,127 @@
+import type { Step } from "@/domain/scene/schema";
+import type { TutorRequest } from "./request";
+import { planSequence, type PlanConcept, type TeachingPlan } from "./plan";
+import { isHelpRequest, resolveTeachingPolicy, type TeachingPolicy } from "./teachingPolicy";
+import { arithmeticCheckViolation } from "./assessment";
+import { learningEvidence, taskKey, type LearningEvidence } from "./progress";
+
+export interface TeachingDecision {
+  policy: TeachingPolicy;
+  action: "explain-and-model" | "guided-practice" | "remediate" | "independent-practice" | "transfer-practice" | "retrieval-practice";
+  strategy: "worked-example" | "decompose" | "alternate-representation" | "guided-step" | "independent-task" | "transfer-task" | "retrieval-task";
+  difficultyStreak: number;
+  plan?: TeachingPlan;
+  target?: PlanConcept;
+  sequence: PlanConcept[];
+  toPresent: PlanConcept[];
+  allowCheck: boolean;
+  requireCheck: boolean;
+  evidence: LearningEvidence;
+}
+
+const PRACTICE_STRATEGY: Record<Exclude<TeachingDecision["action"], "remediate">, TeachingDecision["strategy"]> = {
+  "explain-and-model": "worked-example",
+  "guided-practice": "guided-step",
+  "independent-practice": "independent-task",
+  "transfer-practice": "transfer-task",
+  "retrieval-practice": "retrieval-task",
+};
+
+/** Les règles agissent sur des observations et un graphe proposé, jamais sur un nom de matière. */
+export function decideTeaching(request: TutorRequest, now = Date.now()): TeachingDecision {
+  const policy = resolveTeachingPolicy(request);
+  const current = request.mode === "continue" ? request.answer?.picked ?? "" : request.question;
+  const needsHelp = isHelpRequest(current);
+  let action: TeachingDecision["action"] = policy.intent === "remediation" || (request.mode === "followUp" && needsHelp) ? "remediate"
+    : policy.intent === "practice" ? "guided-practice" : "explain-and-model";
+  const plan = request.context?.plan;
+  const requestedTarget = request.mode === "continue" ? request.answer?.concept ?? plan?.target : plan?.target;
+  const target = plan?.concepts.find((c) => c.id === requestedTarget) ?? plan?.concepts.find((c) => c.id === plan.target);
+  const targetId = target?.id;
+  const evidence = learningEvidence(request.context?.learning, targetId, now);
+  const explicitlyGuided = /\bguide[es]?\b|\bavec (?:de l'|ton |un peu d')?aide\b/.test(current.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase());
+  if (action === "guided-practice" && policy.questions !== "defer" && !explicitlyGuided) {
+    if (evidence.nextPractice === "independent") action = "independent-practice";
+    if (evidence.nextPractice === "transfer") action = "transfer-practice";
+    if (evidence.nextPractice === "retrieval") action = "retrieval-practice";
+  }
+  const sequence = plan ? planSequence(plan, target?.id) : [];
+  const toPresent = sequence.filter((concept) => {
+    const seen = request.context?.learning?.concepts.find((c) => c.id === concept.id);
+    return !seen?.presented.includes("explanation") || (concept.id === target?.id && !seen.presented.includes("worked-example"));
+  });
+  const recent = request.context?.learning?.recent;
+  const observations = recent?.filter((o) => !targetId || !o.concept || o.concept === targetId)
+    ?? request.context?.learning?.concepts.find((c) => c.id === targetId)?.observations ?? [];
+  let difficultyStreak = 0;
+  for (const observation of observations.toReversed()) {
+    if (observation.outcome !== "incorrect" && observation.outcome !== "help-requested") break;
+    difficultyStreak++;
+  }
+  // Ancien client ou mémoire manquante : la réponse courante reste utilisable, sans inventer un historique.
+  if (!observations.length && (needsHelp || request.answer?.correct === false)) difficultyStreak = 1;
+  const strategy = action === "remediate" ? difficultyStreak >= 2 ? "alternate-representation" : "decompose"
+    : PRACTICE_STRATEGY[action];
+  const allowCheck = policy.questions !== "defer";
+  // Critère local de bilan, pas certification de maîtrise : plusieurs tâches autonomes dont un transfert.
+  const canConclude = evidence.independentSuccesses >= 2 && evidence.transferObserved;
+  return { policy, action, strategy, difficultyStreak, plan, target, sequence, toPresent,
+    evidence, allowCheck, requireCheck: allowCheck && !canConclude && (policy.questions === "required" || policy.questions === "requested") };
+}
+
+export function checkViolation(step: Step, decision: TeachingDecision, request: TutorRequest, previous: readonly Step[] = []): string | null {
+  if (!step.check) return null;
+  if (!decision.allowCheck) return "Ce tour doit expliquer et montrer, sans demander de réponse. Remplace la question par un exemple entièrement résolu, puis termine.";
+  if ((decision.action === "explain-and-model" || decision.action === "remediate") && previous.length === 0)
+    return "Donne d'abord une explication ou une aide concrète avant de solliciter l'élève. Ajoute ensuite une étape accessible avec check ; ne termine pas la séance.";
+  if (step.teaching && !["guided-practice", "independent-practice"].includes(step.teaching.role))
+    return "Une question est une activité de pratique ; corrige son rôle pédagogique ou montre un exemple sans check.";
+  if (step.teaching && decision.plan && !decision.plan.concepts.some((c) => c.id === step.teaching!.concept))
+    return "La question vise une notion absente du plan courant. Déclare un plan cohérent avant de changer d'objectif, ou reste sur l'objectif enseigné.";
+  const autonomous = ["independent-practice", "transfer-practice", "retrieval-practice"].includes(decision.action);
+  if (autonomous && step.teaching && step.teaching.role !== "independent-practice")
+    return "Le contrôleur demande une tentative autonome : propose une nouvelle tâche sans montrer sa résolution, avec le rôle independent-practice. L'élève pourra demander de l'aide.";
+  if (step.teaching && decision.action === "transfer-practice" && step.teaching.purpose !== "transfer")
+    return "L'activité doit varier le contexte ou la représentation et porter purpose:transfer ; cette déclaration ne certifie pas un transfert.";
+  if (step.teaching && decision.action === "retrieval-practice" && step.teaching.purpose !== "retrieval")
+    return "L'activité doit permettre un rappel sans correction préalable et porter purpose:retrieval.";
+  if (autonomous && decision.action !== "retrieval-practice") {
+    const previous = request.context?.learning?.concepts.find((entry) => entry.id === step.teaching?.concept)?.observations ?? [];
+    if (previous.some((observation) => taskKey(observation.task) === taskKey(step.check!.prompt)
+      || step.teaching?.activityId && observation.activityId === step.teaching.activityId))
+      return "Cette tâche a déjà été présentée. Propose un autre exercice et un nouvel activityId pour observer une tentative autonome distincte.";
+  }
+  return arithmeticCheckViolation(step.check);
+}
+
+/** Couverture déclarée seulement ; aucune notion ni résolution particulière n'est écrite dans le moteur. */
+export function completionViolation(steps: readonly Step[], decision: TeachingDecision, request: TutorRequest, reason?: "completed" | "pause" | "out-of-scope" | "clarification"): string | null {
+  if ((reason === "out-of-scope" || reason === "clarification") && steps.length > 0
+    && steps.every((step) => step.do.length === 0 && !step.teaching)) return null;
+  if (decision.requireCheck)
+    return "La demande appelle un accompagnement : une explication seule ne termine pas la séance. Après l'aide nécessaire, ajoute une tâche courte adaptée avec check, puis attends la réponse de l'élève. Ne déclare pas une compréhension non vérifiée.";
+  if (!decision.target || steps.some((step) => !step.teaching)) return null;
+  if (decision.action === "remediate") {
+    return steps.some((s) => s.teaching?.concept === decision.target!.id && s.teaching.role === "worked-example" && s.teaching.completes) ? null
+      : "La remédiation annoncée doit aboutir à un exemple résolu. Complète le raisonnement manquant avec l'objectif courant, sans poser une nouvelle question.";
+  }
+  if (request.mode !== "question" || decision.action !== "explain-and-model" || decision.policy.scaffolding === "light") return null;
+  // Les prérequis peuvent être expliqués au sein du même exemple. Une annotation
+  // non clôturée pour chacun ne justifie pas une leçon supplémentaire par nœud.
+  const needsExample = decision.toPresent.some((c) => c.id === decision.target!.id);
+  const completedExample = steps.some((s) => s.teaching?.concept === decision.target!.id && s.teaching.role === "worked-example" && s.teaching.completes);
+  return needsExample && !completedExample
+    ? `L'exemple de l'objectif ${decision.target.id} n'est pas déclaré terminé. Complète sa résolution sans répéter les étapes déjà présentées.` : null;
+}
+
+/** Vérification d'une référence de construction, commune à toutes les scènes. */
+export function constructionViolation(step: Step, existing: ReadonlySet<string>): string | null {
+  const ids = new Set(existing);
+  for (const action of step.do) {
+    if (action.type === "clear") ids.clear();
+    if (action.type === "construct" && "within" in action && action.within && !ids.has(action.within))
+      return `La construction vise la figure absente « ${action.within} ». Crée cette figure avant de l'utiliser et explique le lien avec les objets déjà montrés.`;
+    if ("id" in action && typeof action.id === "string") ids.add(action.id);
+  }
+  return null;
+}

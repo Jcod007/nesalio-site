@@ -11,6 +11,7 @@ export class UpstreamError extends Error {
   constructor(
     message: string,
     readonly status?: number,
+    readonly code?: "token_limit",
   ) {
     super(message);
     this.name = "UpstreamError";
@@ -163,7 +164,7 @@ export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerato
     const text = payload.choices?.[0]?.delta?.content;
     if (text) yield text;
     // Réponse coupée par la limite de jetons : à surveiller dans les journaux (le tour finit incomplet).
-    if (payload.choices?.[0]?.finish_reason === "length") throw new UpstreamError("Réponse coupée : limite de jetons atteinte");
+    if (payload.choices?.[0]?.finish_reason === "length") throw new UpstreamError("Réponse coupée : limite de jetons atteinte", undefined, "token_limit");
   }
   if (!completed) throw new UpstreamError("Flux OpenAI interrompu avant le marqueur de fin");
 }

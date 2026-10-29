@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Step, StreamEvent } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
-import { Player, type PlayerSnapshot } from "./player";
+import { matchChoice, Player, type PlayerSnapshot } from "./player";
 import type { Clock, Speaker, TutorSource } from "./ports";
 
 /** Horloge instantanée : le temps avance mais personne n'attend vraiment. */
@@ -79,6 +79,160 @@ async function speakUntil(player: Player, voice: ReturnType<typeof fakeSpeaker>,
 }
 
 describe("Player", () => {
+  it("actualise le bilan après une clarification et ne crée pas de constat avant toute tentative", async () => {
+    const voice = fakeSpeaker();
+    const { source } = scriptedSource((request) => [step("Une explication."), { kind: "end",
+      summary: [request.mode === "question" ? "Premier bilan" : "Bilan actualisé"],
+      noticed: { strengths: [], toWork: ["Une difficulté prétendument observée"] } }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Explique sans quiz.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "done");
+    expect(player.getSnapshot().noticed).toBeNull();
+    player.followUp("Pourquoi ?");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "done");
+    expect(player.getSnapshot().summary).toEqual(["Bilan actualisé"]);
+    player.dispose();
+  });
+
+  it("ne réduit pas une négation ou un raisonnement à un choix contenu dans la phrase", () => {
+    for (const response of ["Je ne pense pas 2", "2 ou 3", "2 parce que je compte aussi 3", "Je ne sais pas, peut-être 2"])
+      expect(matchChoice(response, ["2", "3"])).toBeNull();
+    expect(matchChoice("Je pense 2", ["2", "3"])).toBe(0);
+    expect(matchChoice("b", ["2", "3"])).toBe(1);
+  });
+
+  it("vérifie une réponse numérique libre et conserve sa provenance et son horodatage", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("À toi.", { teaching: { concept: "parts", role: "independent-practice", activityId: "parts-1", purpose: "practice" },
+        check: { prompt: "Un demi plus un quart ?", choices: ["1/2", "2/3", "3/4"], answer: 2,
+          verification: { kind: "arithmetic", expression: "1/2+1/4" } } }), { kind: "await" },
+    ] : [step("Continuons."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock(), observedAt: () => 5000 });
+    player.ask("Teste-moi.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "checking");
+    player.answer(99);
+    expect(player.getSnapshot().status).toBe("checking");
+    expect(requests).toHaveLength(1);
+    player.answerText("0,75");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.answer).toMatchObject({ correct: true, picked: "0,75", method: "arithmetic", support: "independent", activityId: "parts-1" });
+    expect(requests[1]?.context?.learning?.concepts[0]?.observations[0]).toMatchObject({
+      outcome: "correct", format: "free", method: "arithmetic", at: 5000,
+    });
+    player.dispose();
+  });
+
+  it("une clarification pendant un exercice autonome transforme sa réussite en observation assistée", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("À toi.", { teaching: { concept: "idee", role: "independent-practice" },
+        check: { prompt: "Quel choix ?", choices: ["A", "B"], answer: 0 } }), { kind: "await" },
+    ] : [step("Voici une aide."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Teste-moi.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "checking");
+    player.followUp("Aide-moi à choisir.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "checking" && requests.length === 2);
+    player.answer(0);
+    await until(player, () => requests.length === 3);
+    expect(requests[2]?.answer).toMatchObject({ correct: true, support: "guided" });
+    expect(requests[2]?.context?.learning?.concepts[0]?.observations[0]?.support).toBe("guided");
+    player.dispose();
+  });
+
+  it("garde les besoins d'aide sans leur attribuer arbitrairement une notion", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource(() => [{ kind: "source", source: "model" }, step("Je montre."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Explique une notion nouvelle.");
+    await speakUntil(player, voice, (s) => s.status === "done");
+    for (let i = 0; i < 2; i++) {
+      player.followUp("Je ne comprends toujours pas.");
+      await until(player, () => requests.length === i + 2);
+      expect(requests[i + 1]?.context?.learning?.recent).toHaveLength(i + 1);
+      expect(requests[i + 1]?.context?.learning?.concepts).toEqual([]);
+      await speakUntil(player, voice, (s) => s.status === "done");
+    }
+    player.dispose();
+  });
+  it("transmet le plan construit pour la séance sans catalogue de notions", async () => {
+    const voice = fakeSpeaker();
+    const plan = { goal: "Comprendre une idée", target: "idee", concepts: [{ id: "idee", label: "Idée demandée", prerequisites: [] }] };
+    const { source, requests } = scriptedSource((request) => request.mode === "question" && request.question === "Explique cette idée." ? [
+      { kind: "source", source: "model" }, { kind: "plan", plan }, step("Voici la figure."), { kind: "end", summary: [] },
+    ] : [{ kind: "source", source: "model" }, step("Je réponds à ta question."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Explique cette idée.");
+    await speakUntil(player, voice, (s) => s.status === "done");
+    expect(player.getSnapshot().source).toBe("model");
+    player.followUp("Pourquoi ?");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.context?.plan).toEqual(plan);
+    await speakUntil(player, voice, (s) => s.status === "done");
+    player.followUp("Encore une question.");
+    await until(player, () => requests.length === 3);
+    expect(requests[2]?.context?.plan).toEqual(plan);
+    await speakUntil(player, voice, (s) => s.status === "done");
+    player.ask("Autre demande.");
+    await speakUntil(player, voice, (s) => s.status === "done");
+    player.followUp("Pourquoi ?");
+    await until(player, () => requests.length === 5);
+    expect(requests[4]?.context?.plan).toBeUndefined();
+    expect(requests[4]?.context?.learning?.concepts).toEqual([]);
+    player.dispose();
+  });
+  it("ne compte ni une étape seulement reçue ni une phrase interrompue comme présentée", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("Une fraction compte des parts.", { teaching: { concept: "fractions.parts", role: "explanation", completes: true } }),
+      step("Je partage en quatre et prends trois parts.", { teaching: { concept: "fractions.parts", role: "worked-example", completes: true } }),
+      { kind: "end", summary: [] },
+    ] : [step("Je reformule."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Fraction ?");
+    await until(player, (s) => s.caption?.text === "Une fraction compte des parts.");
+    player.interrupt();
+    player.followUp("Je ne comprends pas.");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.context?.learning?.concepts).toEqual([]);
+    player.dispose();
+  });
+
+  it("transmet une présentation terminée et une réponse QCM comme deux observations distinctes", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("Trois quarts : trois parts prises parmi quatre parts égales.", { teaching: { concept: "fractions.parts", role: "worked-example", completes: true } }),
+      step("À toi.", { teaching: { concept: "fractions.parts", role: "guided-practice" }, check: { prompt: "Le 4 indique quoi ?", choices: ["Le partage", "Les parts prises"], answer: 0 } }),
+      { kind: "await" },
+    ] : [step("Continuons."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Teste-moi sur les fractions.");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answer(0);
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.context?.learning?.concepts[0]).toMatchObject({ id: "fractions.parts", presented: ["explanation", "worked-example"], observations: [{ task: "Le 4 indique quoi ?", outcome: "correct", format: "choice", support: "guided", method: "answer-key" }] });
+    expect(requests[1]?.context?.learning?.concepts[0]?.observations[0]?.at).toEqual(expect.any(Number));
+    expect(requests[1]?.answer?.concept).toBe("fractions.parts");
+    player.dispose();
+  });
+
+  it("ne note pas une demande d'aide libre comme une mauvaise réponse", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("À toi.", { teaching: { concept: "thales.ratios", role: "guided-practice" }, check: { prompt: "Quel rapport ?", choices: ["1/3", "3"], answer: 0 } }),
+      { kind: "await" },
+    ] : [step("Je montre un exemple."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Teste-moi sur Thalès.");
+    await speakUntil(player, voice, (s) => s.status === "checking");
+    player.answerText("Je ne sais pas. Montre-moi d'abord.");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.answer?.correct).toBeNull();
+    expect(requests[1]?.context?.learning?.concepts[0]?.observations[0]).toMatchObject({ outcome: "help-requested", format: "free" });
+    player.dispose();
+  });
+
   it("joue les étapes dans l'ordre, dessine, puis termine avec le résumé", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [
@@ -264,7 +418,7 @@ describe("Player", () => {
     await until(player, () => requests.length === 2);
     const next = requests[1]!;
     expect(next.mode).toBe("continue");
-    expect(next.answer).toEqual({ prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false });
+    expect(next.answer).toEqual({ prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false, method: "answer-key" });
     expect(next.context?.spoken).toContain("Combien ?");
     expect(next.context?.answered).toBe(1);
 
@@ -300,7 +454,7 @@ describe("Player", () => {
     player.answer(1);
     await until(player, () => requests.length === 3);
     const third = requests[2]!.context!;
-    expect(third.answers).toEqual([{ prompt: "Combien ?", picked: "0", correct: false, misconception: "confond sommet et zéro" }]);
+    expect(third.answers).toEqual([{ prompt: "Combien ?", picked: "0", correct: false, misconception: "confond sommet et zéro", method: "answer-key" }]);
     expect(third.review?.some((r) => r.includes("sans le montrer"))).toBe(true);
     expect(requests[2]!.answer?.misconception).toBe("croit que tout s'additionne");
   });
