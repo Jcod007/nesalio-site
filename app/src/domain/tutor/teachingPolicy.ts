@@ -3,7 +3,7 @@ import type { TutorRequest } from "./request";
 export interface TeachingPolicy {
   intent: "explanation" | "practice" | "remediation";
   scaffolding: "high" | "standard" | "light";
-  questions: "defer" | "optional" | "requested";
+  questions: "defer" | "optional" | "requested" | "required";
   reason: string;
 }
 
@@ -21,9 +21,16 @@ function declinesQuestions(text: string): boolean {
     || /\bje ne veux pas que tu me poses? (?:des|de) questions?\b/.test(text);
 }
 
+/** Une fin demandée n'est jamais une obligation de continuer à s'entraîner. */
+export function isSessionClosing(text: string): boolean {
+  const value = normalize(text).replace(/[.!?,;]+/g, " ").replace(/\s+/g, " ").trim();
+  return /^(?:merci(?: beaucoup)?|au revoir|a bientot|stop|arrete(?: la seance)?|on arrete(?: la)?|c'est tout|ca suffit|je veux arreter|c'est bon(?: merci)?|merci (?:on arrete|c'est tout))$/.test(value);
+}
+
 function requestsWorkedExample(text: string): boolean {
   return /\bexercices? (?:deja |entierement )?(?:corrige|resolu|explique)s?\b/.test(text)
-    || /\bexemples? (?:deja |entierement )?(?:travaille|corrige|resolu|commente)s?\b/.test(text);
+    || /\bexemples? (?:deja |entierement )?(?:travaille|corrige|resolu|commente)s?\b/.test(text)
+    || /\b(?:explique|montre|donne)(?:-moi)? (?:la|une) correction\b/.test(text);
 }
 
 /** Only explicit requests count; a worked example is teaching, not a quiz. */
@@ -84,7 +91,8 @@ export function resolveTeachingPolicy(request: TutorRequest): TeachingPolicy {
   const original = normalize(request.context?.originalQuestion ?? (request.mode === "question" ? request.question : ""));
   const practiceRequested = requestsPractice(current);
   const workedExample = requestsWorkedExample(current) && !practiceRequested;
-  const noQuestions = declinesQuestions(current) || (declinesQuestions(original) && !practiceRequested);
+  const noPractice = /\b(?:sans|pas d'|pas de |ne veux pas d')exercices?\b/.test(current);
+  const noQuestions = declinesQuestions(current) || noPractice || (declinesQuestions(original) && !practiceRequested);
   const unsure = request.mode === "continue" && declaresNovice(current);
   const incorrect = request.mode === "continue" && request.answer?.correct === false;
   const remediation = unsure || incorrect;
@@ -93,13 +101,14 @@ export function resolveTeachingPolicy(request: TutorRequest): TeachingPolicy {
   const scaffolding: TeachingPolicy["scaffolding"] = remediation || declaresNovice(current) || declaresNovice(original)
     ? "high" : declaresExperience(current) || declaresExperience(original) ? "light" : "standard";
 
+  if (isSessionClosing(current)) return { intent: "explanation", scaffolding, questions: "defer", reason: "L'élève demande une pause ou termine l'échange : respecter son choix et conclure sans exercice supplémentaire." };
   if (noQuestions) return { intent, scaffolding, questions: "defer", reason: "L'élève demande une explication sans quiz ; respecter cette préférence avant de le solliciter." };
-  if (unsure) return { intent, scaffolding, questions: "defer", reason: "L'élève ne sait pas répondre : enseigner et montrer un exemple avant toute nouvelle vérification." };
+  if (unsure) return { intent, scaffolding, questions: "required", reason: "L'élève ne sait pas répondre : donner une aide concrète puis une étape plus simple à essayer ensemble ; ne pas conclure sans recueillir sa réponse." };
   if (practiceRequested) return { intent, scaffolding, questions: "requested", reason: "L'élève demande explicitement de s'entraîner ou d'être interrogé." };
   if (workedExample) return { intent, scaffolding, questions: "defer", reason: "L'élève demande un exemple travaillé : démontrer la résolution avant de lui proposer d'essayer." };
-  if (incorrect) return { intent, scaffolding, questions: "optional", reason: "Réexpliquer l'erreur avec un exemple guidé ; une nouvelle question n'est pas obligatoire." };
-  if (request.mode === "continue") return { intent, scaffolding, questions: "optional", reason: "Poursuivre à partir de la réponse sans imposer une question à chaque bloc ni déduire une maîtrise générale." };
-  return { intent, scaffolding, questions: "defer", reason: request.mode === "followUp"
-    ? "Répondre à la demande de clarification avant de revenir à une vérification."
-    : "Commencer par une explication et un exemple ; ne pas exiger une prédiction avant l'enseignement." };
+  if (incorrect) return { intent, scaffolding, questions: "required", reason: "Réexpliquer l'erreur avec une aide adaptée, puis faire essayer une nouvelle étape pour vérifier l'effet de l'aide." };
+  if (request.mode === "continue") return { intent, scaffolding, questions: "required", reason: "Réagir à la réponse et poursuivre l'accompagnement ; une réponse isolée ne justifie pas de clore la séance." };
+  return { intent, scaffolding, questions: "required", reason: request.mode === "followUp"
+    ? "Lever le blocage puis faire essayer une étape accessible pour vérifier ce qui a été compris."
+    : "Expliquer et montrer ce qui est nécessaire, puis proposer une première activité accessible ; le tutorat inclut la réponse de l'élève." };
 }

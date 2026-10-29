@@ -106,6 +106,8 @@ export type Noticed = z.infer<typeof Noticed>;
 
 export const EndEvent = z.object({
   kind: z.literal("end"),
+  /** Fin d'un bloc ; un refus ou une clarification ne certifie jamais un apprentissage. */
+  reason: z.enum(["completed", "pause", "out-of-scope", "clarification"]).optional(),
   summary: z.array(z.string().trim().min(1).max(120)).max(5).default([]),
   noticed: Noticed.optional(),
 });

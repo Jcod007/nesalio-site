@@ -8,6 +8,7 @@ import { MicButton } from "./MicButton";
 import { Nesa } from "./Nesa";
 import { QuestionInput } from "./QuestionInput";
 import { nesaStateFor } from "./theme";
+import { plainText } from "@/domain/board/tex";
 import styles from "./Dock.module.css";
 
 export interface DockActions {
@@ -56,14 +57,14 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
           <div className={styles.text}>
             {status === "thinking" && !caption ? (
               <p className={styles.caption}>
-                {snapshot.answeringFollowUp ? "Bonne question, je regarde ça" : "Je prépare ton explication"}
+                {snapshot.answeringFollowUp ? "Je regarde ta réponse pour t'aider" : "Je prépare la séance"}
                 <span className={styles.dots} aria-hidden="true" />
               </p>
             ) : status === "error" ? (
               <p className={styles.caption}>{snapshot.error}</p>
             ) : status === "done" ? (
               <p className={styles.caption}>
-                {snapshot.summary.length > 0 ? "Bien travaillé ! Voici ce qu'il faut retenir." : "Tu as une autre question ? Je suis là."}
+                {snapshot.summary.length > 0 ? "Voici le point sur notre échange. On peut continuer ensemble." : "On peut poursuivre. Dis-moi ce qui bloque ou ce que tu veux essayer."}
               </p>
             ) : status === "paused" ? (
               <p className={styles.caption}>
@@ -104,10 +105,10 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
 
         {status === "done" && snapshot.summary.length > 0 ? (
           <div className={styles.summary}>
-            <h3>Séance terminée</h3>
+            <h3>Point d&apos;étape</h3>
             <ul>
               {snapshot.summary.map((line) => (
-                <li key={line}>{line}</li>
+                <li key={line}>{plainText(line)}</li>
               ))}
             </ul>
             {snapshot.noticed ? (
@@ -116,14 +117,14 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
                 {snapshot.noticed.strengths.length > 0 ? (
                   <ul className={styles.strengths} aria-label="Tes forces">
                     {snapshot.noticed.strengths.map((line) => (
-                      <li key={line}>{line}</li>
+                      <li key={line}>{plainText(line)}</li>
                     ))}
                   </ul>
                 ) : null}
                 {snapshot.noticed.toWork.length > 0 ? (
                   <ul className={styles.toWork} aria-label="À travailler">
                     {snapshot.noticed.toWork.map((line) => (
-                      <li key={line}>{line}</li>
+                      <li key={line}>{plainText(line)}</li>
                     ))}
                   </ul>
                 ) : null}
@@ -145,7 +146,7 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
               <button type="button" className="btn-line" onClick={actions.interrupt}>
                 <PauseIcon /> Je comprends pas
               </button>
-              <button type="button" className="btn-line" onClick={() => actions.answerText("Je ne sais pas encore. Montre-moi d'abord un exemple résolu, sans me poser une autre question.")}>
+              <button type="button" className="btn-line" onClick={() => actions.answerText("Je ne sais pas encore. Montre-moi d'abord une étape, puis aide-moi à essayer une étape plus simple.")}>
                 Montre-moi d&apos;abord
               </button>
             </>
@@ -188,8 +189,8 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
                 submitLabel="Demander"
               />
               {snapshot.source === "model" ? (
-                <button type="button" className="btn-line" onClick={() => actions.followUp("Maintenant, propose-moi un exercice guidé sur cette notion et laisse-moi essayer une étape.")}>
-                  Essayer un exercice guidé
+                <button type="button" className="btn-line" onClick={() => actions.followUp("Continuons : propose-moi une activité adaptée à ce que j'ai déjà essayé et accompagne-moi.")}>
+                  Continuer avec Nesa
                 </button>
               ) : null}
               <button type="button" className="btn-line" onClick={actions.newTopic}>

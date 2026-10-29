@@ -26,6 +26,36 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
+  it("fait poursuivre un exemple par une tentative au lieu d'accepter une fin sans échange", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => fakeCompletion((calls++ === 0 ? [
+      { kind: "step", say: "Deux exposant trois signifie trois facteurs égaux à deux.", do: [] },
+      { kind: "step", say: "Deux fois deux fois deux donne huit.", do: [] },
+      { kind: "end", summary: ["Un exposant compte les facteurs"] },
+    ] : [{ kind: "step", say: "À toi avec une autre base.", check: { prompt: "Que vaut 3² ?", choices: ["6", "9"], answer: 1 } }]
+    ).map((event) => JSON.stringify(event)).join("\n"))(options);
+    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi un exposant ?" }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.some((event) => event.kind === "end")).toBe(false);
+    expect(events.at(-1)?.kind).toBe("await");
+  });
+
+  it("ne déclare pas une difficulté personnelle avant une tentative", async () => {
+    const text = [
+      { kind: "step", say: "Voici un exemple expliqué." },
+      { kind: "end", summary: ["Le principe"], noticed: { strengths: ["Tu sais calculer"], toWork: ["Tu confonds les signes"] } },
+    ].map((event) => JSON.stringify(event)).join("\n");
+    const events = await collect(tutorEvents({ mode: "question", question: "Montre un exemple résolu sans quiz." }, { ...base, completion: fakeCompletion(text) }));
+    expect(events.at(-1)).toMatchObject({ kind: "end" });
+    expect(events.at(-1)).not.toHaveProperty("noticed");
+  });
+
+  it("permet un refus hors domaine explicite sans imposer un exercice", async () => {
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique la mitose." }, { ...base,
+      completion: fakeCompletion('{"kind":"step","say":"Je peux t’aider en maths, physique ou chimie."}\n{"kind":"end","reason":"out-of-scope","summary":[]}') }));
+    expect(events.at(-1)).toMatchObject({ kind: "end", reason: "out-of-scope" });
+  });
+
   it("refuse un QCM arithmétiquement faux avant de transmettre sa phrase et accepte une réparation", async () => {
     let calls = 0;
     const completion: CompletionStream = (options) => {
@@ -43,7 +73,7 @@ describe("tutorEvents", () => {
   it("utilise le même pipeline génératif quelle que soit la notion demandée", async () => {
     let calls = 0;
     const completion: CompletionStream = async function* () { calls++; yield '{"kind":"step","say":"Je construis une explication adaptée."}\n{"kind":"end","summary":[]}'; };
-    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi le théorème de Thalès ?" }, { ...base, completion }));
+    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi le théorème de Thalès ? Sans quiz." }, { ...base, completion }));
     expect(calls).toBe(1);
     expect(events[0]).toEqual({ kind: "source", source: "model" });
     expect(events.at(-1)?.kind).toBe("end");
@@ -74,7 +104,7 @@ describe("tutorEvents", () => {
       if (efforts.length === 1) throw new UpstreamError("limite", undefined, "token_limit");
       yield '{"kind":"step","say":"Voici un exemple résolu."}\n{"kind":"end","summary":[]}';
     };
-    const events = await collect(tutorEvents({ mode: "question", question: "Explique le double." }, { provider: { ...base.provider, firstTurnEffort: "low" }, completion }));
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique le double sans quiz." }, { provider: { ...base.provider, firstTurnEffort: "low" }, completion }));
     expect(efforts).toEqual(["low", "none"]);
     expect(events.at(-1)?.kind).toBe("end");
   });
@@ -107,7 +137,7 @@ describe("tutorEvents", () => {
       }
       return fakeCompletion(text)(options);
     };
-    const events = await collect(tutorEvents({ mode: "question", question: "Explique le double." }, { ...base, completion }));
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique le double sans quiz." }, { ...base, completion }));
     expect(calls).toBe(2);
     expect(events.filter((e) => e.kind === "step").map((e) => e.say)).toEqual(["Une entrée donne une sortie.", "Par exemple, doubler 3 donne 3 fois 2, donc 6."]);
     expect(events.some((e) => e.kind === "await" || (e.kind === "step" && e.check))).toBe(false);
@@ -140,7 +170,7 @@ describe("tutorEvents", () => {
 
   it("laisse finir un exemple après douze petites étapes au lieu de le couper avant son résultat", async () => {
     const text = Array.from({ length: 13 }, (_, i) => JSON.stringify({ kind: "step", say: `Étape ${i + 1}.` })).join("\n") + '\n{"kind":"end","summary":["Résultat"]}';
-    const events = await collect(tutorEvents({ mode: "question", question: "Explique un calcul." }, { ...base, completion: fakeCompletion(text) }));
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique un calcul sans quiz." }, { ...base, completion: fakeCompletion(text) }));
     expect(events.filter((e) => e.kind === "step")).toHaveLength(13);
     expect(events.at(-1)).toMatchObject({ kind: "end", summary: ["Résultat"] });
   });
@@ -158,7 +188,7 @@ describe("tutorEvents", () => {
       ];
       return fakeCompletion(events.map((e) => JSON.stringify(e)).join("\n"))(options);
     };
-    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi une fraction ?" }, { ...base, completion }));
+    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi une fraction ? Sans quiz." }, { ...base, completion }));
     expect(calls).toBe(2);
     expect(events.filter((e) => e.kind === "end")).toHaveLength(1);
     expect(events.filter((e) => e.kind === "step")).toHaveLength(2);
@@ -180,7 +210,7 @@ describe("tutorEvents", () => {
   it("ajoute un titre et une fin quand le modèle les oublie", async () => {
     const text = '{"kind":"step","say":"Première idée."}\n{"kind":"step","say":"Deuxième idée."}';
     const events = await collect(
-      tutorEvents({ mode: "question", question: "Pourquoi le ciel est bleu ?" }, { ...base, completion: fakeCompletion(text) }),
+      tutorEvents({ mode: "question", question: "Pourquoi le ciel est bleu ? Sans quiz." }, { ...base, completion: fakeCompletion(text) }),
     );
     expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "step", "end"]);
   });
@@ -199,7 +229,7 @@ describe("tutorEvents", () => {
     const text = '{"kind":"lesson","title":"x"}\n{"kind":"step","say":"Je reformule."}\n{"kind":"end","summary":[]}';
     const events = await collect(
       tutorEvents(
-        { mode: "followUp", question: "hein ?", context: { spoken: [], board: [] } },
+        { mode: "followUp", question: "Explique sans quiz.", context: { spoken: [], board: [] } },
         { ...base, completion: fakeCompletion(text) },
       ),
     );
@@ -240,7 +270,7 @@ describe("tutorEvents", () => {
         {
           mode: "continue",
           question: "zéros ?",
-          context: { spoken: ["Combien ?"], board: [] },
+          context: { spoken: ["Combien ?"], board: [], originalQuestion: "Explique sans quiz." },
           answer: { prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false },
         },
         { ...base, completion },
@@ -273,7 +303,7 @@ describe("tutorEvents", () => {
       calls++;
       return fakeCompletion(calls === 1 ? "Je réfléchis encore…" : '{"kind":"step","say":"Voici.","do":[]}\n{"kind":"end","summary":[]}')(options);
     };
-    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion }));
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique sans quiz." }, { ...base, completion }));
     expect(calls).toBe(2);
     expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "end"]);
   });

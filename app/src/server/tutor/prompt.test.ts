@@ -7,7 +7,7 @@ import { buildMessages, buildSystemPrompt } from "./prompt";
 describe("consigne du modèle", () => {
   it("explique d'abord pour un débutant et n'impose pas un quota de questions", () => {
     const system = buildMessages({ mode: "question", question: "Je débute complètement. Explique-moi une dérivée depuis zéro." })[0]!.content;
-    expect(system).toContain('aucun "check", aucune réponse exigée');
+    expect(system).toContain("BOUCLE DE TUTORAT");
     expect(system).toContain("Aide forte");
     expect(system).toContain("exemple entièrement résolu");
     expect(system).not.toContain("après 4 réponses");
@@ -20,10 +20,10 @@ describe("consigne du modèle", () => {
     const remedial = buildMessages({ mode: "continue", question: "Explique-moi Thalès.", context,
       answer: { prompt: "Quel rapport ?", choices: ["a", "b"], picked: "Je ne sais pas", correct: null },
     })[0]!.content;
-    expect(remedial).toContain('aucun "check", aucune réponse exigée');
-    expect(remedial).toContain("besoin d'enseignement");
+    expect(remedial).toContain("BOUCLE DE TUTORAT");
+    expect(remedial).toContain("étape plus simple");
     const practice = buildMessages({ mode: "followUp", question: "Propose-moi un exercice guidé.", context })[0]!.content;
-    expect(practice).toContain("L’élève demande à pratiquer");
+    expect(practice).toContain("BOUCLE DE TUTORAT");
   });
 
   it("relie les représentations et vérifie les choix plutôt que demander un dessin décoratif", () => {

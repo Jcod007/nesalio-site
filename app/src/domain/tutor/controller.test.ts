@@ -8,13 +8,25 @@ const plan = { goal: "Comprendre une idée", target: "nouveau", concepts: [
   { id: "base", label: "Prérequis", prerequisites: [] },
   { id: "nouveau", label: "Idée demandée", prerequisites: ["base"] },
 ] };
-const request: TutorRequest = { mode: "question", question: "Explique cette idée depuis zéro.", context: { spoken: [], board: [], plan } };
+const request: TutorRequest = { mode: "question", question: "Explique cette idée depuis zéro, sans quiz.", context: { spoken: [], board: [], plan } };
 const step = (concept: string, role: "explanation" | "worked-example", completes = true): Step =>
   ({ say: "Une étape expliquée.", do: [], teaching: { concept, role, completes } });
 const check: Step = { say: "À toi.", do: [], teaching: { concept: "nouveau", role: "guided-practice" },
   check: { prompt: "Quelle réponse ?", choices: ["A", "B"], answer: 0 } };
 
 describe("contrôleur pédagogique générique", () => {
+  it("requiert une participation après une explication et après une erreur, même sans annotations", () => {
+    const tutoring: TutorRequest = { ...request, question: "C'est quoi un exposant ?" };
+    const decision = decideTeaching(tutoring);
+    expect(decision.requireCheck).toBe(true);
+    expect(completionViolation([{ say: "Une définition.", do: [] }], decision, tutoring)).toBeTruthy();
+    expect(checkViolation(check, decision, tutoring)).toBeTruthy();
+    expect(checkViolation(check, decision, tutoring, [{ say: "Voici une explication.", do: [] }])).toBeNull();
+    const wrong: TutorRequest = { ...tutoring, mode: "continue", answer: { prompt: "?", choices: ["A", "B"], picked: "B", correct: false } };
+    expect(decideTeaching(wrong).requireCheck).toBe(true);
+    expect(decideTeaching({ ...tutoring, question: "Merci, on arrête." }).requireCheck).toBe(false);
+  });
+
   it("fait évoluer le guidage sur des tâches distinctes sans imposer l'autonomie ni un quiz", () => {
     let learning = emptyLearning();
     for (const task of ["Premier item", "Deuxième item"]) learning = recordObservation(learning, "nouveau", {
@@ -53,7 +65,7 @@ describe("contrôleur pédagogique générique", () => {
     expect(decision.sequence).toEqual([]);
     expect(decision.strategy).toBe("worked-example");
     expect(checkViolation(check, decision, request)).toBeTruthy();
-    expect(completionViolation([step("inconnu", "explanation")], decision, request)).toBeNull();
+    expect(completionViolation([step("inconnu", "explanation")], decision, request)).toBeTruthy();
   });
 
   it.each(["bascule-D", "principe-inédit", "grammaire", "énergie"])("applique les mêmes décisions à un identifiant arbitraire %s", (id) => {
@@ -91,9 +103,10 @@ describe("contrôleur pédagogique générique", () => {
     learning = recordObservation(learning, "nouveau", { task: "Aide", outcome: "help-requested", format: "free", support: "guided" });
     const decision = decideTeaching(followUp());
     expect(decision.strategy).toBe("alternate-representation");
-    expect(decision.allowCheck).toBe(false);
+    expect(decision.allowCheck).toBe(true);
+    expect(decision.requireCheck).toBe(true);
     expect(completionViolation([step("nouveau", "explanation")], decision, followUp())).toBeTruthy();
-    expect(completionViolation([step("nouveau", "worked-example")], decision, followUp())).toBeNull();
+    expect(completionViolation([step("nouveau", "worked-example")], decision, followUp())).toContain("accompagnement");
     learning = recordObservation(learning, "nouveau", { task: "Réponse", outcome: "correct", format: "free", support: "independent" });
     expect(decideTeaching(followUp()).difficultyStreak).toBe(0);
   });

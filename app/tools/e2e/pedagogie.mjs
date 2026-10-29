@@ -46,12 +46,12 @@ try {
     await page.goto(process.env.NESALIO_URL ?? "http://localhost:3101", { waitUntil: "networkidle" });
     await page.locator("form[data-size=large] input").fill("Explique les fractions.");
     await page.locator("form[data-size=large] input").press("Enter");
-    await page.getByRole("button", { name: "Essayer un exercice guidé", exact: true }).click({ timeout: 45_000 });
+    await page.getByRole("button", { name: "Continuer avec Nesa", exact: true }).click({ timeout: 45_000 });
     assert.equal(requests[1]?.mode, "followUp");
     assert.equal(requests[1]?.context?.plan?.target, "fractions.parts");
     assert.deepEqual(requests[1]?.context?.learning?.concepts[0]?.presented, ["explanation", "worked-example"]);
     await page.getByRole("button", { name: "Montre-moi d'abord", exact: true }).click({ timeout: 30_000 });
-    await page.getByRole("button", { name: "Essayer un exercice guidé", exact: true }).waitFor({ timeout: 45_000 });
+    await page.getByRole("button", { name: "Continuer avec Nesa", exact: true }).waitFor({ timeout: 45_000 });
     assert.equal(requests[2]?.mode, "continue");
     assert.equal(requests[2]?.answer?.correct, null);
     assert.equal(requests[2]?.answer?.concept, "fractions.parts");
@@ -66,7 +66,7 @@ try {
     const answer = page.getByPlaceholder("Ou réponds avec tes mots…");
     await answer.fill("3+3", { timeout: 45_000 });
     await answer.press("Enter");
-    await page.getByRole("button", { name: "Essayer un exercice guidé", exact: true }).waitFor({ timeout: 45_000 });
+    await page.getByRole("button", { name: "Continuer avec Nesa", exact: true }).waitFor({ timeout: 45_000 });
     const continuation = requests.at(-1);
     assert.equal(continuation?.mode, "continue");
     assert.equal(continuation?.answer?.correct, true);

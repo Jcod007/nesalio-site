@@ -31,7 +31,7 @@ export const TutorContextSchema = z.object({
   /** Vrai si l'élève a coupé Nesa au milieu d'une phrase. */
   interrupted: z.boolean().optional(),
   /** Nombre de questions auxquelles l'élève a déjà répondu dans la séance (pour doser sa longueur). */
-  answered: z.number().int().min(0).max(50).optional(),
+  answered: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
   /** Objectifs de la séance, fixés par Nesa au premier tour : ils gardent le cap d'un tour à l'autre. */
   goals: z.array(z.string().max(120)).max(4).optional(),
   /** Réponses précédentes de l'élève dans la séance (la plus récente en dernier). */

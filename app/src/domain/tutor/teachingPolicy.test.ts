@@ -13,13 +13,13 @@ const continuation = (picked: string, correct: boolean | null = null, originalQu
 
 describe("politique pédagogique", () => {
   it.each(["Je ne sais toujours pas.", "Je ne comprends toujours pas.", "Je ne sais vraiment pas."])("réexplique après un besoin d'aide répété : %s", (text) => {
-    expect(resolveTeachingPolicy(continuation(text))).toMatchObject({ intent: "remediation", questions: "defer" });
+    expect(resolveTeachingPolicy(continuation(text))).toMatchObject({ intent: "remediation", questions: "required" });
   });
   it("traite une déclaration de débutant dans une réponse comme un besoin d'explication", () => {
-    expect(resolveTeachingPolicy(continuation("Je ne connais rien à ce concept."))).toMatchObject({ intent: "remediation", scaffolding: "high", questions: "defer" });
+    expect(resolveTeachingPolicy(continuation("Je ne connais rien à ce concept."))).toMatchObject({ intent: "remediation", scaffolding: "high", questions: "required" });
   });
   it("enseigne d'abord quand le niveau est inconnu", () => {
-    expect(resolveTeachingPolicy(question("C'est quoi une dérivée ?"))).toMatchObject({ intent: "explanation", scaffolding: "standard", questions: "defer" });
+    expect(resolveTeachingPolicy(question("C'est quoi une dérivée ?"))).toMatchObject({ intent: "explanation", scaffolding: "standard", questions: "required" });
   });
 
   it.each([
@@ -31,11 +31,11 @@ describe("politique pédagogique", () => {
     "Je n'y connais rien en physique.",
     "Je ne maîtrise pas les bases.",
   ])("étaye un débutant déclaré : %s", (text) => {
-    expect(resolveTeachingPolicy(question(text))).toMatchObject({ intent: "explanation", scaffolding: "high", questions: "defer" });
+    expect(resolveTeachingPolicy(question(text))).toMatchObject({ intent: "explanation", scaffolding: "high", questions: "required" });
   });
 
   it.each(["Je maîtrise déjà les bases, explique la suite.", "Je suis expert en électronique.", "J'ai un niveau avancé."])("allège seulement sur déclaration explicite : %s", (text) => {
-    expect(resolveTeachingPolicy(question(text))).toMatchObject({ scaffolding: "light", questions: "defer" });
+    expect(resolveTeachingPolicy(question(text))).toMatchObject({ scaffolding: "light", questions: "required" });
   });
 
   it("ne confond pas une expérience niée avec une maîtrise", () => {
@@ -122,20 +122,28 @@ describe("politique pédagogique", () => {
       .toMatchObject({ questions: "defer" });
   });
 
-  it.each(["Je ne sais pas.", "Aucune idée.", "J'ai pas compris.", "Je comprends pas."])("réenseigne sans interrogation supplémentaire : %s", (text) => {
-    expect(resolveTeachingPolicy(continuation(text))).toMatchObject({ intent: "remediation", scaffolding: "high", questions: "defer" });
+  it.each(["Je ne sais pas.", "Aucune idée.", "J'ai pas compris.", "Je comprends pas."])("réenseigne puis fait essayer une étape plus accessible : %s", (text) => {
+    expect(resolveTeachingPolicy(continuation(text))).toMatchObject({ intent: "remediation", scaffolding: "high", questions: "required" });
   });
 
-  it("une réponse fausse appelle une remédiation et une question facultative", () => {
-    expect(resolveTeachingPolicy(continuation("Une hauteur", false))).toMatchObject({ intent: "remediation", scaffolding: "high", questions: "optional" });
+  it("une réponse fausse appelle une remédiation suivie d'une nouvelle tentative", () => {
+    expect(resolveTeachingPolicy(continuation("Une hauteur", false))).toMatchObject({ intent: "remediation", scaffolding: "high", questions: "required" });
   });
 
   it("une bonne réponse isolée ne prouve pas la maîtrise du concept", () => {
-    expect(resolveTeachingPolicy(continuation("Une variation", true))).toMatchObject({ intent: "practice", scaffolding: "standard", questions: "optional" });
+    expect(resolveTeachingPolicy(continuation("Une variation", true))).toMatchObject({ intent: "practice", scaffolding: "standard", questions: "required" });
   });
 
-  it("répond à une clarification sans ajouter automatiquement une question", () => {
-    expect(resolveTeachingPolicy(followUp("Pourquoi on divise par deux ?"))).toMatchObject({ intent: "explanation", questions: "defer" });
+  it("répond à une clarification puis vérifie son effet", () => {
+    expect(resolveTeachingPolicy(followUp("Pourquoi on divise par deux ?"))).toMatchObject({ intent: "explanation", questions: "required" });
+  });
+
+  it.each(["Merci.", "Au revoir", "On arrête là.", "C'est bon, merci", "Je veux arrêter"])("respecte une fin demandée : %s", (text) => {
+    expect(resolveTeachingPolicy(followUp(text)).questions).toBe("defer");
+  });
+
+  it("ne confond pas une formule polie suivie d'un blocage avec une fin", () => {
+    expect(resolveTeachingPolicy(followUp("Merci, mais je ne comprends toujours pas.")).questions).toBe("required");
   });
 
   it("fournit une justification exploitable sans inventer de score de maîtrise", () => {

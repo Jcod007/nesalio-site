@@ -111,7 +111,7 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
         decision = decideTeaching({ ...request, context: { spoken: [], board: [], ...request.context, plan: event.plan } }, now);
       }
       if (event.kind === "step") {
-        violation = checkViolation(event, decision, request) ?? constructionViolation(event, knownIds);
+        violation = checkViolation(event, decision, request, accepted.filter((acceptedEvent) => acceptedEvent.kind === "step")) ?? constructionViolation(event, knownIds);
         if (violation) break; // La phrase interrogative et son dessin ne sont jamais transmis.
         if (steps >= MAX_STEPS) {
           yield { kind: "error", code: "upstream", message: "L’explication est trop longue pour ce tour. Tu peux demander la suite." };
@@ -126,8 +126,10 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
       if (event.kind === "end") {
         if (decision.target && accepted.some((e) => e.kind === "step" && !e.teaching))
           config.log?.("tutor: couverture pédagogique non vérifiable, annotations absentes");
-        violation = completionViolation(accepted.filter((e) => e.kind === "step"), decision, request);
+        violation = completionViolation(accepted.filter((e) => e.kind === "step"), decision, request, event.reason);
         if (violation) break;
+        // Une mise en garde générale n'est pas une difficulté observée chez cet élève.
+        if (!request.answer && !request.context?.answers?.length) delete event.noticed;
       }
       accepted.push(event);
       if (event.kind === "end" || event.kind === "await" || event.kind === "error") completed = true;
@@ -140,7 +142,7 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     config.log?.("tutor: sortie refusée par le contrôleur", { action: decision.action, attempt, reason: violation.slice(0, 240) });
     repair = [
       ...(accepted.length ? [{ role: "assistant" as const, content: accepted.map((e) => JSON.stringify(e)).join("\n") }] : []),
-      { role: "user", content: `CORRECTION DU CONTRÔLEUR : ${violation}\nLes étapes précédentes ont déjà été envoyées. Continue sans les répéter ni les redessiner, sans nouvel en-tête. Il reste ${MAX_STEPS - steps} étapes au plus. Termine l'explication par end.` },
+      { role: "user", content: `CORRECTION DU CONTRÔLEUR : ${violation}\nLes étapes précédentes ont déjà été envoyées. Continue sans les répéter ni les redessiner, sans nouvel en-tête. Il reste ${MAX_STEPS - steps} étapes au plus. ${decision.requireCheck ? "Termine par une étape avec check, puis attends la réponse, sans end." : "Termine l'explication par end."}` },
     ];
   }
   yield { kind: "error", code: "upstream", message: "Nesa n’a pas réussi à terminer cette explication. Tu peux réessayer." };

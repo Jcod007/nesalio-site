@@ -79,6 +79,21 @@ async function speakUntil(player: Player, voice: ReturnType<typeof fakeSpeaker>,
 }
 
 describe("Player", () => {
+  it("actualise le bilan après une clarification et ne crée pas de constat avant toute tentative", async () => {
+    const voice = fakeSpeaker();
+    const { source } = scriptedSource((request) => [step("Une explication."), { kind: "end",
+      summary: [request.mode === "question" ? "Premier bilan" : "Bilan actualisé"],
+      noticed: { strengths: [], toWork: ["Une difficulté prétendument observée"] } }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Explique sans quiz.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "done");
+    expect(player.getSnapshot().noticed).toBeNull();
+    player.followUp("Pourquoi ?");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "done");
+    expect(player.getSnapshot().summary).toEqual(["Bilan actualisé"]);
+    player.dispose();
+  });
+
   it("ne réduit pas une négation ou un raisonnement à un choix contenu dans la phrase", () => {
     for (const response of ["Je ne pense pas 2", "2 ou 3", "2 parce que je compte aussi 3", "Je ne sais pas, peut-être 2"])
       expect(matchChoice(response, ["2", "3"])).toBeNull();

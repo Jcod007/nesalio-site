@@ -15,6 +15,7 @@ export interface TeachingDecision {
   sequence: PlanConcept[];
   toPresent: PlanConcept[];
   allowCheck: boolean;
+  requireCheck: boolean;
   evidence: LearningEvidence;
 }
 
@@ -61,13 +62,18 @@ export function decideTeaching(request: TutorRequest, now = Date.now()): Teachin
   if (!observations.length && (needsHelp || request.answer?.correct === false)) difficultyStreak = 1;
   const strategy = action === "remediate" ? difficultyStreak >= 2 ? "alternate-representation" : "decompose"
     : PRACTICE_STRATEGY[action];
+  const allowCheck = policy.questions !== "defer";
+  // Critère local de bilan, pas certification de maîtrise : plusieurs tâches autonomes dont un transfert.
+  const canConclude = evidence.independentSuccesses >= 2 && evidence.transferObserved;
   return { policy, action, strategy, difficultyStreak, plan, target, sequence, toPresent,
-    evidence, allowCheck: policy.questions !== "defer" && action !== "remediate" };
+    evidence, allowCheck, requireCheck: allowCheck && !canConclude && (policy.questions === "required" || policy.questions === "requested") };
 }
 
-export function checkViolation(step: Step, decision: TeachingDecision, request: TutorRequest): string | null {
+export function checkViolation(step: Step, decision: TeachingDecision, request: TutorRequest, previous: readonly Step[] = []): string | null {
   if (!step.check) return null;
   if (!decision.allowCheck) return "Ce tour doit expliquer et montrer, sans demander de réponse. Remplace la question par un exemple entièrement résolu, puis termine.";
+  if ((decision.action === "explain-and-model" || decision.action === "remediate") && previous.length === 0)
+    return "Donne d'abord une explication ou une aide concrète avant de solliciter l'élève. Ajoute ensuite une étape accessible avec check ; ne termine pas la séance.";
   if (step.teaching && !["guided-practice", "independent-practice"].includes(step.teaching.role))
     return "Une question est une activité de pratique ; corrige son rôle pédagogique ou montre un exemple sans check.";
   if (step.teaching && decision.plan && !decision.plan.concepts.some((c) => c.id === step.teaching!.concept))
@@ -89,7 +95,11 @@ export function checkViolation(step: Step, decision: TeachingDecision, request: 
 }
 
 /** Couverture déclarée seulement ; aucune notion ni résolution particulière n'est écrite dans le moteur. */
-export function completionViolation(steps: readonly Step[], decision: TeachingDecision, request: TutorRequest): string | null {
+export function completionViolation(steps: readonly Step[], decision: TeachingDecision, request: TutorRequest, reason?: "completed" | "pause" | "out-of-scope" | "clarification"): string | null {
+  if ((reason === "out-of-scope" || reason === "clarification") && steps.length > 0
+    && steps.every((step) => step.do.length === 0 && !step.teaching)) return null;
+  if (decision.requireCheck)
+    return "La demande appelle un accompagnement : une explication seule ne termine pas la séance. Après l'aide nécessaire, ajoute une tâche courte adaptée avec check, puis attends la réponse de l'élève. Ne déclare pas une compréhension non vérifiée.";
   if (!decision.target || steps.some((step) => !step.teaching)) return null;
   if (decision.action === "remediate") {
     return steps.some((s) => s.teaching?.concept === decision.target!.id && s.teaching.role === "worked-example" && s.teaching.completes) ? null

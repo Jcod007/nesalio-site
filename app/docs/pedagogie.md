@@ -1,5 +1,7 @@
 # Enseigner avant d'évaluer
 
+> Les règles initiales ci-dessous décrivent l'historique de la conception. La section « Correction après essai d'usage » fait foi pour le parcours actuel : un tutorat comporte des tentatives et du feedback, pas une explication suivie automatiquement d'une fin.
+
 ## Problème observé
 
 Les consignes précédentes imposaient une prédiction au premier tour, puis une question à chaque tour. Le lecteur attend la réponse au premier `check`. Un élève qui découvre la notion pouvait ainsi être sollicité avant d'avoir reçu les outils pour répondre.
@@ -130,3 +132,17 @@ Les corps HTTP sont lus avec une limite réelle en octets, même sans `Content-L
 Les tests de domaine couvrent la progression, les doublons, les aides, les dates et les fractions exactes. Les tests de service vérifient qu'un QCM numériquement incohérent n'est pas transmis avant réparation. Les tests du lecteur couvrent la réponse libre calculable et l'aide pendant une tentative autonome. Les tests HTTP couvrent les flux coupés, UTF-8, dépassements et limitations avant lecture. Les parcours navigateur conservent les scénarios ordinateur et téléphone, avec des réponses simulées et le mode démonstration.
 
 La banque de contenus validés, la vérification sémantique générale et la mesure des apprentissages différés auprès d'élèves restent des travaux distincts. La réussite des tests logiciels ne démontre pas une efficacité pédagogique.
+
+## Correction après essai d'usage — 29 octobre 2026
+
+L'essai dans le vrai navigateur sur les exposants a reproduit trois défauts : fin après une explication sans tentative, correction d'une mauvaise réponse sans nouvel essai, puis nouveau bloc d'explication après « je ne comprends toujours pas » sans vérification. Le bilan d'une clarification réaffichait en outre celui du premier bloc.
+
+La politique par défaut devient un accompagnement actif : apporter les outils nécessaires, faire essayer une étape, réagir à la réponse et ajuster la suite. Les questions ne sont plus interdites au premier tour ou en remédiation. Le contrôleur refuse un `end` qui remplace la tentative attendue, même si les annotations sont absentes, et demande une réparation bornée qui se termine sur `check`. Une question n'est pas transmise avant un premier apport lorsqu'une explication ou une remédiation est nécessaire. Les exemples du prompt suivent aussi cette boucle, sans afficher la réponse à la tâche avant de la poser.
+
+L'élève peut demander une explication seule, un corrigé ou l'arrêt. Ces choix restent prioritaires. Un bilan devient également possible après plusieurs tâches autonomes dont une activité de transfert : c'est une règle de produit, pas une certification. Un refus hors domaine ou une clarification sans contenu d'enseignement utilise un `end` motivé (`out-of-scope` ou `clarification`) et n'entraîne pas un quiz forcé.
+
+Le message « Séance terminée » est remplacé par « Point d'étape » : la fin d'un bloc technique ne démontre pas une compréhension. Le bilan est actualisé après une clarification et le bouton « Continuer avec Nesa » reprend l'accompagnement. Sans tentative, les constats individuels sont retirés. Les formules du bilan sont rendues en texte mathématique lisible. « Montre-moi d'abord » demande désormais une aide puis une étape plus facile, au lieu d'injecter un refus de questions.
+
+Le compteur de réponses n'impose plus une limite de 50 dans le contrat HTTP. Les bornes de taille, de calcul, de débit et de réparation restent des protections techniques ; elles ne décident pas qu'un élève a compris ou qu'une séance est terminée.
+
+La validation d'usage doit faire intervenir le vrai modèle depuis l'interface : débutant, erreur volontaire, blocage persistant et réponse juste. Observer les questions, l'aide réellement apportée, les tentatives suivantes, la lisibilité et le bilan. Un scénario simulé ou un test unitaire n'est pas cette validation.

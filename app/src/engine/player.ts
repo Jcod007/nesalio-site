@@ -397,7 +397,7 @@ export class Player {
           case "end":
             // Une fin sans résumé (vu le 19 octobre) laissait l'élève sans bilan : on reprend les objectifs de la séance.
             segment.summary = event.summary.length > 0 ? event.summary : this.goals.slice(0, 3);
-            segment.noticed = event.noticed && (event.noticed.strengths.length > 0 || event.noticed.toWork.length > 0) ? event.noticed : null;
+            segment.noticed = this.answeredCount > 0 && event.noticed && (event.noticed.strengths.length > 0 || event.noticed.toWork.length > 0) ? event.noticed : null;
             break;
           case "diagnosis": {
             const { kind: _kind, ...diagnosis } = event;
@@ -475,7 +475,7 @@ export class Player {
         }
         this.set({ error: segment.error });
       }
-      if (segment.kind === "question") this.set({ summary: segment.summary, noticed: segment.noticed });
+      if (segment.kind === "question" || this.segments.length === 0) this.set({ summary: segment.summary, noticed: segment.noticed });
 
       const parent = this.segments.at(-1);
       if (segment.kind === "followUp") this.set({ answeringFollowUp: false });
