@@ -43,6 +43,13 @@ describe("contrôleur pédagogique générique", () => {
     expect(completionViolation([{ say: "Sans annotation.", do: [] }], decision, request)).toBeNull();
   });
 
+  it("n'impose pas une leçon par prérequis lorsqu'un exemple commun est terminé", () => {
+    const decision = decideTeaching(request);
+    expect(completionViolation([step("base", "explanation", false), step("nouveau", "worked-example")], decision, request)).toBeNull();
+    expect(completionViolation([step("nouveau", "worked-example")], decision, request)).toBeNull();
+    expect(completionViolation([step("base", "explanation"), step("nouveau", "worked-example", false)], decision, request)).toContain("nouveau");
+  });
+
   it("change de stratégie après deux difficultés, sans confondre une autre notion avec la cible", () => {
     let learning = recordObservation(emptyLearning(), undefined, { task: "Aide", outcome: "help-requested", format: "free", support: "guided" });
     const followUp = (state = learning): TutorRequest => ({ ...request, mode: "followUp", question: "Je ne comprends toujours pas.", context: { ...request.context!, learning: state } });

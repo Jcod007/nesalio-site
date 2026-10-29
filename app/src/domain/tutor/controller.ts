@@ -65,11 +65,12 @@ export function completionViolation(steps: readonly Step[], decision: TeachingDe
       : "La remédiation annoncée doit aboutir à un exemple résolu. Complète le raisonnement manquant avec l'objectif courant, sans poser une nouvelle question.";
   }
   if (request.mode !== "question" || decision.action !== "explain-and-model" || decision.policy.scaffolding === "light") return null;
-  const missing = decision.toPresent.filter((concept) => {
-    const presented = steps.filter((s) => s.teaching?.concept === concept.id && s.teaching.completes);
-    return concept.id === decision.target!.id ? !presented.some((s) => s.teaching?.role === "worked-example") : !presented.length;
-  });
-  return missing.length ? `Le plan déclaré reste incomplet pour : ${missing.map((c) => c.id).join(", ")}. Termine les explications nécessaires et l'exemple de l'objectif, sans répéter ce qui est déjà présenté.` : null;
+  // Les prérequis peuvent être expliqués au sein du même exemple. Une annotation
+  // non clôturée pour chacun ne justifie pas une leçon supplémentaire par nœud.
+  const needsExample = decision.toPresent.some((c) => c.id === decision.target!.id);
+  const completedExample = steps.some((s) => s.teaching?.concept === decision.target!.id && s.teaching.role === "worked-example" && s.teaching.completes);
+  return needsExample && !completedExample
+    ? `L'exemple de l'objectif ${decision.target.id} n'est pas déclaré terminé. Complète sa résolution sans répéter les étapes déjà présentées.` : null;
 }
 
 /** Vérification d'une référence de construction, commune à toutes les scènes. */
