@@ -15,6 +15,7 @@ import { z } from "zod";
 import { Action } from "./commands";
 import { TeachingAnnotation } from "@/domain/tutor/learning";
 import { TeachingPlan } from "@/domain/tutor/plan";
+import { ArithmeticVerification } from "@/domain/tutor/assessment";
 
 export { ColorName } from "./primitives";
 export { Action, type ActionType } from "./commands";
@@ -43,6 +44,7 @@ export const Check = z
      * Elle revient au modèle avec la réponse de l'élève : la remédiation vise la bonne erreur.
      */
     why: z.array(z.string().trim().max(160)).max(4).optional(),
+    verification: ArithmeticVerification.optional(),
   })
   .refine((check) => check.answer === undefined || check.answer < check.choices.length, {
     message: "La bonne réponse doit désigner un des choix",

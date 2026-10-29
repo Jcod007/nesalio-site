@@ -2,30 +2,48 @@ import type { Step } from "@/domain/scene/schema";
 import type { TutorRequest } from "./request";
 import { planSequence, type PlanConcept, type TeachingPlan } from "./plan";
 import { isHelpRequest, resolveTeachingPolicy, type TeachingPolicy } from "./teachingPolicy";
+import { arithmeticCheckViolation } from "./assessment";
+import { learningEvidence, taskKey, type LearningEvidence } from "./progress";
 
 export interface TeachingDecision {
   policy: TeachingPolicy;
-  action: "explain-and-model" | "guided-practice" | "remediate";
-  strategy: "worked-example" | "decompose" | "alternate-representation" | "guided-step";
+  action: "explain-and-model" | "guided-practice" | "remediate" | "independent-practice" | "transfer-practice" | "retrieval-practice";
+  strategy: "worked-example" | "decompose" | "alternate-representation" | "guided-step" | "independent-task" | "transfer-task" | "retrieval-task";
   difficultyStreak: number;
   plan?: TeachingPlan;
   target?: PlanConcept;
   sequence: PlanConcept[];
   toPresent: PlanConcept[];
   allowCheck: boolean;
+  evidence: LearningEvidence;
 }
 
+const PRACTICE_STRATEGY: Record<Exclude<TeachingDecision["action"], "remediate">, TeachingDecision["strategy"]> = {
+  "explain-and-model": "worked-example",
+  "guided-practice": "guided-step",
+  "independent-practice": "independent-task",
+  "transfer-practice": "transfer-task",
+  "retrieval-practice": "retrieval-task",
+};
+
 /** Les règles agissent sur des observations et un graphe proposé, jamais sur un nom de matière. */
-export function decideTeaching(request: TutorRequest): TeachingDecision {
+export function decideTeaching(request: TutorRequest, now = Date.now()): TeachingDecision {
   const policy = resolveTeachingPolicy(request);
   const current = request.mode === "continue" ? request.answer?.picked ?? "" : request.question;
   const needsHelp = isHelpRequest(current);
-  const action = policy.intent === "remediation" || (request.mode === "followUp" && needsHelp) ? "remediate"
+  let action: TeachingDecision["action"] = policy.intent === "remediation" || (request.mode === "followUp" && needsHelp) ? "remediate"
     : policy.intent === "practice" ? "guided-practice" : "explain-and-model";
   const plan = request.context?.plan;
   const requestedTarget = request.mode === "continue" ? request.answer?.concept ?? plan?.target : plan?.target;
   const target = plan?.concepts.find((c) => c.id === requestedTarget) ?? plan?.concepts.find((c) => c.id === plan.target);
   const targetId = target?.id;
+  const evidence = learningEvidence(request.context?.learning, targetId, now);
+  const explicitlyGuided = /\bguide[es]?\b|\bavec (?:de l'|ton |un peu d')?aide\b/.test(current.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase());
+  if (action === "guided-practice" && policy.questions !== "defer" && !explicitlyGuided) {
+    if (evidence.nextPractice === "independent") action = "independent-practice";
+    if (evidence.nextPractice === "transfer") action = "transfer-practice";
+    if (evidence.nextPractice === "retrieval") action = "retrieval-practice";
+  }
   const sequence = plan ? planSequence(plan, target?.id) : [];
   const toPresent = sequence.filter((concept) => {
     const seen = request.context?.learning?.concepts.find((c) => c.id === concept.id);
@@ -42,19 +60,32 @@ export function decideTeaching(request: TutorRequest): TeachingDecision {
   // Ancien client ou mémoire manquante : la réponse courante reste utilisable, sans inventer un historique.
   if (!observations.length && (needsHelp || request.answer?.correct === false)) difficultyStreak = 1;
   const strategy = action === "remediate" ? difficultyStreak >= 2 ? "alternate-representation" : "decompose"
-    : action === "guided-practice" ? "guided-step" : "worked-example";
+    : PRACTICE_STRATEGY[action];
   return { policy, action, strategy, difficultyStreak, plan, target, sequence, toPresent,
-    allowCheck: policy.questions !== "defer" && action !== "remediate" };
+    evidence, allowCheck: policy.questions !== "defer" && action !== "remediate" };
 }
 
-export function checkViolation(step: Step, decision: TeachingDecision, _request: TutorRequest): string | null {
+export function checkViolation(step: Step, decision: TeachingDecision, request: TutorRequest): string | null {
   if (!step.check) return null;
   if (!decision.allowCheck) return "Ce tour doit expliquer et montrer, sans demander de réponse. Remplace la question par un exemple entièrement résolu, puis termine.";
   if (step.teaching && !["guided-practice", "independent-practice"].includes(step.teaching.role))
     return "Une question est une activité de pratique ; corrige son rôle pédagogique ou montre un exemple sans check.";
   if (step.teaching && decision.plan && !decision.plan.concepts.some((c) => c.id === step.teaching!.concept))
     return "La question vise une notion absente du plan courant. Déclare un plan cohérent avant de changer d'objectif, ou reste sur l'objectif enseigné.";
-  return null;
+  const autonomous = ["independent-practice", "transfer-practice", "retrieval-practice"].includes(decision.action);
+  if (autonomous && step.teaching && step.teaching.role !== "independent-practice")
+    return "Le contrôleur demande une tentative autonome : propose une nouvelle tâche sans montrer sa résolution, avec le rôle independent-practice. L'élève pourra demander de l'aide.";
+  if (step.teaching && decision.action === "transfer-practice" && step.teaching.purpose !== "transfer")
+    return "L'activité doit varier le contexte ou la représentation et porter purpose:transfer ; cette déclaration ne certifie pas un transfert.";
+  if (step.teaching && decision.action === "retrieval-practice" && step.teaching.purpose !== "retrieval")
+    return "L'activité doit permettre un rappel sans correction préalable et porter purpose:retrieval.";
+  if (autonomous && decision.action !== "retrieval-practice") {
+    const previous = request.context?.learning?.concepts.find((entry) => entry.id === step.teaching?.concept)?.observations ?? [];
+    if (previous.some((observation) => taskKey(observation.task) === taskKey(step.check!.prompt)
+      || step.teaching?.activityId && observation.activityId === step.teaching.activityId))
+      return "Cette tâche a déjà été présentée. Propose un autre exercice et un nouvel activityId pour observer une tentative autonome distincte.";
+  }
+  return arithmeticCheckViolation(step.check);
 }
 
 /** Couverture déclarée seulement ; aucune notion ni résolution particulière n'est écrite dans le moteur. */

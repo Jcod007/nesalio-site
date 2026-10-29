@@ -23,6 +23,7 @@ import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { emptyLearning, recordObservation, recordPresentation, type LearningState } from "@/domain/tutor/learning";
 import { isHelpRequest } from "@/domain/tutor/teachingPolicy";
+import { assessAnswer } from "@/domain/tutor/assessment";
 import type { TeachingPlan } from "@/domain/tutor/plan";
 import type { SourceKind } from "@/domain/scene/schema";
 import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
@@ -119,6 +120,8 @@ export interface PlayerDeps {
   speaker: Speaker;
   source: TutorSource;
   clock: Clock;
+  /** Horloge civile pour les observations, distincte de l'horloge d'animation. */
+  observedAt?: () => number;
 }
 
 export class Player {
@@ -140,6 +143,7 @@ export class Player {
   private teachingPlan: TeachingPlan | undefined;
   /** Une présentation est comptée une fois, seulement après la fin de la parole et du dessin. */
   private presentedSteps = new WeakSet<Step>();
+  private assistedSteps = new WeakSet<Step>();
   /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
   private diagnosis: Diagnosis | null = null;
   private session = 0;
@@ -207,12 +211,13 @@ export class Player {
     if (parent) {
       // Une question laissée sans réponse sera reposée ; sinon, on passe à l'étape suivante.
       const pendingQuestion = parent.steps[parent.cursor]?.check !== undefined && parent.answeredStep !== parent.cursor;
+      if (pendingQuestion) this.assistedSteps.add(parent.steps[parent.cursor]!);
       parent.resumeAt = parent.inProgress ? (pendingQuestion ? "replay" : "next") : null;
     }
     this.stopCurrentStep();
 
     if (isHelpRequest(text)) this.learning = recordObservation(this.learning, undefined, {
-      task: text.slice(0, 300), outcome: "help-requested", format: "free", support: "guided",
+      task: text.slice(0, 300), outcome: "help-requested", format: "free", support: "guided", at: (this.deps.observedAt ?? Date.now)(),
     });
     const context = this.buildContext(interrupted);
     this.set({ status: "thinking", check: null, error: null, answeringFollowUp: true });
@@ -246,6 +251,7 @@ export class Player {
   /** Réponse de l'élève à une question de vérification. */
   answer(choice: number): void {
     if (this.snapshot.status !== "checking" || !this.answerResolver) return;
+    if (!Number.isInteger(choice) || choice < 0 || choice >= (this.snapshot.check?.choices.length ?? 0)) return;
     const resolve = this.answerResolver;
     this.answerResolver = null;
     resolve(choice);
@@ -290,6 +296,7 @@ export class Player {
     this.learning = emptyLearning();
     this.teachingPlan = undefined;
     this.presentedSteps = new WeakSet();
+    this.assistedSteps = new WeakSet();
     this.diagnosis = null;
     this.transcript = [];
     this.stopCurrentStep();
@@ -551,20 +558,23 @@ export class Player {
       // Un choix (bouton ou réponse dite qui correspond), ou une réponse libre, dite avec ses mots.
       const picked = typeof reply === "number" ? reply : null;
       const pickedText = typeof reply === "number" ? (check.choices[reply] ?? String(reply)) : reply;
-      // Sans bonne réponse (question pour situer l'élève, ou réponse libre), pas de verdict immédiat :
-      // Nesa l'évalue au tour suivant.
-      const right = check.answer === undefined || picked === null ? null : picked === check.answer;
+      // Les réponses libres restent non notées, sauf calcul couvert par un contrat arithmétique.
+      const assessment = assessAnswer(check, reply);
+      const right = assessment.correct;
       this.remember(check.prompt);
       this.answeredCount++;
       segment.answeredStep = segment.cursor;
       // Le tour suivant est demandé tout de suite : il s'écrit pendant que Nesa réagit.
       const misconception = picked !== null && right === false ? check.why?.[picked]?.trim() || undefined : undefined;
       const concept = step.teaching?.concept;
-      const support = step.teaching?.role === "independent-practice" ? "independent" as const : "guided" as const;
+      const support = step.teaching?.role === "independent-practice" && !this.assistedSteps.has(step) && !isHelpRequest(pickedText)
+        ? "independent" as const : "guided" as const;
+      const evidence = { method: assessment.method, activityId: step.teaching?.activityId,
+        purpose: step.teaching?.purpose, at: (this.deps.observedAt ?? Date.now)() };
       this.learning = recordObservation(this.learning, concept, {
         task: check.prompt, outcome: right === true ? "correct" : right === false ? "incorrect"
           : isHelpRequest(pickedText) ? "help-requested" : "ungraded",
-        format: picked === null ? "free" : "choice", support,
+        format: picked === null ? "free" : "choice", support, ...evidence,
       });
       this.answered(segment, {
         prompt: check.prompt,
@@ -572,6 +582,9 @@ export class Player {
         picked: pickedText,
         correct: right,
         misconception,
+        method: assessment.method,
+        activityId: step.teaching?.activityId,
+        purpose: step.teaching?.purpose,
         ...(concept ? { concept, support } : {}),
       });
       this.set({ status: "playing", check: { ...check, picked } });
@@ -692,10 +705,11 @@ export function matchChoice(text: string, choices: readonly string[]): number | 
   const ordinals = [["a", "premier", "premiere", "1er", "la 1"], ["b", "deuxieme", "second", "seconde", "2e"], ["c", "troisieme", "3e"], ["d", "quatrieme", "4e"]];
   const byRank = ordinals.findIndex((words, i) => i < choices.length && words.some((w) => said === w || said === `la ${w}` || said === `reponse ${w}`));
   if (byRank >= 0) return byRank;
-  // Un seul choix contenu dans la réponse (ou qui la contient) : c'est lui.
-  const contained = choices
-    .map((choice, i) => ({ i, c: fold(choice) }))
-    .filter(({ c }) => c.length > 0 && (said.includes(c) || (said.length >= 3 && c.includes(said))));
-  return contained.length === 1 ? contained[0]!.i : null;
+  // Accepter quelques formulations explicites, jamais une sous-chaîne :
+  // « je ne pense pas 2 » et un raisonnement contenant 2 restent des réponses libres.
+  const stated = said.replace(/^(?:je pense(?: que)?|je choisis|je dirais|ma reponse est|la reponse est|c est)\s+/, "").trim();
+  if (stated === said) return null;
+  const matches = choices.flatMap((choice, index) => fold(choice) === stated ? [index] : []);
+  return matches.length === 1 ? matches[0]! : null;
 }
 

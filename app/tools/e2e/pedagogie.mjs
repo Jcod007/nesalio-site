@@ -15,7 +15,17 @@ try {
     await page.route("**/api/tutor", async (route) => {
       const request = route.request().postDataJSON();
       requests.push(request);
-      const events = request.mode === "question" ? [
+      const arithmetic = request.question === "Vérifie le calcul." || request.context?.originalQuestion === "Vérifie le calcul.";
+      const events = arithmetic ? request.mode === "question" ? [
+        { kind: "source", source: "model" }, { kind: "lesson", title: "Calcul autonome" },
+        { kind: "plan", plan: { goal: "Calculer", target: "calcul", concepts: [{ id: "calcul", label: "Calcul", prerequisites: [] }] } },
+        { kind: "step", say: "À toi de calculer.", do: [], teaching: { concept: "calcul", role: "independent-practice", activityId: "calcul-1", purpose: "practice" },
+          check: { prompt: "Deux fois la somme de un et deux ?", choices: ["4", "6"], answer: 1,
+            verification: { kind: "arithmetic", expression: "2*(1+2)" } } }, { kind: "await" },
+      ] : [
+        { kind: "source", source: "model" }, { kind: "step", say: "Le calcul donne bien six.", do: [] },
+        { kind: "end", summary: ["Une tentative autonome observée"] },
+      ] : request.mode === "question" ? [
         { kind: "source", source: "model" }, { kind: "lesson", title: "Fractions" },
         { kind: "plan", plan: { goal: "Comprendre les parts", target: "fractions.parts", concepts: [{ id: "fractions.parts", label: "Parts égales", prerequisites: [] }] } },
         { kind: "step", say: "Quatre parts égales.", do: [], teaching: { concept: "fractions.parts", role: "explanation", completes: true } },
@@ -48,6 +58,23 @@ try {
     assert.equal(requests[2]?.context?.learning?.concepts[0]?.observations[0]?.outcome, "help-requested");
     assert.equal(requests[2]?.context?.learning?.recent[0]?.outcome, "help-requested");
     assert.equal(requests[2]?.context?.plan?.target, "fractions.parts");
+
+    // Les métadonnées traversent le vrai lecteur et le transport ; la réponse libre est calculée côté domaine.
+    await page.getByRole("button", { name: "Nouvelle notion", exact: true }).click();
+    await page.locator("form[data-size=large] input").fill("Vérifie le calcul.");
+    await page.locator("form[data-size=large] input").press("Enter");
+    const answer = page.getByPlaceholder("Ou réponds avec tes mots…");
+    await answer.fill("3+3", { timeout: 45_000 });
+    await answer.press("Enter");
+    await page.getByRole("button", { name: "Essayer un exercice guidé", exact: true }).waitFor({ timeout: 45_000 });
+    const continuation = requests.at(-1);
+    assert.equal(continuation?.mode, "continue");
+    assert.equal(continuation?.answer?.correct, true);
+    assert.equal(continuation?.answer?.method, "arithmetic");
+    assert.equal(continuation?.answer?.support, "independent");
+    assert.equal(continuation?.context?.learning?.concepts[0]?.observations[0]?.format, "free");
+    assert.equal(continuation?.context?.learning?.concepts[0]?.observations[0]?.activityId, "calcul-1");
+    assert.ok(continuation?.context?.learning?.concepts[0]?.observations[0]?.at > 0);
     assert.deepEqual(errors, []);
     await context.close();
     process.stdout.write(`Pédagogie OK (${viewport.width} × ${viewport.height}, flux simulés).\n`);

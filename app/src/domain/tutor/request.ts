@@ -12,6 +12,7 @@ import { z } from "zod";
 import { Diagnosis } from "@/domain/scene/schema";
 import { LearningState } from "./learning";
 import { TeachingPlan } from "./plan";
+import { AssessmentMethod, AssessmentPurpose } from "./assessment";
 
 export const MAX_QUESTION_LENGTH = 500;
 
@@ -67,6 +68,9 @@ export const StudentAnswerSchema = z.object({
   misconception: z.string().max(160).optional(),
   concept: z.string().trim().min(1).max(80).optional(),
   support: z.enum(["guided", "independent"]).optional(),
+  method: AssessmentMethod.optional(),
+  activityId: z.string().trim().min(1).max(60).optional(),
+  purpose: AssessmentPurpose.optional(),
 });
 
 export const TutorRequestSchema = z.object({

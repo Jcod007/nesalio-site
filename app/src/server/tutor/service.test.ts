@@ -26,6 +26,20 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
+  it("refuse un QCM arithmétiquement faux avant de transmettre sa phrase et accepte une réparation", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => {
+      const answer = calls++ === 0 ? 0 : 1;
+      return fakeCompletion(JSON.stringify({ kind: "step", say: answer === 0 ? "Question incorrecte." : "Question corrigée.",
+        check: { prompt: "Deux fois trois ?", choices: ["5", "6"], answer,
+          verification: { kind: "arithmetic", expression: "2*3" } } }))(options);
+    };
+    const events = await collect(tutorEvents({ mode: "question", question: "Teste-moi." }, { ...base, completion }));
+    expect(calls).toBe(2);
+    expect(events.filter((event) => event.kind === "step").map((event) => event.say)).toEqual(["Question corrigée."]);
+    expect(events.at(-1)?.kind).toBe("await");
+  });
+
   it("utilise le même pipeline génératif quelle que soit la notion demandée", async () => {
     let calls = 0;
     const completion: CompletionStream = async function* () { calls++; yield '{"kind":"step","say":"Je construis une explication adaptée."}\n{"kind":"end","summary":[]}'; };

@@ -37,8 +37,7 @@ const failures = [];
 const fail = (screen, message) => failures.push(`[${screen}] ${message}`);
 
 async function seriousViolations(page) {
-  // Les mots que Nesa n'a pas encore dits sont volontairement pâles (effet karaoké) : contraste à trancher, exclu en attendant.
-  const { violations } = await new AxeBuilder({ page }).exclude('[class*="upcoming"]').analyze();
+  const { violations } = await new AxeBuilder({ page }).analyze();
   return violations.filter((v) => v.impact === "serious" || v.impact === "critical");
 }
 

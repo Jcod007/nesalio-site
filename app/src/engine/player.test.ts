@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Step, StreamEvent } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
-import { Player, type PlayerSnapshot } from "./player";
+import { matchChoice, Player, type PlayerSnapshot } from "./player";
 import type { Clock, Speaker, TutorSource } from "./ports";
 
 /** Horloge instantanée : le temps avance mais personne n'attend vraiment. */
@@ -79,6 +79,53 @@ async function speakUntil(player: Player, voice: ReturnType<typeof fakeSpeaker>,
 }
 
 describe("Player", () => {
+  it("ne réduit pas une négation ou un raisonnement à un choix contenu dans la phrase", () => {
+    for (const response of ["Je ne pense pas 2", "2 ou 3", "2 parce que je compte aussi 3", "Je ne sais pas, peut-être 2"])
+      expect(matchChoice(response, ["2", "3"])).toBeNull();
+    expect(matchChoice("Je pense 2", ["2", "3"])).toBe(0);
+    expect(matchChoice("b", ["2", "3"])).toBe(1);
+  });
+
+  it("vérifie une réponse numérique libre et conserve sa provenance et son horodatage", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("À toi.", { teaching: { concept: "parts", role: "independent-practice", activityId: "parts-1", purpose: "practice" },
+        check: { prompt: "Un demi plus un quart ?", choices: ["1/2", "2/3", "3/4"], answer: 2,
+          verification: { kind: "arithmetic", expression: "1/2+1/4" } } }), { kind: "await" },
+    ] : [step("Continuons."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock(), observedAt: () => 5000 });
+    player.ask("Teste-moi.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "checking");
+    player.answer(99);
+    expect(player.getSnapshot().status).toBe("checking");
+    expect(requests).toHaveLength(1);
+    player.answerText("0,75");
+    await until(player, () => requests.length === 2);
+    expect(requests[1]?.answer).toMatchObject({ correct: true, picked: "0,75", method: "arithmetic", support: "independent", activityId: "parts-1" });
+    expect(requests[1]?.context?.learning?.concepts[0]?.observations[0]).toMatchObject({
+      outcome: "correct", format: "free", method: "arithmetic", at: 5000,
+    });
+    player.dispose();
+  });
+
+  it("une clarification pendant un exercice autonome transforme sa réussite en observation assistée", async () => {
+    const voice = fakeSpeaker();
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("À toi.", { teaching: { concept: "idee", role: "independent-practice" },
+        check: { prompt: "Quel choix ?", choices: ["A", "B"], answer: 0 } }), { kind: "await" },
+    ] : [step("Voici une aide."), { kind: "end", summary: [] }]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Teste-moi.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "checking");
+    player.followUp("Aide-moi à choisir.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "checking" && requests.length === 2);
+    player.answer(0);
+    await until(player, () => requests.length === 3);
+    expect(requests[2]?.answer).toMatchObject({ correct: true, support: "guided" });
+    expect(requests[2]?.context?.learning?.concepts[0]?.observations[0]?.support).toBe("guided");
+    player.dispose();
+  });
+
   it("garde les besoins d'aide sans leur attribuer arbitrairement une notion", async () => {
     const voice = fakeSpeaker();
     const { source, requests } = scriptedSource(() => [{ kind: "source", source: "model" }, step("Je montre."), { kind: "end", summary: [] }]);
@@ -149,7 +196,8 @@ describe("Player", () => {
     await speakUntil(player, voice, (s) => s.status === "checking");
     player.answer(0);
     await until(player, () => requests.length === 2);
-    expect(requests[1]?.context?.learning?.concepts[0]).toEqual({ id: "fractions.parts", presented: ["explanation", "worked-example"], observations: [{ task: "Le 4 indique quoi ?", outcome: "correct", format: "choice", support: "guided" }] });
+    expect(requests[1]?.context?.learning?.concepts[0]).toMatchObject({ id: "fractions.parts", presented: ["explanation", "worked-example"], observations: [{ task: "Le 4 indique quoi ?", outcome: "correct", format: "choice", support: "guided", method: "answer-key" }] });
+    expect(requests[1]?.context?.learning?.concepts[0]?.observations[0]?.at).toEqual(expect.any(Number));
     expect(requests[1]?.answer?.concept).toBe("fractions.parts");
     player.dispose();
   });
@@ -355,7 +403,7 @@ describe("Player", () => {
     await until(player, () => requests.length === 2);
     const next = requests[1]!;
     expect(next.mode).toBe("continue");
-    expect(next.answer).toEqual({ prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false });
+    expect(next.answer).toEqual({ prompt: "Combien ?", choices: ["0", "2"], picked: "0", correct: false, method: "answer-key" });
     expect(next.context?.spoken).toContain("Combien ?");
     expect(next.context?.answered).toBe(1);
 
@@ -391,7 +439,7 @@ describe("Player", () => {
     player.answer(1);
     await until(player, () => requests.length === 3);
     const third = requests[2]!.context!;
-    expect(third.answers).toEqual([{ prompt: "Combien ?", picked: "0", correct: false, misconception: "confond sommet et zéro" }]);
+    expect(third.answers).toEqual([{ prompt: "Combien ?", picked: "0", correct: false, misconception: "confond sommet et zéro", method: "answer-key" }]);
     expect(third.review?.some((r) => r.includes("sans le montrer"))).toBe(true);
     expect(requests[2]!.answer?.misconception).toBe("croit que tout s'additionne");
   });

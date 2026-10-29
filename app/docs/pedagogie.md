@@ -40,7 +40,7 @@ La traduction suivante est un choix de produit, pas un protocole expérimental v
 Le moteur sépare le contenu proposé par l'IA, les observations et les décisions exécutées par le logiciel. Il ne sélectionne plus de leçon à partir d'un nom de notion. Le module `programs/thales.ts`, son état de parcours et le catalogue fixe `curriculum.ts` sont supprimés.
 
 1. `domain/tutor/plan.ts` définit un plan construit pour chaque demande : objectif, notions identifiées librement et prérequis. Le logiciel refuse les identifiants dupliqués, cibles absentes, dépendances absentes et cycles. Il ordonne uniquement les dépendances de l'objectif courant. Cette validation porte sur la structure ; elle ne certifie pas la pertinence scientifique des prérequis proposés par l'IA.
-2. `domain/tutor/learning.ts` conserve les présentations terminées et les réponses observées, avec leur format et leur aide. Une étape reçue ou interrompue ne compte pas comme présentée. Une demande d'aide sans notion identifiée reste non attribuée, sans inventer de lacune. La mémoire de navigation contient au plus 16 notions, 8 observations par notion et 12 observations récentes. Aucun score de maîtrise n'est déduit d'un QCM réussi. La limite du corps de requête est de 96 000 caractères.
+2. `domain/tutor/learning.ts` conserve les présentations terminées et les réponses observées, avec leur format et leur aide. Une étape reçue ou interrompue ne compte pas comme présentée. Une demande d'aide sans notion identifiée reste non attribuée, sans inventer de lacune. La mémoire de navigation contient au plus 16 notions, 8 observations par notion et 12 observations récentes. Aucun score de maîtrise n'est déduit d'un QCM réussi. La limite du corps de requête est de 96 000 octets UTF-8, vérifiée pendant la lecture.
 3. `domain/tutor/controller.ts` choisit expliquer/modéliser, pratiquer avec aide ou réexpliquer. La découverte reçoit un exemple travaillé ; la première difficulté appelle une décomposition ; deux difficultés consécutives observées sur l'objectif, ou non attribuées, appellent une autre représentation. Les observations attribuées à une autre notion ne gonflent pas ce compteur. Ce seuil est une règle de produit testable, pas une prescription scientifique ni un niveau calculé. Le même code s'applique à un identifiant jamais rencontré auparavant.
 4. `server/tutor/service.ts` contrôle les étapes avant de transmettre leurs paroles et dessins. Une question prématurée ou une construction dans une figure absente déclenche au plus une réparation, depuis les étapes déjà envoyées. Un nouveau refus ou une réparation vide produit une erreur explicite. Un nouveau plan valide met à jour les décisions pendant le flux sans autoriser un quiz refusé par l'élève. Quand toutes les étapes sont annotées, un exemple cible non terminé peut demander un complément. Les prérequis peuvent être enseignés dans ce même exemple : leur annotation non clôturée ne déclenche pas une leçon supplémentaire par nœud. Des annotations manquantes ne prouvent pas qu'une explication manque. La limite est de 18 étapes par tour.
 5. `server/tutor/prompt.ts` donne à l'IA le plan courant, les observations et la stratégie choisie, pour produire l'explication adaptée. Il demande de relier les représentations et d'expliciter les conditions d'application d'une règle. Les quotas de questions et de mouvements sont retirés. Le premier appel garde par défaut le réglage sans réflexion cachée ; un réglage explicite reste prioritaire. Un épuisement de jetons avant toute étape permet un seul nouvel essai sans réflexion, sans rejouer du contenu déjà présenté.
@@ -71,3 +71,62 @@ Les tests couvrent les graphes incohérents, des identifiants arbitraires, l'ada
 Faire valider les stratégies par des enseignants ; ajouter des validations réutilisables de relations et de calculs, sans scénario par notion ; distinguer exercice proche, transfert et rappel différé ; évaluer quand alléger l'aide à partir de preuves répétées sur des tâches différentes. Un suivi entre séances et une rétention espacée nécessitent un stockage longitudinal et un choix de produit, absents ici.
 
 Les mesures doivent séparer conformité du parcours, exactitude, cohérence des représentations, autonomie sur un problème nouveau et rétention après délai. Comparer les versions sur des scénarios identiques avec revue humaine, puis sur des apprentissages mesurés ; ne pas assimiler satisfaction ou longueur d'explication à un gain de compréhension.
+
+## Progression et vérification intégrées — 29 octobre 2026
+
+Le contrôleur existant est étendu sans nouveau fournisseur, dépendance, agent, migration ou service. Les nouveaux champs restent facultatifs pour les démos et les clients existants.
+
+### Frontières des modules
+
+- `domain/tutor/assessment.ts` porte le contrat arithmétique et la correction des réponses. Il réutilise le parseur d'expressions existant, sans `eval`. L'évaluation est faite en fractions exactes, avec longueur, précision des littéraux, taille des entiers et exposants bornés. Le contrat refuse les variables, unités, fonctions, valeurs non définies et approximations. Il vérifie une opération déclarée, **pas** la traduction de l'énoncé, le dessin ou une loi physique.
+- `domain/tutor/progress.ts` résume les observations et propose le type de prochaine activité. C'est une fonction de domaine sans réseau, stockage, React ni horloge globale ; l'appelant fournit la date. Elle ne produit ni score de maîtrise ni certification.
+- `controller.ts` combine ces indices avec la demande de l'élève, puis contrôle les étapes avant transmission. `service.ts` transmet la même décision au constructeur de messages et conserve une seule réparation par contrôle de tour.
+- `engine/player.ts` enregistre la provenance du verdict, l'activité, le type de pratique et la date après la réponse. L'horloge civile des observations est distincte de celle des animations. Une clarification pendant un exercice autonome marque sa réussite comme assistée, même après la reprise de l'exercice.
+
+### Décisions de progression
+
+Deux réussites guidées sur des tâches textuellement distinctes peuvent conduire à proposer une nouvelle tâche autonome. Deux réussites autonomes peuvent conduire à proposer un changement de contexte ou de représentation. Une difficulté récente remet le guidage au premier plan. Une demande explicite d'exercice guidé ou de séance sans quiz reste prioritaire.
+
+Ces seuils (`PRACTICE_SUCCESSES`) sont des règles de produit à évaluer. Un QCM correct reste une observation limitée. Une ancienne observation sans provenance n'entre pas dans ce calcul, sans empêcher de continuer la séance. Le même texte normalisé ou le même `activityId` ne compte pas deux fois ; cette déduplication ne reconnaît pas l'équivalence sémantique de deux exercices.
+
+Après des réussites autonomes datées, `reviewAt` propose une échéance initiale de 24 heures (`REVIEW_DELAY_MS`). L'échéance peut conduire à une activité `retrieval` lors d'une pratique ultérieure si la mémoire est encore disponible. Une annotation `retrieval` immédiate ne devient pas une preuve de rétention : il faut constater le délai dans les observations. Ce n'est ni un rappel envoyé à l'utilisateur ni un planificateur persistant entre visites.
+
+### Contrat d'une activité
+
+```json
+{
+  "kind": "step",
+  "say": "À toi de calculer cette somme.",
+  "do": [],
+  "teaching": {
+    "concept": "addition-fractions",
+    "role": "independent-practice",
+    "activityId": "fractions-3",
+    "purpose": "practice"
+  },
+  "check": {
+    "prompt": "Un demi plus un quart ?",
+    "choices": ["1/2", "2/3", "3/4"],
+    "answer": 2,
+    "verification": { "kind": "arithmetic", "expression": "1/2+1/4" }
+  }
+}
+```
+
+Le serveur refuse ce QCM avant sa phrase si l'index est faux ou si plusieurs choix ont la valeur attendue. Il demande une réparation bornée. Le lecteur peut aussi reconnaître une réponse libre exacte comme `0,75`. Une réponse hors du contrat reste non notée. Sans contrat, le verdict provient du corrigé du modèle et porte `method:answer-key`, distinct de `method:arithmetic`.
+
+`purpose:transfer` et `purpose:retrieval` décrivent l'intention de l'activité ; ces étiquettes ne prouvent pas sa qualité pédagogique. La reconnaissance orale ne réduit plus une phrase contenant un nombre à ce nombre : les négations, hésitations et raisonnements restent des réponses libres.
+
+### Sécurité et compatibilité
+
+Le plan, les observations et les paroles provenant du navigateur sont placés dans un message de données utilisateur, jamais interpolés dans les consignes système. Les choix de stratégie sont des valeurs contrôlées. Cela réduit une surface d'injection ; cela ne garantit pas l'absence d'injection dans un LLM.
+
+La mémoire de navigation reste déclarative et modifiable par son propriétaire. Elle ne doit servir ni à autoriser un accès, ni à certifier un niveau, ni à prendre une décision scolaire officielle. Un futur dossier longitudinal nécessitera une identité, un stockage serveur et des règles d'accès explicites. Aucun cookie, identifiant supplémentaire ou stockage navigateur persistant n'est ajouté ici.
+
+Les corps HTTP sont lus avec une limite réelle en octets, même sans `Content-Length`, et un flux trop grand est annulé. Les requêtes invalides consomment aussi la limite d'usage du tuteur, avant lecture. Les limites de fréquence restent celles du prototype en mémoire par instance, décrites dans `server/rateLimit.ts`.
+
+### Vérification
+
+Les tests de domaine couvrent la progression, les doublons, les aides, les dates et les fractions exactes. Les tests de service vérifient qu'un QCM numériquement incohérent n'est pas transmis avant réparation. Les tests du lecteur couvrent la réponse libre calculable et l'aide pendant une tentative autonome. Les tests HTTP couvrent les flux coupés, UTF-8, dépassements et limitations avant lecture. Les parcours navigateur conservent les scénarios ordinateur et téléphone, avec des réponses simulées et le mode démonstration.
+
+La banque de contenus validés, la vérification sémantique générale et la mesure des apprentissages différés auprès d'élèves restent des travaux distincts. La réussite des tests logiciels ne démontre pas une efficacité pédagogique.

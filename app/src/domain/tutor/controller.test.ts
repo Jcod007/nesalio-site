@@ -15,6 +15,38 @@ const check: Step = { say: "À toi.", do: [], teaching: { concept: "nouveau", ro
   check: { prompt: "Quelle réponse ?", choices: ["A", "B"], answer: 0 } };
 
 describe("contrôleur pédagogique générique", () => {
+  it("fait évoluer le guidage sur des tâches distinctes sans imposer l'autonomie ni un quiz", () => {
+    let learning = emptyLearning();
+    for (const task of ["Premier item", "Deuxième item"]) learning = recordObservation(learning, "nouveau", {
+      task, outcome: "correct", support: "guided", format: "choice", method: "answer-key",
+    });
+    const practice: TutorRequest = { ...request, question: "Teste-moi.", context: { ...request.context!, learning } };
+    const decision = decideTeaching(practice, 1000);
+    expect(decision.action).toBe("independent-practice");
+    expect(checkViolation(check, decision, practice)).toBeTruthy();
+    const independent: Step = { ...check, teaching: { concept: "nouveau", role: "independent-practice", activityId: "item-3" } };
+    expect(checkViolation(independent, decision, practice)).toBeNull();
+    expect(checkViolation({ ...independent, check: { ...independent.check!, prompt: "Premier item" } }, decision, practice)).toContain("déjà");
+    expect(decideTeaching({ ...practice, question: "Propose-moi un exercice guidé." }).action).toBe("guided-practice");
+    expect(decideTeaching({ ...practice, question: "Explique sans quiz." }).allowCheck).toBe(false);
+  });
+
+  it("exige l'annotation de transfert puis de rappel lorsque ces activités sont choisies", () => {
+    let learning = emptyLearning();
+    for (const task of ["A", "B"]) learning = recordObservation(learning, "nouveau", {
+      task, outcome: "correct", support: "independent", format: "choice", method: "answer-key", at: 1000,
+    });
+    const practice: TutorRequest = { ...request, question: "Teste-moi.", context: { ...request.context!, learning } };
+    const transfer = decideTeaching(practice, 2000);
+    expect(transfer.action).toBe("transfer-practice");
+    const independent: Step = { ...check, teaching: { concept: "nouveau", role: "independent-practice" } };
+    expect(checkViolation(independent, transfer, practice)).toContain("purpose:transfer");
+    expect(checkViolation({ ...independent, teaching: { ...independent.teaching!, purpose: "transfer" } }, transfer, practice)).toBeNull();
+    const retrieval = decideTeaching(practice, 1000 + 24 * 60 * 60 * 1000);
+    expect(retrieval.action).toBe("retrieval-practice");
+    expect(checkViolation(independent, retrieval, practice)).toContain("purpose:retrieval");
+  });
+
   it("reste utilisable sans plan et ne déduit pas la matière depuis les mots de la demande", () => {
     const decision = decideTeaching({ mode: "question", question: "Explique Thalès." });
     expect(decision.target).toBeUndefined();

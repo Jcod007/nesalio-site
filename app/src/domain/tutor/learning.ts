@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AssessmentMethod, AssessmentPurpose } from "./assessment";
 
 /** Observations de séance, sans score de maîtrise ni profil psychologique. */
 export const TeachingAnnotation = z.object({
@@ -6,6 +7,8 @@ export const TeachingAnnotation = z.object({
   role: z.enum(["explanation", "worked-example", "guided-practice", "independent-practice"]),
   /** Dernière étape de cette explication ou résolution, déclarée par le modèle. */
   completes: z.boolean().optional(),
+  activityId: z.string().trim().min(1).max(60).optional(),
+  purpose: AssessmentPurpose.optional(),
 });
 export type TeachingAnnotation = z.infer<typeof TeachingAnnotation>;
 
@@ -14,6 +17,11 @@ const Observation = z.object({
   outcome: z.enum(["correct", "incorrect", "ungraded", "help-requested"]),
   format: z.enum(["choice", "free"]),
   support: z.enum(["guided", "independent"]),
+  /** Provenance du verdict, pas certification : la mémoire vient du navigateur. */
+  method: AssessmentMethod.optional(),
+  activityId: z.string().trim().min(1).max(60).optional(),
+  purpose: AssessmentPurpose.optional(),
+  at: z.number().int().min(0).max(8_640_000_000_000_000).optional(),
 });
 export type Observation = z.infer<typeof Observation>;
 
