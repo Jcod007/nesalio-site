@@ -220,3 +220,33 @@ python3 tools/rejeu/seance.py /tmp seance.json essai "[]"
   écrit) : créer la voix chez ElevenLabs ou Cartesia, puis remplacer l'appel
   de `src/server/ai/audio.ts > synthesizeSpeech` par l'API du fournisseur. La
   route `/api/voice` et le lecteur côté navigateur restent identiques.
+
+## Studio de vidéos TikTok (`/studio`)
+
+Outil interne pour produire des vidéos verticales (1080 × 1920) à partir du même moteur : le tableau se
+dessine tout seul, sans voix, sur une musique composée pour la vidéo.
+
+1. **Scénario** : écrit en texte libre, d'une simple idée à un scénario détaillé plan par plan (durées,
+   textes, musique), que le modèle suit fidèlement et transforme pour le moteur (`POST /api/studio`, action
+   `generate`). Option avancée : un script JSON collé depuis une autre IA. « Copier les consignes » (`GET /api/studio?consignes=<format>`) donne le format exact
+   à cette autre IA. Quatre formats : « devine ce que ça dessine », « une notion en 30 s », « la physique
+   cachée », libre. Le script est en lignes JSON, comme les séances : `lesson` (titre, `hook`, `music`),
+   `step` (`say` = texte à l'écran, `bars`, `reveal`, `do`), `end` (`cta`).
+2. **Vérifier et corriger** : `domain/studio/check.ts` joue le script au tableau exactement comme la vidéo
+   et signale les commandes refusées, les cibles absentes, les chevauchements (`domain/board/collisions`),
+   les figures trop larges pour l'écran vertical, les textes trop longs. Chaque plan se revoit seul (▶),
+   se modifie à la main (texte, durée, révélation, JSON) ou se refait par l'IA avec une consigne (action
+   `revise` : seul ce plan est réécrit, avec le reste du script et le tableau en contexte).
+3. **Musique** : `domain/studio/score.ts` compose une partition (lo-fi, électro, épique) jouée par le
+   synthétiseur du navigateur (`services/studio/synth.ts`) : aucun échantillon d'un tiers, donc libre de
+   droits. Chaque plan commence sur un premier temps (`domain/studio/timeline.ts`), la musique monte avant
+   le plan de révélation et frappe dessus. Un morceau importé est analysé (tempo et premier temps fort,
+   `domain/studio/beats.ts`) et la vidéo se cale dessus.
+4. **Export** : le canevas de la vidéo (`ui/studio/compositor.ts` : tableau, accroche, texte, marque, carte
+   de fin) et la musique sont enregistrés en temps réel (MediaRecorder) : MP4 H.264 dans Chrome, Edge et
+   Safari, WebM ailleurs. Les à-coups pendant l'enregistrement sont comptés et signalés.
+
+Accès : les appels au modèle du serveur exigent le code `STUDIO_TOKEN` (ou `SELFTEST_TOKEN`), saisi une fois
+dans la page. L'auteur peut aussi donner sa propre clé (Claude `sk-ant-…` ou OpenRouter `sk-or-…`, champ
+« Utiliser ma clé API ») : son compte paie, sans code ; la clé n'est ni gardée ni journalisée par le serveur
+(`server/studio/ownKey.ts`). Les exemples, le script collé, l'aperçu et l'export marchent sans code et sans IA.
