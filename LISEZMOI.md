@@ -2,6 +2,8 @@
 
 Tous les fichiers du dossier vont à la racine du dépôt (voir la section 5). Pas de build, pas de dépendance.
 
+Depuis le 1er novembre 2026, tous les liens « Essayer Nesalio » ouvrent directement `https://nesalio-app.vercel.app/`, sans inscription ni questionnaire. Les clics sont mesurés par les événements `essayer_nav`, `essayer_hero`, `essayer_comment`, `essayer_parent`, `essayer_offre`, `essayer_final`, `essayer_sticky` et `essayer_notion_manquante`. Le formulaire « M'avertir à l'ouverture » reste facultatif ; les indicateurs de réservation ci-dessous décrivent l'ancien parcours du smoke test.
+
 ---
 
 ## 1. Ce que la page mesure
