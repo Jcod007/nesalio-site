@@ -377,6 +377,25 @@ describe("Player", () => {
     await speakUntil(player, voice, (s) => s.status === "done");
   });
 
+  it("met en évidence une formule déjà écrite quand Nesa en reparle, sans la redessiner", async () => {
+    const voice = fakeSpeaker();
+    const { source } = scriptedSource(() => [
+      step("Voici la puissance.", { do: [{ type: "note", id: "puissance", text: "2³" }] }),
+      step("Regarde la puissance.", { cues: { puissance: 0.5, absent: 0.8 } }),
+      { kind: "end", summary: [] },
+    ]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Explique 2³.");
+    await until(player, (snapshot) => snapshot.caption?.text === "Voici la puissance.");
+    const original = player.getSnapshot().board.nodes.puissance;
+    await speakUntil(player, voice, (snapshot) => snapshot.caption?.text === "Regarde la puissance.");
+    const { board, caption } = player.getSnapshot();
+    expect(board.nodes.puissance).toBe(original);
+    expect(board.highlights.puissance).toBeGreaterThan(caption!.startedAt);
+    expect(board.highlights.absent).toBeUndefined();
+    player.dispose();
+  });
+
   it("affiche une erreur si la première réponse échoue", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource(() => [{ kind: "error", code: "upstream", message: "Indisponible" }]);

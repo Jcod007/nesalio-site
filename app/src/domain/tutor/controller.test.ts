@@ -15,6 +15,44 @@ const check: Step = { say: "À toi.", do: [], teaching: { concept: "nouveau", ro
   check: { prompt: "Quelle réponse ?", choices: ["A", "B"], answer: 0 } };
 
 describe("contrôleur pédagogique générique", () => {
+  it("garde la résolution complète pour le troisième blocage et demande un exercice jumeau autonome", () => {
+    const failed = { prompt: "Combien vaut 2³ ?", choices: ["6", "8"], picked: "6", correct: false };
+    let learning = emptyLearning();
+    const resolve = () => {
+      const attempt: TutorRequest = { ...request, mode: "continue", question: "Explique les exposants.",
+        answer: failed, context: { ...request.context!, learning } };
+      return { attempt, decision: decideTeaching(attempt) };
+    };
+    const worked = step("nouveau", "worked-example");
+    const addFailure = () => {
+      learning = recordObservation(learning, "nouveau", { task: failed.prompt, outcome: "incorrect",
+        format: "choice", support: "guided", method: "answer-key" });
+    };
+
+    addFailure();
+    const first = resolve();
+    expect(first.decision.remediationStage).toBe("hint");
+    expect(checkViolation(worked, first.decision, first.attempt)).toContain("Garde la résolution");
+    expect(checkViolation(check, first.decision, first.attempt, [step("nouveau", "explanation")])).toBeNull();
+
+    addFailure();
+    const second = resolve();
+    expect(second.decision.remediationStage).toBe("first-step");
+    expect(second.decision.strategy).toBe("alternate-representation");
+    expect(checkViolation(worked, second.decision, second.attempt)).toContain("Garde la résolution");
+
+    addFailure();
+    const third = resolve();
+    expect(third.decision.remediationStage).toBe("worked-example");
+    const twin: Step = { ...check, teaching: { concept: "nouveau", role: "independent-practice" },
+      check: { ...check.check!, prompt: "Combien vaut 3² ?" } };
+    expect(checkViolation(twin, third.decision, third.attempt, [step("nouveau", "explanation")])).toContain("résolution complète");
+    expect(checkViolation(check, third.decision, third.attempt, [worked])).toContain("tentative autonome");
+    expect(checkViolation({ ...twin, check: { ...twin.check!, prompt: failed.prompt } },
+      third.decision, third.attempt, [worked])).toContain("jumeau distinct");
+    expect(checkViolation(twin, third.decision, third.attempt, [worked])).toBeNull();
+  });
+
   it("requiert une participation après une explication et après une erreur, même sans annotations", () => {
     const tutoring: TutorRequest = { ...request, question: "C'est quoi un exposant ?" };
     const decision = decideTeaching(tutoring);

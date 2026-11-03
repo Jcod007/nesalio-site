@@ -10,6 +10,7 @@ export interface TeachingDecision {
   action: "explain-and-model" | "guided-practice" | "remediate" | "independent-practice" | "transfer-practice" | "retrieval-practice";
   strategy: "worked-example" | "decompose" | "alternate-representation" | "guided-step" | "independent-task" | "transfer-task" | "retrieval-task";
   difficultyStreak: number;
+  remediationStage?: "hint" | "first-step" | "worked-example";
   plan?: TeachingPlan;
   target?: PlanConcept;
   sequence: PlanConcept[];
@@ -63,17 +64,32 @@ export function decideTeaching(request: TutorRequest, now = Date.now()): Teachin
   const strategy = action === "remediate" ? difficultyStreak >= 2 ? "alternate-representation" : "decompose"
     : PRACTICE_STRATEGY[action];
   const allowCheck = policy.questions !== "defer";
+  const remediationStage = request.mode === "continue" && action === "remediate" && allowCheck
+    ? difficultyStreak >= 3 ? "worked-example" : difficultyStreak === 2 ? "first-step" : "hint"
+    : undefined;
   // Critère local de bilan, pas certification de maîtrise : plusieurs tâches autonomes dont un transfert.
   const canConclude = evidence.independentSuccesses >= 2 && evidence.transferObserved;
-  return { policy, action, strategy, difficultyStreak, plan, target, sequence, toPresent,
+  return { policy, action, strategy, difficultyStreak, remediationStage, plan, target, sequence, toPresent,
     evidence, allowCheck, requireCheck: allowCheck && !canConclude && (policy.questions === "required" || policy.questions === "requested") };
 }
 
 export function checkViolation(step: Step, decision: TeachingDecision, request: TutorRequest, previous: readonly Step[] = []): string | null {
+  if (step.teaching?.role === "worked-example" && (decision.remediationStage === "hint" || decision.remediationStage === "first-step"))
+    return "Garde la résolution pour une difficulté persistante. Donne l'aide prévue par le palier, puis laisse l'élève essayer.";
   if (!step.check) return null;
   if (!decision.allowCheck) return "Ce tour doit expliquer et montrer, sans demander de réponse. Remplace la question par un exemple entièrement résolu, puis termine.";
   if ((decision.action === "explain-and-model" || decision.action === "remediate") && previous.length === 0)
     return "Donne d'abord une explication ou une aide concrète avant de solliciter l'élève. Ajoute ensuite une étape accessible avec check ; ne termine pas la séance.";
+  if (decision.remediationStage === "worked-example") {
+    if (!previous.some((item) => item.teaching?.role === "worked-example" && item.teaching.completes
+      && (!decision.target || item.teaching.concept === decision.target.id)))
+      return "Montre d'abord une résolution complète annotée worked-example avec completes:true à la dernière étape. Pose ensuite l'exercice jumeau.";
+    const previousTasks = [request.answer?.prompt ?? "", ...(request.context?.answers ?? []).map((answer) => answer.prompt)];
+    if (previousTasks.some((prompt) => taskKey(step.check!.prompt) === taskKey(prompt)))
+      return "Propose un exercice jumeau distinct : même démarche, nouvelles données, et garde sa solution pour après la tentative.";
+    if (step.teaching?.role !== "independent-practice")
+      return "L'exercice jumeau doit permettre une tentative autonome. Annote-le independent-practice et attends la réponse.";
+  }
   if (step.teaching && !["guided-practice", "independent-practice"].includes(step.teaching.role))
     return "Une question est une activité de pratique ; corrige son rôle pédagogique ou montre un exemple sans check.";
   if (step.teaching && decision.plan && !decision.plan.concepts.some((c) => c.id === step.teaching!.concept))

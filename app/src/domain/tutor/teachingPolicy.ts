@@ -93,7 +93,7 @@ export function resolveTeachingPolicy(request: TutorRequest): TeachingPolicy {
   const workedExample = requestsWorkedExample(current) && !practiceRequested;
   const noPractice = /\b(?:sans|pas d'|pas de |ne veux pas d')exercices?\b/.test(current);
   const noQuestions = declinesQuestions(current) || noPractice || (declinesQuestions(original) && !practiceRequested);
-  const unsure = request.mode === "continue" && declaresNovice(current);
+  const unsure = request.mode === "continue" && isHelpRequest(current);
   const incorrect = request.mode === "continue" && request.answer?.correct === false;
   const remediation = unsure || incorrect;
   const intent: TeachingPolicy["intent"] = remediation ? "remediation"

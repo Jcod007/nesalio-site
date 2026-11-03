@@ -17,7 +17,7 @@
  * Le lecteur ne dépend ni de React ni du navigateur : tout passe par les
  * ports (voix, source, horloge), ce qui le rend testable de bout en bout.
  */
-import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/domain/board/state";
+import { emptyBoard, pruneErased, resolveTargets, summarizeBoard, type BoardState } from "@/domain/board/state";
 import { applyAction } from "@/domain/scene/commands";
 import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
@@ -519,8 +519,17 @@ export class Player {
     if (segment.appliedUpTo <= segment.cursor) {
       // Repères au prorata du temps de parole, sur la partie vraiment parlée de l'audio (voir spokenTime.ts).
       const cues = step.cues ? retimeCues(step.say, step.cues, speechMs, speaker.speechSpan?.(step.say)) : undefined;
-      const plan = planStep(step.do, speechMs, cues);
       let board = pruneErased(this.snapshot.board, now);
+      const actions = [...step.do];
+      // Un repère oral peut attirer le regard sur un objet conservé au tableau.
+      for (const target of Object.keys(cues ?? {})) {
+        const exists = Object.hasOwn(board.nodes, target) || Object.hasOwn(board.groups, target);
+        if (!exists || resolveTargets(board, target).length === 0) continue;
+        const alreadyShown = step.do.some((action) => action.type === "clear"
+          || ("id" in action && action.id === target) || ("target" in action && action.target === target));
+        if (!alreadyShown) actions.push({ type: "highlight", target });
+      }
+      const plan = planStep(actions, speechMs, cues);
       for (const planned of plan.actions) {
         board = applyAction(board, planned.action, { start: now + planned.offset, duration: planned.duration });
       }

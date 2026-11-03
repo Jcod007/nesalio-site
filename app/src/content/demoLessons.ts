@@ -55,9 +55,9 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
-      say: "On isole le carré {n2}.",
+      say: "Dans cette équation {n2}, je soustrais trois des deux côtés, puis je multiplie les deux côtés par moins un. Il reste le carré égal à trois {n3}.",
       mood: "explique",
-      do: [{ type: "transform", target: "n2", text: "(x − 2)² = 3" }],
+      do: [{ type: "note", id: "n3", text: "(x − 2)² = 3" }],
     },
     {
       say: "Puis on prend la racine des deux côtés, sans oublier le plus ou moins {n4}.",
