@@ -15,12 +15,14 @@ import {
   EndEvent,
   LessonHeaderEvent,
   Mood,
+  PlanEvent,
   type ModelEvent,
   type Step,
 } from "@/domain/scene/schema";
 import { z } from "zod";
 import { extractCues, inferCues } from "./cues";
 import { plainText } from "@/domain/board/tex";
+import { TeachingAnnotation } from "./learning";
 
 /** Noms de commandes que les modèles inventent : ceux du registre, plus quelques synonymes de type. */
 const TYPE_ALIASES: Readonly<Record<string, string>> = {
@@ -93,6 +95,7 @@ export function createModelOutputParser(): ModelOutputParser {
 
     const mood = Mood.safeParse(obj.mood);
     const check = obj.check === undefined ? undefined : Check.safeParse(obj.check);
+    const teaching = TeachingAnnotation.safeParse(obj.teaching);
     if (check && !check.success) issues.push({ line: JSON.stringify(obj.check).slice(0, 200), reason: "Question de vérification invalide" });
 
     const step: Step = {
@@ -100,6 +103,7 @@ export function createModelOutputParser(): ModelOutputParser {
       mood: mood.success ? mood.data : undefined,
       do: actions,
       check: check?.success ? check.data : undefined,
+      teaching: teaching.success ? teaching.data : undefined,
       cues: undefined,
     };
     // Repères écrits par le modèle, complétés par ceux qu'on déduit des mots de la phrase.
@@ -131,7 +135,7 @@ export function createModelOutputParser(): ModelOutputParser {
 
     // Un modèle oublie parfois « kind » sur une étape, ou écrit « type » à la place
     // ({"type":"diagnosis",…}, vu le 21 octobre).
-    const EVENT_KINDS = ["lesson", "step", "end", "diagnosis"];
+    const EVENT_KINDS = ["lesson", "step", "end", "diagnosis", "plan"];
     if (typeof record.kind !== "string" && typeof record.type === "string" && EVENT_KINDS.includes(record.type)) {
       const { type, ...rest } = record;
       record = { ...rest, kind: type };
@@ -146,6 +150,10 @@ export function createModelOutputParser(): ModelOutputParser {
     const kind = typeof record.kind === "string" ? record.kind : "say" in record ? "step" : undefined;
 
     switch (kind) {
+      case "plan": {
+        const parsed = PlanEvent.safeParse(record);
+        return parsed.success ? parsed.data : reject(line, "Plan pédagogique invalide");
+      }
       case "lesson": {
         const parsed = LessonHeaderEvent.safeParse(record);
         return parsed.success ? parsed.data : reject(line, "En-tête invalide");
@@ -260,8 +268,8 @@ export class JsonObjectScanner {
   }
 }
 
-/** Début d'un événement en début de ligne : {"kind":"step", "end", "lesson", "diagnosis" ou "check". */
-const NEW_EVENT = /\n[ \t]*\{\s*"kind"\s*:\s*"(?:step|end|lesson|diagnosis|check)"$/;
+/** Début d'un événement en début de ligne, même après un objet resté ouvert. */
+const NEW_EVENT = /\n[ \t]*\{\s*"kind"\s*:\s*"(?:step|end|lesson|diagnosis|check|plan)"$/;
 
 /**
  * Referme un objet JSON coupé : la chaîne ouverte, puis les crochets et accolades

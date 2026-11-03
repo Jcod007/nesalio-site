@@ -21,7 +21,7 @@ describe("relecture d'un tour", () => {
     expect(review.gestures).toBe(0);
     expect(review.missingTargets).toEqual(["n2"]);
     const notes = reviewNotes(review);
-    expect(notes.some((n) => n.includes("Aucun objet n'a bougé"))).toBe(true);
+    expect(notes.some((n) => n.includes("Aucun objet n'a bougé"))).toBe(false);
     expect(notes.some((n) => n.includes("n2"))).toBe(true);
   });
 
@@ -35,5 +35,14 @@ describe("relecture d'un tour", () => {
     expect(review.unshown).toEqual([]);
     expect(review.gestures).toBe(1);
     expect(reviewNotes(review)).toEqual([]);
+  });
+
+  it("n'impose pas un mouvement à une explication statique pertinente", () => {
+    const steps: Step[] = [
+      { say: "Un zéro est une entrée dont la sortie vaut zéro.", do: [] },
+      { say: "Sur le dessin, cela correspond à une intersection avec l'axe horizontal.", do: [] },
+      { say: "La même idée relie la formule et le graphique.", do: [] },
+    ];
+    expect(reviewNotes(reviewTurn(steps, board()))).toEqual([]);
   });
 });

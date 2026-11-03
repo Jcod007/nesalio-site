@@ -100,10 +100,9 @@ export function reviewNotes(review: TurnReview, rejected: readonly string[] = []
   for (const { say, word } of review.unshown.slice(0, 2)) {
     notes.push(`Tu as dit « ${say} » (« ${word} ») sans le montrer : fais-le au tableau (move, rotate, transform, applyMatrix, area).`);
   }
-  if (review.gestures === 0 && review.steps >= 3) notes.push("Aucun objet n'a bougé ni changé de forme : montre au moins un geste dans ce tour.");
   if (review.missingTargets.length > 0) {
     notes.push(`Tu as désigné ${review.missingTargets.slice(0, 4).join(", ")}, absent(s) du tableau : dessine un objet avant d'en parler.`);
   }
-  if (review.longSentences > 0) notes.push(`${review.longSentences} phrase(s) trop longue(s) : une idée par phrase, 20 mots au plus.`);
+  if (review.longSentences > 0) notes.push(`${review.longSentences} phrase(s) chargée(s) : découpe les idées sans supprimer les définitions ni les raisons nécessaires.`);
   return notes.slice(0, 4).map((n) => n.slice(0, 240));
 }

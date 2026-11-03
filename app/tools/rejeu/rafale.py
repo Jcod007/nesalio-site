@@ -31,7 +31,7 @@ with sync_playwright() as p:
                     n += 1
                     pg.screenshot(path=f"{S}/{tag}-{n:02d}.png", clip={"x": 300, "y": 90, "width": 680, "height": 460})
                     pg.wait_for_timeout(350)
-        if pg.get_by_text("Séance terminée").count() > 0:
+        if pg.get_by_text("Point d'étape").count() > 0:
             break
     print(n, "captures")
     b.close()

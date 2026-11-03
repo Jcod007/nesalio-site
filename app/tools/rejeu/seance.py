@@ -43,7 +43,7 @@ with sync_playwright() as p:
                 pg.wait_for_timeout(400)
             else:
                 break
-        if pg.get_by_text("Séance terminée").count() > 0:
+        if pg.get_by_text("Point d'étape").count() > 0:
             pg.wait_for_timeout(1000)
             pg.screenshot(path=f"{S}/{tag}-fin.png")
             break

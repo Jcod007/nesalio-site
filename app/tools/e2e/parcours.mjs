@@ -37,8 +37,7 @@ const failures = [];
 const fail = (screen, message) => failures.push(`[${screen}] ${message}`);
 
 async function seriousViolations(page) {
-  // Les mots que Nesa n'a pas encore dits sont volontairement pâles (effet karaoké) : contraste à trancher, exclu en attendant.
-  const { violations } = await new AxeBuilder({ page }).exclude('[class*="upcoming"]').analyze();
+  const { violations } = await new AxeBuilder({ page }).analyze();
   return violations.filter((v) => v.impact === "serious" || v.impact === "critical");
 }
 
@@ -65,7 +64,7 @@ for (const screen of SCREENS) {
     await page.waitForTimeout(6_000); // laisser Nesa dessiner les premières étapes
     const drawn = await page.locator("canvas").count();
     if (drawn === 0) fail(screen.name, "la séance a démarré mais aucun tableau n'est affiché");
-    for (const v of await seriousViolations(page)) fail(screen.name, `séance, accessibilité : ${v.id} (${v.help})`);
+    for (const v of await seriousViolations(page)) fail(screen.name, `séance, accessibilité : ${v.id} (${v.help}) ${v.nodes.map((n) => n.target.join(" ") + ": " + n.failureSummary).join(" ; ")}`);
   } catch (error) {
     fail(screen.name, `parcours interrompu : ${error.message.split("\n")[0]}`);
   }

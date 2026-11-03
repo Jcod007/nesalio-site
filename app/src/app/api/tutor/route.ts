@@ -16,12 +16,14 @@ import { after } from "next/server";
 import { createTurnRecorder } from "@/domain/sessionLog";
 import { recordEnv, saveTurn } from "@/server/sessionStore";
 import { withRecording } from "@/server/tutor/recording";
+import { readBoundedText } from "@/server/http";
 
 export const runtime = "nodejs";
 // Un tour où le modèle réfléchit longtemps dépasse parfois 60 s : coupé, il finissait sans question.
 export const maxDuration = 180;
 
-const MAX_BODY_BYTES = 24_000;
+// Le contexte inclut désormais les observations bornées par notion (16 × 8 au plus).
+const MAX_BODY_BYTES = 96_000;
 // Par session de navigation : une séance compte plusieurs tours (un appel par réponse de l'élève),
 // soit environ 8 séances par 10 minutes ; une même adresse (une classe) peut en ouvrir 12 fois plus.
 const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000 });
@@ -37,22 +39,7 @@ function single(event: StreamEvent, status: number, extra: Record<string, string
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) {
-    return single({ kind: "error", code: "bad_request", message: "Question trop longue." }, 413);
-  }
-
-  let body: unknown;
-  try {
-    body = JSON.parse(raw);
-  } catch {
-    return single({ kind: "error", code: "bad_request", message: "Requête illisible." }, 400);
-  }
-  const parsed = TutorRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    return single({ kind: "error", code: "bad_request", message: "Requête invalide." }, 400);
-  }
-
+  // Limiter aussi les requêtes invalides avant leur lecture et leur validation.
   const limit = limiter.check(request.headers);
   const tag = limit.session ? `[session ${shortSession(limit.session)}]` : "[sans session]";
   if (!limit.allowed) {
@@ -62,6 +49,14 @@ export async function POST(request: Request): Promise<Response> {
       { "Retry-After": String(limit.retryAfterSeconds) },
     );
   }
+
+  const raw = await readBoundedText(request, MAX_BODY_BYTES);
+  if (!raw.ok) return single({ kind: "error", code: "bad_request", message: raw.status === 413 ? "Question trop longue." : "Requête illisible." }, raw.status);
+  let body: unknown;
+  try { body = JSON.parse(raw.text); }
+  catch { return single({ kind: "error", code: "bad_request", message: "Requête illisible." }, 400); }
+  const parsed = TutorRequestSchema.safeParse(body);
+  if (!parsed.success) return single({ kind: "error", code: "bad_request", message: "Requête invalide." }, 400);
 
   const config = readAiConfig(request.headers);
   // Chaque tour est enregistré (sans nom, IP ni audio) pour améliorer Nesalio ; écrit après la réponse.

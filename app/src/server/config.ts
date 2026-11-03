@@ -49,10 +49,8 @@ export const DEFAULTS = {
     "à un rythme posé, avec de petites pauses aux virgules. Jamais monotone.",
   transcriptionModel: "openai/whisper-1",
   /**
-   * Premier tour sans réflexion : Nesa commence à parler en moins de 1,5 s (accroche et question
-   * qualitative, sans calcul). Tours suivants avec une réflexion courte : sans elle, DeepSeek s'est
-   * trompé de calcul dans un test sur six (pente annoncée 3/2 au lieu de 1/2) ; avec, 1,5 à 4 s,
-   * masquées par la réaction de Nesa à la réponse de l'élève (mesures du 17 octobre 2026).
+   * Garder le démarrage sans réflexion cachée par défaut : les essais avec « low » ont
+   * parfois épuisé 16 000 jetons avant la première étape. Un réglage explicite reste prioritaire.
    */
   firstTurnEffort: "none" as ReasoningEffort,
 } as const;
