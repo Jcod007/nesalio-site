@@ -4,8 +4,8 @@
  * Les modèles se trompent parfois de forme : bloc ```json autour de la
  * réponse, identifiant oublié, « line » au lieu de « segment »… On corrige ce
  * qui est sans ambiguïté, on valide tout le reste, et on écarte ce qui ne
- * passe pas. Une commande invalide est retirée sans perdre la phrase de
- * l'étape : l'élève entend l'explication même si un tracé manque.
+ * passe pas. Une étape visuelle invalide est écartée intégralement : la narration
+ * ne peut pas annoncer un dessin qui ne sera pas exécuté.
  */
 import { ACTION_ALIASES, COMMANDS, NODE_COMMANDS, type ActionType } from "@/domain/scene/commands";
 import {
@@ -37,11 +37,13 @@ export interface ModelOutputParser {
   /** Analyse une ligne. Renvoie l'événement validé, ou `null` si la ligne est écartée. */
   parseLine(line: string): ModelEvent | null;
   readonly issues: readonly ParseIssue[];
+  readonly metrics: Readonly<{ acceptedSteps: number; rejectedSteps: number; rejectedActions: number }>;
 }
 
 export function createModelOutputParser(): ModelOutputParser {
   const issues: ParseIssue[] = [];
   let autoId = 0;
+  const metrics = { acceptedSteps: 0, rejectedSteps: 0, rejectedActions: 0 };
   const nextId = (type: string) => `${type}${++autoId}`;
 
   const reject = (line: string, reason: string) => {
@@ -85,10 +87,21 @@ export function createModelOutputParser(): ModelOutputParser {
 
     const rawActions = Array.isArray(obj.do) ? obj.do : [];
     const actions: Action[] = [];
+    let invalidActions = 0;
     for (const raw of rawActions.slice(0, 12)) {
       const parsed = Action.safeParse(normalizeAction(raw));
       if (parsed.success) actions.push(parsed.data);
-      else issues.push({ line: JSON.stringify(raw).slice(0, 200), reason: parsed.error.issues[0]?.message ?? "Commande invalide" });
+      else {
+        invalidActions++;
+        metrics.rejectedActions++;
+        issues.push({ line: JSON.stringify(raw).slice(0, 200), reason: parsed.error.issues[0]?.message ?? "Commande invalide" });
+      }
+    }
+
+    if (invalidActions > 0 || rawActions.length > 12) {
+      metrics.rejectedSteps++;
+      if (rawActions.length > 12) issues.push({ line: line.slice(0, 200), reason: "Trop de commandes dans une étape" });
+      return null;
     }
 
     const mood = Mood.safeParse(obj.mood);
@@ -105,6 +118,7 @@ export function createModelOutputParser(): ModelOutputParser {
     // Repères écrits par le modèle, complétés par ceux qu'on déduit des mots de la phrase.
     const cues = inferCues(step.say, actions as Parameters<typeof inferCues>[1], cued?.cues);
     if (Object.keys(cues).length > 0) step.cues = cues;
+    metrics.acceptedSteps++;
     return { kind: "step", ...step };
   }
 
@@ -171,6 +185,7 @@ export function createModelOutputParser(): ModelOutputParser {
 
   return {
     parseLine,
+    metrics,
     get issues() {
       return issues;
     },
