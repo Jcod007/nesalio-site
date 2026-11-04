@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import styles from "./AccountPage.module.css";
 
-export function AccountPage({ title, children }: { title: string; children: ReactNode }) {
+export function AccountPage({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <main className={styles.page}>
       <div className={styles.content}>
         <a className={styles.brand} href="https://nesalio.com">Nesalio</a>
         <p className={styles.kicker}>Mathématiques · Secondaire 4 et 5</p>
-        <h1>{title}</h1>
+        {title ? <h1>{title}</h1> : null}
         {children}
         <p className={styles.privacy}>
           Utilise ton courriel pour recevoir un code de connexion. Aucun mot de passe à retenir.

@@ -9,6 +9,20 @@ import "@fontsource/caveat/600.css";
 import "@fontsource-variable/bricolage-grotesque";
 import "./globals.css";
 
+const accountLocalization = {
+  ...frFR,
+  signUp: {
+    ...frFR.signUp,
+    start: {
+      ...frFR.signUp?.start,
+      title: "Crée ton compte",
+      titleCombined: "Crée ton compte",
+      actionText: "Tu as déjà un compte ?",
+      actionLink: "Connecte-toi",
+    },
+  },
+};
+
 export const metadata: Metadata = {
   title: "Nesalio · Essaie Nesalio",
   description:
@@ -29,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {accountAuthConfigured() ? (
           <ClerkProvider
-            localization={frFR}
+            localization={accountLocalization}
             signInUrl="/connexion"
             signUpUrl="/inscription"
             signInForceRedirectUrl="/"
