@@ -126,10 +126,10 @@ La page initialise PostHog sans témoins persistants (`persistence: 'memory'`) :
 
 ### Hébergement (Vercel) et domaine
 
-Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confidentialite.html`, `vercel.json`, `robots.txt`, `sitemap.xml`, `llms.txt`, `favicon.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `og-image-maths.png`.
+Les fichiers du site vitrine sont dans le dossier `site/` du dépôt : `index.html`, `confidentialite.html`, `vercel.json`, `robots.txt`, `sitemap.xml`, `llms.txt`, `favicon.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `og-image-maths.png`.
 
 1. **GitHub** : crée un dépôt `nesalio-site` (privé, c'est possible), puis « Add file », « Upload files » et glisse tous les fichiers. Ou, en ligne de commande : `git init`, `git add .`, `git commit -m "Site Nesalio"`, puis `git push`.
-2. **Vercel** : connecte-toi avec GitHub, « Add New… », « Project », importe `nesalio-site`, laisse Framework Preset à « Other », puis « Deploy ». Le site est en ligne sur une adresse `*.vercel.app` en moins d'une minute.
+2. **Vercel** : connecte-toi avec GitHub, « Add New… », « Project », importe `nesalio-site`, laisse Framework Preset à « Other », règle Root Directory sur `site`, puis « Deploy ». Le site est en ligne sur une adresse `*.vercel.app` en moins d'une minute.
 3. **Domaine** : dans le projet Vercel, Settings, puis Domains, ajoute `nesalio.com`. Vercel propose d'ajouter aussi `www.nesalio.com` : accepte, et choisis la redirection de `www` vers `nesalio.com` (une seule adresse officielle, c'est mieux pour le SEO).
 4. **DNS chez Namecheap** : Domain List, puis Manage, puis Advanced DNS. Crée exactement les enregistrements que Vercel affiche, en général :
    - `A` : hôte `@`, valeur `76.76.21.21`
