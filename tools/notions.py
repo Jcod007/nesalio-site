@@ -58,156 +58,79 @@ def svg_fonctions(L):
     b += notes([('f(x) = −(x − 2)² + 3', VIOLET), ('x = 2 ± √3', INK)], t=.3)
     return board('fonctions', L['a_fonctions'], b)
 
-# ---------- 2. Calcul ----------
-def svg_calcul(L):
-    X = lambda x: 70 + 120 * x; Y = lambda y: 300 - 25 * y
-    b = W(line(X(-0.3), Y(0), X(3.6), Y(0)) + line(X(0), Y(-0.4), X(0), Y(10.8)), 'dr', 0, .6)
-    b += W(small(X(3.6) - 4, Y(0) + 20, 'x', anchor='end') + small(X(0) + 8, Y(10.8) + 10, 'y'), 'fd', .4)
-    area = [(X(1), Y(0))] + [(X(x), Y(x * x)) for x in [1 + i / 20 for i in range(21)]] + [(X(2), Y(0))]
-    b += W('<path d="%sZ" fill="#EEEAFF" stroke="none"/>' % path(area), 'fd', 3.3)
-    b += W(hand(X(1.32), Y(0.6), L['aire'], VIOLET), 'fd', 3.6)
-    b += W(curve([(X(x), Y(x * x)) for x in [i / 20 for i in range(0, 56)]]), 'dr', .6, 1.2)
-    b += W(dot(X(1), Y(1), WARN, 7), 'pop', 1.9) + W(hand(X(1) - 64, Y(1) - 12, 'P(1, 1)', WARN), 'fd', 2.0)
-    b += W(curve([(X(x), Y(2 * x - 1)) for x in (0.25, 2.75)], WARN, 3), 'dr', 2.3, .8)
-    b += W(hand(X(2.8), Y(2 * 2.75 - 1) + 6, L['tangente'], WARN), 'fd', 3.0)
-    b += notes([('f(x) = x²', VIOLET), ('f′(1) = 2', WARN), ('∫₁² x² dx = 7/3', VIOLET)], t=.5)
-    return board('calcul', L['a_calcul'], b)
+# ---------- 2. Algèbre ----------
+def svg_algebre(L):
+    b = W('<rect x="70" y="105" width="360" height="180" rx="8" fill="#EEEAFF" stroke="%s" stroke-width="2.4"/>' % INK, 'fd', 0)
+    b += W(line(310, 105, 310, 285, VIOLET) + line(70, 225, 430, 225, VIOLET), 'dr', .5, .8)
+    for x, y, label in [(190, 90, 'x'), (370, 90, '3'), (48, 170, 'x'), (48, 263, '2')]:
+        b += W(hand(x, y, label, INK, 25, 'middle'), 'fd', .3)
+    for i, (x, y, label) in enumerate([(190, 170, 'x²'), (370, 170, '3x'), (190, 263, '2x'), (370, 263, '6')]):
+        b += W(hand(x, y, label, BLUE, 29, 'middle'), 'pop', 1 + i * .5)
+    b += notes([('(x + 2)(x + 3)', VIOLET), ('= x² + 5x + 6', INK)], t=3)
+    return board('algebre', L['a_algebre'], b)
 
-# ---------- 3. Mécanique (plan incliné) ----------
-def svg_meca(L):
-    A = (50, 300); B = (430, 300); C = (430, 120)
-    a = math.atan2(B[1] - C[1], B[0] - A[0])  # angle de la pente
-    b = W('<path d="M%s %sL%s %sL%s %sZ" fill="#F6F8FC" stroke="%s" stroke-width="2.4" stroke-linejoin="round"/>' % (A[0], A[1], B[0], B[1], C[0], C[1], INK), 'fd', 0)
-    b += W('<path d="M%s %s A 46 46 0 0 0 %s %s" fill="none" stroke="%s" stroke-width="2" pathLength="1" class="ln"/>' % (f(A[0] + 46), A[1], f(A[0] + 46 * math.cos(a)), f(A[1] - 46 * math.sin(a)), INK), 'dr', .3, .5) + W(hand(A[0] + 54, A[1] - 8, 'θ', INK), 'fd', .6)
-    d = 225; ux, uy = math.cos(a), -math.sin(a); nx, ny = -math.sin(a), -math.cos(a)
-    cx, cy = A[0] + d * ux + 30 * nx, A[1] + d * uy + 30 * ny
-    blk = '<rect x="%s" y="%s" width="72" height="60" rx="6" fill="%s" stroke="%s" stroke-width="2.4" transform="rotate(%s %s %s)"/>' % (f(cx - 36), f(cy - 30), '#EEEAFF', INK, f(-math.degrees(a)), f(cx), f(cy))
-    b += W(blk, 'sl', .5, 1.0, 70 * ux, 70 * uy)  # le bloc glisse jusqu'à sa place
-    g = 92
-    b += W(arrow(cx, cy, cx, cy + g, INK, 3.2), 'dr', 1.7, .5) + W(hand(cx - 8, cy + g - 4, L['poids'], INK, 21, 'end'), 'fd', 2.1)
-    b += W(line(cx, cy, cx - g * math.sin(a) * ux, cy - g * math.sin(a) * uy, MUTED, 2, '5 5') + line(cx, cy, cx - g * math.cos(a) * nx, cy - g * math.cos(a) * ny, MUTED, 2, '5 5'), 'fd', 2.4)
-    N = 105
-    b += W(arrow(cx, cy, cx + N * nx, cy + N * ny, BLUE, 3.2), 'dr', 2.8, .5) + W(hand(cx + N * nx - 6, cy + N * ny - 10, L['normale'], BLUE, 21, 'end'), 'fd', 3.2)
-    fr = 70
-    b += W(arrow(cx + 36 * ux, cy + 36 * uy, cx + (36 + fr) * ux, cy + (36 + fr) * uy, WARN, 3.2), 'dr', 3.5, .5) + W(hand(cx + (36 + fr) * ux + 6, cy + (36 + fr) * uy - 8, L['frottement'], WARN), 'fd', 3.9)
-    b += notes([('ΣF = m a', VIOLET), ('mg sin θ − f = m a', INK)], 500, 30, t=1.0)
-    return board('meca', L['a_meca'], b)
+# ---------- 3. Géométrie et trigonométrie ----------
+def svg_geometrie(L):
+    b = W(curve([(90, 275), (410, 275), (410, 95), (90, 275)], INK, 3), 'dr', 0, 1.3)
+    b += W(line(392, 275, 392, 257, MUTED) + line(392, 257, 410, 257, MUTED), 'fd', 1.3)
+    for x, y, label in [(250, 305, '4'), (435, 192, '3'), (235, 165, '5')]:
+        b += W(hand(x, y, label, BLUE, 28, 'middle'), 'pop', 1.6)
+    b += W('<path d="M142 275 A52 52 0 0 0 135.3 249.5" fill="none" stroke="%s" stroke-width="2.4"/>' % VIOLET + hand(155, 260, 'θ', VIOLET, 25), 'dr', 2, .7)
+    b += notes([('sin θ = 3/5', VIOLET), ('cos θ = 4/5', BLUE)], t=3)
+    return board('geometrie', L['a_geometrie'], b)
 
-# ---------- 4. Électricité ----------
-def svg_elec(L):
-    x0, y0, x1, y1 = 90, 90, 410, 270
-    wires = (line(x0, 160, x0, y0, INK, 3) + line(x0, y0, 190, y0, INK, 3) + line(290, y0, x1, y0, INK, 3) + line(x1, y0, x1, 140, INK, 3)
-             + line(x1, 220, x1, y1, INK, 3) + line(x1, y1, x0, y1, INK, 3) + line(x0, y1, x0, 200, INK, 3))
-    b = W(wires, 'dr', 0, 1.2)
-    b += W(line(x0 - 22, 160, x0 + 22, 160, INK, 4) + line(x0 - 12, 200, x0 + 12, 200, INK, 6), 'pop', .2)
-    b += W(hand(x0 + 28, 188, 'U = 12 V', VIOLET, 22), 'fd', .5)
-    zz = [(190, y0)] + [(200 + 10 * i, y0 + (-12 if i % 2 == 0 else 12)) for i in range(9)] + [(290, y0)]
-    zz2 = [(x1, 140)] + [(x1 + (-12 if i % 2 == 0 else 12), 148 + 8 * i) for i in range(9)] + [(x1, 220)]
-    b += W(curve(zz, INK, 3), 'dr', 1.0, .6) + W(hand(240, y0 - 22, 'R₁ = 4 Ω', INK, 22, 'middle'), 'fd', 1.4)
-    b += W(curve(zz2, INK, 3), 'dr', 1.5, .6) + W(hand(x1 + 22, 186, 'R₂ = 2 Ω', INK), 'fd', 1.9)
-    b += W('<circle cx="250" cy="%s" r="18" fill="#fff" stroke="%s" stroke-width="3"/>' % (y1, INK) + small(250, y1 + 5, 'A', INK, 16, 'middle'), 'pop', 2.0)
-    # le courant circule (points qui suivent le circuit, sens conventionnel : de la borne + vers la borne −)
-    loop = 'M%s 160L%s %sL%s %sL%s %sL%s %sL%s 200' % (x0, x0, y0, x1, y0, x1, y1, x0, y1, x0)
-    flow = ''
-    for i in range(6):
-        flow += '<circle r="4.5" fill="%s"><animateMotion dur="4.2s" begin="%ss" repeatCount="indefinite" path="%s"/></circle>' % (WARN, f(-i * 0.7), loop)
-    b += W(flow, 'fd', 2.4)
-    b += W(hand(150, y0 - 24, 'I', WARN, 24, 'middle'), 'fd', 2.6) + W(hand(250, y1 + 50, 'I = 2 A', WARN, 22, 'middle'), 'fd', 3.4)
-    b += notes([('Réq = R₁ + R₂ = 6 Ω' if L['fr'] else 'Req = R₁ + R₂ = 6 Ω', VIOLET), ('I = U ÷ R = 2 A', INK)], 505, 34, t=2.6)
-    return board('elec', L['a_elec'], b)
-
-# ---------- 5. Optique ----------
-def svg_optique(L):
-    ay = 190; lx = 250; F = 85; do = 140; ho = 62
-    di = 1 / (1 / F - 1 / do); hi = -ho * di / do
-    b = W(line(30, ay, 505, ay, MUTED, 1.6), 'dr', 0, .6)
-    b += W('<ellipse cx="%s" cy="%s" rx="12" ry="110" fill="#EAF2FF" stroke="%s" stroke-width="2.4"/>' % (lx, ay, BLUE), 'pop', .3)
-    for xf in (lx - F, lx + F):
-        b += W(dot(xf, ay, INK, 4) + hand(xf, ay + 24, 'F', INK, 22, 'middle'), 'fd', .6)
-    ox = lx - do; ix = lx + di
-    b += W(arrow(ox, ay, ox, ay - ho, INK, 3.2), 'dr', .8, .4) + W(hand(ox, ay + 24, L['objet'], INK, 21, 'middle'), 'fd', 1.0)
-    s = (ay - (ay - ho)) / ((lx - F) - ox); ylens = (ay - ho) + s * (lx - ox)
-    b += W(line(ox, ay - ho, lx, ay - ho, WARN, 2.2) + line(lx, ay - ho, ix, ay - hi, WARN, 2.2), 'dr', 1.3, .9)    # parallèle, puis par F'
-    b += W(line(ox, ay - ho, ix, ay - hi, GREEN, 2.2), 'dr', 2.2, .8)                                               # par le centre
-    b += W(line(ox, ay - ho, lx, ylens, BLUE, 2.2) + line(lx, ylens, ix, ylens, BLUE, 2.2), 'dr', 3.0, .9)        # par F, puis parallèle
-    b += W(arrow(ix, ay, ix, ay - hi, VIOLET, 3.2), 'dr', 3.9, .4) + W(hand(ix, ay - hi + 26, 'image', VIOLET, 21, 'middle'), 'fd', 4.2)
-    b += notes([('1/f = 1/dₒ + 1/dᵢ', VIOLET), (L['inversee'], INK)], 505, 34, t=3.8)
-    return board('optique', L['a_optique'], b)
-
-# ---------- 6. Chimie (lois des gaz) ----------
-def svg_chimie(L):
-    b = W('<rect x="50" y="80" width="150" height="220" rx="8" fill="#fff" stroke="%s" stroke-width="2.6"/>' % INK, 'fd', 0)
-    py = 160
-    piston = '<rect x="52" y="%s" width="146" height="12" fill="%s"/>' % (py - 12, MUTED) + line(125, py - 12, 125, 60, INK, 5)
-    b += W(piston, 'sl', .4, 1.4, 0, -55)  # le piston descend
-    b += W(arrow(160, 46, 160, 86, WARN, 3), 'dr', .4, .5) + W(hand(168, 66, L['comprime'], WARN, 21), 'fd', .6)
-    import random
-    rnd = random.Random(4)
-    parts = ''
-    for i in range(30):
-        parts += '<circle cx="%s" cy="%s" r="5" fill="%s" class="jig" style="--j:-%ss"/>' % (f(rnd.uniform(64, 186)), f(rnd.uniform(py + 10, 288)), BLUE, f(rnd.uniform(0, 1)))
-    b += W(parts, 'fd', .2)
-    gx0, gy0 = 270, 290
-    b += W(arrow(gx0, gy0, 495, gy0, INK, 2.4) + arrow(gx0, gy0, gx0, 70, INK, 2.4), 'dr', 1.6, .5)
-    b += W(small(492, gy0 + 22, 'V', INK, 15, 'end') + small(gx0 - 10, 82, 'P', INK, 15, 'end'), 'fd', 1.9)
-    X = lambda v: gx0 + 34 * v; Y = lambda p: gy0 - 30 * p
-    b += W(curve([(X(v), Y(6 / v)) for v in [0.85 + i / 20 for i in range(0, 100)] if X(v) < 485]), 'dr', 2.1, 1.0)
-    b += W(dot(X(4), Y(1.5), VIOLET, 6), 'pop', 3.1) + W(line(X(4), Y(1.5), X(2), Y(3), WARN, 2, '5 5'), 'fd', 3.4) + W(dot(X(2), Y(3), BLUE, 6), 'pop', 3.7)
-    b += W(hand(X(2) + 10, Y(3) - 10, L['pdouble'], WARN, 21), 'fd', 3.9)
-    b += notes([('PV = ' + L['constante'], VIOLET)], 505, 34, t=2.4)
-    return board('chimie', L['a_chimie'], b)
+# ---------- 4. Statistiques ----------
+def svg_statistiques(L):
+    b = W(line(80, 285, 460, 285) + line(80, 285, 80, 85), 'dr', 0, .6)
+    for i, (label, count) in enumerate([('60', 2), ('70', 5), ('80', 3)]):
+        x, h = 125 + 105 * i, 30 * count
+        b += W('<rect x="%s" y="%s" width="60" height="%s" rx="5" fill="%s"/>' % (x, 285-h, h, BLUE), 'pop', .7 + .5*i)
+        b += W(small(x+30, 308, label, anchor='middle') + hand(x+30, 273-h, str(count), VIOLET, 24, 'middle'), 'fd', 1 + .5*i)
+    b += W(small(90, 65, L['effectif'], INK, 16), 'fd', .4)
+    b += notes([(L['moyenne'] + ' = 71', VIOLET), (L['mediane'] + ' = 70', INK)], t=3)
+    return board('statistiques', L['a_statistiques'], b)
 
 LANG = {
- 'fr': dict(fr=True, sommet='sommet', tangente='tangente', aire='aire', poids='poids', normale='normale', frottement='frottement',
-           objet='objet', inversee='image réelle, inversée', comprime='on comprime', pdouble='V ÷ 2 → P × 2', constante='constante',
-           a_fonctions="Tableau de Nesa : parabole, sommet et zéros", a_calcul="Tableau de Nesa : tangente et aire sous la courbe",
-           a_meca="Tableau de Nesa : forces sur un bloc sur un plan incliné", a_elec="Tableau de Nesa : circuit en série et loi d'Ohm",
-           a_optique="Tableau de Nesa : rayons à travers une lentille convergente", a_chimie="Tableau de Nesa : gaz comprimé et loi de Boyle-Mariotte"),
- 'en': dict(fr=False, sommet='vertex', tangente='tangent', aire='area', poids='weight', normale='normal', frottement='friction',
-           objet='object', inversee='real, inverted image', comprime='compress', pdouble='V ÷ 2 → P × 2', constante='constant',
-           a_fonctions="Nesa's board: parabola, vertex and zeros", a_calcul="Nesa's board: tangent and area under the curve",
-           a_meca="Nesa's board: forces on a block on a ramp", a_elec="Nesa's board: series circuit and Ohm's law",
-           a_optique="Nesa's board: rays through a converging lens", a_chimie="Nesa's board: compressed gas and Boyle's law"),
+ 'fr': dict(fr=True, sommet='sommet', effectif='Effectif', moyenne='Moyenne', mediane='Médiane',
+           a_fonctions='Tableau de Nesa : parabole, sommet et zéros',
+           a_algebre='Tableau de Nesa : factorisation et modèle des aires',
+           a_geometrie='Tableau de Nesa : triangle rectangle et rapports trigonométriques',
+           a_statistiques='Tableau de Nesa : diagramme à bandes, moyenne et médiane'),
+ 'en': dict(fr=False, sommet='vertex', effectif='Frequency', moyenne='Mean', mediane='Median',
+           a_fonctions="Nesa's board: parabola, vertex and zeros",
+           a_algebre="Nesa's board: factoring and area model",
+           a_geometrie="Nesa's board: right triangle and trigonometric ratios",
+           a_statistiques="Nesa's board: bar chart, mean and median"),
 }
 
 TABS = [
  ('fonctions', svg_fonctions,
-  dict(fr=('Fonctions', 'Maths · sec 4-5 (CST, TS, SN)', 'Nesa trace la courbe, place le sommet et te fait trouver les zéros.',
-           ['Fonction quadratique', 'Exponentielle et logarithme', 'Fonctions trigonométriques', 'Fonctions en escalier et périodiques', 'Factorisation', 'Équations et inéquations']),
-       en=('Functions', 'Math · Sec 4-5 (CST, TS, SN)', 'Nesa draws the curve, marks the vertex and has you find the zeros.',
-           ['Quadratic functions', 'Exponentials and logarithms', 'Trigonometric functions', 'Step and periodic functions', 'Factoring', 'Equations and inequalities']))),
- ('calcul', svg_calcul,
-  dict(fr=('Calcul', 'Maths · cégep', "La tangente et l'aire sous la courbe se dessinent pendant qu'il explique.",
-           ['Limites', 'Dérivées', 'Optimisation', 'Intégrales', 'Séries', 'Algèbre linéaire']),
-       en=('Calculus', 'Math · CEGEP', 'The tangent and the area under the curve appear while it explains.',
-           ['Limits', 'Derivatives', 'Optimization', 'Integrals', 'Series', 'Linear algebra']))),
- ('meca', svg_meca,
-  dict(fr=('Mécanique', 'Physique · sec 5 et cégep', 'Chaque force devient une flèche : tu vois pourquoi le bloc glisse.',
-           ['MRU et MRUA', 'Projectiles', 'Lois de Newton', 'Plan incliné', 'Vecteurs', 'Énergie']),
-       en=('Mechanics', 'Physics · Sec 5 and CEGEP', 'Each force becomes an arrow: you see why the block slides.',
-           ['Uniform and accelerated motion', 'Projectiles', "Newton's laws", 'Ramps', 'Vectors', 'Energy']))),
- ('elec', svg_elec,
-  dict(fr=('Électricité', 'Physique · sec 4 (ST, STE) et cégep', "Le courant suit le circuit, et la loi d'Ohm se construit sous tes yeux.",
-           ["Circuits et loi d'Ohm", 'Série et parallèle', 'Puissance électrique', 'Électricité et magnétisme']),
-       en=('Electricity', 'Physics · Sec 4 (ST, STE) and CEGEP', "The current follows the circuit and Ohm's law builds up in front of you.",
-           ["Circuits and Ohm's law", 'Series and parallel', 'Electric power', 'Electricity and magnetism']))),
- ('optique', svg_optique,
-  dict(fr=('Optique', 'Physique · sec 5 et cégep', "Les rayons se tracent un à un, jusqu'à l'image.",
-           ['Réflexion', 'Réfraction', 'Lentilles', 'Ondes et physique moderne']),
-       en=('Optics', 'Physics · Sec 5 and CEGEP', 'The rays are drawn one by one, all the way to the image.',
-           ['Reflection', 'Refraction', 'Lenses', 'Waves and modern physics']))),
- ('chimie', svg_chimie,
-  dict(fr=('Chimie', 'Chimie · sec 4-5 et cégep', 'On comprime le gaz : les particules se serrent et la pression monte.',
-           ['Lois des gaz', 'Stœchiométrie', 'Vitesse de réaction', 'Équilibre chimique', 'Chimie des solutions']),
-       en=('Chemistry', 'Chemistry · Sec 4-5 and CEGEP', 'Compress the gas: the particles squeeze together and the pressure rises.',
-           ['Gas laws', 'Stoichiometry', 'Reaction rate', 'Chemical equilibrium', 'Solution chemistry']))),
+  dict(fr=('Fonctions', 'Maths · secondaire 4 et 5 · selon ta séquence', 'Nesa trace la courbe, place le sommet et te fait trouver les zéros.',
+           ['Fonction quadratique', 'Exponentielle et logarithme', 'Fonctions trigonométriques', 'Fonctions en escalier et périodiques']),
+       en=('Functions', 'Math · Secondary 4 and 5 · for your course sequence', 'Nesa draws the curve, marks the vertex and has you find the zeros.',
+           ['Quadratic functions', 'Exponentials and logarithms', 'Trigonometric functions', 'Step and periodic functions']))),
+ ('algebre', svg_algebre,
+  dict(fr=('Algèbre', 'Maths · secondaire 4 et 5 · CST, TS, SN', 'Nesa décompose les expressions et te guide pour résoudre ton équation.',
+           ['Factorisation', 'Équations du second degré', 'Inéquations', "Systèmes d'équations"]),
+       en=('Algebra', 'Math · Secondary 4 and 5 · CST, TS, SN', 'Nesa breaks down expressions and guides you through solving your equation.',
+           ['Factoring', 'Quadratic equations', 'Inequalities', 'Systems of equations']))),
+ ('geometrie', svg_geometrie,
+  dict(fr=('Géométrie', 'Maths · secondaire 4 et 5 · selon ta séquence', 'Nesa dessine la figure et te fait choisir la bonne relation.',
+           ['Géométrie analytique', 'Trigonométrie', 'Loi des sinus et des cosinus', 'Triangles et relations métriques']),
+       en=('Geometry', 'Math · Secondary 4 and 5 · for your course sequence', 'Nesa draws the figure and helps you choose the right relationship.',
+           ['Analytic geometry', 'Trigonometry', 'Law of sines and cosines', 'Triangles and metric relations']))),
+ ('statistiques', svg_statistiques,
+  dict(fr=('Statistiques', 'Maths · secondaire 4 et 5 · selon ta séquence', 'Nesa représente les données pour t’aider à les interpréter.',
+           ['Moyenne et médiane', 'Mesures de dispersion', 'Probabilités', 'Interprétation de données']),
+       en=('Statistics', 'Math · Secondary 4 and 5 · for your course sequence', 'Nesa displays the data to help you interpret it.',
+           ['Mean and median', 'Measures of spread', 'Probability', 'Data interpretation']))),
 ]
 
 TXT = {
- 'fr': dict(h2='Les notions de ton cours', intro='Pas « les maths » en général : les notions précises où les élèves bloquent le plus. Choisis une matière.',
-            tablist='Matières', missing='Ta notion n\'est pas là ? <a href="https://nesalio-app.vercel.app/" data-track="essayer_notion_manquante">Pose ta question au tuteur</a>.'),
- 'en': dict(h2='The concepts in your course', intro='Not "math" in general: the specific concepts where students get stuck the most. Pick a subject.',
-            tablist='Subjects', missing='Your concept is not here? <a href="https://nesalio-app.vercel.app/" data-track="essayer_notion_manquante">Ask the tutor your question</a>.'),
+ 'fr': dict(h2='Les notions de ton cours de maths', intro='Des notions de secondaire 4 et 5, selon ta séquence CST, TS ou SN. Choisis une catégorie.',
+            tablist='Notions de mathématiques', missing='Ta notion n’est pas là ? <a href="https://nesalio-app.vercel.app/" data-track="essayer_notion_manquante">Pose ta question au tuteur</a>.'),
+ 'en': dict(h2='The concepts in your math course', intro='Secondary 4 and 5 concepts, for your CST, TS or SN course sequence. Pick a category.',
+            tablist='Math concepts', missing='Your concept is not here? <a href="https://nesalio-app.vercel.app/" data-track="essayer_notion_manquante">Ask the tutor your question</a>.'),
 }
 
 def section(lang):

@@ -1,5 +1,7 @@
 # Nesalio — site et plan de mesure du smoke test
 
+Le site se concentre sur les mathématiques de secondaire 4 et 5 (CST, TS, SN).
+
 Tous les fichiers du dossier vont à la racine du dépôt (voir la section 5). Pas de build, pas de dépendance.
 
 Depuis le 1er novembre 2026, tous les liens « Essayer Nesalio » ouvrent directement `https://nesalio-app.vercel.app/`, sans inscription ni questionnaire. Les clics sont mesurés par les événements `essayer_nav`, `essayer_hero`, `essayer_comment`, `essayer_parent`, `essayer_offre`, `essayer_final`, `essayer_sticky` et `essayer_notion_manquante`. Le formulaire « M'avertir à l'ouverture » reste facultatif ; les indicateurs de réservation ci-dessous décrivent l'ancien parcours du smoke test.
@@ -16,10 +18,10 @@ La page n'est pas seulement une liste d'attente. Chaque élément répond à une
 | Le problème est-il réel et assez douloureux pour qu'ils agissent déjà ? | Étape 2, une question par écran. Deux questions ouvertes sur un fait réel : « Raconte la dernière fois où tu as bloqué. C'était sur quoi ? » et « Qu'est-ce que tu as fait pour t'en sortir ? Est-ce que ça a marché ? ». Puis « Combien dépense ta famille par mois ? » | Champs `notion` et `derniere_fois` (texte libre, à lire et à classer à la main), `depense_mensuelle` |
 | Est-ce urgent maintenant ? | Étape 2 : « Ton prochain examen important, c'est quand ? » | Champ `urgence` |
 | La solution intéresse-t-elle ? | Vidéos de séance regardées, et jusqu'au bout ou non | Champs `demo` et `parcours` ; événements `video_vue`, `video_choix`, `video_fin` |
-| Quelles matières intéressent le plus ? | Onglets de la section « Les notions de ton cours » (Fonctions, Calcul, Mécanique, Électricité, Optique, Chimie) | Événement `onglet_matiere` dans le champ `parcours` |
+| Quelles notions de maths intéressent le plus ? | Onglets de la section « Les notions de ton cours » (Fonctions, Algèbre, Géométrie, Statistiques) | Événement `onglet_matiere` dans le champ `parcours` |
 | Sont-ils prêts à essayer ? | Clics sur « Essayer gratuitement » puis inscription | Événements `clic_essayer`, `inscription` ; nombre d'inscrits |
 | Jusqu'où sont-ils prêts à s'engager ? | Bouton choisi dans la section démo : « M'avertir à l'ouverture » (engagement faible) ou « Réserver ma démo » de 15 minutes (engagement fort). Tous les autres boutons « Réserver une démo » comptent comme une démo. Aucun prix n'est affiché. | Champ `formule` (`avertir`, `demo`) |
-| Qui achète ? | « Tu es » (élève sec 4, sec 5, cégep, parent, enseignant) | Champ `profil` |
+| Qui achète ? | « Tu es » (élève sec 4, sec 5, parent, enseignant) | Champ `profil` |
 | D'où viennent les meilleurs prospects ? | Paramètre `?src=` des liens partagés | Champ `source` |
 | Accepteront-ils une vraie conversation ? | Réservation d'une démo de 15 minutes, avec cellulaire obligatoire | Champs `formule` = `demo` et `cellulaire` |
 
@@ -59,7 +61,7 @@ Calcule-les à la fin de chaque campagne (export CSV de Formspree, plus les visi
 **E. Conversation**
 - **Acceptation d'entrevue** = inscrits qui réservent une démo (`formule` = `demo`) ÷ inscrits. Pendant la démo, refais les questions ouvertes à l'oral et demande combien la famille paierait.
 
-Découpe toujours ces chiffres par `profil` (élève, cégep, parent) et par `source`. Un taux global peut cacher un segment qui convertit très bien.
+Découpe toujours ces chiffres par `profil` (élève sec 4, élève sec 5, parent) et par `source`. Un taux global peut cacher un segment qui convertit très bien.
 
 ---
 
@@ -83,7 +85,7 @@ Point de repère tiré de la formation Centech (Raphaëlle Fluet) : une validati
 - Problème fréquent **et** signal démo élevés : le problème est réel et la solution attire. Fais les démos et pose la question du prix pendant l'appel.
 - Problème fréquent, mais faible taux d'inscription : le problème existe, mais la page ou la solution ne convainc pas. Teste un autre titre ou d'autres vidéos.
 - Beaucoup d'inscrits, mais peu de démos réservées : intérêt réel, mais pas encore de valeur perçue pour payer. Creuse en entrevue ce qui manque.
-- Problème peu fréquent : vérifie le segment. Le problème est peut-être plus aigu chez un autre profil (cégep, parents, élèves en SN).
+- Problème peu fréquent : vérifie le segment. Le problème est peut-être plus aigu chez un autre profil (secondaire 4, secondaire 5, parents, élèves en SN).
 
 ---
 
@@ -124,7 +126,7 @@ La page initialise PostHog sans témoins persistants (`persistence: 'memory'`) :
 
 ### Hébergement (Vercel) et domaine
 
-Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confidentialite.html`, `vercel.json`, `robots.txt`, `sitemap.xml`, `llms.txt`, `favicon.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `og-image.png`.
+Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confidentialite.html`, `vercel.json`, `robots.txt`, `sitemap.xml`, `llms.txt`, `favicon.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `og-image-maths.png`.
 
 1. **GitHub** : crée un dépôt `nesalio-site` (privé, c'est possible), puis « Add file », « Upload files » et glisse tous les fichiers. Ou, en ligne de commande : `git init`, `git add .`, `git commit -m "Site Nesalio"`, puis `git push`.
 2. **Vercel** : connecte-toi avec GitHub, « Add New… », « Project », importe `nesalio-site`, laisse Framework Preset à « Other », puis « Deploy ». Le site est en ligne sur une adresse `*.vercel.app` en moins d'une minute.
@@ -145,10 +147,10 @@ Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confi
 
 | Élément | Rôle |
 |---|---|
-| `<title>` et `meta description` en français, avec les mots que les gens tapent (tuteur, maths, sciences, secondaire 4-5, cégep, programme québécois) | Ce que Google affiche dans les résultats |
+| `<title>` et `meta description` en français, avec les mots que les gens tapent (tuteur, maths, secondaire 4, secondaire 5, programme québécois) | Ce que Google affiche dans les résultats |
 | `canonical` vers `https://nesalio.com/` | Une seule adresse officielle, pas de contenu en double |
 | `hreflang="fr-CA"` | Indique que la page vise le Québec francophone |
-| Balises Open Graph et Twitter avec `og-image.png` (1200 × 630) | Belle vignette quand le lien est partagé sur Facebook, Messenger, LinkedIn, X |
+| Balises Open Graph et Twitter avec `og-image-maths.png` (1200 × 630) | Belle vignette quand le lien est partagé sur Facebook, Messenger, LinkedIn, X |
 | Données structurées JSON-LD : `Organization`, `WebSite`, `WebPage`, `FAQPage` | Aident Google et les IA à comprendre qui vous êtes, ce que fait Nesalio et ses réponses officielles |
 | FAQ qui commence par « Qu'est-ce que Nesalio ? », « Pour qui ? », « Combien ça coûte ? » | Réponses courtes et factuelles : c'est le format que les IA reprennent et citent |
 | `robots.txt` qui autorise Google, Bing et les robots des IA (OAI-SearchBot et GPTBot d'OpenAI, ClaudeBot, PerplexityBot, Google-Extended, Applebot) | Personne n'est bloqué ; le fichier pointe vers le sitemap |
@@ -170,7 +172,7 @@ Tous les fichiers du dossier vont à la racine du dépôt : `index.html`, `confi
 Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, ce sont les **mentions et les liens venant d'autres sites**, et du **contenu qui répond à des questions précises**.
 
 - **Mentions de confiance** : demande une page ou un lien au Centech (fiche des entreprises incubées), à Polytechnique, à des enseignants, à des groupes de parents. Les IA citent surtout des sources qui sont elles-mêmes citées ailleurs.
-- **Profils cohérents** : crée LinkedIn (page entreprise), Instagram et TikTok @nesalio avec la même phrase de description que la page : « Tuteur à la voix propulsé par l'IA pour le secondaire 4-5 et le cégep au Québec. » Mets le lien `nesalio.com` partout.
+- **Profils cohérents** : crée LinkedIn (page entreprise), Instagram et TikTok @nesalio avec la même phrase de description que la page : « Tuteur à la voix en mathématiques pour les élèves de secondaire 4 et 5 au Québec. » Mets le lien `nesalio.com` partout.
 - **Une page par notion, plus tard** : par exemple `nesalio.com/notions/factorisation` ou `/notions/loi-des-sinus`, chacune avec une vraie explication, un exemple résolu et une question de vérification. C'est ce que les élèves cherchent sur Google (« comment factoriser secondaire 4 ») et ce que les IA aiment citer. Commence par les notions que les inscrits nomment le plus souvent dans le formulaire.
 - **Garde les faits à jour** : si l'offre ou les matières changent, modifie en même temps la FAQ, le JSON-LD et `llms.txt`.
 
@@ -178,11 +180,9 @@ Les balises aident Google et les IA à comprendre la page. Ce qui fait monter, c
 
 ## 7. Les vidéos de séance
 
-Le haut de la page montre trois courtes vidéos (dossier `videos/`, en MP4 et WebM, avec une image d'aperçu) :
+Le haut de la page montre une courte vidéo de mathématiques (dossier `videos/`, en MP4 et WebM, avec une image d'aperçu) :
 
-- Maths sec 4 : les zéros d'une parabole (1 min). L'élève interrompt, Nesa réexplique, trouve ce qui bloque (une notion de sec 3) et lui fait trouver la réponse.
-- Physique sec 5 : la pente du graphique position-temps, c'est la vitesse (46 s).
-- Cégep : c'est quoi une dérivée (47 s).
+- Maths sec 4 : les zéros d'une parabole (29 s). L'élève interrompt, Nesa réexplique, trouve ce qui bloque (une notion de sec 3) et lui fait trouver la réponse.
 
 La première vidéo se lance seule, sans son, quand elle est visible ; on peut cliquer dessus pour la mettre en pause. Nesa, à côté de l'écran, parle pendant la lecture.
 
