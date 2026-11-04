@@ -226,3 +226,12 @@ python3 tools/rejeu/seance.py /tmp seance.json essai "[]"
   écrit) : créer la voix chez ElevenLabs ou Cartesia, puis remplacer l'appel
   de `src/server/ai/audio.ts > synthesizeSpeech` par l'API du fournisseur. La
   route `/api/voice` et le lecteur côté navigateur restent identiques.
+
+
+## Essai avant connexion
+
+Le tuteur offre trois reponses sans compte avant la connexion par code courriel.
+Le serveur utilise un temoin signe et les compteurs prives partages du magasin Blob.
+Configurer TRIAL_COOKIE_SECRET ; voir docs/authentication.md pour les limites et controles.
+La transcription cloud reste reservee aux comptes ; les invites peuvent utiliser
+la dictee du navigateur si elle est disponible, ou le clavier.

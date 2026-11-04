@@ -64,6 +64,7 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
       <button type="submit" className="cta" disabled={!text.trim()}>
         {submitLabel}
       </button>
+      {voice.ready && !voice.supported ? <p className={styles.hint}>Écris ta question pour essayer.</p> : null}
       {voice.error ? <p className={styles.error}>{voice.error}</p> : null}
     </form>
   );

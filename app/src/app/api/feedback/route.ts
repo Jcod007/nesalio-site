@@ -10,7 +10,7 @@ import { FEEDBACK_LABELS, FeedbackSchema } from "@/domain/feedback";
 import { jsonError, readJson } from "@/server/http";
 import { forwardToForm } from "@/server/forms";
 import { createSessionLimits } from "@/server/rateLimit";
-import { requireAccount } from "@/server/account";
+import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess";
 
 export const runtime = "nodejs";
 
@@ -18,7 +18,7 @@ export const runtime = "nodejs";
 const limiter = createSessionLimits({ limit: 8, windowMs: 30 * 60_000, ipFactor: 6 });
 
 export async function POST(request: Request): Promise<Response> {
-  const access = await requireAccount(request);
+  const access = await identifyUsage(request);
   if (!access.ok) return access.response;
   const read = await readJson(request, 40_000);
   if (!read.ok) return read.response;
@@ -27,6 +27,9 @@ export async function POST(request: Request): Promise<Response> {
 
   const limit = limiter.check(request.headers, undefined, access.userId);
   if (!limit.allowed) return jsonError(429, "Merci ! Tu as déjà envoyé plusieurs retours ; réessaie un peu plus tard.");
+
+  const permit = await reserveUsage(request, access, "feedback");
+  if (!permit.ok) return permit.response;
 
   const { kind, message, email, context } = parsed.data;
   const payload = {
@@ -51,6 +54,6 @@ export async function POST(request: Request): Promise<Response> {
       : { contexte: "non joint" }),
   };
 
-  if (!(await forwardToForm(payload))) return jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
-  return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+  if (!(await forwardToForm(payload))) return usageResponse(jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant."), permit);
+  return usageResponse(Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } }), permit);
 }
