@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { ClerkProvider } from "@clerk/nextjs";
+import { frFR } from "@clerk/localizations";
+import { accountAuthConfigured } from "@/server/authConfig";
 import "@fontsource/atkinson-hyperlegible/400.css";
 import "@fontsource/atkinson-hyperlegible/700.css";
 import "@fontsource/caveat/600.css";
@@ -9,7 +12,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Nesalio · Essaie Nesalio",
   description:
-    "Pose ta question de maths ou de sciences : Nesa te répond à voix haute en dessinant l'explication au tableau. Secondaire 4-5 et cégep.",
+    "Pose ta question de mathématiques : Nesa te répond à voix haute en dessinant l'explication au tableau. Secondaire 4 et 5.",
   icons: { icon: "/favicon.svg", apple: "/apple-touch-icon.png" },
   robots: { index: false },
 };
@@ -24,7 +27,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr-CA">
       <body>
-        {children}
+        {accountAuthConfigured() ? (
+          <ClerkProvider
+            localization={frFR}
+            signInUrl="/connexion"
+            signUpUrl="/inscription"
+            signInForceRedirectUrl="/"
+            signUpForceRedirectUrl="/"
+            afterSignOutUrl="/connexion"
+            appearance={{ variables: { colorPrimary: "#5A45D6", fontFamily: "Atkinson Hyperlegible, sans-serif", borderRadius: "14px" } }}
+          >
+            {children}
+          </ClerkProvider>
+        ) : children}
         {/* Nesa, la mascotte du site, partagée telle quelle (élément <nesa-mascot>). */}
         <Script src="/nesa.js" strategy="afterInteractive" />
       </body>

@@ -1,12 +1,13 @@
 /**
  * GET /api/status — quels services sont branchés (sans rien appeler).
  *
- * Avec ?check=<SELFTEST_TOKEN>, fait aussi un petit appel réel à chaque
+ * Avec Authorization: Bearer <SELFTEST_TOKEN>, fait aussi un petit appel réel à chaque
  * service, pour vérifier un déploiement. Sans le bon jeton, aucun appel payant.
  */
 import { synthesizeSpeech } from "@/server/ai/audio";
 import { GATEWAY_BASE, readAiConfig } from "@/server/config";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
+import { hasSelfTestAccess } from "@/server/adminAccess";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,9 +21,7 @@ export async function GET(request: Request): Promise<Response> {
     transcription: config.gatewayToken ? { model: config.transcription.model } : null,
   };
 
-  const token = process.env.SELFTEST_TOKEN?.trim();
-  const check = new URL(request.url).searchParams.get("check");
-  if (!token || check !== token) return Response.json(status, { headers: { "Cache-Control": "no-store" } });
+  if (!hasSelfTestAccess(request)) return Response.json(status, { headers: { "Cache-Control": "no-store" } });
 
   const results: Record<string, string> = {};
   if (config.chat) {

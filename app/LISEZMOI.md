@@ -16,6 +16,10 @@ pas »), lui poser une question sur ce qui est au tableau, puis reprendre.
   pour le modèle.
 - **Repli automatique** : sans service d'IA, séances de démonstration, voix du
   navigateur et reconnaissance vocale du navigateur.
+- **Comptes préparés** : connexion et inscription Clerk par code courriel.
+  Activer l'instance Clerk et ses clés avant de déployer cette version ; voir
+  [la configuration et les vérifications](docs/authentication.md). Sans configuration,
+  les API privées refusent les requêtes. Aucun fournisseur n'est créé implicitement.
 
 ## Démarrer
 
@@ -38,7 +42,8 @@ questions, lignes refusées), dans le format du flux, donc rejouable avec
 
 - Chemin : `production/AAAA-MM-JJ/<session courte>/<heure>-<mode>.json`
   (la session courte est celle des retours « Signaler un problème »).
-- Consulter : `/api/seances?check=<SELFTEST_TOKEN>&jour=AAAA-MM-JJ[&session=xxxxxxxx][&env=preview]`.
+- Consulter : `/api/seances?jour=AAAA-MM-JJ[&session=xxxxxxxx][&env=preview]`, avec
+  l'en-tête `Authorization: Bearer <SELFTEST_TOKEN>` (jamais le jeton dans l'URL).
 - Conservation : 12 mois, purge quotidienne (`vercel.json`, `/api/seances/purge`, `CRON_SECRET`).
 - Désactiver : `RECORD_SESSIONS=0` (ou sans `BLOB_READ_WRITE_TOKEN`, en local).
 
@@ -157,12 +162,13 @@ que projeter ce graphe (Create, Shift, ReplacementTransform, fondus, Indicate).
   phrase est transcrite par le serveur. Il faut autoriser le micro.
 - **Petits écrans** : un repère très large (par exemple 0 à 40 m) devient petit
   sur téléphone ; on peut zoomer avec deux doigts.
-- Aucun compte, aucune donnée enregistrée : les questions passent par le
-  modèle et ne sont pas conservées par l'application.
+- Comptes préparés dans cette version (activation Clerk requise). Les questions
+  sont conservées si l'enregistrement privé Vercel Blob est activé ; voir la
+  section « Séances enregistrées » et la politique de confidentialité.
 
 ## Vérifier un déploiement
 
-`/api/diagnostic?check=<SELFTEST_TOKEN>&ask=<question>` joue une séance
+`/api/diagnostic?ask=<question>`, avec l'en-tête `Authorization: Bearer <SELFTEST_TOKEN>`, joue une séance
 complète côté serveur avec un élève simulé : `voice=1` (micro simulé),
 `model=<id>` (autre modèle d'AI Gateway), `effort=none|low|medium|high`
 (réflexion du modèle, principal levier de latence), `answers=right|wrong`.

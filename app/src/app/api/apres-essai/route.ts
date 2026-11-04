@@ -8,17 +8,20 @@ import { refFromHeaders, shortSession } from "@/domain/session";
 import { forwardToForm } from "@/server/forms";
 import { jsonError, readJson } from "@/server/http";
 import { createSessionLimits } from "@/server/rateLimit";
+import { requireAccount } from "@/server/account";
 
 export const runtime = "nodejs";
 
 const limiter = createSessionLimits({ limit: 3, windowMs: 60 * 60_000, ipFactor: 10 });
 
 export async function POST(request: Request): Promise<Response> {
+  const access = await requireAccount(request);
+  if (!access.ok) return access.response;
   const read = await readJson(request, 8_000);
   if (!read.ok) return read.response;
   const parsed = AfterTrialSchema.safeParse(read.body);
   if (!parsed.success) return jsonError(400, "Réponses invalides.");
-  const limit = limiter.check(request.headers);
+  const limit = limiter.check(request.headers, undefined, access.userId);
   if (!limit.allowed) return jsonError(429, "Merci, tes réponses sont déjà arrivées.");
 
   const a = parsed.data;

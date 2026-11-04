@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import styles from "./TopBar.module.css";
+import { AccountMenu } from "./AccountMenu";
 
 interface Props {
   title: string | null;
@@ -36,6 +37,7 @@ export function TopBar({ title, topic, demo, muted, onToggleMute, onHome, feedba
       )}
 
       <div className={styles.actions}>
+        <AccountMenu />
         {demo ? (
           <span className={styles.demo} title="Aucun modèle n'est branché : Nesa joue une séance préparée.">
             Démonstration

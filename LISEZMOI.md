@@ -2,9 +2,12 @@
 
 Le site se concentre sur les mathématiques de secondaire 4 et 5 (CST, TS, SN).
 
-Tous les fichiers du dossier vont à la racine du dépôt (voir la section 5). Pas de build, pas de dépendance.
+Les sources du site vitrine sont dans `site/`. Depuis ce dossier,
+`node tools/build-site.cjs` prépare uniquement les 21 pages et médias publics
+dans `site-dist/` (soit `site/site-dist/` dans le dépôt), sans dépendance. Vercel publie ce dossier : les scripts,
+sources, rapports et fichiers locaux du dépôt ne font pas partie du site.
 
-Depuis le 1er novembre 2026, tous les liens « Essayer Nesalio » ouvrent directement `https://nesalio-app.vercel.app/`, sans inscription ni questionnaire. Les clics sont mesurés par les événements `essayer_nav`, `essayer_hero`, `essayer_comment`, `essayer_parent`, `essayer_offre`, `essayer_final`, `essayer_sticky` et `essayer_notion_manquante`. Le formulaire « M'avertir à l'ouverture » reste facultatif ; les indicateurs de réservation ci-dessous décrivent l'ancien parcours du smoke test.
+Les liens « Essayer Nesalio » ouvrent `https://app.nesalio.com/`. La version avec comptes exige une inscription ou une connexion par code courriel. Les clics restent mesurés par les événements `essayer_nav`, `essayer_hero`, `essayer_comment`, `essayer_parent`, `essayer_offre`, `essayer_final`, `essayer_sticky` et `essayer_notion_manquante`. Les indicateurs de réservation ci-dessous décrivent l'ancien smoke test.
 
 ---
 
@@ -129,7 +132,7 @@ La page initialise PostHog sans témoins persistants (`persistence: 'memory'`) :
 Les fichiers du site vitrine sont dans le dossier `site/` du dépôt : `index.html`, `confidentialite.html`, `vercel.json`, `robots.txt`, `sitemap.xml`, `llms.txt`, `favicon.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `og-image-maths.png`.
 
 1. **GitHub** : crée un dépôt `nesalio-site` (privé, c'est possible), puis « Add file », « Upload files » et glisse tous les fichiers. Ou, en ligne de commande : `git init`, `git add .`, `git commit -m "Site Nesalio"`, puis `git push`.
-2. **Vercel** : connecte-toi avec GitHub, « Add New… », « Project », importe `nesalio-site`, laisse Framework Preset à « Other », règle Root Directory sur `site`, puis « Deploy ». Le site est en ligne sur une adresse `*.vercel.app` en moins d'une minute.
+2. **Vercel** : connecte-toi avec GitHub, « Add New… », « Project », importe `nesalio-site`, laisse Framework Preset à « Other », règle Root Directory sur `site`, puis « Deploy ». Le fichier `site/vercel.json` définit le build `node tools/build-site.cjs` et la sortie `site-dist`. Le site est en ligne sur une adresse `*.vercel.app` en moins d'une minute.
 3. **Domaine** : dans le projet Vercel, Settings, puis Domains, ajoute `nesalio.com`. Vercel propose d'ajouter aussi `www.nesalio.com` : accepte, et choisis la redirection de `www` vers `nesalio.com` (une seule adresse officielle, c'est mieux pour le SEO).
 4. **DNS chez Namecheap** : Domain List, puis Manage, puis Advanced DNS. Crée exactement les enregistrements que Vercel affiche, en général :
    - `A` : hôte `@`, valeur `76.76.21.21`

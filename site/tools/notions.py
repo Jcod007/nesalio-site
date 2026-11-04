@@ -128,9 +128,9 @@ TABS = [
 
 TXT = {
  'fr': dict(h2='Les notions de ton cours de maths', intro='Des notions de secondaire 4 et 5, selon ta séquence CST, TS ou SN. Choisis une catégorie.',
-            tablist='Notions de mathématiques', missing='Ta notion n’est pas là ? <a href="https://nesalio-app.vercel.app/" data-track="essayer_notion_manquante">Pose ta question au tuteur</a>.'),
+            tablist='Notions de mathématiques', missing='Ta notion n’est pas là ? <a href="https://app.nesalio.com/" data-track="essayer_notion_manquante">Pose ta question au tuteur</a>.'),
  'en': dict(h2='The concepts in your math course', intro='Secondary 4 and 5 concepts, for your CST, TS or SN course sequence. Pick a category.',
-            tablist='Math concepts', missing='Your concept is not here? <a href="https://nesalio-app.vercel.app/" data-track="essayer_notion_manquante">Ask the tutor your question</a>.'),
+            tablist='Math concepts', missing='Your concept is not here? <a href="https://app.nesalio.com/" data-track="essayer_notion_manquante">Ask the tutor your question</a>.'),
 }
 
 def section(lang):

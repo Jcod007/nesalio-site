@@ -2,7 +2,7 @@
  * Relecture des séances enregistrées : rejoue chaque séance sur un tableau
  * (le même code que l'application) et mesure ce que le JSON permet de mesurer.
  *
- *   curl "<app>/api/seances?check=<jeton>&jour=AAAA-MM-JJ" -o seances.json
+ *   curl -H "Authorization: Bearer <jeton>" "<app>/api/seances?jour=AAAA-MM-JJ" -o seances.json
  *   npx tsx tools/analyse/seances.ts seances.json > rapport.md
  *
  * Par séance : questions, réponses de l'élève, attente, puis les mesures :

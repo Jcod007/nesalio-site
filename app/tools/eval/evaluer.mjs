@@ -61,9 +61,9 @@ function programCheck(q, report) {
 
 const rows = [];
 for (const q of questions) {
-  const url = `${base}/api/diagnostic?check=${encodeURIComponent(token)}&ask=${encodeURIComponent(q.ask)}&answers=${answers}&turns=${turns}`;
+  const url = `${base}/api/diagnostic?ask=${encodeURIComponent(q.ask)}&answers=${answers}&turns=${turns}`;
   const started = Date.now();
-  const report = await fetch(url).then((r) => r.json());
+  const report = await fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json());
   const lesson = report.lesson ?? {};
   const row = {
     id: q.id,
