@@ -22,29 +22,28 @@ export const polynomes: DomainGuide = {
       "deux nombres m et n avec m × n = a × c et m + n = b, on décompose bx en mx + nx, puis mise en évidence double ; " +
       "6) sinon, complétion du carré ou formule quadratique. Nomme la méthode à voix haute (« c'est une différence de deux carrés »). " +
       "Jamais de « méthode AC », de « diviser par a » ni de raccourci que l'élève n'a pas vu en classe.",
-    "Produit-somme : écris la recherche dans la colonne (\"note\") comme en classe : « produit : 2 × (−15) = −30 ; somme : −7 », " +
+    'Produit-somme : écris la recherche dans la colonne ("note") comme en classe : « produit : 2 × (−15) = −30 ; somme : −7 », ' +
       "puis les paires essayées « −10 et 3 ✓ ». Puis 2x² − 7x − 15 = 2x² − 10x + 3x − 15 = 2x(x − 5) + 3(x − 5) = (x − 5)(2x + 3), " +
-      "par \"transform\" de la même ligne. Les mauvais choix de tes questions : les signes inversés (−3 et 10), la paire dont le " +
+      'par "transform" de la même ligne. Les mauvais choix de tes questions : les signes inversés (−3 et 10), la paire dont le ' +
       "produit vaut c au lieu de a × c.",
-    "Vérifie toute factorisation en redéveloppant (une \"note\" : « (x − 5)(2x + 3) = 2x² + 3x − 10x − 15 = 2x² − 7x − 15 ✓ ») : " +
+    'Vérifie toute factorisation en redéveloppant (une "note" : « (x − 5)(2x + 3) = 2x² + 3x − 10x − 15 = 2x² − 7x − 15 ✓ ») : ' +
       "c'est ce que l'enseignant exige, et ça montre que factoriser et développer sont deux sens du même chemin.",
     // Le geste qui fait comprendre : le modèle d'aire (tuiles algébriques).
-    "MODÈLE D'AIRE (multiplier deux binômes, factoriser un trinôme, compléter le carré) : \"areaModel\" avec les termes des " +
-      "deux facteurs (\"rows\":[\"x\",\"2\"], \"cols\":[\"x\",\"3\"]) ; le moteur écrit chaque produit dans sa pièce. Ne dessine " +
-      "jamais les pièces en \"polygon\" ni les produits en \"text\". Développer = additionner les pièces (les deux pièces en x " +
+    'MODÈLE D\'AIRE (multiplier deux binômes, factoriser un trinôme, compléter le carré) : "areaModel" avec les termes des ' +
+      'deux facteurs ("rows":["x","2"], "cols":["x","3"]) ; le moteur écrit chaque produit dans sa pièce. Ne dessine ' +
+      'jamais les pièces en "polygon" ni les produits en "text". Développer = additionner les pièces (les deux pièces en x ' +
       "s'additionnent : 2x + 3x = 5x) ; factoriser = retrouver les côtés du rectangle à partir des pièces.",
-    "Complétion du carré avec le modèle d'aire : x² + 6x = \"areaModel\" rows [\"x\",\"3\"], cols [\"x\",\"3\"] avec " +
+    'Complétion du carré avec le modèle d\'aire : x² + 6x = "areaModel" rows ["x","3"], cols ["x","3"] avec ' +
       "\"empty\":[[1,1]] (la bande 6x coupée en deux moitiés 3x, le coin manquant « ? ») ; l'élève prédit ce qu'il manque, puis " +
-      "redemande la même figure sans \"empty\" : le coin 9 apparaît. D'où x² + 6x = (x + 3)² − 9.",
+      'redemande la même figure sans "empty" : le coin 9 apparaît. D\'où x² + 6x = (x + 3)² − 9.',
     "Produits remarquables : (a + b)² = a² + 2ab + b², le piège est d'oublier 2ab : montre-le avec le modèle d'aire (les deux " +
-      "bandes ab). (a + b)(a − b) = a² − b² : les termes du milieu s'annulent : écris-les, puis estompe-les (\"dim\") en le disant.",
+      'bandes ab). (a + b)(a − b) = a² − b² : les termes du milieu s\'annulent : écris-les, puis estompe-les ("dim") en le disant.',
     // Division de polynômes : la potence de la classe, ligne par ligne.
     "Division d'un polynôme par un binôme (x − a) : la méthode de la classe, comme la division euclidienne, une étape par " +
       "ligne de la colonne : diviser le premier terme (« 2x³ ÷ x = 2x² »), multiplier (« 2x²(x − 3) = 2x³ − 6x² »), SOUSTRAIRE " +
       "(attention au signe de chaque terme), abaisser le terme suivant. Écris dividende, diviseur, quotient et reste avec leur nom, " +
       "et termine par la vérification « dividende = diviseur × quotient + reste ». Un terme manquant s'écrit avec 0 (x³ + 0x² − 2x + 1).",
-    "Division par un monôme : chaque terme est divisé (« (6x³ − 4x) ÷ 2x = 3x² − 2 »), puis on soustrait les exposants : " +
-      "x³ ÷ x = x², pas x³.",
+    "Division par un monôme : chaque terme est divisé (« (6x³ − 4x) ÷ 2x = 3x² − 2 »), puis on soustrait les exposants : " + "x³ ÷ x = x², pas x³.",
     // Expressions rationnelles : les restrictions d'abord.
     "Expression rationnelle : 1) factorise numérateur et dénominateur ; 2) écris les RESTRICTIONS avant de simplifier " +
       "(« x ≠ 3 et x ≠ −2 », le dénominateur ≠ 0, y compris pour les facteurs qui vont disparaître) ; 3) simplifie les facteurs " +

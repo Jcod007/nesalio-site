@@ -26,10 +26,10 @@ export const unitCircleCommand = defineCommand({
   }),
   doc:
     '{"type":"unitCircle","id":"uc","angle":30,"angleLabel":"θ","values":true} : cercle trigonométrique exact (repère de\n' +
-    '  -1,5 à 1,5 tracé s\'il manque), point P(cos θ, sin θ), angle θ, segment cos θ sur l\'axe des x (vert) et sin θ\n' +
+    "  -1,5 à 1,5 tracé s'il manque), point P(cos θ, sin θ), angle θ, segment cos θ sur l'axe des x (vert) et sin θ\n" +
     '  vertical jusqu\'à P (orange), angle droit ; "values" écrit cos θ ≈ 0,87 et sin θ = 0,5. Redemande la même figure\n' +
     '  avec un autre "angle" pour la faire tourner (120°, 210°… : les signes changent sous les yeux). Parties : uc-cercle,\n' +
-    '  uc-rayon, uc-P, uc-angle, uc-cos, uc-sin.',
+    "  uc-rayon, uc-P, uc-angle, uc-cos, uc-sin.",
   duration: 2200,
   aliases: ["trigCircle", "cercleTrigo"],
   apply(state, action, reveal) {
@@ -64,8 +64,26 @@ export const unitCircleCommand = defineCommand({
     if (Math.abs(c) > 1e-6 && Math.abs(s) > 1e-6) parts.push(angleMark(next, `${id}-droit`, foot, P, O, undefined, true, reveal));
     if (action.values) {
       const approx = (v: number) => (Math.abs(v * 1000 - Math.round(v * 1000)) < 1e-9 ? "=" : "≈");
-      parts.push(label(`${id}-cos-l`, `cos ${name} ${approx(c)} ${formatNumber(Math.round(c * 100) / 100)}`, [c / 2, s >= 0 ? -0.18 / unit - 0.12 : 0.18 / unit + 0.12], `${id}-cercle`, reveal, "green"));
-      parts.push(label(`${id}-sin-l`, `sin ${name} ${approx(s)} ${formatNumber(Math.round(s * 100) / 100)}`, [c + (c >= 0 ? 0.55 : -0.55), s / 2], `${id}-cercle`, reveal, "orange"));
+      parts.push(
+        label(
+          `${id}-cos-l`,
+          `cos ${name} ${approx(c)} ${formatNumber(Math.round(c * 100) / 100)}`,
+          [c / 2, s >= 0 ? -0.18 / unit - 0.12 : 0.18 / unit + 0.12],
+          `${id}-cercle`,
+          reveal,
+          "green",
+        ),
+      );
+      parts.push(
+        label(
+          `${id}-sin-l`,
+          `sin ${name} ${approx(s)} ${formatNumber(Math.round(s * 100) / 100)}`,
+          [c + (c >= 0 ? 0.55 : -0.55), s / 2],
+          `${id}-cercle`,
+          reveal,
+          "orange",
+        ),
+      );
     }
     return drawFigure(next, id, parts, reveal, {}, { P, O });
   },

@@ -23,7 +23,15 @@ describe("POST /api/feedback", () => {
         kind: "bug",
         message: "Le cercle est décalé",
         email: "",
-        context: { question: "Fourier ?", title: "Fourier", status: "playing", recent: ["Voici le cercle."], board: ["c · circle · centre (0, 0)"], screen: "1280×760", browser: "test" },
+        context: {
+          question: "Fourier ?",
+          title: "Fourier",
+          status: "playing",
+          recent: ["Voici le cercle."],
+          board: ["c · circle · centre (0, 0)"],
+          screen: "1280×760",
+          browser: "test",
+        },
       }),
     );
     expect(response.status).toBe(200);
@@ -34,7 +42,7 @@ describe("POST /api/feedback", () => {
   it("refuse un message vide et signale un formulaire injoignable", async () => {
     expect((await POST(request({ kind: "idee", message: " " }))).status).toBe(400);
     vi.stubGlobal("fetch", async () => new Response("non", { status: 500 }));
-    expect((await POST(request({ kind: "idee", message: "Une idée", email: "toi@exemple.com" }, "zzzzzzzz-1")))).toHaveProperty("status", 502);
+    expect(await POST(request({ kind: "idee", message: "Une idée", email: "toi@exemple.com" }, "zzzzzzzz-1"))).toHaveProperty("status", 502);
   });
 
   it("joint la référence de l'inscription, pour relier le retour au courriel", async () => {

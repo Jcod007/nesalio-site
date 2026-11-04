@@ -66,7 +66,6 @@ export function outline(node: ArcNode | CircleNode | PolygonNode): Vec2[] {
   }
 }
 
-
 /* -------------------------------- étiquettes -------------------------------- */
 
 export type Labelled = Exclude<BoardNode, TextNode | { type: "grid" }>;

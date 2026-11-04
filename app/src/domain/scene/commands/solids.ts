@@ -47,7 +47,12 @@ const BaseShape = z.enum(["rectangle", "square", "triangle", "regular"]);
 function basePolygon(shape: z.infer<typeof BaseShape>, length: number, width: number, sides: number): Vec3[] {
   if (shape === "rectangle" || shape === "square") {
     const [a, b] = [length / 2, (shape === "square" ? length : width) / 2];
-    return [[-a, -b, 0], [a, -b, 0], [a, b, 0], [-a, b, 0]];
+    return [
+      [-a, -b, 0],
+      [a, -b, 0],
+      [a, b, 0],
+      [-a, b, 0],
+    ];
   }
   return regularPolygon(shape === "triangle" ? 3 : sides, length).map(([x, y]) => [x, y, 0] as Vec3);
 }
@@ -60,7 +65,10 @@ interface Polyhedron {
 
 /** Arêtes d'un polyèdre convexe, chacune visible ou cachée selon les faces qui la bordent. */
 function edgesOf({ vertices, faces }: Polyhedron): Array<{ a: number; b: number; hidden: boolean }> {
-  const center = scale3(vertices.reduce((s, v) => [s[0] + v[0], s[1] + v[1], s[2] + v[2]] as Vec3, [0, 0, 0]), 1 / vertices.length);
+  const center = scale3(
+    vertices.reduce((s, v) => [s[0] + v[0], s[1] + v[1], s[2] + v[2]] as Vec3, [0, 0, 0]),
+    1 / vertices.length,
+  );
   const visible = faces.map((face) => {
     const [p, q, r] = [vertices[face[0]!]!, vertices[face[1]!]!, vertices[face[2]!]!];
     let n = cross(minus(q, p), minus(r, p));
@@ -128,7 +136,7 @@ export const prismCommand = defineCommand({
     '{"type":"prism","id":"p","base":"rectangle","length":5,"width":3,"height":4,"labels":{"length":"5 cm","width":"3 cm","height":"4 cm"}}\n' +
     '  Prisme droit en perspective, arêtes cachées en pointillés : "base" "rectangle" (pavé droit : length × width),\n' +
     '  "square" (côté length ; cube si height = length), "triangle" (équilatéral de côté length), "regular" ("sides" côtés\n' +
-    '  de longueur length). Parties : p-base (la base coloriée : son aire), p-arete-1…, p-hauteur-l, p-length-l…',
+    "  de longueur length). Parties : p-base (la base coloriée : son aire), p-arete-1…, p-hauteur-l, p-length-l…",
   duration: 2600,
   aliases: ["pave", "cube", "box"],
   apply(state, action, reveal) {
@@ -138,17 +146,29 @@ export const prismCommand = defineCommand({
     const top = bottom.map(([x, y]) => [x, y, action.height] as Vec3);
     const solid: Polyhedron = {
       vertices: [...bottom, ...top],
-      faces: [Array.from({ length: n }, (_, i) => i), Array.from({ length: n }, (_, i) => n + i), ...Array.from({ length: n }, (_, i) => [i, (i + 1) % n, n + ((i + 1) % n), n + i])],
+      faces: [
+        Array.from({ length: n }, (_, i) => i),
+        Array.from({ length: n }, (_, i) => n + i),
+        ...Array.from({ length: n }, (_, i) => [i, (i + 1) % n, n + ((i + 1) % n), n + i]),
+      ],
     };
     const flat = solid.vertices.map(project);
     const { state: next, shift, unit } = placed(state, flat, action.at);
     const to2 = (v: Vec3) => add(project(v), shift);
     const color = action.color ?? "blue";
-    const parts = polyhedronParts(action.id, solid, Array.from({ length: n }, (_, i) => i), to2, reveal, color);
+    const parts = polyhedronParts(
+      action.id,
+      solid,
+      Array.from({ length: n }, (_, i) => i),
+      to2,
+      reveal,
+      color,
+    );
     const center = to2([0, 0, action.height / 2]);
     const L = action.labels ?? {};
     // Cotes : longueur sur l'arête avant de la base, largeur sur l'arête de droite, hauteur sur une arête verticale avant.
-    if (L.length || L.side) parts.push(dimension(`${action.id}-length-l`, (L.length ?? L.side)!, to2(bottom[0]!), to2(bottom[1]!), center, unit, reveal, `${action.id}-base`));
+    if (L.length || L.side)
+      parts.push(dimension(`${action.id}-length-l`, (L.length ?? L.side)!, to2(bottom[0]!), to2(bottom[1]!), center, unit, reveal, `${action.id}-base`));
     if (L.width && n === 4) parts.push(dimension(`${action.id}-width-l`, L.width, to2(bottom[1]!), to2(bottom[2]!), center, unit, reveal, `${action.id}-base`));
     if (L.height) parts.push(dimension(`${action.id}-hauteur-l`, L.height, to2(bottom[1]!), to2(top[1]!), center, unit, reveal, `${action.id}-base`, "orange"));
     if (L.base) parts.push(label(`${action.id}-base-l`, L.base, to2([0, 0, 0]), `${action.id}-base`, reveal, color));
@@ -174,8 +194,8 @@ export const pyramidCommand = defineCommand({
   doc:
     '{"type":"pyramid","id":"py","base":"square","length":4,"height":6,"labels":{"side":"4 cm","height":"6 cm"}}\n' +
     '  Pyramide droite (sommet au-dessus du centre de la base), mêmes bases que "prism". La hauteur est tracée en\n' +
-    '  pointillés du sommet au centre de la base, avec l\'angle droit. Parties : py-base, py-arete-1…, py-hauteur, py-apothème\n' +
-    '  si "labels.slant" (hauteur d\'une face latérale, pour l\'aire latérale).',
+    "  pointillés du sommet au centre de la base, avec l'angle droit. Parties : py-base, py-arete-1…, py-hauteur, py-apothème\n" +
+    "  si \"labels.slant\" (hauteur d'une face latérale, pour l'aire latérale).",
   duration: 2600,
   aliases: ["pyramide"],
   apply(state, action, reveal) {
@@ -190,14 +210,22 @@ export const pyramidCommand = defineCommand({
     const to2 = (v: Vec3) => add(project(v), shift);
     const color = action.color ?? "blue";
     const id = action.id;
-    const parts = polyhedronParts(id, solid, Array.from({ length: n }, (_, i) => i), to2, reveal, color);
+    const parts = polyhedronParts(
+      id,
+      solid,
+      Array.from({ length: n }, (_, i) => i),
+      to2,
+      reveal,
+      color,
+    );
     const foot = to2([0, 0, 0]);
     const top = to2(apex);
     parts.push(segment(`${id}-hauteur`, top, foot, reveal, "orange", true));
     const center = to2([0, 0, action.height / 3]);
     const L = action.labels ?? {};
     if (L.height) parts.push(label(`${id}-hauteur-l`, L.height, add(scale(add(top, foot), 0.5), [0.3 / unit, 0]), `${id}-hauteur`, reveal, "orange"));
-    if (L.length || L.side) parts.push(dimension(`${id}-length-l`, (L.length ?? L.side)!, to2(bottom[0]!), to2(bottom[1]!), center, unit, reveal, `${id}-base`));
+    if (L.length || L.side)
+      parts.push(dimension(`${id}-length-l`, (L.length ?? L.side)!, to2(bottom[0]!), to2(bottom[1]!), center, unit, reveal, `${id}-base`));
     if (L.slant) {
       // Apothème : du sommet au milieu de l'arête avant de la base.
       const mid: Vec3 = scale3([bottom[0]![0] + bottom[1]![0], bottom[0]![1] + bottom[1]![1], 0], 0.5);
@@ -241,8 +269,8 @@ export const cylinderCommand = defineCommand({
     '{"type":"cylinder","id":"cyl","radius":2,"height":3,"slices":4,"labels":{"radius":"r","height":"h","base":"aire de la base"}}\n' +
     '  Cylindre en perspective (centre de la base en "at", sinon centré) : base et dessus en ellipses, côtés, rayon et\n' +
     '  hauteur nommés. "slices" : la pile de tranches identiques (pièces de monnaie) qui montre V = aire de la base × h ;\n' +
-    '  redemander la figure avec plus de tranches les ajoute. Parties : cyl-base, cyl-dessus (rempli : l\'aire de la base),\n' +
-    '  cyl-cotes, cyl-rayon, cyl-hauteur, cyl-tranche-1…, groupe cyl-tranches. Jamais de cercles empilés à plat.',
+    "  redemander la figure avec plus de tranches les ajoute. Parties : cyl-base, cyl-dessus (rempli : l'aire de la base),\n" +
+    "  cyl-cotes, cyl-rayon, cyl-hauteur, cyl-tranche-1…, groupe cyl-tranches. Jamais de cercles empilés à plat.",
   duration: 2600,
   aliases: ["cylindre"],
   apply(state, action, reveal) {
@@ -277,7 +305,8 @@ export const cylinderCommand = defineCommand({
     if (action.labels?.radius) parts.push(label(`${id}-rayon-l`, action.labels.radius, add(top, [r / 2, -0.28 / unit]), `${id}-rayon`, reveal, "violet"));
     const hx = bottom[0] - r - 0.45 / unit;
     parts.push(segment(`${id}-hauteur`, [hx, bottom[1]], [hx, top[1]], reveal, "orange", true));
-    if (action.labels?.height) parts.push(label(`${id}-hauteur-l`, action.labels.height, [hx - 0.3 / unit, bottom[1] + h / 2], `${id}-hauteur`, reveal, "orange"));
+    if (action.labels?.height)
+      parts.push(label(`${id}-hauteur-l`, action.labels.height, [hx - 0.3 / unit, bottom[1] + h / 2], `${id}-hauteur`, reveal, "orange"));
     const tranches = Array.from({ length: Math.max(0, slices - 1) }, (_, k) => `${id}-tranche-${k + 1}`);
     return drawFigure(state, id, parts, reveal, { [`${id}-tranches`]: tranches, [`${id}-cotes`]: [`${id}-gauche`, `${id}-droite`] });
   },
@@ -295,7 +324,7 @@ export const coneCommand = defineCommand({
   }),
   doc:
     '{"type":"cone","id":"co","radius":3,"height":4,"labels":{"radius":"3 cm","height":"4 cm","slant":"5 cm"}}\n' +
-    '  Cône droit en perspective : base en ellipse, côtés jusqu\'au sommet, hauteur en pointillés (angle droit au centre),\n' +
+    "  Cône droit en perspective : base en ellipse, côtés jusqu'au sommet, hauteur en pointillés (angle droit au centre),\n" +
     '  rayon, et génératrice nommée si "labels.slant". Parties : co-base, co-cotes, co-hauteur, co-rayon, co-generatrice.',
   duration: 2400,
   aliases: ["cône"],
@@ -312,12 +341,18 @@ export const coneCommand = defineCommand({
       segment(`${id}-generatrice`, add(center, [r, 0]), apex, reveal, color),
       segment(`${id}-hauteur`, apex, center, reveal, "orange", true),
       segment(`${id}-rayon`, center, add(center, [r, 0]), reveal, "violet"),
-      { ...base(`${id}-droit`, reveal, "muted"), type: "polygon", points: [add(center, [0.2 / unit, 0]), add(center, [0.2 / unit, 0.2 / unit]), add(center, [0, 0.2 / unit])], closed: false },
+      {
+        ...base(`${id}-droit`, reveal, "muted"),
+        type: "polygon",
+        points: [add(center, [0.2 / unit, 0]), add(center, [0.2 / unit, 0.2 / unit]), add(center, [0, 0.2 / unit])],
+        closed: false,
+      },
     ];
     const L = action.labels ?? {};
     if (L.radius) parts.push(label(`${id}-rayon-l`, L.radius, add(center, [r / 2, -0.3 / unit]), `${id}-rayon`, reveal, "violet"));
     if (L.height) parts.push(label(`${id}-hauteur-l`, L.height, add(center, [-0.35 / unit, h / 2]), `${id}-hauteur`, reveal, "orange"));
-    if (L.slant) parts.push(label(`${id}-generatrice-l`, L.slant, add(scale(add(add(center, [r, 0]), apex), 0.5), [0.4 / unit, 0]), `${id}-generatrice`, reveal, color));
+    if (L.slant)
+      parts.push(label(`${id}-generatrice-l`, L.slant, add(scale(add(add(center, [r, 0]), apex), 0.5), [0.4 / unit, 0]), `${id}-generatrice`, reveal, color));
     return drawFigure(state, id, parts, reveal, { [`${id}-cotes`]: [`${id}-gauche`, `${id}-generatrice`] });
   },
 });
@@ -333,7 +368,7 @@ export const sphereCommand = defineCommand({
   }),
   doc:
     '{"type":"sphere","id":"b","radius":3,"labels":{"radius":"3 cm"}} : boule (sphère) avec son équateur en perspective\n' +
-    '  (arrière en trait clair) et son rayon. Parties : b-contour, b-equateur, b-rayon.',
+    "  (arrière en trait clair) et son rayon. Parties : b-contour, b-equateur, b-rayon.",
   duration: 1800,
   aliases: ["boule", "ball"],
   apply(state, action, reveal) {

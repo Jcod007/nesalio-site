@@ -12,7 +12,33 @@
 import type { Step } from "@/domain/scene/schema";
 import { estimateSpeechMs } from "@/domain/timeline/plan";
 
-const DRAWS = new Set(["axes", "curve", "point", "vector", "segment", "triangle", "angle", "construct", "image", "vectorOp", "unitCircle", "conic", "circle", "sector", "polygon", "regularPolygon", "prism", "pyramid", "cylinder", "cone", "sphere", "incline", "area", "parametric", "grid"]);
+const DRAWS = new Set([
+  "axes",
+  "curve",
+  "point",
+  "vector",
+  "segment",
+  "triangle",
+  "angle",
+  "construct",
+  "image",
+  "vectorOp",
+  "unitCircle",
+  "conic",
+  "circle",
+  "sector",
+  "polygon",
+  "regularPolygon",
+  "prism",
+  "pyramid",
+  "cylinder",
+  "cone",
+  "sphere",
+  "incline",
+  "area",
+  "parametric",
+  "grid",
+]);
 const MOVES = new Set(["move", "copy", "rotate", "applyMatrix"]);
 const WRITES = new Set(["text", "note", "matrix", "tag"]);
 
@@ -21,9 +47,7 @@ export type StepVisual = "montre" | "ecrit" | "souligne" | "rien";
 export function stepVisual(step: Step): StepVisual {
   const actions = step.do ?? [];
   if (actions.length === 0) return "rien";
-  const shows = actions.some(
-    (a) => DRAWS.has(a.type) || MOVES.has(a.type) || (a.type === "transform" && (a.text === undefined || Object.keys(a).length > 3)),
-  );
+  const shows = actions.some((a) => DRAWS.has(a.type) || MOVES.has(a.type) || (a.type === "transform" && (a.text === undefined || Object.keys(a).length > 3)));
   if (shows) return "montre";
   if (actions.some((a) => WRITES.has(a.type) || a.type === "transform")) return "ecrit";
   return "souligne";

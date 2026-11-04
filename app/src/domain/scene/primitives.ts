@@ -11,12 +11,8 @@ export type ColorName = z.infer<typeof ColorName>;
 
 export const finite = z.number().finite();
 export const Coord = z.tuple([finite, finite]);
-export const Range = z
-  .tuple([finite, finite])
-  .refine(([a, b]) => b > a, { message: "L'intervalle doit être croissant" });
-export const Id = z
-  .string()
-  .regex(/^[a-zA-Z][\w-]{0,31}$/, "Identifiant : lettres, chiffres, - ou _ (32 caractères max.)");
+export const Range = z.tuple([finite, finite]).refine(([a, b]) => b > a, { message: "L'intervalle doit être croissant" });
+export const Id = z.string().regex(/^[a-zA-Z][\w-]{0,31}$/, "Identifiant : lettres, chiffres, - ou _ (32 caractères max.)");
 export const ShortText = z.string().trim().min(1).max(80);
 /**
  * Texte écrit au tableau : 60 caractères visibles au plus, une formule entre dollars comptée

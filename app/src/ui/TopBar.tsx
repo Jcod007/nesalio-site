@@ -64,7 +64,17 @@ export function TopBar({ title, topic, demo, muted, onToggleMute, onHome, feedba
 
 function SoundIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z" fill="currentColor" />
       <path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" />
     </svg>
@@ -73,7 +83,17 @@ function SoundIcon() {
 
 function MutedIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z" fill="currentColor" />
       <path d="m16 9.5 5 5M21 9.5l-5 5" />
     </svg>

@@ -33,11 +33,17 @@ export function axisBeside(box: Box, orientation: "vertical" | "horizontal", gap
   if (orientation === "vertical") {
     const x = side > 0 ? box.x1 + gap : box.x0 - gap;
     const pad = 0.25 * (box.y1 - box.y0) + 0.4;
-    return [[x, box.y0 - pad], [x, box.y1 + pad]];
+    return [
+      [x, box.y0 - pad],
+      [x, box.y1 + pad],
+    ];
   }
   const y = side > 0 ? box.y0 - gap : box.y1 + gap;
   const pad = 0.25 * (box.x1 - box.x0) + 0.4;
-  return [[box.x0 - pad, y], [box.x1 + pad, y]];
+  return [
+    [box.x0 - pad, y],
+    [box.x1 + pad, y],
+  ];
 }
 
 /** Le vecteur d'une translation qui pose l'image juste à côté : à droite, à gauche, dessous ou dessus. */

@@ -55,7 +55,17 @@ function across(state: BoardState, P: Vec2, u: Vec2, extra: Vec2[] = []): [Vec2,
  * (une parallèle dans un triangle). Avec "meets", les points où elle rencontre les côtés
  * sont nommés (sauf celui par lequel elle passe déjà) et se visent ensuite par leur nom.
  */
-function lineThrough(state: BoardState, id: string, P: Vec2, u: Vec2, within: string | undefined, meets: Meets | undefined, reveal: Reveal, color: Color | undefined, label?: string): { ends: [Vec2, Vec2]; parts: BoardNode[]; vertices: Record<string, Vec2> } {
+function lineThrough(
+  state: BoardState,
+  id: string,
+  P: Vec2,
+  u: Vec2,
+  within: string | undefined,
+  meets: Meets | undefined,
+  reveal: Reveal,
+  color: Color | undefined,
+  label?: string,
+): { ends: [Vec2, Vec2]; parts: BoardNode[]; vertices: Record<string, Vec2> } {
   const ring = within ? figureOutline(state, within) : null;
   const chord = ring ? chordThrough(P, u, ring) : null;
   const [a, b] = chord ?? across(state, P, u);
@@ -63,7 +73,13 @@ function lineThrough(state: BoardState, id: string, P: Vec2, u: Vec2, within: st
   const vertices: Record<string, Vec2> = {};
   if (chord && meets) {
     // Un nom : l'extrémité la plus loin du point de passage ; deux noms : les deux, dans le sens de la droite.
-    const ends = typeof meets === "string" ? [[norm(sub(a, P)) > norm(sub(b, P)) ? a : b, meets] as const] : ([[a, meets[0]], [b, meets[1]]] as const);
+    const ends =
+      typeof meets === "string"
+        ? [[norm(sub(a, P)) > norm(sub(b, P)) ? a : b, meets] as const]
+        : ([
+            [a, meets[0]],
+            [b, meets[1]],
+          ] as const);
     for (const [at, name] of ends) {
       if (!name || norm(sub(at, P)) < 1e-6) continue;
       parts.push(point(`${id}-${name}`, at, name, reveal, color ?? "orange"));
@@ -89,7 +105,10 @@ export const constructCommand = defineCommand({
     id: ShapeId,
     kind: z.enum(KINDS),
     /** Les points (ou les droites) de la construction, selon "kind". */
-    of: z.array(z.union([PointRef, LineRef])).min(1).max(3),
+    of: z
+      .array(z.union([PointRef, LineRef]))
+      .min(1)
+      .max(3),
     /** Point par lequel passe la droite (parallèle, perpendiculaire) ou sommet (bissectrice, médiane, pied). */
     through: PointRef.optional(),
     /** Partage d'un segment : "2:1" ou une fraction de 0 à 1, à partir du premier point. */
@@ -104,7 +123,7 @@ export const constructCommand = defineCommand({
   }),
   doc:
     '{"type":"construct","id":"M","kind":"midpoint","of":["A","C"]} : construction calculée par le moteur, à partir de points\n' +
-    '  nommés (point du tableau, sommet de triangle, point déjà construit) ou de coordonnées. Le point construit porte\n' +
+    "  nommés (point du tableau, sommet de triangle, point déjà construit) ou de coordonnées. Le point construit porte\n" +
     '  son id comme nom ("label" pour en changer) et se vise ensuite partout ("at":"M"). Sortes ("kind") :\n' +
     '  - "midpoint" "of":[P,Q] : milieu (avec "marks":true, les deux moitiés marquées égales) ;\n' +
     '  - "divide" "of":[P,Q],"ratio":"2:1" : point qui partage PQ dans ce rapport (à partir de P) ;\n' +
@@ -117,7 +136,7 @@ export const constructCommand = defineCommand({
     '  - "perpBisector" "of":[P,Q] : médiatrice de [PQ] (milieu marqué, angle droit) ;\n' +
     '  - "angleBisector" "through":B,"of":[A,C] : bissectrice de l\'angle ABC, jusqu\'au côté [AC] (angles égaux marqués) ;\n' +
     '  - "median" "through":A,"of":[B,C] : médiane issue de A, jusqu\'au milieu de [BC] (moitiés marquées).\n' +
-    '  Ne calcule jamais toi-même un milieu, un pied ou une intersection : construis-les.',
+    "  Ne calcule jamais toi-même un milieu, un pied ou une intersection : construis-les.",
   duration: 1100,
   aliases: ["construction", "build"],
   apply(state, action, reveal) {
@@ -137,7 +156,8 @@ export const constructCommand = defineCommand({
         if (!a || !b) return state;
         const M = scale(add(a, b), 0.5);
         const parts = [point(id, M, name, reveal, color)];
-        if (action.marks) parts.push(...equalTicks(`${id}-moitie1`, a, M, 1, unit, reveal, color), ...equalTicks(`${id}-moitie2`, M, b, 1, unit, reveal, color));
+        if (action.marks)
+          parts.push(...equalTicks(`${id}-moitie1`, a, M, 1, unit, reveal, color), ...equalTicks(`${id}-moitie2`, M, b, 1, unit, reveal, color));
         return draw(state, id, parts, reveal);
       }
       case "divide": {
@@ -162,7 +182,12 @@ export const constructCommand = defineCommand({
           id,
           [
             segment(`${id}-trait`, through, H, reveal, color ?? "violet", true),
-            { ...base(`${id}-droit`, reveal, "muted"), type: "polygon", points: rightAngleMark(H, through, len(sub(r, H)) > 1e-9 ? r : q, 0.24 / unit), closed: false },
+            {
+              ...base(`${id}-droit`, reveal, "muted"),
+              type: "polygon",
+              points: rightAngleMark(H, through, len(sub(r, H)) > 1e-9 ? r : q, 0.24 / unit),
+              closed: false,
+            },
             point(id, H, name, reveal, color ?? "violet"),
           ],
           reveal,
@@ -191,10 +216,20 @@ export const constructCommand = defineCommand({
         if (!through || !line) return state;
         const u = dir(line[0], line[1]);
         const d: Vec2 = action.kind === "parallel" ? u : [-u[1], u[0]];
-        const { ends: [a, b], parts, vertices } = lineThrough(state, id, through, d, action.within, action.meets, reveal, color, action.label);
+        const {
+          ends: [a, b],
+          parts,
+          vertices,
+        } = lineThrough(state, id, through, d, action.within, action.meets, reveal, color, action.label);
         if (action.kind === "perpendicular") {
           const X = intersectLines(a, b, ...line);
-          if (X) parts.push({ ...base(`${id}-droit`, reveal, "muted"), type: "polygon", points: rightAngleMark(X, add(X, d), add(X, u), 0.24 / unit), closed: false });
+          if (X)
+            parts.push({
+              ...base(`${id}-droit`, reveal, "muted"),
+              type: "polygon",
+              points: rightAngleMark(X, add(X, d), add(X, u), 0.24 / unit),
+              closed: false,
+            });
         }
         return parts.length === 1 ? drawNode(state, parts[0]!, reveal) : drawFigure(state, `${id}-construction`, parts, reveal, {}, vertices);
       }
@@ -227,8 +262,24 @@ export const constructCommand = defineCommand({
         const D = add(a, scale(sub(c, a), ba / (ba + bc)));
         const first = angleArc(B, a, D);
         const second = angleArc(B, D, c);
-        const arc = (aid: string, span: { start: number; end: number }): BoardNode => ({ ...base(aid, reveal, "violet"), type: "arc", center: B, radius: 0.55 / unit, ...span });
-        return draw(state, id, [segment(`${id}-trait`, B, D, reveal, color ?? "orange"), arc(`${id}-angle1`, first), arc(`${id}-angle2`, second), point(`${id}-pied`, D, action.label, reveal, color ?? "orange")], reveal);
+        const arc = (aid: string, span: { start: number; end: number }): BoardNode => ({
+          ...base(aid, reveal, "violet"),
+          type: "arc",
+          center: B,
+          radius: 0.55 / unit,
+          ...span,
+        });
+        return draw(
+          state,
+          id,
+          [
+            segment(`${id}-trait`, B, D, reveal, color ?? "orange"),
+            arc(`${id}-angle1`, first),
+            arc(`${id}-angle2`, second),
+            point(`${id}-pied`, D, action.label, reveal, color ?? "orange"),
+          ],
+          reveal,
+        );
       }
       case "median": {
         const [b, c] = [P(0), P(1)];

@@ -79,7 +79,10 @@ export function drawFigure(
     } as BoardNode);
   }
   const members = [...new Set([...(state.groups[id]?.members ?? []), ...parts.map((p) => p.id)])];
-  const groups: Record<string, Group> = { ...next.groups, [id]: { id, members, ...(vertices ? { vertices: { ...state.groups[id]?.vertices, ...vertices } } : {}) } };
+  const groups: Record<string, Group> = {
+    ...next.groups,
+    [id]: { id, members, ...(vertices ? { vertices: { ...state.groups[id]?.vertices, ...vertices } } : {}) },
+  };
   for (const [gid, ids] of Object.entries(extraGroups)) {
     if (ids.length > 0) groups[gid] = { id: gid, members: [...new Set([...(next.groups[gid]?.members ?? []), ...ids])] };
   }
@@ -117,7 +120,17 @@ export const vector = (id: string, from: Vec2, to: Vec2, text: string, reveal: R
 });
 
 /** Marque d'angle : arc avec étiquette, ou petit carré pour un angle droit. */
-export function angleMark(state: BoardState, id: string, vertex: Vec2, a: Vec2, b: Vec2, text: string | undefined, right: boolean, reveal: Reveal, color?: Color): BoardNode {
+export function angleMark(
+  state: BoardState,
+  id: string,
+  vertex: Vec2,
+  a: Vec2,
+  b: Vec2,
+  text: string | undefined,
+  right: boolean,
+  reveal: Reveal,
+  color?: Color,
+): BoardNode {
   const unit = worldPerMath(state.frame);
   if (right) {
     return { ...base(id, reveal, color ?? "muted"), type: "polygon", points: rightAngleMark(vertex, a, b, 0.24 / unit), closed: false, label: text };

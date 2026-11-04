@@ -12,8 +12,7 @@ async function collect(iterable: AsyncIterable<StreamEvent>) {
 }
 
 /** Simule un modèle qui écrit le texte donné par petits morceaux. */
-const fakeCompletion =
-  (text: string, failAfter?: number): CompletionStream =>
+const fakeCompletion = (text: string, failAfter?: number): CompletionStream =>
   async function* () {
     let sent = 0;
     for (const chunk of text.match(/[\s\S]{1,13}/g) ?? []) {
@@ -28,9 +27,7 @@ const base = { provider: { name: "gateway" as const, protocol: "openai" as const
 describe("tutorEvents", () => {
   it("relaie le tour du modèle, validé étape par étape", async () => {
     const text = "```json\n" + serializeLesson(derivativeLesson) + "\n```";
-    const events = await collect(
-      tutorEvents({ mode: "question", question: "dérivée ?" }, { ...base, completion: fakeCompletion(text) }),
-    );
+    const events = await collect(tutorEvents({ mode: "question", question: "dérivée ?" }, { ...base, completion: fakeCompletion(text) }));
     expect(events[0]).toEqual({ kind: "source", source: "model" });
     expect(events[1]).toMatchObject({ kind: "lesson", title: derivativeLesson.header.title });
     // Le tour s'arrête à la première question posée à l'élève.
@@ -41,9 +38,7 @@ describe("tutorEvents", () => {
 
   it("ajoute un titre et une fin quand le modèle les oublie", async () => {
     const text = '{"kind":"step","say":"Première idée."}\n{"kind":"step","say":"Deuxième idée."}';
-    const events = await collect(
-      tutorEvents({ mode: "question", question: "Pourquoi le ciel est bleu ?" }, { ...base, completion: fakeCompletion(text) }),
-    );
+    const events = await collect(tutorEvents({ mode: "question", question: "Pourquoi le ciel est bleu ?" }, { ...base, completion: fakeCompletion(text) }));
     expect(events.map((e) => e.kind)).toEqual(["source", "lesson", "step", "step", "end"]);
   });
 
@@ -60,10 +55,7 @@ describe("tutorEvents", () => {
   it("ne renvoie pas d'en-tête pour une réponse à une interruption", async () => {
     const text = '{"kind":"lesson","title":"x"}\n{"kind":"step","say":"Je reformule."}\n{"kind":"end","summary":[]}';
     const events = await collect(
-      tutorEvents(
-        { mode: "followUp", question: "hein ?", context: { spoken: [], board: [] } },
-        { ...base, completion: fakeCompletion(text) },
-      ),
+      tutorEvents({ mode: "followUp", question: "hein ?", context: { spoken: [], board: [] } }, { ...base, completion: fakeCompletion(text) }),
     );
     expect(events.map((e) => e.kind)).toEqual(["source", "step", "end"]);
   });
@@ -115,13 +107,25 @@ describe("tutorEvents", () => {
   it("transmet la fiche de diagnostic sans finir le tour, puis s'arrête à la question", async () => {
     const lines = [
       { kind: "step", say: "Tu as écrit 2 sur 7.", do: [] },
-      { kind: "diagnosis", gaps: [{ notion: "fractions : dénominateur commun", level: "sec 1", evidence: "1/3 + 1/4 = 2/7", status: "suspected" }], strengths: [], next: "vérifier les fractions" },
+      {
+        kind: "diagnosis",
+        gaps: [{ notion: "fractions : dénominateur commun", level: "sec 1", evidence: "1/3 + 1/4 = 2/7", status: "suspected" }],
+        strengths: [],
+        next: "vérifier les fractions",
+      },
       { kind: "step", say: "Petite vérification.", do: [], check: { prompt: "1/2 + 1/4 ?", choices: ["2/6", "3/4"], answer: 1 } },
       { kind: "step", say: "Jamais joué.", do: [] },
-    ].map((l) => JSON.stringify(l)).join("\n");
+    ]
+      .map((l) => JSON.stringify(l))
+      .join("\n");
     const events = await collect(
       tutorEvents(
-        { mode: "continue", question: "?", context: { spoken: [], board: [] }, answer: { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], picked: "2/7", correct: false } },
+        {
+          mode: "continue",
+          question: "?",
+          context: { spoken: [], board: [] },
+          answer: { prompt: "1/3 + 1/4 ?", choices: ["7/12", "2/7"], picked: "2/7", correct: false },
+        },
         { ...base, completion: fakeCompletion(lines) },
       ),
     );
@@ -152,17 +156,13 @@ describe("tutorEvents", () => {
   });
 
   it("signale une erreur si le modèle échoue avant la première étape", async () => {
-    const events = await collect(
-      tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("{}", 0) }),
-    );
+    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("{}", 0) }));
     expect(events.at(-1)).toMatchObject({ kind: "error", code: "upstream" });
   });
 
   it("signale une interruption si le modèle coupe en cours de séance", async () => {
     const text = '{"kind":"step","say":"Une."}\n{"kind":"step","say":"Deux."}\n{"kind":"step","say":"Trois."}';
-    const events = await collect(
-      tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion(text, 30) }),
-    );
+    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion(text, 30) }));
     expect(events.filter((e) => e.kind === "step").length).toBeGreaterThan(0);
     expect(events.at(-1)).toMatchObject({ kind: "error", code: "upstream" });
   });
@@ -171,30 +171,22 @@ describe("tutorEvents", () => {
     const refused: CompletionStream = async function* () {
       throw new UpstreamError("paiement requis", 403);
     };
-    const events = await collect(
-      tutorEvents({ mode: "question", question: "C'est quoi une dérivée ?" }, { ...base, completion: refused }),
-    );
+    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi une dérivée ?" }, { ...base, completion: refused }));
     expect(events.filter((e) => e.kind === "source").at(-1)).toEqual({ kind: "source", source: "demo" });
     expect(events.some((e) => e.kind === "step")).toBe(true);
   });
 
   it("signale une réponse vide", async () => {
-    const events = await collect(
-      tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("Désolé, je ne peux pas.") }),
-    );
+    const events = await collect(tutorEvents({ mode: "question", question: "?" }, { ...base, completion: fakeCompletion("Désolé, je ne peux pas.") }));
     expect(events.at(-1)).toMatchObject({ kind: "error", code: "empty" });
   });
 
   it("joue une séance de démonstration sans clé", async () => {
-    const events = await collect(
-      tutorEvents({ mode: "question", question: "C'est quoi une dérivée ?" }, { provider: null, completion: fakeCompletion("") }),
-    );
+    const events = await collect(tutorEvents({ mode: "question", question: "C'est quoi une dérivée ?" }, { provider: null, completion: fakeCompletion("") }));
     expect(events[0]).toEqual({ kind: "source", source: "demo" });
     expect(events[1]).toMatchObject({ title: derivativeLesson.header.title });
 
-    const other = await collect(
-      tutorEvents({ mode: "question", question: "La mitose ?" }, { provider: null, completion: fakeCompletion("") }),
-    );
+    const other = await collect(tutorEvents({ mode: "question", question: "La mitose ?" }, { provider: null, completion: fakeCompletion("") }));
     expect(other[2]).toMatchObject({ kind: "step", mood: "idee" });
   });
 });

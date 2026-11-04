@@ -76,8 +76,7 @@ export function parseEffort(value: string | null | undefined): ReasoningEffort |
 
 /** Lit la configuration pour une requête (le jeton OIDC arrive dans ses en-têtes). */
 export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.env): AiConfig {
-  const gatewayToken =
-    env.AI_GATEWAY_API_KEY?.trim() || headers.get("x-vercel-oidc-token") || env.VERCEL_OIDC_TOKEN?.trim() || null;
+  const gatewayToken = env.AI_GATEWAY_API_KEY?.trim() || headers.get("x-vercel-oidc-token") || env.VERCEL_OIDC_TOKEN?.trim() || null;
   const openRouterKey = env.OPENROUTER_API_KEY?.trim();
   const anthropicKey = env.ANTHROPIC_API_KEY?.trim();
   const modelOverride = env.TUTOR_MODEL?.trim() || env.OPENROUTER_MODEL?.trim();

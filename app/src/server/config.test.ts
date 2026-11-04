@@ -36,6 +36,9 @@ describe("réflexion des tours de suite", () => {
     const headers = new Headers({ "x-vercel-oidc-token": "jeton" });
     expect(readAiConfig(headers, { TUTOR_MODEL: "anthropic/claude-sonnet-5.5" } as unknown as NodeJS.ProcessEnv).chat?.reasoningEffort).toBe("none");
     expect(readAiConfig(headers, { TUTOR_MODEL: "deepseek/deepseek-v4.1-flash" } as unknown as NodeJS.ProcessEnv).chat?.reasoningEffort).toBe("low");
-    expect(readAiConfig(headers, { TUTOR_MODEL: "deepseek/deepseek-v4.1-flash", TUTOR_REASONING_EFFORT: "none" } as unknown as NodeJS.ProcessEnv).chat?.reasoningEffort).toBe("none");
+    expect(
+      readAiConfig(headers, { TUTOR_MODEL: "deepseek/deepseek-v4.1-flash", TUTOR_REASONING_EFFORT: "none" } as unknown as NodeJS.ProcessEnv).chat
+        ?.reasoningEffort,
+    ).toBe("none");
   });
 });

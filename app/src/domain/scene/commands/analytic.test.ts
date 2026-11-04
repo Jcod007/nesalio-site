@@ -13,7 +13,10 @@ describe("vecteurs, cercle trigonométrique, coniques", () => {
     board = applyAction(board, { type: "vectorOp", id: "s", kind: "sum", of: ["u", "v"] }, t);
     close([...(board.nodes["s"] as VectorNode).to], [4, 3]);
     // La copie de v glisse (décalage) jusqu'au bout de u.
-    const tail = (id: string) => { const n = board.nodes[id] as VectorNode; return [n.from[0] + n.offset[0], n.from[1] + n.offset[1]]; };
+    const tail = (id: string) => {
+      const n = board.nodes[id] as VectorNode;
+      return [n.from[0] + n.offset[0], n.from[1] + n.offset[1]];
+    };
     close(tail("s-copie"), [3, 1]);
     expect(resolveTargets(board, "s-construction")).toContain("s-copie");
     board = applyAction(board, { type: "vectorOp", id: "p", kind: "sum", of: ["u", "v"], method: "parallelogram" }, t);

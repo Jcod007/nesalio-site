@@ -31,8 +31,14 @@ export const axesCommand = defineCommand({
     x: Range,
     y: Range,
     // Un nom d'axe trop long ne doit pas faire perdre tout le graphique : on le raccourcit.
-    xLabel: z.string().transform((t) => t.slice(0, 20)).optional(),
-    yLabel: z.string().transform((t) => t.slice(0, 20)).optional(),
+    xLabel: z
+      .string()
+      .transform((t) => t.slice(0, 20))
+      .optional(),
+    yLabel: z
+      .string()
+      .transform((t) => t.slice(0, 20))
+      .optional(),
     xStep: finite.positive().optional(),
     yStep: finite.positive().optional(),
   }),
@@ -102,7 +108,7 @@ export const pointCommand = defineCommand({
   }),
   doc:
     '{"type":"point","id":"A","at":[x,y],"label":"(2, 3)","color":"violet","ring":true} ; "open":true = point vide (bout exclu\n' +
-    '  d\'un intervalle, x ≠ 2 sur une droite numérique).',
+    "  d'un intervalle, x ≠ 2 sur une droite numérique).",
   duration: 450,
   aliases: ["dot"],
   apply(state, action, reveal) {

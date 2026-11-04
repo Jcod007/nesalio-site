@@ -76,9 +76,7 @@ describe("measureCues", () => {
 
   it("prévoit mieux en temps de parole qu'en caractères quand la phrase contient des nombres", () => {
     const { say, cues } = extractCues("La vitesse vaut 20 m/s à 37°, et la portée {R} arrive au bout.");
-    const { words, audioMs } = heardFrom(
-      "La vitesse vaut vingt mètres par seconde à trente-sept degrés, et la portée arrive au bout.",
-    );
+    const { words, audioMs } = heardFrom("La vitesse vaut vingt mètres par seconde à trente-sept degrés, et la portée arrive au bout.");
     const [row] = measureCues({ say, cues, audioMs, words });
     expect(row!.word).toBe("portée");
     expect(Math.abs(row!.weightedMs - row!.actualMs)).toBeLessThan(Math.abs(row!.linearMs - row!.actualMs));

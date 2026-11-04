@@ -56,11 +56,9 @@ export async function POST(request: Request): Promise<Response> {
   const limit = limiter.check(request.headers);
   const tag = limit.session ? `[session ${shortSession(limit.session)}]` : "[sans session]";
   if (!limit.allowed) {
-    return single(
-      { kind: "error", code: "rate_limited", message: "Tu as posé beaucoup de questions d'un coup. Réessaie dans quelques minutes." },
-      429,
-      { "Retry-After": String(limit.retryAfterSeconds) },
-    );
+    return single({ kind: "error", code: "rate_limited", message: "Tu as posé beaucoup de questions d'un coup. Réessaie dans quelques minutes." }, 429, {
+      "Retry-After": String(limit.retryAfterSeconds),
+    });
   }
 
   const config = readAiConfig(request.headers);

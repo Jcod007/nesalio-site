@@ -64,7 +64,11 @@ function curve(node: NodeOf<"curve">, pen: Pen, color: string): Built {
     const graph = pen.axes.plot(f, { xRange: [piece[0]![0], piece.at(-1)![0]], color, strokeWidth: node.style === "dotted" ? 7 : 4.5, numSamples: 160 });
     if (node.style === "dashed" || node.style === "dotted") {
       const length = Math.abs(piece.at(-1)![0] - piece[0]![0]);
-      return new DashedVMobject({ vmobject: graph as unknown as VMobject, numDashes: Math.max(8, Math.round(length * 6)), dashRatio: node.style === "dotted" ? 0.08 : 0.55 });
+      return new DashedVMobject({
+        vmobject: graph as unknown as VMobject,
+        numDashes: Math.max(8, Math.round(length * 6)),
+        dashRatio: node.style === "dotted" ? 0.08 : 0.55,
+      });
     }
     return graph;
   });
@@ -91,7 +95,11 @@ function point(node: NodeOf<"point">, pen: Pen, color: string): Built {
   const disc = node.open ? new Dot({ point: center, radius: 0.085, color: BRAND.paper }) : null;
   const dot = node.open ? new Circle({ radius: 0.085, color, strokeWidth: 3.5, center }) : new Dot({ point: center, radius: 0.085, color });
   const mobjects: Mobject[] = disc ? [disc, dot] : [dot];
-  const animations: PlannedAnimation[] = mobjects.map((m) => ({ delay: 0, share: 0.6, make: (s: number) => new GrowFromCenter(m, { duration: s }) as Animation }));
+  const animations: PlannedAnimation[] = mobjects.map((m) => ({
+    delay: 0,
+    share: 0.6,
+    make: (s: number) => new GrowFromCenter(m, { duration: s }) as Animation,
+  }));
   if (node.ring) {
     const ring = new Circle({ radius: 0.2, color, strokeWidth: 3, center });
     mobjects.push(ring);
@@ -137,7 +145,12 @@ function arc(node: NodeOf<"arc">, pen: Pen, color: string): Built {
   // Échelles différentes en x et en y : l'arc se dessine point par point (comme le moteur le voit).
   const arc = isUniform(pen.frame)
     ? new Arc({ center, radius, startAngle: rad(node.start), angle: rad(node.end - node.start), color, strokeWidth: 3 })
-    : new Polygon({ vertices: arcPoints(node.center, node.radius, node.start, node.end, 32).map(([x, y]) => pen.p(x, y)), color, strokeWidth: 3, closed: false });
+    : new Polygon({
+        vertices: arcPoints(node.center, node.radius, node.start, node.end, 32).map(([x, y]) => pen.p(x, y)),
+        color,
+        strokeWidth: 3,
+        closed: false,
+      });
   const mobjects: Mobject[] = [arc];
   const animations: PlannedAnimation[] = [{ delay: 0, share: 0.7, make: (s) => new Create(arc, { duration: s }) }];
   if (node.label) {
@@ -159,8 +172,15 @@ function circle(node: NodeOf<"circle">, pen: Pen, color: string): Built {
   const uniform = isUniform(pen.frame);
   const circle = uniform
     ? new Circle({ radius, color, strokeWidth: 3.5 })
-    : new Polygon({ vertices: arcPoints([0, 0], node.radius, 0, 360, 72).map(([x, y]) => sub3(pen.p(x, y), pen.p(0, 0))), color, strokeWidth: 3.5, closed: true });
-  const shape = node.dashed ? new DashedVMobject({ vmobject: circle as unknown as VMobject, numDashes: Math.max(16, Math.round(radius * 12)), dashRatio: 0.55 }) : circle;
+    : new Polygon({
+        vertices: arcPoints([0, 0], node.radius, 0, 360, 72).map(([x, y]) => sub3(pen.p(x, y), pen.p(0, 0))),
+        color,
+        strokeWidth: 3.5,
+        closed: true,
+      });
+  const shape = node.dashed
+    ? new DashedVMobject({ vmobject: circle as unknown as VMobject, numDashes: Math.max(16, Math.round(radius * 12)), dashRatio: 0.55 })
+    : circle;
   shape.shift(center);
   const mobjects: Mobject[] = [shape];
   const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(shape, { duration: s }) as Animation }];
@@ -201,7 +221,12 @@ function grid(node: NodeOf<"grid">, pen: Pen, _color: string): Built {
   // Une ligne par unité, image du quadrillage par la matrice ; en fond, discrète.
   const lines: Mobject[] = [];
   const segment = (a: Vec2, b: Vec2) => {
-    const line = new Line({ start: pen.p(...applyMat(node.matrix, a)), end: pen.p(...applyMat(node.matrix, b)), color: STROKE[node.color ?? "blue"], strokeWidth: 1.6 });
+    const line = new Line({
+      start: pen.p(...applyMat(node.matrix, a)),
+      end: pen.p(...applyMat(node.matrix, b)),
+      color: STROKE[node.color ?? "blue"],
+      strokeWidth: 1.6,
+    });
     line.opacity = 0.45;
     lines.push(line);
   };
@@ -249,14 +274,28 @@ function buildMatrix(node: TextNode & { rows: string[][] }, pen: Pen, color: str
   const right = left + layout.width;
   const tick = layout.bracket;
   const bracket = (x: number, dir: 1 | -1) =>
-    new Polygon({ vertices: [[x + dir * tick, top, 0], [x, top, 0], [x, bottom, 0], [x + dir * tick, bottom, 0]], color, strokeWidth: 2.6, closed: false });
+    new Polygon({
+      vertices: [
+        [x + dir * tick, top, 0],
+        [x, top, 0],
+        [x, bottom, 0],
+        [x + dir * tick, bottom, 0],
+      ],
+      color,
+      strokeWidth: 2.6,
+      closed: false,
+    });
   const brackets = [bracket(left, 1), bracket(right, -1)];
   const all = [...mobjects, ...brackets];
   return {
     mobjects: all,
     animations: [
       ...brackets.map((b) => ({ delay: 0, share: 0.4, make: (s: number) => new Create(b, { duration: s }) as Animation })),
-      ...mobjects.map((m, i) => ({ delay: 0.3 + (0.5 * i) / Math.max(1, mobjects.length), share: 0.3, make: (s: number) => new FadeIn(m, { duration: s }) as Animation })),
+      ...mobjects.map((m, i) => ({
+        delay: 0.3 + (0.5 * i) / Math.max(1, mobjects.length),
+        share: 0.3,
+        make: (s: number) => new FadeIn(m, { duration: s }) as Animation,
+      })),
     ],
   };
 }

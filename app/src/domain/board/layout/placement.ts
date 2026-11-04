@@ -159,7 +159,14 @@ function regionsOver(state: BoardState, ids: readonly string[]): Set<string> {
     const ring = node.points.map(([x, y]) => [x + node.offset[0], y + node.offset[1]] as Vec2);
     // Franchement à l'intérieur : un côté qui borde le carré (le milieu sur son bord) n'est pas recouvert.
     const e = mathSize(state.frame, 0.02, 0.02);
-    const within = (c: Vec2) => [[0, 0], [e.w, 0], [-e.w, 0], [0, e.h], [0, -e.h]].every(([dx, dy]) => insidePolygon([c[0] + dx!, c[1] + dy!], ring));
+    const within = (c: Vec2) =>
+      [
+        [0, 0],
+        [e.w, 0],
+        [-e.w, 0],
+        [0, e.h],
+        [0, -e.h],
+      ].every(([dx, dy]) => insidePolygon([c[0] + dx!, c[1] + dy!], ring));
     if (centers.some(within)) over.add(node.id);
   }
   return over;
@@ -231,7 +238,8 @@ export function makeWay(state: BoardState, arrived: readonly string[], reveal: R
   const calc = new Set(state.calc);
   let next = state;
   /** Les nouveaux venus gênent-ils cette boîte (hors ce que `skip` permet) ? */
-  const hit = (box: Box, skip: (owner: string, part: Part) => boolean) => crowding(footprints(next, (owner, part) => !fresh.has(owner) || skip(owner, part)))(box) >= FREE;
+  const hit = (box: Box, skip: (owner: string, part: Part) => boolean) =>
+    crowding(footprints(next, (owner, part) => !fresh.has(owner) || skip(owner, part)))(box) >= FREE;
   for (const id of state.order) {
     const node = next.nodes[id];
     if (!isVisible(node) || fresh.has(id) || calc.has(id)) continue;

@@ -9,13 +9,7 @@ import type { Frame } from "./state";
  * Échantillonne y = f(x) en morceaux continus (coordonnées mathématiques).
  * On coupe la courbe là où elle n'est pas définie ou sort largement du cadre.
  */
-export function sampleCurve(
-  fn: string,
-  frame: Frame,
-  from?: number,
-  to?: number,
-  samples = 260,
-): Array<Array<[number, number]>> {
+export function sampleCurve(fn: string, frame: Frame, from?: number, to?: number, samples = 260): Array<Array<[number, number]>> {
   const f = tryCompileExpression(fn);
   if (!f) return [];
   const [xmin, xmax] = frame.x;

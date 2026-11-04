@@ -32,8 +32,15 @@ const bounds = (state: BoardState) => state.axes?.frame ?? state.frame;
 /** Une droite y = y0 + m(x − x0) (ou verticale x = x0) coupée aux bords du repère. */
 function lineAcross(state: BoardState, x0: number, y0: number, m: number | "vertical"): [Vec2, Vec2] {
   const f = bounds(state);
-  if (m === "vertical") return [[x0, f.y[0]], [x0, f.y[1]]];
-  return [[f.x[0], y0 + m * (f.x[0] - x0)], [f.x[1], y0 + m * (f.x[1] - x0)]];
+  if (m === "vertical")
+    return [
+      [x0, f.y[0]],
+      [x0, f.y[1]],
+    ];
+  return [
+    [f.x[0], y0 + m * (f.x[0] - x0)],
+    [f.x[1], y0 + m * (f.x[1] - x0)],
+  ];
 }
 
 export const conicCommand = defineCommand({
@@ -50,7 +57,10 @@ export const conicCommand = defineCommand({
     foci: z.boolean().optional(),
     elements: z.boolean().optional(),
     /** Des points de la courbe, donnés par leur abscisse (le moteur calcule l'ordonnée ; "below" pour l'autre moitié). */
-    points: z.array(z.object({ name: z.string().trim().min(1).max(4), x: finite, below: z.boolean().optional() })).max(3).optional(),
+    points: z
+      .array(z.object({ name: z.string().trim().min(1).max(4), x: finite, below: z.boolean().optional() }))
+      .max(3)
+      .optional(),
     /** Avec "points" : les distances de chaque point aux foyers (et à la directrice d'une parabole), mesurées. */
     distances: z.boolean().optional(),
     color: ColorName.optional(),
@@ -61,7 +71,7 @@ export const conicCommand = defineCommand({
     '  "orientation":"vertical" pour (y−k)²/b² − (x−h)²/a² = 1 ; "parabola" de sommet "center" et de paramètre "c" :\n' +
     '  (x−h)² = 4c(y−k), "orientation":"horizontal" pour (y−k)² = 4c(x−h). Le moteur place les foyers ("foci", calculés),\n' +
     '  et avec "elements" : sommets, asymptotes (hyperbole), directrice (parabole). Parties : e-courbe, e-F1, e-F2, e-centre,\n' +
-    '  e-asymptote-1, e-directrice ; les foyers se visent par leur nom (F1, F2, F).\n' +
+    "  e-asymptote-1, e-directrice ; les foyers se visent par leur nom (F1, F2, F).\n" +
     '  "points":[{"name":"P","x":3}] place P sur la courbe (le moteur calcule y ; "below":true pour la moitié du bas) et,\n' +
     '  avec "distances":true, trace PF₁ et PF₂ avec leurs longueurs (parabole : PF et la distance à la directrice).\n' +
     '  Redemande la conique avec un autre "x" pour promener P : les distances changent, leur somme non.',
@@ -102,14 +112,26 @@ export const conicCommand = defineCommand({
         });
         parts.push(curve(`${id}-courbe`, pts, reveal, color, true));
         const c = Math.sqrt(Math.abs(a * a - b * b));
-        const [F1, F2]: [Vec2, Vec2] = a >= b ? [[h - c, k], [h + c, k]] : [[h, k - c], [h, k + c]];
+        const [F1, F2]: [Vec2, Vec2] =
+          a >= b
+            ? [
+                [h - c, k],
+                [h + c, k],
+              ]
+            : [
+                [h, k - c],
+                [h, k + c],
+              ];
         if (action.foci && c > 1e-9) {
           parts.push(point(`${id}-F1`, F1, "F₁", reveal, "orange"), point(`${id}-F2`, F2, "F₂", reveal, "orange"));
           Object.assign(vertices, { F1, F2 });
         }
         if (action.elements) {
           parts.push(point(`${id}-centre`, [h, k], undefined, reveal, "ink"));
-          parts.push(segment(`${id}-grand-axe`, [h - a, k], [h + a, k], reveal, "muted", true), segment(`${id}-petit-axe`, [h, k - b], [h, k + b], reveal, "muted", true));
+          parts.push(
+            segment(`${id}-grand-axe`, [h - a, k], [h + a, k], reveal, "muted", true),
+            segment(`${id}-petit-axe`, [h, k - b], [h, k + b], reveal, "muted", true),
+          );
         }
         foci = [F1, F2];
         yAt = (x, below) => {
@@ -131,7 +153,15 @@ export const conicCommand = defineCommand({
           });
         parts.push(curve(`${id}-courbe`, branch(1), reveal, color), curve(`${id}-courbe-2`, branch(-1), reveal, color));
         const c = Math.sqrt(a * a + b * b);
-        const [F1, F2]: [Vec2, Vec2] = vertical ? [[h, k - c], [h, k + c]] : [[h - c, k], [h + c, k]];
+        const [F1, F2]: [Vec2, Vec2] = vertical
+          ? [
+              [h, k - c],
+              [h, k + c],
+            ]
+          : [
+              [h - c, k],
+              [h + c, k],
+            ];
         if (action.foci) {
           parts.push(point(`${id}-F1`, F1, "F₁", reveal, "orange"), point(`${id}-F2`, F2, "F₂", reveal, "orange"));
           Object.assign(vertices, { F1, F2 });

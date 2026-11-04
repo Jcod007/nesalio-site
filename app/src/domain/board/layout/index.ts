@@ -10,7 +10,22 @@
  *
  * Seule cette liste sort du module : les aides internes (shift, padded…) restent privées.
  */
-export { AXES_BOX, FONT_SIZE, UNIFORM_RATIO, fontSizeOf, isUniform, mathSize, matrixLayout, scales, textExtent, textNodeExtent, textWorldExtent, worldPerMath, type Box, type Extent } from "./measure";
+export {
+  AXES_BOX,
+  FONT_SIZE,
+  UNIFORM_RATIO,
+  fontSizeOf,
+  isUniform,
+  mathSize,
+  matrixLayout,
+  scales,
+  textExtent,
+  textNodeExtent,
+  textWorldExtent,
+  worldPerMath,
+  type Box,
+  type Extent,
+} from "./measure";
 export { TICK_FONT, axisTicks, tickLabels, tickText, type AxisTicks } from "./ticks";
 export { boxAround, boxCenter, boxExtent, intersects, union } from "./boxes";
 export { bodyBox, contentBox, defaultLabelCenter, figureBox, labelBox, labelCenter, nodeBox, outline } from "./nodeBoxes";

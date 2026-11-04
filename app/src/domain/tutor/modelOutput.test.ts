@@ -155,7 +155,9 @@ describe("formules et étiquettes d'événement (séances du 21 octobre)", () =>
   // Vu le 21 octobre (homothétie, médiatrice) : la question arrive seule sur sa ligne, parfois
   // en JSON cassé ; refusée, elle laissait la leçon finir sans question.
   it("ignore une étiquette vide au lieu de refuser la figure", () => {
-    const event = createModelOutputParser().parseLine('{"kind":"step","say":"Voici ABC.","do":[{"type":"triangle","id":"tri","points":[[1,1],[4,1],[1,3]],"sides":{"ab":"","bc":" ","ca":"c"}}]}');
+    const event = createModelOutputParser().parseLine(
+      '{"kind":"step","say":"Voici ABC.","do":[{"type":"triangle","id":"tri","points":[[1,1],[4,1],[1,3]],"sides":{"ab":"","bc":" ","ca":"c"}}]}',
+    );
     expect((event as { do: Array<{ sides?: object }> }).do[0]?.sides).toEqual({ ca: "c" });
   });
 

@@ -2,8 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SESSION_HEADER } from "@/domain/session";
 import { createSessionLimits } from "./rateLimit";
 
-const headers = (ip: string, session?: string) =>
-  new Headers({ "x-forwarded-for": ip, ...(session ? { [SESSION_HEADER]: session } : {}) });
+const headers = (ip: string, session?: string) => new Headers({ "x-forwarded-for": ip, ...(session ? { [SESSION_HEADER]: session } : {}) });
 
 describe("limites par session", () => {
   it("deux élèves sur le même Wi-Fi ont chacun leur limite", () => {

@@ -22,7 +22,6 @@ export const FONT_SIZE = { small: 30, normal: 40, large: 52, calc: 36, label: 34
 export const HEIGHT_PER_POINT = 1 / 80;
 const WIDTH_PER_POINT_PER_CHAR = 0.0042;
 
-
 export interface Box {
   x0: number;
   y0: number;

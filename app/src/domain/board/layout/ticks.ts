@@ -39,8 +39,7 @@ export function axisTicks(frame: Frame): { x: AxisTicks; y: AxisTicks; origin: V
     for (let guard = 0; guard < 40 && step * unit < room(step); guard++) step = nextStep(step, requested);
     return step;
   };
-  const widest = (range: [number, number], step: number) =>
-    Math.max(1, ...along(range, step).map((v) => Array.from(tickText(v)).length)) * TICK_WIDTH_PER_CHAR;
+  const widest = (range: [number, number], step: number) => Math.max(1, ...along(range, step).map((v) => Array.from(tickText(v)).length)) * TICK_WIDTH_PER_CHAR;
   const xStep = readable(frame.x, s.x, frame.xStep, 8, (step) => widest(frame.x, step) + 0.12);
   const yStep = readable(frame.y, s.y, frame.yStep, 7, () => TICK_HEIGHT + 0.16);
   return {

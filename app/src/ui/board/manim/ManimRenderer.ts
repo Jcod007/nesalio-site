@@ -40,7 +40,6 @@ import { fadeAll, slide, turn } from "./motion";
 import { buildNode, type Pen } from "./nodeBuilders";
 import { add, rad, type Built, type TimedAnimation, type Vec3 } from "./world";
 
-
 /** Ce qui est dessiné pour un nœud du graphe, et ce qui en a déjà été animé. */
 interface Rendered {
   revealStart: number;
@@ -102,7 +101,10 @@ export class ManimRenderer {
   private generation = 0;
   private readonly detach: Array<() => void> = [];
 
-  constructor(container: HTMLElement, private readonly callbacks: RendererCallbacks = {}) {
+  constructor(
+    container: HTMLElement,
+    private readonly callbacks: RendererCallbacks = {},
+  ) {
     ensureTheme();
     this.container = container;
     this.scene = new Scene(container, { backgroundColor: BRAND.paper, backgroundOpacity: 0 });
@@ -199,9 +201,7 @@ export class ManimRenderer {
       this.cameraAt = board.camera.at;
       this.focused = board.camera.kind === "fit";
       const target =
-        board.camera.kind === "reset"
-          ? fitView(this.homeBox(), this.viewport)
-          : fitView(this.mathBox(board.camera.x, board.camera.y), this.viewport, 0.85);
+        board.camera.kind === "reset" ? fitView(this.homeBox(), this.viewport) : fitView(this.mathBox(board.camera.x, board.camera.y), this.viewport, 0.85);
       this.userMoved = false;
       this.animateView(target, board.camera.duration, board.camera.at - now);
     }
@@ -298,9 +298,13 @@ export class ManimRenderer {
           batch.push({ animation: new ReplacementTransform(oldMain, newMain, { duration: seconds }), ...at(node.morph.start, node.morph.duration) });
         }
       }
-      for (const old of node.type === "grid" ? [] : oldRest) batch.push({ animation: new FadeOut(old, { duration: seconds * 0.5 }), ...at(node.morph.start, node.morph.duration * 0.5) });
+      for (const old of node.type === "grid" ? [] : oldRest)
+        batch.push({ animation: new FadeOut(old, { duration: seconds * 0.5 }), ...at(node.morph.start, node.morph.duration * 0.5) });
       for (const extra of node.type === "grid" ? [] : newRest) {
-        batch.push({ animation: new FadeIn(extra, { duration: seconds * 0.5 }), ...at(node.morph.start + node.morph.duration * 0.5, node.morph.duration * 0.5) });
+        batch.push({
+          animation: new FadeIn(extra, { duration: seconds * 0.5 }),
+          ...at(node.morph.start + node.morph.duration * 0.5, node.morph.duration * 0.5),
+        });
       }
       current.mobjects = built.mobjects;
       current.appliedOffset = node.offset;

@@ -16,7 +16,12 @@ export function matchChoice(text: string, choices: readonly string[]): number | 
   if (!said) return null;
   const exact = choices.findIndex((choice) => fold(choice) === said);
   if (exact >= 0) return exact;
-  const ordinals = [["a", "premier", "premiere", "1er", "la 1"], ["b", "deuxieme", "second", "seconde", "2e"], ["c", "troisieme", "3e"], ["d", "quatrieme", "4e"]];
+  const ordinals = [
+    ["a", "premier", "premiere", "1er", "la 1"],
+    ["b", "deuxieme", "second", "seconde", "2e"],
+    ["c", "troisieme", "3e"],
+    ["d", "quatrieme", "4e"],
+  ];
   const byRank = ordinals.findIndex((words, i) => i < choices.length && words.some((w) => said === w || said === `la ${w}` || said === `reponse ${w}`));
   if (byRank >= 0) return byRank;
   // Un seul choix contenu dans la réponse (ou qui la contient) : c'est lui.

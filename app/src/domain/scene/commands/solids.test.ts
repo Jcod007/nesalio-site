@@ -11,7 +11,11 @@ const edges = (board: ReturnType<typeof emptyBoard>, id: string) =>
 
 describe("solides en perspective", () => {
   it("pavé droit : 12 arêtes dont 3 cachées (celles du coin arrière), cotes posées", () => {
-    const board = applyAction(emptyBoard(), { type: "prism", id: "p", base: "rectangle", length: 5, width: 3, height: 4, labels: { length: "5 cm", width: "3 cm", height: "4 cm" } }, t);
+    const board = applyAction(
+      emptyBoard(),
+      { type: "prism", id: "p", base: "rectangle", length: 5, width: 3, height: 4, labels: { length: "5 cm", width: "3 cm", height: "4 cm" } },
+      t,
+    );
     const all = edges(board, "p");
     expect(all.length).toBe(12);
     expect(all.filter((e) => e.dashed).length).toBe(3);

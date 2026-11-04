@@ -32,12 +32,7 @@ describe("repères de synchronisation", () => {
 
   it("déduit le moment d'apparition des mots de la phrase quand le modèle n'a pas mis de repère", () => {
     const say = "Place le point A, puis trace la courbe : la montée vaut 3.";
-    const cues = inferCues(say, [
-      { type: "point", id: "A" },
-      { type: "curve", id: "g" },
-      { type: "note", id: "n1", text: "montée = 3" },
-      { type: "axes" },
-    ]);
+    const cues = inferCues(say, [{ type: "point", id: "A" }, { type: "curve", id: "g" }, { type: "note", id: "n1", text: "montée = 3" }, { type: "axes" }]);
     expect(cues.A).toBeCloseTo(say.indexOf("A,") / say.length);
     expect(cues.g).toBeCloseTo(say.indexOf("courbe") / say.length);
     expect(cues.n1).toBeCloseTo(say.indexOf("montée") / say.length);

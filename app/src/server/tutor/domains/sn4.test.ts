@@ -29,8 +29,16 @@ describe("SN 4, 1re étape : consignes", () => {
   });
 
   it("modèle d'aire : (x + 2)(x + 3), les produits sont calculés par le moteur et écrits dans les pièces", () => {
-    const board = play([{ kind: "step", say: "Le rectangle x plus 2 sur x plus 3 {am}.", mood: "dessine", do: [{ type: "areaModel", id: "am", rows: ["x", "2"], cols: ["x", "3"] }] }]);
-    const text = (id: string) => (board.nodes[id] as { text?: string; label?: string } | undefined)?.text ?? (board.nodes[id] as { label?: string } | undefined)?.label;
+    const board = play([
+      {
+        kind: "step",
+        say: "Le rectangle x plus 2 sur x plus 3 {am}.",
+        mood: "dessine",
+        do: [{ type: "areaModel", id: "am", rows: ["x", "2"], cols: ["x", "3"] }],
+      },
+    ]);
+    const text = (id: string) =>
+      (board.nodes[id] as { text?: string; label?: string } | undefined)?.text ?? (board.nodes[id] as { label?: string } | undefined)?.label;
     expect([text("am-p00"), text("am-p01"), text("am-p10"), text("am-p11")]).toEqual(["x²", "3x", "2x", "6"]);
     expect([text("am-r0"), text("am-r1"), text("am-c0"), text("am-c1")]).toEqual(["x", "2", "x", "3"]);
     // Chaque produit est DANS sa pièce.
@@ -42,24 +50,54 @@ describe("SN 4, 1re étape : consignes", () => {
   });
 
   it("modèle d'aire : signes et coefficients (x + 4)(3x − 2), puis complétion du carré", () => {
-    const board = play([{ kind: "step", say: "Les pièces {am}.", mood: "dessine", do: [{ type: "areaModel", id: "am", rows: ["x", "4"], cols: ["3x", "−2"] }] }]);
+    const board = play([
+      { kind: "step", say: "Les pièces {am}.", mood: "dessine", do: [{ type: "areaModel", id: "am", rows: ["x", "4"], cols: ["3x", "−2"] }] },
+    ]);
     const text = (id: string) => (board.nodes[id] as { label?: string } | undefined)?.label;
     expect([text("am-p00"), text("am-p01"), text("am-p10"), text("am-p11")]).toEqual(["3x²", "−2x", "12x", "−8"]);
-    let square = play([{ kind: "step", say: "Il manque un coin {c}.", mood: "question", do: [{ type: "areaModel", id: "c", rows: ["x", "3"], cols: ["x", "3"], empty: [[1, 1]] }] }]);
-    expect((square.nodes["c-p11"] as { label: string; dashed?: boolean })).toMatchObject({ label: "?", dashed: true });
-    square = play([{ kind: "step", say: "Le coin vaut 9 {c}.", mood: "idee", do: [{ type: "areaModel", id: "c", rows: ["x", "3"], cols: ["x", "3"] }] }], square);
+    let square = play([
+      {
+        kind: "step",
+        say: "Il manque un coin {c}.",
+        mood: "question",
+        do: [{ type: "areaModel", id: "c", rows: ["x", "3"], cols: ["x", "3"], empty: [[1, 1]] }],
+      },
+    ]);
+    expect(square.nodes["c-p11"] as { label: string; dashed?: boolean }).toMatchObject({ label: "?", dashed: true });
+    square = play(
+      [{ kind: "step", say: "Le coin vaut 9 {c}.", mood: "idee", do: [{ type: "areaModel", id: "c", rows: ["x", "3"], cols: ["x", "3"] }] }],
+      square,
+    );
     expect(square.nodes["c-p11"]).toMatchObject({ label: "9", fill: true });
   });
 
   it("une séance de partie entière : l'escalier, puis k qui change, puis b négatif", () => {
     let board = play([
-      { kind: "step", say: "Voici f de x égale partie entière de x {f}.", mood: "dessine", do: [{ type: "stepFunction", id: "f", from: -3, to: 3, rule: true }] },
+      {
+        kind: "step",
+        say: "Voici f de x égale partie entière de x {f}.",
+        mood: "dessine",
+        do: [{ type: "stepFunction", id: "f", from: -3, to: 3, rule: true }],
+      },
     ]);
     const steps = () => resolveTargets(board, "f").filter((id) => id.startsWith("f-m"));
     expect(steps().length).toBe(6);
-    board = play([{ kind: "step", say: "Avec k égale 2, l'escalier {f} monte.", mood: "explique", do: [{ type: "stepFunction", id: "f", k: 2, from: -3, to: 3 }] }], board);
+    board = play(
+      [{ kind: "step", say: "Avec k égale 2, l'escalier {f} monte.", mood: "explique", do: [{ type: "stepFunction", id: "f", k: 2, from: -3, to: 3 }] }],
+      board,
+    );
     expect(board.groups["f"]?.rule).toBe("escalier f(x) = [x] + 2");
-    board = play([{ kind: "step", say: "Avec b négatif {f}, les points pleins passent à droite.", mood: "idee", do: [{ type: "stepFunction", id: "f", b: -1, k: 2, from: -3, to: 3 }] }], board);
+    board = play(
+      [
+        {
+          kind: "step",
+          say: "Avec b négatif {f}, les points pleins passent à droite.",
+          mood: "idee",
+          do: [{ type: "stepFunction", id: "f", b: -1, k: 2, from: -3, to: 3 }],
+        },
+      ],
+      board,
+    );
     const full = visibleNodes(board).filter((n) => n.type === "point" && !n.open && n.id.startsWith("f-p"));
     const empty = visibleNodes(board).filter((n) => n.type === "point" && n.open);
     // b < 0 : chaque marche a son point plein à sa droite.

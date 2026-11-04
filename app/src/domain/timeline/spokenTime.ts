@@ -26,8 +26,26 @@ export function tokenize(text: string): Token[] {
 /* ----------------------------- nombres en mots ----------------------------- */
 
 const UNITS = [
-  "zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
-  "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf",
+  "zéro",
+  "un",
+  "deux",
+  "trois",
+  "quatre",
+  "cinq",
+  "six",
+  "sept",
+  "huit",
+  "neuf",
+  "dix",
+  "onze",
+  "douze",
+  "treize",
+  "quatorze",
+  "quinze",
+  "seize",
+  "dix-sept",
+  "dix-huit",
+  "dix-neuf",
 ];
 const TENS: Record<number, string> = { 2: "vingt", 3: "trente", 4: "quarante", 5: "cinquante", 6: "soixante" };
 
@@ -82,7 +100,18 @@ function syllables(word: string): number {
 
 /** Symboles qui se prononcent, avec leur poids en syllabes. */
 const SYMBOLS: Record<string, number> = {
-  "°": 2, "=": 2, "+": 1, "−": 1, "×": 1, "/": 1, "²": 3, "³": 2, "√": 3, "≈": 3, "%": 2, "π": 1,
+  "°": 2,
+  "=": 2,
+  "+": 1,
+  "−": 1,
+  "×": 1,
+  "/": 1,
+  "²": 3,
+  "³": 2,
+  "√": 3,
+  "≈": 3,
+  "%": 2,
+  π: 1,
 };
 /** Pauses, en équivalent syllabes. */
 const SHORT_PAUSE = 1.2;
@@ -97,7 +126,9 @@ export function spokenWeight(text: string): number {
   let weight = 0;
   for (const { text: token } of tokenize(text)) {
     if (/^\d+(?:[,.]\d+)?$/.test(token)) {
-      weight += spellNumber(token).split(/[\s-]+/).reduce((sum, w) => sum + syllables(w), 0);
+      weight += spellNumber(token)
+        .split(/[\s-]+/)
+        .reduce((sum, w) => sum + syllables(w), 0);
     } else {
       weight += token.split("-").reduce((sum, w) => sum + syllables(w), 0);
     }
@@ -121,12 +152,7 @@ export interface SpeechSpan {
  * Heure (ms depuis le début de l'audio) de chaque repère, au prorata du temps
  * de parole estimé, sur la partie parlée de l'audio si on la connaît.
  */
-export function cueOffsetsMs(
-  say: string,
-  cues: Readonly<Record<string, number>>,
-  durationMs: number,
-  span?: SpeechSpan,
-): Record<string, number> {
+export function cueOffsetsMs(say: string, cues: Readonly<Record<string, number>>, durationMs: number, span?: SpeechSpan): Record<string, number> {
   const usable = span && span.endMs > span.startMs && span.endMs <= durationMs + 1 ? span : { startMs: 0, endMs: durationMs };
   const total = Math.max(1e-6, spokenWeight(say));
   const out: Record<string, number> = {};
@@ -139,12 +165,7 @@ export function cueOffsetsMs(
 }
 
 /** Les mêmes repères, exprimés en part de la durée (format attendu par planStep). */
-export function retimeCues(
-  say: string,
-  cues: Readonly<Record<string, number>>,
-  durationMs: number,
-  span?: SpeechSpan,
-): Record<string, number> {
+export function retimeCues(say: string, cues: Readonly<Record<string, number>>, durationMs: number, span?: SpeechSpan): Record<string, number> {
   if (durationMs <= 0) return { ...cues };
   const offsets = cueOffsetsMs(say, cues, durationMs, span);
   return Object.fromEntries(Object.entries(offsets).map(([id, ms]) => [id, Math.min(1, ms / durationMs)]));

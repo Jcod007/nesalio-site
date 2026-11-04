@@ -9,7 +9,20 @@ const at = (board: BoardState, id: string) => {
   return [p.at[0] + p.offset[0], p.at[1] + p.offset[1]];
 };
 const close = (a: number[], b: number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i]!, 6));
-const triangle = () => applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [6, 0], [2, 4]] }, t);
+const triangle = () =>
+  applyAction(
+    emptyBoard(),
+    {
+      type: "triangle",
+      id: "tri",
+      points: [
+        [0, 0],
+        [6, 0],
+        [2, 4],
+      ],
+    },
+    t,
+  );
 const direction = (s: SegmentNode) => {
   const d = [s.to[0] - s.from[0], s.to[1] - s.from[1]];
   const n = Math.hypot(d[0]!, d[1]!);
@@ -41,7 +54,19 @@ describe("constructions géométriques", () => {
   });
 
   it("trace la médiatrice, la bissectrice et la médiane exactes", () => {
-    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [4, 0], [0, 3]] }, t);
+    let board = applyAction(
+      emptyBoard(),
+      {
+        type: "triangle",
+        id: "tri",
+        points: [
+          [0, 0],
+          [4, 0],
+          [0, 3],
+        ],
+      },
+      t,
+    );
     board = applyAction(board, { type: "construct", id: "med", kind: "perpBisector", of: ["A", "B"] }, t);
     const m = board.nodes["med-droite"] as SegmentNode;
     expect(m.from[0]).toBeCloseTo(2, 9);

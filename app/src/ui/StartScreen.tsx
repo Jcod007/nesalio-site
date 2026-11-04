@@ -18,8 +18,7 @@ export function StartScreen({ onAsk, listening, onListeningChange }: Props) {
       <Nesa state={listening ? "ecoute" : "clin"} size={112} />
       <h1 id="start-title">Sur quelle notion tu bloques ?</h1>
       <p className={styles.lede}>
-        Pose ta question à voix haute ou écris-la. Nesa t&apos;explique en dessinant au tableau, et tu peux l&apos;interrompre
-        quand tu veux.
+        Pose ta question à voix haute ou écris-la. Nesa t&apos;explique en dessinant au tableau, et tu peux l&apos;interrompre quand tu veux.
       </p>
       <QuestionInput
         size="large"

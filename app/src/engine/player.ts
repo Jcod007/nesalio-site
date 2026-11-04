@@ -551,10 +551,7 @@ export class Player {
     const onAbort = () => timeout.abort();
     signal.addEventListener("abort", onAbort, { once: true });
     try {
-      return await Promise.race([
-        speaker.prepare(text).catch(() => fallback),
-        clock.sleep(PREPARE_TIMEOUT_MS, timeout.signal).then(() => fallback),
-      ]);
+      return await Promise.race([speaker.prepare(text).catch(() => fallback), clock.sleep(PREPARE_TIMEOUT_MS, timeout.signal).then(() => fallback)]);
     } finally {
       timeout.abort();
       signal.removeEventListener("abort", onAbort);

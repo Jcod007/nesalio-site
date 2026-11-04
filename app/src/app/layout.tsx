@@ -8,8 +8,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Nesalio · Essaie Nesalio",
-  description:
-    "Pose ta question de maths ou de sciences : Nesa te répond à voix haute en dessinant l'explication au tableau. Secondaire 4-5 et cégep.",
+  description: "Pose ta question de maths ou de sciences : Nesa te répond à voix haute en dessinant l'explication au tableau. Secondaire 4-5 et cégep.",
   icons: { icon: "/favicon.svg", apple: "/apple-touch-icon.png" },
   robots: { index: false },
 };

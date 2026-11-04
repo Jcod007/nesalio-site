@@ -88,7 +88,12 @@ for (const q of questions) {
   console.log(JSON.stringify(row));
 }
 const total = (key) => rows.reduce((n, r) => n + (Number(r[key]) || 0), 0);
-console.log(`\nGestes : ${total("gestures")} · dit sans montrer : ${total("unshown")} · rejets : ${total("rejected")} · cibles absentes : ${total("unknownTargets")}`);
+console.log(
+  `\nGestes : ${total("gestures")} · dit sans montrer : ${total("unshown")} · rejets : ${total("rejected")} · cibles absentes : ${total("unknownTargets")}`,
+);
 if (total("_total") > 0) console.log(`Programme : ${total("_ok")}/${total("_total")} critères respectés`);
 mkdirSync(join(here, "resultats"), { recursive: true });
-writeFileSync(join(here, "resultats", `${set ? `${set}-` : ""}${new Date().toISOString().slice(0, 16).replace(":", "h")}.json`), JSON.stringify({ set: set || "general", answers, turns, rows }, null, 2));
+writeFileSync(
+  join(here, "resultats", `${set ? `${set}-` : ""}${new Date().toISOString().slice(0, 16).replace(":", "h")}.json`),
+  JSON.stringify({ set: set || "general", answers, turns, rows }, null, 2),
+);

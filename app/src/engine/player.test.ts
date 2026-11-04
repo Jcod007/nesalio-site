@@ -234,10 +234,7 @@ describe("Player", () => {
 
   it("une nouvelle question remplace la séance en cours et vide le tableau", async () => {
     const voice = fakeSpeaker();
-    const { source } = scriptedSource((r) => [
-      step(r.question, { do: [{ type: "point", id: r.question, at: [0, 0] }] }),
-      { kind: "end", summary: [] },
-    ]);
+    const { source } = scriptedSource((r) => [step(r.question, { do: [{ type: "point", id: r.question, at: [0, 0] }] }), { kind: "end", summary: [] }]);
     const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
     player.ask("a");
     await until(player, (s) => s.caption?.text === "a");
@@ -322,9 +319,7 @@ describe("Player", () => {
     const voice = fakeSpeaker();
     const check = { prompt: "Tu connais le triangle rectangle ?", choices: ["Oui", "Un peu", "Non"] };
     const { source, requests } = scriptedSource((request) =>
-      request.mode === "question"
-        ? [step("Avant de commencer.", { check }), { kind: "await" }]
-        : [step("On part de la base."), { kind: "end", summary: [] }],
+      request.mode === "question" ? [step("Avant de commencer.", { check }), { kind: "await" }] : [step("On part de la base."), { kind: "end", summary: [] }],
     );
     const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
 
@@ -340,9 +335,7 @@ describe("Player", () => {
     const voice = fakeSpeaker();
     const check = { prompt: "Combien ?", choices: ["0", "2"], answer: 1, ifRight: "Oui !", ifWrong: "Presque." };
     const { source } = scriptedSource((request) =>
-      request.mode === "question"
-        ? [step("Devine.", { check }), { kind: "await" }]
-        : [step("Suite."), { kind: "end", summary: [] }],
+      request.mode === "question" ? [step("Devine.", { check }), { kind: "await" }] : [step("Suite."), { kind: "end", summary: [] }],
     );
     const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
 

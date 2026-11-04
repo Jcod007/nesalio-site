@@ -35,7 +35,6 @@ import { angleMark, drawFigure, equalTicks, label, Name, pointsBox, segment, Sha
 
 /* --------------------------------- formes --------------------------------- */
 
-
 export const circleCommand = defineCommand({
   schema: z.object({
     type: z.literal("circle"),
@@ -124,10 +123,10 @@ export const sectorCommand = defineCommand({
   }),
   doc:
     '{"type":"sector","id":"s","center":[0,0],"radius":5,"from":0,"to":60,"label":"60°","arcLabel":"arc ≈ 5,2"} : secteur\n' +
-    '  de disque (une part de pizza) entre deux angles en degrés, avec ses deux rayons et son arc. Parties : s-surface\n' +
+    "  de disque (une part de pizza) entre deux angles en degrés, avec ses deux rayons et son arc. Parties : s-surface\n" +
     '  (la part, remplie), s-arc (l\'arc seul, pour sa longueur), s-r1, s-r2 (les rayons). Un "rotate" sur "s" la fait\n' +
     '  tourner autour du centre ("about" = le centre). "parts":6 découpe tout le cercle en 6 parts égales à celle-ci,\n' +
-    '  en couleurs alternées (60° = 1/6 du tour) ; seule la première porte les étiquettes. Parties : s-part-2… s-part-6.',
+    "  en couleurs alternées (60° = 1/6 du tour) ; seule la première porte les étiquettes. Parties : s-part-2… s-part-6.",
   duration: 1400,
   aliases: ["wedge", "part"],
   apply(state, action, reveal) {
@@ -138,7 +137,12 @@ export const sectorCommand = defineCommand({
     const [start, end] = action.from <= action.to ? [action.from, action.to] : [action.to, action.from];
     const samples = Math.max(8, Math.ceil((end - start) / 6));
     const arc = arcPoints(center, radius, start, end, samples);
-    const disc: Vec2[] = action.parts ? [[center[0] - radius, center[1] - radius], [center[0] + radius, center[1] + radius]] : [];
+    const disc: Vec2[] = action.parts
+      ? [
+          [center[0] - radius, center[1] - radius],
+          [center[0] + radius, center[1] + radius],
+        ]
+      : [];
     state = fitFrame(state, pointsBox([center, ...arc, ...disc]));
     const unit = worldPerMath(state.frame);
     const middle = rad((start + end) / 2);
@@ -164,7 +168,13 @@ export const sectorCommand = defineCommand({
     const others: BoardNode[] = [];
     for (let k = 1; action.parts && k < action.parts && span > 0; k++) {
       const ring = arcPoints(center, radius, start + k * span, end + k * span, samples);
-      others.push({ ...base(`${id}-part-${k + 1}`, reveal, k % 2 === 0 ? color : "blue"), type: "polygon", points: [center, ...ring], closed: true, fill: true });
+      others.push({
+        ...base(`${id}-part-${k + 1}`, reveal, k % 2 === 0 ? color : "blue"),
+        type: "polygon",
+        points: [center, ...ring],
+        closed: true,
+        fill: true,
+      });
     }
     const next = drawFigure(state, id, parts, reveal, {}, { [`${id}-centre`]: center });
     return others.length ? drawFigure(next, `${id}-parts`, others, { start: reveal.start + reveal.duration * 0.5, duration: reveal.duration * 0.5 }) : next;
@@ -193,7 +203,7 @@ export const regularPolygonCommand = defineCommand({
     '{"type":"regularPolygon","id":"hex","sides":6,"side":2,"apothem":true,"triangles":true,"labels":{"side":"2 cm","apothem":"a"}}\n' +
     '  Polygone régulier exact (côté en bas, centré en "center"). "apothem" : l\'apothème en pointillés (centre → milieu du\n' +
     '  côté du bas, angle droit) ; "radius" : un rayon (centre → sommet) ; "triangles" : le découpage en triangles isocèles\n' +
-    '  depuis le centre (aire = périmètre × apothème ÷ 2). Parties : hex-contour, hex-centre, hex-apotheme, hex-rayon,\n' +
+    "  depuis le centre (aire = périmètre × apothème ÷ 2). Parties : hex-contour, hex-centre, hex-apotheme, hex-rayon,\n" +
     '  hex-triangle-1…, groupe hex-triangles ; sommets nommés avec "names" (sinon A, B, C…).',
   duration: 2000,
   aliases: ["regular", "hexagon", "pentagon"],
@@ -223,11 +233,13 @@ export const regularPolygonCommand = defineCommand({
     if (action.apothem || action.labels?.apothem) {
       parts.push(segment(`${id}-apotheme`, c, middle, reveal, "orange", true));
       parts.push(angleMark(state, `${id}-apotheme-droit`, middle, c, p1, undefined, true, reveal));
-      if (action.labels?.apothem) parts.push(label(`${id}-apotheme-l`, action.labels.apothem, add(scale(add(c, middle), 0.5), [0.3 / unit, 0]), `${id}-apotheme`, reveal, "orange"));
+      if (action.labels?.apothem)
+        parts.push(label(`${id}-apotheme-l`, action.labels.apothem, add(scale(add(c, middle), 0.5), [0.3 / unit, 0]), `${id}-apotheme`, reveal, "orange"));
     }
     if (action.radius || action.labels?.radius) {
       parts.push(segment(`${id}-rayon`, c, p1, reveal, "violet"));
-      if (action.labels?.radius) parts.push(label(`${id}-rayon-l`, action.labels.radius, add(scale(add(c, p1), 0.5), [0, 0.3 / unit]), `${id}-rayon`, reveal, "violet"));
+      if (action.labels?.radius)
+        parts.push(label(`${id}-rayon-l`, action.labels.radius, add(scale(add(c, p1), 0.5), [0, 0.3 / unit]), `${id}-rayon`, reveal, "violet"));
     }
     if (action.labels?.side) parts.push(label(`${id}-side-l`, action.labels.side, outward(middle, c, 0.42 / unit), `${id}-contour`, reveal, color));
     const names = action.names ?? corners.map((_, k) => String.fromCharCode(65 + k));
@@ -258,14 +270,14 @@ const TriangleSchema = z
     at: Coord.optional(),
     rotate: finite.optional(),
     names: z.tuple([Name, Name, Name]).optional(),
-    sides: z
-      .object({ base: Name, height: Name, hyp: Name, ab: Name, bc: Name, ca: Name })
-      .partial()
-      .optional(),
+    sides: z.object({ base: Name, height: Name, hyp: Name, ab: Name, bc: Name, ca: Name }).partial().optional(),
     angleLabel: z.string().max(12).optional(),
     // Triangle quelconque par ses mesures (a = BC, b = CA, c = AB ; angles en A, B, C).
     lengths: z.object({ ab: finite.positive(), bc: finite.positive(), ca: finite.positive() }).partial().optional(),
-    angles: z.object({ A: finite.gt(0).lt(180), B: finite.gt(0).lt(180), C: finite.gt(0).lt(180) }).partial().optional(),
+    angles: z
+      .object({ A: finite.gt(0).lt(180), B: finite.gt(0).lt(180), C: finite.gt(0).lt(180) })
+      .partial()
+      .optional(),
     obtuse: z.boolean().optional(),
     angleLabels: z.record(z.string().max(12), z.string().max(16)).optional(),
     marks: z.record(z.string().max(12), z.number().int().min(1).max(3)).optional(),
@@ -293,7 +305,11 @@ const TriangleSchema = z
 
 /** Mesures données (rectangle ou quelconque) : sans aucune, on redemande la même figure (même id). */
 function hasMeasures(a: { base?: number; height?: number; hyp?: number; angle?: number; lengths?: object; angles?: object; points?: unknown }): boolean {
-  return [a.base, a.height, a.hyp, a.angle, a.points].some((v) => v !== undefined) || Object.keys(a.lengths ?? {}).length > 0 || Object.keys(a.angles ?? {}).length > 0;
+  return (
+    [a.base, a.height, a.hyp, a.angle, a.points].some((v) => v !== undefined) ||
+    Object.keys(a.lengths ?? {}).length > 0 ||
+    Object.keys(a.angles ?? {}).length > 0
+  );
 }
 
 /** Triangle quelconque résolu à partir de "lengths" et "angles" (côté c = AB posé à l'horizontale). */
@@ -307,24 +323,24 @@ export const triangleCommand = defineCommand({
   schema: TriangleSchema,
   doc:
     '{"type":"triangle","id":"tri","angle":30,"hyp":5,"names":["A","B","C"],"sides":{"hyp":"5 m","height":"h"},"angleLabel":"30°"}\n' +
-    '  Triangle rectangle en B à partir de DEUX mesures parmi base, height, hyp, angle (angle aigu en A, en degrés) :\n' +
+    "  Triangle rectangle en B à partir de DEUX mesures parmi base, height, hyp, angle (angle aigu en A, en degrés) :\n" +
     '  le moteur calcule les sommets exacts. Options : "at":[x,y] (position de A), "rotate" (degrés).\n' +
-    '  Parties : tri-base (= tri-adjacent, côté adjacent à A), tri-haut (= tri-oppose, opposé à A), tri-hyp,\n' +
+    "  Parties : tri-base (= tri-adjacent, côté adjacent à A), tri-haut (= tri-oppose, opposé à A), tri-hyp,\n" +
     '  tri-droit (angle droit), tri-angle. Triangle quelconque : "points":[[x,y],[x,y],[x,y]], côtés tri-ab, tri-bc, tri-ca\n' +
     '  ("sides" : ab, bc, ca).\n' +
     '  "squares":{"base":"16","height":"9","hyp":"25"} : le moteur construit le carré sur chaque côté nommé, à l\'extérieur,\n' +
     '  avec ce texte (son aire) au centre ; "squares":true pour les trois sans texte. Parties tri-carre-base,\n' +
     '  tri-carre-haut, tri-carre-hyp, groupe tri-carres. Les longueurs ("sides") passent alors à l\'intérieur du triangle.\n' +
     '  "altitude":{"from":"B","foot":"H","label":"h","parts":["m","n"]} : le moteur trace la hauteur issue de ce sommet\n' +
-    '  (pointillés, angle droit au pied, pied nommé H), exactement perpendiculaire au côté opposé (prolongé s\'il le faut).\n' +
+    "  (pointillés, angle droit au pied, pied nommé H), exactement perpendiculaire au côté opposé (prolongé s'il le faut).\n" +
     '  "parts" écrit la longueur des deux morceaux du côté coupé, dans l\'ordre des sommets (hauteur issue de B : AH puis HC).\n' +
     '  Parties : tri-hauteur, tri-pied (angle droit), tri-proj1, tri-proj2 (les deux morceaux). "altitude":"B" suffit.\n' +
-    '  TRIANGLE QUELCONQUE par ses mesures, calculé par le moteur (côté AB à l\'horizontale) : trois mesures dans\n' +
+    "  TRIANGLE QUELCONQUE par ses mesures, calculé par le moteur (côté AB à l'horizontale) : trois mesures dans\n" +
     '  "lengths":{"ab":5,"bc":7,"ca":6} et "angles":{"A":40,"B":60}, dont au moins une longueur (CCC, CAC, ACA, AAC ;\n' +
     '  CCA donne l\'angle aigu, "obtuse":true l\'autre). Côtés tri-ab, tri-bc, tri-ca ("sides" pour leurs noms).\n' +
     '  "angleLabels":{"A":"40°","C":"?"} écrit les angles ; "marks":{"ab":1,"ca":1} met 1 à 3 traits sur les côtés égaux,\n' +
     '  "angleMarks":{"B":2} 1 à 3 arcs sur les angles égaux (triangles isométriques ou semblables). Parties tri-angle-A…\n' +
-    '  Redemander le même triangle (même id) sans mesures garde ses sommets et ajoute ce qui est nouveau.\n' +
+    "  Redemander le même triangle (même id) sans mesures garde ses sommets et ajoute ce qui est nouveau.\n" +
     '  Les sommets (A, B, C ou "names", et le pied H) se visent par leur nom : {"type":"angle","at":"A","from":"B","to":"C"},\n' +
     '  {"type":"segment","from":"B","to":"H"}.',
   duration: 2400,
@@ -342,7 +358,11 @@ export const triangleCommand = defineCommand({
     } else if (general) {
       // A à l'origine, AB à l'horizontale, C au-dessus ; puis centré (ou A en "at").
       const { b, c, A: angleA } = general;
-      const raw: Vec2[] = [[0, 0], [c, 0], [b * Math.cos(rad(angleA)), b * Math.sin(rad(angleA))]];
+      const raw: Vec2[] = [
+        [0, 0],
+        [c, 0],
+        [b * Math.cos(rad(angleA)), b * Math.sin(rad(angleA))],
+      ];
       const xs = raw.map((p) => p[0]);
       const ys = raw.map((p) => p[1]);
       const shift: Vec2 = action.at ?? [-(Math.min(...xs) + Math.max(...xs)) / 2, -(Math.min(...ys) + Math.max(...ys)) / 2];
@@ -436,7 +456,11 @@ export const triangleCommand = defineCommand({
       if (text) parts.push(label(`${sid}-l`, text, outward(scale(add(from, to), 0.5), center, distance), sid, reveal, color));
     });
     if (action.names) {
-      [A, B, C].forEach((vertex, i) => parts.push(label(`${id}-${action.names![i]!.replace(/[^\w-]/g, "") || i}`, action.names![i]!, outward(vertex, center, 0.36 / unit), sides[0]![0], reveal)));
+      [A, B, C].forEach((vertex, i) =>
+        parts.push(
+          label(`${id}-${action.names![i]!.replace(/[^\w-]/g, "") || i}`, action.names![i]!, outward(vertex, center, 0.36 / unit), sides[0]![0], reveal),
+        ),
+      );
     }
     // Hauteur issue d'un sommet, calculée exactement (le modèle la faisait tomber à côté du côté opposé).
     const vertexNames = action.names ?? ["A", "B", "C"];
@@ -530,7 +554,13 @@ export const triangleCommand = defineCommand({
     }
     // Autres noms des côtés d'un triangle rectangle (le modèle les emploie souvent) : ab, bc, ca, opposé, adjacent.
     const aliases: Record<string, string[]> = right
-      ? { [`${id}-ab`]: [`${id}-base`], [`${id}-bc`]: [`${id}-haut`], [`${id}-ca`]: [`${id}-hyp`], [`${id}-oppose`]: [`${id}-haut`], [`${id}-adjacent`]: [`${id}-base`] }
+      ? {
+          [`${id}-ab`]: [`${id}-base`],
+          [`${id}-bc`]: [`${id}-haut`],
+          [`${id}-ca`]: [`${id}-hyp`],
+          [`${id}-oppose`]: [`${id}-haut`],
+          [`${id}-adjacent`]: [`${id}-base`],
+        }
       : {};
     return drawFigure(state, id, parts, reveal, { ...aliases, ...extra, [`${id}-carres`]: squares.map((s) => s.id), [`${id}-marques`]: markIds }, vertices);
   },
@@ -554,11 +584,11 @@ export const inclineCommand = defineCommand({
   }),
   doc:
     '{"type":"incline","id":"plan","angle":25,"block":true,"weight":true,"components":true,"normal":false}\n' +
-    '  Plan incliné (angle en degrés) avec un bloc, son poids P et, si demandé, ses composantes P∥ et P⊥ et la normale N.\n' +
-    '  "weightAngle":true marque l\'angle θ entre P et P⊥ (le même angle que le plan : c\'est ce qui donne P∥ = P sin θ).\n' +
-    '  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N, plan-angleP.\n' +
+    "  Plan incliné (angle en degrés) avec un bloc, son poids P et, si demandé, ses composantes P∥ et P⊥ et la normale N.\n" +
+    "  \"weightAngle\":true marque l'angle θ entre P et P⊥ (le même angle que le plan : c'est ce qui donne P∥ = P sin θ).\n" +
+    "  Parties : plan-pente, plan-sol, plan-angle, plan-bloc, plan-P, plan-Px, plan-Py, plan-N, plan-angleP.\n" +
     '  Changer "angle" en redemandant la même figure la fait pivoter : le plan, le bloc et les forces suivent.\n' +
-    '  Pour présenter les forces une à une, redemande la même figure (même id) avec une option de plus : seules les\n' +
+    "  Pour présenter les forces une à une, redemande la même figure (même id) avec une option de plus : seules les\n" +
     '  nouvelles parties apparaissent (d\'abord "weight":false, puis "weight":true, puis "components":true…).',
   duration: 3000,
   aliases: ["plan", "ramp", "slope"],

@@ -36,5 +36,7 @@ export async function POST(request: Request): Promise<Response> {
     question_posee: a.question ?? "",
     session: limit.session ? shortSession(limit.session) : "inconnue",
   });
-  return ok ? Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } }) : jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
+  return ok
+    ? Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } })
+    : jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
 }

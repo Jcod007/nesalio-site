@@ -91,8 +91,10 @@ export const quadraticLesson: Lesson = {
         prompt: "Combien de zéros aurait cette parabole ?",
         choices: ["0", "1", "2"],
         answer: 0,
-        ifRight: "Bravo ! Le sommet est sous l'axe et la courbe ne fait que descendre : elle ne touche jamais l'axe des x. Tu viens de raisonner sans calculer.",
-        ifWrong: "Presque. Le sommet est déjà sous l'axe, et la courbe descend des deux côtés : elle ne peut jamais remonter jusqu'à l'axe des x. Il n'y a donc aucun zéro.",
+        ifRight:
+          "Bravo ! Le sommet est sous l'axe et la courbe ne fait que descendre : elle ne touche jamais l'axe des x. Tu viens de raisonner sans calculer.",
+        ifWrong:
+          "Presque. Le sommet est déjà sous l'axe, et la courbe descend des deux côtés : elle ne peut jamais remonter jusqu'à l'axe des x. Il n'y a donc aucun zéro.",
       },
     },
   ],
@@ -153,7 +155,8 @@ export const projectileLesson: Lesson = {
         choices: ["0 m/s", "12 m/s", "16 m/s"],
         answer: 0,
         ifRight: "Exactement ! Au sommet, la balle arrête de monter : sa vitesse verticale est nulle. Seule vx continue.",
-        ifWrong: "Pas tout à fait. Au sommet, la balle arrête de monter avant de redescendre : sa vitesse verticale est nulle à cet instant. Seule vx reste à 16.",
+        ifWrong:
+          "Pas tout à fait. Au sommet, la balle arrête de monter avant de redescendre : sa vitesse verticale est nulle à cet instant. Seule vx reste à 16.",
       },
     },
     {
@@ -173,11 +176,7 @@ export const projectileLesson: Lesson = {
   ],
   end: {
     kind: "end",
-    summary: [
-      "Décomposer la vitesse : vx = v₀ cos θ, vy = v₀ sin θ",
-      "vx reste constante ; vy s'annule au sommet",
-      "Portée = vx × temps de vol",
-    ],
+    summary: ["Décomposer la vitesse : vx = v₀ cos θ, vy = v₀ sin θ", "vx reste constante ; vy s'annule au sommet", "Portée = vx × temps de vol"],
   },
 };
 
@@ -240,19 +239,12 @@ export const derivativeLesson: Lesson = {
     {
       say: "Et c'est la règle que tu verras en classe : la dérivée de x au carré, c'est 2x. En x égale 1, ça donne bien 2.",
       mood: "bravo",
-      do: [
-        { type: "note", id: "n4", text: "f′(x) = 2x, donc f′(1) = 2" },
-        { type: "resetView" },
-      ],
+      do: [{ type: "note", id: "n4", text: "f′(x) = 2x, donc f′(1) = 2" }, { type: "resetView" }],
     },
   ],
   end: {
     kind: "end",
-    summary: [
-      "La dérivée en un point = la pente de la tangente",
-      "On l'approche par des sécantes PQ de plus en plus courtes",
-      "Pour f(x) = x² : f′(x) = 2x",
-    ],
+    summary: ["La dérivée en un point = la pente de la tangente", "On l'approche par des sécantes PQ de plus en plus courtes", "Pour f(x) = x² : f′(x) = 2x"],
   },
 };
 

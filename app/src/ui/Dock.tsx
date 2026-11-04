@@ -160,9 +160,7 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
             </>
           ) : null}
 
-          {status === "paused" && voiceBusy ? (
-            <MicButton voice={voice} variant="pill" onResult={actions.followUp} />
-          ) : null}
+          {status === "paused" && voiceBusy ? <MicButton voice={voice} variant="pill" onResult={actions.followUp} /> : null}
 
           {status === "paused" && !voiceBusy ? (
             <>
