@@ -16,55 +16,30 @@
  * les calculs purs de camera.ts ; elle recadre le contenu quand il grandit.
  */
 import {
-  Arc,
-  Arrow,
   Axes,
-  Circle,
   Create,
-  DashedLine,
-  DashedVMobject,
-  Dot,
   FadeIn,
-  FadeOut,
-  GrowArrow,
-  GrowFromCenter,
   Indicate,
-  Line,
   MathTex,
-  Polygon,
+  FadeOut,
   ReplacementTransform,
   Scene,
   Text,
   UpdateFromAlphaFunc,
   registerTheme,
   setTheme,
-  type Animation,
   type Mobject,
-  type VMobject,
 } from "manim-web";
-import { sampleCurve } from "@/domain/board/geometry";
-import { arcPoints } from "@/domain/board/shapes";
-import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, textWorldExtent, TICK_FONT, tickLabels } from "@/domain/board/layout";
+import { axisTicks, contentBox, FONT_SIZE, labelCenter, scales, textWorldExtent, TICK_FONT, tickLabels } from "@/domain/board/layout";
 import { hasMath, plainText, toLatex } from "@/domain/board/tex";
-import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
-import { compileExpression } from "@/domain/math/expr";
-import { BRAND, STROKE } from "@/ui/theme";
-import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
+import { DEFAULT_FRAME, isVisible, lastMotion, type BoardNode, type BoardState, type Frame, type Vec2 } from "@/domain/board/state";
+import { BRAND } from "@/ui/theme";
+import { fitView, gridFor, lerpView, type View, type Viewport, type WorldBox } from "./camera";
+import { attachGestures } from "./interactions";
+import { fadeAll, slide, turn } from "./motion";
+import { buildNode, type Pen } from "./nodeBuilders";
+import { add, rad, type Built, type TimedAnimation, type Vec3 } from "./world";
 
-type Vec3 = [number, number, number];
-
-interface TimedAnimation {
-  animation: Animation;
-  /** Secondes depuis le moment où le lot est lancé. */
-  start: number;
-  end: number;
-}
-
-interface PlannedAnimation {
-  delay: number;
-  share: number;
-  make: (seconds: number) => Animation;
-}
 
 /** Ce qui est dessiné pour un nœud du graphe, et ce qui en a déjà été animé. */
 interface Rendered {
@@ -523,211 +498,11 @@ export class ManimRenderer {
   }
 
   /** Construit les mobjects d'un nœud, décalés de `offset`, et décrit leurs animations d'apparition. */
-  private build(node: BoardNode, offset: Vec2): { mobjects: Mobject[]; animations: PlannedAnimation[] } {
-    const built = this.buildShape(node);
+  private build(node: BoardNode, offset: Vec2): Built {
+    const built = buildNode(node, this.pen());
     const delta = this.worldDelta(offset);
     if (delta[0] !== 0 || delta[1] !== 0) for (const mobject of built.mobjects) mobject.shift(delta);
     return built;
-  }
-
-  /**
-   * Les mobjects d'un nœud à sa position dessinée. `delay` et `share` sont des
-   * fractions de la durée d'apparition prévue.
-   */
-  private buildShape(node: BoardNode): { mobjects: Mobject[]; animations: PlannedAnimation[] } {
-    const color = STROKE[node.color ?? (node.type === "curve" ? "blue" : node.type === "vector" ? "violet" : "ink")];
-    switch (node.type) {
-      case "curve": {
-        const f = compileExpression(node.fn);
-        const pieces = sampleCurve(node.fn, this.frame, node.from, node.to);
-        const graphs = pieces.map((piece) => {
-          const graph = this.axes!.plot(f, { xRange: [piece[0]![0], piece.at(-1)![0]], color, strokeWidth: node.style === "dotted" ? 7 : 4.5, numSamples: 160 });
-          if (node.style === "dashed" || node.style === "dotted") {
-            const length = Math.abs(piece.at(-1)![0] - piece[0]![0]);
-            return new DashedVMobject({ vmobject: graph as unknown as VMobject, numDashes: Math.max(8, Math.round(length * 6)), dashRatio: node.style === "dotted" ? 0.08 : 0.55 });
-          }
-          return graph;
-        });
-        const mobjects: Mobject[] = [...graphs];
-        const animations: PlannedAnimation[] = graphs.map((graph, i) => ({
-          delay: i / Math.max(1, graphs.length),
-          share: 1 / Math.max(1, graphs.length),
-          make: (s: number) => new Create(graph, { duration: s }) as Animation,
-        }));
-        const last = pieces.at(-1)?.at(-1);
-        if (node.label && last) {
-          const text = this.label(node.label, this.labelPoint(node)!, color);
-          mobjects.push(text);
-          animations.push({ delay: 0.85, share: 0.15, make: (s) => new FadeIn(text, { duration: s }) });
-        }
-        return { mobjects, animations };
-      }
-      case "point": {
-        const center = this.p(node.at[0], node.at[1]);
-        // Point vide : un disque couleur du tableau masque le bout du segment, puis un cercle non rempli
-        // par-dessus (c'est lui que la mise en évidence fait pulser : il reste vide).
-        const disc = node.open ? new Dot({ point: center, radius: 0.085, color: BRAND.paper }) : null;
-        const dot = node.open ? new Circle({ radius: 0.085, color, strokeWidth: 3.5, center }) : new Dot({ point: center, radius: 0.085, color });
-        const mobjects: Mobject[] = disc ? [disc, dot] : [dot];
-        const animations: PlannedAnimation[] = mobjects.map((m) => ({ delay: 0, share: 0.6, make: (s: number) => new GrowFromCenter(m, { duration: s }) as Animation }));
-        if (node.ring) {
-          const ring = new Circle({ radius: 0.2, color, strokeWidth: 3, center });
-          mobjects.push(ring);
-          animations.push({ delay: 0.2, share: 0.8, make: (s) => new Create(ring, { duration: s }) });
-        }
-        if (node.label) {
-          const text = this.label(node.label, this.labelPoint(node)!, BRAND.ink);
-          mobjects.push(text);
-          animations.push({ delay: 0.4, share: 0.6, make: (s) => new FadeIn(text, { duration: s }) });
-        }
-        return { mobjects, animations };
-      }
-      case "vector":
-      case "segment": {
-        const from = this.p(node.from[0], node.from[1]);
-        const to = this.p(node.to[0], node.to[1]);
-        const mobjects: Mobject[] = [];
-        const animations: PlannedAnimation[] = [];
-        if (node.type === "vector") {
-          const arrow = new Arrow({ start: from, end: to, color, strokeWidth: 5, tipLength: 0.22, tipWidth: 0.2 });
-          mobjects.push(arrow);
-          animations.push({ delay: 0, share: 1, make: (s) => new GrowArrow(arrow, { duration: s }) });
-        } else {
-          const line = node.dashed
-            ? new DashedLine({ start: from, end: to, color, strokeWidth: 3, dashLength: 0.12 })
-            : new Line({ start: from, end: to, color, strokeWidth: 3.5 });
-          mobjects.push(line);
-          animations.push({ delay: 0, share: 1, make: (s) => new Create(line, { duration: s }) });
-        }
-        if (node.label) {
-          const text = this.label(node.label, this.labelPoint(node)!, color);
-          mobjects.push(text);
-          animations.push({ delay: 0.6, share: 0.4, make: (s) => new FadeIn(text, { duration: s }) });
-        }
-        return { mobjects, animations };
-      }
-      case "arc": {
-        const center = this.p(node.center[0], node.center[1]);
-        const radius = this.worldLength(node.radius);
-        // Échelles différentes en x et en y : l'arc se dessine point par point (comme le moteur le voit).
-        const arc = isUniform(this.frame)
-          ? new Arc({ center, radius, startAngle: rad(node.start), angle: rad(node.end - node.start), color, strokeWidth: 3 })
-          : new Polygon({ vertices: arcPoints(node.center, node.radius, node.start, node.end, 32).map(([x, y]) => this.p(x, y)), color, strokeWidth: 3, closed: false });
-        const mobjects: Mobject[] = [arc];
-        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.7, make: (s) => new Create(arc, { duration: s }) }];
-        if (node.label) {
-          // Étiquette sur la bissectrice, juste à l'extérieur de l'arc (place choisie par le moteur).
-          const text = this.label(node.label, this.labelPoint(node)!, color);
-          mobjects.push(text);
-          animations.push({ delay: 0.5, share: 0.5, make: (s) => new FadeIn(text, { duration: s }) });
-        }
-        return { mobjects, animations };
-      }
-      case "circle": {
-        const center = this.p(node.center[0], node.center[1]);
-        const radius = this.worldLength(node.radius);
-        // Le pointillé se calcule sur le cercle centré à l'origine du monde, puis on le place :
-        // DashedVMobject ignore la position d'un cercle déjà centré ailleurs (cercle décalé sinon).
-        // Échelles différentes en x et en y : le cercle devient l'ellipse que montre le repère.
-        const uniform = isUniform(this.frame);
-        const circle = uniform
-          ? new Circle({ radius, color, strokeWidth: 3.5 })
-          : new Polygon({ vertices: arcPoints([0, 0], node.radius, 0, 360, 72).map(([x, y]) => sub3(this.p(x, y), this.p(0, 0))), color, strokeWidth: 3.5, closed: true });
-        const shape = node.dashed ? new DashedVMobject({ vmobject: circle as unknown as VMobject, numDashes: Math.max(16, Math.round(radius * 12)), dashRatio: 0.55 }) : circle;
-        shape.shift(center);
-        const mobjects: Mobject[] = [shape];
-        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(shape, { duration: s }) as Animation }];
-        if (node.label) {
-          const text = this.label(node.label, this.labelPoint(node)!, color);
-          mobjects.push(text);
-          animations.push({ delay: 0.7, share: 0.3, make: (s) => new FadeIn(text, { duration: s }) });
-        }
-        return { mobjects, animations };
-      }
-      case "polygon": {
-        const vertices = node.points.map(([x, y]) => this.p(x, y));
-        const polygon = new Polygon({
-          vertices,
-          color,
-          fillOpacity: node.shade ? 0.38 : node.fill ? 0.16 : 0,
-          strokeWidth: node.shade ? 1.5 : node.param ? 3.5 : 3.2,
-          closed: node.closed,
-        });
-        const outline = node.dashed
-          ? new DashedVMobject({ vmobject: polygon as unknown as VMobject, numDashes: Math.max(12, node.points.length * 6), dashRatio: 0.55 })
-          : polygon;
-        const mobjects: Mobject[] = [outline];
-        const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(outline, { duration: s }) }];
-        if (node.label) {
-          // Une courbe paramétrée porte son nom au bout ; un polygone, en son centre (place choisie par le moteur).
-          const text = this.label(node.label, this.labelPoint(node)!, color);
-          mobjects.push(text);
-          animations.push({ delay: 0.7, share: 0.3, make: (s) => new FadeIn(text, { duration: s }) });
-        }
-        return { mobjects, animations };
-      }
-      case "grid": {
-        // Une ligne par unité, image du quadrillage par la matrice ; en fond, discrète.
-        const lines: Mobject[] = [];
-        const segment = (a: Vec2, b: Vec2) => {
-          const line = new Line({ start: this.p(...applyMat(node.matrix, a)), end: this.p(...applyMat(node.matrix, b)), color: STROKE[node.color ?? "blue"], strokeWidth: 1.6 });
-          line.opacity = 0.45;
-          lines.push(line);
-        };
-        for (let x = Math.ceil(node.x[0]); x <= Math.floor(node.x[1]); x++) segment([x, node.y[0]], [x, node.y[1]]);
-        for (let y = Math.ceil(node.y[0]); y <= Math.floor(node.y[1]); y++) segment([node.x[0], y], [node.x[1], y]);
-        return {
-          mobjects: lines,
-          animations: lines.map((line, i) => ({ delay: (i / lines.length) * 0.5, share: 0.5, make: (s: number) => new Create(line, { duration: s }) })),
-        };
-      }
-      case "text": {
-        if (node.rows) return this.buildMatrix({ ...node, rows: node.rows }, color);
-        const at = this.p(node.at[0], node.at[1]);
-        const math = hasMath(node.text);
-        // Ligne de calcul : alignée à gauche sur sa colonne (une formule, d'après sa boîte : elle se rend plus tard).
-        const half = math && node.align === "left" ? textWorldExtent(node.text, fontSizeOf(node)).w / 2 : 0;
-        const text = this.label(node.text, [at[0] + half, at[1], at[2]], color, fontSizeOf(node));
-        if (node.align === "left" && !math) text.shift([textHalfWidth(text), 0, 0]);
-        return {
-          mobjects: [text],
-          animations: [{ delay: 0, share: 1, make: (s) => new FadeIn(text, { duration: s, shift: [0, -0.12, 0] }) }],
-        };
-      }
-    }
-  }
-
-  /** Matrice ou vecteur colonne : les cases en grille, entre deux crochets. */
-  private buildMatrix(node: TextNode & { rows: string[][] }, color: string): { mobjects: Mobject[]; animations: PlannedAnimation[] } {
-    const size = fontSizeOf(node);
-    const layout = matrixLayout(node.rows, size);
-    const center = this.p(node.at[0], node.at[1]);
-    const left = center[0] - layout.width / 2;
-    const top = center[1] + layout.height / 2;
-    const inner = left + layout.bracket + layout.gap * 0.6;
-    const mobjects: Mobject[] = [];
-    node.rows.forEach((row, i) => {
-      let x = inner;
-      row.forEach((cell, j) => {
-        const width = layout.widths[j]!;
-        mobjects.push(this.label(cell, [x + width / 2, top - layout.lineHeight * (i + 0.5), 0], color, size));
-        x += width + layout.gap;
-      });
-    });
-    const bottom = top - layout.height;
-    const right = left + layout.width;
-    const tick = layout.bracket;
-    const bracket = (x: number, dir: 1 | -1) =>
-      new Polygon({ vertices: [[x + dir * tick, top, 0], [x, top, 0], [x, bottom, 0], [x + dir * tick, bottom, 0]], color, strokeWidth: 2.6, closed: false });
-    const brackets = [bracket(left, 1), bracket(right, -1)];
-    const all = [...mobjects, ...brackets];
-    return {
-      mobjects: all,
-      animations: [
-        ...brackets.map((b) => ({ delay: 0, share: 0.4, make: (s: number) => new Create(b, { duration: s }) as Animation })),
-        ...mobjects.map((m, i) => ({ delay: 0.3 + (0.5 * i) / Math.max(1, mobjects.length), share: 0.3, make: (s: number) => new FadeIn(m, { duration: s }) as Animation })),
-      ],
-    };
   }
 
   /* --------------------------------- lecture --------------------------------- */
@@ -836,69 +611,29 @@ export class ManimRenderer {
 
   /** Molette (zoom), glisser (déplacement) et pincer (zoom tactile). */
   private attachInteractions() {
-    const el = this.container;
-    const userView = (view: View) => {
-      this.userMoved = true;
-      if (this.cameraTimer) clearTimeout(this.cameraTimer);
-      cancelAnimationFrame(this.cameraTween);
-      this.applyView(view, true);
-    };
-    const local = (event: { clientX: number; clientY: number }) => {
-      const rect = el.getBoundingClientRect();
-      return [event.clientX - rect.left, event.clientY - rect.top] as const;
-    };
-
-    const onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      const [x, y] = local(event);
-      if (event.ctrlKey || Math.abs(event.deltaY) >= Math.abs(event.deltaX)) {
-        userView(zoomAt(this.view, this.viewport, Math.exp(-event.deltaY * (event.ctrlKey ? 0.01 : 0.0015)), x, y));
-      } else {
-        userView(panBy(this.view, -event.deltaX, -event.deltaY));
-      }
-    };
-
-    const pointers = new Map<number, { x: number; y: number }>();
-    let pinchDistance = 0;
-    const onDown = (event: PointerEvent) => {
-      el.setPointerCapture(event.pointerId);
-      const [x, y] = local(event);
-      pointers.set(event.pointerId, { x, y });
-      if (pointers.size === 2) pinchDistance = distance([...pointers.values()]);
-    };
-    const onMove = (event: PointerEvent) => {
-      const previous = pointers.get(event.pointerId);
-      if (!previous) return;
-      const [x, y] = local(event);
-      pointers.set(event.pointerId, { x, y });
-      if (pointers.size === 1) {
-        userView(panBy(this.view, x - previous.x, y - previous.y));
-      } else if (pointers.size === 2) {
-        const points = [...pointers.values()];
-        const d = distance(points);
-        const cx = (points[0]!.x + points[1]!.x) / 2;
-        const cy = (points[0]!.y + points[1]!.y) / 2;
-        if (pinchDistance > 0) userView(zoomAt(this.view, this.viewport, d / pinchDistance, cx, cy));
-        pinchDistance = d;
-      }
-    };
-    const onUp = (event: PointerEvent) => {
-      pointers.delete(event.pointerId);
-      pinchDistance = pointers.size === 2 ? distance([...pointers.values()]) : 0;
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("pointerdown", onDown);
-    el.addEventListener("pointermove", onMove);
-    el.addEventListener("pointerup", onUp);
-    el.addEventListener("pointercancel", onUp);
-    this.detach.push(() => {
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("pointerdown", onDown);
-      el.removeEventListener("pointermove", onMove);
-      el.removeEventListener("pointerup", onUp);
-      el.removeEventListener("pointercancel", onUp);
+    const detach = attachGestures(this.container, {
+      view: () => this.view,
+      viewport: () => this.viewport,
+      moveTo: (view) => {
+        this.userMoved = true;
+        if (this.cameraTimer) clearTimeout(this.cameraTimer);
+        cancelAnimationFrame(this.cameraTween);
+        this.applyView(view, true);
+      },
     });
+    this.detach.push(detach);
+  }
+
+  /** Le repère courant et ses conversions, prêtés aux constructeurs de nœuds. */
+  private pen(): Pen {
+    return {
+      frame: this.frame,
+      axes: this.axes!,
+      p: (x, y) => this.p(x, y),
+      worldLength: (length) => this.worldLength(length),
+      label: (text, at, color, size, font) => this.label(text, at, color, size, font),
+      labelPoint: (node) => this.labelPoint(node),
+    };
   }
 }
 
@@ -906,74 +641,4 @@ export class ManimRenderer {
 
 function clampTo(v: number, [a, b]: [number, number]) {
   return v < a ? a : v > b ? b : v;
-}
-const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const sub3 = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const rad = (degrees: number) => (degrees * Math.PI) / 180;
-function textHalfWidth(mobject: Mobject): number {
-  try {
-    return mobject.getWidth() / 2;
-  } catch {
-    return 0;
-  }
-}
-function distance(points: Array<{ x: number; y: number }>) {
-  const [a, b] = points;
-  return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
-}
-
-/**
- * Glissement relatif : chaque image ajoute la part de chemin parcourue depuis
- * la précédente. Contrairement à Shift, qui retient sa position de départ dès
- * que le lot d'animations commence, deux glissements du même objet dans une
- * étape s'enchaînent correctement (aller, puis retour).
- */
-function slide(mobject: Mobject, delta: Vec3, seconds: number): Animation {
-  let done = 0;
-  return new UpdateFromAlphaFunc(
-    mobject,
-    (m, alpha) => {
-      const step = alpha - done;
-      done = alpha;
-      if (step !== 0) m.shift([delta[0] * step, delta[1] * step, 0]);
-    },
-    { duration: seconds },
-  );
-}
-
-/**
- * Rotation relative autour d'un pivot (monde), image par image, comme `slide` :
- * plusieurs rotations du même objet dans une étape s'enchaînent (un pendule qui
- * va et vient). Une étiquette (`turnShape` faux) glisse sur l'arc sans tourner.
- */
-function turn(mobject: Mobject, pivot: Vec3, radians: number, turnShape: boolean, seconds: number): Animation {
-  let done = 0;
-  return new UpdateFromAlphaFunc(
-    mobject,
-    (m, alpha) => {
-      const step = (alpha - done) * radians;
-      done = alpha;
-      if (step === 0) return;
-      if (turnShape) {
-        m.rotate(step, { aboutPoint: pivot });
-        return;
-      }
-      const [cx, cy] = m.getCenter();
-      const dx = cx - pivot[0];
-      const dy = cy - pivot[1];
-      const c = Math.cos(step);
-      const s = Math.sin(step);
-      m.shift([pivot[0] + dx * c - dy * s - cx, pivot[1] + dx * s + dy * c - cy, 0]);
-    },
-    { duration: seconds },
-  );
-}
-
-/**
- * Efface un objet et chacun de ses morceaux. Le repère de manim-web garde ses
- * graduations à l'écran si l'on n'efface que l'ensemble : c'était la cause des
- * graduations fantômes, à l'effacement comme au remplacement du repère.
- */
-function fadeAll(mobject: Mobject, seconds: number, when: Pick<TimedAnimation, "start" | "end">): TimedAnimation[] {
-  return mobject.getFamily().map((part) => ({ animation: new FadeOut(part as Mobject, { duration: seconds }), ...when }));
 }
