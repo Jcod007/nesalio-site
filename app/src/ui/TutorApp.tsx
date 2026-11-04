@@ -37,6 +37,7 @@ export function TutorApp() {
 
   const idle = snapshot.status === "idle";
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: le dock change d'élément avec `idle` ; il faut l'observer de nouveau.
   useEffect(() => {
     const dock = dockRef.current;
     if (!dock) {

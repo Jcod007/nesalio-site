@@ -9,7 +9,7 @@ import { z } from "zod";
 import { formatNumber } from "@/domain/board/geometry";
 import { worldPerMath } from "@/domain/board/layout";
 import { rad } from "@/domain/board/shapes";
-import { type BoardNode, type Vec2 } from "@/domain/board/state";
+import type { BoardNode, Vec2 } from "@/domain/board/state";
 import { ColorName, finite } from "../primitives";
 import { axesCommand, base } from "./figure";
 import { defineCommand } from "./define";

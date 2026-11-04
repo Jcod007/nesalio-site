@@ -57,7 +57,7 @@ export function axisTicks(frame: Frame): { x: AxisTicks; y: AxisTicks; origin: V
 function nextStep(step: number, requested: number | undefined): number {
   if (requested && requested > 0) {
     const k = step / requested;
-    const power = Math.pow(10, Math.floor(Math.log10(k) + 1e-9));
+    const power = 10 ** Math.floor(Math.log10(k) + 1e-9);
     const unit = k / power;
     const next = unit < 1.5 ? 2 : unit < 3.5 ? 5 : 10;
     return requested * next * power;

@@ -72,15 +72,17 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
             ) : caption ? (
               <Caption key={`${caption.startedAt}`} caption={caption} speaking={speaking} />
             ) : null}
-            {status === "thinking" && caption ? <span className={styles.dots} aria-label="Nesa réfléchit" /> : null}
+            {status === "thinking" && caption ? <span className={styles.dots} role="img" aria-label="Nesa réfléchit" /> : null}
             {snapshot.error && status !== "error" ? <p className={styles.notice}>{snapshot.error}</p> : null}
             {voice.error ? <p className={styles.notice}>{voice.error}</p> : null}
           </div>
         </div>
 
         {status === "checking" && check ? (
+          // biome-ignore lint/a11y/useSemanticElements: un <fieldset> imposerait ses bordures et marges au style des choix.
           <div className={styles.choices} role="group" aria-label={check.prompt}>
             {check.choices.map((choice, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: liste de choix fixe ; le rang est la réponse.
               <button key={i} type="button" className={styles.choice} onClick={() => actions.answer(i)}>
                 {choice}
               </button>
@@ -92,6 +94,7 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
           <div className={styles.choices} aria-hidden="true">
             {check.choices.map((choice, i) => (
               <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: liste de choix fixe ; le rang est la réponse.
                 key={i}
                 className={styles.choice}
                 data-state={choiceState(i, check.picked, check.answer)}

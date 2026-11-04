@@ -11,7 +11,7 @@ import { outline } from "@/domain/board/collisions";
 import { roomFor } from "@/domain/board/room";
 import { add, angleArc, rightAngleMark, scale, sub, unit as direction } from "@/domain/board/shapes";
 import { isVisible, moveNodes, putNode, type BoardNode, type BoardState, type Group, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
-import { ColorName, Id } from "../primitives";
+import { type ColorName, Id } from "../primitives";
 import { base, drawNode } from "./figure";
 
 export type Color = z.infer<typeof ColorName>;

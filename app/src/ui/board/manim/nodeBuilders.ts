@@ -197,7 +197,7 @@ function polygon(node: NodeOf<"polygon">, pen: Pen, color: string): Built {
 }
 
 /** Quadrillage, image du quadrillage unité par une matrice. */
-function grid(node: NodeOf<"grid">, pen: Pen, color: string): Built {
+function grid(node: NodeOf<"grid">, pen: Pen, _color: string): Built {
   // Une ligne par unité, image du quadrillage par la matrice ; en fond, discrète.
   const lines: Mobject[] = [];
   const segment = (a: Vec2, b: Vec2) => {

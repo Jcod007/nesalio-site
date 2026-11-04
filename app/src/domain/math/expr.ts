@@ -253,7 +253,7 @@ function build(node: ExprNode): (x: number) => number {
         case "/":
           return (x) => left(x) / right(x);
         case "^":
-          return (x) => Math.pow(left(x), right(x));
+          return (x) => left(x) ** right(x);
       }
     }
   }

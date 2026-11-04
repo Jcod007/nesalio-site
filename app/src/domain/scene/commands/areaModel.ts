@@ -9,7 +9,7 @@
  * évoluer : le coin manquant de la complétion du carré se remplit.
  */
 import { z } from "zod";
-import { type BoardNode, type Vec2 } from "@/domain/board/state";
+import type { BoardNode, Vec2 } from "@/domain/board/state";
 import { ColorName } from "../primitives";
 import { base } from "./figure";
 import { defineCommand } from "./define";

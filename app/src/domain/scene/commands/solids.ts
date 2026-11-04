@@ -12,7 +12,7 @@
 import { z } from "zod";
 import { fitFrame, worldPerMath } from "@/domain/board/layout";
 import { add, rad, regularPolygon, scale, sub } from "@/domain/board/shapes";
-import { type BoardNode, type BoardState, type Reveal, type Vec2 } from "@/domain/board/state";
+import type { BoardNode, BoardState, Reveal, Vec2 } from "@/domain/board/state";
 import { ColorName, Coord, finite } from "../primitives";
 import { base } from "./figure";
 import { defineCommand } from "./define";

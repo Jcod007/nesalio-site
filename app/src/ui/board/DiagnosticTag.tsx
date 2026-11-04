@@ -23,6 +23,7 @@ export function DiagnosticTag({ board, compact, onBottomChange }: Props) {
   const clock = useFrameClock(tag ? tag.reveal.start + tag.reveal.duration : 0);
   const shown = tag !== null && clock >= tag.reveal.start;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: l'étiquette n'existe qu'une fois `shown` vrai ; il faut l'observer à ce moment-là.
   useEffect(() => {
     const el = ref.current;
     if (!el || !onBottomChange) {

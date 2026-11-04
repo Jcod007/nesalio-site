@@ -11,7 +11,7 @@
  * - parabole : (x − h)² = 4c(y − k) (ouverte vers le haut si c > 0), ou (y − k)² = 4c(x − h) (« horizontal »).
  */
 import { z } from "zod";
-import { type BoardNode, type BoardState, type Reveal, type Vec2 } from "@/domain/board/state";
+import type { BoardNode, BoardState, Reveal, Vec2 } from "@/domain/board/state";
 import { formatNumber } from "@/domain/board/geometry";
 import { norm, sub } from "@/domain/board/shapes";
 import { ColorName, Coord, finite } from "../primitives";
