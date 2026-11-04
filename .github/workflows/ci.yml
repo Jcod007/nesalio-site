@@ -1,0 +1,65 @@
+# Vérifications automatiques de l'application (dossier app/).
+# Elles tournent sur chaque pull request et sur chaque push dans main.
+name: Vérifications
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Un nouveau push sur la même branche annule la vérification en cours.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  app:
+    name: Format, lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - name: Format et lint (Biome)
+        run: npm run check
+      - name: Types (TypeScript)
+        run: npm run typecheck
+      - name: Tests unitaires (Vitest)
+        run: npm test
+      - name: Build (Next.js)
+        run: npm run build
+
+  e2e:
+    name: Parcours élève (navigateur)
+    needs: app
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      # Sans service d'IA, la séance jouée est une démonstration : rien n'est facturé.
+      - name: Démarrer l'application
+        run: |
+          DISABLE_AI=1 npm start &
+          npx --yes wait-on@8.0.3 --timeout 60000 http://localhost:3000/
+      - name: Parcours sur ordinateur et téléphone
+        run: npm run test:e2e

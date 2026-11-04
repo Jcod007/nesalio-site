@@ -25,8 +25,11 @@ vercel env pull .env.local   # jeton OIDC pour AI Gateway (ou voir .env.example)
 npm run dev                  # http://localhost:3000
 npm test                     # tests unitaires (moteur, langage de scène, serveur)
 npm run typecheck
+npm run check                # format et lint (Biome) ; npm run format corrige le format
 npm run test:e2e             # parcours réel dans le navigateur (ordinateur + téléphone), app lancée à part
 ```
+
+Ces vérifications tournent seules sur GitHub à chaque pull request et à chaque push dans `main` (`.github/workflows/ci.yml`) : format et lint, types, tests unitaires, build, puis le parcours dans le navigateur en mode démonstration (sans IA). Ne fusionne une pull request que si elles sont vertes.
 
 ## Séances enregistrées
 
@@ -67,10 +70,10 @@ QuestionInput ─▶ Player ─▶ TutorSource (HTTP) ──POST /api/tutor─�
 | Dossier | Rôle | Dépend de |
 |---|---|---|
 | `src/domain/` | Le cœur, sans React ni réseau : langage de scène (Zod), parseur d'expressions sûr, état du tableau, planification des tracés, validation de la sortie du modèle | rien |
-| `src/engine/` | `Player` : la machine à états qui joue les étapes, gère l'interruption et la reprise. `ports.ts` définit ce dont il a besoin (voix, source, horloge) | `domain` |
+| `src/engine/` | `Player` : la machine à états qui joue les étapes, gère l'interruption et la reprise. `ports.ts` définit ce dont il a besoin (voix, source, horloge) ; `SessionMemory` retient la séance, `TurnTranscript` l'enregistre pour les signalements | `domain` |
 | `src/server/` | Routes `/api/tutor`, `/api/voice`, `/api/transcribe`, `/api/status` ; consignes du modèle, appels à AI Gateway, limites d'usage | `domain`, `content` |
 | `src/services/` | Implémentations navigateur des ports : voix, micro, client HTTP | `domain`, `engine` |
-| `src/ui/` | Écran : tableau manim-web, carte de Nesa, colonne de calculs, accueil | tout le reste |
+| `src/ui/` | Écran : tableau manim-web (`ManimRenderer`, un constructeur par type de nœud dans `nodeBuilders.ts`), carte de Nesa, colonne de calculs, accueil | tout le reste |
 | `src/content/` | Séances de démonstration écrites dans le langage de scène (servent aussi d'exemple au modèle et aux tests) | `domain` |
 
 ### Comment les éléments communiquent
