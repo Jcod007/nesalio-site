@@ -19,13 +19,18 @@
  */
 import { emptyBoard, pruneErased, summarizeBoard, type BoardState } from "@/domain/board/state";
 import { applyAction } from "@/domain/scene/commands";
-import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
-import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
+import type { Check, Mood, Noticed, Step } from "@/domain/scene/schema";
 import { planStep } from "@/domain/timeline/plan";
 import { retimeCues } from "@/domain/timeline/spokenTime";
 import type { StudentAnswer, TutorContext, TutorRequest } from "@/domain/tutor/request";
+import { untilAborted } from "./cancellable";
+import { matchChoice } from "./matchChoice";
 import type { Clock, Speaker, TutorSource } from "./ports";
+import { SessionMemory } from "./sessionMemory";
+import { TurnTranscript } from "./turnTranscript";
+
+export { matchChoice };
 
 export type PlayerStatus = "idle" | "thinking" | "playing" | "paused" | "checking" | "done" | "error";
 
@@ -39,10 +44,6 @@ export interface Caption {
 export interface ActiveCheck extends Check {
   picked: number | null;
 }
-
-/** Tours gardés pour rejouer une séance signalée, et taille maximale de l'enregistrement joint. */
-const MAX_RECORDED_TURNS = 6;
-const MAX_REPLAY_CHARS = 16_000;
 
 export interface PlayerSnapshot {
   status: PlayerStatus;
@@ -79,7 +80,6 @@ export const INITIAL_SNAPSHOT: PlayerSnapshot = {
 
 /** Pause entre deux étapes, pour laisser le temps de regarder le tableau. */
 export const PAUSE_BETWEEN_STEPS_MS = 350;
-const MAX_HISTORY = 16;
 const PREPARE_TIMEOUT_MS = 8000;
 /** Au-delà, on dessine même si la voix n'a pas encore démarré (son bloqué, navigateur muet…). */
 const START_TIMEOUT_MS = 4000;
@@ -121,19 +121,10 @@ export class Player {
   private snapshot: PlayerSnapshot = INITIAL_SNAPSHOT;
   private readonly listeners = new Set<() => void>();
   private segments: Segment[] = [];
-  private history: string[] = [];
-  /**
-   * Enregistrement de ce qui est arrivé du serveur, tour par tour (les événements tels quels).
-   * Joint à un signalement de problème, il permet de rejouer exactement la séance de la personne.
-   */
-  private transcript: StreamEvent[][] = [];
-  /** Questions auxquelles l'élève a répondu dans la séance. */
-  private answeredCount = 0;
-  /** Objectifs de la séance (premier tour) et réponses de l'élève : la mémoire de la séance. */
-  private goals: string[] = [];
-  private answerLog: StudentAnswer[] = [];
-  /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
-  private diagnosis: Diagnosis | null = null;
+  /** Ce que la séance a retenu (phrases dites, objectifs, réponses, diagnostic). */
+  private readonly memory = new SessionMemory();
+  /** Ce qui est arrivé du serveur, tour par tour : joint à un signalement de problème. */
+  private readonly transcript = new TurnTranscript();
   private session = 0;
   private loopSession = -1;
   private stepAbort: AbortController | null = null;
@@ -154,19 +145,12 @@ export class Player {
   /** Ce qu'un testeur vient de voir et d'entendre, pour accompagner un signalement de problème. */
   recentContext(): { question: string | null; title: string | null; status: string; recent: string[]; board: string[]; replay: string } {
     const { question, title, status, board } = this.snapshot;
-    // Les tours les plus récents d'abord gardés : on retire les plus anciens tant que c'est trop long.
-    let turns = this.transcript;
-    let replay = JSON.stringify(turns);
-    while (replay.length > MAX_REPLAY_CHARS && turns.length > 1) {
-      turns = turns.slice(1);
-      replay = JSON.stringify(turns);
-    }
     return {
       question,
       title,
       status,
-      replay: replay.length > MAX_REPLAY_CHARS ? "" : replay,
-      recent: this.history.slice(-6),
+      replay: this.transcript.serialize(),
+      recent: this.memory.recent(6),
       board: summarizeBoard(board)
         .slice(0, 30)
         .map((item) => `${item.id} · ${item.type} · ${item.detail}`.slice(0, 200)),
@@ -272,12 +256,8 @@ export class Player {
     this.session++;
     for (const segment of this.segments) segment.abort.abort();
     this.segments = [];
-    this.history = [];
-    this.answeredCount = 0;
-    this.goals = [];
-    this.answerLog = [];
-    this.diagnosis = null;
-    this.transcript = [];
+    this.memory.reset();
+    this.transcript.clear();
     this.stopCurrentStep();
     this.poke();
   }
@@ -340,13 +320,12 @@ export class Player {
       context: { ...this.buildContext(false), review: review.length > 0 ? review : undefined },
       answer,
     };
-    this.answerLog = [...this.answerLog, { ...answer, prompt: answer.prompt.slice(0, 300), picked: answer.picked.slice(0, 300) }].slice(-8);
+    this.memory.logAnswer(answer);
     void this.consume(segment, request, this.session);
   }
 
   private async consume(segment: Segment, request: TutorRequest, session: number) {
-    const turn: StreamEvent[] = [];
-    this.transcript = [...this.transcript, turn].slice(-MAX_RECORDED_TURNS);
+    const turn = this.transcript.startTurn();
     try {
       for await (const event of this.deps.source.open(request, segment.abort.signal)) {
         if (session !== this.session || segment.abort.signal.aborted) return;
@@ -358,7 +337,7 @@ export class Player {
           case "lesson":
             if (segment.kind === "question") {
               this.set({ title: event.title, topic: event.topic ?? null });
-              if (event.goals) this.goals = event.goals.slice(0, 4);
+              if (event.goals) this.memory.setGoals(event.goals);
             }
             break;
           case "step": {
@@ -371,12 +350,12 @@ export class Player {
           }
           case "end":
             // Une fin sans résumé (vu le 19 octobre) laissait l'élève sans bilan : on reprend les objectifs de la séance.
-            segment.summary = event.summary.length > 0 ? event.summary : this.goals.slice(0, 3);
+            segment.summary = event.summary.length > 0 ? event.summary : this.memory.summaryFallback();
             segment.noticed = event.noticed && (event.noticed.strengths.length > 0 || event.noticed.toWork.length > 0) ? event.noticed : null;
             break;
           case "diagnosis": {
             const { kind: _kind, ...diagnosis } = event;
-            this.diagnosis = diagnosis;
+            this.memory.setDiagnosis(diagnosis);
             break;
           }
           case "error":
@@ -504,7 +483,7 @@ export class Player {
       this.set({ board });
     }
 
-    if (segment.resumeAt !== "replay") this.remember(step.say);
+    if (segment.resumeAt !== "replay") this.memory.remember(step.say);
     this.set({
       status: "playing",
       check: null,
@@ -512,7 +491,7 @@ export class Player {
       caption: { text: step.say, mood: step.mood ?? "explique", startedAt: now, durationMs: speechMs },
     });
 
-    if (!(await this.race(Promise.all([speech.done, clock.sleep(drawingMs, abort.signal)]), abort.signal))) {
+    if (!(await untilAborted(Promise.all([speech.done, clock.sleep(drawingMs, abort.signal)]), abort.signal))) {
       return false;
     }
 
@@ -536,8 +515,8 @@ export class Player {
       // Sans bonne réponse (question pour situer l'élève, ou réponse libre), pas de verdict immédiat :
       // Nesa l'évalue au tour suivant.
       const right = check.answer === undefined || picked === null ? null : picked === check.answer;
-      this.remember(check.prompt);
-      this.answeredCount++;
+      this.memory.remember(check.prompt);
+      this.memory.countAnswer();
       segment.answeredStep = segment.cursor;
       // Le tour suivant est demandé tout de suite : il s'écrit pendant que Nesa réagit.
       const misconception = picked !== null && right === false ? check.why?.[picked]?.trim() || undefined : undefined;
@@ -551,11 +530,11 @@ export class Player {
       this.set({ status: "playing", check: { ...check, picked } });
       if (right !== null) {
         const feedback = right ? (check.ifRight ?? "Exact !") : (check.ifWrong ?? "Pas tout à fait.");
-        this.remember(feedback);
+        this.memory.remember(feedback);
         this.set({
           caption: { text: feedback, mood: right ? "bravo" : "idee", startedAt: clock.now(), durationMs: speaker.estimate(feedback) },
         });
-        if (!(await this.race(speaker.speak(feedback).done, abort.signal))) return false;
+        if (!(await untilAborted(speaker.speak(feedback).done, abort.signal))) return false;
       }
     }
 
@@ -582,23 +561,13 @@ export class Player {
     }
   }
 
-  private remember(sentence: string) {
-    this.history.push(sentence.slice(0, 320));
-    if (this.history.length > MAX_HISTORY) this.history.shift();
-  }
-
   private buildContext(interrupted: boolean): TutorContext {
-    return {
+    return this.memory.context({
       title: this.snapshot.title ?? undefined,
       originalQuestion: this.snapshot.question ?? undefined,
-      spoken: this.history.slice(-12),
       board: summarizeBoard(this.snapshot.board).slice(0, 40),
       interrupted,
-      answered: this.answeredCount,
-      goals: this.goals.length > 0 ? this.goals : undefined,
-      answers: this.answerLog.length > 0 ? this.answerLog.map(({ choices: _c, ...rest }) => rest) : undefined,
-      diagnosis: this.diagnosis ?? undefined,
-    };
+    });
   }
 
   /* ------------------------------ synchronisation ------------------------------ */
@@ -618,52 +587,4 @@ export class Player {
       this.answerResolver = resolve;
     });
   }
-
-  /** `true` si la promesse se termine avant l'annulation, `false` sinon. */
-  private race(promise: Promise<unknown>, signal: AbortSignal): Promise<boolean> {
-    if (signal.aborted) return Promise.resolve(false);
-    return new Promise((resolve) => {
-      const onAbort = () => resolve(false);
-      signal.addEventListener("abort", onAbort, { once: true });
-      promise.then(
-        () => {
-          signal.removeEventListener("abort", onAbort);
-          resolve(!signal.aborted);
-        },
-        () => {
-          signal.removeEventListener("abort", onAbort);
-          resolve(false);
-        },
-      );
-    });
-  }
 }
-
-/**
- * Le choix que désigne une réponse dite ou tapée : le texte d'un choix, sa
- * lettre (« b ») ou son rang (« la deuxième »). `null` si rien ne correspond
- * clairement : c'est alors une réponse libre.
- */
-export function matchChoice(text: string, choices: readonly string[]): number | null {
-  const fold = (value: string) =>
-    value
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "")
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N},.√±−+×÷=/ ]/gu, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  const said = fold(text);
-  if (!said) return null;
-  const exact = choices.findIndex((choice) => fold(choice) === said);
-  if (exact >= 0) return exact;
-  const ordinals = [["a", "premier", "premiere", "1er", "la 1"], ["b", "deuxieme", "second", "seconde", "2e"], ["c", "troisieme", "3e"], ["d", "quatrieme", "4e"]];
-  const byRank = ordinals.findIndex((words, i) => i < choices.length && words.some((w) => said === w || said === `la ${w}` || said === `reponse ${w}`));
-  if (byRank >= 0) return byRank;
-  // Un seul choix contenu dans la réponse (ou qui la contient) : c'est lui.
-  const contained = choices
-    .map((choice, i) => ({ i, c: fold(choice) }))
-    .filter(({ c }) => c.length > 0 && (said.includes(c) || (said.length >= 3 && c.includes(said))));
-  return contained.length === 1 ? contained[0]!.i : null;
-}
-
