@@ -23,9 +23,9 @@ export const runtime = "nodejs";
 // Un tour où le modèle réfléchit longtemps dépasse parfois 60 s : coupé, il finissait sans question.
 export const maxDuration = 180;
 
-// Le contexte inclut désormais les observations bornées par notion (16 × 8 au plus).
+// Le corps inclut le contexte borné de la séance.
 const MAX_BODY_BYTES = 96_000;
-// Par session de navigation : une séance compte plusieurs tours (un appel par réponse de l'élève),
+// Par compte vérifié : une séance compte plusieurs tours (un appel par réponse de l'élève),
 // soit environ 8 séances par 10 minutes ; une même adresse (une classe) peut en ouvrir 12 fois plus.
 const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000 });
 

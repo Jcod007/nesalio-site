@@ -23,9 +23,7 @@ describe("POST /api/tutor", () => {
   });
 
   it("refuse les corps invalides et les métadonnées hors limites", async () => {
-    for (const body of ["{", JSON.stringify({ mode: "question", question: "?", context: { spoken: [], board: [], learning: {
-      v: 1, concepts: [{ id: "test", presented: [], observations: [{ task: "?", outcome: "correct", format: "choice", support: "independent", at: -1 }] }],
-    } } })]) {
+    for (const body of ["{", JSON.stringify({ mode: "question", question: "?", context: { spoken: [], board: [], answered: -1 } })]) {
       const response = await POST(request(body));
       expect(response.status).toBe(400);
       expect(JSON.parse((await response.text()).trim())).toMatchObject({ kind: "error", code: "bad_request" });
