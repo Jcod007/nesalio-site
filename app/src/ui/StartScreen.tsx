@@ -2,7 +2,6 @@
 
 import { SUGGESTED_QUESTIONS } from "@/content/demoLessons";
 import { Nesa } from "./Nesa";
-import { TrialHint } from "./TrialGate";
 import { QuestionInput } from "./QuestionInput";
 import styles from "./StartScreen.module.css";
 
@@ -22,7 +21,6 @@ export function StartScreen({ onAsk, listening, onListeningChange }: Props) {
         Pose ta question à voix haute ou écris-la. Nesa t&apos;explique en dessinant au tableau, et tu peux l&apos;interrompre
         quand tu veux.
       </p>
-      <TrialHint />
       <QuestionInput
         size="large"
         placeholder="Ex. : comment je trouve les zéros d'une parabole ?"

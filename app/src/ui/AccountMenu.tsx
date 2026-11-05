@@ -10,8 +10,8 @@ export function AccountMenu() {
   if (trial.authenticated && !trial.hasPending) return <UserButton />;
   return (
     <button type="button" className={styles.account} onClick={trial.openAccount}
-      aria-label={trial.authenticated ? "Reprendre ma séance" : `Essai sans compte : ${trial.remaining} réponse${trial.remaining > 1 ? "s" : ""} restante${trial.remaining > 1 ? "s" : ""}. Ouvrir mon compte.`}>
-      {trial.authenticated ? "Reprendre" : trial.remaining > 0 ? `Essai · ${trial.remaining}` : "Continuer"}
+      aria-label={trial.authenticated ? "Reprendre ma séance" : "Ouvrir mon compte"}>
+      {trial.authenticated ? "Reprendre" : "Mon compte"}
     </button>
   );
 }

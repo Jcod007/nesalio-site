@@ -176,8 +176,3 @@ function ConfiguredTrialGate({ children }: { children: ReactNode }) {
   );
 }
 
-export function TrialHint() {
-  const { authenticated, enabled, remaining } = useTrialAccess();
-  if (!enabled || authenticated) return null;
-  return <p className={styles.hint}>{remaining === 3 ? "Tes 3 premières réponses pour découvrir Nesa, sans compte." : remaining > 0 ? `Encore ${remaining} réponse${remaining > 1 ? "s" : ""} pour découvrir Nesa, sans compte.` : "Ton compte te permettra de continuer avec Nesa."}</p>;
-}
