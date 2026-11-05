@@ -1,5 +1,5 @@
 /**
- * GET /api/diagnostic?check=<SELFTEST_TOKEN>&ask=<question>
+ * GET /api/diagnostic?ask=<question> (Authorization: Bearer <SELFTEST_TOKEN>)
  *     [&voice=1][&model=<id>][&effort=low][&answers=right|wrong][&turns=4]
  *
  * Joue une séance complète côté serveur, pour vérifier un déploiement (ou
@@ -26,6 +26,7 @@ import type { Step } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { talkShow } from "@/domain/tutor/talkShow";
 import type { StudentAnswer } from "@/domain/tutor/request";
+import { hasSelfTestAccess } from "@/server/adminAccess";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,9 +34,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function GET(request: Request): Promise<Response> {
-  const token = process.env.SELFTEST_TOKEN?.trim();
   const params = new URL(request.url).searchParams;
-  if (!token || params.get("check") !== token) return new Response("Not found", { status: 404 });
+  if (!hasSelfTestAccess(request)) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
 
   const config = readAiConfig(request.headers);
 

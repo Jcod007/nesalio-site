@@ -1,5 +1,6 @@
 /**
- * GET /api/seances?check=<SELFTEST_TOKEN>[&jour=AAAA-MM-JJ][&env=production|preview][&session=xxxxxxxx][&ref=…][&resume=1]
+ * GET /api/seances?jour=AAAA-MM-JJ[&env=production|preview][&session=xxxxxxxx][&ref=…][&resume=1]
+ * Authorization: Bearer <SELFTEST_TOKEN>
  *
  * Consulter les séances enregistrées d'un jour (par défaut aujourd'hui, en
  * temps universel), tour par tour, dans l'ordre. `session` : les 8 premiers
@@ -11,6 +12,7 @@
 import { summarizeSessions, type RecordEnv } from "@/domain/sessionLog";
 import { isRef, shortSession as shortSessionOf } from "@/domain/session";
 import { listTurns, recordEnv, sessionBlob } from "@/server/sessionStore";
+import { hasSelfTestAccess } from "@/server/adminAccess";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,9 +22,8 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const SHORT_SESSION = /^[a-z0-9]{8}$|^sans-session$/i;
 
 export async function GET(request: Request): Promise<Response> {
-  const token = process.env.SELFTEST_TOKEN?.trim();
   const params = new URL(request.url).searchParams;
-  if (!token || params.get("check") !== token) return new Response("Not found", { status: 404 });
+  if (!hasSelfTestAccess(request)) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
 
   const blob = sessionBlob();
   if (!blob) return Response.json({ error: "Enregistrement des séances désactivé (pas de BLOB_READ_WRITE_TOKEN)." }, { status: 503 });

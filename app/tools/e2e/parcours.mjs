@@ -3,7 +3,7 @@
  * Test de bout en bout : le parcours d'un élève dans un vrai navigateur, sur
  * ordinateur et sur téléphone. Sert de filet anti-régression avant un déploiement.
  *
- *   npm run build && DISABLE_AI=1 npm start        (dans un autre terminal)
+ *   NESALIO_LOCAL_DEMO=1 DISABLE_AI=1 npm run dev (dans un autre terminal)
  *   npm run test:e2e                               (NESALIO_URL=… pour viser un déploiement)
  *
  * Première fois : npx playwright install chromium
@@ -14,7 +14,8 @@
  *   2. le champ de question reste assez large pour lire ce qu'on écrit ;
  *   3. une question suggérée lance une séance : Nesa parle et le tableau se remplit ;
  *   4. aucune violation d'accessibilité grave ou critique (axe), à l'accueil et en séance.
- * Sans service d'IA (DISABLE_AI=1), la séance jouée est une démonstration : rien n'est facturé.
+ * Le mode NESALIO_LOCAL_DEMO=1 avec DISABLE_AI=1 fonctionne uniquement en local,
+ * hors production et sans VERCEL. La séance jouée est une démonstration, sans facturation.
  */
 import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";

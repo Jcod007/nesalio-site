@@ -11,6 +11,7 @@ import { checkRate, jsonError, readJson } from "@/server/http";
 import { createSessionLimits } from "@/server/rateLimit";
 import { isUnavailable } from "@/server/tutor/service";
 import { SPEECH_SPAN_HEADER } from "@/domain/audio/speechSpan";
+import { requireAccount } from "@/server/account";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -20,13 +21,14 @@ const Body = z.object({ text: z.string().trim().min(1).max(400) });
 const limiter = createSessionLimits({ limit: 160, windowMs: 10 * 60_000 });
 
 export async function POST(request: Request): Promise<Response> {
+  const access = await requireAccount(request);
+  if (!access.ok) return access.response;
+  const limited = checkRate(limiter, request, access.userId);
+  if (limited) return limited;
   const read = await readJson(request, 4_000);
   if (!read.ok) return read.response;
   const parsed = Body.safeParse(read.body);
   if (!parsed.success) return jsonError(400, "Texte invalide.");
-
-  const limited = checkRate(limiter, request);
-  if (limited) return limited;
 
   const config = readAiConfig(request.headers);
   if (!config.gatewayToken) return jsonError(503, "Voix non configurée.");
