@@ -17,7 +17,7 @@ import { createTurnRecorder } from "@/domain/sessionLog";
 import { recordEnv, saveTurn } from "@/server/sessionStore";
 import { withRecording } from "@/server/tutor/recording";
 import { readBoundedText } from "@/server/http";
-import { requireAccount } from "@/server/account";
+import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess";
 
 export const runtime = "nodejs";
 // Un tour où le modèle réfléchit longtemps dépasse parfois 60 s : coupé, il finissait sans question.
@@ -40,7 +40,7 @@ function single(event: StreamEvent, status: number, extra: Record<string, string
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const access = await requireAccount(request, true);
+  const access = await identifyUsage(request, true);
   if (!access.ok) return access.response;
   // Limiter aussi les requêtes invalides avant leur lecture et leur validation.
   const limit = limiter.check(request.headers, undefined, access.userId);
@@ -61,6 +61,9 @@ export async function POST(request: Request): Promise<Response> {
   }
   const parsed = TutorRequestSchema.safeParse(body);
   if (!parsed.success) return single({ kind: "error", code: "bad_request", message: "Requête invalide." }, 400);
+
+  const permit = await reserveUsage(request, access, "tutor", true);
+  if (!permit.ok) return permit.response;
 
   const config = readAiConfig(request.headers);
   // Chaque tour est enregistré (sans nom, IP ni audio) pour améliorer Nesalio ; écrit après la réponse.
@@ -102,5 +105,5 @@ export async function POST(request: Request): Promise<Response> {
     },
   });
 
-  return new Response(stream, { status: 200, headers: NDJSON_HEADERS });
+  return usageResponse(new Response(stream, { status: 200, headers: NDJSON_HEADERS }), permit);
 }

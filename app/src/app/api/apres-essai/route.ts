@@ -8,14 +8,14 @@ import { refFromHeaders, shortSession } from "@/domain/session";
 import { forwardToForm } from "@/server/forms";
 import { jsonError, readJson } from "@/server/http";
 import { createSessionLimits } from "@/server/rateLimit";
-import { requireAccount } from "@/server/account";
+import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess";
 
 export const runtime = "nodejs";
 
 const limiter = createSessionLimits({ limit: 3, windowMs: 60 * 60_000, ipFactor: 10 });
 
 export async function POST(request: Request): Promise<Response> {
-  const access = await requireAccount(request);
+  const access = await identifyUsage(request);
   if (!access.ok) return access.response;
   const read = await readJson(request, 8_000);
   if (!read.ok) return read.response;
@@ -23,6 +23,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return jsonError(400, "Réponses invalides.");
   const limit = limiter.check(request.headers, undefined, access.userId);
   if (!limit.allowed) return jsonError(429, "Merci, tes réponses sont déjà arrivées.");
+
+  const permit = await reserveUsage(request, access, "feedback");
+  if (!permit.ok) return permit.response;
 
   const a = parsed.data;
   const ok = await forwardToForm({
@@ -39,7 +42,8 @@ export async function POST(request: Request): Promise<Response> {
     question_posee: a.question ?? "",
     session: limit.session ? shortSession(limit.session) : "inconnue",
   });
-  return ok
-    ? Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } })
-    : jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant.");
+  return usageResponse(
+    ok ? Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } }) : jsonError(502, "L'envoi n'a pas fonctionné. Réessaie dans un instant."),
+    permit,
+  );
 }

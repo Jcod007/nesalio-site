@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createVoiceInput, type VoiceInput, type VoiceInputState } from "@/services/voice/voiceInput";
+import { useTrialAccess } from "../TrialGate";
 
 export interface VoiceInputControls {
   supported: boolean;
+  ready: boolean;
   state: VoiceInputState;
   level: number;
   partial: string;
@@ -17,8 +19,11 @@ export interface VoiceInputControls {
 
 /** Le micro, branché sur l'état React (enregistrement, niveau, transcription). */
 export function useVoiceInput(onStateChange?: (state: VoiceInputState) => void): VoiceInputControls {
+  const trial = useTrialAccess();
+  const browserOnly = trial.enabled && !trial.authenticated;
   const input = useRef<VoiceInput | null>(null);
   const [supported, setSupported] = useState(false);
+  const [ready, setReady] = useState(false);
   const [state, setState] = useState<VoiceInputState>("idle");
   const [level, setLevel] = useState(0);
   const [partial, setPartial] = useState("");
@@ -27,10 +32,11 @@ export function useVoiceInput(onStateChange?: (state: VoiceInputState) => void):
   notify.current = onStateChange;
 
   useEffect(() => {
-    input.current = createVoiceInput();
+    input.current = createVoiceInput({ browserOnly });
     setSupported(input.current.supported);
+    setReady(true);
     return () => input.current?.cancel();
-  }, []);
+  }, [browserOnly]);
 
   useEffect(() => notify.current?.(state), [state]);
 
@@ -51,6 +57,7 @@ export function useVoiceInput(onStateChange?: (state: VoiceInputState) => void):
 
   return {
     supported,
+    ready,
     state,
     level,
     partial,

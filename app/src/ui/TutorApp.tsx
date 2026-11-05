@@ -9,6 +9,7 @@ import { StartScreen } from "./StartScreen";
 import { AfterTrialQuestions } from "./AfterTrial";
 import { FeedbackButton } from "./Feedback";
 import { TopBar } from "./TopBar";
+import { TrialGateProvider, useTrialAccess } from "./TrialGate";
 
 const TOP_BAR = 60;
 const WIDE = 900;
@@ -19,6 +20,15 @@ const WIDE = 900;
  * lecteur (engine/player.ts) ; ce composant ne fait que la brancher.
  */
 export function TutorApp() {
+  return (
+    <TrialGateProvider>
+      <TutorSession />
+    </TrialGateProvider>
+  );
+}
+
+function TutorSession() {
+  const trial = useTrialAccess();
   const { player, speaker, snapshot } = useTutor();
   const [lastAsked, setLastAsked] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
@@ -50,28 +60,32 @@ export function TutorApp() {
   }, [idle]);
 
   const ask = useCallback(
-    (question: string) => {
-      setLastAsked(question);
-      player.ask(question);
-    },
-    [player],
+    (question: string) =>
+      trial.run(() => {
+        setLastAsked(question);
+        player.ask(question);
+      }),
+    [player, trial.run],
   );
 
   const actions = useMemo<DockActions>(
     () => ({
       interrupt: () => player.interrupt(),
       resume: () => player.resume(),
-      followUp: (text) => {
-        setLastAsked(text);
-        player.followUp(text);
-      },
+      followUp: (text) =>
+        trial.run(() => {
+          setLastAsked(text);
+          player.followUp(text);
+        }),
       answer: (choice) => player.answer(choice),
       answerText: (text) => player.answerText(text),
-      retry: () => {
-        const question = player.getSnapshot().question;
-        if (question) player.ask(question);
-      },
+      retry: () =>
+        trial.run(() => {
+          const question = player.getSnapshot().question;
+          if (question) player.ask(question);
+        }),
       newTopic: () => {
+        trial.cancelPending();
         setLastAsked(null);
         player.stop();
       },
@@ -81,7 +95,7 @@ export function TutorApp() {
         setListening(value);
       },
     }),
-    [player],
+    [player, trial.run, trial.cancelPending],
   );
 
   const wide = width >= WIDE;
@@ -113,7 +127,9 @@ export function TutorApp() {
         onHome={idle ? null : actions.newTopic}
         feedback={<FeedbackButton player={player} />}
       />
-      <AfterTrialQuestions sessionDone={snapshot.status === "done" && snapshot.summary.length > 0} question={snapshot.question} />
+      {trial.authenticated || !trial.enabled ? (
+        <AfterTrialQuestions sessionDone={snapshot.status === "done" && snapshot.summary.length > 0} question={snapshot.question} />
+      ) : null}
       {idle ? (
         <StartScreen onAsk={ask} listening={listening} onListeningChange={setListening} />
       ) : (

@@ -36,7 +36,8 @@ const MAX_MS = 30_000;
 
 let serverTranscription: "unknown" | "ok" | "unavailable" = "unknown";
 
-export function createVoiceInput(): VoiceInput {
+export function createVoiceInput(options: { browserOnly?: boolean } = {}): VoiceInput {
+  if (options.browserOnly) return createBrowserInput();
   const recorder = createRecorderInput();
   const browser = createBrowserInput();
   const pick = () => (recorder.supported && serverTranscription !== "unavailable" ? recorder : browser);

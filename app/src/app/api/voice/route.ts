@@ -11,7 +11,7 @@ import { checkRate, jsonError, readJson } from "@/server/http";
 import { createSessionLimits } from "@/server/rateLimit";
 import { isUnavailable } from "@/server/tutor/service";
 import { SPEECH_SPAN_HEADER } from "@/domain/audio/speechSpan";
-import { requireAccount } from "@/server/account";
+import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -21,7 +21,7 @@ const Body = z.object({ text: z.string().trim().min(1).max(400) });
 const limiter = createSessionLimits({ limit: 160, windowMs: 10 * 60_000 });
 
 export async function POST(request: Request): Promise<Response> {
-  const access = await requireAccount(request);
+  const access = await identifyUsage(request);
   if (!access.ok) return access.response;
   const limited = checkRate(limiter, request, access.userId);
   if (limited) return limited;
@@ -32,6 +32,9 @@ export async function POST(request: Request): Promise<Response> {
 
   const config = readAiConfig(request.headers);
   if (!config.gatewayToken) return jsonError(503, "Voix non configurée.");
+
+  const permit = await reserveUsage(request, access, "voice");
+  if (!permit.ok) return permit.response;
 
   try {
     const { audio, mediaType } = await synthesizeSpeech({
@@ -44,17 +47,20 @@ export async function POST(request: Request): Promise<Response> {
     });
     // Partie vraiment parlée (sans les silences du début et de la fin) : le lecteur y cale les repères {id}.
     const span = speechSpanOf(audio, mediaType);
-    return new Response(audio as unknown as BodyInit, {
-      headers: {
-        "Content-Type": mediaType,
-        "Cache-Control": "private, max-age=3600",
-        ...(span ? { [SPEECH_SPAN_HEADER]: `${span.startMs},${span.endMs}` } : {}),
-      },
-    });
+    return usageResponse(
+      new Response(audio as unknown as BodyInit, {
+        headers: {
+          "Content-Type": mediaType,
+          "Cache-Control": "private, max-age=3600",
+          ...(span ? { [SPEECH_SPAN_HEADER]: `${span.startMs},${span.endMs}` } : {}),
+        },
+      }),
+      permit,
+    );
   } catch (error) {
     console.warn("voice: échec de la synthèse", error);
     // 503 : le navigateur passe tout de suite à sa propre voix.
-    if (isUnavailable(error)) return jsonError(503, "Voix indisponible pour le moment.");
-    return jsonError(502, "La voix n'a pas pu être générée.");
+    if (isUnavailable(error)) return usageResponse(jsonError(503, "Voix indisponible pour le moment."), permit);
+    return usageResponse(jsonError(502, "La voix n'a pas pu être générée."), permit);
   }
 }

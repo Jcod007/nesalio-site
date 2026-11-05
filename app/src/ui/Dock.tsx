@@ -6,6 +6,7 @@ import { Caption } from "./Caption";
 import { useVoiceInput } from "./hooks/useVoiceInput";
 import { MicButton } from "./MicButton";
 import { Nesa } from "./Nesa";
+import { useTrialAccess } from "./TrialGate";
 import { QuestionInput } from "./QuestionInput";
 import { nesaStateFor } from "./theme";
 import styles from "./Dock.module.css";
@@ -35,10 +36,11 @@ interface Props {
  */
 export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, lastAsked, listening, actions }, ref) {
   const { status, caption, check } = snapshot;
+  const trial = useTrialAccess();
   // Micro de la carte : parler à Nesa pendant qu'elle explique, c'est l'interrompre.
   const voice = useVoiceInput((state) => actions.setListening(state !== "idle"));
   const voiceBusy = voice.state !== "idle";
-  const nesa = nesaStateFor(status, caption?.mood, listening);
+  const nesa = trial.hasPending ? "clin" : nesaStateFor(status, caption?.mood, listening);
   const speaking = status === "playing" || status === "checking";
 
   return (
@@ -54,7 +56,11 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
         <div className={styles.row}>
           <Nesa state={nesa} size={60} className={styles.nesa} />
           <div className={styles.text}>
-            {status === "thinking" && !caption ? (
+            {trial.hasPending ? (
+              <p className={styles.caption}>
+                Ta séance t’attend. {trial.authenticated ? "Tu peux reprendre ton explication." : "Crée ton compte pour continuer."}
+              </p>
+            ) : status === "thinking" && !caption ? (
               <p className={styles.caption}>
                 {snapshot.answeringFollowUp ? "Bonne question, je regarde ça" : "Je prépare ton explication"}
                 <span className={styles.dots} aria-hidden="true" />
@@ -72,13 +78,13 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
             ) : caption ? (
               <Caption key={`${caption.startedAt}`} caption={caption} speaking={speaking} />
             ) : null}
-            {status === "thinking" && caption ? <span className={styles.dots} role="img" aria-label="Nesa réfléchit" /> : null}
+            {!trial.hasPending && status === "thinking" && caption ? <span className={styles.dots} role="img" aria-label="Nesa réfléchit" /> : null}
             {snapshot.error && status !== "error" ? <p className={styles.notice}>{snapshot.error}</p> : null}
             {voice.error ? <p className={styles.notice}>{voice.error}</p> : null}
           </div>
         </div>
 
-        {status === "checking" && check ? (
+        {!trial.hasPending && status === "checking" && check ? (
           // biome-ignore lint/a11y/useSemanticElements: un <fieldset> imposerait ses bordures et marges au style des choix.
           <div className={styles.choices} role="group" aria-label={check.prompt}>
             {check.choices.map((choice, i) => (
@@ -136,71 +142,79 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
         ) : null}
 
         <div className={styles.controls}>
-          {status === "checking" ? (
+          {trial.hasPending ? (
+            <button type="button" className="cta" onClick={trial.openAccount}>
+              {trial.authenticated ? "Continuer ma séance" : "Continuer avec un compte"}
+            </button>
+          ) : (
             <>
-              {/* Pendant une question, parler à Nesa, c'est lui répondre (pas l'interrompre). */}
-              <QuestionInput
-                placeholder="Ou réponds avec tes mots…"
-                onSubmit={actions.answerText}
-                onListeningChange={actions.setListening}
-                submitLabel="Répondre"
-              />
-              <button type="button" className="btn-line" onClick={actions.interrupt}>
-                <PauseIcon /> Je comprends pas
-              </button>
-            </>
-          ) : null}
+              {status === "checking" ? (
+                <>
+                  {/* Pendant une question, parler à Nesa, c'est lui répondre (pas l'interrompre). */}
+                  <QuestionInput
+                    placeholder="Ou réponds avec tes mots…"
+                    onSubmit={actions.answerText}
+                    onListeningChange={actions.setListening}
+                    submitLabel="Répondre"
+                  />
+                  <button type="button" className="btn-line" onClick={actions.interrupt}>
+                    <PauseIcon /> Je comprends pas
+                  </button>
+                </>
+              ) : null}
 
-          {status === "playing" || (status === "thinking" && caption) ? (
-            <>
-              <button type="button" className="btn-line" onClick={actions.interrupt}>
-                <PauseIcon /> Attends, je comprends pas
-              </button>
-              <MicButton voice={voice} variant="pill" onStart={actions.interrupt} onResult={actions.followUp} />
-            </>
-          ) : null}
+              {status === "playing" || (status === "thinking" && caption) ? (
+                <>
+                  <button type="button" className="btn-line" onClick={actions.interrupt}>
+                    <PauseIcon /> Attends, je comprends pas
+                  </button>
+                  <MicButton voice={voice} variant="pill" onStart={actions.interrupt} onResult={actions.followUp} />
+                </>
+              ) : null}
 
-          {status === "paused" && voiceBusy ? <MicButton voice={voice} variant="pill" onResult={actions.followUp} /> : null}
+              {status === "paused" && voiceBusy ? <MicButton voice={voice} variant="pill" onResult={actions.followUp} /> : null}
 
-          {status === "paused" && !voiceBusy ? (
-            <>
-              <QuestionInput
-                placeholder="Dis-moi ce qui bloque…"
-                onSubmit={actions.followUp}
-                onListeningChange={actions.setListening}
-                submitLabel="Demander"
-                autoFocus
-              />
-              <button type="button" className="btn-line" onClick={actions.resume}>
-                <PlayIcon /> Continuer l&apos;explication
-              </button>
-            </>
-          ) : null}
+              {status === "paused" && !voiceBusy ? (
+                <>
+                  <QuestionInput
+                    placeholder="Dis-moi ce qui bloque…"
+                    onSubmit={actions.followUp}
+                    onListeningChange={actions.setListening}
+                    submitLabel="Demander"
+                    autoFocus
+                  />
+                  <button type="button" className="btn-line" onClick={actions.resume}>
+                    <PlayIcon /> Continuer l&apos;explication
+                  </button>
+                </>
+              ) : null}
 
-          {status === "done" ? (
-            <>
-              <QuestionInput
-                placeholder="Une autre question sur cette notion ?"
-                onSubmit={actions.followUp}
-                onListeningChange={actions.setListening}
-                submitLabel="Demander"
-              />
-              <button type="button" className="btn-line" onClick={actions.newTopic}>
-                Nouvelle notion
-              </button>
-            </>
-          ) : null}
+              {status === "done" ? (
+                <>
+                  <QuestionInput
+                    placeholder="Une autre question sur cette notion ?"
+                    onSubmit={actions.followUp}
+                    onListeningChange={actions.setListening}
+                    submitLabel="Demander"
+                  />
+                  <button type="button" className="btn-line" onClick={actions.newTopic}>
+                    Nouvelle notion
+                  </button>
+                </>
+              ) : null}
 
-          {status === "error" ? (
-            <>
-              <button type="button" className="cta" onClick={actions.retry}>
-                Réessayer
-              </button>
-              <button type="button" className="btn-line" onClick={actions.newTopic}>
-                Autre question
-              </button>
+              {status === "error" ? (
+                <>
+                  <button type="button" className="cta" onClick={actions.retry}>
+                    Réessayer
+                  </button>
+                  <button type="button" className="btn-line" onClick={actions.newTopic}>
+                    Autre question
+                  </button>
+                </>
+              ) : null}
             </>
-          ) : null}
+          )}
         </div>
       </div>
     </section>
