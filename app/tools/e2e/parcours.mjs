@@ -29,6 +29,8 @@ const SCREENS = [
 const EXPECTED = [/\/api\/voice/, /status of 503/, /GPU stall/];
 /** Largeur minimale du champ de question, en pixels, pour lire une question entière. */
 const MIN_FIELD_WIDTH = 240;
+/** Le serveur de développement compile la page et l'API au premier accès. */
+const STARTUP_TIMEOUT_MS = 60_000;
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -51,7 +53,7 @@ for (const screen of SCREENS) {
   page.on("response", (r) => r.status() >= 500 && errors.push(`HTTP ${r.status()} ${r.url()}`));
 
   try {
-    await page.goto(URL, { waitUntil: "networkidle" });
+    await page.goto(URL, { waitUntil: "networkidle", timeout: STARTUP_TIMEOUT_MS });
     await page.getByRole("heading", { name: /quelle notion tu bloques/i }).waitFor();
 
     const field = await page.locator("form[data-size=large] input").boundingBox();
@@ -61,7 +63,7 @@ for (const screen of SCREENS) {
     for (const v of await seriousViolations(page)) fail(screen.name, `accueil, accessibilité : ${v.id} (${v.help})`);
 
     await page.getByRole("button", { name: /portée d.un projectile/i }).click();
-    await page.getByRole("button", { name: /je comprends pas/i }).waitFor({ timeout: 15_000 });
+    await page.getByRole("button", { name: /je comprends pas/i }).waitFor({ timeout: STARTUP_TIMEOUT_MS });
     await page.waitForTimeout(6_000); // laisser Nesa dessiner les premières étapes
     const drawn = await page.locator("canvas").count();
     if (drawn === 0) fail(screen.name, "la séance a démarré mais aucun tableau n'est affiché");
