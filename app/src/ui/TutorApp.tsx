@@ -10,6 +10,7 @@ import { AfterTrialQuestions } from "./AfterTrial";
 import { FeedbackButton } from "./Feedback";
 import { TopBar } from "./TopBar";
 import { TrialGateProvider, useTrialAccess } from "./TrialGate";
+import { ACCOUNT_READY } from "@/services/trialEvents";
 
 const TOP_BAR = 60;
 const WIDE = 900;
@@ -26,6 +27,16 @@ export function TutorApp() {
 function TutorSession() {
   const trial = useTrialAccess();
   const { player, speaker, snapshot } = useTutor();
+  // Account prompts are interruptions: stop narration and board playback while
+  // preserving the lesson. A suspended HTTP turn resumes only on explicit consent.
+  useEffect(() => {
+    if (trial.accountOpen) player.interrupt();
+  }, [trial.accountOpen, player]);
+  useEffect(() => {
+    const resume = () => player.resume();
+    window.addEventListener(ACCOUNT_READY, resume);
+    return () => window.removeEventListener(ACCOUNT_READY, resume);
+  }, [player]);
   const [lastAsked, setLastAsked] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [muted, setMuted] = useState(false);

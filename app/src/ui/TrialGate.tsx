@@ -12,13 +12,14 @@ type TrialAccess = {
   remaining: number;
   enabled: boolean;
   hasPending: boolean;
+  accountOpen: boolean;
   run(action: () => void): void;
   cancelPending(): void;
   openAccount(): void;
 };
 
 const TrialContext = createContext<TrialAccess>({
-  authenticated: false, remaining: 3, enabled: false, hasPending: false,
+  authenticated: false, remaining: 3, enabled: false, hasPending: false, accountOpen: false,
   run: (action) => action(), cancelPending: () => {}, openAccount: () => {},
 });
 
@@ -119,8 +120,8 @@ function ConfiguredTrialGate({ children }: { children: ReactNode }) {
 
   const openAccount = useCallback(() => { setError(null); setOpen(true); }, []);
   const value = useMemo<TrialAccess>(() => ({
-    authenticated, remaining: trial.remaining ?? 3, enabled: true, hasPending, run, cancelPending, openAccount,
-  }), [authenticated, trial.remaining, hasPending, run, cancelPending, openAccount]);
+    authenticated, remaining: trial.remaining ?? 3, enabled: true, hasPending, accountOpen: open || hasPending, run, cancelPending, openAccount,
+  }), [authenticated, trial.remaining, hasPending, open, run, cancelPending, openAccount]);
 
   const openAuthentication = (mode: "signup" | "signin") => {
     dialog.current?.close();

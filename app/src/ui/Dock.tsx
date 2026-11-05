@@ -138,7 +138,13 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
 
         <div className={styles.controls}>
           {trial.hasPending ? (
-            <button type="button" className="cta" onClick={trial.openAccount}>{trial.authenticated ? "Continuer ma séance" : "Continuer avec un compte"}</button>
+            <button type="button" className="btn-line" onClick={trial.openAccount} aria-label="Parler à Nesa">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" />
+                <path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              Parler à Nesa
+            </button>
           ) : <>
           {status === "checking" ? (
             <>
