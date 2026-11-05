@@ -12,6 +12,7 @@ type TrialAccess = {
   remaining: number;
   enabled: boolean;
   hasPending: boolean;
+  accountOpen: boolean;
   run(action: () => void): void;
   cancelPending(): void;
   openAccount(): void;
@@ -22,6 +23,7 @@ const TrialContext = createContext<TrialAccess>({
   remaining: 3,
   enabled: false,
   hasPending: false,
+  accountOpen: false,
   run: (action) => action(),
   cancelPending: () => {},
   openAccount: () => {},
@@ -140,11 +142,12 @@ function ConfiguredTrialGate({ children }: { children: ReactNode }) {
       remaining: trial.remaining ?? 3,
       enabled: true,
       hasPending,
+      accountOpen: open || hasPending,
       run,
       cancelPending,
       openAccount,
     }),
-    [authenticated, trial.remaining, hasPending, run, cancelPending, openAccount],
+    [authenticated, trial.remaining, hasPending, open, run, cancelPending, openAccount],
   );
 
   const openAuthentication = (mode: "signup" | "signin") => {
