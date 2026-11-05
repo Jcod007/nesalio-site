@@ -19,6 +19,7 @@ export function Caption({ caption, speaking }: { caption: CaptionT; speaking: bo
   return (
     <p className={styles.caption} aria-live="polite">
       {words.map((word, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: la phrase est fixe ; un même mot peut revenir deux fois, son rang est sa seule identité.
         <span key={i} className={i < spokenCount ? styles.spoken : styles.upcoming}>
           {word}
         </span>

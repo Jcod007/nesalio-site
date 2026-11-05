@@ -17,9 +17,7 @@ export interface ChatMessage {
 }
 
 export function serializeLesson(lesson: Lesson): string {
-  return [lesson.header, ...lesson.steps.map((step) => ({ kind: "step", ...step })), lesson.end]
-    .map((event) => JSON.stringify(event))
-    .join("\n");
+  return [lesson.header, ...lesson.steps.map((step) => ({ kind: "step", ...step })), lesson.end].map((event) => JSON.stringify(event)).join("\n");
 }
 
 /** Trois étapes qui montrent un geste : dessiner au départ, faire glisser (une copie), tracer le résultat. */
@@ -235,7 +233,12 @@ function exampleExchange(): string {
     step(beats[4]!),
     step(beats[5]!),
     step(beats[6]!),
-    line({ kind: "diagnosis", gaps: [], strengths: ["prédit bien la forme d'une parabole à partir du sommet"], next: "isoler x ; surveiller la racine carrée" }),
+    line({
+      kind: "diagnosis",
+      gaps: [],
+      strengths: ["prédit bien la forme d'une parabole à partir du sommet"],
+      next: "isoler x ; surveiller la racine carrée",
+    }),
     step({
       ...beats[7]!,
       check: {

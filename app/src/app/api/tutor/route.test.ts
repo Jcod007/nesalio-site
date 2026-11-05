@@ -7,9 +7,12 @@ vi.mock("@/server/sessionStore", () => ({ recordEnv: () => "development", saveTu
 
 import { POST } from "./route";
 
-const request = (body: string, session = crypto.randomUUID()) => new Request("http://localhost/api/tutor", {
-  method: "POST", headers: { "Content-Type": "application/json", "x-nesalio-session": session }, body,
-});
+const request = (body: string, session = crypto.randomUUID()) =>
+  new Request("http://localhost/api/tutor", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-nesalio-session": session },
+    body,
+  });
 
 describe("POST /api/tutor", () => {
   it("conserve le flux NDJSON de démonstration et ses en-têtes", async () => {
@@ -17,7 +20,10 @@ describe("POST /api/tutor", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/x-ndjson");
     expect(response.headers.get("cache-control")).toBe("no-store");
-    const events = (await response.text()).trim().split("\n").map((line) => JSON.parse(line));
+    const events = (await response.text())
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
     expect(events[0]).toEqual({ kind: "source", source: "demo" });
     expect(events.at(-1).kind).toBe("end");
   });

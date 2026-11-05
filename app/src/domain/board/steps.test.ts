@@ -79,7 +79,9 @@ describe("commande stepFunction", () => {
   it("la règle déjà écrite reste au tableau et suit le nouveau paramètre", () => {
     const first = applyAction(emptyBoard(), { type: "stepFunction", id: "f", from: -2, to: 2, rule: true }, t);
     const second = applyAction(first, { type: "stepFunction", id: "f", k: 1, from: -2, to: 2 }, { start: 2000, duration: 1000 });
-    const labels = resolveTargets(second, "f").map((id) => (second.nodes[id] as SegmentNode).label).filter(Boolean);
+    const labels = resolveTargets(second, "f")
+      .map((id) => (second.nodes[id] as SegmentNode).label)
+      .filter(Boolean);
     expect(labels).toEqual(["f(x) = [x] + 1"]);
   });
 

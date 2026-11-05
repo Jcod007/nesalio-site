@@ -11,12 +11,13 @@ import { updateTrialFromResponse, waitForAccount } from "@/services/trialEvents"
 export function createHttpSource(endpoint = "/api/tutor"): TutorSource {
   return {
     async *open(request, signal) {
-      const fetchTurn = () => fetch(endpoint, {
-        method: "POST",
-        signal,
-        headers: { "Content-Type": "application/json", ...sessionHeaders() },
-        body: JSON.stringify(request),
-      });
+      const fetchTurn = () =>
+        fetch(endpoint, {
+          method: "POST",
+          signal,
+          headers: { "Content-Type": "application/json", ...sessionHeaders() },
+          body: JSON.stringify(request),
+        });
       let response: Response;
       try {
         response = await fetchTurn();

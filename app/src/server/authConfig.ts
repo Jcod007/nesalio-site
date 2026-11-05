@@ -21,7 +21,9 @@ export function accountOrigins(env: NodeJS.ProcessEnv = process.env): string[] {
       const url = new URL(value);
       if (url.hostname.includes("*") || url.username || url.password) continue;
       if (url.protocol === "https:" || (!env.VERCEL && env.NODE_ENV !== "production" && url.protocol === "http:")) origins.add(url.origin);
-    } catch { /* Invalid configuration does not create an allowed origin. */ }
+    } catch {
+      /* Invalid configuration does not create an allowed origin. */
+    }
   }
   return [...origins];
 }

@@ -119,9 +119,7 @@ function tokenize(source: string): Token[] {
  * « 2xsin(x) » ou « pix » sans espaces. Le plus long nom connu gagne.
  */
 function splitIdentifier(word: string, start: number): Token[] {
-  const names = [...Object.keys(FUNCTIONS), ...Object.keys(CONSTANTS), "x", "t"].sort(
-    (a, b) => b.length - a.length,
-  );
+  const names = [...Object.keys(FUNCTIONS), ...Object.keys(CONSTANTS), "x", "t"].sort((a, b) => b.length - a.length);
   const out: Token[] = [];
   let rest = word.toLowerCase();
   let offset = 0;
@@ -253,7 +251,7 @@ function build(node: ExprNode): (x: number) => number {
         case "/":
           return (x) => left(x) / right(x);
         case "^":
-          return (x) => Math.pow(left(x), right(x));
+          return (x) => left(x) ** right(x);
       }
     }
   }

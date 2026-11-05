@@ -41,7 +41,7 @@ export const clearCommand = defineCommand({
   schema: z.object({ type: z.literal("clear"), axes: z.boolean().optional() }),
   doc:
     '{"type":"clear"} : efface tout le tableau pour passer à une autre idée ("axes":true efface aussi le repère).\n' +
-    '  Ne l\'utilise que si ce qui est dessiné ne sert plus ; sinon, réutilise-le.',
+    "  Ne l'utilise que si ce qui est dessiné ne sert plus ; sinon, réutilise-le.",
   duration: 600,
   aliases: ["clearboard", "reset"],
   apply(state, action, reveal) {

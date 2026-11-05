@@ -1,6 +1,9 @@
 import { BlobPreconditionFailedError, del, get, list, put } from "@vercel/blob";
 
-export interface TrialEntry { etag: string; value: unknown }
+export interface TrialEntry {
+  etag: string;
+  value: unknown;
+}
 export interface TrialStore {
   read(path: string): Promise<TrialEntry | null>;
   create(path: string, value: unknown): Promise<boolean>;
@@ -19,8 +22,11 @@ export const privateTrialStore: TrialStore = {
   async create(path, value) {
     try {
       await put(path, JSON.stringify(value), {
-        access: "private", addRandomSuffix: false, allowOverwrite: false,
-        contentType: "application/json", cacheControlMaxAge: 60,
+        access: "private",
+        addRandomSuffix: false,
+        allowOverwrite: false,
+        contentType: "application/json",
+        cacheControlMaxAge: 60,
       });
       return true;
     } catch (error) {
@@ -34,8 +40,12 @@ export const privateTrialStore: TrialStore = {
   async replace(path, value, etag) {
     try {
       await put(path, JSON.stringify(value), {
-        access: "private", addRandomSuffix: false, allowOverwrite: true, ifMatch: etag,
-        contentType: "application/json", cacheControlMaxAge: 60,
+        access: "private",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        ifMatch: etag,
+        contentType: "application/json",
+        cacheControlMaxAge: 60,
       });
       return true;
     } catch (error) {

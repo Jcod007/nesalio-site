@@ -50,7 +50,7 @@ export const textCommand = defineCommand({
   doc:
     '{"type":"text","id":"t","text":"…","near":"A","side":"right|left|above|below","size":"small|normal|large","color":"…"}\n' +
     '  Texte ou équation écrit DANS la figure, à côté de l\'objet "near" (le moteur évite les chevauchements ;\n' +
-    '  le texte suit l\'objet s\'il bouge et disparaît avec lui). Ou "at":[x,y] pour une position précise.',
+    "  le texte suit l'objet s'il bouge et disparaît avec lui). Ou \"at\":[x,y] pour une position précise.",
   duration: (action) => writingTime(action.text, 500),
   aliases: ["label", "annotation", "equation"],
   apply(state, action, reveal) {
@@ -99,7 +99,7 @@ export const noteCommand = defineCommand({
   }),
   doc:
     '{"type":"note","id":"n1","text":"x = 2 ± √3"} : ligne de calcul, écrite sur le tableau en colonne à côté de la figure\n' +
-    '  (utilise ², √, ±, π, ≈, ÷, ×). Quand la colonne est pleine, les anciennes lignes remontent et s\'effacent.',
+    "  (utilise ², √, ±, π, ≈, ÷, ×). Quand la colonne est pleine, les anciennes lignes remontent et s'effacent.",
   duration: (action) => writingTime(action.text, 450),
   apply(state, action, reveal) {
     const id = action.id ?? `calc${state.seq + 1}`;

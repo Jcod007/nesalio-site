@@ -55,10 +55,7 @@ export async function GET(request: Request): Promise<Response> {
       transcribe: (audio, mediaType) =>
         transcribeWords({ token, model: config.transcription.model, audioBase64: Buffer.from(audio).toString("base64"), mediaType }),
     });
-    return Response.json(
-      { voice: config.voice.model, transcription: config.transcription.model, ...report },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    return Response.json({ voice: config.voice.model, transcription: config.transcription.model, ...report }, { headers: { "Cache-Control": "no-store" } });
   }
 
   const started = Date.now();
@@ -95,7 +92,15 @@ export async function GET(request: Request): Promise<Response> {
   const effort = parseEffort(params.get("effort")) ?? `${config.chat?.firstTurnEffort} puis ${config.chat?.reasoningEffort}`;
   const base: ChatProvider | null =
     override && config.gatewayToken
-      ? { name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: config.gatewayToken, model: override, firstTurnEffort: "none", reasoningEffort: followUpEffortFor(override) }
+      ? {
+          name: "gateway",
+          protocol: "openai",
+          endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
+          apiKey: config.gatewayToken,
+          model: override,
+          firstTurnEffort: "none",
+          reasoningEffort: followUpEffortFor(override),
+        }
       : config.chat;
   const forced = parseEffort(params.get("effort"));
   const provider = base ? { ...base, ...(forced ? { reasoningEffort: forced, firstTurnEffort: forced } : {}) } : null;
@@ -164,7 +169,9 @@ export async function GET(request: Request): Promise<Response> {
           say: event.say,
           mood: event.mood,
           do: (event.do ?? []).map((a) => describe(a as Record<string, unknown>)),
-          check: event.check ? `${event.check.prompt} [${event.check.choices.join(" | ")}]${event.check.answer === undefined ? " (situer)" : ` (bonne : ${event.check.choices[event.check.answer]})`}` : undefined,
+          check: event.check
+            ? `${event.check.prompt} [${event.check.choices.join(" | ")}]${event.check.answer === undefined ? " (situer)" : ` (bonne : ${event.check.choices[event.check.answer]})`}`
+            : undefined,
         });
       }
       if (event.kind === "await") {
@@ -207,7 +214,13 @@ export async function GET(request: Request): Promise<Response> {
         answers: answerLog.length > 0 ? [...answerLog] : undefined,
         review: review.length > 0 ? review : undefined,
       },
-      answer: { prompt: lastCheck.prompt, choices: lastCheck.choices, picked: free ? FREE_ANSWERS[turn % FREE_ANSWERS.length]! : lastCheck.choices[picked]!, correct, misconception },
+      answer: {
+        prompt: lastCheck.prompt,
+        choices: lastCheck.choices,
+        picked: free ? FREE_ANSWERS[turn % FREE_ANSWERS.length]! : lastCheck.choices[picked]!,
+        correct,
+        misconception,
+      },
     };
     answerLog.push({ prompt: lastCheck.prompt, picked: free ? FREE_ANSWERS[turn % FREE_ANSWERS.length]! : lastCheck.choices[picked]!, correct, misconception });
   }
@@ -274,7 +287,6 @@ function pickAnswer(check: Check, right: boolean): number {
 /** Résumé lisible d'une commande de scène : « curve sin(x) », « point (1, 0) »… */
 function describe(action: Record<string, unknown>): string {
   const type = String(action.type);
-  const detail =
-    action.fn ?? action.expr ?? action.text ?? action.label ?? action.at ?? action.from ?? action.target ?? action.id ?? "";
+  const detail = action.fn ?? action.expr ?? action.text ?? action.label ?? action.at ?? action.from ?? action.target ?? action.id ?? "";
   return `${type} ${typeof detail === "string" ? detail : JSON.stringify(detail)}`.trim().slice(0, 80);
 }

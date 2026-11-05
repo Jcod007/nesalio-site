@@ -75,10 +75,7 @@ async function postTranscription(options: TranscriptionOptions, extra: Record<st
     body: JSON.stringify({ audio: options.audioBase64, mediaType: options.mediaType, ...extra }),
   });
   if (!response.ok) {
-    throw new UpstreamError(
-      `Transcription : ${response.status} ${(await response.text().catch(() => "")).slice(0, 300)}`,
-      response.status,
-    );
+    throw new UpstreamError(`Transcription : ${response.status} ${(await response.text().catch(() => "")).slice(0, 300)}`, response.status);
   }
   return (await response.json()) as Record<string, unknown>;
 }

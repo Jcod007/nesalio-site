@@ -125,7 +125,13 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
             const spoken = fallback.speak(text);
             void (spoken.started ?? Promise.resolve()).then(markStarted);
             spoken.done.then(resolve);
-            current = { audio: new Audio(), finish: () => { fallback.cancel(); resolve(); } };
+            current = {
+              audio: new Audio(),
+              finish: () => {
+                fallback.cancel();
+                resolve();
+              },
+            };
             return;
           }
           const audio = new Audio(clip.url);

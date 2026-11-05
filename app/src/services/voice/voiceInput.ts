@@ -58,8 +58,7 @@ export function createVoiceInput(options: { browserOnly?: boolean } = {}): Voice
 /* ------------------------- enregistrement + serveur ------------------------- */
 
 function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
-  const supported =
-    typeof window !== "undefined" && typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
+  const supported = typeof window !== "undefined" && typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
   let stopRecording: ((send: boolean) => void) | null = null;
 
   return {
@@ -89,9 +88,7 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
       return;
     }
 
-    const mimeType = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"].find((type) =>
-      MediaRecorder.isTypeSupported?.(type),
-    );
+    const mimeType = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"].find((type) => MediaRecorder.isTypeSupported?.(type));
     const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
     const chunks: Blob[] = [];
     mediaRecorder.ondataavailable = (event) => event.data.size > 0 && chunks.push(event.data);

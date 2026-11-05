@@ -62,17 +62,10 @@ export function ManimBoard({ board, insets }: Props) {
     <div className={styles.wrap}>
       <div ref={containerRef} className={styles.board} data-ready={ready} aria-label="Tableau de Nesa" role="img" />
       {failed ? (
-        <p className={styles.failed}>
-          Ton navigateur ne peut pas afficher le tableau (WebGL désactivé). Essaie avec Chrome, Edge ou Safari à jour.
-        </p>
+        <p className={styles.failed}>Ton navigateur ne peut pas afficher le tableau (WebGL désactivé). Essaie avec Chrome, Edge ou Safari à jour.</p>
       ) : null}
       {moved ? (
-        <button
-          type="button"
-          className={`btn-line ${styles.recenter}`}
-          style={{ bottom: insets.bottom + 12 }}
-          onClick={() => rendererRef.current?.recenter()}
-        >
+        <button type="button" className={`btn-line ${styles.recenter}`} style={{ bottom: insets.bottom + 12 }} onClick={() => rendererRef.current?.recenter()}>
           Recentrer
         </button>
       ) : null}

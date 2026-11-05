@@ -7,7 +7,7 @@ const RATE = 24_000;
 function clip(silenceBefore: number, voice: number, silenceAfter: number): Float32Array {
   const n = (ms: number) => Math.round((ms / 1000) * RATE);
   const samples = new Float32Array(n(silenceBefore) + n(voice) + n(silenceAfter));
-  for (let i = 0; i < samples.length; i++) samples[i] = (Math.sin(i * 12.9898) * 43758.5453 % 1) * 0.002;
+  for (let i = 0; i < samples.length; i++) samples[i] = ((Math.sin(i * 12.9898) * 43758.5453) % 1) * 0.002;
   for (let i = 0; i < n(voice); i++) samples[n(silenceBefore) + i] = 0.4 * Math.sin((2 * Math.PI * 180 * i) / RATE);
   return samples;
 }

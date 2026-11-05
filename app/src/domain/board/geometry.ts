@@ -9,13 +9,7 @@ import type { Frame } from "./state";
  * Échantillonne y = f(x) en morceaux continus (coordonnées mathématiques).
  * On coupe la courbe là où elle n'est pas définie ou sort largement du cadre.
  */
-export function sampleCurve(
-  fn: string,
-  frame: Frame,
-  from?: number,
-  to?: number,
-  samples = 260,
-): Array<Array<[number, number]>> {
+export function sampleCurve(fn: string, frame: Frame, from?: number, to?: number, samples = 260): Array<Array<[number, number]>> {
   const f = tryCompileExpression(fn);
   if (!f) return [];
   const [xmin, xmax] = frame.x;
@@ -73,7 +67,7 @@ function findJump(f: (x: number) => number, x0: number, x1: number, y0: number, 
 /** Pas de graduation « rond » (1, 2, 5 × 10ⁿ) pour environ `target` graduations. */
 export function niceStep(span: number, target = 8): number {
   const raw = span / target;
-  const power = Math.pow(10, Math.floor(Math.log10(raw)));
+  const power = 10 ** Math.floor(Math.log10(raw));
   const unit = raw / power;
   const nice = unit < 1.5 ? 1 : unit < 3.5 ? 2 : unit < 7.5 ? 5 : 10;
   return nice * power;

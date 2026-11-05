@@ -85,7 +85,11 @@ export const StepEvent = Step.extend({ kind: z.literal("step") });
  * Textes de fin de séance et de diagnostic : un mot de trop ou une ligne de trop ne doit pas
  * faire perdre tout le bilan (séances du 19 octobre) ; on raccourcit au lieu de rejeter.
  */
-const clipped = (max: number) => z.string().trim().transform((t) => t.slice(0, max));
+const clipped = (max: number) =>
+  z
+    .string()
+    .trim()
+    .transform((t) => t.slice(0, max));
 const clippedList = (max: number, count: number) =>
   z
     .array(clipped(max))
@@ -113,18 +117,33 @@ export const EndEvent = z.object({
 export const GapStatus = z.enum(["suspected", "confirmed", "ruled_out", "repaired"]);
 export const Gap = z.object({
   /** La notion d'avant (« fractions : dénominateur commun »). */
-  notion: z.string().trim().min(1).transform((t) => t.slice(0, 120)),
+  notion: z
+    .string()
+    .trim()
+    .min(1)
+    .transform((t) => t.slice(0, 120)),
   /** Où elle s'apprend (« sec 1 »). */
   level: clipped(30).optional(),
   /** Ce qui, dans les réponses de l'élève, le fait penser. */
-  evidence: z.string().trim().transform((t) => t.slice(0, 240)).optional(),
+  evidence: z
+    .string()
+    .trim()
+    .transform((t) => t.slice(0, 240))
+    .optional(),
   status: GapStatus,
 });
 export const Diagnosis = z.object({
-  gaps: z.array(Gap).transform((gaps) => gaps.slice(0, 4)).default([]),
+  gaps: z
+    .array(Gap)
+    .transform((gaps) => gaps.slice(0, 4))
+    .default([]),
   strengths: clippedList(120, 3),
   /** Ce que Nesa fait au prochain tour (vérifier, réparer, revenir à la notion). */
-  next: z.string().trim().transform((t) => t.slice(0, 200)).optional(),
+  next: z
+    .string()
+    .trim()
+    .transform((t) => t.slice(0, 200))
+    .optional(),
 });
 export type Diagnosis = z.infer<typeof Diagnosis>;
 export const DiagnosisEvent = Diagnosis.extend({ kind: z.literal("diagnosis") });
@@ -153,15 +172,7 @@ export const SourceEvent = z.object({
   source: z.enum(["model", "demo"]),
 });
 
-export const StreamEvent = z.discriminatedUnion("kind", [
-  LessonHeaderEvent,
-  StepEvent,
-  EndEvent,
-  DiagnosisEvent,
-  ErrorEvent,
-  SourceEvent,
-  AwaitEvent,
-]);
+export const StreamEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, ErrorEvent, SourceEvent, AwaitEvent]);
 export type StreamEvent = z.infer<typeof StreamEvent>;
 export type LessonHeader = z.infer<typeof LessonHeaderEvent>;
 export type StepEventT = z.infer<typeof StepEvent>;

@@ -41,7 +41,7 @@ export const vectorOpCommand = defineCommand({
   doc:
     '{"type":"vectorOp","id":"s","kind":"sum","of":["u","v"],"method":"parallelogram","label":"u + v"} : opération sur des\n' +
     '  vecteurs du tableau, calculée par le moteur (les copies en gris). "sum" : "method" "chain" (v recopié au bout de u,\n' +
-    '  Chasles) ou\n' +
+    "  Chasles) ou\n" +
     '  "parallelogram" (v recopié à la queue de u, côtés en pointillés, la somme sur la diagonale) ; "difference" : u − v\n' +
     '  (u + l\'opposé de v) ; "scale" avec "k" : k·u depuis la même queue ; "components" : les projections sur les axes et\n' +
     '  leurs valeurs. Le résultat est le vecteur "s" ; la construction, le groupe s-construction.',
@@ -71,7 +71,11 @@ export const vectorOpCommand = defineCommand({
         const start = chain ? u.tip : u.tail;
         if (sign > 0) {
           // La copie de v se détache et glisse jusqu'à sa place, comme un "copy" (le geste qu'on voit faire au tableau).
-          moved = copyCommand.apply(state, { type: "copy", target: action.of[1]!, id: `${id}-copie`, by: sub(start, v.tail), color: "muted" }, { start: reveal.start, duration: reveal.duration * 0.4 });
+          moved = copyCommand.apply(
+            state,
+            { type: "copy", target: action.of[1]!, id: `${id}-copie`, by: sub(start, v.tail), color: "muted" },
+            { start: reveal.start, duration: reveal.duration * 0.4 },
+          );
         } else {
           parts.push(vector(`${id}-copie`, start, add(start, dv), `−${name}`, reveal, "muted"));
         }

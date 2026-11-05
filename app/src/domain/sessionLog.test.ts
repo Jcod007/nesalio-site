@@ -98,11 +98,20 @@ describe("isOlderThan", () => {
 
 describe("référence d'inscription et résumé par séance", () => {
   const base = { v: 1, env: "production", source: "model", latencyMs: { total: 10 }, events: [] } as const;
-  const turn = (over: Partial<TurnRecord>): TurnRecord => ({ ...base, session: "aaaa1111-0000", at: "2026-10-18T14:00:00.000Z", mode: "question", question: "", outcome: "complete", ...over }) as TurnRecord;
+  const turn = (over: Partial<TurnRecord>): TurnRecord =>
+    ({ ...base, session: "aaaa1111-0000", at: "2026-10-18T14:00:00.000Z", mode: "question", question: "", outcome: "complete", ...over }) as TurnRecord;
 
   it("garde la référence de l'inscription dans le tour, et rien sans inscription", () => {
     const make = (ref: string | null) =>
-      createTurnRecorder({ request: question, session: "s-12345678", ref, env: "production", source: "model", startedAt: new Date(), clock: { now: () => 0 } }).record();
+      createTurnRecorder({
+        request: question,
+        session: "s-12345678",
+        ref,
+        env: "production",
+        source: "model",
+        startedAt: new Date(),
+        clock: { now: () => 0 },
+      }).record();
     expect(make("k3x9a1b2c3d4").ref).toBe("k3x9a1b2c3d4");
     expect(make(null)).not.toHaveProperty("ref");
   });
@@ -115,8 +124,24 @@ describe("référence d'inscription et résumé par séance", () => {
       turn({ session: "bbbb2222-0000", question: "Un vecteur ?" }),
     ]);
     expect(summaries).toEqual([
-      { session: "aaaa1111", ref: "k3x9a1b2c3d4", debut: "2026-10-18T14:00:00.000Z", tours: 3, questions: ["C'est quoi une dérivée ?", "Et pour x² ?"], verifications: { bonnes: 1, total: 1 }, interrompus: 1 },
-      { session: "bbbb2222", ref: null, debut: "2026-10-18T14:00:00.000Z", tours: 1, questions: ["Un vecteur ?"], verifications: { bonnes: 0, total: 0 }, interrompus: 0 },
+      {
+        session: "aaaa1111",
+        ref: "k3x9a1b2c3d4",
+        debut: "2026-10-18T14:00:00.000Z",
+        tours: 3,
+        questions: ["C'est quoi une dérivée ?", "Et pour x² ?"],
+        verifications: { bonnes: 1, total: 1 },
+        interrompus: 1,
+      },
+      {
+        session: "bbbb2222",
+        ref: null,
+        debut: "2026-10-18T14:00:00.000Z",
+        tours: 1,
+        questions: ["Un vecteur ?"],
+        verifications: { bonnes: 0, total: 0 },
+        interrompus: 0,
+      },
     ]);
   });
 });

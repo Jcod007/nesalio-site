@@ -55,6 +55,7 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
           onChange={(event) => setText(event.target.value)}
           placeholder={placeholderNow}
           maxLength={MAX_QUESTION_LENGTH}
+          // biome-ignore lint/a11y/noAutofocus: le focus n'est donné que lorsque le parent le demande (écran d'accueil).
           autoFocus={autoFocus}
           autoComplete="off"
           enterKeyHint="send"

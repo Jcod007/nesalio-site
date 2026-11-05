@@ -15,5 +15,7 @@ export const DOMAIN_GUIDES: readonly DomainGuide[] = [fonctions, algebre, polyno
 export function domainSection(guides: readonly DomainGuide[] = DOMAIN_GUIDES): string {
   const filled = guides.filter((g) => g.rules.length > 0);
   if (filled.length === 0) return "";
-  return ["PAR DOMAINE (applique les règles du domaine de la question)", ...filled.flatMap((g) => [`${g.title} :`, ...g.rules.map((r) => `- ${r}`)])].join("\n");
+  return ["PAR DOMAINE (applique les règles du domaine de la question)", ...filled.flatMap((g) => [`${g.title} :`, ...g.rules.map((r) => `- ${r}`)])].join(
+    "\n",
+  );
 }

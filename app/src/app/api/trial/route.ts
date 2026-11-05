@@ -4,14 +4,14 @@ import { getTrialStatus, initializeTrial } from "@/server/trial";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const headers = { "Cache-Control": "no-store", "Vary": "Cookie, Origin" };
+const headers = { "Cache-Control": "no-store", Vary: "Cookie, Origin" };
 
 export async function GET(request: Request): Promise<Response> {
   const identity = await identifyUsage(request);
   if (!identity.ok) return identity.response;
   if (identity.userId) return Response.json({ authenticated: true, remaining: null, limit: 3 }, { headers });
   try {
-    return Response.json({ authenticated: false, limit: 3, ...await getTrialStatus(request) }, { headers });
+    return Response.json({ authenticated: false, limit: 3, ...(await getTrialStatus(request)) }, { headers });
   } catch {
     return Response.json({ error: "L'essai est temporairement indisponible. Réessaie dans un instant." }, { status: 503, headers });
   }

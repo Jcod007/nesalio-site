@@ -3,7 +3,7 @@
  * Test de bout en bout : le parcours d'un élève dans un vrai navigateur, sur
  * ordinateur et sur téléphone. Sert de filet anti-régression avant un déploiement.
  *
- *   npm run build && DISABLE_AI=1 npm start        (dans un autre terminal)
+ *   NESALIO_LOCAL_DEMO=1 DISABLE_AI=1 npm run dev (dans un autre terminal)
  *   npm run test:e2e                               (NESALIO_URL=… pour viser un déploiement)
  *
  * Première fois : npx playwright install chromium
@@ -14,7 +14,8 @@
  *   2. le champ de question reste assez large pour lire ce qu'on écrit ;
  *   3. une question suggérée lance une séance : Nesa parle et le tableau se remplit ;
  *   4. aucune violation d'accessibilité grave ou critique (axe), à l'accueil et en séance.
- * Sans service d'IA (DISABLE_AI=1), la séance jouée est une démonstration : rien n'est facturé.
+ * Le mode NESALIO_LOCAL_DEMO=1 avec DISABLE_AI=1 fonctionne uniquement en local,
+ * hors production et sans VERCEL. La séance jouée est une démonstration, sans facturation.
  */
 import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
@@ -28,6 +29,8 @@ const SCREENS = [
 const EXPECTED = [/\/api\/voice/, /status of 503/, /GPU stall/];
 /** Largeur minimale du champ de question, en pixels, pour lire une question entière. */
 const MIN_FIELD_WIDTH = 240;
+/** Le serveur de développement compile la page et l'API au premier accès. */
+const STARTUP_TIMEOUT_MS = 60_000;
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -37,8 +40,7 @@ const failures = [];
 const fail = (screen, message) => failures.push(`[${screen}] ${message}`);
 
 async function seriousViolations(page) {
-  // Les mots que Nesa n'a pas encore dits sont volontairement pâles (effet karaoké) : contraste à trancher, exclu en attendant.
-  const { violations } = await new AxeBuilder({ page }).exclude('[class*="upcoming"]').analyze();
+  const { violations } = await new AxeBuilder({ page }).analyze();
   return violations.filter((v) => v.impact === "serious" || v.impact === "critical");
 }
 
@@ -51,7 +53,7 @@ for (const screen of SCREENS) {
   page.on("response", (r) => r.status() >= 500 && errors.push(`HTTP ${r.status()} ${r.url()}`));
 
   try {
-    await page.goto(URL, { waitUntil: "networkidle" });
+    await page.goto(URL, { waitUntil: "networkidle", timeout: STARTUP_TIMEOUT_MS });
     await page.getByRole("heading", { name: /quelle notion tu bloques/i }).waitFor();
 
     const field = await page.locator("form[data-size=large] input").boundingBox();
@@ -61,11 +63,13 @@ for (const screen of SCREENS) {
     for (const v of await seriousViolations(page)) fail(screen.name, `accueil, accessibilité : ${v.id} (${v.help})`);
 
     await page.getByRole("button", { name: /portée d.un projectile/i }).click();
-    await page.getByRole("button", { name: /je comprends pas/i }).waitFor({ timeout: 15_000 });
+    await page.getByRole("button", { name: /je comprends pas/i }).waitFor({ timeout: STARTUP_TIMEOUT_MS });
     await page.waitForTimeout(6_000); // laisser Nesa dessiner les premières étapes
     const drawn = await page.locator("canvas").count();
     if (drawn === 0) fail(screen.name, "la séance a démarré mais aucun tableau n'est affiché");
-    for (const v of await seriousViolations(page)) fail(screen.name, `séance, accessibilité : ${v.id} (${v.help})`);
+    for (const v of await seriousViolations(page)) {
+      fail(screen.name, `séance, accessibilité : ${v.id} (${v.help}) ${v.nodes.map((n) => `${n.target.join(" ")}: ${n.failureSummary}`).join(" ; ")}`);
+    }
   } catch (error) {
     fail(screen.name, `parcours interrompu : ${error.message.split("\n")[0]}`);
   }

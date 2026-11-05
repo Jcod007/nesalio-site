@@ -7,9 +7,16 @@ describe("administrative access", () => {
     expect(hasSelfTestAccess(new Request("https://app.nesalio.com/api/seances?check=a-private-test-token"), env)).toBe(false);
     expect(hasSelfTestAccess(new Request("https://app.nesalio.com/api/seances"), env)).toBe(false);
     expect(hasSelfTestAccess(new Request("https://app.nesalio.com/api/seances", { headers: { authorization: "Bearer wrong" } }), env)).toBe(false);
-    expect(hasSelfTestAccess(new Request("https://app.nesalio.com/api/seances", { headers: { authorization: "Bearer a-private-test-token" } }), {} as NodeJS.ProcessEnv)).toBe(false);
+    expect(
+      hasSelfTestAccess(
+        new Request("https://app.nesalio.com/api/seances", { headers: { authorization: "Bearer a-private-test-token" } }),
+        {} as NodeJS.ProcessEnv,
+      ),
+    ).toBe(false);
   });
   it("accepts the correct credential in the Authorization header", () => {
-    expect(hasSelfTestAccess(new Request("https://app.nesalio.com/api/seances", { headers: { authorization: "Bearer a-private-test-token" } }), env)).toBe(true);
+    expect(hasSelfTestAccess(new Request("https://app.nesalio.com/api/seances", { headers: { authorization: "Bearer a-private-test-token" } }), env)).toBe(
+      true,
+    );
   });
 });

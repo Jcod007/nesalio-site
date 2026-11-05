@@ -5,12 +5,13 @@ import { accountAuthConfigured, accountOrigins, localAccountDemo } from "./authC
 type Access = { ok: true; userId: string } | { ok: false; response: Response };
 
 function denied(status: number, message: string, ndjson: boolean): Access {
-  const headers = { "Cache-Control": "no-store", "Vary": "Cookie, Origin" };
+  const headers = { "Cache-Control": "no-store", Vary: "Cookie, Origin" };
   return {
     ok: false,
     response: ndjson
       ? new Response(encodeLine({ kind: "error", code: "upstream", message }), {
-          status, headers: { ...headers, "Content-Type": "application/x-ndjson; charset=utf-8" },
+          status,
+          headers: { ...headers, "Content-Type": "application/x-ndjson; charset=utf-8" },
         })
       : Response.json({ error: message }, { status, headers }),
   };

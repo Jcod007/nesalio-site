@@ -19,9 +19,7 @@ export async function identifyUsage(request: Request, ndjson = false): Promise<U
 }
 
 /** Reserve shared trial usage only after validating the request, before paid work. */
-export async function reserveUsage(
-  request: Request, identity: UsageIdentity & { ok: true }, operation: UsageOperation, ndjson = false,
-): Promise<UsagePermit> {
+export async function reserveUsage(request: Request, identity: UsageIdentity & { ok: true }, operation: UsageOperation, ndjson = false): Promise<UsagePermit> {
   if (identity.userId) return { ok: true, userId: identity.userId, headers: new Headers() };
   const trial = await authorizeTrial(request, operation);
   if (trial.ok) {
@@ -32,11 +30,12 @@ export async function reserveUsage(
   if (!ndjson) return trial;
   const headers = new Headers(trial.response.headers);
   headers.set("Content-Type", "application/x-ndjson; charset=utf-8");
-  const body = await trial.response.json().catch(() => ({})) as { error?: string };
+  const body = (await trial.response.json().catch(() => ({}))) as { error?: string };
   return {
     ok: false,
     response: new Response(encodeLine({ kind: "error", code: "upstream", message: body.error ?? "Connecte-toi pour continuer." }), {
-      status: trial.response.status, headers,
+      status: trial.response.status,
+      headers,
     }),
   };
 }

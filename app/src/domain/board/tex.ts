@@ -31,9 +31,7 @@ export function toLatex(text: string): string {
     .split(/(\$[^$]+\$)/)
     .filter((part) => part.length > 0)
     .map((part) =>
-      part.startsWith("$") && part.endsWith("$") && part.length > 1
-        ? part.slice(1, -1)
-        : `\\text{${part.replace(/[\\{}%#&_^~]/g, (c) => TEXT_ESCAPES[c]!)}}`,
+      part.startsWith("$") && part.endsWith("$") && part.length > 1 ? part.slice(1, -1) : `\\text{${part.replace(/[\\{}%#&_^~]/g, (c) => TEXT_ESCAPES[c]!)}}`,
     )
     .join("");
 }
@@ -77,7 +75,21 @@ const SYMBOLS: Record<string, string> = {
   sim: "∼",
   cong: "≅",
 };
-const SUPERSCRIPT: Record<string, string> = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻", n: "ⁿ", x: "ˣ" };
+const SUPERSCRIPT: Record<string, string> = {
+  "0": "⁰",
+  "1": "¹",
+  "2": "²",
+  "3": "³",
+  "4": "⁴",
+  "5": "⁵",
+  "6": "⁶",
+  "7": "⁷",
+  "8": "⁸",
+  "9": "⁹",
+  "-": "⁻",
+  n: "ⁿ",
+  x: "ˣ",
+};
 
 /** Un argument entre accolades (ou un seul caractère) à partir de `i` : [contenu, indice suivant]. */
 function readGroup(s: string, i: number): [string, number] {

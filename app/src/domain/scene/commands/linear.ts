@@ -31,7 +31,7 @@ export const gridCommand = defineCommand({
   schema: z.object({ type: z.literal("grid"), id: Id, color: ColorName.optional() }),
   doc:
     '{"type":"grid","id":"g"} : quadrillage du plan (une ligne par unité), en fond. À poser avant "applyMatrix" :\n' +
-    '  c\'est lui qui montre que tout le plan se transforme.',
+    "  c'est lui qui montre que tout le plan se transforme.",
   duration: 1200,
   aliases: ["plane", "numberplane"],
   apply(state, action, reveal) {
@@ -73,7 +73,7 @@ export const applyMatrixCommand = defineCommand({
   doc:
     '{"type":"applyMatrix","matrix":[[3,1],[0,2]]} : applique la matrice (en lignes) à tout le plan : le quadrillage,\n' +
     '  les vecteurs, les points et les polygones se déforment ensemble, en continu. "targets":["v","sq"] pour n\'en\n' +
-    '  transformer que certains. C\'est LE geste de l\'algèbre linéaire : montre la transformation, puis lis la matrice.',
+    "  transformer que certains. C'est LE geste de l'algèbre linéaire : montre la transformation, puis lis la matrice.",
   duration: 2200,
   aliases: ["applymatrix", "lineartransform", "matrixtransform"],
   apply(state, action, reveal) {

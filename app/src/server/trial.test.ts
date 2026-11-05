@@ -6,7 +6,9 @@ class MemoryStore implements TrialStore {
   entries = new Map<string, TrialEntry>();
   writes = 0;
   removals: Array<{ prefix: string; before: Date }> = [];
-  async read(path: string) { return structuredClone(this.entries.get(path) ?? null); }
+  async read(path: string) {
+    return structuredClone(this.entries.get(path) ?? null);
+  }
   async create(path: string, value: unknown) {
     if (this.entries.has(path)) return false;
     this.entries.set(path, { etag: String(++this.writes), value: structuredClone(value) });
@@ -26,12 +28,17 @@ class MemoryStore implements TrialStore {
 const baseline = Date.UTC(2026, 10, 4, 18);
 const env = (): NodeJS.ProcessEnv => ({
   TRIAL_COOKIE_SECRET: "a-dedicated-long-test-secret-at-least-32-bytes",
-  BLOB_READ_WRITE_TOKEN: "a-private-storage-token", VERCEL: "1", VERCEL_ENV: "production",
-  NODE_ENV: "production", NEXT_PUBLIC_APP_URL: "https://app.nesalio.com",
+  BLOB_READ_WRITE_TOKEN: "a-private-storage-token",
+  VERCEL: "1",
+  VERCEL_ENV: "production",
+  NODE_ENV: "production",
+  NEXT_PUBLIC_APP_URL: "https://app.nesalio.com",
 });
-const request = (cookie?: string, ip = "198.51.100.42", more: Record<string, string> = {}) => new Request("https://app.nesalio.com/api/tutor", {
-  method: "POST", headers: { origin: "https://app.nesalio.com", "x-vercel-forwarded-for": ip, ...(cookie ? { cookie } : {}), ...more },
-});
+const request = (cookie?: string, ip = "198.51.100.42", more: Record<string, string> = {}) =>
+  new Request("https://app.nesalio.com/api/tutor", {
+    method: "POST",
+    headers: { origin: "https://app.nesalio.com", "x-vercel-forwarded-for": ip, ...(cookie ? { cookie } : {}), ...more },
+  });
 function cookieOf(result: TrialAccess): string {
   if (!result.ok) throw new Error(`Trial denied: ${result.response.status}`);
   const cookie = result.headers.get("set-cookie");
@@ -43,7 +50,14 @@ function fixture() {
   const configuration = env();
   let now = baseline;
   const service = createTrialService({ store, env: configuration, now: () => now });
-  return { store, configuration, service, advance: (milliseconds: number) => { now += milliseconds; } };
+  return {
+    store,
+    configuration,
+    service,
+    advance: (milliseconds: number) => {
+      now += milliseconds;
+    },
+  };
 }
 
 describe("durable anonymous trial", () => {
@@ -204,7 +218,9 @@ describe("durable anonymous trial", () => {
     expect(missing.ok).toBe(false);
     if (!missing.ok) expect(missing.response.status).toBe(503);
     configuration.TRIAL_COOKIE_SECRET = env().TRIAL_COOKIE_SECRET;
-    store.read = async () => { throw new Error("storage outage with sensitive detail"); };
+    store.read = async () => {
+      throw new Error("storage outage with sensitive detail");
+    };
     const broken = await service.authorizeTrial(request(), "tutor");
     expect(broken.ok).toBe(false);
     if (!broken.ok) {

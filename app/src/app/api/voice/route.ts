@@ -47,13 +47,16 @@ export async function POST(request: Request): Promise<Response> {
     });
     // Partie vraiment parlée (sans les silences du début et de la fin) : le lecteur y cale les repères {id}.
     const span = speechSpanOf(audio, mediaType);
-    return usageResponse(new Response(audio as unknown as BodyInit, {
-      headers: {
-        "Content-Type": mediaType,
-        "Cache-Control": "private, max-age=3600",
-        ...(span ? { [SPEECH_SPAN_HEADER]: `${span.startMs},${span.endMs}` } : {}),
-      },
-    }), permit);
+    return usageResponse(
+      new Response(audio as unknown as BodyInit, {
+        headers: {
+          "Content-Type": mediaType,
+          "Cache-Control": "private, max-age=3600",
+          ...(span ? { [SPEECH_SPAN_HEADER]: `${span.startMs},${span.endMs}` } : {}),
+        },
+      }),
+      permit,
+    );
   } catch (error) {
     console.warn("voice: échec de la synthèse", error);
     // 503 : le navigateur passe tout de suite à sa propre voix.

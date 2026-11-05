@@ -38,10 +38,10 @@ export const stepFunctionCommand = defineCommand({
     }),
   doc:
     '{"type":"stepFunction","id":"f","a":2,"b":1,"h":0,"k":1,"from":-3,"to":3,"rule":true} : fonction PARTIE ENTIÈRE\n' +
-    '  f(x) = a[b(x − h)] + k (forme du programme de SN 4), tracée exactement : chaque marche avec son point plein (bout\n' +
-    '  atteint) et son point vide (bout exclu), qui changent de côté quand b < 0 ; longueur d\'une marche 1/|b|, écart\n' +
+    "  f(x) = a[b(x − h)] + k (forme du programme de SN 4), tracée exactement : chaque marche avec son point plein (bout\n" +
+    "  atteint) et son point vide (bout exclu), qui changent de côté quand b < 0 ; longueur d'une marche 1/|b|, écart\n" +
     '  entre deux marches |a|. Repère tracé s\'il manque. "rule":true écrit la règle au bout. Redemande le même id avec\n' +
-    '  un autre a, b, h ou k : l\'escalier se transforme (rôle des paramètres). Parties : f-m1… (marches), f-p1… (points\n' +
+    "  un autre a, b, h ou k : l'escalier se transforme (rôle des paramètres). Parties : f-m1… (marches), f-p1… (points\n" +
     '  pleins), f-v1… (points vides), numérotées de gauche à droite. Jamais "curve" avec floor pour une partie entière.',
   duration: 2000,
   aliases: ["partieEntiere", "partie_entiere", "floor", "floorFunction", "escalier", "greatestInteger"],
@@ -54,7 +54,11 @@ export const stepFunctionCommand = defineCommand({
       const ys = stepsOf(p, from, to).map((s) => s.y);
       const y0 = Math.min(-1, ...ys) - 1;
       const y1 = Math.max(1, ...ys) + 1;
-      next = axesCommand.apply(next, { type: "axes", x: [Math.min(-1, from - 1), Math.max(1, to + 1)], y: [Math.floor(y0), Math.ceil(y1)], xLabel: "x", yLabel: "y" }, reveal);
+      next = axesCommand.apply(
+        next,
+        { type: "axes", x: [Math.min(-1, from - 1), Math.max(1, to + 1)], y: [Math.floor(y0), Math.ceil(y1)], xLabel: "x", yLabel: "y" },
+        reveal,
+      );
     }
     const frame = next.frame;
     const from = Math.max(action.from ?? frame.x[0], frame.x[0]);
@@ -84,7 +88,8 @@ export const stepFunctionCommand = defineCommand({
     const keep = new Set(parts.map((part) => part.id));
     const stale = (next.groups[id]?.members ?? []).filter((m) => !keep.has(m) && isVisible(next.nodes[m]));
     if (stale.length > 0) next = updateNodes(next, stale, (node) => ({ ...node, erased: reveal }));
-    if (next.groups[id]) next = { ...next, groups: { ...next.groups, [id]: { ...next.groups[id]!, members: next.groups[id]!.members.filter((m) => keep.has(m)) } } };
+    if (next.groups[id])
+      next = { ...next, groups: { ...next.groups, [id]: { ...next.groups[id]!, members: next.groups[id]!.members.filter((m) => keep.has(m)) } } };
 
     next = drawFigure(next, id, parts, reveal);
     const group = next.groups[id]!;

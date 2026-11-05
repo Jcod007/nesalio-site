@@ -45,7 +45,12 @@ describe("saveTurn", () => {
   });
 
   it("n'interrompt jamais la séance si le stockage échoue", async () => {
-    const blob = { ...memoryBlob(), put: async () => { throw new Error("stockage indisponible"); } };
+    const blob = {
+      ...memoryBlob(),
+      put: async () => {
+        throw new Error("stockage indisponible");
+      },
+    };
     expect(await saveTurn(record, blob)).toBe(false);
   });
 

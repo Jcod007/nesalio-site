@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), put: vi.fn(), list: vi.fn(), del: vi.fn() }));
 vi.mock("@vercel/blob", () => ({
-  ...mocks, BlobPreconditionFailedError: class BlobPreconditionFailedError extends Error {},
+  ...mocks,
+  BlobPreconditionFailedError: class BlobPreconditionFailedError extends Error {},
 }));
 import { BlobPreconditionFailedError } from "@vercel/blob";
 import { privateTrialStore } from "./trialStore";
@@ -19,7 +20,11 @@ describe("private quota Blob adapter", () => {
   it("creates a deterministic private path without overwrite", async () => {
     mocks.put.mockResolvedValue({});
     expect(await privateTrialStore.create("trial.json", { count: 0 })).toBe(true);
-    expect(mocks.put).toHaveBeenCalledWith("trial.json", '{"count":0}', expect.objectContaining({ access: "private", addRandomSuffix: false, allowOverwrite: false }));
+    expect(mocks.put).toHaveBeenCalledWith(
+      "trial.json",
+      '{"count":0}',
+      expect.objectContaining({ access: "private", addRandomSuffix: false, allowOverwrite: false }),
+    );
   });
 
   it("treats a failed create as a collision only after confirming an existing record", async () => {
@@ -46,10 +51,16 @@ describe("private quota Blob adapter", () => {
   });
 
   it("deletes only expired files in its specified prefix while handling pagination", async () => {
-    mocks.list.mockResolvedValueOnce({ blobs: [
-      { pathname: "trial/expired.json", uploadedAt: new Date("2026-01-01") },
-      { pathname: "trial/new.json", uploadedAt: new Date("2026-11-04") },
-    ], hasMore: true, cursor: "page2" }).mockResolvedValueOnce({ blobs: [], hasMore: false });
+    mocks.list
+      .mockResolvedValueOnce({
+        blobs: [
+          { pathname: "trial/expired.json", uploadedAt: new Date("2026-01-01") },
+          { pathname: "trial/new.json", uploadedAt: new Date("2026-11-04") },
+        ],
+        hasMore: true,
+        cursor: "page2",
+      })
+      .mockResolvedValueOnce({ blobs: [], hasMore: false });
     expect(await privateTrialStore.removeOlder("trial/", new Date("2026-10-01"))).toBe(1);
     expect(mocks.list).toHaveBeenNthCalledWith(1, { prefix: "trial/", cursor: undefined, limit: 1000 });
     expect(mocks.list).toHaveBeenNthCalledWith(2, { prefix: "trial/", cursor: "page2", limit: 1000 });

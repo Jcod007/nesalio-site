@@ -46,14 +46,14 @@ const TYPE_WORDS: Record<string, readonly string[]> = {
 };
 
 const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
-const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Première occurrence du mot (mot entier), à partir de `from`. */
 function findWord(say: string, word: string, caseSensitive: boolean, from: number): number {
   if (word.length === 0) return -1;
   const haystack = caseSensitive ? say : fold(say);
   const needle = caseSensitive ? word : fold(word);
-  const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escape(needle)}(?![\\p{L}\\p{N}])`, "u");
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(needle)}(?![\\p{L}\\p{N}])`, "u");
   const match = pattern.exec(haystack.slice(from));
   return match ? from + match.index : -1;
 }

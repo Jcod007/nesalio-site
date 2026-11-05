@@ -37,7 +37,11 @@ export interface CueSync {
 
 function normalize(word: string): string {
   const spelled = /^\d+(?:[,.]\d+)?$/.test(word) ? spellNumber(word) : word;
-  return spelled.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+  return spelled
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]/gu, "");
 }
 
 /**
@@ -87,7 +91,10 @@ export function measureCues(input: {
   const { say, cues, audioMs, words, span } = input;
   if (words.length === 0) return [];
   const tokens = tokenize(say);
-  const alignment = alignWords(tokens.map((t) => t.text), words.map((w) => w.text));
+  const alignment = alignWords(
+    tokens.map((t) => t.text),
+    words.map((w) => w.text),
+  );
   const predicted = cueOffsetsMs(say, cues, audioMs, span);
   const rows: CueSync[] = [];
 

@@ -87,14 +87,14 @@ export const imageCommand = defineCommand({
   doc:
     '{"type":"image","id":"img","target":"tri","kind":"reflection","axis":"vertical"} : dessine l\'IMAGE d\'une figure\n' +
     '  (l\'original reste) par une transformation calculée par le moteur. "kind" : "reflection" ("axis" : "vertical" ou\n' +
-    '  "horizontal" et le moteur pose l\'axe à côté de la figure, nommé "axisLabel" ; ou l\'axe de l\'énoncé : id d\'un segment\n' +
+    "  \"horizontal\" et le moteur pose l'axe à côté de la figure, nommé \"axisLabel\" ; ou l'axe de l'énoncé : id d'un segment\n" +
     '  ou deux points), "translation" ("by" : "auto", [dx,dy] ou l\'id d\'un vecteur), "rotation" ("center", "angle" en\n' +
     '  degrés, antihoraire), "homothety" ("center" : "auto" pour une image à côté, ou un point ; "ratio" : 2 agrandit,\n' +
     '  0.5 réduit, négatif de l\'autre côté du centre). Sans repère, laisse le moteur placer ("vertical", "auto") ; donne\n' +
-    '  un axe ou un centre précis seulement s\'il fait partie du problème (un sommet, une droite (BC)) : un point posé\n' +
-    '  à la main est déplacé si l\'image tombe sur une figure. Parties : img-axe, img-centre. Les traits de\n' +
+    "  un axe ou un centre précis seulement s'il fait partie du problème (un sommet, une droite (BC)) : un point posé\n" +
+    "  à la main est déplacé si l'image tombe sur une figure. Parties : img-axe, img-centre. Les traits de\n" +
     '  construction (perpendiculaires à l\'axe, flèches, rayons depuis le centre) sont tracés ("traces":false pour non).\n' +
-    '  Les sommets de l\'image prennent un prime (A devient A\') et se visent par ce nom ; parties img-<partie>.\n' +
+    "  Les sommets de l'image prennent un prime (A devient A') et se visent par ce nom ; parties img-<partie>.\n" +
     '  Pour des figures semblables : "homothety" ; isométriques : réflexion, translation ou rotation.',
   duration: 2200,
   aliases: ["transformation", "map"],
@@ -103,13 +103,24 @@ export const imageCommand = defineCommand({
     if (targets.length === 0 || isVisible(state.nodes[action.id])) return state;
 
     // La figure, étiquettes comprises : ce à côté de quoi le moteur pose l'image.
-    const box: Box | null = union(targets.map((tid) => state.nodes[tid]).filter(isVisible).filter((n) => n.type !== "text").map((n) => nodeBox(n, state.frame)));
+    const box: Box | null = union(
+      targets
+        .map((tid) => state.nodes[tid])
+        .filter(isVisible)
+        .filter((n) => n.type !== "text")
+        .map((n) => nodeBox(n, state.frame)),
+    );
     if (!box) return state;
     // Les autres figures du tableau : l'image se pose du côté où elle n'en touche aucune.
     const others = closedShapes(state)
       .filter(({ id }) => id !== action.target && !targets.includes(id))
       .map(({ poly }) => bounds(poly));
-    const corners: Vec2[] = [[box.x0, box.y0], [box.x1, box.y0], [box.x1, box.y1], [box.x0, box.y1]];
+    const corners: Vec2[] = [
+      [box.x0, box.y0],
+      [box.x1, box.y0],
+      [box.x1, box.y1],
+      [box.x0, box.y1],
+    ];
     const imageBox = (f: (p: Vec2) => Vec2) => pointsBox(corners.map(f));
     // L'image tombe-t-elle sur une figure ? Sur l'original (sauf s'il est sa propre image : axe de
     // symétrie de la figure), ou sur une autre figure du tableau. Sert à juger une position libre.
@@ -166,8 +177,7 @@ export const imageCommand = defineCommand({
         if (action.by === undefined || action.by === "auto") {
           const toward = firstFree(["right", "left", "down", "up"] as const, (t) => imageBox((p) => add(p, translationBeside(box, undefined, t))), others);
           shift = translationBeside(box, undefined, toward);
-        }
-        else if (typeof action.by === "string") {
+        } else if (typeof action.by === "string") {
           const v = state.nodes[action.by];
           if (!isVisible(v) || v.type !== "vector") return state;
           shift = sub(v.to, v.from);
@@ -279,6 +289,13 @@ export const imageCommand = defineCommand({
       traceReveal = { start: reveal.start + slide.duration, duration: reveal.duration - slide.duration };
     }
     const next = drawFigure(start, `${action.id}-traces`, traces, traceReveal);
-    return drawFigure(next, action.id, parts, { start: reveal.start + reveal.duration * 0.35, duration: reveal.duration * 0.65 }, {}, Object.keys(vertices).length > 0 ? vertices : undefined);
+    return drawFigure(
+      next,
+      action.id,
+      parts,
+      { start: reveal.start + reveal.duration * 0.35, duration: reveal.duration * 0.65 },
+      {},
+      Object.keys(vertices).length > 0 ? vertices : undefined,
+    );
   },
 });

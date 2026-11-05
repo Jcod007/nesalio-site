@@ -46,18 +46,19 @@ export async function POST(request: Request): Promise<Response> {
   const limit = limiter.check(request.headers, undefined, access.userId);
   const tag = limit.session ? `[session ${shortSession(limit.session)}]` : "[sans session]";
   if (!limit.allowed) {
-    return single(
-      { kind: "error", code: "rate_limited", message: "Tu as posé beaucoup de questions d'un coup. Réessaie dans quelques minutes." },
-      429,
-      { "Retry-After": String(limit.retryAfterSeconds) },
-    );
+    return single({ kind: "error", code: "rate_limited", message: "Tu as posé beaucoup de questions d'un coup. Réessaie dans quelques minutes." }, 429, {
+      "Retry-After": String(limit.retryAfterSeconds),
+    });
   }
 
   const raw = await readBoundedText(request, MAX_BODY_BYTES);
   if (!raw.ok) return single({ kind: "error", code: "bad_request", message: raw.status === 413 ? "Question trop longue." : "Requête illisible." }, raw.status);
   let body: unknown;
-  try { body = JSON.parse(raw.text); }
-  catch { return single({ kind: "error", code: "bad_request", message: "Requête illisible." }, 400); }
+  try {
+    body = JSON.parse(raw.text);
+  } catch {
+    return single({ kind: "error", code: "bad_request", message: "Requête illisible." }, 400);
+  }
   const parsed = TutorRequestSchema.safeParse(body);
   if (!parsed.success) return single({ kind: "error", code: "bad_request", message: "Requête invalide." }, 400);
 

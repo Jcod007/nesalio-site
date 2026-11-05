@@ -6,12 +6,15 @@ vi.mock("@/services/session", () => ({ sessionHeaders: () => ({ "x-nesalio-sessi
 
 const request = { mode: "question" as const, question: "Comment trouver les zéros ?" };
 const end = { kind: "end", summary: [] };
-const denied = () => new Response(JSON.stringify({ kind: "error", code: "upstream", message: "Connecte-toi pour continuer." }) + "\n", {
-  status: 401, headers: { "X-Nesalio-Account-Required": "1", "X-Nesalio-Trial-Remaining": "0" },
-});
-const accepted = (remaining?: string) => new Response(JSON.stringify(end) + "\n", {
-  headers: remaining === undefined ? {} : { "X-Nesalio-Trial-Remaining": remaining },
-});
+const denied = () =>
+  new Response(JSON.stringify({ kind: "error", code: "upstream", message: "Connecte-toi pour continuer." }) + "\n", {
+    status: 401,
+    headers: { "X-Nesalio-Account-Required": "1", "X-Nesalio-Trial-Remaining": "0" },
+  });
+const accepted = (remaining?: string) =>
+  new Response(JSON.stringify(end) + "\n", {
+    headers: remaining === undefined ? {} : { "X-Nesalio-Trial-Remaining": remaining },
+  });
 
 beforeEach(() => vi.stubGlobal("window", new EventTarget()));
 afterEach(() => vi.unstubAllGlobals());
@@ -33,7 +36,10 @@ describe("limited trial HTTP source", () => {
     const prompted = new Promise<void>((resolve) => window.addEventListener(ACCOUNT_REQUIRED, () => resolve(), { once: true }));
     const iterator = createHttpSource().open(request, new AbortController().signal)[Symbol.asyncIterator]();
     let settled = false;
-    const next = iterator.next().then((value) => { settled = true; return value; });
+    const next = iterator.next().then((value) => {
+      settled = true;
+      return value;
+    });
     await prompted;
     await Promise.resolve();
     expect(settled).toBe(false);
@@ -61,7 +67,10 @@ describe("limited trial HTTP source", () => {
   it("keeps unrelated authentication failures as errors instead of opening a trial gate", async () => {
     const prompt = vi.fn();
     window.addEventListener(ACCOUNT_REQUIRED, prompt);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ kind: "error", code: "upstream", message: "Connexion indisponible" }) + "\n", { status: 503 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ kind: "error", code: "upstream", message: "Connexion indisponible" }) + "\n", { status: 503 })),
+    );
     const iterator = createHttpSource().open(request, new AbortController().signal)[Symbol.asyncIterator]();
     expect((await iterator.next()).value).toMatchObject({ kind: "error", message: "Connexion indisponible" });
     expect(prompt).not.toHaveBeenCalled();

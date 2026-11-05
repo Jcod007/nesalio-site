@@ -8,16 +8,7 @@
  * l'étape : l'élève entend l'explication même si un tracé manque.
  */
 import { ACTION_ALIASES, COMMANDS, NODE_COMMANDS, type ActionType } from "@/domain/scene/commands";
-import {
-  Action,
-  Check,
-  DiagnosisEvent,
-  EndEvent,
-  LessonHeaderEvent,
-  Mood,
-  type ModelEvent,
-  type Step,
-} from "@/domain/scene/schema";
+import { Action, Check, DiagnosisEvent, EndEvent, LessonHeaderEvent, Mood, type ModelEvent, type Step } from "@/domain/scene/schema";
 import { z } from "zod";
 import { extractCues, inferCues } from "./cues";
 import { plainText } from "@/domain/board/tex";
@@ -282,12 +273,22 @@ export function closeJson(text: string): string {
   }
   let out = text.trimEnd() + (inString ? '"' : "");
   out = out.replace(/,\s*$/, "").replace(/,\s*"[^"]*"\s*:\s*$/, "");
-  return out + open.reverse().map((c) => (c === "{" ? "}" : "]")).join("");
+  return (
+    out +
+    open
+      .reverse()
+      .map((c) => (c === "{" ? "}" : "]"))
+      .join("")
+  );
 }
 
 /** Retire les clôtures de code et le texte autour du premier objet JSON de la ligne. */
 export function extractJsonObject(line: string): string | null {
-  const trimmed = line.trim().replace(/^```(?:json)?/, "").replace(/```$/, "").trim();
+  const trimmed = line
+    .trim()
+    .replace(/^```(?:json)?/, "")
+    .replace(/```$/, "")
+    .trim();
   const start = trimmed.indexOf("{");
   const end = trimmed.lastIndexOf("}");
   if (start === -1 || end <= start) return null;

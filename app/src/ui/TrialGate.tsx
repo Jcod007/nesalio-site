@@ -19,8 +19,14 @@ type TrialAccess = {
 };
 
 const TrialContext = createContext<TrialAccess>({
-  authenticated: false, remaining: 3, enabled: false, hasPending: false, accountOpen: false,
-  run: (action) => action(), cancelPending: () => {}, openAccount: () => {},
+  authenticated: false,
+  remaining: 3,
+  enabled: false,
+  hasPending: false,
+  accountOpen: false,
+  run: (action) => action(),
+  cancelPending: () => {},
+  openAccount: () => {},
 });
 
 export const useTrialAccess = () => useContext(TrialContext);
@@ -57,10 +63,15 @@ function ConfiguredTrialGate({ children }: { children: ReactNode }) {
         setTrial({ authenticated: false, remaining: next.remaining, limit: 3 });
       } else return null;
       return next;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }, []);
 
-  useEffect(() => { if (isLoaded) void refresh(); }, [isLoaded, isSignedIn, refresh]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: un changement de session doit recharger le quota, même si refresh ne lit pas isSignedIn.
+  useEffect(() => {
+    if (isLoaded) void refresh();
+  }, [isLoaded, isSignedIn, refresh]);
 
   useEffect(() => {
     const updated = (event: Event) => {
@@ -106,22 +117,38 @@ function ConfiguredTrialGate({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event(ACCOUNT_CANCELLED));
   }, []);
 
-  const run = useCallback((action: () => void) => {
-    if (authenticated || trial.remaining !== 0) {
-      cancelPending();
-      action();
-      return;
-    }
-    pending.current = action;
-    setHasPending(true);
+  const run = useCallback(
+    (action: () => void) => {
+      if (authenticated || trial.remaining !== 0) {
+        cancelPending();
+        action();
+        return;
+      }
+      pending.current = action;
+      setHasPending(true);
+      setError(null);
+      setOpen(true);
+    },
+    [authenticated, trial.remaining, cancelPending],
+  );
+
+  const openAccount = useCallback(() => {
     setError(null);
     setOpen(true);
-  }, [authenticated, trial.remaining, cancelPending]);
-
-  const openAccount = useCallback(() => { setError(null); setOpen(true); }, []);
-  const value = useMemo<TrialAccess>(() => ({
-    authenticated, remaining: trial.remaining ?? 3, enabled: true, hasPending, accountOpen: open || hasPending, run, cancelPending, openAccount,
-  }), [authenticated, trial.remaining, hasPending, open, run, cancelPending, openAccount]);
+  }, []);
+  const value = useMemo<TrialAccess>(
+    () => ({
+      authenticated,
+      remaining: trial.remaining ?? 3,
+      enabled: true,
+      hasPending,
+      accountOpen: open || hasPending,
+      run,
+      cancelPending,
+      openAccount,
+    }),
+    [authenticated, trial.remaining, hasPending, open, run, cancelPending, openAccount],
+  );
 
   const openAuthentication = (mode: "signup" | "signin") => {
     dialog.current?.close();
@@ -153,26 +180,52 @@ function ConfiguredTrialGate({ children }: { children: ReactNode }) {
   return (
     <TrialContext.Provider value={value}>
       {children}
-      <dialog ref={dialog} className={styles.dialog} aria-labelledby="trial-title" aria-describedby="trial-description" onCancel={() => setOpen(false)} onClose={() => setOpen(false)}>
-        <button type="button" className={styles.close} aria-label="Revenir au tableau" onClick={() => setOpen(false)}>×</button>
+      <dialog
+        ref={dialog}
+        className={styles.dialog}
+        aria-labelledby="trial-title"
+        aria-describedby="trial-description"
+        onCancel={() => setOpen(false)}
+        onClose={() => setOpen(false)}
+      >
+        <button type="button" className={styles.close} aria-label="Revenir au tableau" onClick={() => setOpen(false)}>
+          ×
+        </button>
         <Nesa state="clin" size={74} className={styles.nesa} />
         <h2 id="trial-title">{authenticated ? "On reprend ?" : hasPending || trial.remaining === 0 ? "On continue ensemble ?" : "Ton espace Nesalio"}</h2>
         <p id="trial-description">
-          {authenticated ? "Ton compte est prêt et ton tableau est resté ouvert. Reprends là où tu en étais."
-            : hasPending || trial.remaining === 0 ? "Crée ton compte pour poursuivre ta séance. Ton tableau reste ici."
-            : "Tu peux découvrir Nesa sans compte, puis te connecter quand tu veux."}
+          {authenticated
+            ? "Ton compte est prêt et ton tableau est resté ouvert. Reprends là où tu en étais."
+            : hasPending || trial.remaining === 0
+              ? "Crée ton compte pour poursuivre ta séance. Ton tableau reste ici."
+              : "Tu peux découvrir Nesa sans compte, puis te connecter quand tu veux."}
         </p>
-        {error ? <p className={styles.error} role="alert">{error}</p> : null}
+        {error ? (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        ) : null}
         <div className={styles.actions}>
-          {authenticated ? <button type="button" className="cta" disabled={confirming} onClick={() => void resume()}>{confirming ? "Un instant…" : hasPending ? "Continuer ma séance" : "Retour au tableau"}</button> : <>
-            <button type="button" className="cta" onClick={() => openAuthentication("signup")}>Créer mon compte</button>
-            <button type="button" className="btn-line" onClick={() => openAuthentication("signin")}>J’ai déjà un compte</button>
-          </>}
-          <button type="button" className={styles.back} onClick={() => setOpen(false)}>Revenir au tableau</button>
+          {authenticated ? (
+            <button type="button" className="cta" disabled={confirming} onClick={() => void resume()}>
+              {confirming ? "Un instant…" : hasPending ? "Continuer ma séance" : "Retour au tableau"}
+            </button>
+          ) : (
+            <>
+              <button type="button" className="cta" onClick={() => openAuthentication("signup")}>
+                Créer mon compte
+              </button>
+              <button type="button" className="btn-line" onClick={() => openAuthentication("signin")}>
+                J’ai déjà un compte
+              </button>
+            </>
+          )}
+          <button type="button" className={styles.back} onClick={() => setOpen(false)}>
+            Revenir au tableau
+          </button>
         </div>
         {!authenticated ? <p className={styles.note}>Un code par courriel. Aucun mot de passe à retenir.</p> : null}
       </dialog>
     </TrialContext.Provider>
   );
 }
-

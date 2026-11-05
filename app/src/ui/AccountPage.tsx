@@ -5,13 +5,17 @@ export function AccountPage({ title, children }: { title?: string; children: Rea
   return (
     <main className={styles.page}>
       <div className={styles.content}>
-        <a className={styles.brand} href="https://nesalio.com">Nesalio</a>
+        <a className={styles.brand} href="https://nesalio.com">
+          Nesalio
+        </a>
         <p className={styles.kicker}>Mathématiques · Secondaire 4 et 5</p>
         {title ? <h1>{title}</h1> : null}
         {children}
         <p className={styles.privacy}>
-          Utilise ton courriel pour recevoir un code de connexion. Aucun mot de passe à retenir.
-          {" "}<a href="https://nesalio.com/confidentialite" target="_blank" rel="noopener noreferrer">Confidentialité</a>
+          Utilise ton courriel pour recevoir un code de connexion. Aucun mot de passe à retenir.{" "}
+          <a href="https://nesalio.com/confidentialite" target="_blank" rel="noopener noreferrer">
+            Confidentialité
+          </a>
         </p>
       </div>
     </main>

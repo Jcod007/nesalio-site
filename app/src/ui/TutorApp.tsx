@@ -21,7 +21,11 @@ const WIDE = 900;
  * lecteur (engine/player.ts) ; ce composant ne fait que la brancher.
  */
 export function TutorApp() {
-  return <TrialGateProvider><TutorSession /></TrialGateProvider>;
+  return (
+    <TrialGateProvider>
+      <TutorSession />
+    </TrialGateProvider>
+  );
 }
 
 function TutorSession() {
@@ -54,6 +58,7 @@ function TutorSession() {
 
   const idle = snapshot.status === "idle";
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: le dock change d'élément avec `idle` ; il faut l'observer de nouveau.
   useEffect(() => {
     const dock = dockRef.current;
     if (!dock) {
@@ -66,10 +71,11 @@ function TutorSession() {
   }, [idle]);
 
   const ask = useCallback(
-    (question: string) => trial.run(() => {
-      setLastAsked(question);
-      player.ask(question);
-    }),
+    (question: string) =>
+      trial.run(() => {
+        setLastAsked(question);
+        player.ask(question);
+      }),
     [player, trial.run],
   );
 
@@ -77,16 +83,18 @@ function TutorSession() {
     () => ({
       interrupt: () => player.interrupt(),
       resume: () => player.resume(),
-      followUp: (text) => trial.run(() => {
-        setLastAsked(text);
-        player.followUp(text);
-      }),
+      followUp: (text) =>
+        trial.run(() => {
+          setLastAsked(text);
+          player.followUp(text);
+        }),
       answer: (choice) => player.answer(choice),
       answerText: (text) => player.answerText(text),
-      retry: () => trial.run(() => {
-        const question = player.getSnapshot().question;
-        if (question) player.ask(question);
-      }),
+      retry: () =>
+        trial.run(() => {
+          const question = player.getSnapshot().question;
+          if (question) player.ask(question);
+        }),
       newTopic: () => {
         trial.cancelPending();
         setLastAsked(null);
@@ -130,7 +138,9 @@ function TutorSession() {
         onHome={idle ? null : actions.newTopic}
         feedback={<FeedbackButton player={player} />}
       />
-      {trial.authenticated || !trial.enabled ? <AfterTrialQuestions sessionDone={snapshot.status === "done" && snapshot.summary.length > 0} question={snapshot.question} /> : null}
+      {trial.authenticated || !trial.enabled ? (
+        <AfterTrialQuestions sessionDone={snapshot.status === "done" && snapshot.summary.length > 0} question={snapshot.question} />
+      ) : null}
       {idle ? (
         <StartScreen onAsk={ask} listening={listening} onListeningChange={setListening} />
       ) : (

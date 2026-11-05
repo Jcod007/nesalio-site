@@ -12,7 +12,9 @@ import { POST } from "@/app/api/tutor/route";
 
 function request(body = JSON.stringify({ mode: "question", question: "Les zéros d'une parabole" }), origin = "https://app.nesalio.com") {
   return new Request("https://app.nesalio.com/api/tutor", {
-    method: "POST", headers: { origin, "Content-Type": "application/json", "x-nesalio-session": crypto.randomUUID() }, body,
+    method: "POST",
+    headers: { origin, "Content-Type": "application/json", "x-nesalio-session": crypto.randomUUID() },
+    body,
   });
 }
 
@@ -36,10 +38,23 @@ describe("guest trial at the tutor API boundary", () => {
     let count = 0;
     reserve.mockImplementation(async () => {
       count++;
-      if (count > 3) return { ok: false, response: Response.json({ error: "Crée ton compte pour continuer." }, {
-        status: 401, headers: { "X-Nesalio-Account-Required": "1", "Cache-Control": "no-store" },
-      }) };
-      return { ok: true, guestId: "guest", remaining: 3 - count, headers: new Headers({ "Set-Cookie": "trial=signed; HttpOnly; Secure; SameSite=Lax; Path=/" }) };
+      if (count > 3)
+        return {
+          ok: false,
+          response: Response.json(
+            { error: "Crée ton compte pour continuer." },
+            {
+              status: 401,
+              headers: { "X-Nesalio-Account-Required": "1", "Cache-Control": "no-store" },
+            },
+          ),
+        };
+      return {
+        ok: true,
+        guestId: "guest",
+        remaining: 3 - count,
+        headers: new Headers({ "Set-Cookie": "trial=signed; HttpOnly; Secure; SameSite=Lax; Path=/" }),
+      };
     });
     for (let index = 0; index < 3; index++) {
       const response = await POST(request());
