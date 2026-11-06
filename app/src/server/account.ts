@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { validDevCookie } from "./devAccess";
 import { encodeLine } from "@/domain/tutor/ndjson";
 import { accountAuthConfigured, accountOrigins, localAccountDemo } from "./authConfig";
 
@@ -24,6 +25,7 @@ export async function requireAccount(request: Request, ndjson = false): Promise<
     return denied(403, "Cette requête ne vient pas de Nesalio.", ndjson);
   }
   if (localAccountDemo()) return { ok: true, userId: "local-demo" };
+  if (validDevCookie(request.headers.get("cookie"))) return { ok: true, userId: "development-guest" };
   if (!accountAuthConfigured()) return denied(503, "La connexion est temporairement indisponible. Réessaie plus tard.", ndjson);
   try {
     // Session cookies only: API keys and machine tokens do not identify a student.

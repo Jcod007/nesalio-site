@@ -21,7 +21,7 @@ const Body = z.object({
   audio: z.string().min(100),
   mediaType: z.string().refine((type) => MEDIA_TYPES.some((allowed) => type.startsWith(allowed)), "Format audio non pris en charge"),
 });
-const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000 });
+const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000, developerAccess: true });
 
 export async function POST(request: Request): Promise<Response> {
   const access = await requireAccount(request);

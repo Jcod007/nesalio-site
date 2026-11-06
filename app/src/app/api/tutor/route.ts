@@ -27,7 +27,7 @@ export const maxDuration = 180;
 const MAX_BODY_BYTES = 96_000;
 // Par compte vérifié : une séance compte plusieurs tours (un appel par réponse de l'élève),
 // soit environ 8 séances par 10 minutes ; une même adresse (une classe) peut en ouvrir 12 fois plus.
-const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000 });
+const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000, developerAccess: true });
 
 const NDJSON_HEADERS = {
   "Content-Type": "application/x-ndjson; charset=utf-8",

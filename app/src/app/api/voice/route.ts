@@ -18,7 +18,7 @@ export const maxDuration = 30;
 
 const Body = z.object({ text: z.string().trim().min(1).max(400) });
 // Une séance compte une dizaine de phrases : la limite est large mais réelle.
-const limiter = createSessionLimits({ limit: 160, windowMs: 10 * 60_000 });
+const limiter = createSessionLimits({ limit: 160, windowMs: 10 * 60_000, developerAccess: true });
 
 export async function POST(request: Request): Promise<Response> {
   const access = await identifyUsage(request);
