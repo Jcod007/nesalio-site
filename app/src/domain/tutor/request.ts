@@ -13,6 +13,7 @@ import { Diagnosis } from "@/domain/scene/schema";
 import { LearningState } from "./learning";
 import { TeachingPlan } from "./plan";
 import { AssessmentMethod, AssessmentPurpose } from "./assessment";
+import { BoardZone } from "@/domain/board/zones";
 
 export const MAX_QUESTION_LENGTH = 500;
 
@@ -20,6 +21,8 @@ export const BoardSummaryItemSchema = z.object({
   id: z.string().max(40),
   type: z.string().max(20),
   detail: z.string().max(160),
+  zone: BoardZone.optional(),
+  temporary: z.literal(true).optional(),
 });
 
 export const TutorContextSchema = z.object({
@@ -28,6 +31,7 @@ export const TutorContextSchema = z.object({
   /** Phrases déjà dites par Nesa, de la plus ancienne à la plus récente. */
   spoken: z.array(z.string().max(320)).max(16),
   board: z.array(BoardSummaryItemSchema).max(40),
+  boardZone: BoardZone.optional(),
   /** Vrai si l'élève a coupé Nesa au milieu d'une phrase. */
   interrupted: z.boolean().optional(),
   /** Nombre de questions auxquelles l'élève a déjà répondu dans la séance (pour doser sa longueur). */

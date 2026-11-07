@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { BoardState } from "@/domain/board/state";
 import type { Viewport } from "./manim/camera";
 import type { ManimRenderer } from "./manim/ManimRenderer";
+import { boardRendered } from "@/engine/renderBarrier";
 import styles from "./ManimBoard.module.css";
 
 interface Props {
@@ -23,6 +24,11 @@ export function ManimBoard({ board, insets }: Props) {
   const [ready, setReady] = useState(false);
   const [moved, setMoved] = useState(false);
   const [failed, setFailed] = useState(false);
+  const readFrom = board.readFrom;
+  const hasTraces = readFrom !== undefined && board.order.some((id) => {
+    const node = board.nodes[id];
+    return node && !node.erased && node.reveal.start < readFrom;
+  });
 
   useEffect(() => {
     let disposed = false;
@@ -36,7 +42,8 @@ export function ManimBoard({ board, insets }: Props) {
         renderer = new ManimRenderer(containerRef.current, { onViewChange: (_view, userMoved) => setMoved(userMoved) });
         rendererRef.current = renderer;
         renderer.setInsets(latest.current.insets);
-        renderer.sync(latest.current.board, performance.now());
+        const initial = latest.current.board;
+        void renderer.sync(initial, performance.now()).finally(() => boardRendered(initial));
         setReady(true);
       } catch (error) {
         console.error("Tableau indisponible", error);
@@ -51,7 +58,8 @@ export function ManimBoard({ board, insets }: Props) {
   }, []);
 
   useEffect(() => {
-    rendererRef.current?.sync(board, performance.now());
+    const renderer = rendererRef.current;
+    if (renderer) void renderer.sync(board, performance.now()).finally(() => boardRendered(board));
   }, [board]);
 
   useEffect(() => {
@@ -66,14 +74,14 @@ export function ManimBoard({ board, insets }: Props) {
           Ton navigateur ne peut pas afficher le tableau (WebGL désactivé). Essaie avec Chrome, Edge ou Safari à jour.
         </p>
       ) : null}
-      {moved ? (
+      {moved || (ready && hasTraces) ? (
         <button
           type="button"
           className={`btn-line ${styles.recenter}`}
           style={{ bottom: insets.bottom + 12 }}
           onClick={() => rendererRef.current?.recenter()}
         >
-          Recentrer
+          {moved ? "Recentrer" : "Voir les traces"}
         </button>
       ) : null}
     </div>

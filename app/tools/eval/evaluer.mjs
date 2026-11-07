@@ -18,6 +18,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { programCheck } from "./program-check.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const base = process.env.NESALIO_URL ?? "https://app.nesalio.com";
@@ -32,38 +33,13 @@ const turns = arg("turns", "3");
 const set = arg("set", "");
 const questions = JSON.parse(readFileSync(join(here, set ? `questions-${set}.json` : "questions.json"), "utf8"));
 
-/** Tout ce que l'élève voit et entend : paroles, dessins (avec leur texte), questions, résumé. */
-function sessionText(report) {
-  const steps = (report.steps ?? []).map((s) => [s.say, ...(s.do ?? []), s.check ?? ""].join(" "));
-  return [...steps, ...(report.lesson?.summary ?? [])].join("\n").normalize("NFC");
-}
-
-/** Contenu du programme attendu : commandes, mentions exigées, mentions interdites. */
-function programCheck(q, report) {
-  const text = sessionText(report);
-  const used = report.lesson?.commands ?? {};
-  const misses = [];
-  let total = 0;
-  for (const type of q.mustUse ?? []) {
-    total++;
-    if (!used[type]) misses.push(`commande absente : ${type}`);
-  }
-  for (const pattern of q.mustMention ?? []) {
-    total++;
-    if (!new RegExp(pattern, "iu").test(text)) misses.push(`non mentionné : ${pattern}`);
-  }
-  for (const pattern of q.mustNotMention ?? []) {
-    total++;
-    if (new RegExp(pattern, "iu").test(text)) misses.push(`interdit : ${pattern}`);
-  }
-  return total === 0 ? null : { score: `${total - misses.length}/${total}`, ok: total - misses.length, total, misses };
-}
-
 const rows = [];
 for (const q of questions) {
-  const url = `${base}/api/diagnostic?check=${encodeURIComponent(token)}&ask=${encodeURIComponent(q.ask)}&answers=${answers}&turns=${turns}`;
+  const url = `${base}/api/diagnostic?ask=${encodeURIComponent(q.ask)}&answers=${answers}&turns=${turns}`;
   const started = Date.now();
-  const report = await fetch(url).then((r) => r.json());
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error(`Diagnostic ${q.id} : HTTP ${response.status}`);
+  const report = await response.json();
   const lesson = report.lesson ?? {};
   const row = {
     id: q.id,

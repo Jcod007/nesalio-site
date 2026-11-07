@@ -17,6 +17,7 @@ export const quadraticLesson: Lesson = {
   steps: [
     {
       say: "On cherche les zéros de f de x {n1} égale moins x moins 2, le tout au carré, plus 3.",
+      zone: "example",
       mood: "explique",
       do: [
         { type: "axes", x: [-1, 5], y: [-3, 4], xLabel: "x", yLabel: "y" },
@@ -84,9 +85,19 @@ export const quadraticLesson: Lesson = {
       ],
     },
     {
+      say: "Retenons l'idée : un zéro est une valeur de x pour laquelle f de x vaut zéro {regle}.",
+      zone: "idea",
+      do: [{ type: "note", id: "regle", text: "Zéros : résoudre f(x) = 0" }],
+    },
+    {
       say: "À toi : même ouverture vers le bas, mais le sommet est en 2, moins 1 {g}.",
+      zone: "practice",
+      practiceBoard: "attempt",
       mood: "question",
-      do: [{ type: "curve", id: "g", fn: "-(x-2)^2-1", color: "muted", style: "dashed" }],
+      do: [
+        { type: "axes", x: [-1, 5], y: [-5, 2], xLabel: "x", yLabel: "y" },
+        { type: "curve", id: "g", fn: "-(x-2)^2-1", color: "blue" },
+      ],
       check: {
         prompt: "Combien de zéros aurait cette parabole ?",
         choices: ["0", "1", "2"],
@@ -94,6 +105,12 @@ export const quadraticLesson: Lesson = {
         ifRight: "Bravo ! Le sommet est sous l'axe et la courbe ne fait que descendre : elle ne touche jamais l'axe des x. Tu viens de raisonner sans calculer.",
         ifWrong: "Presque. Le sommet est déjà sous l'axe, et la courbe descend des deux côtés : elle ne peut jamais remonter jusqu'à l'axe des x. Il n'y a donc aucun zéro.",
       },
+    },
+    {
+      say: "Je garde la conclusion de ton exercice {correction}.",
+      zone: "practice",
+      practiceBoard: "correction",
+      do: [{ type: "note", id: "correction", text: "0 zéro : toute la courbe est sous l’axe des x.", color: "green" }],
     },
   ],
   end: {

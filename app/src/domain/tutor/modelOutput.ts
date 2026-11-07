@@ -16,6 +16,8 @@ import {
   LessonHeaderEvent,
   Mood,
   PlanEvent,
+  LegacyStep as StepSchema,
+  SegmentedStep,
   type ModelEvent,
   type Step,
 } from "@/domain/scene/schema";
@@ -80,6 +82,21 @@ export function createModelOutputParser(): ModelOutputParser {
   }
 
   function parseStep(obj: Record<string, unknown>, line: string): ModelEvent | null {
+    if ("segments" in obj) {
+      const parts = Array.isArray(obj.segments) ? obj.segments : [];
+      const normalized = parts.map((part) => {
+        if (!part || typeof part !== "object" || Array.isArray(part)) return part;
+        const record = part as Record<string, unknown>;
+        return { ...record, say: typeof record.say === "string" ? plainText(record.say) : record.say,
+          do: Array.isArray(record.do) ? record.do.map(normalizeAction) : record.do };
+      });
+      const parsed = SegmentedStep.safeParse({ ...obj, segments: normalized });
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        return reject(line, `Étape segmentée invalide (${issue?.path.join(".") || "étape"}) : ${issue?.message ?? "contrat invalide"}`);
+      }
+      return { kind: "step", ...parsed.data };
+    }
     // La voix et les sous-titres disent la formule en clair (« $\\frac{3}{5}$ » devient « 3/5 »).
     const cued = typeof obj.say === "string" ? extractCues(plainText(obj.say)) : null;
     const say = z.string().trim().min(1).max(320).safeParse(cued?.say);
@@ -100,6 +117,8 @@ export function createModelOutputParser(): ModelOutputParser {
 
     const step: Step = {
       say: say.data,
+      zone: StepSchema.shape.zone.safeParse(obj.zone).data,
+      practiceBoard: StepSchema.shape.practiceBoard.safeParse(obj.practiceBoard).data,
       mood: mood.success ? mood.data : undefined,
       do: actions,
       check: check?.success ? check.data : undefined,
@@ -147,7 +166,7 @@ export function createModelOutputParser(): ModelOutputParser {
       const question = (check ?? fields) as Record<string, unknown>;
       return parseStep({ say: question.prompt, do: [], check: question }, line);
     }
-    const kind = typeof record.kind === "string" ? record.kind : "say" in record ? "step" : undefined;
+    const kind = typeof record.kind === "string" ? record.kind : ("say" in record || "segments" in record) ? "step" : undefined;
 
     switch (kind) {
       case "plan": {

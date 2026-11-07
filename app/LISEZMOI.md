@@ -162,7 +162,7 @@ que projeter ce graphe (Create, Shift, ReplacementTransform, fondus, Indicate).
 
 ## Vérifier un déploiement
 
-`/api/diagnostic?check=<SELFTEST_TOKEN>&ask=<question>` joue une séance
+`/api/diagnostic?ask=<question>`, avec l'en-tête `Authorization: Bearer <SELFTEST_TOKEN>`, joue une séance
 complète côté serveur avec un élève simulé : `voice=1` (micro simulé),
 `model=<id>` (autre modèle d'AI Gateway), `effort=none|low|medium|high`
 (réflexion du modèle, principal levier de latence), `answers=right|wrong`.

@@ -1,5 +1,5 @@
 /**
- * GET /api/diagnostic?check=<SELFTEST_TOKEN>&ask=<question>
+ * GET /api/diagnostic?ask=<question> (Authorization: Bearer <SELFTEST_TOKEN>)
  *     [&voice=1][&model=<id>][&effort=low][&answers=right|wrong][&turns=4]
  *
  * Joue une séance complète côté serveur, pour vérifier un déploiement (ou
@@ -23,9 +23,11 @@ import { followUpEffortFor, GATEWAY_BASE, parseEffort, readAiConfig, type ChatPr
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { tutorEvents } from "@/server/tutor/service";
 import type { Step } from "@/domain/scene/schema";
+import { stepActions, stepText } from "@/domain/scene/stepAccess";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { talkShow } from "@/domain/tutor/talkShow";
 import type { StudentAnswer } from "@/domain/tutor/request";
+import { hasSelfTestAccess } from "@/server/adminAccess";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,9 +35,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function GET(request: Request): Promise<Response> {
-  const token = process.env.SELFTEST_TOKEN?.trim();
   const params = new URL(request.url).searchParams;
-  if (!token || params.get("check") !== token) return new Response("Not found", { status: 404 });
+  if (!hasSelfTestAccess(request)) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
 
   const config = readAiConfig(request.headers);
 
@@ -44,7 +45,7 @@ export async function GET(request: Request): Promise<Response> {
     if (!config.gatewayToken) return Response.json({ error: "Voix non configurée." }, { status: 503 });
     const token = config.gatewayToken;
     const limit = Math.min(Math.max(Number(params.get("limit") ?? 12) || 12, 1), 24);
-    const sentences = DEMO_LESSONS.flatMap((lesson) => lesson.steps.map((step) => step.say))
+    const sentences = DEMO_LESSONS.flatMap((lesson) => lesson.steps.map(stepText))
       .filter((say) => say.includes("{"))
       .slice(0, limit);
     const report = await measureSync(sentences, {
@@ -147,9 +148,9 @@ export async function GET(request: Request): Promise<Response> {
         turnSteps.push(step);
         allSteps.push(step);
         if (info.firstStepMs === undefined) info.firstStepMs = Date.now() - turnStart;
-        spoken.push(event.say);
+        spoken.push(stepText(event));
         lastCheck = event.check;
-        for (const action of event.do ?? []) {
+        for (const action of stepActions(event)) {
           usage[action.type] = (usage[action.type] ?? 0) + 1;
           const key = "id" in action ? action.id : "target" in action ? action.target : undefined;
           if (typeof key === "string") {
@@ -161,9 +162,9 @@ export async function GET(request: Request): Promise<Response> {
         }
         steps.push({
           turn,
-          say: event.say,
+          say: stepText(event),
           mood: event.mood,
-          do: (event.do ?? []).map((a) => describe(a as Record<string, unknown>)),
+          do: stepActions(event).map((a) => describe(a as Record<string, unknown>)),
           check: event.check ? `${event.check.prompt} [${event.check.choices.join(" | ")}]${event.check.answer === undefined ? " (situer)" : ` (bonne : ${event.check.choices[event.check.answer]})`}` : undefined,
         });
       }

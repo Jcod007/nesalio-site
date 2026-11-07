@@ -16,6 +16,7 @@ import { Action } from "./commands";
 import { TeachingAnnotation } from "@/domain/tutor/learning";
 import { TeachingPlan } from "@/domain/tutor/plan";
 import { ArithmeticVerification } from "@/domain/tutor/assessment";
+import { BoardZone } from "@/domain/board/zones";
 
 export { ColorName } from "./primitives";
 export { Action, type ActionType } from "./commands";
@@ -56,8 +57,10 @@ export const Check = z
   });
 export type Check = z.infer<typeof Check>;
 
-export const Step = z.object({
+export const LegacyStep = z.object({
   say: z.string().trim().min(1).max(320),
+  zone: BoardZone.optional(),
+  practiceBoard: z.enum(["attempt", "correction"]).optional(),
   mood: Mood.optional(),
   do: z.array(Action).max(12).default([]),
   check: Check.optional(),
@@ -68,7 +71,26 @@ export const Step = z.object({
    * Calculé à partir des repères {id} écrits dans « say » (voir tutor/cues.ts).
    */
   cues: z.record(z.string(), z.number().min(0).max(1)).optional(),
+  segments: z.never().optional(),
 });
+export type LegacyStep = z.infer<typeof LegacyStep>;
+
+const Segment = z.object({
+  say: z.string().trim().min(1).max(320).refine((text) => !/\{[A-Za-z][\w-]{0,31}\}/.test(text), "Repère interdit dans un segment"),
+  do: z.array(Action).max(12).default([]),
+});
+
+export const SegmentedStep = z.object({
+  segments: z.array(Segment).min(1).max(6),
+  say: z.never().optional(), do: z.never().optional(), cues: z.never().optional(),
+  zone: BoardZone.optional(),
+  practiceBoard: z.enum(["attempt", "correction"]).optional(),
+  mood: Mood.optional(),
+  check: Check.optional(),
+  teaching: TeachingAnnotation.optional(),
+}).refine((step) => step.segments.reduce((n, segment) => n + segment.do.length, 0) <= 12, "12 actions au maximum par étape");
+
+export const Step = z.union([LegacyStep, SegmentedStep]);
 export type Step = z.infer<typeof Step>;
 
 /* -------------------------------- événements -------------------------------- */
@@ -81,7 +103,7 @@ export const LessonHeaderEvent = z.object({
   goals: z.array(z.string().trim().min(1).max(120)).max(4).optional(),
 });
 
-export const StepEvent = Step.extend({ kind: z.literal("step") });
+export const StepEvent = z.union([LegacyStep.extend({ kind: z.literal("step") }), SegmentedStep.safeExtend({ kind: z.literal("step") })]);
 
 /**
  * Ce que Nesa a remarqué chez l'élève, dit à l'élève en fin de séance (« tu ») :
@@ -139,7 +161,7 @@ export const DiagnosisEvent = Diagnosis.extend({ kind: z.literal("diagnosis") })
 
 /** Ce que le modèle a le droit d'émettre. */
 export const PlanEvent = z.object({ kind: z.literal("plan"), plan: TeachingPlan });
-export const ModelEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, PlanEvent]);
+export const ModelEvent = z.union([LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, PlanEvent]);
 export type ModelEvent = z.infer<typeof ModelEvent>;
 
 /** Ce que le serveur envoie au navigateur : les événements du modèle, plus l'origine et les erreurs. */
@@ -164,7 +186,7 @@ export const SourceEvent = z.object({
   source: SourceKind,
 });
 
-export const StreamEvent = z.discriminatedUnion("kind", [
+export const StreamEvent = z.union([
   LessonHeaderEvent,
   StepEvent,
   EndEvent,

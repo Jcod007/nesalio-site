@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ManimBoard } from "./board/ManimBoard";
+import { LessonBoard } from "./board/LessonBoard";
 import { DiagnosticTag } from "./board/DiagnosticTag";
 import { Dock, type DockActions } from "./Dock";
 import { useTutor } from "./hooks/useTutor";
@@ -98,7 +99,9 @@ export function TutorApp() {
 
   return (
     <main style={{ position: "fixed", inset: 0, overflow: "hidden" }}>
-      <ManimBoard board={snapshot.board} insets={insets} />
+      {snapshot.lessonBoard
+        ? <LessonBoard layout={snapshot.lessonBoard} insets={insets} />
+        : <ManimBoard board={snapshot.board} insets={insets} />}
       <DiagnosticTag board={snapshot.board} compact={!wide} onBottomChange={setTagBottom} />
       <TopBar
         title={snapshot.title}

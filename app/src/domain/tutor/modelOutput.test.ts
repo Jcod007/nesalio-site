@@ -76,7 +76,7 @@ describe("createModelOutputParser", () => {
       }),
     );
     expect(event?.kind).toBe("step");
-    if (event?.kind !== "step") throw new Error();
+    if (event?.kind !== "step" || !event.do) throw new Error();
     expect(event.do.map((a) => a.type)).toEqual(["segment", "point"]);
     expect(event.do[0]).toHaveProperty("id");
     expect(event.do[1]).toMatchObject({ at: [1, 2] });

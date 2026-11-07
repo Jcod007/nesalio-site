@@ -26,6 +26,33 @@ const fakeCompletion =
 const base = { provider: { name: "gateway" as const, protocol: "openai" as const, endpoint: "https://x", apiKey: "k", model: "test" } };
 
 describe("tutorEvents", () => {
+  it("répare une commande segmentée invalide avant de la transmettre", async () => {
+    let calls = 0;
+    const completion: CompletionStream = (options) => fakeCompletion(JSON.stringify(calls++ === 0
+      ? { kind: "step", segments: [{ say: "Triangle.", do: [{ type: "triangle", id: "tri", base: -4, height: 3 }] }] }
+      : { kind: "step", segments: [{ say: "Triangle corrigé.", do: [{ type: "triangle", id: "tri", base: 4, height: 3 }] }], check: { prompt: "Côté ?", choices: ["A", "B"] } }))(options);
+    const events = await collect(tutorEvents({ mode: "question", question: "Teste-moi." }, { ...base, completion, stepFormat: "segmented" }));
+    expect(calls).toBe(2);
+    const steps = events.filter((event) => event.kind === "step");
+    expect(steps).toHaveLength(1);
+    expect(steps[0]).toMatchObject({ segments: [{ say: "Triangle corrigé." }] });
+    expect(events.at(-1)?.kind).toBe("await");
+  });
+  it("transmet les zones et le nettoyage d'exercice dans le flux du modèle", async () => {
+    const text = [
+      { kind: "step", zone: "idea", say: "Un zéro donne une sortie nulle.", do: [{ type: "note", id: "regle", text: "f(x) = 0" }] },
+      { kind: "step", zone: "example", say: "Regardons un exemple.", do: [] },
+      { kind: "step", zone: "practice", practiceBoard: "correction", say: "Voici la conclusion.", do: [{ type: "clear" }] },
+      { kind: "end", summary: ["Le lien entre le zéro et l’axe horizontal"] },
+    ].map((event) => JSON.stringify(event)).join("\n");
+    const events = await collect(tutorEvents({ mode: "question", question: "Explique-moi sans quiz." },
+      { ...base, completion: fakeCompletion(text) }));
+    const steps = events.filter((event) => event.kind === "step");
+    expect(steps.map((event) => event.zone)).toEqual(["idea", "example", "practice"]);
+    expect(steps[2]).toMatchObject({ practiceBoard: "correction", do: [] });
+    expect(events.at(-1)?.kind).toBe("end");
+  });
+
   it("fait poursuivre un exemple par une tentative au lieu d'accepter une fin sans échange", async () => {
     let calls = 0;
     const completion: CompletionStream = (options) => fakeCompletion((calls++ === 0 ? [

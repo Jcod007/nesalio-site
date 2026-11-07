@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { Step, StreamEvent } from "@/domain/scene/schema";
+import type { LegacyStep, StreamEvent } from "@/domain/scene/schema";
 import type { TutorRequest } from "@/domain/tutor/request";
 import { matchChoice, Player, type PlayerSnapshot } from "./player";
 import type { Clock, Speaker, TutorSource } from "./ports";
+import { boardRendered } from "./renderBarrier";
 
 /** Horloge instantanée : le temps avance mais personne n'attend vraiment. */
 function fakeClock(): Clock {
@@ -42,7 +43,7 @@ function fakeSpeaker() {
   };
 }
 
-const step = (say: string, extra: Partial<Step> = {}): StreamEvent => ({ kind: "step", say, do: [], ...extra });
+const step = (say: string, extra: Partial<LegacyStep> = {}): StreamEvent => ({ kind: "step", say, do: [], ...extra });
 
 function scriptedSource(script: (request: TutorRequest) => StreamEvent[]) {
   const requests: TutorRequest[] = [];
@@ -79,6 +80,102 @@ async function speakUntil(player: Player, voice: ReturnType<typeof fakeSpeaker>,
 }
 
 describe("Player", () => {
+  it("attend la voix et le rendu avant de commencer le segment suivant", async () => {
+    const voice = fakeSpeaker();
+    const baseClock = fakeClock();
+    const clock: Clock = { now: baseClock.now, sleep: (ms, signal) => ms >= 10000
+      ? new Promise<void>((resolve) => signal?.addEventListener("abort", () => resolve(), { once: true }))
+      : baseClock.sleep(ms, signal) };
+    const { source } = scriptedSource(() => [{ kind: "step", zone: "example", segments: [
+      { say: "Voici le triangle.", do: [{ type: "triangle", id: "tri", base: 4, height: 3 }] },
+      { say: "Voici son hypoténuse.", do: [{ type: "highlight", target: "tri-hyp" }] },
+    ] }, { kind: "end", summary: [] }]);
+    const player = new Player({ source, speaker: voice.speaker, clock });
+    try {
+      player.ask("Un triangle");
+      await until(player, (s) => s.caption?.text === "Voici le triangle." && !!s.board.groups.tri);
+      const firstBoard = player.getSnapshot().board;
+      voice.finish();
+      await tick();
+      expect(voice.spoken).toEqual(["Voici le triangle."]);
+      boardRendered(firstBoard);
+      await until(player, (s) => s.caption?.text === "Voici son hypoténuse.");
+      const secondBoard = player.getSnapshot().board;
+      boardRendered(secondBoard);
+      await tick();
+      expect(player.getSnapshot().status).toBe("playing");
+      voice.finish();
+      await until(player, (s) => s.status === "done");
+      expect(voice.spoken).toEqual(["Voici le triangle.", "Voici son hypoténuse."]);
+    } finally { player.dispose(); }
+  });
+
+  it("reprend un segment interrompu sans appliquer deux fois son dessin", async () => {
+    const voice = fakeSpeaker();
+    const baseClock = fakeClock();
+    const clock: Clock = { now: baseClock.now, sleep: (ms, signal) => ms >= 10000
+      ? new Promise<void>((resolve) => signal?.addEventListener("abort", () => resolve(), { once: true }))
+      : baseClock.sleep(ms, signal) };
+    const { source } = scriptedSource(() => [{ kind: "step", zone: "example", segments: [
+      { say: "Voici le triangle.", do: [{ type: "triangle", id: "tri", base: 4, height: 3 }] },
+      { say: "Voici son hypoténuse.", do: [{ type: "highlight", target: "tri-hyp" }] },
+    ] }, { kind: "end", summary: [] }]);
+    const player = new Player({ source, speaker: voice.speaker, clock });
+    try {
+      player.ask("Un triangle");
+      await until(player, (s) => s.caption?.text === "Voici le triangle." && !!s.board.groups.tri);
+      const board = player.getSnapshot().board;
+      player.interrupt();
+      expect(player.getSnapshot().status).toBe("paused");
+      player.resume();
+      await until(player, () => voice.spoken.length === 2);
+      expect(player.getSnapshot().board).toBe(board);
+      boardRendered(board);
+      voice.finish();
+      await until(player, (s) => s.caption?.text === "Voici son hypoténuse.");
+      boardRendered(player.getSnapshot().board);
+      voice.finish();
+      await until(player, (s) => s.status === "done");
+      expect(voice.spoken).toEqual(["Voici le triangle.", "Voici le triangle.", "Voici son hypoténuse."]);
+    } finally { player.dispose(); }
+  });
+  it("retire le brouillon de l'exercice sans perdre les repères ni la correction précédente", async () => {
+    const voice = fakeSpeaker();
+    const note = (id: string, text: string) => ({ type: "note" as const, id, text });
+    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
+      step("Idée clé.", { zone: "idea", do: [note("regle", "Un zéro vérifie f(x) = 0")] }),
+      step("Exemple.", { zone: "example", do: [note("exemple", "2x = 4")] }),
+      step("Trace précédente.", { zone: "practice", practiceBoard: "correction", do: [note("trace1", "x = 2")] }),
+      step("Essaie maintenant.", { zone: "practice", practiceBoard: "attempt", do: [
+        { type: "axes", x: [-2, 2], y: [-2, 2] }, note("brouillon", "2x = 6"),
+      ], check: { prompt: "Que vaut x ?", choices: ["2", "3"], answer: 1 } }),
+      { kind: "await" },
+    ] : [
+      step("Trace corrigée.", { zone: "practice", practiceBoard: "correction", do: [
+        { type: "clear", axes: true }, { type: "erase", target: "trace1" }, note("trace2", "x = 3"),
+      ] }),
+      { kind: "end", summary: ["x = 3"] },
+    ]);
+    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
+    player.ask("Explique.");
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "checking");
+    expect(player.getSnapshot().lessonBoard?.active).toBe("practice");
+    player.answer(1);
+    await speakUntil(player, voice, (snapshot) => snapshot.status === "done");
+    expect(requests[1]?.context?.board).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "regle", zone: "idea" }),
+      expect.objectContaining({ id: "exemple", zone: "example" }),
+      expect.objectContaining({ id: "brouillon", zone: "practice", temporary: true }),
+    ]));
+    const zones = player.getSnapshot().lessonBoard?.zones;
+    expect(zones?.idea.calc).toEqual(["regle"]);
+    expect(zones?.example.calc).toEqual(["exemple"]);
+    expect(zones?.practice.calc).toEqual(["trace1", "trace2"]);
+    expect(zones?.practice.nodes.brouillon).toBeUndefined();
+    expect(zones?.practice.axes).toBeNull();
+    player.dispose();
+  });
+
   it("actualise le bilan après une clarification et ne crée pas de constat avant toute tentative", async () => {
     const voice = fakeSpeaker();
     const { source } = scriptedSource((request) => [step("Une explication."), { kind: "end",

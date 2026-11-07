@@ -10,6 +10,7 @@
  */
 import { resolveTargets, type BoardState } from "@/domain/board/state";
 import type { Step } from "@/domain/scene/schema";
+import { stepActions, stepText } from "@/domain/scene/stepAccess";
 
 /** Commandes qui montrent un changement sous les yeux de l'élève. */
 export const GESTURE_COMMANDS: ReadonlySet<string> = new Set(["move", "copy", "rotate", "transform", "applyMatrix"]);
@@ -72,21 +73,21 @@ export function reviewTurn(steps: readonly Step[], board: BoardState): TurnRevie
   let longSentences = 0;
   let previousShowed = false;
   for (const step of steps) {
-    const types = (step.do ?? []).map((a) => a.type);
+    const types = stepActions(step).map((a) => a.type);
     const shows = types.some((t) => SHOWING_COMMANDS.has(t));
     // Seul un vrai geste (ou une aire, un parcours) couvre la phrase suivante ; une mise en évidence, non.
     const changes = types.some((t) => SHOWING_COMMANDS.has(t) && t !== "highlight");
     gestures += types.filter((t) => GESTURE_COMMANDS.has(t)).length;
-    for (const action of step.do ?? []) {
+    for (const action of stepActions(step)) {
       if ("target" in action && typeof action.target === "string" && !(action.target in board.nodes) && resolveTargets(board, action.target).length === 0) {
         missing.add(action.target);
       }
     }
     // Une phrase qui commente le geste de l'étape précédente (« tu vois, il s'est étiré ») est couverte.
-    const word = actionWord(step.say);
-    if (word && !shows && !previousShowed) unshown.push({ say: step.say.slice(0, 120), word });
+    const word = actionWord(stepText(step));
+    if (word && !shows && !previousShowed) unshown.push({ say: stepText(step).slice(0, 120), word });
     previousShowed = changes;
-    if (step.say.trim().split(/\s+/).length > 22) longSentences++;
+    if (stepText(step).trim().split(/\s+/).length > 22) longSentences++;
   }
   return { steps: steps.length, gestures, missingTargets: [...missing], unshown, longSentences };
 }

@@ -848,6 +848,7 @@ export function reflowCalc(state: BoardState, reveal: Reveal): BoardState {
 
 /** Fait de la place dans la pile pleine : la plus ancienne ligne s'efface, les autres remontent. */
 export function makeRoomInCalc(state: BoardState, reveal: Reveal): BoardState {
+  if (state.retainCalculations) return state;
   const { capacity } = calcColumn(state);
   if (state.calc.length < capacity) return state;
   const drop = state.calc.slice(0, state.calc.length - capacity + 1);

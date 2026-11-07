@@ -44,9 +44,9 @@ import {
 } from "manim-web";
 import { sampleCurve } from "@/domain/board/geometry";
 import { arcPoints } from "@/domain/board/shapes";
-import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, textWorldExtent, TICK_FONT, tickLabels } from "@/domain/board/layout";
+import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, nodeBox, scales, textWorldExtent, TICK_FONT, tickLabels, union } from "@/domain/board/layout";
 import { hasMath, plainText, toLatex } from "@/domain/board/tex";
-import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
+import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, visibleNodes, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
 import { BRAND, STROKE } from "@/ui/theme";
 import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
@@ -145,8 +145,9 @@ export class ManimRenderer {
   /* --------------------------------- état --------------------------------- */
 
   /** Compare le graphe reçu à ce qui est dessiné et lance ce qui manque. */
-  sync(board: BoardState, now: number): void {
-    if (board.order.length === 0 && board.axes === null && (this.items.size > 0 || this.axesMobjects.length > 0)) {
+  sync(board: BoardState, now: number): Promise<void> {
+    const restoredAt = board.restoredAt !== this.board?.restoredAt ? board.restoredAt : undefined;
+    if (restoredAt !== undefined || (board.order.length === 0 && board.axes === null && (this.items.size > 0 || this.axesMobjects.length > 0))) {
       this.clear();
     }
     this.board = board;
@@ -201,7 +202,9 @@ export class ManimRenderer {
     for (const id of board.order) {
       const node = board.nodes[id];
       if (!node) continue;
-      this.syncNode(node, batch, at);
+      // Les traces conservées restent à leur place sans rejouer leur tracé.
+      const retained = restoredAt !== undefined && node.reveal.start < restoredAt;
+      this.syncNode(retained ? { ...node, reveal: { ...node.reveal, duration: 0 }, motions: undefined } : node, batch, at);
     }
 
     // Mises en évidence
@@ -233,10 +236,11 @@ export class ManimRenderer {
     const contentKey = this.contentKey();
     if (contentKey !== this.lastContentKey) {
       this.lastContentKey = contentKey;
-      if (!this.userMoved && !this.focused) this.animateView(fitView(this.homeBox(), this.viewport), 700, 0);
+      if (!this.userMoved && !this.focused) this.animateView(fitView(this.homeBox(true), this.viewport), 700, 0);
     }
 
     if (batch.length > 0) this.enqueue(batch);
+    return this.queue;
   }
 
   /**
@@ -387,7 +391,7 @@ export class ManimRenderer {
   setInsets(insets: Viewport["insets"]): void {
     const changed = JSON.stringify(insets) !== JSON.stringify(this.viewport.insets);
     this.viewport = { ...this.viewport, insets };
-    if (changed && !this.userMoved) this.animateView(fitView(this.homeBox(), this.viewport), 400, 0);
+    if (changed && !this.userMoved) this.animateView(fitView(this.homeBox(!this.focused), this.viewport), 400, 0);
   }
 
   /** Retour à la vue d'ensemble (bouton « Recentrer »). */
@@ -752,17 +756,30 @@ export class ManimRenderer {
   /* --------------------------------- caméra --------------------------------- */
 
   /** Tout ce qui est au tableau (figure, textes, calculs), en unités du monde. */
-  private homeBox(): WorldBox {
-    if (!this.board) return this.mathBox(this.frame.x, this.frame.y, 0.6);
-    const box = contentBox(this.board);
+  private homeBox(activeExercise = false): WorldBox {
+    const board = this.board;
+    if (!board) return this.mathBox(this.frame.x, this.frame.y, 0.6);
+    const from = board.readFrom;
+    if (activeExercise && from !== undefined) {
+      const nodes = visibleNodes(board);
+      const recent = nodes.filter((node) => node.reveal.start >= from);
+      if (recent.length < nodes.length && recent.length > 0) {
+        const box = board.axes && board.axes.reveal.start >= from
+          ? contentBox({ ...board, order: recent.map((node) => node.id) })
+          : union(recent.map((node) => nodeBox(node, board.frame)))!;
+        const view = this.mathBox([box.x0, box.x1], [box.y0, box.y1], 0.5);
+        return { ...view, width: Math.max(6, view.width), height: Math.max(4, view.height) };
+      }
+    }
+    const box = contentBox(board);
     return this.mathBox([box.x0, box.x1], [box.y0, box.y1], 0.5);
   }
 
   /** Clé du contenu : quand elle change, la caméra recadre (si l'élève n'a pas bougé la vue). */
   private contentKey(): string {
     if (!this.board) return "";
-    const box = contentBox(this.board);
-    return [box.x0, box.y0, box.x1, box.y1].map((v) => v.toFixed(2)).join(",");
+    const box = this.homeBox(true);
+    return [box.x, box.y, box.width, box.height].map((v) => v.toFixed(2)).join(",");
   }
 
   private mathBox(x: [number, number], y: [number, number], margin = 0.3): WorldBox {
@@ -831,7 +848,7 @@ export class ManimRenderer {
     const height = this.container.clientHeight;
     if (width === this.viewport.width && height === this.viewport.height) return;
     this.viewport = { ...this.viewport, width, height };
-    this.applyView(this.userMoved ? this.view : fitView(this.homeBox(), this.viewport), this.userMoved);
+    this.applyView(this.userMoved ? this.view : fitView(this.homeBox(!this.focused), this.viewport), this.userMoved);
   }
 
   /** Molette (zoom), glisser (déplacement) et pincer (zoom tactile). */

@@ -1,4 +1,5 @@
 import type { Step } from "@/domain/scene/schema";
+import { stepActions } from "@/domain/scene/stepAccess";
 import type { TutorRequest } from "./request";
 import { planSequence, type PlanConcept, type TeachingPlan } from "./plan";
 import { isHelpRequest, resolveTeachingPolicy, type TeachingPolicy } from "./teachingPolicy";
@@ -113,7 +114,7 @@ export function checkViolation(step: Step, decision: TeachingDecision, request: 
 /** Couverture déclarée seulement ; aucune notion ni résolution particulière n'est écrite dans le moteur. */
 export function completionViolation(steps: readonly Step[], decision: TeachingDecision, request: TutorRequest, reason?: "completed" | "pause" | "out-of-scope" | "clarification"): string | null {
   if ((reason === "out-of-scope" || reason === "clarification") && steps.length > 0
-    && steps.every((step) => step.do.length === 0 && !step.teaching)) return null;
+    && steps.every((step) => stepActions(step).length === 0 && !step.teaching)) return null;
   if (decision.requireCheck)
     return "La demande appelle un accompagnement : une explication seule ne termine pas la séance. Après l'aide nécessaire, ajoute une tâche courte adaptée avec check, puis attends la réponse de l'élève. Ne déclare pas une compréhension non vérifiée.";
   if (!decision.target || steps.some((step) => !step.teaching)) return null;
@@ -133,7 +134,7 @@ export function completionViolation(steps: readonly Step[], decision: TeachingDe
 /** Vérification d'une référence de construction, commune à toutes les scènes. */
 export function constructionViolation(step: Step, existing: ReadonlySet<string>): string | null {
   const ids = new Set(existing);
-  for (const action of step.do) {
+  for (const action of stepActions(step)) {
     if (action.type === "clear") ids.clear();
     if (action.type === "construct" && "within" in action && action.within && !ids.has(action.within))
       return `La construction vise la figure absente « ${action.within} ». Crée cette figure avant de l'utiliser et explique le lien avec les objets déjà montrés.`;

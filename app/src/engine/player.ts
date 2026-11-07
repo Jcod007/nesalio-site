@@ -18,6 +18,7 @@
  * ports (voix, source, horloge), ce qui le rend testable de bout en bout.
  */
 import { emptyBoard, pruneErased, resolveTargets, summarizeBoard, type BoardState } from "@/domain/board/state";
+import { BOARD_TRANSITION_MS, BOARD_ZONES, type BoardZone } from "@/domain/board/zones";
 import { applyAction } from "@/domain/scene/commands";
 import type { StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
@@ -27,6 +28,8 @@ import { assessAnswer } from "@/domain/tutor/assessment";
 import type { TeachingPlan } from "@/domain/tutor/plan";
 import type { SourceKind } from "@/domain/scene/schema";
 import type { Check, Diagnosis, Mood, Noticed, Step } from "@/domain/scene/schema";
+import { isSegmented } from "@/domain/scene/stepAccess";
+import { waitForBoard, cancelBoardWait } from "./renderBarrier";
 import { planStep } from "@/domain/timeline/plan";
 import { retimeCues } from "@/domain/timeline/spokenTime";
 import type { StudentAnswer, TutorContext, TutorRequest } from "@/domain/tutor/request";
@@ -52,6 +55,11 @@ const MAX_REPLAY_CHARS = 16_000;
 export interface PlayerSnapshot {
   status: PlayerStatus;
   board: BoardState;
+  lessonBoard?: {
+    active: BoardZone;
+    zones: Record<BoardZone, BoardState>;
+    practiceBase?: BoardState;
+  };
   title: string | null;
   topic: string | null;
   source: SourceKind | null;
@@ -91,6 +99,7 @@ const START_TIMEOUT_MS = 4000;
 
 interface Segment {
   kind: "question" | "followUp";
+  zone?: BoardZone;
   steps: Step[];
   /** Étape en cours (ou prochaine à jouer). */
   cursor: number;
@@ -144,6 +153,8 @@ export class Player {
   /** Une présentation est comptée une fois, seulement après la fin de la parole et du dessin. */
   private presentedSteps = new WeakSet<Step>();
   private assistedSteps = new WeakSet<Step>();
+  private stepZones = new WeakMap<Step, BoardZone>();
+  private partProgress = new WeakMap<Step, { index: number; applied: number; pending?: Promise<void>; board?: BoardState }>();
   /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
   private diagnosis: Diagnosis | null = null;
   private session = 0;
@@ -165,7 +176,7 @@ export class Player {
 
   /** Ce qu'un testeur vient de voir et d'entendre, pour accompagner un signalement de problème. */
   recentContext(): { question: string | null; title: string | null; status: string; recent: string[]; board: string[]; replay: string } {
-    const { question, title, status, board } = this.snapshot;
+    const { question, title, status } = this.snapshot;
     // Les tours les plus récents d'abord gardés : on retire les plus anciens tant que c'est trop long.
     let turns = this.transcript;
     let replay = JSON.stringify(turns);
@@ -179,7 +190,7 @@ export class Player {
       status,
       replay: replay.length > MAX_REPLAY_CHARS ? "" : replay,
       recent: this.history.slice(-6),
-      board: summarizeBoard(board)
+      board: this.boardContext()
         .slice(0, 30)
         .map((item) => `${item.id} · ${item.type} · ${item.detail}`.slice(0, 200)),
     };
@@ -297,6 +308,7 @@ export class Player {
     this.teachingPlan = undefined;
     this.presentedSteps = new WeakSet();
     this.assistedSteps = new WeakSet();
+    this.partProgress = new WeakMap();
     this.diagnosis = null;
     this.transcript = [];
     this.stopCurrentStep();
@@ -352,7 +364,16 @@ export class Player {
     segment.awaiting = false;
     segment.streamDone = false;
     // Relecture du tour qui se termine : rendue au modèle pour qu'il se corrige au tour suivant.
-    const review = reviewNotes(reviewTurn(segment.steps.slice(segment.turnStart, segment.cursor + 1), this.snapshot.board), segment.rejected);
+    const played = segment.steps.slice(segment.turnStart, segment.cursor + 1);
+    const layout = this.snapshot.lessonBoard;
+    const review = layout
+      ? [
+        ...reviewNotes(reviewTurn([], this.snapshot.board), segment.rejected),
+        ...BOARD_ZONES.flatMap(({ id }) => reviewNotes(reviewTurn(
+          played.filter((step) => (this.stepZones.get(step) ?? "example") === id), layout.zones[id],
+        ))),
+      ].slice(0, 4)
+      : reviewNotes(reviewTurn(played, this.snapshot.board), segment.rejected);
     segment.turnStart = segment.steps.length;
     segment.rejected = [];
     const request: TutorRequest = {
@@ -390,7 +411,7 @@ export class Player {
             const { kind: _kind, ...step } = event;
             segment.steps.push(step);
             // Une étape qui sera bientôt jouée : sa voix peut se préparer dès maintenant.
-            if (segment.steps.length - 1 <= segment.cursor + 2) this.deps.speaker.prefetch?.(step.say);
+            if (segment.steps.length - 1 <= segment.cursor + 2) this.deps.speaker.prefetch?.(isSegmented(step) ? step.segments[0]!.say : step.say);
             this.poke();
             break;
           }
@@ -495,61 +516,127 @@ export class Player {
     this.stepAbort = abort;
     segment.inProgress = true;
 
-    // La phrase est préparée (voix générée) avant de dessiner : les tracés se calent sur sa vraie durée.
-    const speechMs = await this.prepareSpeech(step.say, abort.signal);
-    if (abort.signal.aborted) return false;
-    const next = segment.steps[segment.cursor + 1];
-    if (next) speaker.prefetch?.(next.say);
-    const promptToSay = step.check && !step.say.trim().endsWith("?") ? step.check.prompt : null;
+    const previousLayout = this.snapshot.lessonBoard;
+    const zone = this.stepZones.get(step) ?? step.zone ?? (step.practiceBoard ? "practice" : segment.zone ?? previousLayout?.active);
+    const switchingZone = previousLayout !== undefined && zone !== previousLayout.active;
+    if (zone) {
+      segment.zone = zone;
+      this.stepZones.set(step, zone);
+      if (!previousLayout || switchingZone) {
+        const zones = previousLayout?.zones ?? {
+          idea: { ...emptyBoard(), retainCalculations: true },
+          example: { ...this.snapshot.board, retainCalculations: true },
+          practice: { ...emptyBoard(), retainCalculations: true },
+        };
+        this.set({ board: zones[zone], lessonBoard: { ...previousLayout, active: zone, zones } });
+      }
+    }
+
+    const structured = isSegmented(step);
+    const parts = structured ? step.segments : [{ say: step.say, do: step.do, cues: step.cues }];
+    const progress = this.partProgress.get(step) ?? { index: 0, applied: 0 };
+    if (structured) this.partProgress.set(step, progress);
+    const lastSpeech = parts.at(-1)!.say;
+    const promptToSay = step.check && !lastSpeech.trim().endsWith("?") ? step.check.prompt : null;
     if (promptToSay) speaker.prefetch?.(promptToSay);
     if (step.check?.ifRight) speaker.prefetch?.(step.check.ifRight);
     if (step.check?.ifWrong) speaker.prefetch?.(step.check.ifWrong);
 
-    // La voix d'abord : le tableau ne dessine qu'une fois le son vraiment lancé
-    // (contiguïté temporelle), même si l'audio met du temps à démarrer.
-    const speech = speaker.speak(step.say);
-    if (speech.started) {
-      await Promise.race([speech.started, clock.sleep(START_TIMEOUT_MS, abort.signal)]);
+    for (let index = structured ? progress.index : 0; index < parts.length; index++) {
+      const part = parts[index]!;
+      // La phrase est préparée (voix générée) avant de dessiner : les tracés se calent sur sa vraie durée.
+      const [speechMs] = await Promise.all([
+        this.prepareSpeech(part.say, abort.signal),
+        switchingZone && index === 0 ? clock.sleep(BOARD_TRANSITION_MS, abort.signal) : undefined,
+      ]);
       if (abort.signal.aborted) return false;
-    }
+      const next = segment.steps[segment.cursor + 1];
+      const nextText = parts[index + 1]?.say ?? (next ? (isSegmented(next) ? next.segments[0]!.say : next.say) : undefined);
+      if (nextText) speaker.prefetch?.(nextText);
 
-    const now = clock.now();
-    let drawingMs = 0;
-
-    if (segment.appliedUpTo <= segment.cursor) {
-      // Repères au prorata du temps de parole, sur la partie vraiment parlée de l'audio (voir spokenTime.ts).
-      const cues = step.cues ? retimeCues(step.say, step.cues, speechMs, speaker.speechSpan?.(step.say)) : undefined;
-      let board = pruneErased(this.snapshot.board, now);
-      const actions = [...step.do];
-      // Un repère oral peut attirer le regard sur un objet conservé au tableau.
-      for (const target of Object.keys(cues ?? {})) {
-        const exists = Object.hasOwn(board.nodes, target) || Object.hasOwn(board.groups, target);
-        if (!exists || resolveTargets(board, target).length === 0) continue;
-        const alreadyShown = step.do.some((action) => action.type === "clear"
-          || ("id" in action && action.id === target) || ("target" in action && action.target === target));
-        if (!alreadyShown) actions.push({ type: "highlight", target });
+      // La voix d'abord : le tableau ne dessine qu'une fois le son vraiment lancé
+      // (contiguïté temporelle), même si l'audio met du temps à démarrer.
+      const speech = speaker.speak(part.say);
+      if (speech.started) {
+        await Promise.race([speech.started, clock.sleep(START_TIMEOUT_MS, abort.signal)]);
+        if (abort.signal.aborted) return false;
       }
-      const plan = planStep(actions, speechMs, cues);
-      for (const planned of plan.actions) {
-        board = applyAction(board, planned.action, { start: now + planned.offset, duration: planned.duration });
+
+      const now = clock.now();
+      let drawingMs = 0;
+
+      const alreadyApplied = structured ? progress.applied > index : segment.appliedUpTo > segment.cursor;
+      if (!alreadyApplied) {
+        // Repères au prorata du temps de parole, sur la partie vraiment parlée de l'audio (voir spokenTime.ts).
+        const partCues = "cues" in part ? part.cues : undefined;
+        const cues = partCues ? retimeCues(part.say, partCues, speechMs, speaker.speechSpan?.(part.say)) : undefined;
+        const layout = this.snapshot.lessonBoard;
+        let practiceBase = layout?.practiceBase;
+        let board = this.snapshot.board;
+        if (index === 0 && zone === "practice" && step.practiceBoard === "attempt" && !practiceBase) {
+          practiceBase = board;
+          board = { ...board, readFrom: now };
+        }
+        if (index === 0 && zone === "practice" && step.practiceBoard === "correction" && practiceBase) {
+          board = { ...practiceBase, restoredAt: now, readFrom: now, highlights: {} };
+          practiceBase = undefined;
+        }
+        board = pruneErased(board, now);
+        const actions = part.do.filter((action) =>
+          !layout || (action.type !== "clear" && (zone === "example" || action.type !== "erase")));
+        // Un repère oral peut attirer le regard sur un objet conservé au tableau.
+        for (const target of Object.keys(cues ?? {})) {
+          const exists = Object.hasOwn(board.nodes, target) || Object.hasOwn(board.groups, target);
+          if (!exists || resolveTargets(board, target).length === 0) continue;
+          const alreadyShown = part.do.some((action) => action.type === "clear"
+            || ("id" in action && action.id === target) || ("target" in action && action.target === target));
+          if (!alreadyShown) actions.push({ type: "highlight", target });
+        }
+        const plan = planStep(actions, speechMs, cues);
+        for (const planned of plan.actions) {
+          board = applyAction(board, planned.action, { start: now + (structured ? 0 : planned.offset), duration: planned.duration });
+        }
+        drawingMs = plan.drawingMs;
+        if (structured) {
+          progress.applied = index + 1;
+          if (actions.length > 0 && board !== this.snapshot.board) {
+            progress.board = board;
+            progress.pending = waitForBoard(board);
+          }
+        } else segment.appliedUpTo = segment.cursor + 1;
+        this.set({ board, ...(layout && zone ? {
+          lessonBoard: { active: zone, zones: { ...layout.zones, [zone]: board }, practiceBase },
+        } : {}) });
       }
-      drawingMs = plan.drawingMs;
-      segment.appliedUpTo = segment.cursor + 1;
-      this.set({ board });
+
+      if (structured ? !alreadyApplied : segment.resumeAt !== "replay") this.remember(part.say);
+      this.set({
+        status: "playing",
+        check: null,
+        error: null,
+        caption: { text: part.say, mood: step.mood ?? "explique", startedAt: now, durationMs: speechMs },
+      });
+
+      const renderTimeout = new AbortController();
+      const drawn = structured && progress.pending
+        ? Promise.race([
+          progress.pending,
+          clock.sleep(Math.max(10000, drawingMs + 5000), renderTimeout.signal).then(() => {
+            if (!renderTimeout.signal.aborted && !abort.signal.aborted) console.warn("tutor: délai du rendu dépassé");
+          }),
+        ])
+        : clock.sleep(drawingMs, abort.signal);
+      const finished = await this.race(Promise.all([speech.done, drawn]), abort.signal);
+      renderTimeout.abort();
+      if (!finished) return false;
+      if (structured) {
+        if (progress.board) cancelBoardWait(progress.board);
+        progress.pending = undefined;
+        progress.board = undefined;
+        progress.index = index + 1;
+        segment.resumeAt = null;
+      }
     }
-
-    if (segment.resumeAt !== "replay") this.remember(step.say);
-    this.set({
-      status: "playing",
-      check: null,
-      error: null,
-      caption: { text: step.say, mood: step.mood ?? "explique", startedAt: now, durationMs: speechMs },
-    });
-
-    if (!(await this.race(Promise.all([speech.done, clock.sleep(drawingMs, abort.signal)]), abort.signal))) {
-      return false;
-    }
-
     if (step.check) {
       const check = step.check;
       this.set({
@@ -644,7 +731,8 @@ export class Player {
       title: this.snapshot.title ?? undefined,
       originalQuestion: this.snapshot.question ?? undefined,
       spoken: this.history.slice(-12),
-      board: summarizeBoard(this.snapshot.board).slice(0, 40),
+      board: this.boardContext(),
+      boardZone: this.snapshot.lessonBoard?.active,
       interrupted,
       answered: this.answeredCount,
       goals: this.goals.length > 0 ? this.goals : undefined,
@@ -653,6 +741,19 @@ export class Player {
       learning: this.learning,
       plan: this.teachingPlan,
     };
+  }
+
+  private boardContext(): TutorContext["board"] {
+    const layout = this.snapshot.lessonBoard;
+    if (!layout) return summarizeBoard(this.snapshot.board).slice(0, 40);
+    const baselineIds = layout.practiceBase && new Set(summarizeBoard(layout.practiceBase).map((item) => item.id));
+    return BOARD_ZONES.flatMap(({ id: zone }) => summarizeBoard(layout.zones[zone])
+      .slice(zone === "idea" ? 0 : -13, zone === "idea" ? 13 : undefined)
+      .map((item) => ({
+        ...item,
+        zone,
+        ...(zone === "practice" && baselineIds && !baselineIds.has(item.id) ? { temporary: true as const } : {}),
+      })));
   }
 
   /* ------------------------------ synchronisation ------------------------------ */

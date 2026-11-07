@@ -20,14 +20,13 @@ if (!base || !scenarioPath || !outPath || !token) {
 }
 const scenario = JSON.parse(readFileSync(scenarioPath, "utf8"));
 const params = new URLSearchParams({
-  check: token,
   ask: scenario.ask,
   answers: scenario.answers ?? "wrong",
   turns: String(scenario.turns ?? 4),
   raw: "1",
 });
 const started = Date.now();
-const response = await fetch(`${base.replace(/\/$/, "")}/api/diagnostic?${params}`);
+const response = await fetch(`${base.replace(/\/$/, "")}/api/diagnostic?${params}`, { headers: { Authorization: `Bearer ${token}` } });
 const report = await response.json();
 const { raw, ...rest } = report;
 writeFileSync(outPath, JSON.stringify({ scenario, ms: Date.now() - started, status: response.status, report: rest, turns: raw ?? [] }));

@@ -21,6 +21,7 @@ import { emptyBoard, type BoardState } from "@/domain/board/state";
 import { collisions, covered, figureOutline, type CollisionKind } from "@/domain/board/collisions";
 import { applyAction } from "@/domain/scene/commands";
 import type { Step } from "@/domain/scene/schema";
+import { stepActions, stepText } from "@/domain/scene/stepAccess";
 import { reviewTurn } from "@/domain/tutor/turnReview";
 
 type Input = { turns?: TurnRecord[] } | TurnRecord[];
@@ -34,7 +35,7 @@ export function overlaps(state: BoardState): Array<{ a: string; b: string; kind:
 const MOVING = new Set(["move", "rotate", "transform", "applyMatrix", "copy"]);
 
 /** Objets déjà là (non effacés) dont la place ou l'étiquette a changé à cause d'une commande qui ne les visait pas. */
-function imposedMoves(before: BoardState, after: BoardState, action: Step["do"] extends (infer A)[] | undefined ? A : never): number {
+function imposedMoves(before: BoardState, after: BoardState, action: ReturnType<typeof stepActions>[number]): number {
   if (MOVING.has(action.type)) return 0;
   let count = 0;
   for (const id of before.order) {
@@ -109,12 +110,12 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
       const before = new Set(Object.keys(board.nodes));
       /** Ce que la phrase fait bouger exprès (glisser sur l'original, copie sur place, rotation) : sa superposition est voulue. */
       const moved = new Set<string>();
-      for (const action of step.do ?? []) {
+      for (const action of stepActions(step)) {
         if (!MOVING.has(action.type)) continue;
         const a = action as { id?: string; target?: string; targets?: string[] };
         for (const id of [a.id, a.target, ...(a.targets ?? [])]) if (id) moved.add(id);
       }
-      for (const action of step.do ?? []) {
+      for (const action of stepActions(step)) {
         try {
           const previous = board;
           board = applyAction(board, action, { start: 0, duration: 0 });
@@ -127,7 +128,7 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
               const a = covered(original, image);
               const b = covered(image, original);
               const itself = Math.min(a, b) > 0.95;
-              if (!itself && Math.max(a, b) > 0.05) s.imagesOnFigure.push({ image: action.id, ratio: Math.round(Math.max(a, b) * 100) / 100, say: step.say.slice(0, 90) });
+              if (!itself && Math.max(a, b) > 0.05) s.imagesOnFigure.push({ image: action.id, ratio: Math.round(Math.max(a, b) * 100) / 100, say: stepText(step).slice(0, 90) });
             }
           }
         } catch (error) {
@@ -148,7 +149,7 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
         const into = o.kind !== "graduations" && (intended(o.a) || intended(o.b)) ? s.wanted : s.overlaps;
         // Une superposition voulue le reste tant qu'elle dure (les phrases suivantes ne la recomptent pas).
         if (s.wanted.has(pair) || s.overlaps.has(pair)) continue;
-        into.set(pair, { ratio: o.ratio, kind: o.kind, say: step.say.slice(0, 90) });
+        into.set(pair, { ratio: o.ratio, kind: o.kind, say: stepText(step).slice(0, 90) });
       }
     }
     boards.set(key, board);

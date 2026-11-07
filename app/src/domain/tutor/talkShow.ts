@@ -10,6 +10,7 @@
  * La question posée à l'élève compte comme de la parole (elle est dite à voix haute).
  */
 import type { Step } from "@/domain/scene/schema";
+import { stepActions, stepText } from "@/domain/scene/stepAccess";
 import { estimateSpeechMs } from "@/domain/timeline/plan";
 
 const DRAWS = new Set(["axes", "curve", "point", "vector", "segment", "triangle", "angle", "construct", "image", "vectorOp", "unitCircle", "conic", "circle", "sector", "polygon", "regularPolygon", "prism", "pyramid", "cylinder", "cone", "sphere", "incline", "area", "parametric", "grid"]);
@@ -19,7 +20,7 @@ const WRITES = new Set(["text", "note", "matrix", "tag"]);
 export type StepVisual = "montre" | "ecrit" | "souligne" | "rien";
 
 export function stepVisual(step: Step): StepVisual {
-  const actions = step.do ?? [];
+  const actions = stepActions(step);
   if (actions.length === 0) return "rien";
   const shows = actions.some(
     (a) => DRAWS.has(a.type) || MOVES.has(a.type) || (a.type === "transform" && (a.text === undefined || Object.keys(a).length > 3)),
@@ -49,8 +50,9 @@ export function talkShow(steps: readonly Step[]): TalkShowReport {
   let untilFirst = 0;
   let seenVisual = false;
   for (const step of steps) {
-    const promptSpoken = step.check && !step.say.trim().endsWith("?") ? estimateSpeechMs(step.check.prompt) : 0;
-    const ms = estimateSpeechMs(step.say) + promptSpoken;
+    const text = stepText(step);
+    const promptSpoken = step.check && !text.trim().endsWith("?") ? estimateSpeechMs(step.check.prompt) : 0;
+    const ms = estimateSpeechMs(text) + promptSpoken;
     const visual = stepVisual(step);
     byVisual[visual] += ms;
     if (visual === "montre") {
