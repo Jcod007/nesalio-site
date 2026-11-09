@@ -46,6 +46,8 @@ export interface TutorSource {
 
 export interface Clock {
   now(): number;
+  /** En mode inspection, attend une reprise si la lecture est en pause. */
+  waitUntilPlaying?(signal?: AbortSignal): Promise<void> | undefined;
   /** Attend `ms`, ou moins si le signal est annulé (ne lève jamais). */
   sleep(ms: number, signal?: AbortSignal): Promise<void>;
 }

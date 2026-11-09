@@ -1,6 +1,7 @@
 /**
  * Voix et transcription via Vercel AI Gateway (API REST des modèles audio).
  */
+import { z } from "zod";
 import { GATEWAY_BASE } from "@/server/config";
 import { UpstreamError } from "@/server/tutor/chatCompletions";
 import { detectSpeechSpan } from "@/domain/audio/speechSpan";
@@ -8,9 +9,16 @@ import type { SpeechSpan } from "@/domain/timeline/spokenTime";
 
 const PROTOCOL = { "ai-gateway-protocol-version": "0.0.1" };
 
+const CharacterAlignment = z.object({
+  characters: z.array(z.string().min(1)),
+  characterStartTimesSeconds: z.array(z.number().nonnegative()),
+  characterEndTimesSeconds: z.array(z.number().nonnegative()),
+});
+
 export interface SpeechResult {
   audio: Uint8Array;
   mediaType: string;
+  alignment?: z.infer<typeof CharacterAlignment>;
 }
 
 export async function synthesizeSpeech(options: {
@@ -19,11 +27,18 @@ export async function synthesizeSpeech(options: {
   text: string;
   voice?: string;
   instructions?: string;
+  withTimestamps?: boolean;
+  /** Speaking rate, 1 = the voice's natural pace (ElevenLabs accepts 0.7 to 1.2). */
+  speed?: number;
   signal?: AbortSignal;
   fetchImpl?: typeof fetch;
 }): Promise<SpeechResult> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const google = options.model.startsWith("google/");
+  const elevenlabs = {
+    ...(options.withTimestamps ? { withTimestamps: true } : {}),
+    ...(options.speed !== undefined ? { voiceSettings: { speed: options.speed } } : {}),
+  };
   const response = await fetchImpl(`${GATEWAY_BASE}/v4/ai/speech-model`, {
     method: "POST",
     signal: options.signal,
@@ -41,14 +56,24 @@ export async function synthesizeSpeech(options: {
       // Les voix Google ne produisent que du WAV (ou du PCM brut).
       outputFormat: google ? "wav" : "mp3",
       ...(google ? {} : { language: "fr" }),
+      ...(options.speed !== undefined ? { speed: options.speed } : {}),
+      ...(Object.keys(elevenlabs).length ? { providerOptions: { elevenlabs } } : {}),
     }),
   });
   if (!response.ok) {
     throw new UpstreamError(`Voix : ${response.status} ${(await response.text().catch(() => "")).slice(0, 300)}`, response.status);
   }
-  const payload = (await response.json()) as { audio?: string };
+  const payload = (await response.json()) as {
+    audio?: string;
+    providerMetadata?: { elevenlabs?: { alignment?: unknown } };
+  };
   if (!payload.audio) throw new UpstreamError("Voix : réponse sans audio");
-  return { audio: Buffer.from(payload.audio, "base64"), mediaType: google ? "audio/wav" : "audio/mpeg" };
+  const alignment = CharacterAlignment.safeParse(payload.providerMetadata?.elevenlabs?.alignment);
+  return {
+    audio: Buffer.from(payload.audio, "base64"),
+    mediaType: google ? "audio/wav" : "audio/mpeg",
+    ...(alignment.success ? { alignment: alignment.data } : {}),
+  };
 }
 
 interface TranscriptionOptions {

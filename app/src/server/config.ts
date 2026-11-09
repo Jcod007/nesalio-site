@@ -42,6 +42,9 @@ export const DEFAULTS = {
   gatewayModel: "deepseek/deepseek-v4.1-flash",
   openRouterModel: "anthropic/claude-sonnet-4.5",
   voiceModel: "google/gemini-3.8-flash-lite-tts",
+  nesalioVoiceModel: "elevenlabs/eleven-flash-v2.5",
+  // Provisional, pending the user's choice by ear (clips in analyses/voix-vitesse): 1 sounded too fast.
+  nesalioVoiceSpeed: 0.85,
   voiceName: "Kore",
   voiceInstructions:
     "Tu es Nesa, une tutrice québécoise chaleureuse qui explique au tableau à un élève de secondaire. " +

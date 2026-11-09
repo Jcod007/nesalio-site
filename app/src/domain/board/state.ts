@@ -185,12 +185,6 @@ export type CameraTarget =
   | { kind: "reset"; at: number; duration: number };
 
 export interface BoardState {
-  /** Une zone de leçon conserve les calculs jusqu'à leur retrait explicite. */
-  retainCalculations?: boolean;
-  /** Horodatage d'une restauration de l'espace d'exercice. */
-  restoredAt?: number;
-  /** Début du bloc actif dans la zone d'exercice, en temps d'animation. */
-  readFrom?: number;
   frame: Frame;
   axes: AxesItem | null;
   /** Le repère a été effacé (commande clear) : le rendu le fait disparaître. */

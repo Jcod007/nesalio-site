@@ -6,6 +6,7 @@
  */
 import type { StreamEvent } from "@/domain/scene/schema";
 import { encodeLine } from "@/domain/tutor/ndjson";
+import { INSPECTION_HEADER, type ModelStepTrace } from "@/domain/tutor/inspection";
 import { TutorRequestSchema } from "@/domain/tutor/request";
 import { readAiConfig } from "@/server/config";
 import { createSessionLimits } from "@/server/rateLimit";
@@ -17,6 +18,8 @@ import { createTurnRecorder } from "@/domain/sessionLog";
 import { recordEnv, saveTurn } from "@/server/sessionStore";
 import { withRecording } from "@/server/tutor/recording";
 import { readBoundedText } from "@/server/http";
+import { requireAccount } from "@/server/account";
+import { localInspectionAvailable } from "@/server/tutor/inspection";
 
 export const runtime = "nodejs";
 // Un tour où le modèle réfléchit longtemps dépasse parfois 60 s : coupé, il finissait sans question.
@@ -26,7 +29,7 @@ export const maxDuration = 180;
 const MAX_BODY_BYTES = 96_000;
 // Par session de navigation : une séance compte plusieurs tours (un appel par réponse de l'élève),
 // soit environ 8 séances par 10 minutes ; une même adresse (une classe) peut en ouvrir 12 fois plus.
-const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000 });
+const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000, developerAccess: true });
 
 const NDJSON_HEADERS = {
   "Content-Type": "application/x-ndjson; charset=utf-8",
@@ -39,8 +42,10 @@ function single(event: StreamEvent, status: number, extra: Record<string, string
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const access = await requireAccount(request, true);
+  if (!access.ok) return access.response;
   // Limiter aussi les requêtes invalides avant leur lecture et leur validation.
-  const limit = limiter.check(request.headers);
+  const limit = limiter.check(request.headers, undefined, access.userId);
   const tag = limit.session ? `[session ${shortSession(limit.session)}]` : "[sans session]";
   if (!limit.allowed) {
     return single(
@@ -59,6 +64,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return single({ kind: "error", code: "bad_request", message: "Requête invalide." }, 400);
 
   const config = readAiConfig(request.headers);
+  const inspect = request.headers.get(INSPECTION_HEADER) === "1" && localInspectionAvailable(new URL(request.url).host);
+  const modelSteps = inspect ? new WeakMap<StreamEvent, string>() : undefined;
   // Chaque tour est enregistré (sans nom, IP ni audio) pour améliorer Nesalio ; écrit après la réponse.
   const recorder = createTurnRecorder({
     request: parsed.data,
@@ -76,6 +83,7 @@ export async function POST(request: Request): Promise<Response> {
       provider: config.chat,
       completion: streamChatCompletion,
       signal: request.signal,
+      onModelStep: modelSteps ? (step, raw) => modelSteps.set(step, raw) : undefined,
       log: (message, detail) => console.warn(tag, message, detail),
     }),
     recorder,
@@ -87,7 +95,14 @@ export async function POST(request: Request): Promise<Response> {
       try {
         const { value, done } = await events.next();
         if (done) controller.close();
-        else controller.enqueue(encoder.encode(encodeLine(value)));
+        else {
+          const original = modelSteps?.get(value);
+          if (original !== undefined) {
+            const trace: ModelStepTrace = { kind: "trace-step", raw: original };
+            controller.enqueue(encoder.encode(encodeLine(trace)));
+          }
+          controller.enqueue(encoder.encode(encodeLine(value)));
+        }
       } catch (error) {
         console.error(tag, "tutor: flux interrompu", error);
         controller.close();

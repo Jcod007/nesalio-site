@@ -51,20 +51,24 @@ export function clientKey(headers: Headers): string {
 }
 
 /** Clés d'une requête : la session si le navigateur l'envoie (sinon l'adresse), et l'adresse. */
-export function requestKeys(headers: Headers): { user: string; ip: string; session: string | null } {
+export function requestKeys(headers: Headers, accountId?: string): { user: string; ip: string; session: string | null } {
   const ip = clientKey(headers);
   const raw = headers.get(SESSION_HEADER);
   const session = isSessionId(raw) ? raw : null;
-  return { user: session ? `s:${session}` : `ip:${ip}`, ip, session };
+  return { user: accountId ? `u:${accountId}` : session ? `s:${session}` : `ip:${ip}`, ip, session };
 }
 
 /** Une limite par session et un plafond par adresse (par défaut 12 fois la limite d'une session). */
-export function createSessionLimits(options: { limit: number; windowMs: number; ipFactor?: number }) {
+export function createSessionLimits(options: { limit: number; windowMs: number; ipFactor?: number; developerAccess?: boolean }) {
   const perUser = createRateLimiter({ limit: options.limit, windowMs: options.windowMs });
   const perIp = createRateLimiter({ limit: options.limit * (options.ipFactor ?? 12), windowMs: options.windowMs });
   return {
-    check(headers: Headers, now = Date.now()): RateLimitResult & { session: string | null } {
-      const keys = requestKeys(headers);
+    check(headers: Headers, now = Date.now(), accountId?: string): RateLimitResult & { session: string | null } {
+      const keys = requestKeys(headers, accountId);
+      // Identité attribuée côté serveur après validation du cookie privé.
+      if (options.developerAccess && accountId === "development-guest") {
+        return { allowed: true, retryAfterSeconds: 0, session: keys.session };
+      }
       const ip = perIp.check(keys.ip, now);
       if (!ip.allowed) return { ...ip, session: keys.session };
       return { ...perUser.check(keys.user, now), session: keys.session };

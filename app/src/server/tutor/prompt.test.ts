@@ -29,10 +29,40 @@ describe("consigne du modèle", () => {
   it("relie les représentations et vérifie les choix plutôt que demander un dessin décoratif", () => {
     const system = buildSystemPrompt();
     expect(system).toContain("correspondance et les hypothèses");
-    expect(system).toContain("conditions d'application d'une règle AVANT sa formule");
+    expect(system).toMatch(/conditions\s+d'application d'une règle AVANT sa formule/);
     expect(system).toContain("une lettre flottante n'est pas un point identifié");
     expect(system).toContain("DIMINUE de 4 vers 2");
     expect(system).not.toContain("CHAQUE étape de ta réponse dessine");
+  });
+
+  it("ancre les libellés à la flèche et montre la courbe avant la première question", () => {
+    const system = buildSystemPrompt();
+    const [discovery, exchange] = system.split("EXEMPLE DE DÉCOUVERTE")[1]!.split("EXEMPLE D'ACCOMPAGNEMENT EN TROIS TOURS");
+    let board = emptyBoard();
+    for (const line of discovery!.split("\n").filter((line) => line.startsWith("{"))) {
+      const event = ModelEvent.parse(JSON.parse(line));
+      if (event.kind !== "step") continue;
+      for (const action of event.segments?.flatMap((segment) => segment.do) ?? [])
+        board = applyAction(board, action, { start: 0, duration: 0 });
+    }
+    for (const id of ["regle", "entree", "sortie"]) {
+      expect(board.nodes[id]).toMatchObject({ type: "text", anchor: { target: "fleche" } });
+    }
+    const firstTurn = exchange!.split("Tour 2")[0]!;
+    expect(firstTurn.indexOf('"type":"curve"')).toBeGreaterThan(-1);
+    expect(firstTurn.indexOf('"check"')).toBeGreaterThan(firstTurn.indexOf("Leurs abscisses sont les zéros"));
+    expect(firstTurn.indexOf("Leurs abscisses sont les zéros")).toBeGreaterThan(firstTurn.indexOf('"type":"curve"'));
+  });
+
+  it("laisse au contrôleur la décision de finir avec check ou end", () => {
+    const system = buildSystemPrompt();
+    expect(system).not.toMatch(/termine (?:le tour )?par .*"check"/);
+    const [explanation] = buildMessages({ mode: "question", question: "Explique-moi les zéros, sans questions." });
+    expect(explanation!.content).toContain('Aucun "check". Réponds à la demande puis termine avec "end".');
+    expect(explanation!.content).not.toContain("BOUCLE DE TUTORAT");
+    const [closing] = buildMessages({ mode: "followUp", question: "Au revoir !", context: { spoken: [], board: [] } });
+    expect(closing!.content).toContain('reason:"pause"');
+    expect(closing!.content).not.toContain("Stratégie décidée par le contrôleur");
   });
 
   it("ne montre que des exemples valides, qui produisent bien le geste annoncé", () => {
@@ -40,7 +70,10 @@ describe("consigne du modèle", () => {
       .split("\n")
       .filter((line) => line.startsWith('{"kind":'));
     expect(lines.length).toBeGreaterThan(10);
-    for (const line of lines) expect(ModelEvent.safeParse(JSON.parse(line)).success, line).toBe(true);
+    for (const line of lines) {
+      const event = ModelEvent.parse(JSON.parse(line));
+      if (event.kind === "step") expect(event.segments, line).toBeDefined();
+    }
 
     // L'exemple de geste : la copie de w glisse au bout de v, et le moteur trace la somme.
     const gesture = lines.filter((line) => line.includes('"vectorOp"') || line.includes('"id":"v"'));
@@ -48,7 +81,7 @@ describe("consigne du modèle", () => {
     for (const line of gesture) {
       const event = ModelEvent.parse(JSON.parse(line));
       if (event.kind !== "step") continue;
-      for (const action of event.do ?? []) board = applyAction(board, action, { start: 0, duration: 0 });
+      for (const action of event.segments?.flatMap((segment) => segment.do) ?? []) board = applyAction(board, action, { start: 0, duration: 0 });
     }
     expect(board.nodes["s-copie"]?.offset).toEqual([1, 2]);
     expect((board.nodes["s"] as { to: number[] } | undefined)?.to).toEqual([4, 1]);
@@ -104,7 +137,7 @@ describe("mémoire de la séance", () => {
 });
 
 describe("consignes tirées des séances enregistrées", () => {
-  it("refuse la biologie, sépare un nouveau sujet, gère les au revoir et nomme les axes", () => {
+  it("refuse la biologie, sépare un nouveau sujet et nomme les axes", () => {
     const system = buildMessages({ mode: "question", question: "?" })[0]!.content;
     expect(system).toMatch(/biologie n'est pas couverte/);
     expect(system).toMatch(/"xLabel"/);
@@ -115,6 +148,5 @@ describe("consignes tirées des séances enregistrées", () => {
       context: { spoken: [], board: [], goals: ["La mitose"] },
     } as never)[1]!.content;
     expect(followUp).toMatch(/CHANGE DE SUJET/);
-    expect(followUp).toMatch(/au revoir/);
   });
 });

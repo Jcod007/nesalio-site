@@ -211,7 +211,7 @@ describe("séances de démonstration", () => {
 
       let board = emptyBoard();
       for (const step of lesson.steps) {
-        for (const action of step.do ?? []) {
+        for (const action of step.segments.flatMap((segment) => segment.do)) {
           if ("target" in action) {
             expect(resolveTargets(board, action.target).length, `${lesson.header.title} : ${action.type} ${action.target}`).toBeGreaterThan(0);
           }

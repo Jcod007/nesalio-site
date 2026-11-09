@@ -30,7 +30,7 @@ function fraction(numerator: bigint, denominator: bigint): Rational | null {
 }
 
 function evaluate(node: ExprNode): Rational | null {
-  if (node.kind === "var" || node.kind === "call") return null;
+  if (node.kind === "var" || node.kind === "symbol" || node.kind === "call") return null;
   if (node.kind === "num") {
     if (!Number.isFinite(node.value)) return null;
     const [mantissa, exponent = "0"] = node.value.toString().split("e");

@@ -25,6 +25,7 @@ export class ExprError extends Error {
 export type ExprNode =
   | { kind: "num"; value: number }
   | { kind: "var" }
+  | { kind: "symbol"; name: string }
   | { kind: "neg"; arg: ExprNode }
   | { kind: "bin"; op: "+" | "-" | "*" | "/" | "^"; left: ExprNode; right: ExprNode }
   | { kind: "call"; fn: FunctionName; arg: ExprNode };
@@ -71,7 +72,7 @@ export function normalizeExpression(source: string): string {
     .replace(/√/g, "sqrt");
 }
 
-function tokenize(source: string): Token[] {
+function tokenize(source: string, namedSymbols = false): Token[] {
   const tokens: Token[] = [];
   let i = 0;
   while (i < source.length) {
@@ -88,8 +89,9 @@ function tokenize(source: string): Token[] {
       continue;
     }
     if (/[a-zA-Z]/.test(ch)) {
-      const match = /^[a-zA-Z]+/.exec(source.slice(i))!;
-      tokens.push(...splitIdentifier(match[0], i));
+      const match = (namedSymbols ? /^[a-zA-Z][a-zA-Z0-9_]*/ : /^[a-zA-Z]+/).exec(source.slice(i))!;
+      if (namedSymbols) tokens.push({ type: "id", value: match[0], pos: i });
+      else tokens.push(...splitIdentifier(match[0], i));
       i += match[0].length;
       continue;
     }
@@ -141,7 +143,7 @@ const IMPLICIT_MUL = 20;
 
 class Parser {
   private index = 0;
-  constructor(private readonly tokens: Token[]) {}
+  constructor(private readonly tokens: Token[], private readonly symbols?: ReadonlySet<string>) {}
 
   parse(): ExprNode {
     const node = this.expression(0);
@@ -199,6 +201,12 @@ class Parser {
         return inner;
       }
       case "id": {
+        if (this.symbols) {
+          if (this.symbols.has(token.value)) return { kind: "symbol", name: token.value };
+          if (!restrictedFunctions.has(token.value)) throw new ExprError(`Nom inconnu « ${token.value} »`, token.pos);
+          if (this.peek().type !== "lparen") throw new ExprError("Argument de fonction attendu", token.pos);
+          return { kind: "call", fn: token.value as FunctionName, arg: this.prefix() };
+        }
         // t est un synonyme de x : le modèle écrit sin(t) quand l'axe est celui du temps.
         if (token.value === "x" || token.value === "t") return { kind: "var" };
         const constant = CONSTANTS[token.value];
@@ -223,6 +231,63 @@ export function parseExpression(source: string): ExprNode {
   return new Parser(tokenize(normalized)).parse();
 }
 
+const restrictedFunctions = new Set(["sqrt", "abs", "sin", "cos", "tan", "exp", "log"]);
+
+/** Expressions v3.3, avec des symboles déclarés et des limites indépendantes du moteur de rendu. */
+export function compileNamedExpression(source: string, symbols: ReadonlySet<string>): (values: ReadonlyMap<string, number>) => number | null {
+  if (source.length > 256) throw new ExprError("Expression trop longue", 256);
+  const root = new Parser(tokenize(source, true), symbols).parse();
+  let count = 0;
+  type Evaluate = (values: ReadonlyMap<string, number>) => number;
+  function binary(operator: Extract<ExprNode, { kind: "bin" }>["op"], left: number, right: number): number {
+    if (!Number.isFinite(left) || !Number.isFinite(right)) return NaN;
+    switch (operator) {
+      case "+": return left + right;
+      case "-": return left - right;
+      case "*": return left * right;
+      case "/": return left / right;
+      case "^": return Math.abs(right) <= 32 ? Math.pow(left, right) : NaN;
+    }
+  }
+  function compile(node: ExprNode, depth: number): Evaluate {
+    if (++count > 64 || depth > 12) throw new ExprError("Expression trop complexe", 0);
+    switch (node.kind) {
+      case "num":
+        if (Math.abs(node.value) > 1e9) throw new ExprError("Constante hors limite", 0);
+        return () => node.value;
+      case "symbol":
+        return (values) => values.get(node.name) ?? NaN;
+      case "var":
+        throw new ExprError("Variable non déclarée", 0);
+      case "neg": {
+        const arg = compile(node.arg, depth + 1);
+        return (values) => -arg(values);
+      }
+      case "call": {
+        const arg = compile(node.arg, depth + 1);
+        return (values) => {
+          const value = arg(values);
+          return Number.isFinite(value) ? FUNCTIONS[node.fn](value) : NaN;
+        };
+      }
+      case "bin": {
+        const left = compile(node.left, depth + 1);
+        const right = compile(node.right, depth + 1);
+        const exponent = node.right.kind === "neg" ? node.right.arg : node.right;
+        if (node.op === "^" && exponent.kind === "num" && Math.abs(exponent.value) > 32) {
+          throw new ExprError("Exposant hors limite", 0);
+        }
+        return (values) => binary(node.op, left(values), right(values));
+      }
+    }
+  }
+  const evaluate = compile(root, 1);
+  return (values) => {
+    const result = evaluate(values);
+    return Number.isFinite(result) ? result : null;
+  };
+}
+
 function build(node: ExprNode): (x: number) => number {
   switch (node.kind) {
     case "num": {
@@ -231,6 +296,8 @@ function build(node: ExprNode): (x: number) => number {
     }
     case "var":
       return (x) => x;
+    case "symbol":
+      throw new ExprError("Variable non déclarée", 0);
     case "neg": {
       const arg = build(node.arg);
       return (x) => -arg(x);

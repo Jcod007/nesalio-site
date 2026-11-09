@@ -105,7 +105,7 @@ export function resolveTeachingPolicy(request: TutorRequest): TeachingPolicy {
   if (noQuestions) return { intent, scaffolding, questions: "defer", reason: "L'élève demande une explication sans quiz ; respecter cette préférence avant de le solliciter." };
   if (unsure) return { intent, scaffolding, questions: "required", reason: "L'élève ne sait pas répondre : donner une aide concrète puis une étape plus simple à essayer ensemble ; ne pas conclure sans recueillir sa réponse." };
   if (practiceRequested) return { intent, scaffolding, questions: "requested", reason: "L'élève demande explicitement de s'entraîner ou d'être interrogé." };
-  if (workedExample) return { intent, scaffolding, questions: "defer", reason: "L'élève demande un exemple travaillé : démontrer la résolution avant de lui proposer d'essayer." };
+  if (workedExample) return { intent, scaffolding, questions: "required", reason: "Montrer l'exemple demandé, puis proposer une courte tentative pour observer la compréhension." };
   if (incorrect) return { intent, scaffolding, questions: "required", reason: "Réexpliquer l'erreur avec une aide adaptée, puis faire essayer une nouvelle étape pour vérifier l'effet de l'aide." };
   if (request.mode === "continue") return { intent, scaffolding, questions: "required", reason: "Réagir à la réponse et poursuivre l'accompagnement ; une réponse isolée ne justifie pas de clore la séance." };
   return { intent, scaffolding, questions: "required", reason: request.mode === "followUp"

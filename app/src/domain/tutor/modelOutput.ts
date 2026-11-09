@@ -16,7 +16,6 @@ import {
   LessonHeaderEvent,
   Mood,
   PlanEvent,
-  LegacyStep as StepSchema,
   SegmentedStep,
   type ModelEvent,
   type Step,
@@ -43,10 +42,11 @@ export interface ModelOutputParser {
   readonly issues: readonly ParseIssue[];
 }
 
-export function createModelOutputParser(): ModelOutputParser {
+export function createModelOutputParser({ segmentedOnly = false } = {}): ModelOutputParser {
   const issues: ParseIssue[] = [];
   let autoId = 0;
-  const nextId = (type: string) => `${type}${++autoId}`;
+  const namespace = crypto.randomUUID().replaceAll("-", "").slice(0, 12);
+  const nextId = () => `a${namespace}-${++autoId}`;
 
   const reject = (line: string, reason: string) => {
     issues.push({ line: line.slice(0, 200), reason });
@@ -61,7 +61,7 @@ export function createModelOutputParser(): ModelOutputParser {
       action.type = TYPE_ALIASES[type] ?? action.type;
     }
     if (typeof action.type === "string" && NODE_COMMANDS.has(action.type as ActionType) && typeof action.id !== "string") {
-      action.id = nextId(action.type);
+      action.id = nextId();
     }
     // Étiquette vide dans un objet d'étiquettes ("sides":{"ab":""}, vu le 21 octobre) : « pas d'étiquette »,
     // plutôt que tout le triangle refusé.
@@ -97,6 +97,7 @@ export function createModelOutputParser(): ModelOutputParser {
       }
       return { kind: "step", ...parsed.data };
     }
+    if (segmentedOnly) return reject(line, "Étape segmentée invalide : place say et do dans segments.");
     // La voix et les sous-titres disent la formule en clair (« $\\frac{3}{5}$ » devient « 3/5 »).
     const cued = typeof obj.say === "string" ? extractCues(plainText(obj.say)) : null;
     const say = z.string().trim().min(1).max(320).safeParse(cued?.say);
@@ -117,8 +118,6 @@ export function createModelOutputParser(): ModelOutputParser {
 
     const step: Step = {
       say: say.data,
-      zone: StepSchema.shape.zone.safeParse(obj.zone).data,
-      practiceBoard: StepSchema.shape.practiceBoard.safeParse(obj.practiceBoard).data,
       mood: mood.success ? mood.data : undefined,
       do: actions,
       check: check?.success ? check.data : undefined,
@@ -161,10 +160,12 @@ export function createModelOutputParser(): ModelOutputParser {
     }
     // La question écrite seule sur sa ligne ({"kind":"check",prompt…} ou {"check":{…}}) : une
     // étape qui la pose à voix haute, plutôt qu'une leçon qui finit sans question.
-    if (!("say" in record) && (record.kind === "check" || (record.kind === undefined && typeof record.check === "object"))) {
+    if (!("say" in record) && !("segments" in record) && (record.kind === "check" || (record.kind === undefined && typeof record.check === "object"))) {
       const { kind: _kind, check, ...fields } = record;
       const question = (check ?? fields) as Record<string, unknown>;
-      return parseStep({ say: question.prompt, do: [], check: question }, line);
+      return parseStep(segmentedOnly
+        ? { segments: [{ say: question.prompt, do: [] }], check: question }
+        : { say: question.prompt, do: [], check: question }, line);
     }
     const kind = typeof record.kind === "string" ? record.kind : ("say" in record || "segments" in record) ? "step" : undefined;
 
@@ -213,10 +214,15 @@ const LATEX_COMMANDS =
   "frac|dfrac|tfrac|sqrt|times|cdot|div|pm|text|mathrm|textbf|operatorname|left|right|leq|le|geq|ge|neq|ne|approx|" +
   "infty|circ|degree|pi|theta|alpha|beta|gamma|delta|Delta|lambda|mu|sigma|omega|varphi|phi|sin|cos|tan|log|ln|exp|" +
   "to|rightarrow|Rightarrow|angle|parallel|perp|triangle|sim|cong|overline|vec|hat|quad|in|cdots|ldots|dots";
-const UNDOUBLED_LATEX = new RegExp(`(?<!\\\\)\\\\(${LATEX_COMMANDS})(?![a-zA-Z])`, "g");
+const LATEX_ESCAPE = new RegExp(`(?<!\\\\)(\\\\+)(${LATEX_COMMANDS})(?![a-zA-Z])`, "g");
 
 export function escapeLatex(json: string): string {
-  return json.includes("$") ? json.replace(UNDOUBLED_LATEX, "\\$&") : json;
+  if (!json.includes("$")) return json;
+  // Repère les chaînes JSON même si elles contiennent des échappements LaTeX invalides.
+  return json.replace(/"(?:\\[\s\S]|[^"\\])*"/g, (quoted) =>
+    quoted.replace(/\$[^$]+\$/g, (formula) =>
+      formula.replace(LATEX_ESCAPE, (command, slashes: string) =>
+        slashes.length % 2 === 0 ? command : "\\" + command)));
 }
 
 /**
@@ -230,6 +236,8 @@ export function escapeLatex(json: string): string {
  * par `closeJson` et rendu comme les autres.
  */
 export class JsonObjectScanner {
+  constructor(private readonly onObject?: (raw: string) => void) {}
+
   private current = "";
   private depth = 0;
   private inString = false;
@@ -246,7 +254,9 @@ export class JsonObjectScanner {
       if (ch === '"' && NEW_EVENT.test(this.current.slice(-48))) {
         // Un nouvel événement commence alors que le précédent n'est pas refermé.
         const cut = this.current.lastIndexOf("\n");
-        complete.push(closeJson(this.current.slice(0, cut)));
+        const raw = this.current.slice(0, cut);
+        this.onObject?.(raw);
+        complete.push(closeJson(raw));
         this.open(this.current.slice(cut + 1).trimStart());
         continue;
       }
@@ -261,6 +271,7 @@ export class JsonObjectScanner {
       else if (ch === "}") {
         this.depth--;
         if (this.depth === 0) {
+          this.onObject?.(this.current);
           complete.push(this.current);
           this.current = "";
         }
@@ -273,6 +284,7 @@ export class JsonObjectScanner {
 
   /** Fin du flux : l'objet encore ouvert (réponse coupée), refermé. */
   flush(): string[] {
+    if (this.depth > 0) this.onObject?.(this.current);
     const rest = this.depth > 0 ? [closeJson(this.current)] : [];
     this.open("", 0);
     return rest;

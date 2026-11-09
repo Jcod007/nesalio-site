@@ -6,10 +6,8 @@
  * injectée, ce qui permet de le tester avec une réponse enregistrée.
  */
 import { matchDemoLesson, DEMO_LESSONS } from "@/content/demoLessons";
-import type { Lesson, StreamEvent } from "@/domain/scene/schema";
-import { isSegmented, stepActions } from "@/domain/scene/stepAccess";
-import type { BoardZone } from "@/domain/board/zones";
-import { extractCues, inferCues } from "@/domain/tutor/cues";
+import type { StepEventT, StreamEvent } from "@/domain/scene/schema";
+import { stepActions } from "@/domain/scene/stepAccess";
 import { createModelOutputParser, JsonObjectScanner } from "@/domain/tutor/modelOutput";
 import type { TutorRequest } from "@/domain/tutor/request";
 import type { ChatProvider } from "@/server/config";
@@ -28,7 +26,7 @@ export interface TutorServiceConfig {
   signal?: AbortSignal;
   log?: (message: string, detail?: unknown) => void;
   now?: () => number;
-  stepFormat?: "legacy" | "segmented";
+  onModelStep?: (step: StepEventT, raw: string) => void;
 }
 
 export async function* tutorEvents(request: TutorRequest, config: TutorServiceConfig): AsyncGenerator<StreamEvent> {
@@ -96,18 +94,7 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
   const now = (config.now ?? Date.now)();
   let decision = decideTeaching(request, now);
   const accepted: StreamEvent[] = [];
-  let activeZone = request.context?.boardZone;
-  const idsByZone = new Map<BoardZone | undefined, Set<string>>();
-  const practiceItems = request.context?.board.filter((item) => item.zone === "practice") ?? [];
-  let practiceBase = practiceItems.some((item) => item.temporary)
-    ? new Set(practiceItems.filter((item) => !item.temporary).map((item) => item.id))
-    : undefined;
-  for (const item of request.context?.board ?? []) {
-    const zone = item.zone ?? activeZone;
-    const ids = idsByZone.get(zone) ?? new Set<string>();
-    ids.add(item.id);
-    idsByZone.set(zone, ids);
-  }
+  const knownIds = new Set(request.context?.board.map((item) => item.id));
   let headerSent = false;
   let steps = 0;
   let repair: ChatMessage[] = [];
@@ -117,7 +104,7 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
     let completed = false;
     for await (const event of rawModelEvents(request, config, repair, decision)) {
       if (config.signal?.aborted) return;
-      if (event.kind === "invalid-segment") { violation = event.reason; break; }
+      if (event.kind === "invalid-step") { violation = event.reason; break; }
       if (event.kind === "lesson") {
         if (headerSent) continue;
         headerSent = true;
@@ -126,36 +113,18 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
         decision = decideTeaching({ ...request, context: { spoken: [], board: [], ...request.context, plan: event.plan } }, now);
       }
       if (event.kind === "step") {
-        const zone = event.zone ?? (event.practiceBoard ? "practice" : activeZone);
-        const knownIds = idsByZone.get(zone) ?? (zone === "example" ? idsByZone.get(undefined) : undefined) ?? new Set<string>();
-        const existing = zone === "practice" && event.practiceBoard === "correction" && practiceBase
-          ? practiceBase : knownIds;
-        if (zone) {
-          const allowed = (action: ReturnType<typeof stepActions>[number]) => action.type !== "clear" && (zone === "example" || action.type !== "erase");
-          if (isSegmented(event) && event.segments.some((part) => part.do.some((action) => !allowed(action)))) {
-            violation = "Cette zone ne permet pas cette commande d'effacement. Corrige l'étape sans retirer silencieusement son dessin.";
-            break;
-          }
-          if (isSegmented(event)) event.segments = event.segments.map((part) => ({ ...part, do: part.do.filter(allowed) }));
-          else event.do = event.do.filter(allowed);
-        }
-        violation = checkViolation(event, decision, request, accepted.filter((acceptedEvent) => acceptedEvent.kind === "step")) ?? constructionViolation(event, existing);
+        violation = checkViolation(event, decision, request, accepted.filter((acceptedEvent) => acceptedEvent.kind === "step")) ?? constructionViolation(event, knownIds);
         if (violation) break; // La phrase interrogative et son dessin ne sont jamais transmis.
         if (steps >= MAX_STEPS) {
           yield { kind: "error", code: "upstream", message: "L’explication est trop longue pour ce tour. Tu peux demander la suite." };
           return;
         }
         steps++;
-        if (zone === "practice" && event.practiceBoard === "attempt") practiceBase ??= knownIds;
-        if (zone === "practice" && event.practiceBoard === "correction") practiceBase = undefined;
-        activeZone = zone;
-        const nextIds = new Set(existing);
         for (const action of stepActions(event)) {
-          if (action.type === "clear") nextIds.clear();
-          if (action.type === "erase") nextIds.delete(action.target);
-          if ("id" in action && typeof action.id === "string") nextIds.add(action.id);
+          if (action.type === "clear") knownIds.clear();
+          if (action.type === "erase") knownIds.delete(action.target);
+          if ("id" in action && typeof action.id === "string") knownIds.add(action.id);
         }
-        idsByZone.set(zone, nextIds);
       }
       if (event.kind === "end") {
         if (decision.target && accepted.some((e) => e.kind === "step" && !e.teaching))
@@ -182,9 +151,10 @@ async function* modelEvents(request: TutorRequest, config: TutorServiceConfig): 
   yield { kind: "error", code: "upstream", message: "Nesa n’a pas réussi à terminer cette explication. Tu peux réessayer." };
 }
 
-async function* rawModelEvents(request: TutorRequest, config: TutorServiceConfig, repair: ChatMessage[], decision: TeachingDecision): AsyncGenerator<StreamEvent | { kind: "invalid-segment"; reason: string }> {
-  const parser = createModelOutputParser();
-  const scanner = new JsonObjectScanner();
+async function* rawModelEvents(request: TutorRequest, config: TutorServiceConfig, repair: ChatMessage[], decision: TeachingDecision): AsyncGenerator<StreamEvent | { kind: "invalid-step"; reason: string }> {
+  const parser = createModelOutputParser({ segmentedOnly: true });
+  const originals: string[] = [];
+  const scanner = new JsonObjectScanner(config.onModelStep ? (raw) => originals.push(raw) : undefined);
   let steps = 0;
   let ended = false;
   let headerSent = false;
@@ -204,20 +174,20 @@ async function* rawModelEvents(request: TutorRequest, config: TutorServiceConfig
     extraHeaders: provider.extraHeaders,
     // Un exemple travaillé peut nécessiter des calculs dès le premier tour.
     reasoningEffort: request.mode === "question" ? (provider.firstTurnEffort ?? provider.reasoningEffort) : provider.reasoningEffort,
-    messages: [...buildMessages(request, decision, config.stepFormat ?? (process.env.TUTOR_STEP_FORMAT === "segmented" ? "segmented" : "legacy")), ...repair],
+    messages: [...buildMessages(request, decision), ...repair],
     signal: upstream.signal,
   });
 
   let received = 0;
   let head = "";
   /** Les événements tirés d'objets JSON complets ; met `ended` à vrai quand le tour est fini. */
-  function* handle(objects: string[]): Generator<StreamEvent | { kind: "invalid-segment"; reason: string }> {
-    for (const objectText of objects) {
+  function* handle(objects: string[]): Generator<StreamEvent | { kind: "invalid-step"; reason: string }> {
+    for (const [index, objectText] of objects.entries()) {
       const event = parser.parseLine(objectText);
       if (!event || ended) {
         if (!event && parser.issues.at(-1)?.reason.startsWith("Étape segmentée invalide")) {
           ended = true;
-          yield { kind: "invalid-segment", reason: parser.issues.at(-1)!.reason };
+          yield { kind: "invalid-step", reason: parser.issues.at(-1)!.reason };
         }
         continue;
       }
@@ -232,6 +202,7 @@ async function* rawModelEvents(request: TutorRequest, config: TutorServiceConfig
           yield { kind: "lesson", title: request.question.slice(0, 80) };
         }
         steps++;
+        if (config.onModelStep) config.onModelStep(event, originals[index]!);
         yield event;
         if (event.check) {
           // Question posée : le tour est fini, Nesa attend la réponse (avec ce qui a été refusé dans le tour).
@@ -254,6 +225,7 @@ async function* rawModelEvents(request: TutorRequest, config: TutorServiceConfig
       received += chunk.length;
       if (head.length < 300) head += chunk.slice(0, 300 - head.length);
       yield* handle(scanner.push(chunk));
+      originals.length = 0;
       if (ended) break;
     }
     // Réponse coupée ou objet resté ouvert : ce qui reste, refermé.
@@ -268,26 +240,13 @@ async function* rawModelEvents(request: TutorRequest, config: TutorServiceConfig
   if (!ended && steps > 0) yield { kind: "end", summary: [] };
 }
 
-function* lessonEvents(lesson: Lesson): Generator<StreamEvent> {
-  yield lesson.header;
-  for (const step of lesson.steps) {
-    if (isSegmented(step)) { yield { kind: "step", ...step }; continue; }
-    // Les séances écrites à la main utilisent les mêmes repères {id} que le modèle.
-    const { say, cues: explicit } = extractCues(step.say);
-    const cues = inferCues(say, step.do as Parameters<typeof inferCues>[1], explicit);
-    yield { kind: "step", ...step, say, cues: Object.keys(cues).length > 0 ? cues : undefined };
-  }
-  yield lesson.end;
-}
-
 /** Mode démonstration : la séance qui correspond le mieux, ou une séance d'exemple annoncée comme telle. */
 export function* demoEvents(request: TutorRequest): Generator<StreamEvent> {
   if (request.mode !== "question") {
     yield {
       kind: "step",
-      say: "Bonne question ! En mode démonstration, je ne peux pas encore répondre librement. Je reprends l'explication là où on était.",
       mood: "idee",
-      do: [],
+      segments: [{ say: "Bonne question ! En mode démonstration, je ne peux pas encore répondre librement. Je reprends l'explication là où on était.", do: [] }],
     };
     yield { kind: "end", summary: [] };
     return;
@@ -295,17 +254,16 @@ export function* demoEvents(request: TutorRequest): Generator<StreamEvent> {
 
   const matched = matchDemoLesson(request.question);
   const lesson = matched ?? DEMO_LESSONS[0];
-  const [header, ...rest] = [...lessonEvents(lesson)];
-  yield header!;
+  yield lesson.header;
   if (!matched) {
     yield {
       kind: "step",
-      say: `Je suis en mode démonstration pour l'instant. Je te montre comment je travaille avec une séance sur ${lesson.header.title.toLowerCase()}.`,
       mood: "idee",
-      do: [],
+      segments: [{ say: `Je suis en mode démonstration pour l'instant. Je te montre comment je travaille avec une séance sur ${lesson.header.title.toLowerCase()}.`, do: [] }],
     };
   }
-  yield* rest;
+  for (const step of lesson.steps) yield { kind: "step", ...step };
+  yield lesson.end;
 }
 
 /** Erreur d'accès (clé refusée, paiement requis) : le service n'est pas utilisable pour l'instant. */

@@ -86,7 +86,7 @@ describe("Player", () => {
     const clock: Clock = { now: baseClock.now, sleep: (ms, signal) => ms >= 10000
       ? new Promise<void>((resolve) => signal?.addEventListener("abort", () => resolve(), { once: true }))
       : baseClock.sleep(ms, signal) };
-    const { source } = scriptedSource(() => [{ kind: "step", zone: "example", segments: [
+    const { source } = scriptedSource(() => [{ kind: "step", segments: [
       { say: "Voici le triangle.", do: [{ type: "triangle", id: "tri", base: 4, height: 3 }] },
       { say: "Voici son hypoténuse.", do: [{ type: "highlight", target: "tri-hyp" }] },
     ] }, { kind: "end", summary: [] }]);
@@ -116,7 +116,7 @@ describe("Player", () => {
     const clock: Clock = { now: baseClock.now, sleep: (ms, signal) => ms >= 10000
       ? new Promise<void>((resolve) => signal?.addEventListener("abort", () => resolve(), { once: true }))
       : baseClock.sleep(ms, signal) };
-    const { source } = scriptedSource(() => [{ kind: "step", zone: "example", segments: [
+    const { source } = scriptedSource(() => [{ kind: "step", segments: [
       { say: "Voici le triangle.", do: [{ type: "triangle", id: "tri", base: 4, height: 3 }] },
       { say: "Voici son hypoténuse.", do: [{ type: "highlight", target: "tri-hyp" }] },
     ] }, { kind: "end", summary: [] }]);
@@ -139,41 +139,31 @@ describe("Player", () => {
       expect(voice.spoken).toEqual(["Voici le triangle.", "Voici le triangle.", "Voici son hypoténuse."]);
     } finally { player.dispose(); }
   });
-  it("retire le brouillon de l'exercice sans perdre les repères ni la correction précédente", async () => {
+  it("conserve la réponse donnée avant l'arrivée du signal de continuation", async () => {
     const voice = fakeSpeaker();
-    const note = (id: string, text: string) => ({ type: "note" as const, id, text });
-    const { source, requests } = scriptedSource((request) => request.mode === "question" ? [
-      step("Idée clé.", { zone: "idea", do: [note("regle", "Un zéro vérifie f(x) = 0")] }),
-      step("Exemple.", { zone: "example", do: [note("exemple", "2x = 4")] }),
-      step("Trace précédente.", { zone: "practice", practiceBoard: "correction", do: [note("trace1", "x = 2")] }),
-      step("Essaie maintenant.", { zone: "practice", practiceBoard: "attempt", do: [
-        { type: "axes", x: [-2, 2], y: [-2, 2] }, note("brouillon", "2x = 6"),
-      ], check: { prompt: "Que vaut x ?", choices: ["2", "3"], answer: 1 } }),
-      { kind: "await" },
-    ] : [
-      step("Trace corrigée.", { zone: "practice", practiceBoard: "correction", do: [
-        { type: "clear", axes: true }, { type: "erase", target: "trace1" }, note("trace2", "x = 3"),
-      ] }),
-      { kind: "end", summary: ["x = 3"] },
-    ]);
-    const player = new Player({ speaker: voice.speaker, source, clock: fakeClock() });
-    player.ask("Explique.");
+    const requests: TutorRequest[] = [];
+    let release!: () => void;
+    const delayed = new Promise<void>((resolve) => { release = resolve; });
+    const source: TutorSource = {
+      async *open(request) {
+        requests.push(request);
+        if (request.mode === "question") {
+          yield step("À toi.", { check: { prompt: "Combien ?", choices: ["1", "2"], answer: 1 } });
+          await delayed;
+          yield { kind: "await" };
+        } else {
+          yield { kind: "end", summary: [] };
+        }
+      },
+    };
+    const player = new Player({ source, speaker: voice.speaker, clock: fakeClock() });
+    player.ask("Calcul");
     await speakUntil(player, voice, (snapshot) => snapshot.status === "checking");
-    expect(player.getSnapshot().lessonBoard?.active).toBe("practice");
     player.answer(1);
-    await speakUntil(player, voice, (snapshot) => snapshot.status === "done");
-    expect(requests[1]?.context?.board).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: "regle", zone: "idea" }),
-      expect.objectContaining({ id: "exemple", zone: "example" }),
-      expect.objectContaining({ id: "brouillon", zone: "practice", temporary: true }),
-    ]));
-    const zones = player.getSnapshot().lessonBoard?.zones;
-    expect(zones?.idea.calc).toEqual(["regle"]);
-    expect(zones?.example.calc).toEqual(["exemple"]);
-    expect(zones?.practice.calc).toEqual(["trace1", "trace2"]);
-    expect(zones?.practice.nodes.brouillon).toBeUndefined();
-    expect(zones?.practice.axes).toBeNull();
-    player.dispose();
+    expect(requests).toHaveLength(1);
+    release();
+    await until(player, () => requests.length === 2);
+    expect(requests[1]).toMatchObject({ mode: "continue", answer: { picked: "2", correct: true } });
   });
 
   it("actualise le bilan après une clarification et ne crée pas de constat avant toute tentative", async () => {

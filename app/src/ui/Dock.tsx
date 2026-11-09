@@ -2,6 +2,7 @@
 
 import { forwardRef } from "react";
 import type { PlayerSnapshot } from "@/engine/player";
+import type { Clock } from "@/engine/ports";
 import { Caption } from "./Caption";
 import { useVoiceInput } from "./hooks/useVoiceInput";
 import { MicButton } from "./MicButton";
@@ -28,13 +29,15 @@ interface Props {
   lastAsked: string | null;
   listening: boolean;
   actions: DockActions;
+  clock?: Clock;
+  playbackPaused?: boolean;
 }
 
 /**
  * La carte de Nesa, posée sur le tableau : sa phrase, et ce que l'élève peut
  * faire à ce moment-là (l'interrompre, répondre, poser une autre question).
  */
-export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, lastAsked, listening, actions }, ref) {
+export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, lastAsked, listening, actions, clock, playbackPaused }, ref) {
   const { status, caption, check } = snapshot;
   // Micro de la carte : parler à Nesa pendant qu'elle explique, c'est l'interrompre.
   const voice = useVoiceInput((state) => actions.setListening(state !== "idle"));
@@ -43,7 +46,7 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
   const speaking = status === "playing" || status === "checking";
 
   return (
-    <section ref={ref} className={styles.dock} aria-label="Nesa">
+    <section ref={ref} className={styles.dock} aria-label="Nesa" inert={playbackPaused}>
       {lastAsked ? (
         <p className={styles.asked}>
           <span className="sr-only">Ta question : </span>
@@ -71,7 +74,7 @@ export const Dock = forwardRef<HTMLElement, Props>(function Dock({ snapshot, las
                 {voice.state === "transcribing" ? "Je note ce que tu m'as dit…" : "Je t'écoute. Qu'est-ce qui n'est pas clair ?"}
               </p>
             ) : caption ? (
-              <Caption key={`${caption.startedAt}`} caption={caption} speaking={speaking} />
+              <Caption key={`${caption.startedAt}`} caption={caption} speaking={speaking} clock={clock} paused={playbackPaused} />
             ) : null}
             {status === "thinking" && caption ? <span className={styles.dots} aria-label="Nesa réfléchit" /> : null}
             {snapshot.error && status !== "error" ? <p className={styles.notice}>{snapshot.error}</p> : null}

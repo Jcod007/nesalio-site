@@ -28,11 +28,26 @@ import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { talkShow } from "@/domain/tutor/talkShow";
 import type { StudentAnswer } from "@/domain/tutor/request";
 import { hasSelfTestAccess } from "@/server/adminAccess";
+import { readJson } from "@/server/http";
+import { validateLesson, validateModelOutput } from "@/domain/nesalio/validate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 // Une séance complète de 4 tours prend 90 à 150 s quand le modèle est lent : 300 s laissent la marge.
 export const maxDuration = 300;
+
+/** Vérifie un document Nesalio assemblé ou une sortie du modèle sans appel aux fournisseurs. */
+export async function POST(request: Request): Promise<Response> {
+  const headers = { "Cache-Control": "no-store" };
+  if (!hasSelfTestAccess(request)) return new Response("Not found", { status: 404, headers });
+  const input = await readJson(request, 128_000);
+  if (!input.ok) return input.response;
+  const body = input.body;
+  const assembled = typeof body === "object" && body !== null && "version" in body;
+  const result = assembled ? validateLesson(body) : validateModelOutput(body);
+  if (!result.ok) return Response.json({ ok: false, issues: result.issues }, { status: 422, headers });
+  return Response.json({ ok: true, slices: result.value.slices.length }, { headers });
+}
 
 export async function GET(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;

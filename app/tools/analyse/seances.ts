@@ -2,7 +2,7 @@
  * Relecture des séances enregistrées : rejoue chaque séance sur un tableau
  * (le même code que l'application) et mesure ce que le JSON permet de mesurer.
  *
- *   curl "<app>/api/seances?check=<jeton>&jour=AAAA-MM-JJ" -o seances.json
+ *   curl -H "Authorization: Bearer <jeton>" "<app>/api/seances?jour=AAAA-MM-JJ" -o seances.json
  *   npx tsx tools/analyse/seances.ts seances.json > rapport.md
  *
  * Par séance : questions, réponses de l'élève, attente, puis les mesures :
@@ -91,7 +91,7 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
   const boards = new Map<string, BoardState>();
   for (const turn of turns) {
     // L'identifiant entier : deux séances dont l'identifiant commence pareil restent distinctes.
-    const key = turn.session ?? "sans-session";
+    const key = [turn.session ?? "sans-session", turn.stepFormat].filter(Boolean).join("-");
     let s = sessions.get(key);
     if (!s) {
       s = {

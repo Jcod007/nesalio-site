@@ -3,7 +3,7 @@
  * Comparaison de deux déploiements déjà configurés, avec leur vrai modèle.
  * LEGACY_URL=... SEGMENTED_URL=... SELFTEST_TOKEN=... node tools/eval/comparer-formats-modele.mjs
  * Les deux URLs doivent pointer vers des déploiements privés contrôlés par l'utilisateur,
- * de même code/modèle/configuration, différant uniquement par TUTOR_STEP_FORMAT.
+ * d'une révision historique qui accepte encore TUTOR_STEP_FORMAT.
  * Le jeton diagnostic est envoyé aux deux URLs : ne jamais utiliser une URL non fiable.
  * Les appels au modèle et à la voix peuvent être facturés. Pas de données élève réelles.
  */

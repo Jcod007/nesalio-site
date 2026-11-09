@@ -8,9 +8,9 @@
  * - Si le serveur ne répond pas (voix non configurée, réseau), on bascule
  *   sur la voix du navigateur, sans interrompre la séance.
  */
-import type { SpeechHandle } from "@/engine/ports";
+import { realClock, type Clock, type SpeechHandle } from "@/engine/ports";
 import type { BrowserSpeaker } from "./browserSpeaker";
-import { sessionHeaders } from "@/services/session";
+import { fetchVoiceClip, readClipDuration } from "./voiceClip";
 import { parseSpeechSpan, SPEECH_SPAN_HEADER } from "@/domain/audio/speechSpan";
 import type { SpeechSpan } from "@/domain/timeline/spokenTime";
 
@@ -23,19 +23,24 @@ interface Clip {
 
 const MAX_CLIPS = 16;
 const FAILURES_BEFORE_FALLBACK = 2;
+// Laisse au serveur sa fenêtre de synthèse, plus le transfert de l'audio.
+const FETCH_TIMEOUT_MS = 15_000;
+const METADATA_TIMEOUT_MS = 3_000;
 
 export interface CloudSpeaker extends BrowserSpeaker {
   readonly mode: "cloud" | "browser";
+  setPaused(paused: boolean): void;
+  fork(fallback: BrowserSpeaker, clock: Clock): CloudSpeaker;
 }
 
-export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/voice"): CloudSpeaker {
+export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/voice", clock: Clock = realClock, sharedLoad?: (text: string) => Promise<Clip | null>): CloudSpeaker {
   const clips = new Map<string, Promise<Clip | null>>();
   /** Partie parlée des clips déjà arrivés (lecture synchrone pour le lecteur). */
   const spans = new Map<string, SpeechSpan>();
   let failures = 0;
   let disabled = false;
   let muted = false;
-  let current: { audio: HTMLAudioElement; finish: () => void } | null = null;
+  let current: { finish: () => void; setPaused?: (paused: boolean) => void } | null = null;
 
   function remember(text: string, clip: Promise<Clip | null>) {
     clips.set(text, clip);
@@ -49,20 +54,28 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
   }
 
   async function fetchClip(text: string): Promise<Clip | null> {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...sessionHeaders() },
-        body: JSON.stringify({ text }),
-      });
+      const responseAndBlob = fetchVoiceClip(endpoint, text, controller.signal);
+      const { response, blob } = await Promise.race([responseAndBlob, new Promise<never>((_, reject) => {
+        timer = setTimeout(() => { controller.abort(); reject(new Error("délai dépassé")); }, FETCH_TIMEOUT_MS);
+      })]);
       if (response.status === 503) {
         disabled = true; // aucune voix configurée côté serveur
         return null;
       }
-      if (!response.ok) throw new Error(String(response.status));
+      if (!blob) throw new Error(String(response.status));
       const span = parseSpeechSpan(response.headers.get(SPEECH_SPAN_HEADER));
-      const url = URL.createObjectURL(await response.blob());
-      const durationMs = await measure(url);
+      const url = URL.createObjectURL(blob);
+      let durationMs: number;
+      try {
+        const metadata = new AbortController();
+        const stop = setTimeout(() => metadata.abort(), METADATA_TIMEOUT_MS);
+        try { durationMs = Math.round(await readClipDuration(new Audio(), url, metadata.signal)); }
+        finally { clearTimeout(stop); }
+      }
+      catch (error) { URL.revokeObjectURL(url); throw error; }
       failures = 0;
       if (span && span.endMs <= durationMs + 50) spans.set(text, span);
       return { url, durationMs, span };
@@ -70,10 +83,13 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
       failures++;
       if (failures >= FAILURES_BEFORE_FALLBACK) disabled = true;
       return null;
+    } finally {
+      clearTimeout(timer);
     }
   }
 
   function load(text: string): Promise<Clip | null> {
+    if (sharedLoad) return sharedLoad(text);
     if (disabled) return Promise.resolve(null);
     const cached = clips.get(text);
     if (cached) return cached;
@@ -83,6 +99,7 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
   }
 
   return {
+    fork: (voice, playbackClock) => createCloudSpeaker(voice, endpoint, playbackClock, load),
     get mode() {
       return disabled ? "browser" : "cloud";
     },
@@ -92,6 +109,10 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
       muted = value;
       fallback.setMuted(value);
       if (value) current?.finish();
+    },
+    setPaused(value) {
+      fallback.setPaused?.(value);
+      current?.setPaused?.(value);
     },
     prefetch(text) {
       if (!muted) void load(text);
@@ -108,52 +129,69 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
       current?.finish();
       if (muted || disabled) return fallback.speak(text);
 
-      let cancelled = false;
+      const cancelled = new AbortController();
       let finish: () => void = () => {};
       let markStarted: () => void = () => {};
       const started = new Promise<void>((resolve) => (markStarted = resolve));
       const done = new Promise<void>((resolve) => {
         finish = () => {
-          cancelled = true;
+          cancelled.abort();
           markStarted();
           resolve();
         };
-        void load(text).then((clip) => {
-          if (cancelled) return;
+        void load(text).then(async (clip) => {
+          const playing = clock.waitUntilPlaying?.(cancelled.signal);
+          if (playing) await playing;
+          if (cancelled.signal.aborted) return;
           if (!clip) {
             // Pas d'audio pour cette phrase : la voix du navigateur prend le relais.
             const spoken = fallback.speak(text);
             void (spoken.started ?? Promise.resolve()).then(markStarted);
             spoken.done.then(resolve);
-            current = { audio: new Audio(), finish: () => { fallback.cancel(); resolve(); } };
+            current = { finish: () => { fallback.cancel(); markStarted(); resolve(); } };
             return;
           }
           const audio = new Audio(clip.url);
+          let playRun = 0;
+          let usingFallback = false;
           audio.onplaying = () => markStarted();
           const end = () => {
             markStarted();
             audio.onended = audio.onerror = audio.onplaying = null;
-            if (current?.audio === audio) current = null;
+            if (current === playback) current = null;
             resolve();
           };
           audio.onended = end;
           audio.onerror = end;
-          current = {
-            audio,
+          const playback = {
             finish: () => {
+              if (usingFallback) fallback.cancel();
               audio.pause();
               end();
             },
+            setPaused: (paused: boolean) => {
+              if (usingFallback) return;
+              if (paused) {
+                playRun++;
+                audio.pause();
+              } else play();
+            },
           };
-          audio.play().catch(() => {
-            // Lecture bloquée (aucun geste de l'utilisateur) : on lit avec la voix du navigateur.
-            const spoken = fallback.speak(text);
-            void (spoken.started ?? Promise.resolve()).then(markStarted);
-            spoken.done.then(end);
-          });
+          function play() {
+            const run = ++playRun;
+            void audio.play().catch(() => {
+              if (current !== playback || run !== playRun || muted) return;
+              usingFallback = true;
+              const spoken = fallback.speak(text);
+              void (spoken.started ?? Promise.resolve()).then(markStarted);
+              void spoken.done.then(end);
+            });
+          }
+          current = playback;
+          play();
         });
       });
-      current = { audio: new Audio(), finish };
+      current = { finish };
       return { done, started };
     },
     cancel() {
@@ -165,22 +203,3 @@ export function createCloudSpeaker(fallback: BrowserSpeaker, endpoint = "/api/vo
   };
 }
 
-/** Durée d'un fichier audio, en ms (métadonnées lues sans le jouer). */
-function measure(url: string): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const audio = new Audio();
-    audio.preload = "metadata";
-    const timer = setTimeout(() => reject(new Error("durée inconnue")), 5000);
-    audio.onloadedmetadata = () => {
-      clearTimeout(timer);
-      const seconds = audio.duration;
-      if (Number.isFinite(seconds) && seconds > 0) resolve(Math.round(seconds * 1000));
-      else reject(new Error("durée inconnue"));
-    };
-    audio.onerror = () => {
-      clearTimeout(timer);
-      reject(new Error("audio illisible"));
-    };
-    audio.src = url;
-  });
-}

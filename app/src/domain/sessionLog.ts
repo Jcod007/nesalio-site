@@ -30,6 +30,8 @@ export interface TurnRecord {
   /** Début du tour (ISO 8601, UTC). */
   at: string;
   mode: TutorRequest["mode"];
+  /** Format explicite des anciens essais comparatifs. */
+  stepFormat?: "legacy" | "segmented";
   question: string;
   /** Réponse de l'élève à la question précédente de Nesa (tour « continue »). */
   answer?: { prompt: string; picked: string; correct: boolean | null; misconception?: string; concept?: string; support?: "guided" | "independent" };
@@ -128,7 +130,8 @@ export function turnPath(record: TurnRecord): string {
   const day = at.slice(0, 10);
   const time = at.slice(11, 23).replace(/[:.]/g, "");
   const folder = record.session ? shortSession(record.session) : "sans-session";
-  return `${record.env}/${day}/${folder}/${time}-${record.mode}.json`;
+  const formatSuffix = record.stepFormat ? `-${record.stepFormat}` : "";
+  return `${record.env}/${day}/${folder}/${time}-${record.mode}${formatSuffix}.json`;
 }
 
 /** Une séance (une visite de la page), résumée pour la consultation. */

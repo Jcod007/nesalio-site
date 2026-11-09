@@ -4,7 +4,7 @@
 
 Ajouter, en parallèle du format actuel `say`/`do` et de ses repères `{id}`, un format qui associe explicitement des phrases courtes aux actions de tableau. Le moteur existant de commandes, la géométrie, le placement et le rendu Manim restent les sources de vérité. Ne pas supprimer ni convertir les anciennes séances. Le nouveau format ne devient pas la sortie par défaut avant validation des critères de la mission 8.
 
-Ce document conserve le plan de travail et les critères de validation. Une première implémentation est disponible derrière `TUTOR_STEP_FORMAT=segmented` ; le format historique reste demandé par défaut. La validation des cibles reste partielle lorsque le serveur ne dispose que d'un résumé du tableau. Le parcours visuel complet, la voix réelle et la comparaison des deux formats restent à confirmer avant toute activation par défaut.
+Ce document conserve le plan de travail initial et les critères de validation. Le tuteur utilise désormais `segments` pour toutes les nouvelles réponses. Les passages qui décrivent les deux modes et leur activation documentent la phase de comparaison. La validation des cibles reste partielle lorsque le serveur ne dispose que d'un résumé du tableau.
 
 ## Contrat cible
 

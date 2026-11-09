@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyBoard } from "@/domain/board/state";
+import { emptyBoard, putNode } from "@/domain/board/state";
 import { applyAction } from "@/domain/scene/commands";
 import type { Step } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "./turnReview";
@@ -44,5 +44,15 @@ describe("relecture d'un tour", () => {
       { say: "La même idée relie la formule et le graphique.", do: [] },
     ];
     expect(reviewNotes(reviewTurn(steps, board()))).toEqual([]);
+  });
+
+  it("signale au modèle deux textes superposés encore visibles", () => {
+    const state = applyAction(emptyBoard(), { type: "text", id: "a", at: [0, 0], text: "Aire du carré" }, { start: 0, duration: 0 });
+    const overlapping = putNode(state, { ...state.nodes.a!, id: "b" });
+    const steps: Step[] = [{ say: "Voici les deux libellés.", do: [] }];
+    expect(reviewNotes(reviewTurn(steps, state))).toEqual([]);
+    expect(reviewNotes(reviewTurn(steps, overlapping))).toEqual([
+      "Les textes « a » et « b » se chevauchent au tableau. Sépare-les pour les rendre lisibles.",
+    ]);
   });
 });

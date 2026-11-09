@@ -18,9 +18,8 @@
  * ports (voix, source, horloge), ce qui le rend testable de bout en bout.
  */
 import { emptyBoard, pruneErased, resolveTargets, summarizeBoard, type BoardState } from "@/domain/board/state";
-import { BOARD_TRANSITION_MS, BOARD_ZONES, type BoardZone } from "@/domain/board/zones";
 import { applyAction } from "@/domain/scene/commands";
-import type { StreamEvent } from "@/domain/scene/schema";
+import type { StepEventT, StreamEvent } from "@/domain/scene/schema";
 import { reviewNotes, reviewTurn } from "@/domain/tutor/turnReview";
 import { emptyLearning, recordObservation, recordPresentation, type LearningState } from "@/domain/tutor/learning";
 import { isHelpRequest } from "@/domain/tutor/teachingPolicy";
@@ -55,11 +54,6 @@ const MAX_REPLAY_CHARS = 16_000;
 export interface PlayerSnapshot {
   status: PlayerStatus;
   board: BoardState;
-  lessonBoard?: {
-    active: BoardZone;
-    zones: Record<BoardZone, BoardState>;
-    practiceBase?: BoardState;
-  };
   title: string | null;
   topic: string | null;
   source: SourceKind | null;
@@ -93,14 +87,13 @@ export const INITIAL_SNAPSHOT: PlayerSnapshot = {
 /** Pause entre deux étapes, pour laisser le temps de regarder le tableau. */
 export const PAUSE_BETWEEN_STEPS_MS = 350;
 const MAX_HISTORY = 16;
-const PREPARE_TIMEOUT_MS = 8000;
+const PREPARE_TIMEOUT_MS = 19_000;
 /** Au-delà, on dessine même si la voix n'a pas encore démarré (son bloqué, navigateur muet…). */
 const START_TIMEOUT_MS = 4000;
 
 interface Segment {
   kind: "question" | "followUp";
-  zone?: BoardZone;
-  steps: Step[];
+  steps: StepEventT[];
   /** Étape en cours (ou prochaine à jouer). */
   cursor: number;
   /** Les commandes des étapes d'indice < appliedUpTo sont déjà au tableau. */
@@ -131,6 +124,15 @@ export interface PlayerDeps {
   clock: Clock;
   /** Horloge civile pour les observations, distincte de l'horloge d'animation. */
   observedAt?: () => number;
+  onPlaybackStep?: (frame: PlaybackFrame) => void;
+}
+
+export interface PlaybackFrame {
+  step: StepEventT;
+  part: number;
+  before: BoardState;
+  after: BoardState;
+  caption: Caption;
 }
 
 export class Player {
@@ -153,7 +155,6 @@ export class Player {
   /** Une présentation est comptée une fois, seulement après la fin de la parole et du dessin. */
   private presentedSteps = new WeakSet<Step>();
   private assistedSteps = new WeakSet<Step>();
-  private stepZones = new WeakMap<Step, BoardZone>();
   private partProgress = new WeakMap<Step, { index: number; applied: number; pending?: Promise<void>; board?: BoardState }>();
   /** Dernière fiche de diagnostic de Nesa : rendue au modèle à chaque tour. */
   private diagnosis: Diagnosis | null = null;
@@ -176,7 +177,7 @@ export class Player {
 
   /** Ce qu'un testeur vient de voir et d'entendre, pour accompagner un signalement de problème. */
   recentContext(): { question: string | null; title: string | null; status: string; recent: string[]; board: string[]; replay: string } {
-    const { question, title, status } = this.snapshot;
+    const { question, title, status, board } = this.snapshot;
     // Les tours les plus récents d'abord gardés : on retire les plus anciens tant que c'est trop long.
     let turns = this.transcript;
     let replay = JSON.stringify(turns);
@@ -190,7 +191,7 @@ export class Player {
       status,
       replay: replay.length > MAX_REPLAY_CHARS ? "" : replay,
       recent: this.history.slice(-6),
-      board: this.boardContext()
+      board: summarizeBoard(board)
         .slice(0, 30)
         .map((item) => `${item.id} · ${item.type} · ${item.detail}`.slice(0, 200)),
     };
@@ -204,9 +205,9 @@ export class Player {
   /* ------------------------------- commandes ------------------------------- */
 
   /** Nouvelle question : tableau vierge. */
-  ask(question: string): void {
+  ask(question: string, initialBoard = emptyBoard()): void {
     this.reset();
-    this.set({ ...INITIAL_SNAPSHOT, status: "thinking", question, board: emptyBoard() });
+    this.set({ ...INITIAL_SNAPSHOT, status: "thinking", question, board: initialBoard });
     this.openSegment("question", { mode: "question", question });
   }
 
@@ -352,28 +353,20 @@ export class Player {
 
   /** L'élève a répondu à la question qui termine un tour : on demande le tour suivant. */
   private answered(segment: Segment, answer: StudentAnswer) {
-    if (!segment.awaiting || segment.cursor !== segment.steps.length - 1) return;
+    if (segment.cursor !== segment.steps.length - 1) return;
     segment.pendingAnswer = answer;
     this.tryContinue(segment);
   }
 
   private tryContinue(segment: Segment) {
-    if (!segment.pendingAnswer || !segment.streamDone || segment.abort.signal.aborted) return;
+    if (!segment.pendingAnswer || !segment.awaiting || !segment.streamDone || segment.error || segment.abort.signal.aborted) return;
     const answer = segment.pendingAnswer;
     segment.pendingAnswer = null;
     segment.awaiting = false;
     segment.streamDone = false;
     // Relecture du tour qui se termine : rendue au modèle pour qu'il se corrige au tour suivant.
     const played = segment.steps.slice(segment.turnStart, segment.cursor + 1);
-    const layout = this.snapshot.lessonBoard;
-    const review = layout
-      ? [
-        ...reviewNotes(reviewTurn([], this.snapshot.board), segment.rejected),
-        ...BOARD_ZONES.flatMap(({ id }) => reviewNotes(reviewTurn(
-          played.filter((step) => (this.stepZones.get(step) ?? "example") === id), layout.zones[id],
-        ))),
-      ].slice(0, 4)
-      : reviewNotes(reviewTurn(played, this.snapshot.board), segment.rejected);
+    const review = reviewNotes(reviewTurn(played, this.snapshot.board), segment.rejected);
     segment.turnStart = segment.steps.length;
     segment.rejected = [];
     const request: TutorRequest = {
@@ -408,7 +401,7 @@ export class Player {
             }
             break;
           case "step": {
-            const { kind: _kind, ...step } = event;
+            const step = event;
             segment.steps.push(step);
             // Une étape qui sera bientôt jouée : sa voix peut se préparer dès maintenant.
             if (segment.steps.length - 1 <= segment.cursor + 2) this.deps.speaker.prefetch?.(isSegmented(step) ? step.segments[0]!.say : step.say);
@@ -462,6 +455,11 @@ export class Player {
       }
 
       const segment = this.segments.at(-1);
+      const playing = this.deps.clock.waitUntilPlaying?.(segment?.abort.signal);
+      if (playing) {
+        await playing;
+        continue;
+      }
       if (!segment) {
         this.set({ status: "done", caption: null, check: null, answeringFollowUp: false });
         this.loopSession = -1;
@@ -516,22 +514,6 @@ export class Player {
     this.stepAbort = abort;
     segment.inProgress = true;
 
-    const previousLayout = this.snapshot.lessonBoard;
-    const zone = this.stepZones.get(step) ?? step.zone ?? (step.practiceBoard ? "practice" : segment.zone ?? previousLayout?.active);
-    const switchingZone = previousLayout !== undefined && zone !== previousLayout.active;
-    if (zone) {
-      segment.zone = zone;
-      this.stepZones.set(step, zone);
-      if (!previousLayout || switchingZone) {
-        const zones = previousLayout?.zones ?? {
-          idea: { ...emptyBoard(), retainCalculations: true },
-          example: { ...this.snapshot.board, retainCalculations: true },
-          practice: { ...emptyBoard(), retainCalculations: true },
-        };
-        this.set({ board: zones[zone], lessonBoard: { ...previousLayout, active: zone, zones } });
-      }
-    }
-
     const structured = isSegmented(step);
     const parts = structured ? step.segments : [{ say: step.say, do: step.do, cues: step.cues }];
     const progress = this.partProgress.get(step) ?? { index: 0, applied: 0 };
@@ -545,10 +527,9 @@ export class Player {
     for (let index = structured ? progress.index : 0; index < parts.length; index++) {
       const part = parts[index]!;
       // La phrase est préparée (voix générée) avant de dessiner : les tracés se calent sur sa vraie durée.
-      const [speechMs] = await Promise.all([
-        this.prepareSpeech(part.say, abort.signal),
-        switchingZone && index === 0 ? clock.sleep(BOARD_TRANSITION_MS, abort.signal) : undefined,
-      ]);
+      const speechMs = await this.prepareSpeech(part.say, abort.signal);
+      const playing = clock.waitUntilPlaying?.(abort.signal);
+      if (playing) await playing;
       if (abort.signal.aborted) return false;
       const next = segment.steps[segment.cursor + 1];
       const nextText = parts[index + 1]?.say ?? (next ? (isSegmented(next) ? next.segments[0]!.say : next.say) : undefined);
@@ -561,8 +542,12 @@ export class Player {
         await Promise.race([speech.started, clock.sleep(START_TIMEOUT_MS, abort.signal)]);
         if (abort.signal.aborted) return false;
       }
+      const ready = clock.waitUntilPlaying?.(abort.signal);
+      if (ready) await ready;
+      if (abort.signal.aborted) return false;
 
       const now = clock.now();
+      const before = this.snapshot.board;
       let drawingMs = 0;
 
       const alreadyApplied = structured ? progress.applied > index : segment.appliedUpTo > segment.cursor;
@@ -570,20 +555,8 @@ export class Player {
         // Repères au prorata du temps de parole, sur la partie vraiment parlée de l'audio (voir spokenTime.ts).
         const partCues = "cues" in part ? part.cues : undefined;
         const cues = partCues ? retimeCues(part.say, partCues, speechMs, speaker.speechSpan?.(part.say)) : undefined;
-        const layout = this.snapshot.lessonBoard;
-        let practiceBase = layout?.practiceBase;
-        let board = this.snapshot.board;
-        if (index === 0 && zone === "practice" && step.practiceBoard === "attempt" && !practiceBase) {
-          practiceBase = board;
-          board = { ...board, readFrom: now };
-        }
-        if (index === 0 && zone === "practice" && step.practiceBoard === "correction" && practiceBase) {
-          board = { ...practiceBase, restoredAt: now, readFrom: now, highlights: {} };
-          practiceBase = undefined;
-        }
-        board = pruneErased(board, now);
-        const actions = part.do.filter((action) =>
-          !layout || (action.type !== "clear" && (zone === "example" || action.type !== "erase")));
+        let board = pruneErased(this.snapshot.board, now);
+        const actions = [...part.do];
         // Un repère oral peut attirer le regard sur un objet conservé au tableau.
         for (const target of Object.keys(cues ?? {})) {
           const exists = Object.hasOwn(board.nodes, target) || Object.hasOwn(board.groups, target);
@@ -604,18 +577,18 @@ export class Player {
             progress.pending = waitForBoard(board);
           }
         } else segment.appliedUpTo = segment.cursor + 1;
-        this.set({ board, ...(layout && zone ? {
-          lessonBoard: { active: zone, zones: { ...layout.zones, [zone]: board }, practiceBase },
-        } : {}) });
+        this.set({ board });
       }
 
       if (structured ? !alreadyApplied : segment.resumeAt !== "replay") this.remember(part.say);
+      const caption = { text: part.say, mood: step.mood ?? "explique", startedAt: now, durationMs: speechMs } as const;
       this.set({
         status: "playing",
         check: null,
         error: null,
-        caption: { text: part.say, mood: step.mood ?? "explique", startedAt: now, durationMs: speechMs },
+        caption,
       });
+      this.deps.onPlaybackStep?.({ step, part: index, before, after: this.snapshot.board, caption });
 
       const renderTimeout = new AbortController();
       const drawn = structured && progress.pending
@@ -629,6 +602,9 @@ export class Player {
       const finished = await this.race(Promise.all([speech.done, drawn]), abort.signal);
       renderTimeout.abort();
       if (!finished) return false;
+      const finishedPause = clock.waitUntilPlaying?.(abort.signal);
+      if (finishedPause) await finishedPause;
+      if (abort.signal.aborted) return false;
       if (structured) {
         if (progress.board) cancelBoardWait(progress.board);
         progress.pending = undefined;
@@ -648,6 +624,8 @@ export class Player {
       // les choix sont affichés pendant ce temps, l'élève peut répondre sans attendre.
       const asking = promptToSay ? speaker.speak(promptToSay) : null;
       const reply = await this.waitAnswer();
+      const playing = clock.waitUntilPlaying?.(abort.signal);
+      if (playing) await playing;
       if (asking) speaker.cancel();
       if (reply === null || abort.signal.aborted) return false;
 
@@ -702,7 +680,7 @@ export class Player {
     return !abort.signal.aborted;
   }
 
-  /** Durée réelle de la phrase si la voix sait la préparer (8 s au plus), sinon l'estimation. */
+  /** Durée réelle de la phrase si la voix la prépare à temps, sinon l'estimation. */
   private async prepareSpeech(text: string, signal: AbortSignal): Promise<number> {
     const { speaker, clock } = this.deps;
     const fallback = speaker.estimate(text);
@@ -731,8 +709,7 @@ export class Player {
       title: this.snapshot.title ?? undefined,
       originalQuestion: this.snapshot.question ?? undefined,
       spoken: this.history.slice(-12),
-      board: this.boardContext(),
-      boardZone: this.snapshot.lessonBoard?.active,
+      board: summarizeBoard(this.snapshot.board).slice(0, 40),
       interrupted,
       answered: this.answeredCount,
       goals: this.goals.length > 0 ? this.goals : undefined,
@@ -741,19 +718,6 @@ export class Player {
       learning: this.learning,
       plan: this.teachingPlan,
     };
-  }
-
-  private boardContext(): TutorContext["board"] {
-    const layout = this.snapshot.lessonBoard;
-    if (!layout) return summarizeBoard(this.snapshot.board).slice(0, 40);
-    const baselineIds = layout.practiceBase && new Set(summarizeBoard(layout.practiceBase).map((item) => item.id));
-    return BOARD_ZONES.flatMap(({ id: zone }) => summarizeBoard(layout.zones[zone])
-      .slice(zone === "idea" ? 0 : -13, zone === "idea" ? 13 : undefined)
-      .map((item) => ({
-        ...item,
-        zone,
-        ...(zone === "practice" && baselineIds && !baselineIds.has(item.id) ? { temporary: true as const } : {}),
-      })));
   }
 
   /* ------------------------------ synchronisation ------------------------------ */

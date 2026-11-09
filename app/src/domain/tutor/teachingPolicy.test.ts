@@ -73,7 +73,7 @@ describe("politique pédagogique", () => {
     expect(resolveTeachingPolicy(question("Fais-moi un QCM, mais sans questions."))).toMatchObject({ questions: "defer" });
   });
 
-  it.each(["Ne me pose pas de questions.", "Ne me teste pas.", "Je ne veux pas d'exercice.", "Explique la correction de cet exercice."])("ne transforme pas une négation ou une simple mention en invitation : %s", (text) => {
+  it.each(["Ne me pose pas de questions.", "Ne me teste pas.", "Je ne veux pas d'exercice."])("respecte le refus de questions : %s", (text) => {
     expect(resolveTeachingPolicy(question(text)).questions).toBe("defer");
     expect(resolveTeachingPolicy(question(text)).intent).toBe("explanation");
   });
@@ -99,10 +99,11 @@ describe("politique pédagogique", () => {
     "Donne-moi un exercice résolu.",
     "Je voudrais un exemple travaillé.",
     "Un exercice entièrement corrigé sur les dérivées.",
+    "Explique la correction de cet exercice.",
   ])("traite un exemple résolu comme une explication : %s", (text) => {
-    expect(resolveTeachingPolicy(question(text))).toMatchObject({ intent: "explanation", questions: "defer" });
-    expect(resolveTeachingPolicy(followUp(text))).toMatchObject({ intent: "explanation", questions: "defer" });
-    expect(resolveTeachingPolicy(continuation(text))).toMatchObject({ intent: "explanation", questions: "defer" });
+    expect(resolveTeachingPolicy(question(text))).toMatchObject({ intent: "explanation", questions: "required" });
+    expect(resolveTeachingPolicy(followUp(text))).toMatchObject({ intent: "explanation", questions: "required" });
+    expect(resolveTeachingPolicy(continuation(text))).toMatchObject({ intent: "explanation", questions: "required" });
   });
 
   it.each([

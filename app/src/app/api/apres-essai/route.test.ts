@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+vi.mock("@/server/account", () => ({ requireAccount: async (request: Request) => ({ ok: true, userId: request.headers.get("x-nesalio-session") }) }));
 import { REF_HEADER, SESSION_HEADER } from "@/domain/session";
 import { POST } from "./route";
 

@@ -75,7 +75,7 @@ def head(title, desc, url, kind, extra_ld, keywords=''):
 <meta property="og:url" content="{url}">
 <meta property="og:title" content="{html.escape(title)}">
 <meta property="og:description" content="{html.escape(desc)}">
-<meta property="og:image" content="https://nesalio.com/og-image.png">
+<meta property="og:image" content="https://nesalio.com/og-image-maths.png">
 <meta property="og:locale" content="fr_CA">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#18223A">
@@ -111,7 +111,7 @@ for a in ARTICLES:
     url = f'https://nesalio.com/articles/{a["slug"]}'
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": a['title'], "description": a['desc'],
           "datePublished": DATE, "dateModified": DATE, "inLanguage": "fr-CA", "mainEntityOfPage": url,
-          "author": {"@type": "Person", "name": AUTHOR}, "publisher": ORG, "image": "https://nesalio.com/og-image.png",
+          "author": {"@type": "Person", "name": AUTHOR}, "publisher": ORG, "image": "https://nesalio.com/og-image-maths.png",
           "keywords": a['keywords'], "audience": {"@type": "EducationalAudience", "educationalRole": "student, parent", "geographicArea": {"@type": "AdministrativeArea", "name": "Québec"}},
           "citation": [re.sub(r'<[^>]+>', '', s) for s, _ in a['sources']]}
     src_items = ''.join('<li>%s%s</li>' % (s, (' <a href="%s" rel="noopener">%s</a>' % (u, html.escape(u))) if u else '') for s, u in a['sources'])
@@ -135,8 +135,8 @@ for a in ARTICLES:
 url = 'https://nesalio.com/articles'
 ld = {"@context": "https://schema.org", "@type": "Blog", "name": "Articles Nesalio", "url": url, "inLanguage": "fr-CA", "publisher": ORG,
       "blogPost": [{"@type": "BlogPosting", "headline": a['title'], "url": f'https://nesalio.com/articles/{a["slug"]}', "datePublished": DATE} for a in ARTICLES]}
-desc = "Articles courts et sourcés pour les élèves du secondaire et du cégep au Québec et leurs parents : aide aux devoirs, ChatGPT, tutorat, méthodes d'étude en maths et en sciences."
-page = head('Articles : aide aux devoirs, maths et sciences au secondaire et au cégep | Nesalio', desc, url, 'website', ld, 'aide aux devoirs, maths secondaire, sciences, cégep, Québec, tuteur, méthodes d étude, parents').replace('{SRC}', 'articles')
+desc = "Articles courts et sourcés pour les élèves de secondaire 4 et 5 au Québec et leurs parents : aide aux devoirs, ChatGPT, tutorat, méthodes d'étude en mathématiques."
+page = head('Articles : aide aux devoirs, maths en secondaire 4 et 5 | Nesalio', desc, url, 'website', ld, 'aide aux devoirs, maths secondaire 4, maths secondaire 5, Québec, tuteur, méthodes d étude, parents').replace('{SRC}', 'articles')
 page += f"""<main><div class="col">
   <p class="kicker">Apprendre mieux</p>
   <h1>Articles</h1>

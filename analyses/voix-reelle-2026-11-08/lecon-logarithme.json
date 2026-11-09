@@ -1,0 +1,629 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "log_fonction",
+  "title": "La fonction logarithme",
+  "language": "fr",
+  "learning_goal": "Comprendre ce que mesure un logarithme et la forme de sa courbe"
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "b": {
+     "kind": "parameter",
+     "initial": 2,
+     "min": 2,
+     "max": 10
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_definition",
+   "introduces": [
+    {
+     "id": "axes",
+     "type": "axes",
+     "params": {
+      "x": [
+       -1,
+       9
+      ],
+      "y": [
+       -3,
+       4
+      ]
+     }
+    },
+    {
+     "id": "question",
+     "type": "text",
+     "content": "À quelle puissance ?"
+    },
+    {
+     "id": "power",
+     "type": "math",
+     "content": "2^3 = 8",
+     "parts": [
+      {
+       "id": "base",
+       "text": "2^3"
+      },
+      {
+       "id": "value",
+       "text": "= 8"
+      }
+     ]
+    },
+    {
+     "id": "logdef",
+     "type": "math",
+     "content": "\\log_2(8) = 3",
+     "parts": [
+      {
+       "id": "log",
+       "text": "\\log_2(8)"
+      },
+      {
+       "id": "exponent",
+       "text": "= 3"
+      }
+     ]
+    }
+   ],
+   "groups": [
+    {
+     "id": "defs",
+     "items": [
+      "question",
+      "power",
+      "logdef"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "center",
+      "gap": "md"
+     },
+     "layout": {
+      "next_to": "axes",
+      "direction": "left",
+      "gap": "lg"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "question_beat",
+     "say": "Un logarithme répond à une seule question : à quelle puissance faut-il élever la base pour obtenir un nombre ?",
+     "cues": [
+      {
+       "id": "puissance",
+       "text": "puissance"
+      }
+     ],
+     "do": [
+      {
+       "id": "f1",
+       "verb": "camera.focus",
+       "targets": [
+        "defs"
+       ],
+       "bounds": "layout_bounds",
+       "at": "beat:start",
+       "transition": "instant"
+      },
+      {
+       "id": "q1",
+       "verb": "show",
+       "target": "question",
+       "at": "cue:puissance"
+      }
+     ],
+     "pause_after": "brief"
+    },
+    {
+     "id": "example_beat",
+     "say": "Par exemple, deux puissance trois donne huit. Donc le logarithme en base deux de huit vaut trois.",
+     "cues": [
+      {
+       "id": "deux_puissance",
+       "text": "deux puissance trois"
+      },
+      {
+       "id": "huit",
+       "text": "huit"
+      },
+      {
+       "id": "logarithme",
+       "text": "logarithme"
+      },
+      {
+       "id": "vaut_trois",
+       "text": "vaut trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w1",
+       "verb": "write",
+       "target": "power",
+       "part": "base",
+       "at": "cue:deux_puissance"
+      },
+      {
+       "id": "w2",
+       "verb": "write",
+       "target": "power",
+       "part": "value",
+       "at": "cue:huit"
+      },
+      {
+       "id": "w3",
+       "verb": "write",
+       "target": "logdef",
+       "part": "log",
+       "at": "cue:logarithme"
+      },
+      {
+       "id": "w4",
+       "verb": "write",
+       "target": "logdef",
+       "part": "exponent",
+       "at": "cue:vaut_trois"
+      },
+      {
+       "id": "h1",
+       "verb": "highlight",
+       "target": "logdef",
+       "role": "result",
+       "at": "after:w4"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_courbe",
+   "introduces": [
+    {
+     "id": "curve",
+     "type": "function_graph",
+     "params": {
+      "expression": "log(x)/log(b)",
+      "domain": [
+       0.15,
+       8.5
+      ]
+     },
+     "style": {
+      "role": "accent"
+     }
+    },
+    {
+     "id": "p1",
+     "type": "point",
+     "params": {
+      "at": [
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "id": "p1_label",
+     "type": "label",
+     "content": "(1 ; 0)",
+     "attachment": {
+      "parent": "p1",
+      "anchor": "right"
+     }
+    },
+    {
+     "id": "p2",
+     "type": "point",
+     "params": {
+      "at": [
+       2,
+       1
+      ]
+     }
+    },
+    {
+     "id": "p4",
+     "type": "point",
+     "params": {
+      "at": [
+       4,
+       2
+      ]
+     }
+    },
+    {
+     "id": "p8",
+     "type": "point",
+     "params": {
+      "at": [
+       8,
+       3
+      ]
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "draw_beat",
+     "say": "Traçons maintenant la courbe du logarithme en base deux.",
+     "cues": [
+      {
+       "id": "courbe",
+       "text": "courbe"
+      },
+      {
+       "id": "base_deux",
+       "text": "base deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f2",
+       "verb": "camera.focus",
+       "targets": [
+        "axes",
+        "defs"
+       ],
+       "bounds": "layout_bounds",
+       "at": "beat:start"
+      },
+      {
+       "id": "a1",
+       "verb": "show",
+       "target": "axes",
+       "at": "beat:start"
+      },
+      {
+       "id": "d1",
+       "verb": "draw",
+       "target": "curve",
+       "start": "cue:courbe",
+       "end": "cue_end:base_deux"
+      }
+     ]
+    },
+    {
+     "id": "one_beat",
+     "say": "Elle passe toujours par le point un, zéro, car le logarithme de un vaut zéro.",
+     "cues": [
+      {
+       "id": "point_un",
+       "text": "un, zéro"
+      },
+      {
+       "id": "vaut_zero",
+       "text": "vaut zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s1",
+       "verb": "show",
+       "target": "p1",
+       "at": "cue:point_un"
+      },
+      {
+       "id": "s2",
+       "verb": "show",
+       "target": "p1_label",
+       "at": "cue:vaut_zero"
+      }
+     ]
+    },
+    {
+     "id": "double_beat",
+     "say": "Ensuite, deux donne un, quatre donne deux, et huit donne trois.",
+     "cues": [
+      {
+       "id": "deux",
+       "text": "deux"
+      },
+      {
+       "id": "quatre",
+       "text": "quatre"
+      },
+      {
+       "id": "huit",
+       "text": "huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "s3",
+       "verb": "show",
+       "target": "p2",
+       "at": "cue:deux"
+      },
+      {
+       "id": "s4",
+       "verb": "show",
+       "target": "p4",
+       "at": "cue:quatre"
+      },
+      {
+       "id": "s5",
+       "verb": "show",
+       "target": "p8",
+       "at": "cue:huit"
+      }
+     ]
+    },
+    {
+     "id": "slow_beat",
+     "say": "Chaque fois que x double, la courbe ne monte que d’un cran : elle grandit de plus en plus lentement.",
+     "cues": [
+      {
+       "id": "double",
+       "text": "double"
+      },
+      {
+       "id": "lentement",
+       "text": "lentement"
+      }
+     ],
+     "do": [
+      {
+       "id": "h2",
+       "verb": "highlight",
+       "target": "curve",
+       "role": "result",
+       "at": "cue:lentement",
+       "pace": "slow"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_base",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "base_beat",
+     "say": "Si la base passe de deux à dix, la courbe s’aplatit : il faut des nombres bien plus grands pour monter d’un cran.",
+     "cues": [
+      {
+       "id": "passe",
+       "text": "passe"
+      },
+      {
+       "id": "aplatit",
+       "text": "aplatit"
+      }
+     ],
+     "do": [
+      {
+       "id": "st1",
+       "verb": "set_style",
+       "target": "p2",
+       "role": "secondary",
+       "at": "beat:start"
+      },
+      {
+       "id": "st2",
+       "verb": "set_style",
+       "target": "p4",
+       "role": "secondary",
+       "at": "beat:start"
+      },
+      {
+       "id": "st3",
+       "verb": "set_style",
+       "target": "p8",
+       "role": "secondary",
+       "at": "beat:start"
+      },
+      {
+       "id": "b1",
+       "verb": "animate_parameter",
+       "parameter": "b",
+       "from": 2,
+       "to": 10,
+       "easing": "smooth",
+       "start": "cue:passe",
+       "end": "cue_end:aplatit"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -35,7 +35,7 @@ export interface CueSync {
 
 /* -------------------------------- alignement -------------------------------- */
 
-function normalize(word: string): string {
+export function normalizeSpokenWord(word: string): string {
   const spelled = /^\d+(?:[,.]\d+)?$/.test(word) ? spellNumber(word) : word;
   return spelled.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 }
@@ -46,8 +46,8 @@ function normalize(word: string): string {
  * « vingt », mal transcrit) reste apparié à sa place.
  */
 export function alignWords(expected: readonly string[], heard: readonly string[]): (number | null)[] {
-  const a = expected.map(normalize);
-  const b = heard.map(normalize);
+  const a = expected.map(normalizeSpokenWord);
+  const b = heard.map(normalizeSpokenWord);
   const n = a.length;
   const m = b.length;
   const cost: number[][] = Array.from({ length: n + 1 }, (_, i) => Array.from({ length: m + 1 }, (_, j) => i + j));

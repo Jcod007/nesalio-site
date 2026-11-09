@@ -13,12 +13,14 @@ interface Recorder {
 
 export async function* withRecording(events: AsyncGenerator<StreamEvent>, recorder: Recorder): AsyncGenerator<StreamEvent> {
   let finished = false;
+  let failed = false;
   try {
     for await (const event of events) {
       recorder.event(event);
+      if (event.kind === "error") failed = true;
       yield event;
     }
-    recorder.finish("complete");
+    recorder.finish(failed ? "error" : "complete");
     finished = true;
   } catch (error) {
     recorder.finish("error");

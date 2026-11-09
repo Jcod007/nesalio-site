@@ -17,13 +17,10 @@
  */
 import {
   Arc,
-  Arrow,
   Axes,
   Circle,
   Create,
-  DashedLine,
   DashedVMobject,
-  Dot,
   FadeIn,
   FadeOut,
   GrowArrow,
@@ -34,7 +31,6 @@ import {
   Polygon,
   ReplacementTransform,
   Scene,
-  Text,
   UpdateFromAlphaFunc,
   registerTheme,
   setTheme,
@@ -44,12 +40,16 @@ import {
 } from "manim-web";
 import { sampleCurve } from "@/domain/board/geometry";
 import { arcPoints } from "@/domain/board/shapes";
-import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, nodeBox, scales, textWorldExtent, TICK_FONT, tickLabels, union } from "@/domain/board/layout";
-import { hasMath, plainText, toLatex } from "@/domain/board/tex";
-import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, visibleNodes, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
+import { axisTicks, contentBox, isUniform, fontSizeOf, FONT_SIZE, labelCenter, matrixLayout, scales, textWorldExtent, TICK_FONT, tickLabels } from "@/domain/board/layout";
+import { hasMath, plainText } from "@/domain/board/tex";
+import { applyMat, DEFAULT_FRAME, isVisible, lastMotion, type BoardNode, type BoardState, type Frame, type TextNode, type Vec2 } from "@/domain/board/state";
 import { compileExpression } from "@/domain/math/expr";
+import { realClock, type Clock } from "@/engine/ports";
 import { BRAND, STROKE } from "@/ui/theme";
 import { fitView, gridFor, lerpView, panBy, zoomAt, type View, type Viewport, type WorldBox } from "./camera";
+import { NesalioProjection } from "./NesalioProjection";
+import { arrowMark, boardFormula, boardText, circleMark, pointMark, polygonMark, segmentMark } from "./primitives";
+import type { NesalioFrame } from "@/engine/nesalioPlayback";
 
 type Vec3 = [number, number, number];
 
@@ -82,7 +82,6 @@ interface Rendered {
   opacity: number;
 }
 
-const HAND_FONT = "Caveat";
 /** En dessous de cette durée d'apparition, un nœud est posé d'un coup (copie). */
 const INSTANT_MS = 1;
 /** Opacité d'un objet estompé (contexte), comme dans les vidéos de 3Blue1Brown. */
@@ -108,7 +107,9 @@ export class ManimRenderer {
   private view: View = { cx: 0, cy: 0, s: 60 };
   private userMoved = false;
   private cameraTween = 0;
-  private cameraTimer: ReturnType<typeof setTimeout> | null = null;
+  private cameraTimer: AbortController | null = null;
+  private pauseFrame = 0;
+  private paused = false;
 
   private board: BoardState | null = null;
   private axes: Axes | null = null;
@@ -126,8 +127,10 @@ export class ManimRenderer {
   private queue: Promise<void> = Promise.resolve();
   private generation = 0;
   private readonly detach: Array<() => void> = [];
+  private projection?: NesalioProjection;
+  private nesalioCamera?: Pick<NesalioFrame["scene"], "camera" | "initialViewport">;
 
-  constructor(container: HTMLElement, private readonly callbacks: RendererCallbacks = {}) {
+  constructor(container: HTMLElement, private readonly callbacks: RendererCallbacks = {}, private readonly clock: Clock = realClock) {
     ensureTheme();
     this.container = container;
     this.scene = new Scene(container, { backgroundColor: BRAND.paper, backgroundOpacity: 0 });
@@ -144,10 +147,60 @@ export class ManimRenderer {
 
   /* --------------------------------- état --------------------------------- */
 
+  nesalioProjection(): NesalioProjection {
+    return this.projection ??= new NesalioProjection(this.scene);
+  }
+
+  drawNesalio(frame: NesalioFrame): void {
+    this.nesalioProjection().draw(frame);
+    this.nesalioCamera = frame.scene;
+    this.applyNesalioView();
+  }
+
+  private applyNesalioView(): void {
+    const { width, height } = this.viewport;
+    if (!this.nesalioCamera || !width || !height) return;
+    const { x, y, zoom } = this.nesalioCamera.camera.state;
+    const box = this.nesalioCamera.initialViewport;
+    const scale = Math.min(width / (box.x1 - box.x0), height / (box.y1 - box.y0));
+    this.applyView({ cx: x, cy: y, s: scale * zoom }, false);
+  }
+
+  /** Reconstruit un point de départ d'inspection sans rejouer les animations passées. */
+  restore(board: BoardState): void {
+    this.cameraTimer?.abort();
+    cancelAnimationFrame(this.cameraTween);
+    this.board = board;
+    this.frame = board.axes?.frame ?? board.frame;
+    this.axes = this.coordinatesFor(this.frame);
+    if (board.axes) {
+      this.axesMobjects = [this.axes, ...this.axesLabels(board.axes.frame)];
+      this.scene.add(...this.axesMobjects);
+      this.axesRevealStart = board.axes.reveal.start;
+    }
+    this.axesClearedAt = board.axesCleared?.start ?? null;
+    for (const id of board.order) {
+      const node = board.nodes[id];
+      if (!isVisible(node)) continue;
+      const { mobjects } = this.build(node, node.offset);
+      const opacity = node.dim?.on ? DIMMED : 1;
+      for (const mobject of mobjects) mobject.opacity = opacity;
+      this.scene.add(...mobjects);
+      this.items.set(id, { mobjects, revealStart: node.reveal.start, erased: false, opacity, appliedOffset: node.offset,
+        motionStart: lastMotion(node)?.start, spinStart: node.spins?.at(-1)?.start, morphStart: node.morph?.start, dimStart: node.dim?.start });
+    }
+    this.highlightsSeen = new Map(Object.entries(board.highlights));
+    this.cameraAt = board.camera?.at ?? null;
+    this.focused = board.camera?.kind === "fit";
+    this.lastContentKey = this.contentKey();
+    const target = board.camera?.kind === "fit" ? fitView(this.mathBox(board.camera.x, board.camera.y), this.viewport, 0.85)
+      : fitView(this.homeBox(), this.viewport);
+    this.applyView(target, false);
+  }
+
   /** Compare le graphe reçu à ce qui est dessiné et lance ce qui manque. */
   sync(board: BoardState, now: number): Promise<void> {
-    const restoredAt = board.restoredAt !== this.board?.restoredAt ? board.restoredAt : undefined;
-    if (restoredAt !== undefined || (board.order.length === 0 && board.axes === null && (this.items.size > 0 || this.axesMobjects.length > 0))) {
+    if (board.order.length === 0 && board.axes === null && (this.items.size > 0 || this.axesMobjects.length > 0)) {
       this.clear();
     }
     this.board = board;
@@ -202,9 +255,7 @@ export class ManimRenderer {
     for (const id of board.order) {
       const node = board.nodes[id];
       if (!node) continue;
-      // Les traces conservées restent à leur place sans rejouer leur tracé.
-      const retained = restoredAt !== undefined && node.reveal.start < restoredAt;
-      this.syncNode(retained ? { ...node, reveal: { ...node.reveal, duration: 0 }, motions: undefined } : node, batch, at);
+      this.syncNode(node, batch, at);
     }
 
     // Mises en évidence
@@ -236,7 +287,7 @@ export class ManimRenderer {
     const contentKey = this.contentKey();
     if (contentKey !== this.lastContentKey) {
       this.lastContentKey = contentKey;
-      if (!this.userMoved && !this.focused) this.animateView(fitView(this.homeBox(true), this.viewport), 700, 0);
+      if (!this.userMoved && !this.focused) this.animateView(fitView(this.homeBox(), this.viewport), 700, 0);
     }
 
     if (batch.length > 0) this.enqueue(batch);
@@ -391,7 +442,7 @@ export class ManimRenderer {
   setInsets(insets: Viewport["insets"]): void {
     const changed = JSON.stringify(insets) !== JSON.stringify(this.viewport.insets);
     this.viewport = { ...this.viewport, insets };
-    if (changed && !this.userMoved) this.animateView(fitView(this.homeBox(!this.focused), this.viewport), 400, 0);
+    if (changed && !this.userMoved) this.animateView(fitView(this.homeBox(), this.viewport), 400, 0);
   }
 
   /** Retour à la vue d'ensemble (bouton « Recentrer »). */
@@ -403,10 +454,29 @@ export class ManimRenderer {
 
   dispose(): void {
     this.generation++;
-    if (this.cameraTimer) clearTimeout(this.cameraTimer);
+    this.cameraTimer?.abort();
     cancelAnimationFrame(this.cameraTween);
+    cancelAnimationFrame(this.pauseFrame);
     for (const off of this.detach) off();
+    this.projection?.dispose();
     this.scene.dispose();
+  }
+
+  setPaused(paused: boolean): void {
+    if (this.paused === paused) return;
+    this.paused = paused;
+    cancelAnimationFrame(this.pauseFrame);
+    if (!paused) {
+      this.scene.resume();
+      return;
+    }
+    this.scene.pause();
+    // Manim peut terminer la préparation d'un lot de texte après la mise en pause.
+    const freeze = () => {
+      if (this.scene.isPlaying) this.scene.pause();
+      this.pauseFrame = requestAnimationFrame(freeze);
+    };
+    this.pauseFrame = requestAnimationFrame(freeze);
   }
 
   /* ------------------------------- construction ------------------------------- */
@@ -485,13 +555,7 @@ export class ManimRenderer {
 
   private label(text: string, at: Vec3, color: string, size: number = FONT_SIZE.label, font: "hand" | "body" = "hand"): Mobject {
     if (hasMath(text)) return this.math(text, at, color, size);
-    const mobject = new Text({
-      text,
-      fontSize: size,
-      fontFamily: font === "hand" ? HAND_FONT : "Atkinson Hyperlegible, sans-serif",
-      fontWeight: font === "hand" ? 600 : 400,
-      color,
-    });
+    const mobject = boardText(text, color, size, font);
     mobject.moveTo(at);
     return mobject;
   }
@@ -504,13 +568,13 @@ export class ManimRenderer {
    */
   private math(text: string, at: Vec3, color: string, size: number): Mobject {
     const box = textWorldExtent(text, size);
-    const mobject = new MathTex({ latex: toLatex(text), color, fontSize: size, position: at });
+    const mobject = boardFormula(text, { color, fontSize: size, position: at });
     const generation = this.generation;
     void mobject.waitForRender().then(() => {
       if (generation !== this.generation) return;
       const center = mobject.getCenter();
       if (mobject.getRenderError()) {
-        const fallback = new Text({ text: plainText(text), fontSize: size, fontFamily: HAND_FONT, fontWeight: 600, color });
+        const fallback = boardText(plainText(text), color, size);
         fallback.moveTo(center);
         mobject.add(fallback);
       } else {
@@ -568,11 +632,7 @@ export class ManimRenderer {
       }
       case "point": {
         const center = this.p(node.at[0], node.at[1]);
-        // Point vide : un disque couleur du tableau masque le bout du segment, puis un cercle non rempli
-        // par-dessus (c'est lui que la mise en évidence fait pulser : il reste vide).
-        const disc = node.open ? new Dot({ point: center, radius: 0.085, color: BRAND.paper }) : null;
-        const dot = node.open ? new Circle({ radius: 0.085, color, strokeWidth: 3.5, center }) : new Dot({ point: center, radius: 0.085, color });
-        const mobjects: Mobject[] = disc ? [disc, dot] : [dot];
+        const mobjects: Mobject[] = pointMark(center, color, node.open);
         const animations: PlannedAnimation[] = mobjects.map((m) => ({ delay: 0, share: 0.6, make: (s: number) => new GrowFromCenter(m, { duration: s }) as Animation }));
         if (node.ring) {
           const ring = new Circle({ radius: 0.2, color, strokeWidth: 3, center });
@@ -593,13 +653,11 @@ export class ManimRenderer {
         const mobjects: Mobject[] = [];
         const animations: PlannedAnimation[] = [];
         if (node.type === "vector") {
-          const arrow = new Arrow({ start: from, end: to, color, strokeWidth: 5, tipLength: 0.22, tipWidth: 0.2 });
+          const arrow = arrowMark(from, to, color);
           mobjects.push(arrow);
           animations.push({ delay: 0, share: 1, make: (s) => new GrowArrow(arrow, { duration: s }) });
         } else {
-          const line = node.dashed
-            ? new DashedLine({ start: from, end: to, color, strokeWidth: 3, dashLength: 0.12 })
-            : new Line({ start: from, end: to, color, strokeWidth: 3.5 });
+          const line = segmentMark(from, to, color, node.dashed);
           mobjects.push(line);
           animations.push({ delay: 0, share: 1, make: (s) => new Create(line, { duration: s }) });
         }
@@ -630,15 +688,10 @@ export class ManimRenderer {
       case "circle": {
         const center = this.p(node.center[0], node.center[1]);
         const radius = this.worldLength(node.radius);
-        // Le pointillé se calcule sur le cercle centré à l'origine du monde, puis on le place :
-        // DashedVMobject ignore la position d'un cercle déjà centré ailleurs (cercle décalé sinon).
         // Échelles différentes en x et en y : le cercle devient l'ellipse que montre le repère.
-        const uniform = isUniform(this.frame);
-        const circle = uniform
-          ? new Circle({ radius, color, strokeWidth: 3.5 })
-          : new Polygon({ vertices: arcPoints([0, 0], node.radius, 0, 360, 72).map(([x, y]) => sub3(this.p(x, y), this.p(0, 0))), color, strokeWidth: 3.5, closed: true });
-        const shape = node.dashed ? new DashedVMobject({ vmobject: circle as unknown as VMobject, numDashes: Math.max(16, Math.round(radius * 12)), dashRatio: 0.55 }) : circle;
-        shape.shift(center);
+        const ellipse = isUniform(this.frame) ? undefined
+          : arcPoints([0, 0], node.radius, 0, 360, 72).map(([x, y]) => sub3(this.p(x, y), this.p(0, 0)));
+        const shape = circleMark(center, radius, color, node.dashed, ellipse);
         const mobjects: Mobject[] = [shape];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(shape, { duration: s }) as Animation }];
         if (node.label) {
@@ -650,16 +703,13 @@ export class ManimRenderer {
       }
       case "polygon": {
         const vertices = node.points.map(([x, y]) => this.p(x, y));
-        const polygon = new Polygon({
+        const outline = polygonMark({
           vertices,
           color,
           fillOpacity: node.shade ? 0.38 : node.fill ? 0.16 : 0,
           strokeWidth: node.shade ? 1.5 : node.param ? 3.5 : 3.2,
           closed: node.closed,
-        });
-        const outline = node.dashed
-          ? new DashedVMobject({ vmobject: polygon as unknown as VMobject, numDashes: Math.max(12, node.points.length * 6), dashRatio: 0.55 })
-          : polygon;
+        }, node.dashed);
         const mobjects: Mobject[] = [outline];
         const animations: PlannedAnimation[] = [{ delay: 0, share: 0.85, make: (s) => new Create(outline, { duration: s }) }];
         if (node.label) {
@@ -739,11 +789,13 @@ export class ManimRenderer {
   /** Les lots s'enchaînent : un lot ne démarre qu'après le précédent. */
   private enqueue(batch: TimedAnimation[]) {
     const generation = this.generation;
-    const queuedAt = performance.now();
+    const queuedAt = this.clock.now();
     this.queue = this.queue
       .then(async () => {
+        const playing = this.clock.waitUntilPlaying?.();
+        if (playing) await playing;
         if (generation !== this.generation) return;
-        const late = (performance.now() - queuedAt) / 1000;
+        const late = (this.clock.now() - queuedAt) / 1000;
         const entries = batch.map(({ animation, start, end }) => {
           const shifted = Math.max(0, start - late);
           return { animation, start: shifted, end: shifted + (end - start) };
@@ -756,21 +808,9 @@ export class ManimRenderer {
   /* --------------------------------- caméra --------------------------------- */
 
   /** Tout ce qui est au tableau (figure, textes, calculs), en unités du monde. */
-  private homeBox(activeExercise = false): WorldBox {
+  private homeBox(): WorldBox {
     const board = this.board;
     if (!board) return this.mathBox(this.frame.x, this.frame.y, 0.6);
-    const from = board.readFrom;
-    if (activeExercise && from !== undefined) {
-      const nodes = visibleNodes(board);
-      const recent = nodes.filter((node) => node.reveal.start >= from);
-      if (recent.length < nodes.length && recent.length > 0) {
-        const box = board.axes && board.axes.reveal.start >= from
-          ? contentBox({ ...board, order: recent.map((node) => node.id) })
-          : union(recent.map((node) => nodeBox(node, board.frame)))!;
-        const view = this.mathBox([box.x0, box.x1], [box.y0, box.y1], 0.5);
-        return { ...view, width: Math.max(6, view.width), height: Math.max(4, view.height) };
-      }
-    }
     const box = contentBox(board);
     return this.mathBox([box.x0, box.x1], [box.y0, box.y1], 0.5);
   }
@@ -778,7 +818,7 @@ export class ManimRenderer {
   /** Clé du contenu : quand elle change, la caméra recadre (si l'élève n'a pas bougé la vue). */
   private contentKey(): string {
     if (!this.board) return "";
-    const box = this.homeBox(true);
+    const box = this.homeBox();
     return [box.x, box.y, box.width, box.height].map((v) => v.toFixed(2)).join(",");
   }
 
@@ -795,7 +835,7 @@ export class ManimRenderer {
 
   /** Vue qui montre la même image après un changement de cadre (même échelle en x et en y). */
   private keepPicture(before: Frame, after: Frame) {
-    if (this.cameraTimer) clearTimeout(this.cameraTimer);
+    this.cameraTimer?.abort();
     cancelAnimationFrame(this.cameraTween);
     const u0 = scales(before).x;
     const u1 = scales(after).x;
@@ -827,20 +867,25 @@ export class ManimRenderer {
   }
 
   private animateView(target: View, durationMs: number, delayMs: number) {
-    if (this.cameraTimer) clearTimeout(this.cameraTimer);
+    this.cameraTimer?.abort();
     cancelAnimationFrame(this.cameraTween);
     const start = () => {
       const from = this.view;
-      const t0 = performance.now();
+      const t0 = this.clock.now();
       const step = () => {
-        const t = Math.min(1, (performance.now() - t0) / Math.max(1, durationMs));
-        this.applyView(lerpView(from, target, t), false);
+        const t = Math.min(1, (this.clock.now() - t0) / Math.max(1, durationMs));
+        if (!this.paused) this.applyView(lerpView(from, target, t), false);
         if (t < 1) this.cameraTween = requestAnimationFrame(step);
       };
       this.cameraTween = requestAnimationFrame(step);
     };
-    if (delayMs > 16) this.cameraTimer = setTimeout(start, delayMs);
-    else start();
+    if (delayMs > 16) {
+      const timer = new AbortController();
+      this.cameraTimer = timer;
+      void this.clock.sleep(delayMs, timer.signal).then(() => {
+        if (!timer.signal.aborted) start();
+      });
+    } else start();
   }
 
   private handleResize() {
@@ -848,7 +893,12 @@ export class ManimRenderer {
     const height = this.container.clientHeight;
     if (width === this.viewport.width && height === this.viewport.height) return;
     this.viewport = { ...this.viewport, width, height };
-    this.applyView(this.userMoved ? this.view : fitView(this.homeBox(!this.focused), this.viewport), this.userMoved);
+    if (this.nesalioCamera) {
+      if (width > 0 && height > 0) this.scene.resize(width, height);
+      this.applyNesalioView();
+      return;
+    }
+    this.applyView(this.userMoved ? this.view : fitView(this.homeBox(), this.viewport), this.userMoved);
   }
 
   /** Molette (zoom), glisser (déplacement) et pincer (zoom tactile). */
@@ -856,7 +906,7 @@ export class ManimRenderer {
     const el = this.container;
     const userView = (view: View) => {
       this.userMoved = true;
-      if (this.cameraTimer) clearTimeout(this.cameraTimer);
+      this.cameraTimer?.abort();
       cancelAnimationFrame(this.cameraTween);
       this.applyView(view, true);
     };

@@ -10,6 +10,7 @@ import { FEEDBACK_LABELS, FeedbackSchema } from "@/domain/feedback";
 import { jsonError, readJson } from "@/server/http";
 import { forwardToForm } from "@/server/forms";
 import { createSessionLimits } from "@/server/rateLimit";
+import { requireAccount } from "@/server/account";
 
 export const runtime = "nodejs";
 
@@ -17,12 +18,14 @@ export const runtime = "nodejs";
 const limiter = createSessionLimits({ limit: 8, windowMs: 30 * 60_000, ipFactor: 6 });
 
 export async function POST(request: Request): Promise<Response> {
+  const access = await requireAccount(request);
+  if (!access.ok) return access.response;
   const read = await readJson(request, 40_000);
   if (!read.ok) return read.response;
   const parsed = FeedbackSchema.safeParse(read.body);
   if (!parsed.success) return jsonError(400, parsed.error.issues[0]?.message ?? "Retour invalide.");
 
-  const limit = limiter.check(request.headers);
+  const limit = limiter.check(request.headers, undefined, access.userId);
   if (!limit.allowed) return jsonError(429, "Merci ! Tu as déjà envoyé plusieurs retours ; réessaie un peu plus tard.");
 
   const { kind, message, email, context } = parsed.data;

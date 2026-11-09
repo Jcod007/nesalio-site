@@ -9,95 +9,117 @@
  * Ce sont les trois notions des vidéos du site : zéros d'une quadratique,
  * portée d'un projectile, dérivée comme pente.
  */
-import type { Lesson } from "@/domain/scene/schema";
+import type { Lesson, SegmentedStep } from "@/domain/scene/schema";
 
-export const quadraticLesson: Lesson = {
+type DemoLesson = Omit<Lesson, "steps"> & { steps: SegmentedStep[] };
+
+export const quadraticLesson: DemoLesson = {
   header: { kind: "lesson", title: "Les zéros d'une fonction quadratique", topic: "Fonctions · sec 4" },
-  // Une étape = une phrase courte et les seuls objets dont elle parle (joués en parallèle, au mot repéré par {id}).
+  // Chaque segment associe une phrase courte aux objets dessinés pendant sa lecture.
   steps: [
     {
-      say: "On cherche les zéros de f de x {n1} égale moins x moins 2, le tout au carré, plus 3.",
-      zone: "example",
       mood: "explique",
-      do: [
-        { type: "axes", x: [-1, 5], y: [-3, 4], xLabel: "x", yLabel: "y" },
-        { type: "note", id: "n1", text: "f(x) = −(x − 2)² + 3" },
-      ],
+      segments: [{
+        say: "On cherche les zéros de f de x égale moins x moins 2, le tout au carré, plus 3.",
+        do: [
+          { type: "axes", x: [-1, 5], y: [-3, 4], xLabel: "x", yLabel: "y" },
+          { type: "note", id: "n1", text: "f(x) = −(x − 2)² + 3" },
+        ],
+      }],
     },
     {
-      say: "La forme canonique donne directement le sommet {sommet} : 2, 3.",
       mood: "dessine",
-      do: [{ type: "point", id: "sommet", at: [2, 3], label: "(2, 3)", color: "violet", ring: true }],
+      segments: [{
+        say: "La forme canonique donne directement le sommet : 2, 3.",
+        do: [{ type: "point", id: "sommet", at: [2, 3], label: "(2, 3)", color: "violet", ring: true }],
+      }],
     },
     {
-      say: "Le a est négatif : la parabole ouvre vers le bas, symétrique autour de cet axe {axe}.",
       mood: "dessine",
-      do: [{ type: "segment", id: "axe", from: [2, -3], to: [2, 4], color: "violet", dashed: true }],
+      segments: [{
+        say: "Le a est négatif : la parabole ouvre vers le bas, symétrique autour de cet axe.",
+        do: [{ type: "segment", id: "axe", from: [2, -3], to: [2, 4], color: "violet", dashed: true }],
+      }],
     },
     {
-      say: "Imagine une colline {f} : le sommet est au-dessus de l'axe des x.",
       mood: "dessine",
-      do: [{ type: "curve", id: "f", fn: "-(x-2)^2+3", color: "blue" }],
+      segments: [{
+        say: "Imagine une colline : le sommet est au-dessus de l'axe des x.",
+        do: [{ type: "curve", id: "f", fn: "-(x-2)^2+3", color: "blue" }],
+      }],
     },
     {
-      say: "Les deux côtés descendent et finissent par croiser l'axe {q1} {q2} : deux zéros.",
       mood: "dessine",
-      do: [
-        { type: "text", id: "q1", at: [0.15, -0.6], text: "?", color: "green" },
-        { type: "text", id: "q2", at: [3.65, -0.6], text: "?", color: "green" },
-      ],
+      segments: [{
+        say: "Les deux côtés descendent et finissent par croiser l'axe : deux zéros.",
+        do: [
+          { type: "text", id: "q1", at: [0.15, -0.6], text: "?", color: "green" },
+          { type: "text", id: "q2", at: [3.65, -0.6], text: "?", color: "green" },
+        ],
+      }],
     },
     {
-      say: "Pour les trouver, on pose f de x égale zéro {n2}.",
       mood: "explique",
-      do: [
-        { type: "note", id: "n2", text: "−(x − 2)² + 3 = 0" },
-        { type: "tag", text: "Ce qui bloque souvent : isoler une expression (sec 3)", tone: "warn" },
-      ],
+      segments: [{
+        say: "Pour les trouver, on pose f de x égale zéro.",
+        do: [
+          { type: "note", id: "n2", text: "−(x − 2)² + 3 = 0" },
+          { type: "tag", text: "Ce qui bloque souvent : isoler une expression (sec 3)", tone: "warn" },
+        ],
+      }],
     },
     {
-      say: "Dans cette équation {n2}, je soustrais trois des deux côtés, puis je multiplie les deux côtés par moins un. Il reste le carré égal à trois {n3}.",
       mood: "explique",
-      do: [{ type: "note", id: "n3", text: "(x − 2)² = 3" }],
+      segments: [{
+        say: "Dans cette équation, je soustrais trois des deux côtés, puis je multiplie les deux côtés par moins un. Il reste le carré égal à trois.",
+        do: [{ type: "note", id: "n3", text: "(x − 2)² = 3" }],
+      }],
     },
     {
-      say: "Puis on prend la racine des deux côtés, sans oublier le plus ou moins {n4}.",
       mood: "idee",
-      do: [{ type: "note", id: "n4", text: "x = 2 ± √3", color: "green" }],
+      segments: [{
+        say: "Puis on prend la racine des deux côtés, sans oublier le plus ou moins.",
+        do: [{ type: "note", id: "n4", text: "x = 2 ± √3", color: "green" }],
+      }],
     },
     {
-      say: "Ça donne environ 3,73 {z2} et 0,27 {z1}.",
       mood: "dessine",
-      do: [
-        { type: "erase", target: "q1" },
-        { type: "erase", target: "q2" },
-        { type: "point", id: "z1", at: [0.268, 0], label: "0,27", color: "green" },
-        { type: "point", id: "z2", at: [3.732, 0], label: "3,73", color: "green" },
-        { type: "group", id: "zeros", members: ["z1", "z2"] },
-      ],
+      segments: [{
+        say: "Ça donne environ 3,73 et 0,27.",
+        do: [
+          { type: "erase", target: "q1" },
+          { type: "erase", target: "q2" },
+          { type: "point", id: "z1", at: [0.268, 0], label: "0,27", color: "green" },
+          { type: "point", id: "z2", at: [3.732, 0], label: "3,73", color: "green" },
+          { type: "group", id: "zeros", members: ["z1", "z2"] },
+        ],
+      }],
     },
     {
-      say: "Ce sont exactement les points où la courbe coupe l'axe {zeros}.",
       mood: "dessine",
-      do: [
-        { type: "dim", target: "axe" },
-        { type: "highlight", target: "zeros" },
-      ],
+      segments: [{
+        say: "Ce sont exactement les points où la courbe coupe l'axe.",
+        do: [
+          { type: "dim", target: "axe" },
+          { type: "highlight", target: "zeros" },
+        ],
+      }],
     },
     {
-      say: "Retenons l'idée : un zéro est une valeur de x pour laquelle f de x vaut zéro {regle}.",
-      zone: "idea",
-      do: [{ type: "note", id: "regle", text: "Zéros : résoudre f(x) = 0" }],
+      segments: [{
+        say: "Retenons l'idée : un zéro est une valeur de x pour laquelle f de x vaut zéro.",
+        do: [{ type: "note", id: "regle", text: "Zéros : résoudre f(x) = 0" }],
+      }],
     },
     {
-      say: "À toi : même ouverture vers le bas, mais le sommet est en 2, moins 1 {g}.",
-      zone: "practice",
-      practiceBoard: "attempt",
       mood: "question",
-      do: [
-        { type: "axes", x: [-1, 5], y: [-5, 2], xLabel: "x", yLabel: "y" },
-        { type: "curve", id: "g", fn: "-(x-2)^2-1", color: "blue" },
-      ],
+      segments: [{
+        say: "À toi : même ouverture vers le bas, mais le sommet est en 2, moins 1.",
+        do: [
+          { type: "axes", x: [-1, 5], y: [-5, 2], xLabel: "x", yLabel: "y" },
+          { type: "curve", id: "g", fn: "-(x-2)^2-1", color: "blue" },
+        ],
+      }],
       check: {
         prompt: "Combien de zéros aurait cette parabole ?",
         choices: ["0", "1", "2"],
@@ -107,10 +129,10 @@ export const quadraticLesson: Lesson = {
       },
     },
     {
-      say: "Je garde la conclusion de ton exercice {correction}.",
-      zone: "practice",
-      practiceBoard: "correction",
-      do: [{ type: "note", id: "correction", text: "0 zéro : toute la courbe est sous l’axe des x.", color: "green" }],
+      segments: [{
+        say: "Je garde la conclusion de ton exercice.",
+        do: [{ type: "note", id: "correction", text: "0 zéro : toute la courbe est sous l’axe des x.", color: "green" }],
+      }],
     },
   ],
   end: {
@@ -123,48 +145,58 @@ export const quadraticLesson: Lesson = {
   },
 };
 
-export const projectileLesson: Lesson = {
+export const projectileLesson: DemoLesson = {
   header: { kind: "lesson", title: "La portée d'un projectile", topic: "Mécanique · sec 5" },
   steps: [
     {
-      say: "Une balle est lancée à 20 mètres par seconde, avec un angle de 37 degrés. On veut savoir à quelle distance elle retombe : c'est la portée.",
       mood: "explique",
-      do: [
-        { type: "axes", x: [-2, 44], y: [-3, 12], xLabel: "x (m)", yLabel: "y (m)" },
-        { type: "vector", id: "v0", from: [0, 0], to: [6.4, 4.8], label: "v₀", color: "violet" },
-        { type: "note", id: "n1", text: "v₀ = 20 m/s, à 37°" },
-      ],
+      segments: [{
+        say: "Une balle est lancée à 20 mètres par seconde, avec un angle de 37 degrés. On veut savoir à quelle distance elle retombe : c'est la portée.",
+        do: [
+          { type: "axes", x: [-2, 44], y: [-3, 12], xLabel: "x (m)", yLabel: "y (m)" },
+          { type: "vector", id: "v0", from: [0, 0], to: [6.4, 4.8], label: "v₀", color: "violet" },
+          { type: "note", id: "n1", text: "v₀ = 20 m/s, à 37°" },
+        ],
+      }],
     },
     {
-      say: "Le truc, c'est de séparer la vitesse en deux : une partie horizontale et une partie verticale.",
       mood: "dessine",
-      do: [
-        { type: "vector", id: "vx", from: [0, 0], to: [6.4, 0], label: "vx", color: "blue" },
-        { type: "vector", id: "vy", from: [0, 0], to: [0, 4.8], label: "vy", color: "green" },
-        { type: "segment", id: "p1", from: [6.4, 0], to: [6.4, 4.8], color: "muted", dashed: true },
-        { type: "segment", id: "p2", from: [0, 4.8], to: [6.4, 4.8], color: "muted", dashed: true },
-      ],
+      segments: [{
+        say: "Le truc, c'est de séparer la vitesse en deux : une partie horizontale et une partie verticale.",
+        do: [
+          { type: "vector", id: "vx", from: [0, 0], to: [6.4, 0], label: "vx", color: "blue" },
+          { type: "vector", id: "vy", from: [0, 0], to: [0, 4.8], label: "vy", color: "green" },
+          { type: "segment", id: "p1", from: [6.4, 0], to: [6.4, 4.8], color: "muted", dashed: true },
+          { type: "segment", id: "p2", from: [0, 4.8], to: [6.4, 4.8], color: "muted", dashed: true },
+        ],
+      }],
     },
     {
-      say: "vx égale 20 fois cosinus de 37 degrés, environ 16 mètres par seconde. Et vy égale 20 fois sinus de 37 degrés, environ 12.",
       mood: "explique",
-      do: [
-        { type: "note", id: "n2", text: "vx = 20 cos 37° ≈ 16 m/s" },
-        { type: "note", id: "n3", text: "vy = 20 sin 37° ≈ 12 m/s" },
-      ],
+      segments: [{
+        say: "vx égale 20 fois cosinus de 37 degrés, environ 16 mètres par seconde. Et vy égale 20 fois sinus de 37 degrés, environ 12.",
+        do: [
+          { type: "note", id: "n2", text: "vx = 20 cos 37° ≈ 16 m/s" },
+          { type: "note", id: "n3", text: "vy = 20 sin 37° ≈ 12 m/s" },
+        ],
+      }],
     },
     {
-      say: "À l'horizontale, rien ne freine la balle : vx reste à 16 pendant tout le vol. À la verticale, la gravité la ralentit, puis la fait redescendre.",
       mood: "dessine",
-      do: [
-        { type: "curve", id: "traj", fn: "0.75x - 4.9x^2/256", from: 0, to: 39.18, color: "blue", style: "dotted" },
-        { type: "highlight", target: "vx" },
-      ],
+      segments: [{
+        say: "À l'horizontale, rien ne freine la balle : vx reste à 16 pendant tout le vol. À la verticale, la gravité la ralentit, puis la fait redescendre.",
+        do: [
+          { type: "curve", id: "traj", fn: "0.75x - 4.9x^2/256", from: 0, to: 39.18, color: "blue", style: "dotted" },
+          { type: "highlight", target: "vx" },
+        ],
+      }],
     },
     {
-      say: "Petite question avant de calculer.",
       mood: "question",
-      do: [{ type: "point", id: "haut", at: [19.6, 7.35], label: "sommet", color: "orange", ring: true }],
+      segments: [{
+        say: "Petite question avant de calculer.",
+        do: [{ type: "point", id: "haut", at: [19.6, 7.35], label: "sommet", color: "orange", ring: true }],
+      }],
       check: {
         prompt: "Au sommet de la trajectoire, combien vaut vy ?",
         choices: ["0 m/s", "12 m/s", "16 m/s"],
@@ -174,18 +206,22 @@ export const projectileLesson: Lesson = {
       },
     },
     {
-      say: "Le temps de montée, c'est vy divisé par g : 12 divisé par 9,8, environ 1,22 seconde. La descente prend le même temps, donc le vol dure environ 2,45 secondes.",
       mood: "explique",
-      do: [{ type: "note", id: "n4", text: "t = 2 × 12 ÷ 9,8 ≈ 2,45 s" }],
+      segments: [{
+        say: "Le temps de montée, c'est vy divisé par g : 12 divisé par 9,8, environ 1,22 seconde. La descente prend le même temps, donc le vol dure environ 2,45 secondes.",
+        do: [{ type: "note", id: "n4", text: "t = 2 × 12 ÷ 9,8 ≈ 2,45 s" }],
+      }],
     },
     {
-      say: "La portée, c'est la vitesse horizontale fois le temps de vol : 16 fois 2,45, environ 39 mètres.",
       mood: "bravo",
-      do: [
-        { type: "point", id: "chute", at: [39.18, 0], color: "green", ring: true },
-        { type: "segment", id: "portee", from: [0, -1.8], to: [39.18, -1.8], label: "portée ≈ 39 m", color: "green" },
-        { type: "note", id: "n5", text: "portée = 16 × 2,45 ≈ 39 m" },
-      ],
+      segments: [{
+        say: "La portée, c'est la vitesse horizontale fois le temps de vol : 16 fois 2,45, environ 39 mètres.",
+        do: [
+          { type: "point", id: "chute", at: [39.18, 0], color: "green", ring: true },
+          { type: "segment", id: "portee", from: [0, -1.8], to: [39.18, -1.8], label: "portée ≈ 39 m", color: "green" },
+          { type: "note", id: "n5", text: "portée = 16 × 2,45 ≈ 39 m" },
+        ],
+      }],
     },
   ],
   end: {
@@ -198,54 +234,64 @@ export const projectileLesson: Lesson = {
   },
 };
 
-export const derivativeLesson: Lesson = {
+export const derivativeLesson: DemoLesson = {
   header: { kind: "lesson", title: "La dérivée, c'est une pente", topic: "Calcul différentiel · cégep" },
   steps: [
     {
-      say: "Une dérivée, c'est une pente. Mais pas n'importe laquelle : la pente de la courbe à un point précis. Prenons f de x égale x au carré, et le point P de coordonnées 1, 1.",
       mood: "explique",
-      do: [
-        { type: "axes", x: [-1, 3], y: [-1, 5], xLabel: "x", yLabel: "y" },
-        { type: "curve", id: "f", fn: "x^2", color: "blue" },
-        { type: "point", id: "P", at: [1, 1], label: "P(1, 1)", color: "violet", ring: true },
-        { type: "note", id: "n1", text: "f(x) = x²" },
-      ],
+      segments: [{
+        say: "Une dérivée, c'est une pente. Mais pas n'importe laquelle : la pente de la courbe à un point précis. Prenons f de x égale x au carré, et le point P de coordonnées 1, 1.",
+        do: [
+          { type: "axes", x: [-1, 3], y: [-1, 5], xLabel: "x", yLabel: "y" },
+          { type: "curve", id: "f", fn: "x^2", color: "blue" },
+          { type: "point", id: "P", at: [1, 1], label: "P(1, 1)", color: "violet", ring: true },
+          { type: "note", id: "n1", text: "f(x) = x²" },
+        ],
+      }],
     },
     {
-      say: "Une courbe n'a pas une seule pente : elle change partout. Alors on prend un deuxième point Q, plus loin, et on trace la droite qui passe par les deux.",
       mood: "dessine",
-      do: [
-        { type: "point", id: "Q", at: [2, 4], label: "Q(2, 4)", color: "orange" },
-        { type: "curve", id: "sec", fn: "3x - 2", from: 0.2, to: 2.3, color: "orange", style: "dashed" },
-        { type: "note", id: "n2", text: "pente PQ = (4 − 1) ÷ (2 − 1) = 3" },
-      ],
+      segments: [{
+        say: "Une courbe n'a pas une seule pente : elle change partout. Alors on prend un deuxième point Q, plus loin, et on trace la droite qui passe par les deux.",
+        do: [
+          { type: "point", id: "Q", at: [2, 4], label: "Q(2, 4)", color: "orange" },
+          { type: "curve", id: "sec", fn: "3x - 2", from: 0.2, to: 2.3, color: "orange", style: "dashed" },
+          { type: "note", id: "n2", text: "pente PQ = (4 − 1) ÷ (2 − 1) = 3" },
+        ],
+      }],
     },
     {
-      say: "Maintenant, rapprochons Q de P. Avec Q en x égale 1,5, la pente tombe à 2,5.",
       mood: "dessine",
-      do: [
-        { type: "erase", target: "Q" },
-        { type: "erase", target: "sec" },
-        { type: "point", id: "Q2", at: [1.5, 2.25], label: "Q", color: "orange" },
-        { type: "curve", id: "sec2", fn: "2.5x - 1.5", from: 0.3, to: 2.4, color: "orange", style: "dashed" },
-        { type: "note", id: "n3", text: "Q en 1,5 : pente = 2,5" },
-        { type: "focus", x: [0, 2.6], y: [-0.5, 4.2] },
-      ],
+      segments: [{
+        say: "Maintenant, rapprochons Q de P. Avec Q en x égale 1,5, la pente tombe à 2,5.",
+        do: [
+          { type: "erase", target: "Q" },
+          { type: "erase", target: "sec" },
+          { type: "point", id: "Q2", at: [1.5, 2.25], label: "Q", color: "orange" },
+          { type: "curve", id: "sec2", fn: "2.5x - 1.5", from: 0.3, to: 2.4, color: "orange", style: "dashed" },
+          { type: "note", id: "n3", text: "Q en 1,5 : pente = 2,5" },
+          { type: "focus", x: [0, 2.6], y: [-0.5, 4.2] },
+        ],
+      }],
     },
     {
-      say: "Plus Q est proche de P, plus la droite colle à la courbe. À la limite, elle ne la touche plus qu'en P : c'est la tangente.",
       mood: "idee",
-      do: [
-        { type: "erase", target: "Q2" },
-        { type: "erase", target: "sec2" },
-        { type: "curve", id: "tan", fn: "2x - 1", from: 0, to: 2.5, color: "violet", label: "tangente" },
-        { type: "highlight", target: "P" },
-      ],
+      segments: [{
+        say: "Plus Q est proche de P, plus la droite colle à la courbe. À la limite, elle ne la touche plus qu'en P : c'est la tangente.",
+        do: [
+          { type: "erase", target: "Q2" },
+          { type: "erase", target: "sec2" },
+          { type: "curve", id: "tan", fn: "2x - 1", from: 0, to: 2.5, color: "violet", label: "tangente" },
+          { type: "highlight", target: "P" },
+        ],
+      }],
     },
     {
-      say: "D'après toi, quelle est la pente de cette tangente ?",
       mood: "question",
-      do: [],
+      segments: [{
+        say: "D'après toi, quelle est la pente de cette tangente ?",
+        do: [],
+      }],
       check: {
         prompt: "La pente de la tangente en P vaut…",
         choices: ["1", "2", "3"],
@@ -255,12 +301,14 @@ export const derivativeLesson: Lesson = {
       },
     },
     {
-      say: "Et c'est la règle que tu verras en classe : la dérivée de x au carré, c'est 2x. En x égale 1, ça donne bien 2.",
       mood: "bravo",
-      do: [
-        { type: "note", id: "n4", text: "f′(x) = 2x, donc f′(1) = 2" },
-        { type: "resetView" },
-      ],
+      segments: [{
+        say: "Et c'est la règle que tu verras en classe : la dérivée de x au carré, c'est 2x. En x égale 1, ça donne bien 2.",
+        do: [
+          { type: "note", id: "n4", text: "f′(x) = 2x, donc f′(1) = 2" },
+          { type: "resetView" },
+        ],
+      }],
     },
   ],
   end: {
@@ -282,13 +330,13 @@ export const SUGGESTED_QUESTIONS = [
   "C'est quoi une dérivée, concrètement ?",
 ] as const;
 
-const KEYWORDS: ReadonlyArray<[RegExp, Lesson]> = [
+const KEYWORDS: ReadonlyArray<[RegExp, DemoLesson]> = [
   [/z[ée]ro|quadrati|parabol|sommet|canonique|second degr|2e degr/i, quadraticLesson],
   [/projectile|port[ée]e|balle|lanc|trajectoire|cin[ée]matique/i, projectileLesson],
   [/d[ée]riv|tangente|pente|limite/i, derivativeLesson],
 ];
 
 /** Séance de démonstration la plus proche de la question, ou `null`. */
-export function matchDemoLesson(question: string): Lesson | null {
+export function matchDemoLesson(question: string): DemoLesson | null {
   return KEYWORDS.find(([pattern]) => pattern.test(question))?.[1] ?? null;
 }

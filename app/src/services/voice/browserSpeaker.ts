@@ -9,20 +9,23 @@
  * un autre `Speaker` qui joue l'audio renvoyé par une route serveur.
  */
 import { estimateSpeechMs } from "@/domain/timeline/plan";
-import type { Speaker, SpeechHandle } from "@/engine/ports";
+import { realClock, type Clock, type Speaker, type SpeechHandle } from "@/engine/ports";
 
 const RATE = 1.04;
 
 export interface BrowserSpeaker extends Speaker {
   setMuted(muted: boolean): void;
+  setPaused?(paused: boolean): void;
   readonly supported: boolean;
 }
 
-export function createBrowserSpeaker(): BrowserSpeaker {
-  const synth = typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis : null;
+export function createBrowserSpeaker(clock: Clock = realClock, { nativeVoice = true, watchVoices = true } = {}): BrowserSpeaker {
+  const synth = nativeVoice && typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis : null;
   let voice: SpeechSynthesisVoice | null = null;
   let muted = false;
   let cancelCurrent: (() => void) | null = null;
+  let speaking = false;
+  let synthesisPaused = false;
 
   const pickVoice = () => {
     if (!synth) return;
@@ -35,7 +38,7 @@ export function createBrowserSpeaker(): BrowserSpeaker {
   };
   if (synth) {
     pickVoice();
-    synth.addEventListener?.("voiceschanged", pickVoice);
+    if (watchVoices) synth.addEventListener?.("voiceschanged", pickVoice);
   }
 
   const estimate = (text: string) => estimateSpeechMs(text, RATE);
@@ -44,9 +47,10 @@ export function createBrowserSpeaker(): BrowserSpeaker {
   function silent(text: string): SpeechHandle {
     let finish: () => void = () => {};
     const done = new Promise<void>((resolve) => {
-      const timer = setTimeout(resolve, estimate(text));
+      const timer = new AbortController();
+      void clock.sleep(estimate(text), timer.signal).then(resolve);
       finish = () => {
-        clearTimeout(timer);
+        timer.abort();
         resolve();
       };
     });
@@ -59,30 +63,43 @@ export function createBrowserSpeaker(): BrowserSpeaker {
     estimate,
     setMuted(value) {
       muted = value;
-      if (value) synth?.cancel();
+      if (value && speaking) cancelCurrent?.();
+    },
+    setPaused(value) {
+      if (value && speaking && !synthesisPaused) {
+        synth?.pause?.();
+        synthesisPaused = true;
+      } else if (!value && synthesisPaused) {
+        synth?.resume?.();
+        synthesisPaused = false;
+      }
     },
     speak(text) {
       cancelCurrent?.();
       if (!synth || muted) return silent(text);
 
-      synth.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = voice?.lang ?? "fr-CA";
       if (voice) utterance.voice = voice;
       utterance.rate = RATE;
 
       let markStarted: () => void = () => {};
+      const timers = new AbortController();
       const started = new Promise<void>((resolve) => {
         markStarted = resolve;
         // Certains navigateurs n'émettent jamais « start » : on n'attend pas plus d'une seconde.
-        setTimeout(resolve, 1000);
+        void clock.sleep(1000, timers.signal).then(resolve);
       });
       utterance.onstart = () => markStarted();
       const done = new Promise<void>((resolve) => {
         // Certains navigateurs n'émettent jamais « end » : filet de sécurité.
-        const safety = setTimeout(finish, estimate(text) * 2 + 2500);
+        void clock.sleep(estimate(text) * 2 + 2500, timers.signal).then(() => {
+          if (!timers.signal.aborted) finish();
+        });
         function finish() {
-          clearTimeout(safety);
+          speaking = false;
+          cancelCurrent = null;
+          timers.abort();
           utterance.onend = utterance.onerror = null;
           markStarted();
           resolve();
@@ -94,6 +111,7 @@ export function createBrowserSpeaker(): BrowserSpeaker {
           finish();
         };
       });
+      speaking = true;
       synth.speak(utterance);
       return { done, started };
     },
@@ -101,7 +119,6 @@ export function createBrowserSpeaker(): BrowserSpeaker {
       const cancel = cancelCurrent;
       cancelCurrent = null;
       cancel?.();
-      synth?.cancel();
     },
   };
 }

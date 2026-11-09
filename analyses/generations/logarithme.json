@@ -1,0 +1,748 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "log",
+  "title": "La fonction logarithme",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'un logarithme donne la puissance à laquelle élever la base, savoir lire log(1000) = 3 et utiliser log(a × b) = log(a) + log(b)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s1_intuition",
+   "introduces": [
+    {
+     "id": "t_titre",
+     "type": "text",
+     "content": "La fonction logarithme"
+    },
+    {
+     "id": "cb_question",
+     "type": "callout",
+     "content": "À quelle puissance faut-il élever la base pour obtenir ce nombre ?",
+     "layout": {
+      "next_to": "t_titre",
+      "direction": "down",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_question",
+     "say": "Le logarithme répond toujours à une seule et même question.",
+     "cues": [
+      {
+       "id": "c_log",
+       "text": "logarithme"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_titre",
+       "verb": "show",
+       "target": "t_titre",
+       "at": "cue:c_log"
+      },
+      {
+       "id": "cam1",
+       "verb": "camera.focus",
+       "targets": [
+        "t_titre",
+        "cb_question"
+       ],
+       "bounds": "layout_bounds",
+       "at": "beat:start"
+      }
+     ]
+    },
+    {
+     "id": "b_formule",
+     "say": "Cette question, la voici : à quelle puissance faut-il élever la base pour obtenir ce nombre ?",
+     "cues": [
+      {
+       "id": "c_puissance",
+       "text": "à quelle puissance"
+      },
+      {
+       "id": "c_base",
+       "text": "la base"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_cb",
+       "verb": "show",
+       "target": "cb_question",
+       "at": "cue:c_puissance"
+      },
+      {
+       "id": "h_base",
+       "verb": "highlight",
+       "target": "cb_question",
+       "role": "accent",
+       "at": "cue:c_base"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s2_exemple",
+   "introduces": [
+    {
+     "id": "e1",
+     "type": "math",
+     "content": "10^{1} = 10"
+    },
+    {
+     "id": "e2",
+     "type": "math",
+     "content": "10^{2} = 100"
+    },
+    {
+     "id": "e3",
+     "type": "math",
+     "content": "10^{3} = 1000"
+    },
+    {
+     "id": "l3",
+     "type": "math",
+     "content": "\\log(1000) = 3",
+     "layout": {
+      "next_to": "e3",
+      "direction": "down",
+      "gap": "lg"
+     }
+    }
+   ],
+   "groups": [
+    {
+     "id": "escalier",
+     "items": [
+      "e1",
+      "e2",
+      "e3"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_puissances",
+     "say": "On prend la base dix. Dix puissance un fait dix, dix puissance deux fait cent, dix puissance trois fait mille.",
+     "cues": [
+      {
+       "id": "c_p1",
+       "text": "Dix puissance un"
+      },
+      {
+       "id": "c_p2",
+       "text": "dix puissance deux"
+      },
+      {
+       "id": "c_p3",
+       "text": "dix puissance trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam2",
+       "verb": "camera.focus",
+       "targets": [
+        "e1",
+        "e2",
+        "e3",
+        "l3"
+       ],
+       "bounds": "layout_bounds",
+       "at": "beat:start"
+      },
+      {
+       "id": "s_e1",
+       "verb": "show",
+       "target": "e1",
+       "at": "cue:c_p1"
+      },
+      {
+       "id": "s_e2",
+       "verb": "show",
+       "target": "e2",
+       "at": "cue:c_p2"
+      },
+      {
+       "id": "s_e3",
+       "verb": "show",
+       "target": "e3",
+       "at": "cue:c_p3"
+      }
+     ]
+    },
+    {
+     "id": "b_log",
+     "say": "Alors le logarithme de mille, c'est trois : c'est la puissance qu'il a fallu pour y arriver.",
+     "cues": [
+      {
+       "id": "c_lm",
+       "text": "logarithme de mille"
+      },
+      {
+       "id": "c_trois",
+       "text": "trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_l3",
+       "verb": "show",
+       "target": "l3",
+       "at": "cue:c_lm"
+      },
+      {
+       "id": "h_l3",
+       "verb": "highlight",
+       "target": "l3",
+       "role": "result",
+       "at": "cue:c_trois"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s3_courbe",
+   "introduces": [
+    {
+     "id": "axes",
+     "type": "axes",
+     "params": {
+      "x": [
+       0,
+       10
+      ],
+      "y": [
+       -1,
+       2
+      ]
+     }
+    },
+    {
+     "id": "courbe",
+     "type": "function_graph",
+     "params": {
+      "expression": "log(x)",
+      "domain": [
+       0.2,
+       10
+      ]
+     },
+     "style": {
+      "role": "accent"
+     }
+    },
+    {
+     "id": "p1",
+     "type": "point",
+     "params": {
+      "at": [
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "id": "lab1",
+     "type": "label",
+     "content": "log(1) = 0",
+     "attachment": {
+      "parent": "p1",
+      "anchor": "left"
+     }
+    },
+    {
+     "id": "note",
+     "type": "text",
+     "content": "x doit être strictement positif",
+     "layout": {
+      "next_to": "axes",
+      "direction": "down",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_trace",
+     "say": "Voici la courbe du logarithme. Elle monte, mais de plus en plus lentement.",
+     "cues": [
+      {
+       "id": "c_courbe",
+       "text": "courbe"
+      },
+      {
+       "id": "c_lent",
+       "text": "lentement"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam3",
+       "verb": "camera.focus",
+       "targets": [
+        "axes",
+        "courbe"
+       ],
+       "bounds": "layout_bounds",
+       "at": "beat:start"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "target": "axes",
+       "at": "beat:start"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "target": "courbe",
+       "start": "cue:c_courbe",
+       "end": "cue_end:c_lent"
+      }
+     ]
+    },
+    {
+     "id": "b_point",
+     "say": "Pour x égale un, le logarithme vaut zéro, parce que dix puissance zéro fait un.",
+     "cues": [
+      {
+       "id": "c_x1",
+       "text": "x égale un"
+      },
+      {
+       "id": "c_zero",
+       "text": "vaut zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "target": "p1",
+       "at": "cue:c_x1"
+      },
+      {
+       "id": "s_lab1",
+       "verb": "show",
+       "target": "lab1",
+       "at": "cue:c_zero"
+      }
+     ]
+    },
+    {
+     "id": "b_domaine",
+     "say": "Attention, on ne peut calculer le logarithme que de nombres strictement positifs.",
+     "cues": [
+      {
+       "id": "c_positif",
+       "text": "strictement positifs"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "target": "note",
+       "at": "cue:c_positif"
+      },
+      {
+       "id": "h_courbe",
+       "verb": "highlight",
+       "target": "courbe",
+       "role": "accent",
+       "at": "after:s_note"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s4_regle",
+   "introduces": [
+    {
+     "id": "regle",
+     "type": "math",
+     "content": "\\log(a \\times b) = \\log(a) + \\log(b)",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\log(a \\times b)"
+      },
+      {
+       "id": "droite",
+       "text": "= \\log(a) + \\log(b)"
+      }
+     ]
+    },
+    {
+     "id": "ex",
+     "type": "math",
+     "content": "\\log(100 \\times 1000) = 2 + 3 = 5",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_force",
+     "say": "La grande force du logarithme, c'est ça : une multiplication devient une addition.",
+     "cues": [
+      {
+       "id": "c_mult",
+       "text": "multiplication"
+      },
+      {
+       "id": "c_add",
+       "text": "addition"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam4",
+       "verb": "camera.focus",
+       "targets": [
+        "regle",
+        "ex"
+       ],
+       "bounds": "layout_bounds",
+       "at": "beat:start"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "target": "regle",
+       "part": "gauche",
+       "at": "cue:c_mult"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "target": "regle",
+       "part": "droite",
+       "at": "cue:c_add"
+      }
+     ]
+    },
+    {
+     "id": "b_exemple",
+     "say": "Par exemple, le logarithme de cent fois mille vaut deux plus trois, donc cinq.",
+     "cues": [
+      {
+       "id": "c_cent",
+       "text": "cent fois mille"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux plus trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ex",
+       "verb": "show",
+       "target": "ex",
+       "at": "cue:c_cent"
+      },
+      {
+       "id": "h_ex",
+       "verb": "highlight",
+       "target": "ex",
+       "role": "result",
+       "at": "cue:c_deux"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s5_retenir",
+   "introduces": [
+    {
+     "id": "inv",
+     "type": "math",
+     "content": "\\log(10^{x}) = x",
+     "parts": [
+      {
+       "id": "i_g",
+       "text": "\\log(10^{x})"
+      },
+      {
+       "id": "i_d",
+       "text": "= x"
+      }
+     ]
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_defait",
+     "say": "Retiens l'essentiel : le logarithme défait exactement ce que la puissance a fait.",
+     "cues": [
+      {
+       "id": "c_es",
+       "text": "Retiens l'essentiel"
+      },
+      {
+       "id": "c_defait",
+       "text": "défait"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam5",
+       "verb": "camera.focus",
+       "targets": [
+        "inv"
+       ],
+       "at": "beat:start"
+      },
+      {
+       "id": "w_inv",
+       "verb": "write",
+       "target": "inv",
+       "part": "i_g",
+       "at": "cue:c_es"
+      },
+      {
+       "id": "w_invd",
+       "verb": "write",
+       "target": "inv",
+       "part": "i_d",
+       "at": "cue:c_defait"
+      }
+     ]
+    },
+    {
+     "id": "b_reciproque",
+     "say": "Si tu connais la puissance, tu connais le logarithme, et réciproquement.",
+     "cues": [
+      {
+       "id": "c_puis",
+       "text": "la puissance"
+      },
+      {
+       "id": "c_logq",
+       "text": "le logarithme"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_inv",
+       "verb": "highlight",
+       "target": "inv",
+       "role": "accent",
+       "at": "cue:c_logq"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

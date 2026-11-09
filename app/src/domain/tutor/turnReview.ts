@@ -8,6 +8,7 @@
  *
  * Tout est déterministe et général : aucune règle propre à une notion.
  */
+import { collisions, type Collision } from "@/domain/board/collisions";
 import { resolveTargets, type BoardState } from "@/domain/board/state";
 import type { Step } from "@/domain/scene/schema";
 import { stepActions, stepText } from "@/domain/scene/stepAccess";
@@ -61,6 +62,8 @@ export interface TurnReview {
   missingTargets: string[];
   /** Phrases qui annoncent une action sans rien montrer, avec le mot en cause. */
   unshown: Array<{ say: string; word: string }>;
+  /** Premier chevauchement entre deux textes encore visibles en fin de tour. */
+  textOverlap?: Collision;
   /** Phrases de plus de 22 mots (une idée par phrase). */
   longSentences: number;
 }
@@ -89,7 +92,8 @@ export function reviewTurn(steps: readonly Step[], board: BoardState): TurnRevie
     previousShowed = changes;
     if (stepText(step).trim().split(/\s+/).length > 22) longSentences++;
   }
-  return { steps: steps.length, gestures, missingTargets: [...missing], unshown, longSentences };
+  const textOverlap = collisions(board).find((collision) => collision.kind === "texte");
+  return { steps: steps.length, gestures, missingTargets: [...missing], unshown, textOverlap, longSentences };
 }
 
 /** Le retour donné au modèle au début du tour suivant (vide si le tour était propre). */
@@ -103,6 +107,10 @@ export function reviewNotes(review: TurnReview, rejected: readonly string[] = []
   }
   if (review.missingTargets.length > 0) {
     notes.push(`Tu as désigné ${review.missingTargets.slice(0, 4).join(", ")}, absent(s) du tableau : dessine un objet avant d'en parler.`);
+  }
+  if (review.textOverlap) {
+    const { a, b } = review.textOverlap;
+    notes.push(`Les textes « ${a} » et « ${b} » se chevauchent au tableau. Sépare-les pour les rendre lisibles.`);
   }
   if (review.longSentences > 0) notes.push(`${review.longSentences} phrase(s) chargée(s) : découpe les idées sans supprimer les définitions ni les raisons nécessaires.`);
   return notes.slice(0, 4).map((n) => n.slice(0, 240));

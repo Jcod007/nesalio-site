@@ -46,6 +46,7 @@ export function createVoiceInput(): VoiceInput {
       return recorder.supported || browser.supported;
     },
     start(handlers) {
+      active?.cancel();
       active = pick();
       active.start(handlers);
     },
@@ -60,25 +61,30 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
   const supported =
     typeof window !== "undefined" && typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
   let stopRecording: ((send: boolean) => void) | null = null;
+  let operation = 0;
+  let transcription: AbortController | null = null;
 
   return {
     supported,
     start(handlers) {
       if (!supported) return;
+      operation++;
+      transcription?.abort();
       stopRecording?.(false);
-      void record(handlers);
+      void record(handlers, operation);
     },
     stop: () => stopRecording?.(true),
-    cancel: () => stopRecording?.(false),
+    cancel: () => { operation++; transcription?.abort(); stopRecording?.(false); },
   };
 
-  async function record(handlers: VoiceInputHandlers) {
+  async function record(handlers: VoiceInputHandlers, id: number) {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
       });
     } catch (error) {
+      if (id !== operation) return;
       handlers.onState("idle");
       handlers.onError(
         (error as DOMException)?.name === "NotAllowedError"
@@ -87,6 +93,8 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
       );
       return;
     }
+
+    if (id !== operation) { stream.getTracks().forEach((track) => track.stop()); return; }
 
     const mimeType = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"].find((type) =>
       MediaRecorder.isTypeSupported?.(type),
@@ -117,7 +125,7 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
     };
     stopRecording = finish;
 
-    if (context.state === "suspended") await context.resume().catch(() => {});
+    if (context.state === "suspended") void context.resume().catch(() => {});
     meter = setInterval(() => {
       analyser.getFloatTimeDomainData(samples);
       let sum = 0;
@@ -140,6 +148,7 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
     mediaRecorder.onstop = async () => {
       stream.getTracks().forEach((track) => track.stop());
       void context.close();
+      if (id !== operation) return;
       handlers.onLevel?.(0);
       if (!send) {
         handlers.onState("idle");
@@ -148,12 +157,18 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
       }
       handlers.onState("transcribing");
       try {
+        const controller = new AbortController();
+        transcription = controller;
         const blob = new Blob(chunks, { type: mediaRecorder.mimeType || mimeType || "audio/webm" });
+        const audio = await toBase64(blob);
+        if (id !== operation) return;
         const response = await fetch(endpoint, {
           method: "POST",
+          signal: controller.signal,
           headers: { "Content-Type": "application/json", ...sessionHeaders() },
-          body: JSON.stringify({ audio: await toBase64(blob), mediaType: blob.type }),
+          body: JSON.stringify({ audio, mediaType: blob.type }),
         });
+        if (id !== operation) return;
         if (response.status === 503) {
           serverTranscription = "unavailable";
           throw new Error("Le micro n'est pas encore branché sur le serveur. Réessaie : j'utilise celui du navigateur.");
@@ -161,10 +176,12 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
         if (!response.ok) throw new Error("Je n'ai pas bien compris. Réessaie ?");
         serverTranscription = "ok";
         const { text } = (await response.json()) as { text?: string };
+        if (id !== operation) return;
         handlers.onState("idle");
         if (text?.trim()) handlers.onResult(text.trim());
         else handlers.onError("Je n'ai pas bien compris. Réessaie ?");
       } catch (error) {
+        if (id !== operation) return;
         handlers.onState("idle");
         handlers.onError((error as Error).message || "Je n'ai pas bien compris. Réessaie ?");
       }
@@ -188,27 +205,32 @@ function toBase64(blob: Blob): Promise<string> {
 
 function createBrowserInput(): VoiceInput {
   const listener = createSpeechListener("fr-CA");
+  let operation = 0;
   return {
     supported: listener.supported,
     start(handlers) {
+      const id = ++operation;
       let heard = "";
       handlers.onState("recording");
       listener.start({
         onText(text) {
+          if (id !== operation) return;
           heard = text;
           handlers.onPartial?.(text);
         },
         onEnd() {
+          if (id !== operation) return;
           handlers.onState("idle");
           if (heard.trim()) handlers.onResult(heard.trim());
         },
         onError(code) {
+          if (id !== operation) return;
           handlers.onState("idle");
           handlers.onError(code === "not-allowed" ? "Autorise le micro dans ton navigateur pour parler à Nesa." : "Je n'ai pas bien entendu. Réessaie ?");
         },
       });
     },
     stop: () => listener.stop(),
-    cancel: () => listener.stop(),
+    cancel: () => { operation++; listener.stop(); },
   };
 }

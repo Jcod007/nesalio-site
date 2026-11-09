@@ -5,14 +5,14 @@ ARTICLES = [
 {
  'slug': 'chatgpt-devoirs',
  'seo_title': 'ChatGPT aux devoirs : aide ou béquille ? Ce que dit la recherche',
- 'seo_desc': "ChatGPT pour les devoirs de maths au secondaire et au cégep : une étude sur près de 1 000 élèves montre que l'IA qui donne la réponse nuit à l'examen. Conseils pour les élèves et les parents du Québec.",
- 'keywords': 'ChatGPT devoirs, IA école, aide aux devoirs, maths secondaire, cégep, élèves Québec, parents, examen du ministère',
+ 'seo_desc': "ChatGPT pour les devoirs de maths en secondaire 4 et 5 : une étude sur près de 1 000 élèves montre que l'IA qui donne la réponse nuit à l'examen. Conseils pour les élèves et les parents du Québec.",
+ 'keywords': 'ChatGPT devoirs, IA école, aide aux devoirs, maths secondaire 4 et 5, élèves Québec, parents, examen du ministère',
  'title': "ChatGPT aux devoirs : aide ou béquille ?",
  'desc': "Une étude auprès de près de 1 000 élèves montre que l'IA qui donne la réponse aide pendant l'exercice, mais nuit à l'examen. Ce qui change tout : les garde-fous.",
  'read': 3,
  'kicker': "IA et apprentissage",
  'body': """
-<p class="lead">Au Québec, de plus en plus d'élèves du secondaire et du cégep ouvrent ChatGPT dès qu'un devoir de maths ou de sciences bloque. Un prof de mathématiques au cégep nous l'a résumé en entrevue : beaucoup demandent un corrigé complet, qu'ils ne comprennent pas. Est-ce que ça les aide vraiment ? Une étude publiée en 2025 donne une réponse claire.</p>
+<p class="lead">Quand un devoir de maths bloque en secondaire 4 ou 5, il est tentant de demander un corrigé complet à ChatGPT. Mais obtenir la réponse ne garantit pas de comprendre la démarche. Est-ce que ça aide vraiment à apprendre ? Une étude publiée en 2025 donne une réponse claire.</p>
 
 <h2>L'expérience</h2>
 <p>Des chercheurs de l'Université de Pennsylvanie ont suivi près de 1 000 élèves du secondaire en mathématiques, en Turquie. Pendant des séances d'exercices, certains élèves avaient accès à une version de GPT-4 qui ressemble à ChatGPT (« GPT Base »). D'autres avaient une version avec des garde-fous (« GPT Tutor ») : préparée avec des enseignants, elle donne des indices au lieu de la réponse. Un troisième groupe travaillait sans IA. Ensuite, tous passaient une évaluation <strong>sans</strong> l'IA.</p>
@@ -46,15 +46,15 @@ ARTICLES = [
 },
 {
  'slug': 'expliquer-en-dessinant',
- 'seo_title': 'Expliquer en dessinant : pourquoi on comprend mieux les maths et la physique',
- 'seo_desc': 'Pourquoi un schéma et une explication à voix haute aident à comprendre les maths, la physique et la chimie au secondaire et au cégep. Ce que dit la recherche (Mayer).',
- 'keywords': 'comprendre les maths, physique secondaire 5, chimie, schéma, apprentissage visuel, prof, élèves Québec',
+ 'seo_title': 'Expliquer en dessinant : pourquoi on comprend mieux les maths',
+ 'seo_desc': 'Pourquoi un schéma et une explication à voix haute aident à comprendre les mathématiques de secondaire 4 et 5. Ce que dit la recherche (Mayer).',
+ 'keywords': 'comprendre les maths, secondaire 4, secondaire 5, schéma, apprentissage visuel, prof, élèves Québec',
  'title': "Expliquer en dessinant : ce que dit la recherche",
  'desc': "Des mots et des images, plutôt que des mots seuls. Et une voix plutôt qu'un texte à lire. Deux principes parmi les plus solides de la recherche sur l'apprentissage.",
  'read': 3,
  'kicker': "Comment on apprend",
  'body': """
-<p class="lead">Pourquoi un bon prof de maths ou de physique, au secondaire comme au cégep, prend-il toujours la craie ? Pourquoi une notion lue trois fois dans le manuel devient-elle claire quand quelqu'un la dessine en l'expliquant ? La recherche en psychologie cognitive a une réponse précise.</p>
+<p class="lead">Pourquoi un bon prof de maths de secondaire 4 ou 5 prend-il toujours la craie ? Pourquoi une notion lue trois fois dans le manuel devient-elle claire quand quelqu'un la dessine en l'expliquant ? La recherche en psychologie cognitive a une réponse précise.</p>
 
 <h2>Principe 1 : des mots et des images</h2>
 <p>Le psychologue Richard Mayer, de l'Université de Californie à Santa Barbara, étudie depuis plus de 30 ans comment on apprend avec des explications. Son premier principe est simple : <strong>on apprend mieux avec des mots et des images qu'avec des mots seuls</strong>.</p>
@@ -72,7 +72,7 @@ ARTICLES = [
 
 <h2>En pratique</h2>
 <ul>
-<li><strong>Dessiner l'énoncé.</strong> Devant un problème de physique, de chimie ou une situation-problème de maths en sec 4 ou sec 5, faire un schéma avant de calculer.</li>
+<li><strong>Dessiner l'énoncé.</strong> Devant une situation-problème de maths en secondaire 4 ou 5, faire un schéma avant de calculer.</li>
 <li><strong>Demander à voir.</strong> Quand une explication ne passe pas, en classe, en récupération avec le prof ou avec un tuteur, demander : « Peux-tu me le dessiner ? »</li>
 <li><strong>Expliquer en traçant.</strong> Pour réviser, refaire le schéma de mémoire en expliquant à voix haute chaque étape.</li>
 </ul>
@@ -88,14 +88,14 @@ ARTICLES = [
 {
  'slug': 'tutorat-efficace',
  'seo_title': 'Tuteur en maths : le tutorat marche-t-il vraiment ? Ce que disent les études',
- 'seo_desc': "Tuteur privé, récupération, Alloprof : ce que la recherche dit de l'efficacité du tutorat en maths et en sciences, et comment bien choisir un tuteur au Québec (sec 4-5, cégep).",
- 'keywords': 'tuteur maths, tutorat Québec, aide aux devoirs, récupération, Alloprof, secondaire 4, secondaire 5, cégep, CST TS SN',
+ 'seo_desc': "Tuteur privé, récupération, Alloprof : ce que la recherche dit de l'efficacité du tutorat en mathématiques, et comment bien choisir un tuteur au Québec (secondaire 4 et 5).",
+ 'keywords': 'tuteur maths, tutorat Québec, aide aux devoirs, récupération, Alloprof, secondaire 4, secondaire 5, CST TS SN',
  'title': "Le tutorat individuel marche-t-il vraiment ?",
  'desc': "De l'effet « 2 sigma » de Bloom aux méta-analyses récentes : ce que le tutorat apporte vraiment, et ce qui le rend efficace.",
  'read': 3,
  'kicker': "Ce que disent les données",
  'body': """
-<p class="lead">Quand les notes baissent en maths ou en sciences, beaucoup de familles québécoises cherchent un tuteur ou de l'aide aux devoirs. Une famille rencontrée en entrevue y consacrait environ 50 $ par semaine. Est-ce que ça marche ? La réponse courte : oui, nettement. La réponse complète est plus nuancée, et plus utile.</p>
+<p class="lead">Quand les notes baissent en maths, beaucoup de familles québécoises cherchent un tuteur ou de l'aide aux devoirs. Une famille rencontrée en entrevue y consacrait environ 50 $ par semaine. Est-ce que ça marche ? La réponse courte : oui, nettement. La réponse complète est plus nuancée, et plus utile.</p>
 
 <h2>Le chiffre célèbre : 2 sigma</h2>
 <p>En 1984, le chercheur Benjamin Bloom publie un résultat devenu célèbre. Des élèves suivis par un tuteur, seuls ou par deux ou trois, réussissaient beaucoup mieux que ceux d'une classe ordinaire : <strong>l'élève tutoré moyen dépassait 98 % des élèves de la classe</strong>. C'est l'écart de « deux écarts-types », d'où le nom « problème des 2 sigma ».</p>
@@ -113,12 +113,12 @@ ARTICLES = [
 <li><strong>Le tuteur compte.</strong> Les programmes menés par des enseignants ou du personnel formé donnent de meilleurs résultats que ceux menés par des bénévoles ou des parents.</li>
 <li><strong>La régularité compte.</strong> Les séances fréquentes, plusieurs fois par semaine, fonctionnent mieux qu'une séance isolée.</li>
 <li><strong>Le lien avec la classe compte.</strong> Dans les programmes étudiés, le tutorat intégré à la journée d'école a eu en moyenne un effet environ deux fois plus grand qu'après l'école (0,40 contre 0,21).</li>
-<li><strong>En maths, l'effet est plus fort chez les plus grands</strong>, ce qui est une bonne nouvelle pour le secondaire et le cégep.</li>
+<li><strong>En maths, l'effet est plus fort chez les plus grands</strong>, ce qui est une bonne nouvelle pour les élèves de secondaire 4 et 5.</li>
 </ul>
 
 <h2>La vraie limite : l'accès</h2>
 <p>Bloom le disait déjà en 1984 : le tutorat individuel est trop coûteux pour être offert à tous les élèves. Une heure par semaine aide, mais le blocage arrive souvent le soir, la veille du test, quand le tuteur n'est pas là.</p>
-<p>Au Québec, les élèves ont d'autres ressources à ne pas négliger : la récupération avec le prof à l'école, les centres d'aide au cégep, et Alloprof, gratuit. L'important est d'y aller tôt, dès que la notion bloque, et pas la veille de l'examen.</p>
+<p>Au Québec, les élèves ont d'autres ressources à ne pas négliger : la récupération avec le prof à l'école et Alloprof, gratuit. L'important est d'y aller tôt, dès que la notion bloque, et pas la veille de l'examen.</p>
 
 <h2>En pratique, pour choisir un tuteur</h2>
 <ul>
@@ -138,15 +138,15 @@ ARTICLES = [
 },
 {
  'slug': 'bien-etudier',
- 'seo_title': 'Comment étudier pour un examen de maths ou de sciences : se tester plutôt que relire',
- 'seo_desc': "Préparer un examen du ministère ou un examen de cégep : les techniques d'étude qui marchent vraiment selon la recherche (se tester, étaler l'étude). Plan simple sur deux semaines.",
- 'keywords': "comment étudier, examen du ministère, examen maths secondaire 4, cégep, cote R, méthodes d'étude, élèves Québec",
+ 'seo_title': 'Comment étudier pour un examen de maths : se tester plutôt que relire',
+ 'seo_desc': "Préparer un examen de maths de secondaire 4 ou 5 ou un examen du ministère : les techniques d'étude qui marchent vraiment selon la recherche (se tester, étaler l'étude). Plan simple sur deux semaines.",
+ 'keywords': "comment étudier, examen du ministère, examen maths secondaire 4, maths secondaire 5, méthodes d'étude, élèves Québec",
  'title': "Bien étudier avant un examen : se tester plutôt que relire",
  'desc': "Relire et surligner rassurent, mais retiennent peu. Les deux techniques les mieux notées par la recherche : se tester et étaler son étude.",
  'read': 3,
  'kicker': "Méthodes d'étude",
  'body': """
-<p class="lead">La veille d'un test, d'un examen du ministère ou d'un examen de cégep qui compte pour la cote R, la plupart des élèves font la même chose : relire leurs notes, surligner, refaire les exercices en regardant le corrigé. Ça donne l'impression d'être prêt. La recherche montre que c'est souvent une illusion.</p>
+<p class="lead">La veille d'un test de maths de secondaire 4 ou 5 ou d'un examen du ministère, la plupart des élèves font la même chose : relire leurs notes, surligner, refaire les exercices en regardant le corrigé. Ça donne l'impression d'être prêt. La recherche montre que c'est souvent une illusion.</p>
 
 <h2>Dix techniques passées au crible</h2>
 <p>En 2013, cinq chercheurs en psychologie, menés par John Dunlosky, ont évalué dix techniques d'étude courantes à partir de centaines d'études. Leur verdict :</p>
