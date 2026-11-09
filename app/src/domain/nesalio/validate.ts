@@ -105,7 +105,7 @@ function skipArgument(text: string, from: number): number {
   return -1;
 }
 
-function standaloneTex(text: string): boolean {
+export function standaloneTex(text: string): boolean {
   if (/^\s*[\^_]/.test(text) || /[\\^_&]\s*$/.test(text)) return false;
   let braces = 0;
   let delimiters = 0;
@@ -146,6 +146,8 @@ export function sameFormula(a: string, b: string): boolean {
 export function normalFormula(text: string): string {
   return text
     .replace(/\\left|\\right/g, "")
+    // Spacing commands change the look, not the formula.
+    .replace(/\\(?:q?quad|[,;:!> ])/g, "")
     .replace(/\s+/g, "")
     .replace(/[−–]/g, "-")
     .replace(/×/g, "\\times")

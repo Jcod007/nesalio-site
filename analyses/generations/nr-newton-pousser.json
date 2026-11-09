@@ -1,0 +1,842 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "force_acceleration",
+  "title": "Force et accélération : pourquoi deux fois plus fort ne donne pas deux fois plus vite",
+  "language": "fr",
+  "learning_goal": "Comprendre que la force produit une accélération (un changement de vitesse), pas une vitesse : avec F = ma, doubler la force double l'accélération, mais la vitesse gagnée dépend aussi de la durée pendant laquelle on pousse."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_mise_en_place",
+   "introduces": [
+    {
+     "id": "titre",
+     "size": "large",
+     "content": "F = ma : une force donne une accélération",
+     "type": "text"
+    },
+    {
+     "id": "boite",
+     "params": {
+      "vertices": [
+       [
+        -1,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        -1,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "boite_txt",
+     "attachment": {
+      "parent": "boite",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "m = 2 kg",
+     "type": "label"
+    },
+    {
+     "id": "fleche",
+     "params": {
+      "from": [
+       -1,
+       1
+      ],
+      "to": [
+       -3,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "fleche_txt",
+     "attachment": {
+      "parent": "fleche",
+      "anchor": "left"
+     },
+     "content": "F",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "bonjour",
+     "say": "Bonne question : deux fois plus fort, ça veut dire une force doublée.",
+     "cues": [
+      {
+       "id": "c_fort",
+       "text": "force doublée"
+      }
+     ],
+     "do": [
+      {
+       "id": "sh_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      }
+     ]
+    },
+    {
+     "id": "vitesse_pas",
+     "say": "Mais attention : une force ne fixe pas la vitesse de la boîte. Elle fixe sa vitesse qui change, c'est-à-dire son accélération.",
+     "cues": [
+      {
+       "id": "c_force",
+       "text": "une force"
+      },
+      {
+       "id": "c_accel",
+       "text": "son accélération"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_boite",
+       "verb": "draw",
+       "at": "cue:c_force",
+       "target": "boite"
+      },
+      {
+       "id": "s_btxt",
+       "verb": "show",
+       "at": "after:d_boite",
+       "target": "boite_txt"
+      },
+      {
+       "id": "d_fleche",
+       "verb": "draw",
+       "at": "cue:c_accel",
+       "target": "fleche"
+      },
+      {
+       "id": "s_ftxt",
+       "verb": "show",
+       "at": "after:d_fleche",
+       "target": "fleche_txt"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        0,
+        4,
+        8
+       ],
+       [
+        0,
+        2,
+        4
+       ]
+      ],
+      "row_labels": [
+       "temps (s)",
+       "vitesse (m/s)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "calc",
+     "content": "a = \\frac{F}{m} = \\frac{8\\ \\text{N}}{2\\ \\text{kg}} = 4\\ \\text{m/s}^2",
+     "parts": [
+      {
+       "id": "form",
+       "text": "a = \\frac{F}{m}"
+      },
+      {
+       "id": "nombres",
+       "text": "= \\frac{8\\ \\text{N}}{2\\ \\text{kg}}"
+      },
+      {
+       "id": "res",
+       "text": "= 4\\ \\text{m/s}^2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Prenons des nombres simples : une boîte de deux kilogrammes, poussée avec huit newtons.",
+     "cues": [
+      {
+       "id": "c_kg",
+       "text": "deux kilogrammes"
+      },
+      {
+       "id": "c_n",
+       "text": "huit newtons"
+      }
+     ],
+     "do": [
+      {
+       "id": "sh_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "dim_titre",
+       "verb": "dim",
+       "at": "cue:c_kg",
+       "target": "titre"
+      }
+     ]
+    },
+    {
+     "id": "accel",
+     "say": "F sur m donne l'accélération : huit divisé par deux, ça fait quatre mètres par seconde au carré. La vitesse augmente donc de quatre mètres par seconde à chaque seconde.",
+     "cues": [
+      {
+       "id": "c_f_sur_m",
+       "text": "F sur m"
+      },
+      {
+       "id": "c_accel",
+       "text": "l'accélération"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre mètres par seconde"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_form",
+       "verb": "write",
+       "at": "cue:c_f_sur_m",
+       "target": "calc",
+       "part": "form"
+      },
+      {
+       "id": "w_nombres",
+       "verb": "write",
+       "at": "cue:c_accel",
+       "target": "calc",
+       "part": "nombres"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "calc",
+       "part": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "calc",
+       "role": "result",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_double",
+   "introduces": [
+    {
+     "id": "fleche2",
+     "params": {
+      "from": [
+       -1,
+       1
+      ],
+      "to": [
+       -5,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "fleche2_txt",
+     "attachment": {
+      "parent": "fleche2",
+      "anchor": "left"
+     },
+     "content": "2F = 16 N",
+     "type": "label"
+    },
+    {
+     "id": "tab2",
+     "params": {
+      "rows": [
+       [
+        0,
+        4,
+        8
+       ],
+       [
+        0,
+        4,
+        8
+       ]
+      ],
+      "row_labels": [
+       "temps (s)",
+       "vitesse (m/s)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "calc2",
+     "content": "a = \\frac{16\\ \\text{N}}{2\\ \\text{kg}} = 8\\ \\text{m/s}^2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pousse_fort",
+     "say": "Maintenant, poussons deux fois plus fort : seize newtons au lieu de huit.",
+     "cues": [
+      {
+       "id": "c_seize",
+       "text": "seize newtons"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_fleche2",
+       "verb": "draw",
+       "at": "cue:c_seize",
+       "target": "fleche2"
+      },
+      {
+       "id": "s_f2txt",
+       "verb": "show",
+       "at": "after:d_fleche2",
+       "target": "fleche2_txt"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_seize",
+       "target": "tab"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_seize",
+       "target": "calc"
+      },
+      {
+       "id": "f_boite",
+       "verb": "fade_out",
+       "at": "cue:c_seize",
+       "target": "boite"
+      },
+      {
+       "id": "f_btxt",
+       "verb": "fade_out",
+       "at": "cue:c_seize",
+       "target": "boite_txt"
+      },
+      {
+       "id": "f_fleche",
+       "verb": "fade_out",
+       "at": "cue:c_seize",
+       "target": "fleche"
+      },
+      {
+       "id": "f_ftxt",
+       "verb": "fade_out",
+       "at": "cue:c_seize",
+       "target": "fleche_txt"
+      }
+     ]
+    },
+    {
+     "id": "double_accel",
+     "say": "L'accélération double elle aussi : seize divisé par deux, huit mètres par seconde au carré. À chaque seconde, la vitesse gagne huit mètres par seconde.",
+     "cues": [
+      {
+       "id": "c_accel",
+       "text": "L'accélération double"
+      },
+      {
+       "id": "c_huit",
+       "text": "huit mètres par seconde"
+      }
+     ],
+     "do": [
+      {
+       "id": "sh_tab2",
+       "verb": "show",
+       "at": "cue:c_accel",
+       "target": "tab2"
+      },
+      {
+       "id": "w_nombres",
+       "verb": "write",
+       "at": "cue:c_huit",
+       "target": "calc2"
+      },
+      {
+       "id": "w_res",
+       "verb": "highlight",
+       "at": "after:w_nombres",
+       "target": "calc2",
+       "role": "accent"
+      },
+      {
+       "id": "h_res2",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "calc2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_vitesse_finale",
+   "introduces": [
+    {
+     "id": "vf",
+     "content": "v = a \\times t = 8\\ \\text{m/s}^2 \\times 5\\ \\text{s} = 40\\ \\text{m/s}",
+     "parts": [
+      {
+       "id": "eq",
+       "text": "v = a \\times t"
+      },
+      {
+       "id": "nombres",
+       "text": "= 8\\ \\text{m/s}^2 \\times 5\\ \\text{s}"
+      },
+      {
+       "id": "res",
+       "text": "= 40\\ \\text{m/s}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "concl",
+     "layout": {
+      "next_to": "vf",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Deux fois plus fort, six secondes au lieu de cinq : 48 m/s au lieu de 40, pas 80.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "apres_cinq",
+     "say": "Poussons cinq secondes. Avec huit mètres par seconde au carré, la vitesse atteint quarante mètres par seconde.",
+     "cues": [
+      {
+       "id": "c_vf",
+       "text": "la vitesse atteint"
+      },
+      {
+       "id": "c_quarante",
+       "text": "quarante mètres par seconde"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_vf",
+       "target": "vf",
+       "part": "eq"
+      },
+      {
+       "id": "w_nombres",
+       "verb": "write",
+       "at": "cue:c_vf",
+       "target": "vf",
+       "part": "nombres"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_quarante",
+       "target": "vf",
+       "part": "res"
+      },
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "cue:c_quarante",
+       "target": "tab2"
+      },
+      {
+       "id": "f_calc2",
+       "verb": "fade_out",
+       "at": "cue:c_quarante",
+       "target": "calc2"
+      }
+     ]
+    },
+    {
+     "id": "reponse",
+     "say": "Si on avait poussé cinq secondes avec la petite force, on aurait quarante mètres par seconde. Deux fois plus fort, ça donne bien le double à chaque seconde, mais la vitesse finale dépend de combien de temps on pousse.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "le double"
+      },
+      {
+       "id": "c_temps",
+       "text": "combien de temps"
+      }
+     ],
+     "do": [
+      {
+       "id": "sh_concl",
+       "verb": "show",
+       "at": "cue:c_double",
+       "target": "concl"
+      },
+      {
+       "id": "h_vf",
+       "verb": "highlight",
+       "at": "cue:c_temps",
+       "target": "vf",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retour_fma",
+   "introduces": [
+    {
+     "id": "fma",
+     "content": "F = m \\times a \\Leftrightarrow a = \\frac{F}{m}",
+     "parts": [
+      {
+       "id": "f",
+       "text": "F = m \\times a"
+      },
+      {
+       "id": "equiv",
+       "text": "\\Leftrightarrow"
+      },
+      {
+       "id": "a",
+       "text": "a = \\frac{F}{m}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "retenir",
+     "size": "large",
+     "layout": {
+      "next_to": "fma",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "La force règle le changement de vitesse, pas la vitesse.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sens_fma",
+     "say": "Voilà le vrai sens de F égale m a : la force produit l'accélération, la vitesse qui change.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "produit l'accélération"
+      },
+      {
+       "id": "c_chang",
+       "text": "vitesse qui change"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_fleche2",
+       "verb": "fade_out",
+       "at": "cue:c_produit",
+       "target": "fleche2"
+      },
+      {
+       "id": "f_f2txt",
+       "verb": "fade_out",
+       "at": "cue:c_produit",
+       "target": "fleche2_txt"
+      },
+      {
+       "id": "f_vf",
+       "verb": "fade_out",
+       "at": "cue:c_produit",
+       "target": "vf"
+      },
+      {
+       "id": "f_concl",
+       "verb": "fade_out",
+       "at": "cue:c_produit",
+       "target": "concl"
+      },
+      {
+       "id": "c_fma",
+       "verb": "camera.focus",
+       "at": "cue:c_chang",
+       "targets": [
+        "fma",
+        "retenir"
+       ]
+      },
+      {
+       "id": "w_f",
+       "verb": "write",
+       "at": "cue:c_chang",
+       "target": "fma",
+       "part": "f"
+      },
+      {
+       "id": "w_equiv",
+       "verb": "write",
+       "at": "cue:c_chang",
+       "target": "fma",
+       "part": "equiv"
+      },
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_chang",
+       "target": "fma",
+       "part": "a"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

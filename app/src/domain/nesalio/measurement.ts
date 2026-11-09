@@ -1,3 +1,4 @@
+import { niceStep } from "@/domain/board/geometry";
 import { FONT_SIZE, matrixLayout, textWorldExtent } from "@/domain/board/layout";
 import { compileNamedExpression } from "@/domain/math/expr";
 import type { MathContext, SceneObject } from "./contract";
@@ -167,6 +168,61 @@ function strokeBoxes(points: readonly Point[], closed = false, thickness = 0.06)
   return boxes;
 }
 
+/** The cells of a matrix as written: row titles first when it is a table of values, numbers in French. */
+export function tableRows(params: { rows: readonly (readonly number[])[]; row_labels?: readonly string[] }): string[][] {
+  const write = (value: number) => String(value).replace(".", ",").replace("-", "−");
+  return params.rows.map((row, i) => [...params.row_labels ? [params.row_labels[i] ?? ""] : [], ...row.map(write)]);
+}
+
+/**
+ * A table of values drawn as a grid, centred on its position: where each cell's
+ * text stands and the grid's lines, in world units. Shared by placement and drawing.
+ */
+export function tableLayout(rows: readonly (readonly string[])[], fontSize: number) {
+  const { widths, lineHeight } = matrixLayout(rows, fontSize);
+  const pad = 0.3;
+  const columns = widths.map((w) => w + 2 * pad);
+  const rowHeight = lineHeight + 0.25;
+  const width = columns.reduce((a, b) => a + b, 0);
+  const height = rowHeight * rows.length;
+  const left = -width / 2, top = height / 2;
+  const starts = columns.map((_, j) => left + columns.slice(0, j).reduce((a, b) => a + b, 0));
+  const cells = rows.flatMap((row, i) => row.map((text, j) => ({ text, row: i, column: j,
+    at: [starts[j]! + columns[j]! / 2, top - (i + 0.5) * rowHeight] as Point })));
+  const lines: [Point, Point][] = [
+    [[left, top], [-left, top]], [[left, -top], [-left, -top]], [[left, top], [left, -top]], [[-left, top], [-left, -top]],
+    ...rows.slice(1).map((_, i): [Point, Point] => [[left, top - (i + 1) * rowHeight], [-left, top - (i + 1) * rowHeight]]),
+    ...starts.slice(1).map((x): [Point, Point] => [[x, top], [x, -top]]),
+  ];
+  return { cells, lines, width, height };
+}
+
+/** How far a number stands from its axis, and the room it takes. */
+const NUMBER_GAP = 0.35;
+const NUMBER_ROOM = 0.6;
+
+/**
+ * The numbers written on the ticks of axes, in axis units from the origin:
+ * under the x axis, left of the y axis, zero left out (both axes cross there).
+ * French writing: decimal comma, minus sign.
+ */
+export function axisNumbers(params: { x: readonly [number, number]; y: readonly [number, number] } | undefined): { axis: "x" | "y"; text: string; at: Point }[] {
+  const { x, y } = params ?? { x: [-6, 6] as const, y: [-4, 4] as const };
+  const write = (value: number) => String(Number(value.toFixed(6))).replace(".", ",").replace("-", "−");
+  const ticks = ([a, b]: readonly [number, number]) => {
+    const step = niceStep(b - a);
+    const values: number[] = [];
+    for (let k = Math.ceil(a / step - 1e-9); k * step <= b + 1e-9; k++) if (k !== 0) values.push(Number((k * step).toFixed(9)));
+    return values;
+  };
+  const oy = Math.min(Math.max(0, y[0]), y[1]);
+  const ox = Math.min(Math.max(0, x[0]), x[1]);
+  return [
+    ...ticks(x).map((value) => ({ axis: "x" as const, text: write(value), at: [value, oy - NUMBER_GAP] as Point })),
+    ...ticks(y).map((value) => ({ axis: "y" as const, text: write(value), at: [ox - NUMBER_GAP, value] as Point })),
+  ];
+}
+
 /** Default world-space estimates. A renderer may supply its measured text and geometry instead. */
 export const measureSceneObject: MeasureObject = (object, values, math, window) => {
   const fontSize = FONT_SIZE[object.size === "medium" || object.size === undefined ? "normal" : object.size];
@@ -191,10 +247,13 @@ export const measureSceneObject: MeasureObject = (object, values, math, window) 
     case "axes": {
       const { x: [x0, x1], y: [y0, y1] } = object.params ?? { x: [-6, 6], y: [-4, 4] };
       // The two axis lines and their ticks; the empty quadrants stay free for labels.
-      const collision: Box[] = [];
-      if (y0 <= 0 && y1 >= 0) collision.push({ x0, y0: -0.12, x1, y1: 0.12 });
-      if (x0 <= 0 && x1 >= 0) collision.push({ x0: -0.12, y0, x1: 0.12, y1 });
-      return { body: { x0, y0, x1, y1 }, allowOverlap: true, collision };
+      // Each axis keeps the strip where its numbers are written (axisNumbers).
+      const oy = Math.min(Math.max(0, y0), y1), ox = Math.min(Math.max(0, x0), x1);
+      const collision: Box[] = [
+        { x0: x0 - 0.2, y0: oy - NUMBER_GAP - NUMBER_ROOM / 2, x1: x1 + 0.2, y1: oy + 0.12 },
+        { x0: ox - NUMBER_GAP - NUMBER_ROOM / 2, y0: y0 - 0.2, x1: ox + 0.12, y1: y1 + 0.2 },
+      ];
+      return { body: union([{ x0, y0, x1, y1 }, ...collision])!, allowOverlap: true, collision };
     }
     case "function_graph":
     case "parametric_curve": {
@@ -207,6 +266,10 @@ export const measureSceneObject: MeasureObject = (object, values, math, window) 
     }
     case "triangle_right": return triangleMeasurement(object, values, math);
     case "matrix": {
+      if (object.params.row_labels) {
+        const { width, height } = tableLayout(tableRows(object.params), fontSize);
+        return { body: centered(width, height) };
+      }
       const { width, height } = matrixLayout(object.params.rows.map((row) => row.map(String)), fontSize);
       return { body: centered(width, height) };
     }

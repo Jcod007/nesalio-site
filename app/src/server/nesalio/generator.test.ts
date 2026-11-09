@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ChatProvider } from "@/server/config";
 import type { CompletionOptions } from "@/server/tutor/chatCompletions";
-import { closeJsonLine, generateNesalio, MAX_REPAIRS, MAX_SLICES, type NesalioEvent } from "./generator";
+import { closeJsonLine, generateNesalio, MAX_ATTEMPTS, MAX_REPAIRS, MAX_SLICES, type NesalioEvent } from "./generator";
 
 const provider: ChatProvider = { name: "gateway", protocol: "openai", endpoint: "https://example.test", apiKey: "k", model: "m", firstTurnEffort: "none" };
 const header = JSON.stringify({ lesson: { id: "l", title: "Titre", language: "fr", learning_goal: "But" }, math_context: { symbols: {}, expressions: {} } });
@@ -57,11 +57,25 @@ describe("générateur Nesalio", () => {
     expect(repair.at(-1)!.content).toContain("mots entiers");
   });
 
-  it("ne joue jamais une tranche restée invalide après la correction, et garde ce qui était valide", async () => {
+  it("ne joue jamais une tranche restée invalide après ses corrections, et garde ce qui était valide", async () => {
     const bad = slice("s2", "o_s2", "trian");
-    const model = scripted([header, slice("s1"), bad].join("\n"), bad);
-    expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "end"]);
-    expect(model.calls).toHaveLength(2);
+    const model = scripted([header, slice("s1"), bad].join("\n"), bad, bad);
+    const events = await run(model.completion);
+    expect(kinds(events)).toEqual(["lesson", "slice:s1", "error"]);
+    // Seen by the user: a lesson cut short was announced as finished. It is now said to be incomplete.
+    expect(events.at(-1)).toMatchObject({ kind: "error", code: "incomplete" });
+    expect(model.calls).toHaveLength(1 + MAX_ATTEMPTS);
+  });
+
+  it("redonne une chance à une tranche dont la correction apporte une nouvelle erreur", async () => {
+    // Seen in real generations: the corrected tranche fixed its cue and aimed at an undeclared object instead.
+    const model = scripted(
+      [header, slice("s1"), slice("s2", "o_s2", "trian")].join("\n"),
+      slice("s2", "o_s2").replace('"target":"o_s2"', '"target":"inconnu"'),
+      [slice("s2"), slice("s3")].join("\n"),
+    );
+    expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
+    expect(model.calls).toHaveLength(3);
   });
 
   it("refuse un geste que le lecteur ne sait pas jouer, même s’il est dans le contrat", async () => {
@@ -79,7 +93,7 @@ describe("générateur Nesalio", () => {
     expect(await run(scripted("Je ne sais pas.").completion)).toMatchObject([{ kind: "error", code: "empty" }]);
     const failing = () => (async function* () { yield [header, slice("s1"), ""].join("\n"); throw new Error("coupure"); })();
     expect(kinds(await run(failing))).toEqual(["lesson", "slice:s1", "error"]);
-    const neverValid = scripted([header, slice("s1", "o", "trian")].join("\n"), slice("s1", "o", "trian"));
+    const neverValid = scripted([header, slice("s1", "o", "trian")].join("\n"), slice("s1", "o", "trian"), slice("s1", "o", "trian"));
     expect(await run(neverValid.completion)).toMatchObject([{ kind: "lesson" }, { kind: "error", code: "invalid" }]);
   });
 
@@ -87,6 +101,13 @@ describe("générateur Nesalio", () => {
     // Seen in real generations: the header ends with `"expressions": {}}`, one `}` short.
     const model = scripted([header.slice(0, -1), slice("s1").slice(0, -2)].join("\n"));
     expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "end"]);
+    expect(model.calls).toHaveLength(1);
+  });
+
+  it("lit deux objets JSON collés sur une même ligne", async () => {
+    // Seen in real generations: « Unexpected non-whitespace character after JSON » — a tranche followed by the next one.
+    const model = scripted([header, slice("s1") + slice("s2")].join("\n"));
+    expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
     expect(model.calls).toHaveLength(1);
   });
 
@@ -119,7 +140,7 @@ describe("générateur Nesalio", () => {
     const model = scripted(...answers);
     const events = await run(model.completion);
     expect(model.calls).toHaveLength(MAX_REPAIRS + 1);
-    expect(events.at(-1)).toEqual({ kind: "end" });
+    expect(events.at(-1)).toMatchObject({ kind: "error", code: "incomplete" });
   });
 
   it("refuse un en-tête dont le contexte mathématique est faux et ne redemande que la ligne lesson", async () => {
@@ -181,6 +202,33 @@ describe("générateur Nesalio", () => {
     const model = scripted([header, formula, withPart].join("\n"));
     expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
     expect(model.calls).toHaveLength(1);
+  });
+
+  describe("en deux temps : l'enseignant écrit, le metteur en page met au format", () => {
+    const script = "IDÉE CENTRALE : un point se repère par deux nombres.\nTRANCHE 1 — le point\nDIT : Voici un point.\nTABLEAU : un point en (0 ; 0).";
+
+    it("donne au metteur en page le script de l'enseignant, mot pour mot, et au premier seulement la pédagogie", async () => {
+      const model = scripted(script, [header, slice("s1")].join("\n"));
+      const events: NesalioEvent[] = [];
+      for await (const event of generateNesalio("Explique-moi un point", { provider, completion: model.completion, twoStage: true })) events.push(event);
+      expect(kinds(events)).toEqual(["lesson", "slice:s1", "end"]);
+      expect(model.calls).toHaveLength(2);
+      const [teacher, layout] = model.calls as [CompletionOptions, CompletionOptions];
+      // The teacher writes no syntax: the JSON format is not in its instructions.
+      expect(teacher.messages[0]!.content).toContain("COMMENT TU ENSEIGNES");
+      expect(teacher.messages[0]!.content).not.toContain("FORMAT DE SORTIE");
+      expect(layout.messages[0]!.content).toContain("FORMAT DE SORTIE");
+      expect(layout.messages.at(-1)!.content).toContain(script);
+      expect(layout.messages.at(-1)!.content).toContain("MOT POUR MOT");
+    });
+
+    it("dit à l'élève que Nesa ne répond pas si l'enseignant n'écrit rien", async () => {
+      const model = scripted("   ");
+      const events: NesalioEvent[] = [];
+      for await (const event of generateNesalio("Explique-moi un point", { provider, completion: model.completion, twoStage: true })) events.push(event);
+      expect(events).toMatchObject([{ kind: "error", code: "upstream" }]);
+      expect(model.calls).toHaveLength(1);
+    });
   });
 
   it("s’arrête au nombre maximal de tranches", async () => {

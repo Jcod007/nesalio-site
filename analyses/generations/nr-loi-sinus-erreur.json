@@ -1,0 +1,666 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_des_sinus_erreur",
+  "title": "La loi des sinus : retrouver la bonne mesure",
+  "language": "fr",
+  "learning_goal": "Comprendre pourquoi la loi des sinus ne compare jamais un côté à l'angle qui lui fait face, et retrouver la bonne valeur de b."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_figure",
+   "introduces": [
+    {
+     "id": "tri",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        8,
+        0
+       ],
+       [
+        2.5,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "ptA",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "left"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "ptB",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "bottom"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "ptC",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "top"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "angA",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "left"
+     },
+     "content": "40°",
+     "type": "label"
+    },
+    {
+     "id": "angB",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "bottom"
+     },
+     "content": "60°",
+     "type": "label"
+    },
+    {
+     "id": "coteA",
+     "layout": {
+      "next_to": "tri",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "a = 10 cm",
+     "type": "label"
+    },
+    {
+     "id": "coteB",
+     "layout": {
+      "next_to": "tri",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "b = ?",
+     "type": "label"
+    },
+    {
+     "id": "regleSinus",
+     "content": "\\frac{a}{\\sin A} = \\frac{b}{\\sin B}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "montre",
+     "say": "D'abord, regardons ton triangle : l'angle A mesure quarante degrés, l'angle B soixante degrés, et le côté a, en face de A, mesure dix centimètres.",
+     "cues": [
+      {
+       "id": "c_tri",
+       "text": "ton triangle"
+      },
+      {
+       "id": "c_a",
+       "text": "l'angle A mesure quarante degrés"
+      },
+      {
+       "id": "c_b",
+       "text": "l'angle B soixante degrés"
+      },
+      {
+       "id": "c_cote",
+       "text": "le côté a"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tri",
+       "verb": "draw",
+       "at": "cue:c_tri",
+       "target": "tri"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_a",
+       "target": "angA"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "cue:c_b",
+       "target": "angB"
+      },
+      {
+       "id": "s_coteA",
+       "verb": "show",
+       "at": "cue:c_cote",
+       "target": "coteA"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "paires",
+     "say": "La loi des sinus relie chaque côté au sinus de l'angle qui lui fait face. Ici, a fait face à A, et b fait face à B.",
+     "cues": [
+      {
+       "id": "c_face",
+       "text": "l'angle qui lui fait face"
+      },
+      {
+       "id": "c_bface",
+       "text": "b fait face à B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_face",
+       "target": "regleSinus"
+      },
+      {
+       "id": "s_coteB",
+       "verb": "show",
+       "at": "cue:c_bface",
+       "target": "coteB"
+      },
+      {
+       "id": "h_a",
+       "verb": "highlight",
+       "at": "after:w_regle",
+       "target": "regleSinus",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "mauvais",
+     "content": "\\frac{a}{\\sin B} = \\frac{b}{\\sin A}",
+     "type": "math"
+    },
+    {
+     "id": "croises",
+     "content": "b = \\frac{a \\cdot \\sin A}{\\sin B}",
+     "type": "math"
+    },
+    {
+     "id": "bon",
+     "content": "\\frac{10}{\\sin 40^\\circ} = \\frac{b}{\\sin 60^\\circ}",
+     "type": "math"
+    },
+    {
+     "id": "bonprod",
+     "content": "b = \\frac{10 \\cdot \\sin 60^\\circ}{\\sin 40^\\circ}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "melange",
+     "say": "Ton sept virgule quarante-deux vient de là : tu as interverti les sinus dans ta proportion. Tu as écrit b divisé par sinus de A au lieu de b divisé par sinus de B.",
+     "cues": [
+      {
+       "id": "c_intervert",
+       "text": "interverti les sinus"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_mauvais",
+       "verb": "write",
+       "at": "cue:c_intervert",
+       "target": "mauvais"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "croises1",
+     "say": "En multipliant les deux côtés par sinus de A, on obtient b égale a fois sinus de A divisé par sinus de B.",
+     "cues": [
+      {
+       "id": "c_mult",
+       "text": "sinus de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_croises",
+       "verb": "transform",
+       "at": "cue:c_mult",
+       "source": "mauvais",
+       "target": "croises"
+      }
+     ]
+    },
+    {
+     "id": "correct",
+     "say": "La bonne proportion garde chaque côté avec son propre angle : dix sur sinus de quarante égale b sur sinus de soixante.",
+     "cues": [
+      {
+       "id": "c_bonne",
+       "text": "dix sur sinus de quarante"
+      },
+      {
+       "id": "c_bsixty",
+       "text": "b sur sinus de soixante"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_mauvais",
+       "verb": "fade_out",
+       "at": "cue:c_bonne",
+       "target": "mauvais"
+      },
+      {
+       "id": "f_croises",
+       "verb": "fade_out",
+       "at": "cue:c_bonne",
+       "target": "croises"
+      },
+      {
+       "id": "w_bon",
+       "verb": "write",
+       "at": "cue:c_bonne",
+       "target": "bon"
+      },
+      {
+       "id": "h_bon",
+       "verb": "highlight",
+       "at": "after:w_bon",
+       "target": "bon",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "valSins",
+     "content": "\\sin 40^\\circ \\approx 0{,}643\\quad \\sin 60^\\circ \\approx 0{,}866",
+     "type": "math"
+    },
+    {
+     "id": "calcul",
+     "content": "b = \\frac{10 \\cdot 0{,}866}{0{,}643}",
+     "type": "math"
+    },
+    {
+     "id": "arrondi",
+     "content": "b \\approx 13{,}47\\ \\text{cm}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "valeurs",
+     "say": "Prenons les valeurs : sinus de quarante vaut environ zéro virgule six quatre trois, sinus de soixante vaut environ zéro virgule huit six six.",
+     "cues": [
+      {
+       "id": "c_s40",
+       "text": "sinus de quarante"
+      },
+      {
+       "id": "c_s60",
+       "text": "sinus de soixante"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue:c_s40",
+       "target": "valSins"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calculer",
+     "say": "En isolant b : dix fois zéro virgule huit six six divisé par zéro virgule six quatre trois.",
+     "cues": [
+      {
+       "id": "c_iso",
+       "text": "dix fois zéro virgule huit six six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_bonprod",
+       "verb": "write",
+       "at": "cue:c_iso",
+       "target": "bonprod"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "after:w_bonprod",
+       "target": "calcul"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "finir",
+     "say": "Ça donne environ treize virgule quarante-sept centimètres. C'est ça la bonne réponse.",
+     "cues": [
+      {
+       "id": "c_donne",
+       "text": "treize virgule quarante-sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_arr",
+       "verb": "write",
+       "at": "cue:c_donne",
+       "target": "arrondi"
+      },
+      {
+       "id": "h_arr",
+       "verb": "highlight",
+       "at": "after:w_arr",
+       "target": "arrondi",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "recap",
+     "content": "\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : dans la loi des sinus, chaque côté reste avec le sinus de son angle opposé. Jamais croisés.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_jamais",
+       "text": "Jamais croisés"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tri",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tri"
+      },
+      {
+       "id": "f_val",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "valSins"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calcul"
+      },
+      {
+       "id": "f_bp",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "bonprod"
+      },
+      {
+       "id": "f_bon",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "bon"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "regleSinus"
+      },
+      {
+       "id": "f_arr",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "arrondi"
+      },
+      {
+       "id": "w_recap",
+       "verb": "write",
+       "at": "cue:c_jamais",
+       "target": "recap"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

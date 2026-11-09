@@ -61,4 +61,49 @@ describe("détails du cadrage", () => {
     }]);
     expect(contained(scene, ["p_label"])).toBe(true);
   });
+
+  /** Seen in real generations: framing a new formula cut a figure still on the board in half. */
+  const cutting = (focus: boolean) => [{
+    slice_id: "s",
+    introduces: [
+      { id: "tri", type: "polygon", params: { vertices: [[-9, -1], [-3, -1], [-9, 4]] } },
+      { id: "f", type: "math", content: "c = \\sqrt{a^2 + b^2}", layout: { next_to: "tri", direction: "right", gap: "xl" } },
+      { id: "g", type: "math", content: "c = 5", layout: { next_to: "f", direction: "right", gap: "xl" } },
+    ],
+    beats: [
+      { id: "b1", say: "Voici le triangle.", cues: [], do: [{ id: "d", verb: "draw", target: "tri", at: "beat:start" }] },
+      { id: "b2", say: "Et voici la formule.", cues: [], do: [
+        { id: "w", verb: "write", target: "f", at: "beat:start" },
+        { id: "w2", verb: "write", target: "g", at: "after:w" },
+        ...focus ? [{ id: "c", verb: "camera.focus", targets: ["f", "g"], transition: "instant", at: "after:w2" }] : [],
+      ] },
+    ],
+  }];
+
+  it("ne coupe pas en deux une figure encore au tableau quand elle tient avec ce qu’on cadre", async () => {
+    for (const focus of [true, false]) {
+      const scene = await finalScene(cutting(focus));
+      expect(contained(scene, ["f", "g"]), `focus=${focus}`).toBe(true);
+      expect(contained(scene, ["tri"]), `focus=${focus}`).toBe(true);
+    }
+  });
+
+  it("garde le zoom sur un détail : la courbe qui porte le point visé reste coupée", async () => {
+    const scene = await finalScene([{
+      slice_id: "s",
+      introduces: [
+        { id: "axes", type: "axes", params: { x: [-6, 6], y: [-1, 12] } },
+        { id: "curve", type: "function_graph", params: { expression: "x^2/3", domain: [-6, 6] } },
+        { id: "v", type: "point", params: { at: [0, 0] } },
+      ],
+      beats: [{ id: "b", say: "Voici.", cues: [], do: [
+        { id: "a", verb: "show", target: "axes", at: "beat:start" },
+        { id: "d", verb: "draw", target: "curve", at: "beat:start" },
+        { id: "s1", verb: "show", target: "v", at: "beat:start" },
+        { id: "c", verb: "camera.focus", targets: ["v"], transition: "instant", at: "after:s1" },
+      ] }],
+    }]);
+    expect(contained(scene, ["curve"])).toBe(false);
+    expect(scene.camera.state.zoom).toBeGreaterThan(1);
+  });
 });

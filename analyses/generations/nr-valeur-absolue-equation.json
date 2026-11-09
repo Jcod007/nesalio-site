@@ -1,0 +1,804 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "valeur_absolue_equation",
+  "title": "Résoudre une équation avec valeur absolue",
+  "language": "fr",
+  "learning_goal": "Comprendre que |A| = 7 signifie que A est à 7 unités de zéro sur la droite numérique, donc A = 7 ou A = −7, et résoudre |2x − 3| = 7."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "nl",
+     "params": {
+      "domain": [
+       -9,
+       9
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "p7",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pm7",
+     "params": {
+      "at": [
+       -7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab7",
+     "attachment": {
+      "parent": "p7",
+      "anchor": "top"
+     },
+     "content": "7",
+     "type": "label"
+    },
+    {
+     "id": "labm7",
+     "attachment": {
+      "parent": "pm7",
+      "anchor": "top"
+     },
+     "content": "−7",
+     "type": "label"
+    },
+    {
+     "id": "dist",
+     "content": "|2x - 3| = 7",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Résoudre valeur absolue de deux x moins trois égale sept, ça veut dire une seule chose : trouver les x pour lesquels l'intérieur est à exactement sept unités de zéro.",
+     "cues": [
+      {
+       "id": "c_abs",
+       "text": "valeur absolue"
+      },
+      {
+       "id": "c_sept_unites",
+       "text": "sept unités de zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam_nl",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "nl"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_droite"
+      },
+      {
+       "id": "s_nl",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "nl"
+      },
+      {
+       "id": "s_p7",
+       "verb": "show",
+       "at": "cue:c_sept_unites",
+       "target": "p7"
+      },
+      {
+       "id": "s_pm7",
+       "verb": "show",
+       "at": "after:s_p7",
+       "target": "pm7"
+      },
+      {
+       "id": "s_lab7",
+       "verb": "show",
+       "at": "after:s_p7",
+       "target": "lab7"
+      },
+      {
+       "id": "s_labm7",
+       "verb": "show",
+       "at": "after:s_p7",
+       "target": "labm7"
+      }
+     ]
+    },
+    {
+     "id": "equivaut",
+     "say": "Une valeur absolue, c'est la distance à zéro : il n'y a que deux endroits à sept unités, sept et moins sept.",
+     "cues": [
+      {
+       "id": "c_distance",
+       "text": "distance à zéro"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux endroits"
+      },
+      {
+       "id": "c_moinssept",
+       "text": "moins sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_p7",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_moinssept",
+       "target": "lab7",
+       "role": "accent"
+      },
+      {
+       "id": "h_pm7",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_moinssept",
+       "target": "labm7",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_deux_cas",
+   "introduces": [
+    {
+     "id": "caspos",
+     "content": "2x - 3 = 7",
+     "type": "math"
+    },
+    {
+     "id": "casneg",
+     "layout": {
+      "next_to": "caspos",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "2x - 3 = -7",
+     "type": "math"
+    },
+    {
+     "id": "note_cas",
+     "layout": {
+      "next_to": "casneg",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "car |7| = 7 et |-7| = 7",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "separe",
+     "say": "On sépare donc en deux cas. Premier cas : l'intérieur vaut sept. Deuxième cas : l'intérieur vaut moins sept.",
+     "cues": [
+      {
+       "id": "c_premier",
+       "text": "Premier cas"
+      },
+      {
+       "id": "c_deuxieme",
+       "text": "Deuxième cas"
+      },
+      {
+       "id": "c_moins",
+       "text": "vaut moins sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam_c",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "caspos",
+        "casneg"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_caspos",
+       "verb": "write",
+       "at": "cue:c_premier",
+       "target": "caspos"
+      },
+      {
+       "id": "w_casneg",
+       "verb": "write",
+       "at": "cue:c_moins",
+       "target": "casneg"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "C'est parce que la valeur absolue de sept vaut sept, et la valeur absolue de moins sept vaut aussi sept. Deux nombres différents, une même distance.",
+     "cues": [
+      {
+       "id": "c_parce",
+       "text": "C'est parce que"
+      },
+      {
+       "id": "c_meme",
+       "text": "même distance"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_parce",
+       "target": "note_cas"
+      },
+      {
+       "id": "h_note",
+       "verb": "highlight",
+       "at": "cue:c_meme",
+       "target": "note_cas",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resolution",
+   "introduces": [
+    {
+     "id": "r1a",
+     "content": "2x - 3 + 3 = 7 + 3",
+     "type": "math"
+    },
+    {
+     "id": "r1b",
+     "content": "2x = 10",
+     "type": "math"
+    },
+    {
+     "id": "r1c",
+     "content": "x = 5",
+     "type": "math"
+    },
+    {
+     "id": "r2a",
+     "layout": {
+      "next_to": "r1c",
+      "direction": "down",
+      "gap": "xl"
+     },
+     "content": "2x - 3 + 3 = -7 + 3",
+     "type": "math"
+    },
+    {
+     "id": "r2b",
+     "content": "2x = -4",
+     "type": "math"
+    },
+    {
+     "id": "r2c",
+     "content": "x = -2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "premier",
+     "say": "Premier cas. J'ajoute trois des deux côtés pour garder l'égalité : deux x égale dix. Puis je divise par deux : x égale cinq.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "J'ajoute trois des deux côtés"
+      },
+      {
+       "id": "c_dix",
+       "text": "deux x égale dix"
+      },
+      {
+       "id": "c_cinq",
+       "text": "x égale cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_r1a",
+       "verb": "write",
+       "at": "cue:c_ajoute",
+       "target": "r1a"
+      },
+      {
+       "id": "t_r1a",
+       "verb": "transform",
+       "at": "cue:c_dix",
+       "source": "r1a",
+       "target": "r1b"
+      },
+      {
+       "id": "t_r1b",
+       "verb": "transform",
+       "at": "cue:c_cinq",
+       "source": "r1b",
+       "target": "r1c"
+      },
+      {
+       "id": "h_r1c",
+       "verb": "highlight",
+       "at": "after:t_r1b",
+       "target": "r1c",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "deuxieme",
+     "say": "Deuxième cas. Même chose, mais à droite on a moins sept. J'ajoute trois : deux x égale moins quatre. Je divise par deux : x égale moins deux.",
+     "cues": [
+      {
+       "id": "c_moins7",
+       "text": "moins sept"
+      },
+      {
+       "id": "c_moins4",
+       "text": "deux x égale moins quatre"
+      },
+      {
+       "id": "c_moins2",
+       "text": "x égale moins deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_r2a",
+       "verb": "write",
+       "at": "cue:c_moins7",
+       "target": "r2a"
+      },
+      {
+       "id": "t_r2a",
+       "verb": "transform",
+       "at": "cue:c_moins4",
+       "source": "r2a",
+       "target": "r2b"
+      },
+      {
+       "id": "t_r2b",
+       "verb": "transform",
+       "at": "cue:c_moins2",
+       "source": "r2b",
+       "target": "r2c"
+      },
+      {
+       "id": "h_r2c",
+       "verb": "highlight",
+       "at": "after:t_r2b",
+       "target": "r2c",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "v1",
+     "content": "|2(5) - 3| = |7| = 7",
+     "type": "math"
+    },
+    {
+     "id": "v2",
+     "layout": {
+      "next_to": "v1",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "|2(-2) - 3| = |-7| = 7",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verifier",
+     "say": "On vérifie dans l'équation de départ. Pour x égale cinq : deux fois cinq moins trois, ça fait sept, valeur absolue de sept égale sept. Ça marche.",
+     "cues": [
+      {
+       "id": "c_pourcinq",
+       "text": "x égale cinq"
+      },
+      {
+       "id": "c_trois_sept",
+       "text": "deux fois cinq moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_cas",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "caspos"
+      },
+      {
+       "id": "f_casn",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "casneg"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note_cas"
+      },
+      {
+       "id": "cam_v",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "v1",
+        "v2"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_v1",
+       "verb": "write",
+       "at": "cue:c_trois_sept",
+       "target": "v1"
+      }
+     ]
+    },
+    {
+     "id": "verifier2",
+     "say": "Pour x égale moins deux : deux fois moins deux moins trois, ça fait moins sept, et la valeur absolue de moins sept, c'est sept. Les deux valeurs marchent.",
+     "cues": [
+      {
+       "id": "c_pourmoins2",
+       "text": "x égale moins deux"
+      },
+      {
+       "id": "c_deuxval",
+       "text": "Les deux valeurs"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_v2",
+       "verb": "write",
+       "at": "cue:c_pourmoins2",
+       "target": "v2"
+      },
+      {
+       "id": "h_v1",
+       "verb": "highlight",
+       "at": "cue:c_deuxval",
+       "target": "v1",
+       "role": "result"
+      },
+      {
+       "id": "h_v2",
+       "verb": "highlight",
+       "at": "cue:c_deuxval",
+       "target": "v2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : une valeur absolue égale à un nombre positif donne toujours deux cas, l'intérieur égale plus ce nombre, ou moins ce nombre. Ici, x égale cinq ou x égale moins deux.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_deuxcas",
+       "text": "deux cas"
+      },
+      {
+       "id": "c_reponse",
+       "text": "x égale cinq ou x égale moins deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_r",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "r1c"
+      },
+      {
+       "id": "f_r2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "r2c"
+      },
+      {
+       "id": "f_v1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v1"
+      },
+      {
+       "id": "f_v2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v2"
+      },
+      {
+       "id": "f_nl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "nl"
+      },
+      {
+       "id": "cam_res",
+       "verb": "camera.restore",
+       "at": "beat:start",
+       "frame": "vue_droite"
+      },
+      {
+       "id": "s_nl2",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "nl"
+      },
+      {
+       "id": "h_p7",
+       "verb": "highlight",
+       "at": "cue:c_deuxcas",
+       "target": "p7",
+       "role": "result"
+      },
+      {
+       "id": "h_pm7",
+       "verb": "highlight",
+       "at": "cue:c_deuxcas",
+       "target": "pm7",
+       "role": "result"
+      },
+      {
+       "id": "h_p7b",
+       "verb": "highlight",
+       "at": "cue:c_reponse",
+       "target": "lab7",
+       "role": "result"
+      },
+      {
+       "id": "h_pm7b",
+       "verb": "highlight",
+       "at": "cue:c_reponse",
+       "target": "labm7",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

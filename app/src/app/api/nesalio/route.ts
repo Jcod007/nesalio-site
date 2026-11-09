@@ -53,6 +53,8 @@ export async function POST(request: Request): Promise<Response> {
     completion: streamChatCompletion,
     signal: request.signal,
     log: (message, detail) => console.warn(message, detail),
+    // Teacher then layout writer (script.ts): off until measured better than one call.
+    twoStage: process.env.NESALIO_DEUX_ETAPES === "1",
   });
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({

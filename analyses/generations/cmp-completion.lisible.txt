@@ -1,0 +1,50 @@
+TITRE : La complétion du carré — BUT : Comprendre l'idée de complétion du carré et l'appliquer à x² + 6x − 7 pour obtenir la forme (x + 3)² − 16
+math_context : {"symbols":{},"expressions":{}}
+=== Tranche s_intro
+  OBJET expr [math] {"content":"x^2 + 6x - 7","parts":[{"id":"carre","text":"x^2"},{"id":"six_x","text":"+ 6x"},{"id":"moins_sept","text":"- 7"}]}
+DIT (b_intro) : Compléter le carré, c'est transformer une expression comme x carré plus six x moins sept en un carré bien rangé.
+    geste write expr cue:c_expr {}
+=== Tranche s_idee
+  OBJET carre_parfait [math] {"content":"(x + 3)^2 = x^2 + 6x + 9","parts":[{"id":"gauche","text":"(x + 3)^2"},{"id":"egale","text":"="},{"id":"droite","text":"x^2 + 6x + 9"}]}
+  OBJET note [text] {"content":"On voudrait retrouver x² + 6x, mais il manque 9."}
+DIT (b_retire) : D'abord, on met de côté le moins sept : il ne sert pas tout de suite.
+    geste highlight expr.moins_sept cue:moins_sept_mot {"role":"secondary"}
+DIT (b_identite) : Regarde l'identité remarquable : x plus trois, tout au carré, donne x carré plus six x plus neuf.
+    geste write carre_parfait.gauche cue:x_plus_trois {}
+    geste write carre_parfait.egale after:w_gauche {}
+    geste write carre_parfait.droite cue:plus_neuf {}
+DIT (b_manque) : On voudrait retrouver x carré plus six x, mais dans ce carré il y a un neuf en trop.
+    geste show note cue:neuf_trop {}
+    geste highlight carre_parfait.droite after:s_note {"role":"accent"}
+=== Tranche s_calcul
+  OBJET etape1 [math] {"content":"x^2 + 6x - 7 = (x + 3)^2 - 9 - 7","parts":[{"id":"dep","text":"x^2 + 6x - 7"},{"id":"milieu","text":"= (x + 3)^2"},{"id":"deux_retraits","text":"- 9 - 7"}]}
+  OBJET etape2 [math] {"content":"(x + 3)^2 - 16","parts":[{"id":"carre_final","text":"(x + 3)^2"},{"id":"final","text":"- 16"}]}
+DIT (b_partir) : Alors on part de x carré plus six x moins sept, et on ajoute puis retire neuf.
+    geste transform etape1 cue:part_de {"source":"expr"}
+    geste highlight etape1.deux_retraits cue:ajoute_retire {"role":"accent"}
+DIT (b_regroupe) : Les trois premiers termes collent : ils font x plus trois, tout au carré.
+    geste highlight etape1.milieu cue:collent {"role":"result"}
+    geste highlight etape1.milieu cue:tout_carre {"role":"result"}
+DIT (b_final) : Et le reste fait moins neuf moins sept, donc moins seize : on obtient x plus trois, tout au carré, moins seize.
+    geste transform etape2 cue:obtient {"source":"etape1"}
+    geste highlight etape2.final after:t_e2 {"role":"result"}
+DIT (b_verif) : Tu peux vérifier : x plus trois au carré, c'est bien x carré plus six x plus neuf ; moins seize, ça redonne bien moins sept.
+    geste highlight etape2.carre_final cue:verifier {"role":"accent"}
+    geste highlight etape2.final cue:redonne {"role":"accent"}
+=== Tranche s_resume
+  OBJET regle [math] {"content":"x^2 + 6x - 7 = (x + 3)^2 - 16","parts":[{"id":"gauche_res","text":"x^2 + 6x - 7"},{"id":"egale_res","text":"="},{"id":"droite_res","text":"(x + 3)^2 - 16"}]}
+  OBJET memo [text] {"content":"Compléter le carré : on prend la moitié du coefficient de x, ici 3, et on l'ajoute puis le retire."}
+DIT (b_degage) : On garde l'essentiel : l'expression de départ et sa forme en carré.
+    geste fade_out carre_parfait cue:essentiel {}
+    geste fade_out note cue:essentiel {}
+    geste fade_out etape1 cue:essentiel {}
+    geste fade_out etape2 cue:essentiel {}
+DIT (b_resume) : Donc x carré plus six x moins sept s'écrit x plus trois, tout au carré, moins seize.
+    geste write regle.gauche_res beat:start {}
+    geste write regle.egale_res after:w_gauche_res {}
+    geste write regle.droite_res cue:ecrit {}
+    geste camera.focus  after:w_droite_res {"targets":["bloc_res"],"bounds":"layout_bounds"}
+DIT (b_memo) : La règle à retenir : la moitié du coefficient de x, ici trois, on l'ajoute puis on la retire.
+    geste show memo beat:start {}
+    geste highlight memo cue:moitie {"role":"accent"}
+    geste highlight regle cue:ajoute_retire_res {"role":"result"}

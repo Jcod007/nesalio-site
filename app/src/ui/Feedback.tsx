@@ -14,7 +14,8 @@ import styles from "./Feedback.module.css";
 
 type Kind = Feedback["kind"];
 
-export function FeedbackButton({ player }: { player: Player }) {
+/** Any session that can describe what the student just saw: the tutor, or a Nesalio explanation. */
+export function FeedbackButton({ player }: { player: Pick<Player, "recentContext"> }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [kind, setKind] = useState<Kind>("bug");
   const [message, setMessage] = useState("");

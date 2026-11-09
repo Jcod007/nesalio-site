@@ -817,7 +817,7 @@ export function cameraView(state: SceneState, camera: RuntimeState["camera"]["st
  */
 export function fitSceneCamera(
   state: SceneState, targets: readonly string[], mode: Bounds = "render_bounds",
-  options: { padding?: number; priority?: readonly string[]; kept?: readonly string[] } = {},
+  options: { padding?: number; priority?: readonly string[]; kept?: readonly string[]; avoidCutting?: boolean } = {},
 ): CameraFrame | null {
   const padding = options.padding ?? 0.9;
   const kept = (options.kept ?? []).filter((id) => !targets.includes(id));
@@ -856,9 +856,38 @@ export function fitSceneCamera(
     const candidate = union([framed, sceneBounds(state, withFrames([id]), mode)]);
     if (candidate && fit(candidate) >= CAMERA_ZOOM.min) framed = candidate;
   }
-  const zoom = Math.min(CAMERA_ZOOM.max, Math.max(CAMERA_ZOOM.min, fit(framed)));
-  const [x, y] = center(framed);
-  const view = { x0: x - width / (2 * zoom), x1: x + width / (2 * zoom), y0: y - height / (2 * zoom), y1: y + height / (2 * zoom) };
+  const viewOf = (box: Box) => {
+    const zoom = Math.min(CAMERA_ZOOM.max, Math.max(CAMERA_ZOOM.min, fit(box)));
+    const [x, y] = center(box);
+    return { zoom, x, y, view: { x0: x - width / (2 * zoom), x1: x + width / (2 * zoom), y0: y - height / (2 * zoom), y1: y + height / (2 * zoom) } };
+  };
+  if (options.avoidCutting) {
+    // Seen in real generations: framing what appears cut a figure or formula still on the board in half.
+    // An object the frame would cut joins it when everything stays readable; one left wholly outside stays out.
+    // Not the figure a detail is taken from: zooming on a curve's point leaves the rest of the curve out.
+    const targetFrames = new Set(withFrames(targets).map((id) => state.objects.get(id)?.frame).filter(Boolean));
+    const shown = withFrames([...targets, ...kept]);
+    const context = [...state.objects].filter(([id, item]) => item.visible && !item.removed && !shown.includes(id)
+      && !(item.frame && targetFrames.has(item.frame)));
+    // What still speaks first, then what was dimmed.
+    for (const group of [context.filter(([, item]) => !item.dimmed), context.filter(([, item]) => item.dimmed)]) {
+      for (let pass = 0; pass < 4; pass++) {
+        const { view } = viewOf(framed);
+        const cut = group.map(([id]) => sceneBounds(state, [id], "render_bounds"))
+          .filter((box): box is Box => box !== null && box.x1 > view.x0 && box.x0 < view.x1 && box.y1 > view.y0 && box.y0 < view.y1 && !inside(view, box));
+        let grew = false;
+        for (const box of cut) {
+          const candidate = union([framed, box]);
+          if (candidate && fit(candidate) >= CAMERA_ZOOM.min) {
+            framed = candidate;
+            grew = true;
+          }
+        }
+        if (!grew) break;
+      }
+    }
+  }
+  const { zoom, x, y, view } = viewOf(framed);
   const hidden = [...targets, ...kept].filter((id) => {
     const own = sceneBounds(state, [id], mode) ?? sceneBounds(state, [id], "layout_bounds");
     return own !== null && !inside(view, own);

@@ -84,7 +84,11 @@ export const SceneObject = z.discriminatedUnion("type", [
   object("vector", { params: endpoints }),
   object("circle", { params: z.strictObject({ center: Coordinate, radius: z.number().positive() }) }),
   object("polygon", { params: z.strictObject({ vertices: z.array(Coordinate).min(3).max(64) }) }),
-  object("matrix", { params: z.strictObject({ rows: matrixRows }) }),
+  object("matrix", { params: z.strictObject({
+    rows: matrixRows,
+    row_labels: z.array(Text).min(1).max(16).optional()
+      .describe("intitulé de chaque ligne (ex. « durée (h) ») : la matrice devient un tableau de valeurs quadrillé, intitulés en première colonne"),
+  }).refine((params) => !params.row_labels || params.row_labels.length === params.rows.length, "Un intitulé par ligne du tableau.") }),
   object("number_line", { params: z.strictObject({ domain: Interval }) }),
   object("text", { content: Text }),
   object("label", { content: Text }),

@@ -1,4 +1,5 @@
 import { interpolateZoom } from "d3-interpolate";
+import { pausableSleep, whenRunning, type PlaybackControl } from "./nesalioControl";
 import { negotiateCapabilities, schemaCapabilities, type Capabilities } from "@/domain/nesalio/capabilities";
 import type { Action, Beat, Role, Slice } from "@/domain/nesalio/contract";
 import type { LessonDocument, LessonHeader } from "@/domain/nesalio/lesson";
@@ -40,7 +41,8 @@ export const DIM_OPACITY = 0.3;
 export interface NesalioClip {
   readonly durationMs: number;
   readonly cues: ReadonlyMap<string, CueTiming>;
-  play(draw: (playhead: number) => void, signal: AbortSignal): Promise<void>;
+  /** `control`: pause and mute from the page; the voice stops, restarts and goes silent with it. */
+  play(draw: (playhead: number) => void, signal: AbortSignal, control?: PlaybackControl): Promise<void>;
   dispose(): void;
 }
 
@@ -263,7 +265,7 @@ function planFocus(
     const box = sceneBounds(scene, [id], bounds) ?? sceneBounds(scene, [id], "layout_bounds");
     return box !== null && !inside(cameraView(scene, state), box);
   };
-  const target = fitSceneCamera(scene, intent.targets, bounds, { priority, kept, padding })
+  const target = fitSceneCamera(scene, intent.targets, bounds, { priority, kept, padding, avoidCutting: true })
     ?? (fallback && { state: fallback, hidden: kept.filter((id) => outside(id, fallback)) });
   if (!target) return null;
   if (timing.transition === "instant") return { target, move: target, duration: 0 };
@@ -404,6 +406,8 @@ export interface NesalioPlaybackOptions {
   onWaiting?(): void;
   /** Hold used for a passage without voice; replaceable in tests. */
   wait?(ms: number, signal: AbortSignal): Promise<void>;
+  /** Pause and mute from the page: silences stop elapsing, the next passage waits for the resume. */
+  control?: PlaybackControl;
 }
 
 /**
@@ -416,15 +420,6 @@ export const PAUSE_MS = { default: 350, brief: 600, normal: 1_000, long: 1_800 }
 export function readingTimeMs(say: string): number {
   const words = say.split(/\s+/).filter(Boolean).length;
   return Math.min(15_000, Math.max(1_500, words * 400));
-}
-
-function sleep(ms: number, signal: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) { reject(signal.reason); return; }
-    const timer = setTimeout(() => { signal.removeEventListener("abort", abort); resolve(); }, ms);
-    function abort() { clearTimeout(timer); reject(signal.reason); }
-    signal.addEventListener("abort", abort, { once: true });
-  });
 }
 
 function errorMessage(error: unknown): string {
@@ -500,6 +495,7 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
   };
   const work = new AbortController();
   const signal = AbortSignal.any([options.signal, work.signal]);
+  const hold = (ms: number, on: AbortSignal) => pausableSleep(ms, on, options.control);
   const queue = beatQueue(slices, signal);
   const layoutFallback = header.scene.camera_policy.allow_focus_on_layout_bounds_for_unrevealed_targets;
   const padding = FOCUS_PADDING[header.scene.camera_policy.focus_padding];
@@ -512,6 +508,7 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
   try {
     for (let index = 0; ; index++) {
       signal.throwIfAborted();
+      await whenRunning(options.control, signal);
       if (!queue.settled(index)) options.onWaiting?.();
       const current = await queue.at(index);
       if (!current) break;
@@ -546,7 +543,7 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
         frame = frameAt(before, planned.timeline, 0, planned.context);
         options.onFrame(frame, beat, 0);
         reportFraming();
-        await (options.wait ?? sleep)(readingTimeMs(beat.say), signal);
+        await (options.wait ?? hold)(readingTimeMs(beat.say), signal);
         continue;
       }
       const { clip } = prepared;
@@ -561,7 +558,7 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
           await clip.play((playhead) => {
             frame = frameAt(before, timeline, playhead, context);
             options.onFrame(frame, beat, playhead);
-          }, signal);
+          }, signal, options.control);
         } catch (error) {
           if (signal.aborted) throw error;
           interrupted = true;
@@ -582,7 +579,7 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
         clip.dispose();
       }
       // A breath after the passage, so the student can look at the board before the next sentence.
-      await (options.wait ?? sleep)(PAUSE_MS[beat.pause_after ?? "default"], signal);
+      await (options.wait ?? hold)(PAUSE_MS[beat.pause_after ?? "default"], signal);
     }
   } finally {
     work.abort();

@@ -38,14 +38,16 @@ export async function openNesalioClip(beat: Beat, signal: AbortSignal): Promise<
       durationMs,
       cues: new Map(Object.entries(cues)),
       dispose,
-      play(draw, playSignal) {
+      play(draw, playSignal, control) {
         return new Promise<void>((resolve, reject) => {
           const events = new AbortController();
           let raf = 0;
           let last = -1;
+          let stopFollowing: (() => void) | undefined;
           function finish(error?: unknown) {
             if (events.signal.aborted) return;
             events.abort();
+            stopFollowing?.();
             cancelAnimationFrame(raf);
             audio.pause();
             if (error) reject(error); else resolve();
@@ -72,9 +74,22 @@ export async function openNesalioClip(beat: Beat, signal: AbortSignal): Promise<
           audio.addEventListener("error", () => finish(new Error("Lecture audio interrompue.")), { signal: events.signal });
           playSignal.addEventListener("abort", () => finish(playSignal.reason), { once: true, signal: events.signal });
           if (playSignal.aborted) { finish(playSignal.reason); return; }
-          void audio.play().then(() => {
-            if (!events.signal.aborted) tick();
-          }, finish);
+          // Pause and mute from the page: the playhead follows the audio, so the board stops with the voice.
+          const start = () => audio.play().then(() => {
+            if (!events.signal.aborted && !raf) tick();
+          }, (error: unknown) => {
+            // A pause right after a resume interrupts play(): that is the student's choice, not a failure.
+            if (!control?.paused) finish(error);
+          });
+          const follow = () => {
+            if (!control || events.signal.aborted) return;
+            audio.muted = control.muted;
+            if (control.paused && !audio.paused) audio.pause();
+            else if (!control.paused && audio.paused && !audio.ended) void start();
+          };
+          stopFollowing = control?.subscribe(follow);
+          if (control) audio.muted = control.muted;
+          if (!control?.paused) void start();
         });
       },
     };

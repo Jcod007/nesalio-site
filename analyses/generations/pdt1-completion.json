@@ -1,0 +1,938 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "completion_carre",
+  "title": "La complétion du carré",
+  "language": "fr",
+  "learning_goal": "Comprendre que compléter le carré, c'est ajouter le carré de la moitié du coefficient de x pour former un carré parfait, à l'aide du modèle d'aire, et l'appliquer à x² + 6x − 7."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_carre",
+   "introduces": [
+    {
+     "id": "f_x2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab_x2",
+     "attachment": {
+      "parent": "f_x2",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "x²",
+     "type": "label"
+    },
+    {
+     "id": "lab_x_h",
+     "attachment": {
+      "parent": "f_x2",
+      "anchor": "bottom"
+     },
+     "content": "x",
+     "type": "label"
+    },
+    {
+     "id": "lab_x_v",
+     "attachment": {
+      "parent": "f_x2",
+      "anchor": "left"
+     },
+     "content": "x",
+     "type": "label"
+    },
+    {
+     "id": "b6",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        4,
+        0
+       ],
+       [
+        5.5,
+        0
+       ],
+       [
+        5.5,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab_6x",
+     "attachment": {
+      "parent": "b6",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "6x",
+     "type": "label"
+    }
+   ],
+   "groups": [
+    {
+     "id": "g_rec",
+     "items": [
+      "f_x2",
+      "lab_x2",
+      "lab_x_h",
+      "lab_x_v",
+      "b6",
+      "lab_6x"
+     ]
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Compléter le carré, c'est transformer une expression en un carré parfait. Regarde x carré plus six x.",
+     "cues": [
+      {
+       "id": "c_x2",
+       "text": "x carré plus six x"
+      },
+      {
+       "id": "c_mot",
+       "text": "Compléter le carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_x2",
+       "verb": "show",
+       "at": "cue:c_mot",
+       "target": "f_x2"
+      },
+      {
+       "id": "s_lx2",
+       "verb": "show",
+       "at": "cue:c_mot",
+       "target": "lab_x2"
+      },
+      {
+       "id": "s_lh",
+       "verb": "show",
+       "at": "cue:c_mot",
+       "target": "lab_x_h"
+      },
+      {
+       "id": "s_lv",
+       "verb": "show",
+       "at": "cue:c_mot",
+       "target": "lab_x_v"
+      },
+      {
+       "id": "s_6x",
+       "verb": "show",
+       "at": "cue:c_x2",
+       "target": "b6"
+      },
+      {
+       "id": "s_l6",
+       "verb": "show",
+       "at": "cue:c_x2",
+       "target": "lab_6x"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_couper",
+   "introduces": [
+    {
+     "id": "b3a",
+     "style": {
+      "role": "unknown"
+     },
+     "params": {
+      "vertices": [
+       [
+        4,
+        0
+       ],
+       [
+        5.5,
+        0
+       ],
+       [
+        5.5,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "b3b",
+     "style": {
+      "role": "unknown"
+     },
+     "params": {
+      "vertices": [
+       [
+        4,
+        2
+       ],
+       [
+        5.5,
+        2
+       ],
+       [
+        5.5,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "coin",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "vertices": [
+       [
+        5.5,
+        0
+       ],
+       [
+        7,
+        0
+       ],
+       [
+        7,
+        1.5
+       ],
+       [
+        5.5,
+        1.5
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab_coin",
+     "attachment": {
+      "parent": "coin",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "9",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "coupe",
+     "say": "La bande six x, on la coupe en deux : deux bandes de trois x.",
+     "cues": [
+      {
+       "id": "c_bande",
+       "text": "bande six x"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux bandes de trois x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_b3a",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "b3a"
+      },
+      {
+       "id": "s_b3b",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "b3b"
+      },
+      {
+       "id": "f_b6",
+       "verb": "fade_out",
+       "at": "cue:c_bande",
+       "target": "b6"
+      }
+     ]
+    },
+    {
+     "id": "coin",
+     "say": "Pour fermer le coin, il manque un petit carré de trois par trois : une aire de neuf.",
+     "cues": [
+      {
+       "id": "c_coin",
+       "text": "petit carré de trois par trois"
+      },
+      {
+       "id": "c_neuf",
+       "text": "aire de neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_coin",
+       "verb": "show",
+       "at": "cue:c_coin",
+       "target": "coin"
+      },
+      {
+       "id": "s_lcoin",
+       "verb": "show",
+       "at": "cue:c_neuf",
+       "target": "lab_coin"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "etape1",
+     "layout": {
+      "next_to": "coin",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "x^2 + 6x",
+     "type": "math"
+    },
+    {
+     "id": "etape2",
+     "content": "x^2 + 6x + 9 - 9",
+     "parts": [
+      {
+       "id": "base",
+       "text": "x^2 + 6x"
+      },
+      {
+       "id": "plus",
+       "text": "+ 9"
+      },
+      {
+       "id": "moins",
+       "text": "- 9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape3",
+     "content": "(x + 3)^2 - 9",
+     "parts": [
+      {
+       "id": "carre",
+       "text": "(x + 3)^2"
+      },
+      {
+       "id": "moins2",
+       "text": "- 9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "carre_lab",
+     "attachment": {
+      "parent": "etape3",
+      "anchor": "top"
+     },
+     "content": "carré parfait",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ecrit",
+     "say": "On ajoute neuf pour compléter le carré, puis on retire neuf pour ne rien changer.",
+     "cues": [
+      {
+       "id": "c_neuf",
+       "text": "ajoute neuf"
+      },
+      {
+       "id": "c_retire",
+       "text": "retire neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_e1",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "etape1"
+      },
+      {
+       "id": "w_plus",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "etape2",
+       "part": "plus"
+      },
+      {
+       "id": "w_moins",
+       "verb": "write",
+       "at": "cue:c_retire",
+       "target": "etape2",
+       "part": "moins"
+      }
+     ]
+    },
+    {
+     "id": "forme",
+     "say": "Les trois premiers termes forment x plus trois au carré. Voilà la forme canonique.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "x plus trois au carré"
+      },
+      {
+       "id": "c_forme",
+       "text": "forme canonique"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e3",
+       "verb": "transform",
+       "at": "cue:c_trois",
+       "source": "etape2",
+       "target": "etape3"
+      },
+      {
+       "id": "s_cl",
+       "verb": "show",
+       "at": "cue:c_forme",
+       "target": "carre_lab"
+      },
+      {
+       "id": "h_e3",
+       "verb": "highlight",
+       "at": "cue:c_forme",
+       "target": "etape3",
+       "role": "result",
+       "part": "carre"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "ex1",
+     "content": "x^2 + 6x - 7",
+     "type": "math"
+    },
+    {
+     "id": "ex2",
+     "content": "x^2 + 6x + 9 - 9 - 7",
+     "parts": [
+      {
+       "id": "base",
+       "text": "x^2 + 6x"
+      },
+      {
+       "id": "p9",
+       "text": "+ 9"
+      },
+      {
+       "id": "m9",
+       "text": "- 9"
+      },
+      {
+       "id": "m7",
+       "text": "- 7"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ex3",
+     "content": "(x + 3)^2 - 16",
+     "type": "math"
+    },
+    {
+     "id": "ex4",
+     "content": "(x + 3 - 4)(x + 3 + 4)",
+     "parts": [
+      {
+       "id": "un",
+       "text": "(x + 3 - 4)"
+      },
+      {
+       "id": "deux",
+       "text": "(x + 3 + 4)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ex5",
+     "content": "(x - 1)(x + 7)",
+     "type": "math"
+    },
+    {
+     "id": "res",
+     "style": {
+      "role": "result"
+     },
+     "content": "x = -7  \\text{ ou }  x = 1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Appliquons à x carré plus six x moins sept.",
+     "cues": [
+      {
+       "id": "c_moins7",
+       "text": "x carré plus six x moins sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ex1",
+       "verb": "write",
+       "at": "cue:c_moins7",
+       "target": "ex1"
+      }
+     ]
+    },
+    {
+     "id": "complete",
+     "say": "On ajoute et on retire neuf, puis on regroupe le moins neuf et le moins sept : ça fait moins seize.",
+     "cues": [
+      {
+       "id": "c_dix6",
+       "text": "moins seize"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_ex2",
+       "verb": "transform",
+       "at": "beat:start",
+       "source": "ex1",
+       "target": "ex2"
+      },
+      {
+       "id": "t_ex3",
+       "verb": "transform",
+       "at": "cue:c_dix6",
+       "source": "ex2",
+       "target": "ex3"
+      }
+     ]
+    },
+    {
+     "id": "diff",
+     "say": "Moins seize, c'est un carré : quatre au carré. C'est une différence de deux carrés, donc ça se factorise.",
+     "cues": [
+      {
+       "id": "c_diff",
+       "text": "différence de deux carrés"
+      },
+      {
+       "id": "c_fact",
+       "text": "se factorise"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_ex4",
+       "verb": "transform",
+       "at": "cue:c_fact",
+       "source": "ex3",
+       "target": "ex4"
+      }
+     ]
+    },
+    {
+     "id": "racines",
+     "say": "On simplifie : x moins un, x plus sept. Les racines sont x égal moins sept ou x égal un.",
+     "cues": [
+      {
+       "id": "c_simpl",
+       "text": "x moins un, x plus sept"
+      },
+      {
+       "id": "c_rac",
+       "text": "moins sept ou x égal un"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_ex5",
+       "verb": "transform",
+       "at": "cue:c_simpl",
+       "source": "ex4",
+       "target": "ex5"
+      },
+      {
+       "id": "s_res",
+       "verb": "show",
+       "at": "cue:c_rac",
+       "target": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:c_rac",
+       "target": "res",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "x^2 + bx = \\left(x + \\frac{b}{2}\\right)^2 - \\left(\\frac{b}{2}\\right)^2",
+     "type": "math"
+    },
+    {
+     "id": "cond",
+     "attachment": {
+      "parent": "regle",
+      "anchor": "top"
+     },
+     "content": "on ajoute et on retire le carré de la moitié",
+     "type": "label"
+    },
+    {
+     "id": "ex_final",
+     "style": {
+      "role": "result"
+     },
+     "content": "x^2 + 6x - 7 = (x + 3)^2 - 16",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : compléter le carré, c'est ajouter le carré de la moitié du coefficient de x, puis le retirer.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "carré de la moitié"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_g",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "g_rec"
+      },
+      {
+       "id": "f_ex1",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "ex1"
+      },
+      {
+       "id": "f_ex2",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "ex3"
+      },
+      {
+       "id": "f_ex3",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "ex4"
+      },
+      {
+       "id": "f_ex4",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "ex5"
+      },
+      {
+       "id": "f_res",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "res"
+      },
+      {
+       "id": "f_e1",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "etape1"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_moitie",
+       "target": "regle"
+      },
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "cue:c_moitie",
+       "target": "cond"
+      },
+      {
+       "id": "w_exf",
+       "verb": "write",
+       "at": "cue:c_moitie",
+       "target": "ex_final"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

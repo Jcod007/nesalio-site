@@ -8,7 +8,7 @@
  */
 import { compileNamedExpression } from "@/domain/math/expr";
 import type { MathContext } from "./contract";
-import { normalFormula, sameFormula, type ValidationState } from "./validate";
+import { normalFormula, sameFormula, standaloneTex, type ValidationState } from "./validate";
 
 type Json = Record<string, unknown>;
 const isObject = (value: unknown): value is Json => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -18,6 +18,8 @@ const objects = (value: unknown): Json[] => Array.isArray(value) ? value.filter(
 const OPERATORS = /^(?:[+\-=<>,;:]|\\(?:times|cdot|div|pm|leq?|geq?|neq|approx|Rightarrow|iff))*$/;
 
 const ID = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
+/** One character for one character (so positions stay the same): lower case, no accent, one apostrophe. */
+const fold = (text: string) => Array.from(text, (char) => char.normalize("NFD")[0]!.toLowerCase().replace(/[’ʼ`]/, "'")).join("");
 const slug = (text: string) => text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
 
 /**
@@ -92,6 +94,20 @@ export function normalizeMathContext(math: unknown): { math: unknown; fixes: str
   return fixes.length ? { math: { ...math, expressions }, fixes } : { math, fixes };
 }
 
+/** Whether the parts are, in order, the braced arguments of the formula's fractions (\frac{3}{4} cut into 3 and 4). */
+function fractionArguments(content: string, parts: Json[]): boolean {
+  if (!/\\[dt]?frac/.test(content)) return false;
+  const whole = normalFormula(content);
+  let at = 0;
+  for (const part of parts) {
+    if (typeof part.text !== "string") return false;
+    const found = whole.indexOf(`{${normalFormula(part.text)}}`, at);
+    if (found < 0) return false;
+    at = found + normalFormula(part.text).length + 2;
+  }
+  return true;
+}
+
 export function normalizeSlice(raw: unknown, before?: ValidationState): { slice: unknown; fixes: string[] } {
   if (!isObject(raw)) return { slice: raw, fixes: [] };
   const slice = structuredClone(raw);
@@ -120,23 +136,52 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
     if (item.type !== "math" || typeof item.content !== "string" || !Array.isArray(item.parts)) continue;
     const parts = objects(item.parts);
     const joined = parts.map((part) => part.text).join("");
-    if (parts.length === 1 && typeof parts[0]!.text === "string" && sameFormula(parts[0]!.text, item.content)) {
-      // One part equal to the whole formula: it is simply written at once.
+    const texts = parts.length > 1 && !sameFormula(joined, item.content) ? joinOperators(item.content, parts) : undefined;
+    if (texts) {
+      parts.forEach((part, i) => { part.text = texts[i]; });
+      fixes.push(`${String(item.id)} : opérateurs rattachés aux parties`);
+    } else if (parts.length < 2 || !sameFormula(joined, item.content)
+      || parts.some((part) => typeof part.text !== "string" || !standaloneTex(part.text))) {
+      // Parts that cannot be written one by one: the declared formula is written whole on the first part's word,
+      // the later steps highlight it. What the student sees is the declared formula; only the piece-by-piece writing is lost.
+      const ids = new Set(parts.map((part) => part.id));
       delete item.parts;
-      for (const action of actions) if (action.target === item.id && action.part === parts[0]!.id) delete action.part;
-      fixes.push(`${String(item.id)} : découpe en une seule partie retirée`);
-    } else if (parts.length > 1 && !sameFormula(joined, item.content)) {
-      const texts = joinOperators(item.content, parts);
-      if (texts) {
-        parts.forEach((part, i) => { part.text = texts[i]; });
-        fixes.push(`${String(item.id)} : opérateurs rattachés aux parties`);
+      let written = false;
+      for (const action of actions) {
+        if (action.target !== item.id || !ids.has(action.part)) continue;
+        delete action.part;
+        if (action.verb === "write") {
+          if (written) Object.assign(action, { verb: "highlight", role: "accent" });
+          written = true;
+        }
       }
+      fixes.push(parts.length === 1 && typeof parts[0]!.text === "string" && sameFormula(parts[0]!.text, item.content)
+        ? `${String(item.id)} : découpe en une seule partie retirée`
+        : fractionArguments(item.content, parts)
+          ? `${String(item.id)} : fraction découpée en numérateur et dénominateur, écrite d'un coup`
+          : `${String(item.id)} : parties qui ne redonnent pas la formule, formule écrite d'un coup`);
     }
   }
 
+  /** Actions of the passages already played in this tranche: done by the time a later passage starts. */
+  const earlier = new Set<unknown>();
   for (const beat of beats) {
     const cues = objects(beat.cues);
     const cueIds = new Set(cues.map(({ id }) => id));
+    const own = new Set(objects(beat.do).map(({ id }) => id));
+    // A cue copied with another case, accent or apostrophe: the words of the sentence, exactly as said.
+    if (typeof beat.say === "string") {
+      const say = beat.say;
+      for (const cue of cues) {
+        if (typeof cue.text !== "string" || say.includes(cue.text)) continue;
+        const found = fold(say).indexOf(fold(cue.text));
+        if (found >= 0 && fold(say).indexOf(fold(cue.text), found + 1) < 0) {
+          const exact = say.slice(found, found + cue.text.length);
+          fixes.push(`repère « ${cue.text} » lu « ${exact} »`);
+          cue.text = exact;
+        }
+      }
+    }
     for (const action of objects(beat.do)) {
       // null stands for « absent » in what models write; the contract only knows absent fields.
       for (const [key, value] of Object.entries(action)) if (value === null) delete action[key];
@@ -169,6 +214,13 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
       }
       for (const field of ["at", "start", "end"] as const) {
         const time = action[field];
+        const waited = typeof time === "string" ? /^after:(.+)$/.exec(time)?.[1] : undefined;
+        if (waited !== undefined && !own.has(waited) && earlier.has(waited)) {
+          // Waiting for an action of an earlier passage: it is done, the gesture starts with its own passage.
+          action[field] = "beat:start";
+          fixes.push(`${String(action.id)} : attendait « ${waited} » d'un passage précédent, part au début du sien`);
+          continue;
+        }
         const match = typeof time === "string" ? /^(cue|cue_end):(.+)$/.exec(time) : null;
         if (!match || cueIds.has(match[2])) continue;
         const resolved = resolveCue(match[2]!, cues);
@@ -178,6 +230,7 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
         }
       }
     }
+    for (const id of own) earlier.add(id);
   }
   return fixes.length ? { slice, fixes } : { slice: raw, fixes };
 }

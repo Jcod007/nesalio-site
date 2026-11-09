@@ -1,0 +1,666 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "interet_compose",
+  "title": "L'intérêt composé : un capital qui rapporte sur lui-même",
+  "language": "fr",
+  "learning_goal": "Comprendre que l'intérêt composé reprend le montant de l'année précédente comme nouvelle base, et calculer le solde après cinq ans pour 2000 $ à 4 % par année."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Intérêt composé : les intérêts rapportent à leur tour",
+     "type": "text"
+    },
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        0,
+        1
+       ],
+       [
+        2000,
+        2080
+       ]
+      ],
+      "row_labels": [
+       "durée (années)",
+       "solde ($)"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Placer deux mille dollars à quatre pour cent composé, c'est ouvrir une petite chaîne qui rebondit : chaque année, la base change.",
+     "cues": [
+      {
+       "id": "compose",
+       "text": "composé"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "an0",
+     "say": "Au départ, la base, c'est deux mille dollars. À quatre pour cent, un an d'intérêt donne quatre-vingts dollars.",
+     "cues": [
+      {
+       "id": "base",
+       "text": "base"
+      },
+      {
+       "id": "quatre_vingts",
+       "text": "quatre-vingts dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab0",
+       "verb": "highlight",
+       "at": "cue:base",
+       "target": "tab",
+       "role": "given"
+      },
+      {
+       "id": "h_tab1",
+       "verb": "highlight",
+       "at": "cue:quatre_vingts",
+       "target": "tab",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "voila",
+     "say": "Le solde après un an est donc de deux mille quatre-vingts dollars. Et voici l'idée centrale : l'an prochain, ce n'est pas sur deux mille, mais sur ce nouveau solde que le quatre pour cent s'applique.",
+     "cues": [
+      {
+       "id": "idee",
+       "text": "idée centrale"
+      },
+      {
+       "id": "nouveau",
+       "text": "nouveau solde"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab2",
+       "verb": "highlight",
+       "at": "cue:idee",
+       "target": "tab",
+       "role": "accent"
+      },
+      {
+       "id": "h_tab3",
+       "verb": "highlight",
+       "at": "cue:nouveau",
+       "target": "tab",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_methode",
+   "introduces": [
+    {
+     "id": "fact",
+     "content": "C_1 = 2000 \\times 1{,}04",
+     "parts": [
+      {
+       "id": "c1",
+       "text": "C_1"
+      },
+      {
+       "id": "m1",
+       "text": "= 2000 \\times 1{,}04"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "fact2",
+     "content": "C_2 = C_1 \\times 1{,}04",
+     "type": "math"
+    },
+    {
+     "id": "fact3",
+     "content": "C_n = C_0 \\times (1{,}04)^n",
+     "type": "math"
+    },
+    {
+     "id": "cond",
+     "attachment": {
+      "parent": "fact3",
+      "anchor": "right"
+     },
+     "content": "n = 5",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "multi",
+     "say": "On peut multiplier directement plutôt que d'additionner huit dollars et cents à chaque fois : le solde après un an, c'est deux mille fois un virgule zéro quatre.",
+     "cues": [
+      {
+       "id": "multiplier",
+       "text": "multiplier"
+      },
+      {
+       "id": "unzero",
+       "text": "un virgule zéro quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:multiplier",
+       "target": "tab"
+      },
+      {
+       "id": "w_c1",
+       "verb": "write",
+       "at": "cue:multiplier",
+       "target": "fact",
+       "part": "c1"
+      },
+      {
+       "id": "w_m1",
+       "verb": "write",
+       "at": "cue:unzero",
+       "target": "fact",
+       "part": "m1"
+      }
+     ]
+    },
+    {
+     "id": "repete",
+     "say": "Chaque année, ce facteur un virgule zéro quatre se multiplie à nouveau. Après cinq ans, on le multiplie cinq fois de suite, donc il est mis à la puissance cinq.",
+     "cues": [
+      {
+       "id": "puissance",
+       "text": "puissance cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t2",
+       "verb": "transform",
+       "at": "beat:start",
+       "source": "fact",
+       "target": "fact2"
+      },
+      {
+       "id": "t3",
+       "verb": "transform",
+       "at": "cue:puissance",
+       "source": "fact2",
+       "target": "fact3"
+      },
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "after:t3",
+       "target": "cond"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "calc",
+     "content": "C_5 = 2000 \\times (1{,}04)^5 = 2000 \\times 1{,}2166529024",
+     "parts": [
+      {
+       "id": "a",
+       "text": "C_5"
+      },
+      {
+       "id": "b",
+       "text": "= 2000 \\times (1{,}04)^5"
+      },
+      {
+       "id": "c",
+       "text": "= 2000 \\times 1{,}2166529024"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "resultat",
+     "style": {
+      "role": "result"
+     },
+     "content": "C_5 = 2433{,}31\\ $",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul",
+     "say": "Vérifions le calcul avec cinq années. Un virgule zéro quatre exposant cinq donne environ un virgule deux mille cent soixante-six.",
+     "cues": [
+      {
+       "id": "cinq_ans",
+       "text": "cinq années"
+      },
+      {
+       "id": "environ",
+       "text": "environ un virgule deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:cinq_ans",
+       "target": "calc",
+       "part": "a"
+      },
+      {
+       "id": "w_b",
+       "verb": "write",
+       "at": "cue:cinq_ans",
+       "target": "calc",
+       "part": "b"
+      },
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:environ",
+       "target": "calc",
+       "part": "c"
+      }
+     ]
+    },
+    {
+     "id": "final",
+     "say": "On multiplie par deux mille, et on obtient deux mille quatre cent trente-trois dollars et trente et un cents.",
+     "cues": [
+      {
+       "id": "obtient",
+       "text": "on obtient"
+      },
+      {
+       "id": "cent",
+       "text": "trente et un cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:obtient",
+       "target": "resultat"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:cent",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "compare",
+     "say": "Compare avec l'intérêt simple, qui aurait donné deux mille quatre cents dollars : la différence vient des intérêts qui ont rapporté à leur tour.",
+     "cues": [
+      {
+       "id": "simple",
+       "text": "intérêt simple"
+      },
+      {
+       "id": "different",
+       "text": "différence"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:simple",
+       "target": "calc"
+      },
+      {
+       "id": "h_fact",
+       "verb": "highlight",
+       "at": "cue:different",
+       "target": "fact3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "C_n = C_0 \\times (1 + i)^n",
+     "parts": [
+      {
+       "id": "cg",
+       "text": "C_n"
+      },
+      {
+       "id": "formule",
+       "text": "= C_0 \\times (1 + i)^n"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "content": "i = taux par période (en décimal), n = nombre de périodes",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap",
+     "items": [
+      "regle",
+      "note"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : l'intérêt composé, c'est le capital de départ multiplié par un plus le taux, exposant le nombre de périodes.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "exposant",
+       "text": "exposant"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_fact3",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "fact3"
+      },
+      {
+       "id": "f_cond",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "cond"
+      },
+      {
+       "id": "f_res",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "resultat"
+      },
+      {
+       "id": "c_recap",
+       "verb": "camera.focus",
+       "at": "cue:retenir",
+       "targets": [
+        "recap"
+       ]
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:retenir",
+       "target": "regle",
+       "part": "cg"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:exposant",
+       "target": "regle",
+       "part": "formule"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "after:w_formule",
+       "target": "note"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

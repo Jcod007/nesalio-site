@@ -1,0 +1,797 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "correlation_r",
+  "title": "Le coefficient de corrélation, concrètement",
+  "language": "fr",
+  "learning_goal": "Comprendre que r mesure la force et le sens d'une relation linéaire entre deux variables, en interprétant concrètement r = -0,8."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Le coefficient de corrélation r",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouverture",
+     "say": "On va voir ce que raconte vraiment un r de moins zéro virgule huit.",
+     "cues": [
+      {
+       "id": "c_rmoins",
+       "text": "moins zéro virgule huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "titre"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_titre"
+      },
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "h_titre",
+       "verb": "highlight",
+       "at": "cue:c_rmoins",
+       "target": "titre",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_nuage",
+   "introduces": [
+    {
+     "id": "ax",
+     "params": {
+      "x": [
+       0,
+       10
+      ],
+      "y": [
+       0,
+       10
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "nuage",
+     "params": {
+      "x": "t",
+      "y": "8 - 0.7*t",
+      "domain": [
+       0,
+       10
+      ]
+     },
+     "type": "parametric_curve"
+    },
+    {
+     "id": "p1",
+     "frame": "ax",
+     "params": {
+      "at": [
+       1,
+       7.2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "frame": "ax",
+     "params": {
+      "at": [
+       2,
+       6.7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3",
+     "frame": "ax",
+     "params": {
+      "at": [
+       3,
+       5.9
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "frame": "ax",
+     "params": {
+      "at": [
+       4,
+       5.2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5",
+     "frame": "ax",
+     "params": {
+      "at": [
+       5,
+       4.6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p6",
+     "frame": "ax",
+     "params": {
+      "at": [
+       6,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p7",
+     "frame": "ax",
+     "params": {
+      "at": [
+       7,
+       3.1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p8",
+     "frame": "ax",
+     "params": {
+      "at": [
+       8,
+       2.3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p9",
+     "frame": "ax",
+     "params": {
+      "at": [
+       9,
+       1.6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "droite",
+     "params": {
+      "x": "t",
+      "y": "8 - 0.7*t",
+      "domain": [
+       0,
+       10
+      ]
+     },
+     "type": "parametric_curve"
+    },
+    {
+     "id": "nnote",
+     "content": "r proche de 1 ou de -1 : points serrés autour d'une droite",
+     "type": "callout"
+    }
+   ],
+   "groups": [
+    {
+     "id": "nuage_pts",
+     "items": [
+      "p1",
+      "p2",
+      "p3",
+      "p4",
+      "p5",
+      "p6",
+      "p7",
+      "p8",
+      "p9"
+     ],
+     "arrange": {
+      "direction": "down",
+      "gap": "sm"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "montre_nuage",
+     "say": "Imagine neuf élèves. Chaque point, c'est un élève : son temps d'étude à l'horizontale, sa note à la verticale.",
+     "cues": [
+      {
+       "id": "c_eleves",
+       "text": "neuf élèves"
+      },
+      {
+       "id": "c_point",
+       "text": "Chaque point"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "ax"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_nuage"
+      },
+      {
+       "id": "s_ax",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ax"
+      },
+      {
+       "id": "m_nuage",
+       "verb": "move",
+       "at": "cue:c_point",
+       "target": "nuage",
+       "to": {
+        "to_corner": "bottom_left"
+       }
+      }
+     ]
+    },
+    {
+     "id": "tendance",
+     "say": "Regarde la tendance : quand le temps d'étude augmente, les points descendent, la note baisse.",
+     "cues": [
+      {
+       "id": "c_tendance",
+       "text": "la tendance"
+      },
+      {
+       "id": "c_descendent",
+       "text": "les points descendent"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pts",
+       "verb": "show",
+       "start": "cue:c_tendance",
+       "end": "cue_end:c_descendent",
+       "target": "nuage_pts",
+       "stagger": "normal"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_r_negatif",
+   "introduces": [
+    {
+     "id": "r_formule",
+     "content": "r = \\frac{\\text{part de la liaison}}{\\text{force maximale}}",
+     "type": "math"
+    },
+    {
+     "id": "r_note",
+     "attachment": {
+      "parent": "r_formule",
+      "anchor": "bottom"
+     },
+     "content": "r va toujours de -1 à 1",
+     "type": "label"
+    },
+    {
+     "id": "l1",
+     "content": "r = 1",
+     "type": "math"
+    },
+    {
+     "id": "l2",
+     "content": "r = -1",
+     "type": "math"
+    },
+    {
+     "id": "l3",
+     "content": "r = 0",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "echelle",
+     "items": [
+      "l1",
+      "l2",
+      "l3"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     },
+     "layout": {
+      "next_to": "ax",
+      "direction": "right",
+      "gap": "lg"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "cest_quoi",
+     "say": "Ce nombre r mesure à quel point les points collent à une droite. Un, c'est parfaitement aligné en montant. Moins un, parfaitement aligné en descendant. Zéro, aucun alignement.",
+     "cues": [
+      {
+       "id": "c_mesure",
+       "text": "mesure"
+      },
+      {
+       "id": "c_un",
+       "text": "Un, c'est parfaitement aligné en montant"
+      },
+      {
+       "id": "c_moinsun",
+       "text": "Moins un, parfaitement aligné en descendant"
+      },
+      {
+       "id": "c_zero",
+       "text": "Zéro, aucun alignement"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_r",
+       "verb": "write",
+       "at": "cue:c_mesure",
+       "target": "r_formule"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "after:s_r",
+       "target": "r_note"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "moins_08",
+     "say": "Ton moins zéro virgule huit, c'est donc un alignement descendant fort, mais pas parfait : les points restent un peu dispersés.",
+     "cues": [
+      {
+       "id": "c_moins08",
+       "text": "moins zéro virgule huit"
+      },
+      {
+       "id": "c_fort",
+       "text": "descendant fort"
+      },
+      {
+       "id": "c_disperses",
+       "text": "un peu dispersés"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_ax",
+       "verb": "dim",
+       "at": "cue:c_moins08",
+       "target": "ax"
+      },
+      {
+       "id": "h_r",
+       "verb": "highlight",
+       "at": "cue:c_fort",
+       "target": "r_formule",
+       "role": "result"
+      },
+      {
+       "id": "d_pts",
+       "verb": "dim",
+       "at": "cue:c_disperses",
+       "target": "nuage_pts"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_concret",
+   "introduces": [
+    {
+     "id": "exemple",
+     "content": "r = -0{,}8",
+     "type": "math"
+    },
+    {
+     "id": "trad",
+     "layout": {
+      "next_to": "exemple",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Plus d'étude → note plus haute (mais pas parfaitement)",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "traduction",
+     "say": "Concrètement : plus un élève étudie, plus sa note a tendance à monter. Un élève qui étudie beaucoup a de fortes chances d'avoir une bonne note, mais ce n'est pas garanti.",
+     "cues": [
+      {
+       "id": "c_tendance",
+       "text": "tendance"
+      },
+      {
+       "id": "c_chances",
+       "text": "fortes chances"
+      },
+      {
+       "id": "c_garanti",
+       "text": "pas garanti"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_r",
+       "verb": "fade_out",
+       "at": "cue:c_tendance",
+       "target": "r_formule"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_tendance",
+       "target": "r_note"
+      },
+      {
+       "id": "w_ex",
+       "verb": "write",
+       "at": "cue:c_chances",
+       "target": "exemple"
+      },
+      {
+       "id": "h_ex",
+       "verb": "highlight",
+       "at": "cue:c_garanti",
+       "target": "exemple",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "attention",
+     "say": "Attention : un fort lien ne veut pas dire une cause. Les deux variables bougent ensemble, c'est tout. Un troisième facteur, comme le sommeil, peut expliquer les deux.",
+     "cues": [
+      {
+       "id": "c_cause",
+       "text": "une cause"
+      },
+      {
+       "id": "c_ensemble",
+       "text": "bougent ensemble"
+      },
+      {
+       "id": "c_sommeil",
+       "text": "le sommeil"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_trad",
+       "verb": "show",
+       "at": "cue:c_ensemble",
+       "target": "trad"
+      },
+      {
+       "id": "f_echelle",
+       "verb": "fade_out",
+       "at": "cue:c_sommeil",
+       "target": "echelle"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "recap",
+     "content": "r = -0{,}8",
+     "type": "math"
+    },
+    {
+     "id": "recap_txt",
+     "content": "Lien linéaire descendant, fort, mais pas parfait.",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap_g",
+     "items": [
+      "recap",
+      "recap_txt"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : r va de moins un à un. Il dit la force et le sens d'une relation linéaire, pas une cause. Moins zéro virgule huit, c'est un lien descendant fort, mais imparfait.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_descendant",
+       "text": "lien descendant fort"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_ex",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "exemple"
+      },
+      {
+       "id": "f_tr",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "trad"
+      },
+      {
+       "id": "f_ax",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "ax"
+      },
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "cue:c_descendant",
+       "target": "recap_g"
+      },
+      {
+       "id": "h_recap",
+       "verb": "highlight",
+       "at": "after:s_recap",
+       "target": "recap",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

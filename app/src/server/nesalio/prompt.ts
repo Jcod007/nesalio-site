@@ -4,6 +4,7 @@
  * boucle pédagogique). La description du langage est produite à partir du
  * contrat : le prompt ne peut pas décrire un champ qui n'existe pas.
  */
+import { TEACHING, exampleLessonText, guideSection } from "./pedagogy";
 import { z } from "zod";
 import { Action, NESALIO_FORMAT_VERSION, SceneObject } from "@/domain/nesalio/contract";
 import type { ChatMessage } from "@/server/tutor/prompt";
@@ -90,15 +91,8 @@ export function languageReference(): string {
   ].join("\n");
 }
 
-const ROLE = `
-Tu es Nesa. Tu expliques une notion de mathématiques à voix haute, au tableau, à un élève du secondaire.
-Tu produis UNIQUEMENT l'explication : ce que tu dis et ce qui se dessine pendant que tu le dis.
-Tu ne poses aucune question à l'élève, tu n'attends aucune réponse, tu ne fais pas de quiz.
-
-Une bonne explication :
-- part de la question posée, donne d'abord l'intuition, puis un exemple concret, puis l'idée générale, et finit par l'idée à retenir ;
-- une seule idée par passage ; le tableau montre ce que tu dis, au moment où tu le dis ;
-- tu tutoies l'élève, en français, avec des phrases faites pour être ENTENDUES (courtes, naturelles), jamais lues.`.trim();
+/** How Nesa teaches: see pedagogy.ts (rules and guides taken back from the tutor). */
+const ROLE = TEACHING;
 
 const FORMAT = `
 FORMAT DE SORTIE (format Nesalio ${NESALIO_FORMAT_VERSION}) : du JSON, une ligne par élément, rien d'autre (pas de texte, pas de \`\`\`).
@@ -124,6 +118,8 @@ SYNCHRONISATION VOIX ↔ TABLEAU (règles strictes)
    « neuf plus seize donne vingt-cinq » → parts 9 | + 16 | = 25, write part sur « neuf », « seize », « vingt-cinq ».
    Les parties mises bout à bout redonnent exactement content ; chaque partie est du LaTeX complet (accolades équilibrées,
    exposant collé à sa base, \\frac avec ses deux arguments).
+   Une fraction ne se découpe JAMAIS en numérateur et dénominateur : \\frac{3}{4} est une seule partie ; pour parler du
+   numérateur puis du dénominateur, écris la fraction entière puis surligne-la (highlight).
 5. Un tracé long (draw d'une courbe, animate_parameter) s'étale entre deux repères : start "cue:…", end "cue_end:…".
    Pour désigner UN MORCEAU d'une formule (le x, un coefficient, un membre), découpe la formule en parts en prévoyant
    ce que tu vas désigner, puis highlight avec part : seule cette partie est surlignée, pas toute la formule.
@@ -167,7 +163,7 @@ TABLEAU ET PLACEMENT
   Une tranche est placée au début de son premier passage :
   pour lui laisser la place, dégage dans le DERNIER passage de la tranche précédente.
   Les étiquettes attachées partent avec leur objet. Un objet effacé par remove ne peut plus être visé.
-- RÉCAPITULATIF FINAL : prévois une dernière tranche qui réécrit l'essentiel dans une composition courte,
+- RÉCAPITULATIF FINAL : UNE SEULE tranche de conclusion, la dernière, qui dit l'idée centrale et réécrit l'essentiel dans une composition courte,
   par exemple une règle et sa formule clé regroupées avec arrange. Fais apparaître cette composition pendant la
   dernière tranche et laisse-la visible jusqu'à la fin. Si tu utilises camera.focus, vise uniquement les objets du
   récapitulatif. Dans le DERNIER passage de la tranche qui précède le récapitulatif, ajoute dans do un fade_out ou
@@ -187,6 +183,8 @@ MATHÉMATIQUES
   opérateurs + - * / ^, fonctions sqrt, abs, sin, cos, tan, exp, log. ATTENTION : log est le logarithme en base 10 ;
   il n'existe pas de ln (écris log(x)/log(2.718281828) si tu en as besoin). Variable x pour function_graph, t pour parametric_curve,
   et les symboles déclarés dans math_context. Rien d'autre.
+- Un tableau de valeurs (proportionnalité, valeurs d'une fonction) : UN objet matrix avec row_labels (l'intitulé de chaque
+  ligne, ex. « durée (h) »), jamais des label séparés pour les intitulés.
 - Un paramètre animé (animate_parameter) doit être déclaré dans math_context avec ses bornes ; from et to restent dans les bornes.
 - Évite les domaines où l'expression n'existe pas (log de 0 ou d'un négatif, division par 0) : choisis le domain en conséquence.
 - Des axes doivent tenir à l'écran : au plus 24 unités de large (x) et 13 de haut (y), par exemple x de -6 à 6 et y de -4 à 8.
@@ -261,6 +259,8 @@ export const PROMPT_EXAMPLES = [
 
 const CHECKLIST = `
 AVANT D'ÉCRIRE CHAQUE LIGNE, VÉRIFIE :
+- ce passage dit POURQUOI (une justification, pas seulement une opération), et la leçon avance vers l'idée centrale ;
+- le tableau montre ce que dit ce passage ;
 - chaque cue.text est copié mot pour mot depuis le say de son passage ;
 - chaque action vise un objet déclaré ou un cadrage déjà sauvegardé, et utilise un repère de son passage ;
 - chaque formule dite en plusieurs morceaux a ses parts, et chaque part est écrite sur son mot ;
@@ -275,6 +275,7 @@ export function buildNesalioSystemPrompt(): string {
     ROLE, FORMAT, "LANGAGE NESALIO (généré depuis le contrat)", languageReference(),
     SYNC_RULES, LAYOUT_RULES, MATH_RULES,
     "EXEMPLES DE TRANCHES (des mécanismes à reprendre, pas des leçons à copier)", ...examples,
+    "EXEMPLE DE LEÇON COMPLÈTE (pour le fil, la justification et le ton ; ne copie pas son sujet)", exampleLessonText(),
     CHECKLIST,
   ].join("\n\n");
 }
@@ -282,7 +283,9 @@ export function buildNesalioSystemPrompt(): string {
 export function buildNesalioMessages(question: string): ChatMessage[] {
   return [
     { role: "system", content: buildNesalioSystemPrompt() },
-    { role: "user", content: `Question de l'élève : « ${question.trim()} »\nÉcris l'explication au format Nesalio.` },
+    // The guide of the question's notion goes with the question: the system prompt stays the same for every question.
+    { role: "user", content: [`Question de l'élève : « ${question.trim()} »`, guideSection(question), "Écris l'explication au format Nesalio."]
+      .filter(Boolean).join("\n\n") },
   ];
 }
 

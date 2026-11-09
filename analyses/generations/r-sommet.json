@@ -1,0 +1,792 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "sommet_parabole",
+  "title": "Trouver le sommet d'une parabole",
+  "language": "fr",
+  "learning_goal": "Calculer les coordonnées du sommet d'une parabole à partir de la forme développée."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Le sommet d'une parabole",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b0",
+     "say": "Le sommet, c'est le point le plus bas, ou le plus haut, de la parabole.",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "sommet"
+      },
+      {
+       "id": "c_bas",
+       "text": "le plus bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "a_surligne",
+       "verb": "highlight",
+       "at": "cue:c_sommet",
+       "target": "titre",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "grille",
+     "params": {
+      "x": [
+       -3,
+       5
+      ],
+      "y": [
+       -5,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "parab",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "x^2 - 2*x - 3",
+      "domain": [
+       -1.7,
+       3.7
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "ex",
+     "content": "y = x^2 - 2x - 3",
+     "type": "math"
+    },
+    {
+     "id": "form",
+     "content": "x_S = -\\frac{b}{2a}",
+     "parts": [
+      {
+       "id": "partx",
+       "text": "x_S"
+      },
+      {
+       "id": "partb",
+       "text": "= -\\frac{b}{2a}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Prenons cette parabole : y égale x au carré moins deux x moins trois.",
+     "cues": [
+      {
+       "id": "c_para",
+       "text": "cette parabole"
+      },
+      {
+       "id": "c_y",
+       "text": "y égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "grille"
+      },
+      {
+       "id": "a_dessin",
+       "verb": "draw",
+       "at": "cue:c_para",
+       "target": "parab"
+      },
+      {
+       "id": "a_eq",
+       "verb": "write",
+       "at": "cue:c_y",
+       "target": "ex"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Dans cette écriture, a vaut un, et b vaut moins deux.",
+     "cues": [
+      {
+       "id": "c_un",
+       "text": "a vaut un"
+      },
+      {
+       "id": "c_moinsdeux",
+       "text": "b vaut moins deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_surligne_un",
+       "verb": "highlight",
+       "at": "cue:c_un",
+       "target": "ex",
+       "role": "accent"
+      },
+      {
+       "id": "a_surligne_deux",
+       "verb": "highlight",
+       "at": "cue:c_moinsdeux",
+       "target": "ex",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "Pour l'abscisse du sommet, la formule est : moins b sur deux a.",
+     "cues": [
+      {
+       "id": "c_abscisse",
+       "text": "abscisse"
+      },
+      {
+       "id": "c_formule",
+       "text": "moins b sur deux a"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_formule",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "form"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calculs",
+   "introduces": [
+    {
+     "id": "calc",
+     "content": "-\\frac{-2}{2 \\times 1} = \\frac{2}{2} = 1",
+     "type": "math"
+    },
+    {
+     "id": "xs",
+     "style": {
+      "role": "result"
+     },
+     "content": "x_S = 1",
+     "type": "math"
+    },
+    {
+     "id": "calcul2",
+     "content": "1^2 - 2 \\times 1 - 3 = 1 - 2 - 3 = -4",
+     "type": "math"
+    },
+    {
+     "id": "ys",
+     "style": {
+      "role": "result"
+     },
+     "content": "y_S = -4",
+     "type": "math"
+    },
+    {
+     "id": "s_point",
+     "frame": "grille",
+     "params": {
+      "at": [
+       1,
+       -4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_s",
+     "attachment": {
+      "parent": "s_point",
+      "anchor": "right"
+     },
+     "content": "S (1 ; -4)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "On remplace : moins b, ça fait moins moins deux, sur deux fois un.",
+     "cues": [
+      {
+       "id": "c_moinsb",
+       "text": "moins moins deux"
+      },
+      {
+       "id": "c_foisun",
+       "text": "deux fois un"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_calc",
+       "verb": "write",
+       "at": "cue:c_moinsb",
+       "target": "calc"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Deux divisé par deux, ça donne un. Le sommet a pour abscisse un.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "Deux divisé par deux"
+      },
+      {
+       "id": "c_resultat",
+       "text": "un"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_xs",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "xs"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "Maintenant l'ordonnée : on remplace x par un dans l'expression de départ.",
+     "cues": [
+      {
+       "id": "c_ordonnee",
+       "text": "ordonnée"
+      },
+      {
+       "id": "c_remplace",
+       "text": "remplace"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_calc2",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "calcul2"
+      }
+     ]
+    },
+    {
+     "id": "b4",
+     "say": "Un moins deux moins trois, ça fait moins quatre.",
+     "cues": [
+      {
+       "id": "c_moinsquatre",
+       "text": "moins quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_ys",
+       "verb": "write",
+       "at": "cue:c_moinsquatre",
+       "target": "ys"
+      }
+     ]
+    },
+    {
+     "id": "b5",
+     "say": "Le sommet est là : S de coordonnées un et moins quatre.",
+     "cues": [
+      {
+       "id": "c_la",
+       "text": "là"
+      },
+      {
+       "id": "c_coord",
+       "text": "un et moins quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_point",
+       "verb": "show",
+       "at": "cue:c_la",
+       "target": "s_point"
+      },
+      {
+       "id": "a_label",
+       "verb": "show",
+       "at": "cue:c_coord",
+       "target": "lab_s"
+      },
+      {
+       "id": "a_surligne_point",
+       "verb": "highlight",
+       "at": "after:a_label",
+       "target": "s_point",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "Le sommet S a pour abscisse -b / 2a ; on remplace pour trouver y_S.",
+     "type": "callout"
+    },
+    {
+     "id": "resume",
+     "style": {
+      "role": "result"
+     },
+     "content": "S (1 ; -4)",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "g_recap",
+     "items": [
+      "regle",
+      "resume"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "À retenir : l'abscisse du sommet, c'est moins b sur deux a.",
+     "cues": [
+      {
+       "id": "c_ret",
+       "text": "À retenir"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_retire_eq",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ex"
+      },
+      {
+       "id": "a_retire_calc",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc"
+      },
+      {
+       "id": "a_retire_calc2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calcul2"
+      },
+      {
+       "id": "a_retire_xs",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "xs"
+      },
+      {
+       "id": "a_retire_ys",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ys"
+      },
+      {
+       "id": "a_regle",
+       "verb": "show",
+       "at": "cue:c_ret",
+       "target": "regle"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Puis on calcule l'ordonnée en remplaçant x. Ici, le sommet est le point S un, moins quatre.",
+     "cues": [
+      {
+       "id": "c_ordre",
+       "text": "ordonnée"
+      },
+      {
+       "id": "c_ici",
+       "text": "Ici"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_resume",
+       "verb": "show",
+       "at": "cue:c_ici",
+       "target": "resume"
+      },
+      {
+       "id": "a_cadre",
+       "verb": "camera.focus",
+       "at": "after:a_resume",
+       "targets": [
+        "g_recap"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_conclusion",
+   "introduces": [
+    {
+     "id": "titre_fin",
+     "content": "Sommet de la parabole",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Tu peux maintenant trouver le sommet de n'importe quelle parabole donnée sous forme développée.",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "sommet"
+      },
+      {
+       "id": "c_developpee",
+       "text": "forme développée"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_titre_fin",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "titre_fin"
+      },
+      {
+       "id": "a_restaure",
+       "verb": "camera.focus",
+       "at": "cue:c_developpee",
+       "targets": [
+        "titre_fin"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_final",
+   "introduces": [
+    {
+     "id": "final_regle",
+     "style": {
+      "role": "accent"
+     },
+     "content": "x_S = -\\frac{b}{2a}",
+     "type": "math"
+    },
+    {
+     "id": "final_note",
+     "content": "S est le sommet de la parabole",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "g_final",
+     "items": [
+      "titre_fin",
+      "final_regle",
+      "final_note"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "center"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "En résumé : tu identifies a et b, tu calcules moins b sur deux a, puis tu remplaces x pour obtenir l'ordonnée.",
+     "cues": [
+      {
+       "id": "c_resume",
+       "text": "En résumé"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_final",
+       "verb": "show",
+       "at": "cue:c_resume",
+       "target": "final_regle"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Et le couple obtenu, c'est ton sommet S.",
+     "cues": [
+      {
+       "id": "c_couple",
+       "text": "couple"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_note",
+       "verb": "show",
+       "at": "cue:c_couple",
+       "target": "final_note"
+      },
+      {
+       "id": "a_zoom",
+       "verb": "camera.focus",
+       "at": "after:a_note",
+       "targets": [
+        "g_final"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

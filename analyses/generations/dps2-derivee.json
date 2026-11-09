@@ -1,0 +1,865 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "derivee_intro",
+  "title": "C'est quoi une dérivée, concrètement ?",
+  "language": "fr",
+  "learning_goal": "Comprendre que la dérivée en un point est la pente de la tangente, c'est-à-dire la limite des pentes des sécantes quand deux points se rapprochent."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "q": {
+     "kind": "parameter",
+     "initial": 3,
+     "min": 1,
+     "max": 3
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_pente",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -1,
+       4
+      ],
+      "y": [
+       -1,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "parabole",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "x^2",
+      "domain": [
+       -1,
+       4
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "ptA",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "ptA",
+      "anchor": "top",
+      "gap": "sm"
+     },
+     "content": "A(1 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "ptP",
+     "params": {
+      "at": [
+       3,
+       9
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labP",
+     "attachment": {
+      "parent": "ptP",
+      "anchor": "top",
+      "gap": "sm"
+     },
+     "content": "P(3 ; 9)",
+     "type": "label"
+    },
+    {
+     "id": "secante1",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "expression": "4*(x-1)+1",
+      "domain": [
+       1,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "avancee",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       3,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_avancee",
+     "attachment": {
+      "parent": "avancee",
+      "anchor": "bottom",
+      "gap": "sm"
+     },
+     "content": "avancée = 2",
+     "type": "label"
+    },
+    {
+     "id": "montee",
+     "params": {
+      "from": [
+       3,
+       1
+      ],
+      "to": [
+       3,
+       9
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_montee",
+     "attachment": {
+      "parent": "montee",
+      "anchor": "right",
+      "gap": "sm"
+     },
+     "content": "montée = 8",
+     "type": "label"
+    },
+    {
+     "id": "pente1",
+     "content": "pente = \\dfrac{montée}{avancée} = \\dfrac{9-1}{3-1} = \\dfrac{8}{2} = 4",
+     "parts": [
+      {
+       "id": "p_gauche",
+       "text": "pente = \\dfrac{montée}{avancée}"
+      },
+      {
+       "id": "p_sub",
+       "text": "= \\dfrac{9-1}{3-1}"
+      },
+      {
+       "id": "p_egal",
+       "text": "= \\dfrac{8}{2}"
+      },
+      {
+       "id": "p_res",
+       "text": "= 4"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_courbe",
+     "say": "Commençons par une courbe simple, la parabole y égale x au carré, et deux points dessus.",
+     "cues": [
+      {
+       "id": "c_parabole",
+       "text": "la parabole y égale x au carré"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux points dessus"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_courbe"
+      },
+      {
+       "id": "a_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_parabole",
+       "verb": "draw",
+       "start": "cue:c_parabole",
+       "end": "cue_end:c_parabole",
+       "target": "parabole"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "ptA"
+      },
+      {
+       "id": "s_labA",
+       "verb": "show",
+       "at": "after:s_A",
+       "target": "labA"
+      },
+      {
+       "id": "s_P",
+       "verb": "show",
+       "at": "after:s_labA",
+       "target": "ptP"
+      },
+      {
+       "id": "s_labP",
+       "verb": "show",
+       "at": "after:s_P",
+       "target": "labP"
+      }
+     ]
+    },
+    {
+     "id": "b_secante",
+     "say": "Je relie A et P par une droite : c'est une sécante, parce qu'elle coupe la courbe en deux points.",
+     "cues": [
+      {
+       "id": "c_relie",
+       "text": "Je relie A et P"
+      },
+      {
+       "id": "c_secante",
+       "text": "c'est une sécante"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_secante",
+       "verb": "draw",
+       "start": "cue:c_relie",
+       "end": "cue_end:c_secante",
+       "target": "secante1"
+      }
+     ]
+    },
+    {
+     "id": "b_triangle",
+     "say": "Pour mesurer l'inclinaison, je dessine un triangle rectangle sous cette droite.",
+     "cues": [
+      {
+       "id": "c_triangle",
+       "text": "triangle rectangle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_avancee",
+       "verb": "show",
+       "at": "cue:c_triangle",
+       "target": "avancee"
+      },
+      {
+       "id": "s_montee",
+       "verb": "show",
+       "at": "after:s_avancee",
+       "target": "montee"
+      },
+      {
+       "id": "s_lab_avancee",
+       "verb": "show",
+       "at": "after:s_montee",
+       "target": "lab_avancee"
+      },
+      {
+       "id": "s_lab_montee",
+       "verb": "show",
+       "at": "after:s_lab_avancee",
+       "target": "lab_montee"
+      }
+     ]
+    },
+    {
+     "id": "b_pente",
+     "say": "La pente, c'est la montée divisée par l'avancée : huit divisé par deux, ça donne quatre.",
+     "cues": [
+      {
+       "id": "c_pente",
+       "text": "La pente"
+      },
+      {
+       "id": "c_gauche",
+       "text": "la montée divisée par l'avancée"
+      },
+      {
+       "id": "c_huit",
+       "text": "huit divisé par deux"
+      },
+      {
+       "id": "c_quatre",
+       "text": "ça donne quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_gauche",
+       "target": "pente1",
+       "part": "p_gauche"
+      },
+      {
+       "id": "w_sub",
+       "verb": "write",
+       "at": "cue:c_huit",
+       "target": "pente1",
+       "part": "p_sub"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "after:w_sub",
+       "target": "pente1",
+       "part": "p_egal"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "pente1",
+       "part": "p_res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_rapprocher",
+   "introduces": [
+    {
+     "id": "secante2",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "expression": "3*(x-1)+1",
+      "domain": [
+       1,
+       2
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "lab_sec2",
+     "attachment": {
+      "parent": "secante2",
+      "anchor": "right",
+      "gap": "sm"
+     },
+     "content": "pente = 3",
+     "type": "label"
+    },
+    {
+     "id": "pente2",
+     "content": "pente = \\dfrac{4-1}{2-1} = \\dfrac{3}{1} = 3",
+     "parts": [
+      {
+       "id": "p2_gauche",
+       "text": "pente = \\dfrac{4-1}{2-1}"
+      },
+      {
+       "id": "p2_egal",
+       "text": "= \\dfrac{3}{1}"
+      },
+      {
+       "id": "p2_res",
+       "text": "= 3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "secante3",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "expression": "2.5*(x-1)+1",
+      "domain": [
+       1,
+       1.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "lab_sec3",
+     "attachment": {
+      "parent": "secante3",
+      "anchor": "right",
+      "gap": "sm"
+     },
+     "content": "pente = 2,5",
+     "type": "label"
+    },
+    {
+     "id": "pente3",
+     "content": "pente = \\dfrac{2{,}25-1}{1{,}5-1} = \\dfrac{1{,}25}{0{,}5} = 2{,}5",
+     "parts": [
+      {
+       "id": "p3_gauche",
+       "text": "pente = \\dfrac{2{,}25-1}{1{,}5-1}"
+      },
+      {
+       "id": "p3_egal",
+       "text": "= \\dfrac{1{,}25}{0{,}5}"
+      },
+      {
+       "id": "p3_res",
+       "text": "= 2{,}5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "liste",
+     "content": "4 \\;;\\; 3 \\;;\\; 2{,}5",
+     "parts": [
+      {
+       "id": "l_un",
+       "text": "4"
+      },
+      {
+       "id": "l_deux",
+       "text": "\\;;\\; 3"
+      },
+      {
+       "id": "l_trois",
+       "text": "\\;;\\; 2{,}5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_glisse",
+     "say": "Maintenant je garde A fixe, et je fais glisser P vers la gauche, plus près de A.",
+     "cues": [
+      {
+       "id": "c_glisse",
+       "text": "je fais glisser P vers la gauche"
+      },
+      {
+       "id": "c_pres",
+       "text": "plus près de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ptP2",
+       "verb": "show",
+       "at": "cue:c_glisse",
+       "target": "ptP"
+      },
+      {
+       "id": "f_sec1",
+       "verb": "fade_out",
+       "start": "cue:c_glisse",
+       "end": "cue_end:c_pres",
+       "target": "secante1"
+      },
+      {
+       "id": "d_sec2",
+       "verb": "draw",
+       "start": "cue:c_glisse",
+       "end": "cue_end:c_pres",
+       "target": "secante2"
+      }
+     ]
+    },
+    {
+     "id": "b_pente2",
+     "say": "Nouvelle avancée : deux moins un, un. Nouvelle montée : quatre moins un, trois. La pente devient trois.",
+     "cues": [
+      {
+       "id": "c_nouvelle",
+       "text": "Nouvelle avancée"
+      },
+      {
+       "id": "c_montee2",
+       "text": "Nouvelle montée"
+      },
+      {
+       "id": "c_devient",
+       "text": "La pente devient trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_lab2",
+       "verb": "fade_out",
+       "at": "cue:c_nouvelle",
+       "target": "lab_avancee"
+      },
+      {
+       "id": "f_mon2",
+       "verb": "fade_out",
+       "at": "cue:c_montee2",
+       "target": "lab_montee"
+      },
+      {
+       "id": "w_p2g",
+       "verb": "write",
+       "at": "cue:c_nouvelle",
+       "target": "pente2",
+       "part": "p2_gauche"
+      },
+      {
+       "id": "w_p2e",
+       "verb": "write",
+       "at": "cue:c_montee2",
+       "target": "pente2",
+       "part": "p2_egal"
+      },
+      {
+       "id": "w_p2r",
+       "verb": "write",
+       "at": "cue:c_devient",
+       "target": "pente2",
+       "part": "p2_res"
+      },
+      {
+       "id": "s_lab2",
+       "verb": "show",
+       "at": "after:w_p2r",
+       "target": "lab_sec2"
+      }
+     ]
+    },
+    {
+     "id": "b_encore",
+     "say": "Je rapproche encore : P à un virgule cinq, un virgule cinq au carré, ça fait deux virgule vingt-cinq.",
+     "cues": [
+      {
+       "id": "c_encore",
+       "text": "Je rapproche encore"
+      },
+      {
+       "id": "c_virgule_cinq",
+       "text": "un virgule cinq au carré"
+      },
+      {
+       "id": "c_deux_virgule",
+       "text": "ça fait deux virgule vingt-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_sec2",
+       "verb": "fade_out",
+       "start": "cue:c_encore",
+       "end": "cue_end:c_deux_virgule",
+       "target": "secante2"
+      },
+      {
+       "id": "d_sec3",
+       "verb": "draw",
+       "start": "cue:c_encore",
+       "end": "cue_end:c_deux_virgule",
+       "target": "secante3"
+      },
+      {
+       "id": "f_ptP",
+       "verb": "fade_out",
+       "at": "cue:c_virgule_cinq",
+       "target": "ptP"
+      },
+      {
+       "id": "f_labP",
+       "verb": "fade_out",
+       "at": "cue:c_virgule_cinq",
+       "target": "labP"
+      },
+      {
+       "id": "s_lab3",
+       "verb": "show",
+       "at": "after:d_sec3",
+       "target": "lab_sec3"
+      }
+     ]
+    },
+    {
+     "id": "b_pente3",
+     "say": "Cette fois la pente vaut deux virgule cinq. Quatre, puis trois, puis deux virgule cinq : en rapprochant P de A, la pente diminue et se rapproche de quelque chose.",
+     "cues": [
+      {
+       "id": "c_vaut",
+       "text": "la pente vaut deux virgule cinq"
+      },
+      {
+       "id": "c_quatre",
+       "text": "Quatre, puis trois, puis deux virgule cinq"
+      },
+      {
+       "id": "c_rapprochant",
+       "text": "en rapprochant P de A"
+      },
+      {
+       "id": "c_quelque",
+       "text": "se rapproche de quelque chose"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p3g",
+       "verb": "write",
+       "at": "cue:c_vaut",
+       "target": "pente3",
+       "part": "p3_gauche"
+      },
+      {
+       "id": "w_p3e",
+       "verb": "write",
+       "at": "after:w_p3g",
+       "target": "pente3",
+       "part": "p3_egal"
+      },
+      {
+       "id": "w_p3r",
+       "verb": "write",
+       "at": "after:w_p3e",
+       "target": "pente3",
+       "part": "p3_res"
+      },
+      {
+       "id": "s_liste",
+       "verb": "show",
+       "at": "cue:c_quatre",
+       "target": "liste"
+      },
+      {
+       "id": "h_liste",
+       "verb": "highlight",
+       "start": "cue:c_rapprochant",
+       "end": "cue_end:c_quelque",
+       "target": "liste",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

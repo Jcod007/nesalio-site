@@ -60,6 +60,25 @@ describe("prompt système Nesalio", () => {
     expect(rule).toMatch(/DERNIER passage de la tranche qui précède le récapitulatif[\s\S]*fade_out ou\s+remove/);
   });
 
+  it("demande d’aller jusqu’au résultat écrit au tableau, sur un seul exemple", () => {
+    // Seen in real generations: « x = 4 » said but never written, a vertex without its ordinate,
+    // a graph of one parabola and calculations on another.
+    const prompt = buildNesalioSystemPrompt();
+    expect(prompt).toMatch(/répond COMPLÈTEMENT[\s\S]*résultat est ÉCRIT au tableau/);
+    expect(prompt).toContain("UN seul exemple du début à la fin");
+  });
+
+  it("interdit de découper une fraction en numérateur et dénominateur", () => {
+    // Seen in real generations: « C'est quoi une fraction ? » failed three times on parts 3 | 4 for \frac{3}{4}.
+    expect(buildNesalioSystemPrompt()).toContain("Une fraction ne se découpe JAMAIS en numérateur et dénominateur");
+  });
+
+  it("demande un tableau de valeurs avec ses intitulés de lignes, pas des étiquettes séparées", () => {
+    const prompt = buildNesalioSystemPrompt();
+    expect(prompt).toContain("UN objet matrix avec row_labels");
+    expect(prompt).toContain("row_labels?:");
+  });
+
   it("écrit une notation compacte et lisible", () => {
     expect(describeSchema({ type: "object", properties: { a: { type: "number" }, b: { enum: ["x", "y"] } }, required: ["a"] }))
       .toBe('{ a: nombre, b?: "x" | "y" }');

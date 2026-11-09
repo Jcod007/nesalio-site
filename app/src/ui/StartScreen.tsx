@@ -10,17 +10,18 @@ interface Props {
   listening: boolean;
   onListeningChange(listening: boolean): void;
   inspection?: boolean;
+  /** Text under the title; the default describes the tutor (it can be interrupted). */
+  lede?: string;
 }
 
 /** Écran d'accueil : une seule action, poser sa question. */
-export function StartScreen({ onAsk, listening, onListeningChange, inspection }: Props) {
+export function StartScreen({ onAsk, listening, onListeningChange, inspection, lede }: Props) {
   return (
     <section className={styles.start} aria-labelledby="start-title">
       <Nesa state={listening ? "ecoute" : "clin"} size={112} />
       <h1 id="start-title">Sur quelle notion tu bloques ?</h1>
       <p className={styles.lede}>
-        Pose ta question à voix haute ou écris-la. Nesa t&apos;explique en dessinant au tableau, et tu peux l&apos;interrompre
-        quand tu veux.
+        {lede ?? "Pose ta question à voix haute ou écris-la. Nesa t'explique en dessinant au tableau, et tu peux l'interrompre quand tu veux."}
       </p>
       <QuestionInput
         size="large"

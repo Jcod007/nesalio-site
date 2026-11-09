@@ -85,6 +85,206 @@ Rien n'est commité : tout le travail est dans l'arbre de travail.
 
 ## Journal
 
+### 2026-11-08 nuit — Claude Code : décisions pour supprimer l'ancien système
+- Décision utilisateur : la génération en deux temps est **mise de côté** (« plus tard ») ; elle reste dans le code,
+  désactivée (`NESALIO_DEUX_ETAPES`). Mesure : 3 leçons sur 10 au bout sur les nouvelles questions, première tranche
+  après 7 à 18 s : pas utilisable telle quelle.
+- Décisions pour la suppression de l'ancien système (inventaire : `agent3-inventaire.md`) : commit du travail actuel
+  d'abord ; **mode démonstration sans IA supprimé** (sans modèle, la page dit que Nesa n'est pas disponible) ;
+  **inspection JSON `?inspect=1` retirée** (`/dev/nesalio` reste l'outil de test) ; **docs de l'ancien système
+  archivées** (pas supprimées).
+
+### 2026-11-08 nuit — Claude Code : deux temps mesurés, fiabilité, nouvelles questions
+- Deux temps (`dps1-*`, `dps2-*`) : première tranche après **6 à 19 s** (un appel `pdt1-*` : 1,6 à 7,8 s) ; 4 leçons
+  sur 16 en échec (dérivée ×2, nombre dérivé, portée) contre 2 sur 8 en un appel (dérivée, portée). Qualité pas
+  encore notée.
+- Causes des échecs (journaux) : surtout la forme sur des leçons plus riches — parties d'une formule qui ne la
+  redonnent pas (morceau manquant, espacements LaTeX `\;` `\quad`), repère copié avec une autre casse ou un autre
+  accent, deux objets JSON collés sur une ligne, objets non déclarés.
+- Corrigé (`normalize.ts`, `validate.ts`, `generator.ts`), tests qui échouent sans : formule dont les parties ne
+  la redonnent pas ou ne sont pas affichables seules → **formule déclarée écrite d'un coup** sur le mot de la
+  première partie, les suivantes la surlignent (ce que voit l'élève reste la formule déclarée) ; espacements LaTeX
+  ignorés dans la comparaison ; repère retrouvé sans tenir compte de la casse, des accents et de l'apostrophe (si une
+  seule occurrence) ; objets JSON collés lus séparément (`topLevelObjects`).
+- Grille d'évaluation rigoureuse et 10 nouvelles questions (agent) : `grille-et-questions.md` dans le dossier de
+  notes (exactitude 20 %, une erreur grave plafonne la note à 50 ou 30 sur 100).
+- Générés sur ces 10 questions : ancien tuteur `nt-*` (`tools/eval/tuteur-reel.test.mjs`, nouvel outil) ;
+  Nesalio un appel `nq-*` (avant les corrections de fiabilité ci-dessus : 1 leçon coupée, radian) ; deux temps `nd-*`
+  en cours. Notation à l'aveugle avec la grille à suivre.
+
+### 2026-11-08 nuit — Claude Code : génération en deux temps (idée de l'utilisateur)
+- Mesure étape 1 : les 16 leçons `pda1-*`, `pda2-*` (pédagogie remise, un appel) sont toutes allées au bout ; notation
+  à l'aveugle en cours par un agent (`notation-aveugle/` dans le dossier de notes ; clé de l'ordre gardée hors de ce
+  dossier, dans le bloc-notes de la session).
+- Idée de l'utilisateur : séparer l'explication et la mise en forme. `server/nesalio/script.ts` : **l'enseignant**
+  (règles d'enseignement + guide de la notion + ce que le tableau sait montrer, aucune syntaxe) écrit un script
+  « IDÉE CENTRALE / TRANCHE / DIT / TABLEAU » ; **le metteur en page** (le générateur existant, même validation, mêmes
+  corrections) le met au format v3.3, phrases mot pour mot. Format JSON et moteur inchangés.
+- Réglage `NESALIO_DEUX_ETAPES=1` (route), **désactivé par défaut** tant que la mesure n'a pas tranché.
+  Version 1 : le metteur en page attend le script entier (premier son plus tard) ; à optimiser si le gain est réel.
+- Tests `generator.test.ts` (2) ; `lecon-reelle.test.mjs` : `DEUX_ETAPES=1`, et le journal note le mode et le délai
+  de la première tranche. `tsc` OK.
+- En cours : `dps1-*`, `dps2-*` (deux temps) et `pdt1-*` (un appel, pour les délais).
+- **Résultat de la notation à l'aveugle** (un agent, 8 critères, 32 versions, `notation-aveugle-resultats.md`) :
+  ancien tuteur 3,98 ; Nesalio avant 3,58 ; **Nesalio avec la pédagogie remise 4,16** (tirages 4,08 et 4,23).
+  Dérivée 3,0 → 4,25 ; nombre dérivé 2,75 → 4,06 ; (x + 5)² 3,62 → 4,5. Reste faible : la portée d'un projectile
+  (3,31 ; deux erreurs de physique dans les nouveaux tirages). Défaut le plus courant, tous systèmes : le tableau ne
+  suit pas toujours la parole (étape dite non écrite, étiquette annoncée non montrée). Deux tirages, un correcteur :
+  indicatif.
+
+### 2026-11-08 nuit — Claude Code : qualité pédagogique, étape 1 (agents + pédagogie rendue au générateur)
+- L'utilisateur a jugé l'explication de « la dérivée » catastrophique, moins bonne qu'avant. Trois agents lancés
+  (rapports dans le dossier de notes partagé `side-session-notes/local_3a01ca48-…/`) :
+  `agent1-comparaison.md` (8 questions, mêmes modèle : ancien tuteur 4,0/5, Nesalio 3,3/5 ; dérivée coupée en route
+  mais annoncée « fin » ; nombre dérivé de x² en 2 dit « deux » ; complétion du carré fausse) ;
+  `agent2-diagnostic.md` (le prompt Nesalio n'a gardé qu'environ 5 % de pédagogie ; les guides par notion de l'ancien
+  tuteur, `server/tutor/domains/`, ont disparu) ; `agent3-inventaire.md` (ancien code : ~140 fichiers, ~17 400 lignes,
+  passerelles à couper d'abord, 8 décisions — suppression reportée après la remise à niveau de la qualité).
+- Décision utilisateur : **ne pas modifier la structure du JSON** (format v3.3). Tout se fait dans les consignes.
+  (`matrix.row_labels`, ajouté plus tôt et facultatif, reste.)
+- Fait : `generator.ts` n'annonce plus « fin » pour une leçon arrêtée sur un refus (erreur `incomplete`, message pour
+  l'élève ; la page affichait déjà « L'explication s'est arrêtée en route »). Test mis à jour.
+- Fait : `server/nesalio/pedagogy.ts` : `TEACHING` (règles du tuteur : public québécois, idée centrale, justifier,
+  conditions avant la formule, exemples où ça se voit, le tableau explique, résultat complet) remplace l'ancien `ROLE` ;
+  6 guides par notion traduits en objets v3.3 (dérivée : sécantes 4 → 3 → 2,5 → 2 et paramètre q ; fonctions ;
+  algèbre ; polynômes avec modèle d'aire ; géométrie ; physique), **joints à la question** seulement s'ils
+  correspondent (le prompt système reste identique pour toutes les questions) ; un seul récapitulatif ; deux lignes
+  pédagogiques dans la vérification finale ; une **leçon complète d'exemple** (« Pourquoi 2⁰ = 1 », hors des questions
+  mesurées), validée par le moteur dans `pedagogy.test.ts`.
+- En cours : mesure sur les 8 questions de l'agent 1, deux tirages chacune (`analyses/generations/pda1-*`, `pda2-*`).
+
+### 2026-11-08 soir — Claude Code (agent) : comparaison ancien tuteur / Nesalio, 8 questions réelles
+- Même modèle (DeepSeek V4.1 Flash, Gateway), un tirage par question. Nesalio : `lecon-reelle.test.mjs`
+  (`analyses/generations/cmp-*.json|journal|lisible.txt`) ; ancien : premier tour de `tutorEvents`
+  (`cmp-ancien-*.json|txt`), script temporaire supprimé. Rien modifié dans `app/src`.
+- Notes moyennes (8 critères, 1 à 5) : **ancien 4,0, Nesalio 3,3** ; l'ancien gagne 7/8 (Nesalio gagne les zéros :
+  l'ancien s'arrête sur un QCM avant le calcul). Écarts : intuition 2,6 contre 4,0, tableau 2,8 contre 4,0,
+  exactitude 3,4 contre 4,6.
+- Graves : « dérivée » arrêtée après 2 tranches sur refus mais terminée par `end` (`generator.ts` l. 210-213) :
+  jamais dit ce qu'est une dérivée ; nombre dérivé de x² en 2 annoncé « deux » (vrai : 4), tangente fausse ;
+  complétion : règle retenue fausse (« moitié… on l'ajoute puis la retire ») ; formule cassée au tableau ((x+5)²).
+  Cause probable : le prompt Nesalio n'a que 6 lignes de pédagogie et pas les guides par domaine de l'ancien
+  (`server/tutor/domains/`, dont la recette sécante → tangente).
+- Rapport complet : `AppData/Roaming/Claude/side-session-notes/local_3a01ca48-…/agent1-comparaison.md`.
+- Prochaine étape (à décider) : ne plus finir par `end` une leçon tronquée ; réinjecter les guides par domaine.
+
+### 2026-11-08 soir — Claude Code : page élève Nesalio vérifiée dans le navigateur
+- L'utilisateur s'est connecté (Clerk) dans le navigateur intégré ; essais sur `localhost:3000/` (serveur déjà lancé).
+- Vérifié, question « Comment je résous 2x + 3 = 11 ? » : accueil sans promesse d'interruption, préparation,
+  explication sous-titrée, titre dans la barre, résultat « x = 4 » au tableau, écran de fin (autre question, Revoir,
+  Nouvelle notion). Questionnaire « après essai » : 4 s après la fin, une fois par visite (comportement existant).
+- **Pause** : phrase et tableau figés 6 s ; reprise de l'audio au même endroit (4,41 s). **Son coupé** : audio muet,
+  la leçon continue au même rythme, passages suivants muets aussi ; réactivé ensuite. (Vérifié en lisant l'état des
+  éléments audio de la page.) **Revoir** : aucune nouvelle requête `/api/nesalio`. **Nouvelle question** en cours :
+  retour à l'accueil, aucun audio qui continue. **Réseau coupé (simulé)** : message pour l'élève + Réessayer.
+- Trouvé en réel : « C'est quoi une fraction ? » refusée trois fois (parts « 3 » et « 4 » pour `\frac{3}{4}`) →
+  `normalize.ts` écrit d'un coup une fraction découpée en numérateur/dénominateur (l'étape suivante la surligne),
+  consigne de prompt ajoutée ; tests (échoue sans). Réessayé : leçon jouée, fraction entière.
+- Téléphone (375 × 812) : fonctionne, mais tableau petit (format 16:9 réduit à la largeur) — cadrage téléphone
+  reporté, comme décidé. « Nouvelle question » en double (barre + carte) → retiré de la carte.
+- Ancien système : intact sur `?inspect=1` (texte d'origine). `NESALIO_EXPLICATION=0` couvert par test seulement
+  (le serveur en cours appartient à une autre session : pas relancé avec ce réglage).
+- `tsc` OK, **663 tests**, 5 ignorés.
+- Restent : micro (question dite) pas essayé dans le navigateur intégré ; un texte manuscrit « y_S » ; cadrage téléphone.
+
+### 2026-11-08 soir — Claude Code : bascule, étape 3 (page élève branchée, pas encore vue)
+- `engine/nesalioSession.ts` : séance d'explication (question → leçon en flux → tableau), pause, son coupé,
+  « Revoir l'explication » sans nouvel appel, messages d'erreur pour l'élève (hors ligne, modèle, arrêt en route :
+  ce qui a été joué reste), nouvelle question qui arrête la précédente, contexte du signalement. Tests
+  `nesalioSession.test.ts` (8).
+- `ui/NesalioApp.tsx` (tableau plein écran entre la barre et la carte, un rendu par explication) et
+  `ui/NesalioDock.tsx` (carte de Nesa : sous-titre, Pause/Reprendre, Nouvelle question ; fin : autre question,
+  Revoir, Nouvelle notion ; erreur : Réessayer / Autre question). Parler au micro pendant l'explication met en pause.
+- Réutilisés : `TopBar` (son coupé → commande), `FeedbackButton` (accepte toute séance avec `recentContext`),
+  `AfterTrialQuestions`, `StartScreen` (texte sous le titre en option : plus de promesse d'interruption).
+- `app/page.tsx` : `explainerFor` choisit `NesalioApp` ou `TutorApp` ; l'accès par compte est inchangé.
+- `tsc` OK, **661 tests**, 5 ignorés.
+- **Pas encore vérifié à l'écran** : la page `/` demande une connexion Clerk (code par courriel) ; l'IA ne peut pas
+  saisir d'identifiants → l'utilisateur doit se connecter dans le navigateur intégré.
+
+### 2026-11-08 soir — Claude Code : les 5 leçons corrigées, vues à l'écran
+- Filmé `analyses/videos/r-{sommet,equation,pythagore,fractions,proportion}.webm` (images dans `frames-r-*`) :
+  5 lectures complètes, voix, aucun avertissement, aucune erreur de page (l'erreur MathJax de la fois précédente
+  n'est pas revenue). Premier son 1,8 à 3,0 s (leçon déjà générée).
+- Vu : axes chiffrés ; sommet complet « S(1 ; −4) », une seule parabole ; « x = 4 » écrit ; tableau quadrillé avec
+  intitulés ; plus d'objet coupé au bord. Un objet peut apparaître au bord une seconde pendant que la caméra le
+  rejoint (fractions, 61 s → 63 s) : mouvement, pas coupure.
+- Reste mineur : un texte manuscrit qui écrit « y_S » tel quel (LaTeX dans un texte) ; récapitulatif du sommet un
+  peu dispersé (formules à des places éloignées).
+
+### 2026-11-08 soir — Claude Code : bascule, étapes 1-2 (pause/son, réglage)
+- `engine/nesalioControl.ts` : commande de lecture (pause, son coupé) partagée page ↔ lecteur. `playNesalioStream`
+  (option `control`) attend la reprise avant chaque passage ; les silences (`pausableSleep`) ne s'écoulent pas en
+  pause ; la commande est passée à la voix. `services/voice/nesalioClip.ts` : l'audio s'arrête, repart et se tait
+  avec la commande (un `play()` interrompu par une pause n'est pas une erreur). Tests `nesalioControl.test.ts` (3),
+  chacun échoue sans sa partie. **La partie audio du navigateur n'a pas de test unitaire** : à vérifier à l'écran.
+- `server/explainer.ts` : `explainerFor` → `nesalio` par défaut si le modèle est configuré ; `tuteur` si
+  `NESALIO_EXPLICATION=0`, sans IA, ou en inspection JSON. Documenté dans `.env.example`. Test `explainer.test.ts`.
+- Prochaine étape : la page élève (composant d'explication Nesalio, carte de Nesa, boutons validés).
+
+### 2026-11-08 soir — Claude Code : plan de bascule de la page élève validé
+- Plan écrit puis validé par l'utilisateur : [`app/docs/plan-bascule-nesalio.md`](app/docs/plan-bascule-nesalio.md).
+- Décisions : explication seule (pas de tuteur) ; pendant l'explication sous-titre, Pause/Reprendre, son coupé,
+  « Nouvelle question » ; à la fin « Une autre question ? », « Revoir l'explication », « Nouvelle notion » ;
+  « Attends, je comprends pas » retiré pour l'instant ; téléphone accepté tel quel (à vérifier) ; Nesalio par
+  défaut, ancien système en secours par un réglage. Sans IA (démo) et inspection JSON : ancien système.
+- Constaté en lisant le code : le lecteur Nesalio ne sait ni mettre en pause ni couper le son (à ajouter).
+- Prochaine étape : pause et son coupé dans le lecteur Nesalio (avec tests), puis la page.
+
+### 2026-11-08 soir — Claude Code : deuxième essai par tranche, nouvelles leçons
+- Nouvelles générations `analyses/generations/r-*.json` (prompt corrigé) : sommet complet et cohérent (une seule
+  parabole, x_S = 1, y_S = −4, « S (1 ; −4) » écrit) ; mais équation et proportionnalité arrêtées : la correction
+  d'une tranche réparait une erreur et en apportait une autre.
+- `generator.ts` : `MAX_ATTEMPTS` = 2 corrections par tranche (toujours `MAX_REPAIRS` = 3 par leçon).
+  `normalize.ts` : un geste `after:X` dont X est dans un passage précédent de la tranche part au début du sien
+  (X est fini) ; une action introuvable reste refusée. Tests (2), chacun échoue sans sa correction.
+- Régénérées : équation (4 tranches, « x = 4 » écrit), proportionnalité (5 tranches, tableau avec `row_labels`).
+- `tsc` OK, **647 tests**, 5 ignorés. Les 5 leçons `r-*` sont en cours de tournage (`analyses/videos/r-*.webm`).
+
+### 2026-11-08 soir — Claude Code : nombres sur les axes, tableau de valeurs, résultat complet
+- **Axes chiffrés** : `axisNumbers` (`measurement.ts`) donne les nombres des graduations (sans 0, virgule et signe
+  moins français), sous l'axe x et à gauche de l'axe y ; la mesure des axes réserve leur bande ; `NesalioProjection`
+  les dessine en texte (pas les nombres de manim-web : tournés sur l'axe y et rendus par MathJax). Test `axes.test.ts`.
+- **Tableau de valeurs** : `matrix.params.row_labels` (contrat, un intitulé par ligne) → dessiné en tableau quadrillé,
+  intitulés en première colonne (`tableLayout`/`tableRows`, partagés par la mesure et le dessin). Sans `row_labels`,
+  une matrice reste écrite comme avant. Consigne de prompt : un tableau de valeurs = un matrix avec row_labels.
+  Test `table.test.ts`.
+- **Prompt** : répondre complètement (résultat final écrit au tableau : « x = 4 », « S(3 ; −4) »), un seul exemple
+  du début à la fin. Tests dans `prompt.test.ts`.
+- Chaque correction neutralisée a fait échouer son test, puis a été remise. 177 tests ciblés OK, `tsc` OK.
+- Pas encore vu à l'écran : rendu des nombres et du quadrillage (à vérifier sur les nouvelles vidéos).
+
+### 2026-11-08 soir — Claude Code : cadrage qui coupait des objets encore au tableau
+- Décision utilisateur : corriger les défauts vus avant de brancher Nesalio dans la page élève.
+- Reproduit sans navigateur (lecture des 5 leçons `q-*` avec un faux clip) : la caméra cadrait ce qui apparaît et
+  laissait à moitié coupé un objet encore visible (Pythagore : le triangle ; proportionnalité : le premier tableau ;
+  fractions : les fractions estompées), sans avertissement car ce n'était pas une cible.
+- `fitSceneCamera` (`sceneState.ts`), option `avoidCutting` passée par `planFocus` (`nesalioPlayback.ts`) : un objet
+  visible que le cadre couperait le rejoint si tout reste lisible (zoom ≥ minimum) ; d'abord les non estompés, puis
+  les estompés. Un objet entièrement dehors reste dehors. Exception : la figure d'où l'on zoome sur un détail
+  (même repère que la cible), pour garder le zoom sur un sommet.
+- Tests `cameraDetails.test.ts` (2) : le premier échoue sans l'option, le second sans l'exception. `tsc` OK.
+- Après correction, plus rien de coupé sur Pythagore et proportionnalité ; reste fractions : la question en encadré,
+  trop large pour tenir avec le reste au zoom minimum (coupée en haut).
+- Pas encore revu à l'écran (refilmer après les autres corrections).
+
+### 2026-11-08 soir — Claude Code : qualité des explications vue à l'écran (avant bascule)
+- Décision utilisateur : pas de tuteur pour l'instant ; l'élève pose une question, Nesalio l'explique.
+  Vérifier la qualité avant de brancher Nesalio dans la page élève.
+- Nouvel outil `app/tools/eval/lecon-reelle.test.mjs` : génère par le vrai chemin (`generateNesalio`,
+  corrections comprises) et enregistre la leçon jouable (`LECONS_REELLES=1 LECONS="nom=question;…"`).
+- 5 leçons `analyses/generations/q-{sommet,equation,pythagore,fractions,proportion}.json`, toutes complètes ;
+  filmées (`analyses/videos/q-*.webm`, images dans `frames-q-*`) : lecture complète, voix, aucun avertissement.
+  Erreur de page « MathJax retry » sur fractions (effet non identifié).
+- Calculs tous justes. Défauts vus :
+  - **cadrage** : objets coupés au bord (Pythagore : triangle et « c = 5 » ; fractions : anciennes formules à moitié
+    visibles en haut ; proportionnalité : « ce (km) » coupé en haut à gauche) malgré l'absence d'avertissement `framing` ;
+  - axes de graphique sans nombres (sommet) ; tableau de valeurs sans grille, intitulés au-dessus/au-dessous ;
+  - formules empilées dans un ordre différent de la parole (sommet) ;
+  - leçons qui s'arrêtent avant le résultat complet : ordonnée du sommet absente, « x = 4 » jamais écrit (équation) ;
+  - une faute de grammaire (« seules la dernière colonne »).
+- Prochaine étape : décision utilisateur — corriger ces défauts avant la bascule, ou brancher d'abord.
+
 ### 2026-11-08 soir — Claude Code : fiabilité du générateur (leçons qui s'arrêtaient)
 - **Mesure.** Nouveau banc `app/tools/eval/fiabilite-generateur.test.mjs` : 10 questions variées × 2,
   par le vrai chemin de la route (`generateNesalio`, corrections comprises, réflexion `none` comme en direct).

@@ -2,8 +2,8 @@ import {
   Axes, Create, FadeIn, MathTex, NumberLine, TransformMatchingTex, VGroup, VMobject, Write, type Animation, type Mobject, type Scene,
 } from "manim-web";
 import { niceStep } from "@/domain/board/geometry";
-import { FONT_SIZE } from "@/domain/board/layout";
-import { measureSceneObject, sampleSceneCurve, sceneText } from "@/domain/nesalio/measurement";
+import { FONT_SIZE, TICK_FONT } from "@/domain/board/layout";
+import { axisNumbers, measureSceneObject, sampleSceneCurve, sceneText, tableLayout, tableRows } from "@/domain/nesalio/measurement";
 import type { SceneObject, Slice } from "@/domain/nesalio/contract";
 import type { Point } from "@/domain/nesalio/placement";
 import { partVisible, symbolValues, type MeasureObject, type Measurement, type PlacedObject } from "@/domain/nesalio/sceneState";
@@ -86,7 +86,8 @@ export class NesalioProjection {
   }
 
   readonly measure: MeasureObject = (definition, values, math, window) => {
-    if (!isText(definition)) return measureSceneObject(definition, values, math, window);
+    // A table of values is laid out cell by cell (tableLayout): the drawing follows the same layout.
+    if (!isText(definition) || (definition.type === "matrix" && definition.params.row_labels)) return measureSceneObject(definition, values, math, window);
     const formula = this.formulas.get(definition.id);
     if (formula) return formula.measurement;
     const text = definition.type === "matrix" ? definition.params.rows.map((row) => row.join("   ")).join("\n")
@@ -293,8 +294,26 @@ export class NesalioProjection {
         const at = axes.coordsToPoint(0, 0);
         axes.shift([dx - at[0], dy - at[1], 0]);
         items.push(axes);
+        // Numbered ticks: without them a point on a curve cannot be read (seen in real generations).
+        for (const number of axisNumbers(def.params)) {
+          const label = boardText(number.text, BRAND.muted, TICK_FONT, "body");
+          label.moveTo([dx + number.at[0], dy + number.at[1], 0]);
+          items.push(label);
+        }
         break;
       }
+      case "matrix":
+        if (def.params.row_labels) {
+          const layout = tableLayout(tableRows(def.params), fontSize(def));
+          for (const [from, to] of layout.lines) items.push(segmentMark([dx + from[0], dy + from[1], 0], [dx + to[0], dy + to[1], 0], palette.secondary, false, 2));
+          for (const cell of layout.cells) {
+            const text = boardText(cell.text, color, fontSize(def));
+            text.moveTo([dx + cell.at[0], dy + cell.at[1], 0]);
+            items.push(text);
+          }
+          break;
+        }
+      // falls through: a matrix without row titles is written as text
       default: {
         const formula = this.formulas.get(def.id);
         const textContent = def.type === "matrix" ? def.params.rows.map((row) => row.join("   ")).join("\n") : text ?? "";

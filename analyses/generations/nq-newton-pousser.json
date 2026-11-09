@@ -1,0 +1,930 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "force_masse_acceleration",
+  "title": "Pousser deux fois plus fort : vitesse ou accélération ?",
+  "language": "fr",
+  "learning_goal": "Distinguer vitesse et accélération et comprendre que la deuxième loi de Newton, F = ma, relie la force à l'accélération, pas à la vitesse."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "a": {
+     "kind": "parameter",
+     "initial": 0.5,
+     "min": 0.5,
+     "max": 2
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_question",
+   "introduces": [
+    {
+     "id": "vit",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       3,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "et_vit",
+     "attachment": {
+      "parent": "vit",
+      "anchor": "top"
+     },
+     "content": "v",
+     "type": "label"
+    },
+    {
+     "id": "meme_fleche",
+     "content": "même vitesse, avant comme après",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cadre",
+     "say": "Bonne question : pousser deux fois plus fort, est-ce que ça donne deux fois plus vite ?",
+     "cues": [
+      {
+       "id": "c_pousser",
+       "text": "pousser deux fois plus fort"
+      }
+     ],
+     "do": [
+      {
+       "id": "v_it",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "vit"
+      },
+      {
+       "id": "v_lab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "et_vit"
+      }
+     ]
+    },
+    {
+     "id": "contre",
+     "say": "Non, et c'est le piège : une force ne fixe pas la vitesse. Regarde une boîte qui glisse sans frottement, à vitesse constante.",
+     "cues": [
+      {
+       "id": "c_piege",
+       "text": "ne fixe pas la vitesse"
+      },
+      {
+       "id": "c_glisse",
+       "text": "glisse sans frottement"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_fleche",
+       "verb": "draw",
+       "start": "cue:c_glisse",
+       "end": "cue_end:c_glisse",
+       "target": "vit"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_accel",
+   "introduces": [
+    {
+     "id": "acc",
+     "params": {
+      "from": [
+       1,
+       3
+      ],
+      "to": [
+       4,
+       3
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "et_acc",
+     "attachment": {
+      "parent": "acc",
+      "anchor": "top"
+     },
+     "content": "a",
+     "type": "label"
+    },
+    {
+     "id": "pousse",
+     "params": {
+      "from": [
+       3.5,
+       0.4
+      ],
+      "to": [
+       3.5,
+       2.6
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "et_pousse",
+     "attachment": {
+      "parent": "pousse",
+      "anchor": "right"
+     },
+     "content": "F",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "meme_vitesse",
+     "say": "Avant comme après, la vitesse reste la même : la flèche v, à gauche, ne change pas.",
+     "cues": [
+      {
+       "id": "c_fl_avant",
+       "text": "Avant comme après"
+      },
+      {
+       "id": "c_ne_change",
+       "text": "ne change pas"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_acc",
+       "verb": "show",
+       "at": "cue:c_fl_avant",
+       "target": "acc"
+      },
+      {
+       "id": "l_acc",
+       "verb": "show",
+       "at": "cue:c_fl_avant",
+       "target": "et_acc"
+      },
+      {
+       "id": "dim_vit",
+       "verb": "dim",
+       "at": "cue:c_ne_change",
+       "target": "vit"
+      },
+      {
+       "id": "show_meme",
+       "verb": "show",
+       "at": "cue:c_ne_change",
+       "target": "meme_fleche"
+      }
+     ]
+    },
+    {
+     "id": "force",
+     "say": "Par contre, une force vers l'avant fait changer la vitesse, et ça se dessine : la flèche a, en haut, plus longue que v.",
+     "cues": [
+      {
+       "id": "c_force",
+       "text": "force vers l'avant"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_meme",
+       "verb": "fade_out",
+       "at": "cue:c_force",
+       "target": "meme_fleche"
+      },
+      {
+       "id": "d_acc",
+       "verb": "draw",
+       "start": "cue:c_force",
+       "end": "cue_end:c_force",
+       "target": "acc"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "definition",
+     "say": "Ce changement de vitesse, c'est l'accélération : la vitesse gagne des mètres par seconde à chaque seconde.",
+     "cues": [
+      {
+       "id": "c_accel",
+       "text": "changement de vitesse"
+      },
+      {
+       "id": "c_gagne",
+       "text": "gagne des mètres par seconde à chaque seconde"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_pousse",
+       "verb": "draw",
+       "start": "cue:c_accel",
+       "end": "cue_end:c_gagne",
+       "target": "pousse"
+      },
+      {
+       "id": "l_pousse",
+       "verb": "show",
+       "at": "cue:c_gagne",
+       "target": "et_pousse"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_fma",
+   "introduces": [
+    {
+     "id": "donnees",
+     "content": "m = 8\\ \\text{kg}, \\quad F = 16\\ \\text{N}",
+     "parts": [
+      {
+       "id": "p_m",
+       "text": "m = 8\\ \\text{kg}"
+      },
+      {
+       "id": "p_virg",
+       "text": ","
+      },
+      {
+       "id": "p_F",
+       "text": "\\quad F = 16\\ \\text{N}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calc",
+     "content": "a = F \\div m = 16 \\div 8 = 2\\ \\text{m/s}^2\\ (\\text{soit } 2 \\times \\text{plus grande})",
+     "parts": [
+      {
+       "id": "p_a",
+       "text": "a = F \\div m"
+      },
+      {
+       "id": "p_div",
+       "text": "= 16 \\div 8"
+      },
+      {
+       "id": "p_res",
+       "text": "= 2\\ \\text{m/s}^2\\ (\\text{soit } 2 \\times \\text{plus grande})"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "lien",
+     "layout": {
+      "next_to": "calc",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Force et accélération montent et descendent ensemble",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "force_deux",
+     "say": "Ici, deux fois plus fort veut dire seize newtons au lieu de huit.",
+     "cues": [
+      {
+       "id": "c_fort",
+       "text": "deux fois plus fort"
+      },
+      {
+       "id": "c_newtons",
+       "text": "seize newtons"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_m",
+       "verb": "write",
+       "at": "cue:c_fort",
+       "target": "donnees",
+       "part": "p_m"
+      },
+      {
+       "id": "w_F",
+       "verb": "write",
+       "at": "cue:c_newtons",
+       "target": "donnees",
+       "part": "p_F"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul",
+     "say": "La masse reste huit kilogrammes. Alors a égale F divisé par m : seize divisé par huit, deux mètres par seconde au carré.",
+     "cues": [
+      {
+       "id": "c_masse",
+       "text": "reste huit kilogrammes"
+      },
+      {
+       "id": "c_div",
+       "text": "F divisé par m"
+      },
+      {
+       "id": "c_deux",
+       "text": "seize divisé par huit"
+      },
+      {
+       "id": "c_unite",
+       "text": "deux mètres par seconde au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_div",
+       "target": "calc",
+       "part": "p_a"
+      },
+      {
+       "id": "w_div",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "calc",
+       "part": "p_div"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_unite",
+       "target": "calc",
+       "part": "p_res"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "reponse",
+     "say": "L'accélération est deux fois plus grande, mais la boîte ne part pas deux fois plus vite : sa vitesse augmente deux fois plus vite.",
+     "cues": [
+      {
+       "id": "c_accel",
+       "text": "L'accélération est deux fois plus grande"
+      },
+      {
+       "id": "c_augmente",
+       "text": "sa vitesse augmente"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:c_accel",
+       "target": "calc",
+       "role": "result",
+       "part": "p_res"
+      },
+      {
+       "id": "s_lien",
+       "verb": "show",
+       "at": "cue:c_augmente",
+       "target": "lien"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_precision",
+   "introduces": [
+    {
+     "id": "double_temps",
+     "content": "v = 2 \\times 2 = 4\\ \\text{m/s}",
+     "parts": [
+      {
+       "id": "p_v",
+       "text": "v = 2 \\times 2"
+      },
+      {
+       "id": "p_quatre",
+       "text": "= 4\\ \\text{m/s}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "double_force",
+     "layout": {
+      "next_to": "double_temps",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "a = 2 \\times 2 = 4\\ \\text{m/s}^2",
+     "parts": [
+      {
+       "id": "p_a2",
+       "text": "a = 2 \\times 2"
+      },
+      {
+       "id": "p_quatre2",
+       "text": "= 4\\ \\text{m/s}^2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "legende",
+     "attachment": {
+      "parent": "double_temps",
+      "anchor": "right"
+     },
+     "content": "pendant 2 secondes",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "vraie_reponse",
+     "say": "Si on veut deux fois plus vite, ce n'est pas la force qu'il faut changer : c'est le temps.",
+     "cues": [
+      {
+       "id": "c_temps",
+       "text": "c'est le temps"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_donnees",
+       "verb": "fade_out",
+       "at": "cue:c_temps",
+       "target": "donnees"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_temps",
+       "target": "calc"
+      },
+      {
+       "id": "f_lien",
+       "verb": "fade_out",
+       "at": "cue:c_temps",
+       "target": "lien"
+      }
+     ]
+    },
+    {
+     "id": "meme_force",
+     "say": "Avec la même accélération de deux unités, après deux secondes la vitesse gagne deux fois deux : quatre.",
+     "cues": [
+      {
+       "id": "c_apres",
+       "text": "après deux secondes"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_temps",
+       "verb": "show",
+       "at": "cue:c_apres",
+       "target": "double_temps"
+      },
+      {
+       "id": "s_legende",
+       "verb": "show",
+       "at": "cue:c_apres",
+       "target": "legende"
+      },
+      {
+       "id": "w_v",
+       "verb": "write",
+       "at": "cue:c_apres",
+       "target": "double_temps",
+       "part": "p_v"
+      },
+      {
+       "id": "w_quatre",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "double_temps",
+       "part": "p_quatre"
+      }
+     ]
+    },
+    {
+     "id": "comparer",
+     "say": "Doubler la force double l'accélération ; doubler le temps double la vitesse. Ce sont deux leviers différents.",
+     "cues": [
+      {
+       "id": "c_double_force",
+       "text": "Doubler la force"
+      },
+      {
+       "id": "c_double_temps",
+       "text": "doubler le temps"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_force",
+       "verb": "show",
+       "at": "cue:c_double_force",
+       "target": "double_force"
+      },
+      {
+       "id": "w_a2",
+       "verb": "write",
+       "at": "cue:c_double_force",
+       "target": "double_force",
+       "part": "p_a2"
+      },
+      {
+       "id": "w_q2",
+       "verb": "write",
+       "at": "cue:c_double_temps",
+       "target": "double_force",
+       "part": "p_quatre2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "F = m \\cdot a",
+     "type": "math"
+    },
+    {
+     "id": "vitesse_fin",
+     "content": "v_{\\text{finale}} = v_{\\text{départ}} + a \\times t",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : une force ne fixe pas la vitesse, elle cause une accélération, et cette accélération change la vitesse.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "une force ne fixe pas la vitesse"
+      },
+      {
+       "id": "c_cause",
+       "text": "elle cause une accélération"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_temps",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "double_temps"
+      },
+      {
+       "id": "f_legende",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "legende"
+      },
+      {
+       "id": "f_force",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "double_force"
+      },
+      {
+       "id": "f_acc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "acc"
+      },
+      {
+       "id": "f_etacc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "et_acc"
+      },
+      {
+       "id": "f_pousse",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "pousse"
+      },
+      {
+       "id": "f_etpousse",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "et_pousse"
+      },
+      {
+       "id": "f_vit",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "vit"
+      },
+      {
+       "id": "f_etvit",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "et_vit"
+      },
+      {
+       "id": "f_meme",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "meme_fleche"
+      },
+      {
+       "id": "v_loi",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "loi",
+        "vitesse_fin"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_retenir"
+      },
+      {
+       "id": "s_loi",
+       "verb": "show",
+       "at": "cue:c_cause",
+       "target": "loi"
+      }
+     ]
+    },
+    {
+     "id": "dire_loi",
+     "say": "F égale m fois a, la deuxième loi de Newton : la force donne l'accélération.",
+     "cues": [
+      {
+       "id": "c_f",
+       "text": "F égale m fois a"
+      },
+      {
+       "id": "c_newton",
+       "text": "deuxième loi de Newton"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "at": "cue:c_newton",
+       "target": "loi",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "vitesse",
+     "say": "La vitesse finale, elle, égale la vitesse de départ plus l'accélération multipliée par le temps.",
+     "cues": [
+      {
+       "id": "c_vitesse_finale",
+       "text": "vitesse finale"
+      },
+      {
+       "id": "c_plus",
+       "text": "plus l'accélération multipliée par le temps"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_vit",
+       "verb": "show",
+       "at": "cue:c_vitesse_finale",
+       "target": "vitesse_fin"
+      },
+      {
+       "id": "h_vit",
+       "verb": "highlight",
+       "at": "cue:c_plus",
+       "target": "vitesse_fin",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

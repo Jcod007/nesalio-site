@@ -1,0 +1,661 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "interet_compose",
+  "title": "Calculer un placement à intérêt composé",
+  "language": "fr",
+  "learning_goal": "Comprendre que l'intérêt composé est une multiplication répétée par le même facteur, et calculer le montant final après cinq ans avec C_n = C_0(1+i)^n."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_mecanisme",
+   "introduces": [
+    {
+     "id": "c0",
+     "content": "C_0 = 2000",
+     "type": "math"
+    },
+    {
+     "id": "facteur",
+     "content": "1 + 0{,}04 = 1{,}04",
+     "parts": [
+      {
+       "id": "p_un_plus",
+       "text": "1 + 0{,}04"
+      },
+      {
+       "id": "p_egal",
+       "text": "= 1{,}04"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "lab_facteur",
+     "attachment": {
+      "parent": "facteur",
+      "anchor": "right"
+     },
+     "content": "facteur annuel",
+     "type": "label"
+    },
+    {
+     "id": "an1",
+     "content": "2000 \\times 1{,}04 = 2000 + 80 = 2080",
+     "parts": [
+      {
+       "id": "a1_mult",
+       "text": "2000 \\times 1{,}04"
+      },
+      {
+       "id": "a1_somme",
+       "text": "= 2000 + 80"
+      },
+      {
+       "id": "a1_res",
+       "text": "= 2080"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "lab_80",
+     "attachment": {
+      "parent": "an1",
+      "anchor": "right"
+     },
+     "content": "intérêts de l'an 1",
+     "type": "label"
+    },
+    {
+     "id": "an2",
+     "content": "2080 \\times 1{,}04 = 2163{,}20",
+     "type": "math"
+    },
+    {
+     "id": "an2_eq",
+     "content": "2000 \\times 1{,}04 \\times 1{,}04 = 2000 \\times 1{,}04^2",
+     "parts": [
+      {
+       "id": "a2_gauche",
+       "text": "2000 \\times 1{,}04 \\times 1{,}04"
+      },
+      {
+       "id": "a2_droite",
+       "text": "= 2000 \\times 1{,}04^2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "suite",
+     "content": "2000 \\times 1{,}04^3 \\quad 2000 \\times 1{,}04^4 \\quad 2000 \\times 1{,}04^5",
+     "parts": [
+      {
+       "id": "s3",
+       "text": "2000 \\times 1{,}04^3"
+      },
+      {
+       "id": "s4",
+       "text": "\\quad 2000 \\times 1{,}04^4"
+      },
+      {
+       "id": "s5",
+       "text": "\\quad 2000 \\times 1{,}04^5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "place",
+     "say": "On place 2000 dollars. Un taux annuel de 4 %, ça veut dire qu'après un an, chaque dollar devient un dollar et quatre cents.",
+     "cues": [
+      {
+       "id": "c_2000",
+       "text": "2000 dollars"
+      },
+      {
+       "id": "c_quatre",
+       "text": "un dollar et quatre cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c0",
+       "verb": "write",
+       "at": "cue:c_2000",
+       "target": "c0"
+      },
+      {
+       "id": "w_facteur",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "facteur",
+       "part": "p_un_plus"
+      },
+      {
+       "id": "w_facteur2",
+       "verb": "write",
+       "at": "after:w_facteur",
+       "target": "facteur",
+       "part": "p_egal"
+      },
+      {
+       "id": "s_lab_facteur",
+       "verb": "show",
+       "at": "after:w_facteur2",
+       "target": "lab_facteur"
+      }
+     ]
+    },
+    {
+     "id": "premiere_annee",
+     "say": "Vérifions sur la première année. Tu ne gagnes pas sur 2000 dollars seulement : après un an, les 80 dollars d'intérêt se mettent à rapporter eux aussi.",
+     "cues": [
+      {
+       "id": "c_pas_seul",
+       "text": "pas sur 2000 dollars seulement"
+      },
+      {
+       "id": "c_80",
+       "text": "les 80 dollars d'intérêt"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a1m",
+       "verb": "write",
+       "at": "cue:c_pas_seul",
+       "target": "an1",
+       "part": "a1_mult"
+      },
+      {
+       "id": "w_a1s",
+       "verb": "write",
+       "at": "cue:c_80",
+       "target": "an1",
+       "part": "a1_somme"
+      },
+      {
+       "id": "w_a1r",
+       "verb": "write",
+       "at": "after:w_a1s",
+       "target": "an1",
+       "part": "a1_res"
+      },
+      {
+       "id": "h_80",
+       "verb": "highlight",
+       "at": "after:w_a1r",
+       "target": "an1",
+       "role": "accent",
+       "part": "a1_somme"
+      },
+      {
+       "id": "s_lab_80",
+       "verb": "show",
+       "at": "after:h_80",
+       "target": "lab_80"
+      }
+     ]
+    },
+    {
+     "id": "deuxieme_annee",
+     "say": "La deuxième année, l'intérêt se calcule sur 2080, pas sur 2000. Le facteur 1,04 s'applique au capital déjà grossi.",
+     "cues": [
+      {
+       "id": "c_2080",
+       "text": "sur 2080"
+      },
+      {
+       "id": "c_grossi",
+       "text": "capital déjà grossi"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_an2",
+       "verb": "write",
+       "at": "cue:c_2080",
+       "target": "an2"
+      },
+      {
+       "id": "w_an2eq",
+       "verb": "write",
+       "at": "cue:c_grossi",
+       "target": "an2_eq",
+       "part": "a2_gauche"
+      },
+      {
+       "id": "w_an2eq2",
+       "verb": "write",
+       "at": "after:w_an2eq",
+       "target": "an2_eq",
+       "part": "a2_droite"
+      }
+     ]
+    },
+    {
+     "id": "motif",
+     "say": "On voit le motif : une année de plus, c'est un facteur 1,04 de plus. Ce n'est pas une formule magique, c'est juste la même multiplication répétée.",
+     "cues": [
+      {
+       "id": "c_motif",
+       "text": "le motif"
+      },
+      {
+       "id": "c_repete",
+       "text": "multiplication répétée"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_s3",
+       "verb": "write",
+       "at": "cue:c_motif",
+       "target": "suite",
+       "part": "s3"
+      },
+      {
+       "id": "w_s4",
+       "verb": "write",
+       "at": "after:w_s3",
+       "target": "suite",
+       "part": "s4"
+      },
+      {
+       "id": "w_s5",
+       "verb": "write",
+       "at": "cue:c_repete",
+       "target": "suite",
+       "part": "s5"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "gen",
+     "content": "C_n = C_0\\,(1+i)^n",
+     "parts": [
+      {
+       "id": "g_gauche",
+       "text": "C_n"
+      },
+      {
+       "id": "g_egal",
+       "text": "= C_0\\,(1+i)^n"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "lab_c0",
+     "attachment": {
+      "parent": "gen",
+      "anchor": "bottom",
+      "placement": "outside"
+     },
+     "content": "capital de départ",
+     "type": "label"
+    },
+    {
+     "id": "lab_i",
+     "attachment": {
+      "parent": "gen",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "taux par période",
+     "type": "label"
+    },
+    {
+     "id": "lab_n",
+     "attachment": {
+      "parent": "gen",
+      "anchor": "top",
+      "placement": "outside"
+     },
+     "content": "nombre de périodes",
+     "type": "label"
+    },
+    {
+     "id": "subs",
+     "content": "C_5 = 2000\\,(1{,}04)^5",
+     "parts": [
+      {
+       "id": "s_gauche",
+       "text": "C_5"
+      },
+      {
+       "id": "s_egal",
+       "text": "= 2000\\,(1{,}04)^5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "cond",
+     "attachment": {
+      "parent": "subs",
+      "anchor": "bottom",
+      "placement": "outside"
+     },
+     "content": "capitalisation annuelle, taux annuel — les périodes sont des années",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "generalise",
+     "say": "Généralisons, pour ne pas tout réécrire si on change d'horizon : le montant final, c'est le capital de départ fois le facteur annuel, exposant le nombre d'années.",
+     "cues": [
+      {
+       "id": "c_final",
+       "text": "le montant final"
+      },
+      {
+       "id": "c_capital",
+       "text": "le capital de départ"
+      },
+      {
+       "id": "c_exposant",
+       "text": "exposant le nombre d'années"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gen",
+       "verb": "write",
+       "at": "cue:c_final",
+       "target": "gen",
+       "part": "g_gauche"
+      },
+      {
+       "id": "w_gen2",
+       "verb": "write",
+       "at": "cue:c_capital",
+       "target": "gen",
+       "part": "g_egal"
+      },
+      {
+       "id": "s_lab_c0",
+       "verb": "show",
+       "at": "after:w_gen2",
+       "target": "lab_c0"
+      },
+      {
+       "id": "s_lab_i",
+       "verb": "show",
+       "at": "cue:c_exposant",
+       "target": "lab_i"
+      },
+      {
+       "id": "s_lab_n",
+       "verb": "show",
+       "at": "after:s_lab_i",
+       "target": "lab_n"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "Dans ta situation : capital de départ 2000, taux par période 0,04, nombre de périodes 5. Attention : le taux s'écrit en décimal, quatre pour cent devient zéro virgule zéro quatre.",
+     "cues": [
+      {
+       "id": "c_2000",
+       "text": "capital de départ 2000"
+      },
+      {
+       "id": "c_004",
+       "text": "taux par période 0,04"
+      },
+      {
+       "id": "c_5",
+       "text": "nombre de périodes 5"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_subs",
+       "verb": "transform",
+       "at": "cue:c_2000",
+       "source": "gen",
+       "target": "subs"
+      },
+      {
+       "id": "h_fact",
+       "verb": "highlight",
+       "at": "cue:c_004",
+       "target": "subs",
+       "role": "accent",
+       "part": "s_egal"
+      }
+     ]
+    },
+    {
+     "id": "condition",
+     "say": "Une condition d'application à voix haute : ce facteur 1 + i suppose que le taux est celui d'une période et que l'intérêt est capitalisé à chaque période, ici chaque année.",
+     "cues": [
+      {
+       "id": "c_facteur",
+       "text": "ce facteur 1 + i"
+      },
+      {
+       "id": "c_chaque",
+       "text": "capitalisé à chaque période"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "cue:c_chaque",
+       "target": "cond"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

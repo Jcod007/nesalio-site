@@ -1,0 +1,629 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "radian_intro",
+  "title": "C'est quoi un radian et pourquoi on l'utilise",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'un radian est l'angle qui découpe un arc de longueur égale au rayon, qu'un tour complet vaut 2 pi radians, et pourquoi cette mesure sans unité simplifie les formules."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "r": {
+     "kind": "constant",
+     "value": 1
+    },
+    "theta": {
+     "kind": "parameter",
+     "initial": 0,
+     "min": 0,
+     "max": 360
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "cercle",
+     "params": {
+      "center": [
+       0,
+       0
+      ],
+      "radius": 1
+     },
+     "type": "circle"
+    },
+    {
+     "id": "rayon",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       1,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "rayon_lab",
+     "attachment": {
+      "parent": "rayon",
+      "anchor": "center",
+      "placement": "inside",
+      "gap": "xs"
+     },
+     "content": "rayon = 1",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "amorce",
+     "say": "Un radian, c'est une façon de mesurer un angle avec le rayon du cercle comme règle.",
+     "cues": [
+      {
+       "id": "c_rayon",
+       "text": "rayon du cercle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cercle",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "cercle"
+      },
+      {
+       "id": "d_rayon",
+       "verb": "draw",
+       "at": "cue:c_rayon",
+       "target": "rayon"
+      },
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "after:d_rayon",
+       "target": "rayon_lab"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_arc",
+   "introduces": [
+    {
+     "id": "arc",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "x": "cos(t)",
+      "y": "sin(t)",
+      "domain": [
+       0,
+       1
+      ]
+     },
+     "type": "parametric_curve"
+    },
+    {
+     "id": "arc_lab",
+     "attachment": {
+      "parent": "arc",
+      "anchor": "top",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "content": "longueur de l'arc = rayon",
+     "type": "label"
+    },
+    {
+     "id": "angle_lab",
+     "attachment": {
+      "parent": "arc",
+      "anchor": "right",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "content": "1 radian",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "definit",
+     "say": "Pose le rayon le long du cercle : l'arc que tu obtiens a exactement la même longueur que le rayon.",
+     "cues": [
+      {
+       "id": "c_arc",
+       "text": "arc"
+      },
+      {
+       "id": "c_meme",
+       "text": "même longueur"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_arc",
+       "verb": "draw",
+       "start": "cue:c_arc",
+       "end": "cue_end:c_meme",
+       "target": "arc"
+      },
+      {
+       "id": "s_arc_lab",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "arc_lab"
+      }
+     ]
+    },
+    {
+     "id": "nom",
+     "say": "L'angle au centre qui découpe cet arc s'appelle un radian : un radian, c'est ça.",
+     "cues": [
+      {
+       "id": "c_nom",
+       "text": "un radian"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_angle_lab",
+       "verb": "show",
+       "at": "cue:c_nom",
+       "target": "angle_lab"
+      },
+      {
+       "id": "h_arc",
+       "verb": "highlight",
+       "at": "after:s_angle_lab",
+       "target": "arc",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tour",
+   "introduces": [
+    {
+     "id": "tour",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "x": "cos(t)",
+      "y": "sin(t)",
+      "domain": [
+       0,
+       6.283185307
+      ]
+     },
+     "type": "parametric_curve"
+    },
+    {
+     "id": "formule",
+     "content": "2\\pi \\text{ rad} = 360^\\circ",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "combien",
+     "say": "Combien de rayons entrent dans la circonférence du cercle ? La circonférence vaut deux pi fois le rayon.",
+     "cues": [
+      {
+       "id": "c_combien",
+       "text": "Combien de rayons"
+      },
+      {
+       "id": "c_circonf",
+       "text": "deux pi fois le rayon"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tour",
+       "verb": "draw",
+       "start": "cue:c_combien",
+       "end": "cue_end:c_circonf",
+       "target": "tour"
+      }
+     ]
+    },
+    {
+     "id": "consequence",
+     "say": "Donc un tour complet, c'est deux pi radians, ce qui correspond à trois cent soixante degrés.",
+     "cues": [
+      {
+       "id": "c_complet",
+       "text": "tour complet"
+      },
+      {
+       "id": "c_trois",
+       "text": "trois cent soixante degrés"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_arc",
+       "verb": "fade_out",
+       "at": "cue:c_complet",
+       "target": "arc"
+      },
+      {
+       "id": "f_arc_lab",
+       "verb": "fade_out",
+       "at": "cue:c_complet",
+       "target": "arc_lab"
+      },
+      {
+       "id": "f_angle_lab",
+       "verb": "fade_out",
+       "at": "cue:c_complet",
+       "target": "angle_lab"
+      },
+      {
+       "id": "f_rayon",
+       "verb": "fade_out",
+       "at": "cue:c_complet",
+       "target": "rayon"
+      },
+      {
+       "id": "f_rayon_lab",
+       "verb": "fade_out",
+       "at": "cue:c_complet",
+       "target": "rayon_lab"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_complet",
+       "target": "formule"
+      },
+      {
+       "id": "w_droite",
+       "verb": "highlight",
+       "at": "cue:c_trois",
+       "target": "formule",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pourquoi",
+   "introduces": [
+    {
+     "id": "arc_s",
+     "content": "s = r\\,\\theta",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "content": "angle sans unité",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "avantage",
+     "say": "L'avantage du radian, c'est qu'il n'a pas d'unité : c'est un rapport de deux longueurs, l'arc sur le rayon.",
+     "cues": [
+      {
+       "id": "c_rapport",
+       "text": "rapport de deux longueurs"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tour",
+       "verb": "fade_out",
+       "at": "cue:c_rapport",
+       "target": "tour"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_rapport",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "formule_arc",
+     "say": "Résultat : la longueur d'un arc vaut simplement le rayon multiplié par l'angle en radians.",
+     "cues": [
+      {
+       "id": "c_simplement",
+       "text": "le rayon multiplié par l'angle en radians"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_arc_s",
+       "verb": "write",
+       "at": "cue:c_simplement",
+       "target": "arc_s"
+      },
+      {
+       "id": "h_arc_s",
+       "verb": "highlight",
+       "at": "after:w_arc_s",
+       "target": "arc_s",
+       "role": "accent"
+      },
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:c_simplement",
+       "target": "formule"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : un radian, c'est l'angle dont l'arc égale le rayon ; un tour vaut deux pi radians ; et comme c'est un rapport, les formules restent simples.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_simple",
+       "text": "formules restent simples"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "cercle",
+        "arc_s",
+        "note"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_finale"
+      },
+      {
+       "id": "s_cercle",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "cercle"
+      },
+      {
+       "id": "s_arc_s",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "arc_s"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "note"
+      },
+      {
+       "id": "h_arc_s",
+       "verb": "highlight",
+       "at": "cue:c_simple",
+       "target": "arc_s",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

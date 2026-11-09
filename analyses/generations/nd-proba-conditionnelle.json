@@ -1,0 +1,1330 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "probabilite_conditionnelle",
+  "title": "Pourquoi on divise par P(B) dans P(A|B)",
+  "language": "fr",
+  "learning_goal": "Comprendre que P(A|B) est la part de B que A occupe, et donc qu'on divise par P(B) pour ramener B à un nouvel univers d'aire 1."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "PB": {
+     "kind": "constant",
+     "value": 0.4
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "univers",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "pt",
+     "params": {
+      "at": [
+       3.6,
+       2.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "aire1",
+     "layout": {
+      "to_corner": "top_left",
+      "gap": "md"
+     },
+     "content": "\\text{aire totale} = 1",
+     "type": "math"
+    },
+    {
+     "id": "disqueA",
+     "params": {
+      "center": [
+       2.2,
+       2.2
+      ],
+      "radius": 1.3
+     },
+     "type": "circle"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "disqueA",
+      "anchor": "center",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "content": "P(A) = \\text{aire de } A",
+     "type": "math"
+    },
+    {
+     "id": "disqueB",
+     "params": {
+      "center": [
+       4.2,
+       2
+      ],
+      "radius": 1.5
+     },
+     "type": "circle"
+    },
+    {
+     "id": "labB",
+     "attachment": {
+      "parent": "disqueB",
+      "anchor": "center"
+     },
+     "content": "B",
+     "type": "math"
+    },
+    {
+     "id": "interAB",
+     "layout": {
+      "next_to": "labB",
+      "direction": "right",
+      "gap": "sm"
+     },
+     "content": "A \\cap B",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cible",
+     "say": "Imagine l'univers des possibles comme une grande cible dans laquelle on lance une fléchette au hasard, et chaque événement est une zone de la cible.",
+     "cues": [
+      {
+       "id": "c_cible",
+       "text": "grande cible"
+      },
+      {
+       "id": "c_zone",
+       "text": "zone de la cible"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_univers",
+       "verb": "draw",
+       "start": "cue:c_cible",
+       "end": "cue_end:c_zone",
+       "target": "univers"
+      },
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_cible",
+       "target": "pt"
+      },
+      {
+       "id": "s_aire1",
+       "verb": "show",
+       "at": "after:d_univers",
+       "target": "aire1"
+      }
+     ]
+    },
+    {
+     "id": "aire",
+     "say": "La probabilité d'un événement, c'est simplement l'aire de sa zone, parce que toute la cible ensemble vaut une aire de un.",
+     "cues": [
+      {
+       "id": "c_aire",
+       "text": "l'aire de sa zone"
+      },
+      {
+       "id": "c_un",
+       "text": "une aire de un"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_aire",
+       "target": "disqueA"
+      },
+      {
+       "id": "s_labA",
+       "verb": "show",
+       "at": "cue:c_aire",
+       "target": "labA"
+      },
+      {
+       "id": "h_aire1",
+       "verb": "highlight",
+       "at": "cue:c_un",
+       "target": "aire1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "info",
+     "say": "Maintenant, on te donne de l'information : on te jure que l'événement B est réalisé. Toute la cible sauf B est éliminée.",
+     "cues": [
+      {
+       "id": "c_B",
+       "text": "l'événement B est réalisé"
+      },
+      {
+       "id": "c_elimine",
+       "text": "sauf B est éliminée"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "cue:c_B",
+       "target": "disqueB"
+      },
+      {
+       "id": "s_labB",
+       "verb": "show",
+       "at": "cue:c_B",
+       "target": "labB"
+      },
+      {
+       "id": "d_univers2",
+       "verb": "dim",
+       "at": "cue:c_elimine",
+       "target": "univers"
+      },
+      {
+       "id": "d_A2",
+       "verb": "dim",
+       "at": "cue:c_elimine",
+       "target": "disqueA"
+      }
+     ]
+    },
+    {
+     "id": "question",
+     "say": "La question « quelle est la probabilité de A sachant B », notée P(A|B), c'est : la fléchette est tombée dans B, quelle est la chance qu'elle soit aussi tombée dans A ?",
+     "cues": [
+      {
+       "id": "c_sachant",
+       "text": "sachant B"
+      },
+      {
+       "id": "c_aussi",
+       "text": "aussi tombée dans A"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_inter",
+       "verb": "show",
+       "at": "cue:c_aussi",
+       "target": "interAB"
+      },
+      {
+       "id": "h_inter",
+       "verb": "highlight",
+       "at": "cue:c_aussi",
+       "target": "interAB",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_proportion",
+   "introduces": [
+    {
+     "id": "encadreB",
+     "attachment": {
+      "parent": "disqueB",
+      "anchor": "top"
+     },
+     "content": "nouvel univers",
+     "type": "label"
+    },
+    {
+     "id": "prop",
+     "content": "P(A|B) = \\frac{\\text{aire de la partie gagnante}}{\\text{aire du nouvel univers}}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "P(A|B)"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "gagnante",
+       "text": "\\frac{\\text{aire de la partie gagnante}}{\\text{aire du nouvel univers}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "labInter",
+     "attachment": {
+      "parent": "interAB",
+      "anchor": "right",
+      "gap": "sm"
+     },
+     "content": "P(A \\cap B)",
+     "type": "math"
+    },
+    {
+     "id": "labPB",
+     "attachment": {
+      "parent": "disqueB",
+      "anchor": "bottom",
+      "gap": "sm"
+     },
+     "content": "P(B)",
+     "type": "math"
+    },
+    {
+     "id": "formule",
+     "content": "P(A|B) = \\frac{P(A \\cap B)}{P(B)}",
+     "parts": [
+      {
+       "id": "fg",
+       "text": "P(A|B)"
+      },
+      {
+       "id": "fe",
+       "text": "="
+      },
+      {
+       "id": "ff",
+       "text": "\\frac{P(A \\cap B)}{P(B)}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "monde",
+     "say": "Puisqu'on sait que le point est dans B, le seul monde qui compte, c'est B. La cible n'est plus le grand rectangle : la cible, c'est B.",
+     "cues": [
+      {
+       "id": "c_monde",
+       "text": "seul monde qui compte"
+      },
+      {
+       "id": "c_cibleB",
+       "text": "la cible, c'est B"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_uni",
+       "verb": "fade_out",
+       "at": "cue:c_monde",
+       "target": "univers"
+      },
+      {
+       "id": "s_encB",
+       "verb": "show",
+       "at": "cue:c_monde",
+       "target": "encadreB"
+      },
+      {
+       "id": "h_B3",
+       "verb": "highlight",
+       "at": "cue:c_cibleB",
+       "target": "disqueB",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "proportion",
+     "say": "Alors la réponse doit être une proportion : l'aire de la partie gagnante divisée par l'aire totale de ce nouvel univers.",
+     "cues": [
+      {
+       "id": "c_proportion",
+       "text": "une proportion"
+      },
+      {
+       "id": "c_gagnante",
+       "text": "l'aire de la partie gagnante"
+      },
+      {
+       "id": "c_totale",
+       "text": "l'aire totale de ce nouvel univers"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_proportion",
+       "target": "prop",
+       "part": "gauche"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_proportion",
+       "target": "prop",
+       "part": "egal"
+      },
+      {
+       "id": "w_gagnante",
+       "verb": "write",
+       "at": "cue:c_gagnante",
+       "target": "prop",
+       "part": "gagnante"
+      }
+     ]
+    },
+    {
+     "id": "partiegagnante",
+     "say": "La partie gagnante, c'est être dans A et dans B, donc l'aire de A inter B.",
+     "cues": [
+      {
+       "id": "c_inter",
+       "text": "l'aire de A inter B"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_inter2",
+       "verb": "highlight",
+       "at": "cue:c_inter",
+       "target": "interAB",
+       "role": "result"
+      },
+      {
+       "id": "s_labInter",
+       "verb": "show",
+       "at": "cue:c_inter",
+       "target": "labInter"
+      }
+     ]
+    },
+    {
+     "id": "universB",
+     "say": "Le nouvel univers, c'est B tout entier, donc son aire vaut P(B).",
+     "cues": [
+      {
+       "id": "c_toutB",
+       "text": "B tout entier"
+      },
+      {
+       "id": "c_PB",
+       "text": "vaut P(B)"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_B4",
+       "verb": "highlight",
+       "at": "cue:c_PB",
+       "target": "disqueB",
+       "role": "result"
+      },
+      {
+       "id": "s_labPB",
+       "verb": "show",
+       "at": "cue:c_PB",
+       "target": "labPB"
+      }
+     ]
+    },
+    {
+     "id": "formule",
+     "say": "En remplaçant les mots par leurs aires, on obtient la formule : P de A sachant B égale P de A inter B, divisé par P de B.",
+     "cues": [
+      {
+       "id": "c_obtient",
+       "text": "on obtient la formule"
+      },
+      {
+       "id": "c_fin",
+       "text": "divisé par P de B"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_formule",
+       "verb": "transform",
+       "at": "cue:c_obtient",
+       "source": "prop",
+       "target": "formule"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "at": "after:t_formule",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pourquoi",
+   "introduces": [
+    {
+     "id": "contour",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "smallInter",
+     "layout": {
+      "next_to": "contour",
+      "direction": "right",
+      "gap": "sm"
+     },
+     "content": "P(A \\cap B)",
+     "type": "math"
+    },
+    {
+     "id": "PB04",
+     "layout": {
+      "next_to": "disqueB",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "P(B) = 0{,}4",
+     "type": "math"
+    },
+    {
+     "id": "PB1",
+     "layout": {
+      "next_to": "disqueB",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "P(B) = 1",
+     "type": "math"
+    },
+    {
+     "id": "partSurPB",
+     "attachment": {
+      "parent": "interAB",
+      "anchor": "right",
+      "gap": "sm"
+     },
+     "content": "P(A \\cap B)/P(B)",
+     "type": "math"
+    },
+    {
+     "id": "finale",
+     "content": "P(A|B) = \\frac{P(A \\cap B)}{P(B)}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tropPetite",
+     "say": "Si on ne divisait pas, P de A inter B toute seule serait trop petite : c'est une aire comptée dans la grande cible, pas dans la petite.",
+     "cues": [
+      {
+       "id": "c_toopetite",
+       "text": "serait trop petite"
+      },
+      {
+       "id": "c_grande",
+       "text": "comptée dans la grande cible"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:c_toopetite",
+       "target": "formule"
+      },
+      {
+       "id": "s_contour",
+       "verb": "show",
+       "at": "cue:c_grande",
+       "target": "contour"
+      },
+      {
+       "id": "s_smallInter",
+       "verb": "show",
+       "at": "cue:c_grande",
+       "target": "smallInter"
+      }
+     ]
+    },
+    {
+     "id": "etirer",
+     "say": "En divisant par P(B), on fait comme si B valait une aire de un : on étire B jusqu'à remplir toute la cible, et la partie A inter B est étirée dans la même proportion.",
+     "cues": [
+      {
+       "id": "c_divisant",
+       "text": "divisant par P(B)"
+      },
+      {
+       "id": "c_etire",
+       "text": "étire B"
+      },
+      {
+       "id": "c_proportion",
+       "text": "même proportion"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_PB04",
+       "verb": "show",
+       "at": "cue:c_divisant",
+       "target": "PB04"
+      },
+      {
+       "id": "m_disqueB",
+       "verb": "move",
+       "at": "cue:c_etire",
+       "target": "disqueB",
+       "to": {
+        "center_on": "contour"
+       }
+      },
+      {
+       "id": "m_interAB",
+       "verb": "move",
+       "at": "cue:c_proportion",
+       "target": "interAB",
+       "to": {
+        "next_to": "disqueB",
+        "direction": "right",
+        "gap": "sm"
+       }
+      }
+     ]
+    },
+    {
+     "id": "denominateur",
+     "say": "C'est exactement ce que fait la division : ramener le dénominateur à un. Voilà d'où elle sort.",
+     "cues": [
+      {
+       "id": "c_division",
+       "text": "ramener le dénominateur à un"
+      },
+      {
+       "id": "c_vient",
+       "text": "Voilà d'où elle sort"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_PB1",
+       "verb": "show",
+       "at": "cue:c_division",
+       "target": "PB1"
+      },
+      {
+       "id": "h_PB1",
+       "verb": "highlight",
+       "at": "cue:c_division",
+       "target": "PB1",
+       "role": "result"
+      },
+      {
+       "id": "s_finale",
+       "verb": "show",
+       "at": "cue:c_vient",
+       "target": "finale"
+      },
+      {
+       "id": "h_finale",
+       "verb": "highlight",
+       "at": "after:s_finale",
+       "target": "finale",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "tabB",
+     "params": {
+      "rows": [
+       [
+        2,
+        4,
+        6
+       ]
+      ],
+      "row_labels": [
+       "B (pair)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "PBcalc",
+     "layout": {
+      "next_to": "tabB",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "P(B) = \\frac{3}{6} = 0{,}5",
+     "type": "math"
+    },
+    {
+     "id": "tabA",
+     "params": {
+      "rows": [
+       [
+        4,
+        5,
+        6
+       ]
+      ],
+      "row_labels": [
+       "A (plus grand que 3)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "PAcalc",
+     "layout": {
+      "next_to": "tabA",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "P(A) = \\frac{3}{6} = 0{,}5",
+     "type": "math"
+    },
+    {
+     "id": "tabInter",
+     "params": {
+      "rows": [
+       [
+        4,
+        6
+       ]
+      ],
+      "row_labels": [
+       "A \\cap B"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "PIntercalc",
+     "layout": {
+      "next_to": "tabInter",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "P(A \\cap B) = \\frac{2}{6} = \\frac{1}{3}",
+     "type": "math"
+    },
+    {
+     "id": "calcul",
+     "content": "P(A|B) = \\frac{\\frac{1}{3}}{\\frac{1}{2}} = \\frac{1}{3} \\times 2 = \\frac{2}{3}",
+     "parts": [
+      {
+       "id": "cg",
+       "text": "P(A|B)"
+      },
+      {
+       "id": "ce",
+       "text": "="
+      },
+      {
+       "id": "cf",
+       "text": "\\frac{\\frac{1}{3}}{\\frac{1}{2}} = \\frac{1}{3} \\times 2 = \\frac{2}{3}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "resultat",
+     "content": "P(A|B) = \\frac{2}{3}",
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "layout": {
+      "next_to": "tabB",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{sur le dé pair : } 2, 4, 6 \\rightarrow \\text{gagnants : } 4, 6 \\rightarrow \\frac{2}{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "deB",
+     "say": "Prenons un exemple tout simple avec un dé à six faces : B, c'est sortir un nombre pair, donc deux, quatre ou six.",
+     "cues": [
+      {
+       "id": "c_de",
+       "text": "dé à six faces"
+      },
+      {
+       "id": "c_pair",
+       "text": "sortir un nombre pair"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_finale",
+       "verb": "fade_out",
+       "at": "cue:c_de",
+       "target": "finale"
+      },
+      {
+       "id": "f_contour",
+       "verb": "fade_out",
+       "at": "cue:c_de",
+       "target": "contour"
+      },
+      {
+       "id": "f_smallInter",
+       "verb": "fade_out",
+       "at": "cue:c_de",
+       "target": "smallInter"
+      },
+      {
+       "id": "s_tabB",
+       "verb": "show",
+       "at": "cue:c_pair",
+       "target": "tabB"
+      },
+      {
+       "id": "s_PBcalc",
+       "verb": "show",
+       "at": "cue:c_pair",
+       "target": "PBcalc"
+      }
+     ]
+    },
+    {
+     "id": "deA",
+     "say": "A, c'est sortir un nombre plus grand que trois, donc quatre, cinq ou six.",
+     "cues": [
+      {
+       "id": "c_grand",
+       "text": "nombre plus grand que trois"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre, cinq ou six"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tabA",
+       "verb": "show",
+       "at": "cue:c_grand",
+       "target": "tabA"
+      },
+      {
+       "id": "s_PAcalc",
+       "verb": "show",
+       "at": "cue:c_quatre",
+       "target": "PAcalc"
+      }
+     ]
+    },
+    {
+     "id": "lesDeux",
+     "say": "Les deux à la fois, c'est tomber sur quatre ou six : deux chances sur six, donc un tiers.",
+     "cues": [
+      {
+       "id": "c_deuxfois",
+       "text": "Les deux à la fois"
+      },
+      {
+       "id": "c_deuxchances",
+       "text": "deux chances sur six"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tabInter",
+       "verb": "show",
+       "at": "cue:c_deuxfois",
+       "target": "tabInter"
+      },
+      {
+       "id": "s_PIntercalc",
+       "verb": "show",
+       "at": "cue:c_deuxchances",
+       "target": "PIntercalc"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "On divise : un tiers divisé par un demi, c'est un tiers fois deux, qui donne deux tiers. Donc P de A sachant B égale deux tiers.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "On divise"
+      },
+      {
+       "id": "c_resultat",
+       "text": "P de A sachant B égale deux tiers"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calcul",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "calcul",
+       "part": "cf"
+      },
+      {
+       "id": "s_resultat",
+       "verb": "show",
+       "at": "cue:c_resultat",
+       "target": "resultat"
+      },
+      {
+       "id": "h_resultat",
+       "verb": "highlight",
+       "at": "after:s_resultat",
+       "target": "resultat",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "verif",
+     "say": "Vérifions le sens : sachant que le dé est pair, les cas possibles sont deux, quatre, six, et parmi eux, quatre et six gagnent. Deux sur trois. Ça colle.",
+     "cues": [
+      {
+       "id": "c_pair2",
+       "text": "le dé est pair"
+      },
+      {
+       "id": "c_gagnent",
+       "text": "quatre et six gagnent"
+      },
+      {
+       "id": "c_colle",
+       "text": "Ça colle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_verif",
+       "verb": "show",
+       "at": "cue:c_pair2",
+       "target": "verif"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "at": "cue:c_gagnent",
+       "target": "verif",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "propMot",
+     "content": "\\frac{\\text{la part}}{\\text{le tout}} = \\text{proportion}",
+     "type": "math"
+    },
+    {
+     "id": "deuxTiers",
+     "content": "\\frac{2}{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Retiens l'idée : P de A sachant B, c'est la part de B que A occupe, parce que B est devenu notre nouvel univers.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "Retiens l'idée"
+      },
+      {
+       "id": "c_part",
+       "text": "part de B que A occupe"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tabB",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tabB"
+      },
+      {
+       "id": "f_tabA",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tabA"
+      },
+      {
+       "id": "f_tabInter",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tabInter"
+      },
+      {
+       "id": "f_PBcalc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "PBcalc"
+      },
+      {
+       "id": "f_PAcalc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "PAcalc"
+      },
+      {
+       "id": "f_PIntercalc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "PIntercalc"
+      },
+      {
+       "id": "f_calcul",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calcul"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "verif"
+      },
+      {
+       "id": "f_finale2",
+       "verb": "fade_out",
+       "at": "cue:c_part",
+       "target": "finale"
+      }
+     ]
+    },
+    {
+     "id": "partTout",
+     "say": "On divise par P de B pour ramener cet univers à une aire de un : une part, divisée par le tout, c'est une proportion.",
+     "cues": [
+      {
+       "id": "c_ramener",
+       "text": "ramener cet univers à une aire de un"
+      },
+      {
+       "id": "c_parttout",
+       "text": "une part, divisée par le tout"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_formule2",
+       "verb": "show",
+       "at": "cue:c_ramener",
+       "target": "formule"
+      },
+      {
+       "id": "s_propMot",
+       "verb": "show",
+       "at": "cue:c_parttout",
+       "target": "propMot"
+      },
+      {
+       "id": "s_deuxTiers",
+       "verb": "show",
+       "at": "after:s_propMot",
+       "target": "deuxTiers"
+      }
+     ]
+    },
+    {
+     "id": "conclu",
+     "say": "Le dé l'a confirmé : diviser par un demi nous a ramenés à deux gagnants sur trois possibles, deux tiers. Même chose que de compter à la main.",
+     "cues": [
+      {
+       "id": "c_conclu",
+       "text": "Le dé l'a confirmé"
+      },
+      {
+       "id": "c_compte",
+       "text": "compter à la main"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_formule2",
+       "verb": "highlight",
+       "at": "cue:c_conclu",
+       "target": "formule",
+       "role": "result"
+      },
+      {
+       "id": "h_deuxTiers",
+       "verb": "highlight",
+       "at": "cue:c_compte",
+       "target": "deuxTiers",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

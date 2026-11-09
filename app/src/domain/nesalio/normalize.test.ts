@@ -73,12 +73,14 @@ describe("normalisation des tranches avant validation", () => {
     expect(parts.map((part) => part.text)).toEqual(["\\frac{1}{5}", "+ \\frac{2}{5}", "= \\frac{3}{5}"]);
   });
 
-  it("ne touche pas des parties qui disent une autre formule", () => {
-    // A missing number is not an operator: the formula would change, the refusal stays.
+  it("ne recolle pas des parties qui disent une autre formule : la formule déclarée est écrite entière", () => {
+    // A missing number is not an operator: no part is completed with a guess; the declared formula is shown whole.
     const raw = slice({
       introduces: [{ id: "eq", type: "math", content: "3^2 + 4^2 = 25", parts: [{ id: "a", text: "3^2" }, { id: "b", text: "= 25" }] }],
     });
-    expect(valid(normalizeSlice(raw).slice)).toContainEqual(expect.stringContaining("bout à bout"));
+    const { slice: fixed } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { introduces: unknown[] }).introduces[0]).toEqual({ id: "eq", type: "math", content: "3^2 + 4^2 = 25" });
   });
 
   it("retire une découpe en une seule partie identique à la formule", () => {
@@ -139,6 +141,85 @@ describe("normalisation des tranches avant validation", () => {
     expect(fixed).toEqual({ symbols: math.symbols, expressions: { g: "2*a" } });
     expect(validateMathContext(fixed as never)).toEqual([]);
     expect(fixes).toHaveLength(1);
+  });
+
+  it("fait partir au début de son passage un geste qui attend une action d’un passage précédent", () => {
+    // Seen in real generations: "after:w_gauche", w_gauche written in the passage before.
+    const raw = {
+      slice_id: "s1", introduces: [{ id: "eq", type: "math", content: "3x = 12" }, { id: "n", type: "text", content: "donc" }],
+      beats: [
+        { id: "b1", say: "On écrit.", cues: [], do: [{ id: "w_gauche", verb: "write", target: "eq", at: "beat:start" }] },
+        { id: "b2", say: "Puis on conclut.", cues: [], do: [{ id: "s", verb: "show", target: "n", at: "after:w_gauche" }, { id: "h", verb: "highlight", target: "eq", role: "accent", at: "after:ailleurs" }] },
+      ],
+    };
+    const fixed = normalizeSlice(raw).slice as typeof raw;
+    expect(fixed.beats[1]!.do[0]).toMatchObject({ at: "beat:start" });
+    // An action found nowhere before is not guessed: the refusal stays.
+    expect(fixed.beats[1]!.do[1]).toMatchObject({ at: "after:ailleurs" });
+  });
+
+  it("écrit d'un coup une fraction découpée en numérateur et dénominateur, la deuxième étape la surligne", () => {
+    // Seen in real generations (« C'est quoi une fraction ? », three times in a row): parts « 3 » and « 4 » for \frac{3}{4}.
+    const raw = slice({
+      introduces: [{ id: "eq", type: "math", content: "\\frac{3}{4}", parts: [{ id: "num", text: "3" }, { id: "den", text: "4" }] }],
+      say: "Trois parts sur quatre, voilà trois quarts.",
+      cues: [{ id: "c_trois", text: "Trois parts" }, { id: "c_quatre", text: "quatre" }],
+      do: [
+        { id: "w1", verb: "write", target: "eq", part: "num", at: "cue:c_trois" },
+        { id: "w2", verb: "write", target: "eq", part: "den", at: "cue:c_quatre" },
+      ],
+    });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("bout à bout"));
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    const typed = fixed as { introduces: { parts?: unknown }[]; beats: { do: unknown[] }[] };
+    expect(typed.introduces[0]).not.toHaveProperty("parts");
+    expect(typed.beats[0]!.do).toEqual([
+      { id: "w1", verb: "write", target: "eq", at: "cue:c_trois" },
+      { id: "w2", verb: "highlight", target: "eq", role: "accent", at: "cue:c_quatre" },
+    ]);
+    expect(fixes.join()).toContain("fraction");
+    // Pieces found elsewhere than as a fraction's arguments: not a fraction, the formula is still written whole.
+    const other = slice({ introduces: [{ id: "eq", type: "math", content: "34 + 1", parts: [{ id: "a", text: "3" }, { id: "b", text: "4" }] }] });
+    const repaired = normalizeSlice(other);
+    expect(valid(repaired.slice)).toEqual([]);
+    expect(repaired.fixes.join()).not.toContain("fraction");
+  });
+
+  it("écrit d'un coup une formule dont les parties ne redonnent pas la formule, les étapes suivantes la surlignent", () => {
+    // Seen in real generations (dérivée, nombre dérivé): « \frac{9 - 1}{3 - 1}= 4 » as parts of « p = \frac{9 - 1}{3 - 1} = \frac{8}{2} = 4 ».
+    const raw = slice({
+      introduces: [{ id: "eq", type: "math", content: "p = \\frac{9 - 1}{3 - 1} = \\frac{8}{2} = 4",
+        parts: [{ id: "a", text: "\\frac{9 - 1}{3 - 1}" }, { id: "b", text: "= 4" }] }],
+      do: [
+        { id: "w1", verb: "write", target: "eq", part: "a", at: "cue:c_isoler" },
+        { id: "w2", verb: "write", target: "eq", part: "b", at: "cue:c_douze" },
+        { id: "h", verb: "highlight", target: "eq", part: "b", role: "result", at: "after:w2" },
+      ],
+    });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("bout à bout"));
+    const { slice: fixed } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    const typed = fixed as { introduces: { content: string; parts?: unknown }[]; beats: { do: unknown[] }[] };
+    // The formula shown is the declared one, whole.
+    expect(typed.introduces[0]).toEqual({ id: "eq", type: "math", content: "p = \\frac{9 - 1}{3 - 1} = \\frac{8}{2} = 4" });
+    expect(typed.beats[0]!.do).toEqual([
+      { id: "w1", verb: "write", target: "eq", at: "cue:c_isoler" },
+      { id: "w2", verb: "highlight", target: "eq", role: "accent", at: "cue:c_douze" },
+      { id: "h", verb: "highlight", target: "eq", role: "result", at: "after:w2" },
+    ]);
+  });
+
+  it("retrouve le texte d'un repère copié avec une majuscule, un accent ou une apostrophe différente", () => {
+    const raw = slice({
+      say: "Quand la sécante pivote, elle s’approche de la tangente.",
+      cues: [{ id: "c1", text: "la secante pivote" }, { id: "c2", text: "S'approche" }],
+      do: [{ id: "w", verb: "write", target: "eq", at: "cue:c1" }, { id: "w2", verb: "highlight", target: "eq", role: "accent", at: "cue:c2" }],
+    });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("Occurrence introuvable"));
+    const { slice: fixed } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.cues).toEqual([{ id: "c1", text: "la sécante pivote" }, { id: "c2", text: "s’approche" }]);
   });
 
   it("laisse intacte une tranche déjà valide", () => {

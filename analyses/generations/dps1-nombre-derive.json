@@ -1,0 +1,1271 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "nombre_derive_graphique",
+  "title": "Le nombre dérivé sur un graphique",
+  "language": "fr",
+  "learning_goal": "Comprendre que le nombre dérivé en un point est la pente de la tangente, c'est-à-dire la limite des pentes des sécantes quand P se rapproche de A."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "q": {
+     "kind": "parameter",
+     "initial": 3,
+     "min": 1,
+     "max": 3
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_secante",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -1,
+       4
+      ],
+      "y": [
+       -1,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "params": {
+      "expression": "x^2",
+      "domain": [
+       -0.5,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "ptA",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "ptA",
+      "anchor": "left"
+     },
+     "content": "A(1 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "ptP",
+     "params": {
+      "at": [
+       3,
+       9
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labP",
+     "attachment": {
+      "parent": "ptP",
+      "anchor": "right"
+     },
+     "content": "P(3 ; 9)",
+     "type": "label"
+    },
+    {
+     "id": "sec",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       3,
+       9
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "labSec",
+     "attachment": {
+      "parent": "sec",
+      "anchor": "center",
+      "gap": "sm"
+     },
+     "content": "sécante A-P",
+     "type": "label"
+    },
+    {
+     "id": "avancee",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       3,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "labAv",
+     "attachment": {
+      "parent": "avancee",
+      "anchor": "bottom"
+     },
+     "content": "avancée = 2",
+     "type": "label"
+    },
+    {
+     "id": "montee",
+     "params": {
+      "from": [
+       3,
+       1
+      ],
+      "to": [
+       3,
+       9
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "labMont",
+     "attachment": {
+      "parent": "montee",
+      "anchor": "right"
+     },
+     "content": "montée = 8",
+     "type": "label"
+    },
+    {
+     "id": "calc1",
+     "content": "\\text{pente de A-P} = (9 - 1) \\div (3 - 1) = 4",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_pose",
+     "say": "Prends la courbe de la fonction x au carré, et posons deux points dessus : le point A fixe en un et un, et le point P mobile en trois et neuf.",
+     "cues": [
+      {
+       "id": "c_courbe",
+       "text": "la courbe"
+      },
+      {
+       "id": "c_A",
+       "text": "le point A"
+      },
+      {
+       "id": "c_P",
+       "text": "point P"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes",
+        "courbe",
+        "ptA",
+        "labA",
+        "ptP",
+        "labP"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_courbe"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "at": "cue:c_courbe",
+       "target": "courbe"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_A",
+       "target": "ptA"
+      },
+      {
+       "id": "s_labA",
+       "verb": "show",
+       "at": "after:s_A",
+       "target": "labA"
+      },
+      {
+       "id": "s_P",
+       "verb": "show",
+       "at": "cue:c_P",
+       "target": "ptP"
+      },
+      {
+       "id": "s_labP",
+       "verb": "show",
+       "at": "after:s_P",
+       "target": "labP"
+      }
+     ]
+    },
+    {
+     "id": "b_secante",
+     "say": "La droite qui passe par A et par P s'appelle une sécante. Sa pente nous dit à quel point elle monte vite.",
+     "cues": [
+      {
+       "id": "c_secante",
+       "text": "sécante"
+      },
+      {
+       "id": "c_pente",
+       "text": "Sa pente"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_sec",
+       "verb": "draw",
+       "at": "cue:c_secante",
+       "target": "sec"
+      },
+      {
+       "id": "s_labSec",
+       "verb": "show",
+       "at": "after:d_sec",
+       "target": "labSec"
+      },
+      {
+       "id": "h_sec",
+       "verb": "highlight",
+       "at": "cue:c_pente",
+       "target": "sec",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "b_pente",
+     "say": "La pente, c'est la montée divisée par l'avancée. La montée, c'est neuf moins un, donc huit. L'avancée, c'est trois moins un, donc deux.",
+     "cues": [
+      {
+       "id": "c_montee",
+       "text": "la montée"
+      },
+      {
+       "id": "c_avancee",
+       "text": "L'avancée"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_montee",
+       "verb": "draw",
+       "at": "cue:c_montee",
+       "target": "montee"
+      },
+      {
+       "id": "s_labMont",
+       "verb": "show",
+       "at": "after:d_montee",
+       "target": "labMont"
+      },
+      {
+       "id": "d_avancee",
+       "verb": "draw",
+       "at": "cue:c_avancee",
+       "target": "avancee"
+      },
+      {
+       "id": "s_labAv",
+       "verb": "show",
+       "at": "after:d_avancee",
+       "target": "labAv"
+      }
+     ]
+    },
+    {
+     "id": "b_calc",
+     "say": "Huit divisé par deux, ça donne quatre. La sécante A-P a une pente de quatre.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "pente de quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc1",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "calc1"
+      },
+      {
+       "id": "h_calc1",
+       "verb": "highlight",
+       "at": "after:w_calc1",
+       "target": "calc1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pivote",
+   "introduces": [
+    {
+     "id": "sec2",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "ptP2",
+     "frame": "ptA",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labP2",
+     "attachment": {
+      "parent": "ptP2",
+      "anchor": "right"
+     },
+     "content": "P(2 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "avancee2",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       2,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "labAv2",
+     "attachment": {
+      "parent": "avancee2",
+      "anchor": "bottom"
+     },
+     "content": "avancée = 1",
+     "type": "label"
+    },
+    {
+     "id": "montee2",
+     "params": {
+      "from": [
+       2,
+       1
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "labMont2",
+     "attachment": {
+      "parent": "montee2",
+      "anchor": "right"
+     },
+     "content": "montée = 3",
+     "type": "label"
+    },
+    {
+     "id": "calc2",
+     "content": "\\text{pente} = (4 - 1) \\div (2 - 1) = 3",
+     "type": "math"
+    },
+    {
+     "id": "sec3",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       1.5,
+       2.25
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "ptP3",
+     "frame": "ptA",
+     "params": {
+      "at": [
+       1.5,
+       2.25
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "calc3",
+     "content": "\\text{pente} = (2{,}25 - 1) \\div (1{,}5 - 1) = 1{,}25 \\div 0{,}5 = 2{,}5",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_glisse",
+     "say": "Maintenant, faisons glisser P vers la gauche, le long de la courbe, en le rapprochant de A.",
+     "cues": [
+      {
+       "id": "c_glisser",
+       "text": "glisser P"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_P2",
+       "verb": "show",
+       "at": "cue:c_glisser",
+       "target": "ptP2"
+      },
+      {
+       "id": "s_labP2",
+       "verb": "show",
+       "at": "after:s_P2",
+       "target": "labP2"
+      },
+      {
+       "id": "d_sec2",
+       "verb": "draw",
+       "at": "after:s_labP2",
+       "target": "sec2"
+      },
+      {
+       "id": "f_sec",
+       "verb": "fade_out",
+       "at": "after:d_sec2",
+       "target": "sec"
+      },
+      {
+       "id": "f_labSec",
+       "verb": "fade_out",
+       "at": "after:d_sec2",
+       "target": "labSec"
+      }
+     ]
+    },
+    {
+     "id": "b_pente2",
+     "say": "P est maintenant en deux et quatre. Reprenons la pente : quatre moins un, sur deux moins un. Trois sur un, donc trois.",
+     "cues": [
+      {
+       "id": "c_quatre_moins",
+       "text": "quatre moins un"
+      },
+      {
+       "id": "c_donc_trois",
+       "text": "donc trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_avancee2",
+       "verb": "draw",
+       "at": "cue:c_quatre_moins",
+       "target": "avancee2"
+      },
+      {
+       "id": "s_labAv2",
+       "verb": "show",
+       "at": "after:d_avancee2",
+       "target": "labAv2"
+      },
+      {
+       "id": "d_montee2",
+       "verb": "draw",
+       "at": "cue:c_quatre_moins",
+       "target": "montee2"
+      },
+      {
+       "id": "s_labMont2",
+       "verb": "show",
+       "at": "after:d_montee2",
+       "target": "labMont2"
+      },
+      {
+       "id": "w_calc2",
+       "verb": "write",
+       "at": "cue:c_donc_trois",
+       "target": "calc2"
+      },
+      {
+       "id": "h_calc2",
+       "verb": "highlight",
+       "at": "after:w_calc2",
+       "target": "calc2",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "b_baisse",
+     "say": "La pente a baissé : de quatre, elle est passée à trois. Et ça se voit : la sécante est moins inclinée qu'avant.",
+     "cues": [
+      {
+       "id": "c_baisse",
+       "text": "La pente a baissé"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_P3",
+       "verb": "show",
+       "at": "cue:c_baisse",
+       "target": "ptP3"
+      },
+      {
+       "id": "d_sec3",
+       "verb": "draw",
+       "at": "after:s_P3",
+       "target": "sec3"
+      },
+      {
+       "id": "f_sec2",
+       "verb": "fade_out",
+       "at": "after:d_sec3",
+       "target": "sec2"
+      },
+      {
+       "id": "f_P2",
+       "verb": "fade_out",
+       "at": "after:d_sec3",
+       "target": "ptP2"
+      },
+      {
+       "id": "f_labP2",
+       "verb": "fade_out",
+       "at": "after:d_sec3",
+       "target": "labP2"
+      },
+      {
+       "id": "f_avancee2",
+       "verb": "fade_out",
+       "at": "after:d_sec3",
+       "target": "avancee2"
+      },
+      {
+       "id": "f_labAv2",
+       "verb": "fade_out",
+       "at": "after:d_sec3",
+       "target": "labAv2"
+      },
+      {
+       "id": "f_montee2",
+       "verb": "fade_out",
+       "at": "after:d_sec3",
+       "target": "montee2"
+      },
+      {
+       "id": "f_labMont2",
+       "verb": "fade_out",
+       "at": "after:d_sec3",
+       "target": "labMont2"
+      },
+      {
+       "id": "w_calc3",
+       "verb": "write",
+       "at": "after:d_sec3",
+       "target": "calc3"
+      }
+     ]
+    },
+    {
+     "id": "b_encore",
+     "say": "Encore : un virgule cinq et deux virgule vingt-cinq. La montée vaut un virgule vingt-cinq, l'avancée vaut zéro virgule cinq. Un virgule vingt-cinq divisé par zéro virgule cinq, ça donne deux virgule cinq.",
+     "cues": [
+      {
+       "id": "c_encore",
+       "text": "Encore"
+      },
+      {
+       "id": "c_mont",
+       "text": "La montée vaut un virgule vingt-cinq"
+      },
+      {
+       "id": "c_avanc",
+       "text": "l'avancée vaut zéro virgule cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_calc3_mont",
+       "verb": "highlight",
+       "at": "cue:c_mont",
+       "target": "calc3",
+       "role": "accent"
+      },
+      {
+       "id": "h_calc3_avanc",
+       "verb": "highlight",
+       "at": "cue:c_avanc",
+       "target": "calc3",
+       "role": "accent"
+      },
+      {
+       "id": "h_calc3_res",
+       "verb": "highlight",
+       "at": "cue:c_encore",
+       "target": "calc3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_limite",
+   "introduces": [
+    {
+     "id": "secV",
+     "params": {
+      "expression": "(q+1)*(x-1)+1",
+      "domain": [
+       0,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "calcQ",
+     "content": "\\text{pente} = q + 1",
+     "type": "math"
+    },
+    {
+     "id": "tang",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2*x-1",
+      "domain": [
+       0,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "labTang",
+     "attachment": {
+      "parent": "tang",
+      "anchor": "right"
+     },
+     "content": "tangente en A",
+     "type": "label"
+    },
+    {
+     "id": "calcTan",
+     "content": "\\text{pente de la tangente} = 2",
+     "type": "math"
+    },
+    {
+     "id": "derivee",
+     "style": {
+      "role": "result"
+     },
+     "content": "f'(1) = 2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_anim",
+     "say": "Continue à rapprocher P de A, et regarde la pente : elle diminue de moins en moins vite. Quatre, trois, deux et demie, deux virgule une...",
+     "cues": [
+      {
+       "id": "c_continue",
+       "text": "Continue à rapprocher P de A"
+      },
+      {
+       "id": "c_pente_dim",
+       "text": "elle diminue de moins en moins vite"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_sec3",
+       "verb": "fade_out",
+       "at": "cue:c_continue",
+       "target": "sec3"
+      },
+      {
+       "id": "f_P3",
+       "verb": "fade_out",
+       "at": "cue:c_continue",
+       "target": "ptP3"
+      },
+      {
+       "id": "s_secV",
+       "verb": "show",
+       "at": "after:f_sec3",
+       "target": "secV"
+      },
+      {
+       "id": "w_calcQ",
+       "verb": "write",
+       "at": "after:s_secV",
+       "target": "calcQ"
+      },
+      {
+       "id": "anim",
+       "verb": "animate_parameter",
+       "at": "cue:c_pente_dim",
+       "parameter": "q",
+       "from": 3,
+       "to": 1
+      }
+     ]
+    },
+    {
+     "id": "b_tangente",
+     "say": "Quand P arrive tout près de A, la sécante se stabilise sur une position limite : la droite qui touche la courbe en A sans la couper ailleurs.",
+     "cues": [
+      {
+       "id": "c_limite",
+       "text": "position limite"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_secV",
+       "verb": "fade_out",
+       "at": "cue:c_limite",
+       "target": "secV"
+      },
+      {
+       "id": "f_calcQ",
+       "verb": "fade_out",
+       "at": "cue:c_limite",
+       "target": "calcQ"
+      },
+      {
+       "id": "d_tang",
+       "verb": "draw",
+       "at": "after:f_secV",
+       "target": "tang"
+      },
+      {
+       "id": "s_labTang",
+       "verb": "show",
+       "at": "after:d_tang",
+       "target": "labTang"
+      },
+      {
+       "id": "w_calcTan",
+       "verb": "write",
+       "at": "after:s_labTang",
+       "target": "calcTan"
+      }
+     ]
+    },
+    {
+     "id": "b_derivee",
+     "say": "Cette pente limite, deux, c'est le nombre dérivé de la fonction x au carré au point x égale un. Autrement dit, la dérivée en un, c'est deux.",
+     "cues": [
+      {
+       "id": "c_nombre_derive",
+       "text": "le nombre dérivé"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_derivee",
+       "verb": "write",
+       "at": "cue:c_nombre_derive",
+       "target": "derivee"
+      },
+      {
+       "id": "h_derivee",
+       "verb": "highlight",
+       "at": "after:w_derivee",
+       "target": "derivee",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "labPos",
+     "attachment": {
+      "parent": "axes",
+      "anchor": "left",
+      "placement": "outside"
+     },
+     "content": "position selon le temps",
+     "type": "label"
+    },
+    {
+     "id": "ptB",
+     "frame": "ptA",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labB",
+     "attachment": {
+      "parent": "ptB",
+      "anchor": "right"
+     },
+     "content": "(2 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "tangB",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       1.5,
+       3
+      ],
+      "to": [
+       2.5,
+       5
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "calcB",
+     "style": {
+      "role": "result"
+     },
+     "content": "f'(2) = 4",
+     "type": "math"
+    },
+    {
+     "id": "rep",
+     "content": "Rappel",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_concret",
+     "say": "Concrètement, si la courbe donnait la position d'une voiture selon le temps, la pente de la tangente serait sa vitesse à cet instant précis : le taux de variation instantané.",
+     "cues": [
+      {
+       "id": "c_concret",
+       "text": "Concrètement"
+      },
+      {
+       "id": "c_taux",
+       "text": "taux de variation instantané"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_labPos",
+       "verb": "show",
+       "at": "cue:c_concret",
+       "target": "labPos"
+      },
+      {
+       "id": "h_tang",
+       "verb": "highlight",
+       "at": "cue:c_taux",
+       "target": "tang",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "b_piege",
+     "say": "Et attention au piège : le nombre dérivé change d'un point à l'autre. En x égale deux, la pente de la tangente vaut quatre, pas deux.",
+     "cues": [
+      {
+       "id": "c_piege",
+       "text": "le nombre dérivé change"
+      },
+      {
+       "id": "c_quatre_pas",
+       "text": "vaut quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ptB",
+       "verb": "show",
+       "at": "cue:c_piege",
+       "target": "ptB"
+      },
+      {
+       "id": "s_labB",
+       "verb": "show",
+       "at": "after:s_ptB",
+       "target": "labB"
+      },
+      {
+       "id": "d_tangB",
+       "verb": "draw",
+       "at": "cue:c_quatre_pas",
+       "target": "tangB"
+      },
+      {
+       "id": "w_calcB",
+       "verb": "write",
+       "at": "after:d_tangB",
+       "target": "calcB"
+      },
+      {
+       "id": "h_calcB",
+       "verb": "highlight",
+       "at": "after:w_calcB",
+       "target": "calcB",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_final",
+     "say": "Alors pour répondre à ta question : sur un graphique, le nombre dérivé en un point, c'est la pente de la tangente en ce point, la limite des pentes des sécantes quand P se rapproche de A. Ici, la tangente y égale deux x moins un nous donne f′(1) égale deux.",
+     "cues": [
+      {
+       "id": "c_reponse",
+       "text": "sur un graphique"
+      },
+      {
+       "id": "c_ici",
+       "text": "Ici"
+      }
+     ],
+     "do": [
+      {
+       "id": "m_courbe",
+       "verb": "move",
+       "at": "cue:c_reponse",
+       "target": "courbe",
+       "to": {
+        "to_corner": "top_left"
+       }
+      },
+      {
+       "id": "c_fin",
+       "verb": "camera.focus",
+       "at": "cue:c_ici",
+       "targets": [
+        "axes",
+        "courbe",
+        "ptA",
+        "tang",
+        "derivee"
+       ]
+      },
+      {
+       "id": "d_dim",
+       "verb": "dim",
+       "at": "cue:c_ici",
+       "target": "calc1"
+      },
+      {
+       "id": "d_dim2",
+       "verb": "dim",
+       "at": "cue:c_ici",
+       "target": "calc2"
+      },
+      {
+       "id": "d_dim3",
+       "verb": "dim",
+       "at": "cue:c_ici",
+       "target": "calc3"
+      },
+      {
+       "id": "f_ptB",
+       "verb": "fade_out",
+       "at": "cue:c_ici",
+       "target": "ptB"
+      },
+      {
+       "id": "f_labB",
+       "verb": "fade_out",
+       "at": "cue:c_ici",
+       "target": "labB"
+      },
+      {
+       "id": "f_tangB",
+       "verb": "fade_out",
+       "at": "cue:c_ici",
+       "target": "tangB"
+      },
+      {
+       "id": "f_calcB",
+       "verb": "fade_out",
+       "at": "cue:c_ici",
+       "target": "calcB"
+      },
+      {
+       "id": "f_labPos",
+       "verb": "fade_out",
+       "at": "cue:c_ici",
+       "target": "labPos"
+      },
+      {
+       "id": "h_derivee_fin",
+       "verb": "highlight",
+       "at": "after:c_fin",
+       "target": "derivee",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

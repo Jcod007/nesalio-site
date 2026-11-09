@@ -15,11 +15,12 @@ import type { ChatProvider } from "@/server/config";
 import type { CompletionStream } from "@/server/tutor/chatCompletions";
 import type { ChatMessage } from "@/server/tutor/prompt";
 import { buildNesalioMessages, continueMessage, repairHeaderMessage, repairMessage } from "./prompt";
+import { buildTeacherMessages, layoutRequest } from "./script";
 
 export type NesalioEvent =
   | { kind: "lesson"; lesson: Lesson; math_context?: MathSpec }
   | { kind: "slice"; slice: Slice }
-  | { kind: "error"; code: "upstream" | "empty" | "invalid"; message: string }
+  | { kind: "error"; code: "upstream" | "empty" | "invalid" | "incomplete"; message: string }
   | { kind: "end" };
 
 export interface GeneratorConfig {
@@ -27,16 +28,23 @@ export interface GeneratorConfig {
   completion: CompletionStream;
   signal?: AbortSignal;
   log?(message: string, detail?: unknown): void;
+  /** Two calls: the teacher writes the lesson as plain text, the layout writer puts it in the Nesalio format (script.ts). */
+  twoStage?: boolean;
 }
 
 /** Above this, a lesson exceeds the 1 to 2 minute target by far: the rest is dropped. */
 export const MAX_SLICES = 6;
 /**
- * Corrections asked of the model in one lesson, each tranche being sent back
- * at most once. Measured on real generations: refusals hit different tranches
- * of the same lesson, and one repair per lesson stopped a third of them early.
+ * Corrections asked of the model in one lesson. Measured on real generations:
+ * refusals hit different tranches of the same lesson, and one repair per
+ * lesson stopped a third of them early.
  */
 export const MAX_REPAIRS = 3;
+/**
+ * Corrections asked for the same tranche. Seen in real generations: a
+ * correction fixing one error and bringing in another, the lesson then stopping.
+ */
+export const MAX_ATTEMPTS = 2;
 /**
  * Fewest tranches of a lesson (the prompt asks for 3 to 5). Measured on real
  * generations: after correcting an early tranche, the model often rewrote it
@@ -83,6 +91,32 @@ export function closeJsonLine(line: string): string | undefined {
   return line + open.reverse().join("");
 }
 
+/** The complete top-level JSON objects a line holds, in order; the rest (an unfinished object) stays with the last one. */
+export function topLevelObjects(line: string): string[] {
+  const objects: string[] = [];
+  let depth = 0;
+  let inString = false;
+  let start = 0;
+  for (let index = 0; index < line.length; index++) {
+    const char = line[index];
+    if (inString) {
+      if (char === "\\") index++;
+      else if (char === "\"") inString = false;
+    } else if (char === "\"") inString = true;
+    else if (char === "{") depth++;
+    else if (char === "}" && --depth === 0) {
+      objects.push(line.slice(start, index + 1).trim());
+      start = index + 1;
+    }
+  }
+  const rest = line.slice(start).trim();
+  if (rest) {
+    if (objects.length) objects[objects.length - 1] += rest;
+    else objects.push(rest);
+  }
+  return objects;
+}
+
 function parseLine(line: string): { value: Record<string, unknown> } | { error: unknown } {
   try { return { value: JSON.parse(line) as Record<string, unknown> }; }
   catch (error) {
@@ -99,9 +133,35 @@ function sliceId(value: unknown): string {
   return typeof id === "string" ? id : "sans identifiant";
 }
 
+/** The teacher's script: the whole lesson as plain text, before any syntax. */
+async function writeScript(question: string, { provider, completion, signal }: GeneratorConfig): Promise<string> {
+  let script = "";
+  for await (const chunk of completion({
+    protocol: provider.protocol, endpoint: provider.endpoint, apiKey: provider.apiKey, model: provider.model,
+    extraHeaders: provider.extraHeaders, messages: buildTeacherMessages(question), signal, maxTokens: MAX_TOKENS,
+    reasoningEffort: provider.firstTurnEffort ?? provider.reasoningEffort,
+  })) script += chunk;
+  return script.trim();
+}
+
 export async function* generateNesalio(question: string, config: GeneratorConfig): AsyncGenerator<NesalioEvent> {
   const { provider, completion, signal, log } = config;
-  const messages: ChatMessage[] = buildNesalioMessages(question);
+  let messages: ChatMessage[] = buildNesalioMessages(question);
+  if (config.twoStage) {
+    let script: string;
+    try { script = await writeScript(question, config); }
+    catch (error) {
+      if (signal?.aborted) return;
+      log?.("nesalio: échec de l'appel à l'enseignant", error);
+      script = "";
+    }
+    if (!script) {
+      yield { kind: "error", code: "upstream", message: "Nesa n'arrive pas à répondre pour le moment. Réessaie dans un instant." };
+      return;
+    }
+    log?.("nesalio: script de l'enseignant", script);
+    messages = [messages[0]!, { role: "user", content: layoutRequest(question, script) }];
+  }
   /** Lines the engine accepted, replayed to the model when it has to repair a tranche. */
   const accepted: string[] = [];
   const acceptedIds = new Set<string>();
@@ -109,8 +169,8 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
   let state: ValidationState | undefined;
   let slices = 0;
   let repairs = 0;
-  /** Tranches (and the header) already sent back once: a second refusal stops the lesson. */
-  const repaired = new Set<string>();
+  /** How many times each tranche (and the header) was sent back: past MAX_ATTEMPTS, a refusal stops the lesson. */
+  const repaired = new Map<string, number>();
   let continued = false;
 
   for (;;) {
@@ -123,6 +183,12 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
     const handle = function* (line: string): Generator<NesalioEvent> {
       // Models sometimes add fences or a sentence: only JSON objects count.
       if (!line.startsWith("{")) return;
+      // Two objects written on one line (seen: a tranche followed by the next): each is read on its own.
+      const objects = topLevelObjects(line);
+      if (objects.length > 1) {
+        for (const object of objects) yield* handle(object);
+        return;
+      }
       const parsed = parseLine(line);
       if ("error" in parsed) {
         const { error } = parsed;
@@ -200,16 +266,17 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       // As text: the server log drops object contents, and the reasons are what a refusal is diagnosed from.
       log?.("nesalio: tranche refusée", `${refused.id} — ${refused.issues.slice(0, 8)
         .map(({ path, message }) => `${path.map(String).join(".")} : ${message}`).join(" | ")}`);
-      if (repaired.has(refused.id) || repairs >= MAX_REPAIRS) {
+      if ((repaired.get(refused.id) ?? 0) >= MAX_ATTEMPTS || repairs >= MAX_REPAIRS) {
         // A refused tranche is never played; what was already valid stays playable.
         log?.("nesalio: leçon arrêtée sur un refus", `${refused.id} — ${slices} tranche(s) jouable(s), ${repairs} correction(s) demandée(s)`);
         yield slices
-          ? { kind: "end" }
+          // Never announced as finished: the student is told the rest is missing (what was played stays).
+          ? { kind: "error", code: "incomplete", message: "L'explication s'est arrêtée en route : Nesa n'a pas réussi à écrire la suite. Tu peux réessayer ou poser une autre question." }
           : { kind: "error", code: "invalid", message: "Nesa n'a pas réussi à construire une explication valide. Reformule ta question ?" };
         return;
       }
       repairs++;
-      repaired.add(refused.id);
+      repaired.set(refused.id, (repaired.get(refused.id) ?? 0) + 1);
       messages.push({ role: "assistant", content: accepted.join("\n") || "(rien)" }, {
         role: "user",
         content: refused.header ? repairHeaderMessage(refused.header, refused.issues) : repairMessage(refused.id, refused.issues),
