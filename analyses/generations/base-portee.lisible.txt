@@ -1,0 +1,52 @@
+TITRE : Calculer la portée d'un projectile
+math_context : {"symbols":{"v0":{"kind":"constant","value":12},"theta":{"kind":"constant","value":30},"g":{"kind":"constant","value":9.8}},"expressions":{"portee":"v0^2*sin(2*theta)/g"}}
+=== Tranche s_idee
+  OBJET titre [text] "La portée : jusqu'où va le projectile ?" 
+  OBJET schema [axes] {"x":[0,14],"y":[0,3]} 
+  OBJET arc [function_graph] {"expression":"1.8*x-0.1*x^2","domain":[0,18]} 
+  OBJET depart [point] {"at":[0,0]} 
+  OBJET dep_label [label] "départ (0 ; 0)" attaché à depart
+  OBJET arrivee [point] {"at":[18,0]} 
+  OBJET arr_label [label] "retour au sol" attaché à arrivee
+DIT (intro) : Pour calculer la portée d'un projectile, on cherche où il retombe, c'est-à-dire où sa hauteur revient à zéro.
+    show titre @beat:start 
+    show schema @beat:start 
+    draw arc @- {"start":"cue:c_portee","end":"cue_end:c_retombe"}
+    show depart @cue:c_portee 
+    show dep_label @after:s_dep 
+    show arrivee @cue:c_zero 
+    show arr_label @after:s_arr 
+=== Tranche s_modele
+  OBJET traj [math] "y = y_0 - k(x - x_0)^2" parts=y | = y_0 | - k(x - x_0)^2
+  OBJET donnees [text] "v_0 = 12 m/s, angle de 30°, g = 9,8 m/s²" 
+DIT (modele) : La trajectoire d'un projectile sans frottement de l'air est une parabole : y égale y zéro moins k fois x moins x zéro au carré.
+    fade_out titre @cue:c_para 
+    write traj @cue:c_ymoins {"part":"gauche"}
+    write traj @after:w_traj {"part":"p0"}
+    write traj @after:w_p0 {"part":"courbe"}
+DIT (negliger) : On néglige les frottements de l'air et on prend une gravité de neuf virgule huit mètres par seconde carrée.
+    show donnees @cue:c_negl 
+    highlight donnees @cue:c_g {"role":"given"}
+=== Tranche s_exemple
+  OBJET eq_base [math] "0 = 1{,}8 x - 0{,}1 x^2" parts=0 | = 1{,}8 x - 0{,}1 x^2
+  OBJET eq_fact [math] "0 = x(1{,}8 - 0{,}1 x)" 
+  OBJET eq_sol [math] "x = 0  ou  x = 18" parts=x = 0 | ou | x = 18
+DIT (poser) : Avec nos données, la trajectoire s'écrit zéro égale un virgule huit x moins zéro virgule un x au carré.
+    fade_out arc @cue:c_traj 
+    fade_out depart @cue:c_traj 
+    fade_out dep_label @cue:c_traj 
+    write eq_base @cue:c_eq {"part":"membre"}
+    write eq_base @after:w_membre {"part":"formule"}
+DIT (factoriser) : On met x en évidence, ce qui donne zéro égale x fois un virgule huit moins zéro virgule un x.
+    transform eq_fact @cue:c_evid {"source":"eq_base"}
+    highlight eq_fact @after:t_eq {"role":"accent"}
+DIT (solutions) : Les solutions sont x égale zéro, le point de départ, et x égale dix-huit, le point d'arrivée.
+    transform eq_sol @cue:c_sol0 {"source":"eq_fact"}
+    highlight eq_sol @after:t_sol {"role":"secondary","part":"sol0"}
+    highlight eq_sol @cue:c_sol18 {"role":"result","part":"sol18"}
+=== Tranche s_interpretation
+  OBJET portee_unit [text] "Portée ≈ 18 m" 
+DIT (verif) : Ces valeurs tombent juste : dix-huit mètres, c'est la portée du projectile.
+    show portee_unit @cue:c_dixhuit 
+    highlight eq_sol @cue:c_portee2 {"role":"result"}
+--- 4 tranches, 130 mots dits (≈ 0.9 min d'oral)

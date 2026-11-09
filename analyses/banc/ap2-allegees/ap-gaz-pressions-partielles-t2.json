@@ -1,0 +1,647 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "pression_partielle_dalton",
+  "title": "Les pressions partielles : pourquoi elles s'additionnent, pas les moles",
+  "language": "fr",
+  "learning_goal": "Comprendre que la pression totale d'un mélange est la somme des pressions partielles, chaque pression partielle étant proportionnelle à la fraction molaire du gaz, et non au produit P × n."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "loi_dalton",
+     "content": "p_{\\text{totale}} = p_A + p_B",
+     "parts": [
+      {
+       "id": "ptot",
+       "text": "p_{\\text{totale}}"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "somme",
+       "text": "p_A + p_B"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_partielle",
+     "size": "small",
+     "content": "Chaque pression partielle : celle du gaz s'il était seul",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu as raison sur un point : ce n'est pas « pression fois moles ». Les pressions partielles s'additionnent, et chaque gaz apporte sa propre pression.",
+     "cues": [
+      {
+       "id": "c_pas_fois",
+       "text": "pression fois moles"
+      },
+      {
+       "id": "c_add",
+       "text": "pressions partielles s'additionnent"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ptot",
+       "verb": "write",
+       "at": "cue:c_add",
+       "target": "loi_dalton",
+       "part": "ptot"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "after:w_ptot",
+       "target": "loi_dalton",
+       "part": "egal"
+      },
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "after:w_egal",
+       "target": "loi_dalton",
+       "part": "somme"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "def",
+     "say": "La pression partielle d'un gaz A, c'est la pression qu'il aurait s'il occupait seul tout le volume, à la même température. Voilà pourquoi ces pressions s'additionnent : chaque gaz pousse sur la paroi comme s'il était seul.",
+     "cues": [
+      {
+       "id": "c_seul",
+       "text": "occupait seul tout le volume"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_seul",
+       "target": "note_partielle"
+      },
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "start": "cue:c_seul",
+       "end": "cue_end:c_seul",
+       "target": "loi_dalton",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        2,
+        3,
+        5
+       ],
+       [
+        20,
+        30,
+        50
+       ],
+       [
+        40,
+        60,
+        100
+       ]
+      ],
+      "row_labels": [
+       "moles n (mol)",
+       "fraction molaire",
+       "pression (kPa)"
+      ],
+      "column_labels": [
+       "gaz A",
+       "gaz B",
+       "mélange"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "calc_A",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "p_A = \\frac{2{,}0}{5{,}0} \\times 100 = 40 \\text{ kPa}",
+     "type": "math"
+    },
+    {
+     "id": "calc_B",
+     "layout": {
+      "next_to": "calc_A",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "p_B = \\frac{3{,}0}{5{,}0} \\times 100 = 60 \\text{ kPa}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Prenons un cas : 2 moles de gaz A et 3 moles de gaz B dans le même volume, et la pression totale mesurée est de 100 kilopascals.",
+     "cues": [
+      {
+       "id": "c_deux_mol",
+       "text": "2 moles de gaz A"
+      },
+      {
+       "id": "c_cent",
+       "text": "100 kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_deux_mol",
+       "target": "tab"
+      },
+      {
+       "id": "h_cent",
+       "verb": "highlight",
+       "start": "cue:c_cent",
+       "end": "cue_end:c_cent",
+       "target": "tab",
+       "role": "accent",
+       "part": "r3c3"
+      }
+     ]
+    },
+    {
+     "id": "part",
+     "say": "La pression partielle n'est pas 20 fois 100. Regarde la fraction : 2 moles sur 5 au total, ça fait 0,4. Multipliée par 100 kilopascals, cette fraction donne 40 kilopascals pour A.",
+     "cues": [
+      {
+       "id": "c_fraction",
+       "text": "fraction"
+      },
+      {
+       "id": "c_quarante",
+       "text": "40 kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_r2",
+       "verb": "highlight",
+       "start": "cue:c_fraction",
+       "end": "cue_end:c_fraction",
+       "target": "tab",
+       "role": "accent",
+       "part": "r2"
+      },
+      {
+       "id": "w_A",
+       "verb": "write",
+       "at": "cue:c_quarante",
+       "target": "calc_A"
+      }
+     ]
+    },
+    {
+     "id": "b",
+     "say": "Pour B : 3 moles sur 5, soit 0,6, fois 100, ça donne 60 kilopascals.",
+     "cues": [
+      {
+       "id": "c_sixante",
+       "text": "60 kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_B",
+       "verb": "write",
+       "at": "cue:c_sixante",
+       "target": "calc_B"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : 40 plus 60, ça fait bien 100 kilopascals, la pression totale. La loi de Dalton tient.",
+     "cues": [
+      {
+       "id": "c_plus",
+       "text": "40 plus 60"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_ptot",
+       "verb": "highlight",
+       "start": "cue:c_plus",
+       "end": "cue_end:c_plus",
+       "target": "loi_dalton",
+       "role": "result",
+       "part": "somme"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "faux",
+     "layout": {
+      "next_to": "loi_dalton",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "unknown"
+     },
+     "content": "p_A = 100 \\times 2 = 200 \\text{ kPa}",
+     "type": "math"
+    },
+    {
+     "id": "raison",
+     "size": "small",
+     "layout": {
+      "next_to": "faux",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "Impossible : A seul ne peut pas dépasser le total",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "explicite",
+     "say": "Si on multipliait pression par moles, comme tu le proposais, on aurait 200 kilopascals pour A seul. Mais il n'y a que 100 kilopascals au total : c'est impossible.",
+     "cues": [
+      {
+       "id": "c_deux_cents",
+       "text": "200 kilopascals"
+      },
+      {
+       "id": "c_impossible",
+       "text": "impossible"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_faux",
+       "verb": "write",
+       "at": "cue:c_deux_cents",
+       "target": "faux"
+      },
+      {
+       "id": "s_raison",
+       "verb": "show",
+       "at": "cue:c_impossible",
+       "target": "raison"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_impossible",
+       "target": "calc_A"
+      },
+      {
+       "id": "f_calc2",
+       "verb": "fade_out",
+       "at": "cue:c_impossible",
+       "target": "calc_B"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_impossible",
+       "target": "tab"
+      },
+      {
+       "id": "f_faux",
+       "verb": "fade_out",
+       "at": "after:s_raison",
+       "target": "faux"
+      },
+      {
+       "id": "f_raison",
+       "verb": "fade_out",
+       "at": "after:f_faux",
+       "target": "raison"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "formule_cle",
+     "content": "p_A = \\frac{n_A}{n_{\\text{totale}}} \\, p_{\\text{totale}}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "p_A"
+      },
+      {
+       "id": "milieu",
+       "text": "= \\frac{n_A}{n_{\\text{totale}}}"
+      },
+      {
+       "id": "droite",
+       "text": "p_{\\text{totale}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rappel",
+     "size": "small",
+     "content": "La pression partielle suit la fraction molaire",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la pression partielle suit la proportion des moles, pas leur nombre brut. Chaque gaz reçoit sa part de la pression totale selon sa fraction molaire, et les parts s'additionnent pour redonner le total.",
+     "cues": [
+      {
+       "id": "c_proportion",
+       "text": "proportion des moles"
+      },
+      {
+       "id": "c_part",
+       "text": "sa part de la pression totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_proportion",
+       "targets": [
+        "loi_dalton",
+        "formule_cle"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_proportion",
+       "target": "formule_cle",
+       "part": "gauche"
+      },
+      {
+       "id": "w_milieu",
+       "verb": "write",
+       "at": "after:w_gauche",
+       "target": "formule_cle",
+       "part": "milieu"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_part",
+       "target": "formule_cle",
+       "part": "droite"
+      },
+      {
+       "id": "s_rappel",
+       "verb": "show",
+       "at": "after:w_droite",
+       "target": "rappel"
+      },
+      {
+       "id": "h_somme",
+       "verb": "highlight",
+       "start": "cue:c_part",
+       "end": "cue_end:c_part",
+       "target": "loi_dalton",
+       "role": "result",
+       "part": "somme"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

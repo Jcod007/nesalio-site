@@ -13,11 +13,10 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 > de la branche git et les fichiers d'origine de l'utilisateur dans
 > `Downloads/` (`kairos_scene_v3_3.json`, `kairos_vocabulary_v3_3.json`).
 
-Nouveau système voix + tableau, écrit de zéro à côté de l'ancien
-(`src/domain/scene/schema.ts`, `src/engine/player.ts`), qui reste celui du
-parcours élève. Code dans `app/src/domain/nesalio/`.
-
-Rien n'est commité : tout le travail est dans l'arbre de travail.
+Nouveau système voix et tableau dans `app/src/domain/nesalio/`. Depuis
+`4c8e447`, la page élève le choisit par défaut quand l’IA est configurée.
+L’ancien tuteur reste accessible selon le réglage, le mode sans IA et
+l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre de travail.
 
 | Module | État |
 | --- | --- |
@@ -26,12 +25,12 @@ Rien n'est commité : tout le travail est dans l'arbre de travail.
 | Moteur mathématique (`compileNamedExpression` dans `src/domain/math/expr.ts`) | Partiel : ajouté à l'ancien `expr.ts`, pas réécrit de A à Z, un seul test |
 | Ordonnanceur (`scheduler.ts`) | Fait, 3 tests |
 | Audio (`alignment.ts`, `/api/voice`, `services/voice/nesalioClip.ts`) | Fait, testé en réel le 2026-11-08 (voir journal) |
-| Lecteur Nesalio + Manim (`engine/nesalioPlayback.ts`, `ui/board/manim/NesalioProjection.ts`) | Joue en réel sur la page de test `/dev/nesalio` ; pas dans le parcours élève |
+| Lecteur Nesalio + Manim (`engine/nesalioPlayback.ts`, `ui/board/manim/NesalioProjection.ts`) | Intégré au parcours élève et à la page de test `/dev/nesalio` |
 | Générateur de tranches + prompt (`server/nesalio/`, route `/api/nesalio`) | Fait, joué en réel en flux (premier son ≈ 3 à 7 s) |
 | Tableau : dim / fade_out / remove, transform, move, to_edge / to_corner | Fait, vu en vraie génération (2026-11-08) |
 | Caméra | En cours : suivi automatique et objets gardés faits ; **reste détaillé dans [`app/docs/chantier-camera.md`](app/docs/chantier-camera.md)** (fiche de passation pour une autre IA) |
 | Orchestrateur de séance (interruptions) | Pas commencé |
-| Bascule du parcours élève sur Nesalio | Pas commencée |
+| Bascule du parcours élève sur Nesalio | Bascule par défaut dans le dépôt. Retrait de l’ancien tuteur à décider après vérification de la parité. |
 
 ### Décisions prises
 
@@ -84,6 +83,485 @@ Rien n'est commité : tout le travail est dans l'arbre de travail.
 ---
 
 ## Journal
+
+### 2026-11-09 — Bilan avant changement de conversation (Claude Code)
+**Mesure après les corrections de justesse** (contrôles `valueChecks.ts`, consignes, fiches, FACTS ; consignes
+allégées), 54 questions Alloprof × 2 (`analyses/banc/ap2-allegees/`) : 101/108 intactes (93,5 %), 1re tranche
+médiane 3,1 s. Notation à l'aveugle avant/après (1er tirage, 3 correcteurs, `notation-justesse/` des notes) :
+**63,2 contre 59,1** ; maths 59,5 / 57,0 ; chimie 65,8 / 60,7 ; après meilleur sur 30 questions, avant sur 19,
+5 égalités ; leçons < 50 : 17 contre 19. Gain réel mais modeste : environ une leçon sur trois garde une erreur grave.
+Défaut de la notation : la réponse de référence s'affichait « [object Object] » (script de dossiers à l'aveugle,
+champ `reponse.texte`), aussi dans `notation-alloprof/` ; les correcteurs ont refait chaque calcul.
+
+**Où on en est** :
+- Rien n'est commité depuis `4c8e447` (deux jours de travail dans l'arbre de travail).
+- Défaut de l'app : consignes complètes ; la version allégée (`NESALIO_CONSIGNES=allegees`) fait mieux partout
+  mesuré, pas encore passée par défaut (décision utilisateur).
+- Le levier le plus fort mesuré : un relecteur (Sonnet 5.5 : 27/29 erreurs graves trouvées hors ligne, 2,5 s,
+  0,007 $/leçon ; DeepSeek « low » 26/29). Pas branché ; à mesurer : la boucle de correction et le délai.
+
+**Décisions en attente de l'utilisateur** :
+1. Brancher le relecteur (version hybride : DeepSeek écrit, Sonnet relit tranche par tranche) et le mesurer.
+2. Passer la version allégée des consignes par défaut.
+3. Évaluer deux bibliothèques (accepté en principe, à faire ici ou après commit) : `@cortex-js/compute-engine`
+   (résoudre systèmes/équations pour les contrôles) et `manim-web` 0.41.0 (0.40.1 corrige la duplication de
+   glyphes de `MathTex.copy()`, piste des « lettres fantômes » du transform ; molécules = nouveau type JSON).
+4. Défauts visuels du juge visuel cycle 2 (transform, police des tableaux avant chargement, dérivée hors repère,
+   accents dans `\text{}`, tableau d'atomes non mis à jour, voix bloquée une fois) : numéros à choisir.
+5. Limite de 24 caractères par case ; objet redéclaré à l'identique vu en double ; `math_context` par tranche
+   et cases calculées (changent le JSON) ; Q3, Q9, Q10.
+- Clé AI Gateway d'essai `nesalio-local-7j-2026-11-09` : plafond relevé à 5 $ par l'utilisateur, expire le 16 novembre.
+
+### 2026-11-09 — Relecture justesse des lots dev 1 et dev 2 (relecteur, Claude Code)
+
+Rien commité. Rapport : `side-session-notes/…/relecteur-justesse.md`.
+- **Contrôles (dev 1)** : rejeu sur TOUT `analyses/banc/` (572 leçons, copie temporaire de `controles-banc`) : 22 refus,
+  tous de vraies erreurs, identiques avant/après mes corrections. Sondes de cas limites : 4 faux refus trouvés et corrigés
+  (`valueChecks.ts`, `coherence.ts`, + 4 tests dans `valueChecks.test.ts`) : inéquation en x seul résolue dans la tranche
+  prise pour une contrainte ; rappel partiel des contraintes ; « max »/« sommet » hors d'une DROITE ; table « [H⁺] relative »
+  ou en mmol/L. Message pH : « 1 × 10⁻⁷ » au lieu de « 1e−7 ».
+- **Fiches/FACTS (dev 2)** : faits relus un à un, calculs refaits. Corrigés : Mg(OH)₂ appelé « sel » (c'est une base) ;
+  mot « chaux » (chaux vive = CaO) ; « éthanol » déclenché par « méthanol » ; « fusion/fondre » par « confusion/confondre » ;
+  craie → « craie naturelle » ; r ≈ ±(1 − l/L) : signe écrit dans le calcul (sinon `named_value` refusait r ≈ −0,75).
+- **Prompt** : phrases 1, 2, 4 de dev 1 fusionnées dans MATH_RULES (deux versions) ; 5 et 3 dans les fiches
+  `programmation_lineaire` et `chimie_acides`. Retirés pour la place : fin de « Vérifie chaque calcul… » et l'exemple
+  d'axes. Coquille « répond » → « réponds ». Complet 36 994, allégé 36 577 ; empreinte mise à jour.
+- **Vérifié** : `npx vitest run` 881 verts ; `npx tsc --noEmit` vert. L'erreur tsc de `controller.test.ts` signalée par
+  dev 2 ne se reproduit pas (fichier inchangé depuis 5c24048) : état transitoire pendant le travail de dev 1.
+- **Prochaine étape** : relancer le banc Alloprof (complet + allégé) pour mesurer l'effet réel des messages et du prompt.
+
+### 2026-11-09 — Essai du relecteur terminé (chercheur, Claude Code)
+- Limite de la clé relevée à 5 $ par l'utilisateur. 90 leçons relues avec les deux réglages, 0,89 $ au total.
+- DeepSeek V4.1 Flash réflexion « low » : 26/29 leçons graves trouvées, 63/69 alertes justes, 2 vraies fausses
+  alertes sur 61, 9,4 s médian, 0,0032 $/leçon. Claude Sonnet 5.5 (sans réflexion) : 27/29, 78/88, 2/61, 2,5 s
+  médian, 0,0067 $/leçon, 4 réponses hors format. Ensemble : 28/29.
+- Recommandation du chercheur (non décidée) : DeepSeek écrit, Sonnet relit tranche par tranche ; garde-fous :
+  citation retrouvée mot pour mot, `math_context` retiré du texte relu. À mesurer : boucle de correction, stabilité.
+
+### 2026-11-09 — Contrôles par le code des tableaux, figures et valeurs (dev 1, Claude Code)
+- Choix « 1 » de l'utilisateur (analyste-erreurs-graves P2, P3, P5, P1 côté code). Rapport :
+  `side-session-notes/…/dev1-controles.md`.
+- Nouveau `domain/nesalio/valueChecks.ts` + `coherence.ts` : 7 règles refusées avec la bonne valeur — tableau d'atomes
+  ↔ équation (`atom_table`), table de valeurs ↔ règle (`value_table`), pH ↔ [H⁺] (`ph_table`), point nommé
+  sommet/creux/zéro hors courbe (`named_point`, noté si plusieurs courbes), polygone ↔ inégalités (`constraint_polygon`),
+  inégalité numérique fausse (`false_inequality`), valeur arrondie ≠ calcul de la formule précédente (`named_value`).
+  `chemistry.ts` lit les équations en plusieurs `\ce{}`. `expr.ts` : crochets lus en parenthèses ET partie entière
+  (faux refus de zeros-A corrigé), `readLatexFunction`, floor/ceil acceptés dans les expressions (le prompt les annonce ;
+  `contract.test.ts` mis à jour). Structure du JSON inchangée.
+- Vérifié : `npx vitest run` et `npx tsc --noEmit` verts. Rejeu de tout le banc (`tools/eval/controles-banc.test.mjs`,
+  `CONTROLES=1`) : 9 des 29 leçons graves attrapées, 0 faux positif sur les 61 leçons notées sans erreur grave,
+  6 refus sur des leçons non notées, tous de vraies erreurs ; corpus `analyses/generations` inchangé.
+- Non vérifié : effet en génération réelle (le modèle répare-t-il la tranche ?). Prochaine étape : banc Alloprof
+  avec ces contrôles et les consignes de dev 2.
+
+### 2026-11-09 — Consignes de justesse, fiches par notion, lexique de faits (dev 2, Claude Code)
+- Choix « 2 » de l'utilisateur (analyste-erreurs-graves P1 consignes, P4, P5 côté prompt). Rapport complet :
+  `side-session-notes/…/dev2-consignes-fiches.md` (textes exacts, faits et sources).
+- `pedagogy.ts` : TEACHING reçoit 4 consignes (reformuler les données de l'élève et répondre à SON cas ; corriger ce
+  qu'il affirme de faux ; calcul et résultat dans la même formule ; vérification écrite par substitution) → présentes
+  dans les DEUX versions du prompt. Fiches corrigées : rectangle de corrélation (L, l définis, tous les points),
+  eau de Javel (toute solution d'ions conduit). Fiches complétées : gaz (lois simples, Dalton, plusieurs changements),
+  acides (polyprotiques, titrage, reconnaître acide/base/sel, pH ↔ [H⁺]), énergie (changements d'état, physique/chimique/
+  nucléaire, complexe activé), Kps (comparaison), structure (double liaison, CO₂), stœchio (limitant). Nouvelles fiches :
+  `programmation_lineaire`, `vote_majorite`, `graphes`, `coniques`. Mots déclencheurs corrigés (« fonctionne »,
+  « completer », « volume » d'un gaz, « Stoechio », « endo/exo »…). Nouveau `FACTS` + `factsFor` : lexique injecté
+  quand son mot est dans la question (substances, polyacides, signe de ΔH des changements d'état), hors limite de 2 guides.
+- `prompt.ts` : floor et ceil annoncés (P5). Pour rester < 37 000 car., 7 règles de forme couvertes par le code quittent
+  aussi la version complète (liste dans le rapport). Complet 36 914 car., allégé 36 497. Empreinte de
+  `prompt-consignes.test.ts` mise à jour volontairement.
+- Vérifié : `npx vitest run src/server/nesalio/` vert ; tests de sélection sur 23 vraies questions Alloprof.
+  Suite complète : 1 échec hors de mon périmètre (`contract.test.ts` l. 202 attend que `floor` soit refusé, or
+  `expr.ts` de l'autre dev l'accepte maintenant) ; `tsc` : 1 erreur dans `domain/tutor/controller.test.ts` (pas touché).
+- Non vérifié : effet réel sur les générations (à mesurer au banc Alloprof) ; relecture des fiches par un enseignant.
+- Prochaine étape : relancer le banc Alloprof (complète et allégée) et noter à l'aveugle.
+
+### 2026-11-09 — Essai hors ligne d'un relecteur (chercheur, Claude Code)
+- Choix de l'utilisateur « 1, 2 et 3 » (contrôles du code, consignes + fiches, essai du relecteur). Rapport :
+  `chercheur-relecteur.md` (notes partagées) ; script `analyses/relecture/relire.mjs` (reprend où il s'arrête).
+- Arrêté par le plafond de 1,00 $ de la clé AI Gateway (402) : 50 leçons sur 90 relues avec DeepSeek réflexion
+  « low », 4 avec `anthropic/claude-sonnet-5.5`. DeepSeek low : rappel 13/15 erreurs graves, précision 33/37,
+  1 fausse alerte sur 35 leçons sans erreur grave ; 11 s médian par leçon entière, 0,003 $. Sonnet : trop peu
+  relu pour conclure. Reste ≈ 0,8 $ pour finir : l'utilisateur doit relever la limite de la clé.
+
+### 2026-11-09 — Essai sur de vraies questions Alloprof (Claude Code)
+- Demande de l'utilisateur : refaire l'essai « consignes allégées » sur de vraies questions de la Zone d'entraide
+  Alloprof (125 607 questions), maths + chimie sec 4-5, avec plus de chimie, dont les gaz. Corpus de 54 questions
+  (`app/tools/eval/questions-alloprof.mjs` → `corpus-alloprof.json`, texte seul, aucun nom ; usage interne) ;
+  le banc lit un autre corpus avec `CORPUS=…`.
+- Crédit Vercel épuisé en cours de mesure (402 `insufficient_funds`) : l'utilisateur a rechargé ; leçons relancées
+  (`analyses/banc/ap-*-reprise`).
+- Leçons intactes (45 questions × 2) : complète 82/90 (91 %), allégée 84/90 (93 %). Gaz (9 questions × 2) : complète
+  12/13, allégée 13/13 hors 5 + 5 pannes du fournisseur (« aucun octet reçu pendant 45 s » puis « fetch failed »).
+- Notation à l'aveugle (45 questions, 1er tirage, 3 correcteurs ; notes dans `notation-alloprof/` des notes
+  partagées) : allégée 63,7/100 contre complète 59,9 ; maths 59,0 / 55,8 ; chimie 68,2 / 63,8 ; < 50 : 14 contre 16.
+  Les gaz ne sont pas encore notés.
+- Constat principal : sur de vraies questions, Nesa perd ~15 points (≈ 62 contre 75-80 sur notre corpus), une leçon
+  sur trois a une erreur grave : résultat faux, tableau ou figure qui contredit les nombres, affirmation fausse.
+  Prochaine étape à décider : s'attaquer à la justesse.
+
+### 2026-11-09 — Évaluation de la voix et du rendu (en cours)
+- Accord de l’utilisateur pour rejouer les 18 premiers tirages du banc fond-forme sur ordinateur. 216 passages, 26 044 caractères, voix Eleven Flash v2.5. Avant essai, Vercel indique 0,34055 $ US consommé sur le plafond de 1 $. Prix publié de la synthèse seule : environ 0,52 $ US pour un passage complet du corpus, hors reprises.
+- Copie locale isolée de `/dev/nesalio` instrumentée pour associer les repères renvoyés par la voix aux images calculées par le moteur. Capture pilote en cours. Prochaine étape : vérifier la capture et lancer les 18 relectures avec les mêmes réglages.
+
+### 2026-11-09 — Essai « moins de consignes » (Claude Code)
+- Question de l'utilisateur : plus il y a de règles, moins le modèle les respecte ? Essai accepté (« Oui, essaie »).
+- Version allégée (`NESALIO_CONSIGNES=allegees`, `prompt.ts`) : 15 règles de forme retirées, chacune couverte par
+  le code ; 36 984 → 35 618 caractères. Défaut inchangé (empreinte vérifiée par `prompt-consignes.test.ts`).
+- Banc 32 × 2 (`analyses/banc/c3-allegees/`) : 63/64 intactes (complète : 62/64) ; 1re tranche médiane 3,9 s
+  (4,5 s), max 13,8 s (23,7 s) ; 30 refus (34).
+- Notation à l'aveugle (1er tirage, 2 correcteurs, un par moitié ; notes dans `notation-consignes/` des notes
+  partagées, clé dans le dossier temporaire de la session) : **allégée 80,2/100 contre complète 74,5** ; maths
+  80,3 / 73,4 ; chimie 80,0 / 77,0 ; allégée meilleure sur 17 questions, complète sur 11, 4 égalités ; < 50 :
+  complète 3 (correlation-sens 30, derivee 49, programmation-lineaire 24 coupée), allégée 1 (calorimetrie 38 coupée).
+- Limite : un seul tirage noté et un correcteur par question : écart encourageant, pas une preuve. Non décidé :
+  passer la version allégée par défaut.
+
+### 2026-11-09 — Consignes allégées du prompt système (dev-consignes, Claude Code)
+- `app/src/server/nesalio/prompt.ts` : `NESALIO_CONSIGNES=allegees` (ou `buildNesalioSystemPrompt("allegees")`) retire 15 passages de pure forme de FORMAT, SYNC_RULES, LAYOUT_RULES, MATH_RULES et CHECKLIST (liste `LIGHT_REMOVALS`). Sans la variable : prompt complet inchangé (36 984 car.) ; allégé : 35 618 car. TEACHING, langage généré, exemples, règles de fond et de jugement gardés. Guides par notion inchangés.
+- Chaque passage retiré est couvert par une réparation (`normalize.ts`) ou un refus précis (`validate.ts`, `contract.ts`) ; détail et fichier:ligne dans le rapport de session `consignes-allegees.md`. Les refus de `contract.ts` sont des messages zod en anglais (précis, avec chemin).
+- Test `prompt-consignes.test.ts` : empreinte SHA-256 du prompt complet (à mettre à jour si on modifie volontairement le prompt complet), retraits et passages gardés. `.env.example` documente la variable. `npx vitest run` et `npx tsc --noEmit` verts. Le banc (`banc-nesalio.test.mjs`) lit la variable : le générateur appelle `buildNesalioMessages` dans le même processus.
+- Non vérifié : effet réel sur les générations (à mesurer au banc, `SORTIE` distinct par variante).
+
+### 2026-11-09 — Expérience fond et forme terminée
+- À la demande de l’utilisateur, `app/tools/eval/fond-forme.test.mjs` compare le prompt complet, les consignes allégées et deux appels séparés sur les mêmes six questions nouvelles. DeepSeek est commun aux trois variantes et le validateur de production est réutilisé. Le metteur en forme reçoit le script sans le rôle pédagogique ni le guide de la notion.
+- Banc réel terminé avec la clé plafonnée et la non-conservation active : 36 essais, 69 appels, 76 tests ciblés verts. Résultats et protocole dans `app/docs/experience-fond-forme-2026-11-09.md`, sorties et notation sous `analyses/banc/fond-forme-2026-11-09/`.
+- Complet / allégé / deux appels : fond 32 / 34 / 34 sur 36, leçons intactes 12 / 12 / 11, première tranche médiane 4,0 / 3,9 / 12,4 s. En deux appels, le script de la tangente était juste mais la mise en forme a perdu la réponse. Aucun changement du générateur de production.
+- Prochaine mesure proposée : élargir A contre B, puis tester le metteur en forme sur des scripts de référence vérifiés si la piste en deux appels est reprise.
+
+### 2026-11-09 — Cycle 2 : nouvelle mesure après les lots 1 et 2 (Claude Code)
+- Choix de l'utilisateur : « Fait le 1 » = lots 1 (réparations sans appel) et 2 (correction informée) de
+  l'analyste. Limite de 24 caractères par case : décision toujours en attente (rien tronqué).
+- Banc DeepSeek 32 × 2 (`analyses/banc/c3-deepseek/`) : **62/64 intactes (96,9 %)**, contre 57/64 avant ;
+  chimie 20/20, maths 42/44 ; 1re tranche médiane 4,5 s (avant 6,1 s), max 23,7 s (avant 42,1 s) ;
+  62 réparations sans appel, 34 refus. Critère automatique Q7 (≥ 95 %) atteint.
+- Échecs restants : programmation-lineaire#1 et vecteurs#2 (`incomplete`, budget de corrections épuisé).
+- Non fait : nouvelle notation à l'aveugle, essai visuel des lots 1-2. Point du relecteur à décider : objet
+  redéclaré à l'identique alors que l'ancien est au tableau → renommé, vu en double.
+- Juge visuel cycle 2 (`juge-visuel-cycle2.md` dans les notes) : 4,1/10 ; défauts : traces du transform,
+  police des tableaux avant chargement, figures de la dérivée hors du repère, accents dans `\text{}`
+  (trigo), tableau d'atomes non mis à jour, voix bloquée une fois. Corrections : en attente du choix de
+  l'utilisateur.
+
+### 2026-11-09 — Cycle 2, relecture des lots 1 et 2 (relecteur, Claude Code)
+- Corrigé `generator.ts` : délai du **premier octet** séparé (`FIRST_BYTE_TIMEOUT_MS = 45 000`, option
+  `firstByteTimeoutMs`) ; le silence de 20 s ne vaut qu'après le premier texte. Raison : au banc DeepSeek (64 leçons
+  saines), en-tête reçu jusqu'à 24,9 s, 4 leçons > 20 s : elles auraient été coupées puis relancées. Test ajouté.
+- Corrigé `normalize.ts` (renommage d'un id redéclaré) : un dim/fade_out/remove/move à `beat:start` du passage où le
+  nouvel objet apparaît (ou d'avant) vise l'ancien, même écrit après le write dans `do`. Avant : accepté et appliqué
+  au nouvel objet (il disparaissait avant d'apparaître, l'ancien restait). Test ajouté dans `normalize.test.ts`.
+- Vérifié : vitest 847 OK / 7 ignorés, tsc 0 erreur, prompt système 36 984 caractères (marge 16), case ≤ 24 intacte,
+  LaTeX/`\ce{}` intacts après passe guillemets + jsonrepair, pas de doublon possible au son/tableau après nouvelle
+  tentative (tranches acceptées sautées). Non vérifié : banc réel.
+- Point ouvert (non corrigé) : redéclaration à l'identique d'un objet encore au tableau → renommé, donc 2 copies.
+- Rapport : `relecteur-lots12.md` (notes de session).
+
+### 2026-11-09 — Cycle 2, lot 2 (dev 2) : générateur — correction informée, nouvelle tentative, JSON, flux muet
+- `server/nesalio/generator.ts` : (1) au tour de correction, la ligne refusée (forme normalisée ; brute si
+  illisible) est ajoutée en fin du message `assistant` ; chaque refus cite « (valeur reçue : …) », 80 caractères
+  max, lue au chemin de l'erreur dans la tranche. (2) Appel en échec **avant tout octet** → 1 seule nouvelle
+  tentative par leçon (pas pour un 4xx autre que 408/429). (3) `parseLine` : en dernier recours, guillemets droits
+  d'une phrase échappés (passe maison : `jsonrepair` échoue sur `"mot" :` et `"mot", suite`), puis `jsonrepair`,
+  seulement sur une ligne finie par `}`/`]` (sinon une ligne coupée serait complétée à moitié). Si le contrat refuse
+  la version de `jsonrepair`, la ligne est renvoyée comme **illisible**, telle qu'écrite. (4) 20 s sans octet
+  (`IDLE_TIMEOUT_MS`, réglable par `idleTimeoutMs`) → appel coupé ; sans aucun octet = nouvelle tentative, sinon
+  reprise comptée dans le budget (`MAX_REPAIRS`, et `MAX_ATTEMPTS` sous l'id « flux interrompu »).
+- `server/nesalio/prompt.ts` : `repairMessage(…, lineShown)` dit « Ta ligne refusée est ci-dessus : recopie-la en
+  ne changeant que les champs cités ». Prompt système inchangé.
+- Dépendance : `jsonrepair` **3.15.0** exacte (ISC, josdejong, aucune dépendance, publiée le 2026-07-03).
+- Vérifié : `generator.test.ts` (fetch failed puis succès ; 4 formes illisibles du banc + guillemets ; ligne
+  refusée dans le 2e message ; flux muet coupé à 20-50 ms) ; `vitest run` 846 passés, 0 échec ; `tsc` sans erreur.
+  Pas vérifié : vrai appel, banc. Pas fait : nouvelle tentative et délai pour l'appel « enseignant » (`twoStage`).
+- Prochaine étape : relancer le banc DeepSeek, mesurer la part de tranches acceptées au 1er essai de correction.
+
+### 2026-11-09 — Cycle 2, lot 1 (dev 1) : réparations sûres sans appel
+- `domain/nesalio/normalize.ts` : clé `after` → `at: "after:X"` ; `target_id` → `target` ;
+  `start` (ou `end` seul) en `after:X` → `at` ; tableau : champ `null` de `params` retiré,
+  `column_labels` tous vides retirés, en-tête vide du coin retiré (colonnes + 1 en-têtes avec
+  `row_labels`) ; `write` d'un tableau sans `part` ; `parts` d'une valeur calculée retirées ;
+  id redéclaré d'une tranche précédente renommé (`eq2` → `eq2_2` ou suivant libre) avec ses
+  références, sauf `transform.source` et dim/fade_out/remove/move avant son apparition (ordre
+  du document) ; `camera.restore` d'un cadrage jamais sauvegardé retiré (sauf si une action
+  l'attend) ; `layout` vers une formule remplacée par transform → la formule actuelle.
+  `domain/math/expr.ts` : `pi` accepté par `compileNamedExpression` (un symbole `pi` déclaré garde la priorité).
+- Contexte des tranches précédentes : déjà passé par `generator.ts` (`normalizeSlice(value.slice, state)`) : rien à changer côté générateur.
+- Non réparé (doute) : `end: after:X` avec un `start` sur un repère ; en-tête vide ailleurs qu'en 1re position ; cases > 24 caractères (limite inchangée).
+- Vérifié : 11 tests dans `normalize.test.ts` (messages du banc), 1 dans `expr.test.ts` ; `vitest run` 832 OK ; `tsc --noEmit` OK. Pas de banc relancé.
+- Rapport : `side-session-notes/.../dev1-lot1.md`. Prochaine étape : relecture, puis banc DeepSeek avec les lots 1-2.
+
+### 2026-11-09 — Notation à l'aveugle : ancien tuteur, Nesalio × 3 modèles (32 questions)
+- Deux correcteurs (16 questions chacun, grille `app/docs/grille-explication-nesalio.md`, premier tirage de chaque
+  modèle, premier tour de l'ancien tuteur ; `notation-modeles/notation-lot-a.md`, `notation-lot-b.md` dans le dossier
+  de notes ; clé de l'ordre dans le bloc-notes de la session).
+- Moyennes /100 : **ancien tuteur 76,4 ; Nesalio DeepSeek 76,4** ; Nesalio GPT-6 Luna 76,1 ; Nesalio Claude Haiku 68,9.
+  Maths : ancien 81,4, DeepSeek 79,0, Luna 75,9, Haiku 70,5. Chimie : Luna 76,4, DeepSeek 70,7, ancien 65,6,
+  Haiku 65,5. Leçons sous 50 : 4 ou 5 pour chacun (souvent des leçons non reçues, notées 0). Premières places :
+  Luna 13, DeepSeek 9, ancien 8, Haiku 2.
+- Lecture : Nesalio (DeepSeek) **rejoint l'ancien tuteur** (contre 54,5 / 62,6 avant les corrections) et le dépasse
+  en chimie ; Haiku, le plus fiable et le moins cher, explique moins bien ; Luna explique bien mais échoue le plus
+  souvent (78 % de leçons intactes). Critères Q7 non atteints : leçons intactes < 95 %, leçons < 50/100 présentes.
+  Un tirage et un correcteur par question : indicatif.
+
+### 2026-11-09 — Banc des 3 modèles (fiabilité, délais, coût)
+- 32 questions × 2 tirages, protection des données active (`analyses/banc/m-*/rapport.md`) :
+  DeepSeek V4.1 Flash 57/64 intactes (89 %), 1re tranche 6,1 s, 0,54 $ ; **Claude Haiku 5.5 59/64 (92 %), 5,3 s,
+  0,14 $** ; GPT-6 Luna 50/64 (78 %), 6,9 s, 0,23 $. Seuil Q7 (95 %) non atteint par aucun. Haiku : 51/60 réponses
+  écrites au tableau, DeepSeek 56/63.
+- Délais plus longs qu'avant la protection (2 à 3 s auparavant) ; maximums à 42-130 s à examiner.
+- En cours : premier tour de l'ancien tuteur sur les mêmes 32 questions (`analyses/generations/ancien-*`) pour la
+  notation à l'aveugle de la qualité. L'utilisateur voit parfois mes messages en anglais : aucun réglage de l'app ne
+  traduit ; cause externe à chercher.
+
+### 2026-11-09 — Clé rafraîchie ; protection des données vérifiée ; mesure des 3 modèles lancée
+- L'utilisateur a rafraîchi `app/.env.local` (11:22, avec `AI_GATEWAY_API_KEY`).
+- Vrai appel avec la non-conservation (`analyses/generations/essai-zdr.*`) : **accepté par le compte Vercel**, leçon
+  complète (5 tranches). Première tranche après 7,7 s (contre 2 à 3 s auparavant) : à mesurer sur le banc.
+- Lancés en parallèle : banc de 31+ questions × 2 tirages pour `deepseek/deepseek-v4.1-flash`,
+  `anthropic/claude-haiku-5.5`, `openai/gpt-6-luna` → `analyses/banc/m-deepseek`, `m-haiku`, `m-luna`.
+
+### 2026-11-09 — Code terminé et vérifié ; reste la mesure réelle
+- dev-exploitation (section 8) : plus aucun repli du micro vers la reconnaissance du navigateur (Google, Apple,
+  Microsoft) ; échec de transcription → 502 « Micro indisponible pour le moment : écris ta question. » ; la démo locale
+  sans IA n'a donc plus de micro ; `/api/status` essaie vraiment la transcription. `speechListener.ts` n'est plus
+  utilisé (gardé).
+- Vérifié par Claude Code : `tsc` sans erreur ; **820 tests passés, 0 échec**, 7 ignorés. Tous les lots relus et
+  acceptés. Rien commité depuis `4c8e447`, rien déployé.
+- Reste : rafraîchir `VERCEL_OIDC_TOKEN` (utilisateur), puis vrai appel avec la non-conservation, banc de 31+
+  questions (DeepSeek, Haiku 5.5, GPT-6 Luna), juge visuel, verdict selon Q7, essai des transcriptions protégées.
+
+### 2026-11-09 — Clé AI Gateway pour une semaine d’essais
+- À la demande de l’utilisateur, clé d’équipe `nesalio-local-7j-2026-11-09` créée dans Jcod et installée sous `AI_GATEWAY_API_KEY` dans `app/.env.local`. Vercel confirme l’expiration le 16 novembre à 11 h 22 (Toronto).
+- Plafond de 1 $ US au total, sans renouvellement, choisi pour limiter les premiers essais après le rejet de la clé sans plafond. La configuration locale conserve `DISABLE_AI=1`. Pour l’essai après relecture, lancer le processus avec `DISABLE_AI=0`. Aucun appel de génération ou de voix effectué.
+
+### 2026-11-09 — Tous les lots de code acceptés ; décision micro
+- Relecteur : **lot 3 suite ACCEPTÉ** (l'élève et le modèle voient la tranche corrigée) ; **lot 2 ACCEPTÉ** en 2e
+  relecture (faux positifs réglés, 17 nouveaux cas sans fausse alerte, corpus : mêmes 5 refus justifiés ; mineurs :
+  équation coupée en plusieurs `\ce` non contrôlée, `outside_axes` refuse une figure posée exprès à côté des axes) ;
+  **transcription ACCEPTÉE** sous réserve de décision.
+- **Décision de l'utilisateur : micro** — si la transcription protégée échoue, aucun repli vers la reconnaissance du
+  navigateur (Chrome enverrait la voix à Google) : message « micro indisponible », l'élève tape sa question. Confié à
+  dev-exploitation (+ vrai essai de transcription dans `/api/status` si simple).
+
+### 2026-11-09 — Jeton Vercel de développement renouvelé
+- `app/.env.local` : seul `VERCEL_OIDC_TOKEN` a été remplacé après un `vercel env pull` de l’environnement `development` du projet vérifié `jcod/nesalio-app`. Expiration vérifiée au 9 novembre à 23 h 19 (Toronto). Aucun secret dans le journal.
+- `DISABLE_AI=1` reste le réglage local. Pour l’essai réel après les réparations et la relecture, démarrer avec `DISABLE_AI=0` dans le processus de test. Aucun appel au modèle ni à la voix effectué lors du renouvellement.
+
+### 2026-11-09 — Reprise après la pause
+- Le dossier de notes a déménagé : `C:\Users\compt2\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_3a01ca48-a687-4e6c-8440-e337b02675f8\`.
+- **Lot 1 ACCEPTÉ** (4e relecture) : 34 questions du corpus reçoivent leur guide, 25 pièges corrects, chimie juste,
+  annonces conformes au moteur. Mineurs notés (nomenclature « oxyde », « 3 × 2^x = 48 » sans guide `fonctions`, pas
+  de guide d'optimisation) ; prompt système à 36 984 / 37 000 caractères (plus de place pour une annonce).
+- dev-exploitation : non-conservation de la transcription seulement pour les modèles qui en ont un fournisseur ;
+  whisper-1 garde l'interdiction d'entraînement seule. dev-fiabilité : version corrigée par le lot 2 jouée et rejouée,
+  « noted » journalisés. Les deux en relecture. dev-justesse finit le lot 2.
+- La clé `VERCEL_OIDC_TOKEN` n'est toujours pas rafraîchie (`.env.local` du 2026-11-08 09:29).
+
+### 2026-11-09 — Reprise de l’audit
+- Relevé actualisé : `app/src` compte 34 442 lignes, dont 24 743 hors tests et 9 699 de tests. Aucun nouvel import local dans le graphe de production, aucun fichier entier orphelin. Les fichiers comptés pour le retrait sont inchangés.
+- Le résumé de tête reflète désormais la bascule du dépôt. L’audit reste documentaire à la demande de l’utilisateur. Prochaine étape : vérifier le premier lot sur une copie et relancer le parcours navigateur.
+- Copie de retrait : 25 fichiers écartés, POST de diagnostic et lecture/purge conservés. TypeScript passe sur le code et les outils hors tests. Les six tests ciblés de `/api/nesalio`, `/api/voice` et du POST `/api/diagnostic` passent aussi. Les scénarios de 75 et 78 fichiers restent statiques.
+- Arbre de travail à la reprise : 807 tests réussis, 1 échec dans `chemistry.test.ts`, 7 ignorés. TypeScript signale encore `controller.test.ts:167` avec `--incremental false`. Prochaine étape : consigner le résultat du parcours Chrome et les limites de la comparaison pédagogique.
+- Audit local terminé dans `app/docs/audit-retrait-tuteur-2026-11-09.md` avec l’inventaire des 78 candidats et des 36 fichiers de tests touchés. Chrome ordinateur passe sur `/dev` avec leçon et panne de voix simulées. Mobile écarté à la demande de l’utilisateur. Les 22 archives non vides du lot `base-*` se chargent, deux exports étaient vides. Sur le même corpus, cinq sorties non vides seraient refusées par les contrôles actuels avant publication.
+- Verdict : le parcours d’explication tourne sur ordinateur avec la fixture. Le tutorat interactif, le rejeu du signalement et certaines figures anciennes restent des écarts. La suite complète n’est pas verte et le flux tronqué est confirmé. Aucune suppression dans l’application. Pour statuer sur la bascule définitive, corriger ces défauts et mesurer les leçons neuves avec des accès de développement valides.
+
+### 2026-11-09 — PAUSE demandée par l'utilisateur pour faire le point
+- Agents arrêtés en cours de route : relecteur (4e passe du lot 1, non rendue), dev-justesse (corrections des 4 faux
+  positifs du lot 2, en cours), dev-fiabilité (branchement des alertes du lot 2, en cours), dev-exploitation (ne pas
+  envoyer la non-conservation à Whisper, en cours).
+- État du code à l'arrêt : `tsc` sans erreur ; 807 tests passés, **1 en échec** (`domain/nesalio/chemistry.test.ts`,
+  test de dev-justesse en train d'être mis à jour : une équation chimique doit être écrite avec `\ce{}`), 7 ignorés.
+  Rien n'est commité depuis `4c8e447`, rien n'est déployé.
+- Livré et accepté par le relecteur : lots 3 (fiabilité), 5 partie 1 (exploitation), 4b (rendu chimie, tableau).
+  Livré, à finir : lot 1 (consignes, dernière passe non relue), lot 2 (justesse, 4 faux positifs à corriger),
+  lot 6 (mesure : corpus, banc, grille, e2e). **Aucune mesure réelle depuis l'expiration de `VERCEL_OIDC_TOKEN`.**
+- Pour reprendre : (1) l'utilisateur rafraîchit le jeton ; (2) finir les 3 corrections arrêtées et la relecture ;
+  (3) vrai appel avec la non-conservation (compte Vercel payant ?) ; (4) banc de 31 questions (DeepSeek, Haiku 5.5,
+  GPT-6 Luna) + juge visuel ; (5) verdict selon les critères Q7 ; (6) commit si accord.
+
+### 2026-11-09 — Audit de parité et de retrait de l’ancien tuteur (en cours)
+- Constat de départ sur l’arbre de travail basé sur `4c8e447` : `/` choisit Nesalio par défaut avec l’IA configurée. `/` et `/dev` conservent `TutorApp` selon les réglages. Le résumé en tête de ce fichier précède la bascule déjà consignée plus bas.
+- Demande : mesurer séparément le code orphelin et l’ancien code que le nouveau parcours remplace, y compris quand l’ancien tuteur l’appelle encore. Aucun retrait demandé à ce stade.
+- Vérifié dans les pages et `server/explainer.ts`. Prochaine étape : graphe des points d’entrée, décompte et essais du parcours élève.
+- Décompte de `app/src` sur l’arbre de travail : 24 676 lignes hors tests, 9 624 de tests. Aucun fichier source entier orphelin dans le graphe Next. Retrait des entrées de l’ancien élève : 1 523 lignes sur 17 fichiers, avant séparation du diagnostic et des modules mixtes. Lecture et purge des séances historiques traitées séparément.
+- `npm test` : 793 réussis, 2 échecs dans `pedagogy.test.ts` (parties `\ce{}` et plafond du prompt), 7 ignorés. `tsc --noEmit --incremental false` échoue sur `controller.test.ts:167`. Aucun de ces fichiers modifié pour l’audit. Prochaine étape : mesurer le retrait après extraction des briques communes et terminer le test navigateur.
+- Simulation des dépendances : 2 515 lignes dans 25 fichiers après retrait des entrées tuteur et du GET de diagnostic, avec le POST Nesalio et les archives conservés. 10 110 lignes dans 75 fichiers après découplage du rendu, des types d’archives et des autres modules communs, ou 10 393 dans 78 fichiers si le schéma des événements interactifs réservé au futur est retiré aussi.
+- Reproduit sur copie avec Vitest : un flux sans `end` marque la leçon partielle comme terminée et rejouable. Premier test Chromium interrompu au chargement. Prochaine étape : conclure l’essai navigateur et consigner l’inventaire dans `app/docs/audit-retrait-tuteur-2026-11-09.md`.
+
+### 2026-11-09 — Non-conservation par modèle ; décisions voix et micro
+- Chercheur (section « ZDR par modèle » de `chercheur-solutions.md`) : **DeepSeek V4.1 Flash a 13 fournisseurs ZDR**
+  sur le Gateway (le relecteur se trompait ; seul le fournisseur `deepseek` ne l'est pas) → pas besoin de changer de
+  modèle pour la vie privée. La non-conservation exige un **compte Vercel payant** (sinon 403) : plan non visible par
+  le connecteur (équipe « Jcod ») → à vérifier par un vrai appel après rafraîchissement du jeton.
+  Modèles compatibles classés : claude-haiku-5.5, gpt-6-luna, deepseek-v4.1-flash(-1017), minimax-m3.1-flash.
+- Voix : `elevenlabs/eleven-flash-v2.5` n'a aucun fournisseur ZDR. **Décision : garder ElevenLabs** (seul le texte de
+  Nesa y part ; c'est lui qui donne l'heure de chaque mot) — ne pas envoyer la non-conservation sur ces appels.
+- Transcription : `openai/whisper-1` non ZDR. **Décision : passer à un service protégé après essai en français
+  québécois** (microsoft/mai-transcribe-2, mistral/voxtral-mini-transcribe-3, spacexai/grok-stt). Confié à
+  dev-exploitation (réglable + outil d'essai, pas de changement par défaut avant l'essai).
+
+### 2026-11-09 — Lot 2 livré ; décision vie privée complète ; relectures 5, 1 (3e) et 4b
+- Relecteur : **lot 5 accepté** (condition avant déploiement : `/api/status` en production) ; **lot 4b accepté**
+  (condition : vidéo du nouveau `transform` ; mineurs : contour de case qui ne suit pas `move`/`dim`, LaTeX brut
+  affiché si la formule ne se rend pas) ; **lot 1 à reprendre** (déclencheurs : `\b` et lettres accentuées, « gaz »,
+  « concentration d'un médicament ») — toute la chimie est juste.
+- **Décision de l'utilisateur : protection complète** (non-conservation + pas d'entraînement). DeepSeek n'a pas
+  d'hébergeur qui s'y engage sur le Gateway (tous les appels en 400) → **changer de modèle** (Haiku 5.5 ou GPT-6
+  Luna, à vérifier puis mesurer). Tant que ce n'est pas fait, la génération locale/production est cassée avec
+  l'option active : ne rien déployer.
+- Lot 2 (dev-justesse, `dev-justesse.md`) : `coherence.ts`, `chemistry.ts`, `sayShow.ts`, lecteur LaTeX et fractions
+  exactes dans `expr.ts` ; corrige (y d'un point sur sa courbe, extrémité de segment, « = » → « ≈ ») ou refuse
+  (pente, perpendicularité, hors des axes, égalité fausse, valeur finale contre `math_context`, équation non
+  équilibrée, paramètre animé sans effet) ; 124 leçons réelles : 0 leçon juste refusée, 5 vraies erreurs trouvées ;
+  `highlight` de case de tableau accepté. `tsc` repasse ; 766 tests.
+- Relancés : relecteur (lot 2), dev-consignes (déclencheurs + annonces `\ce{}`, `column_labels`, surlignage de
+  case), dev-fiabilité (jouer et rejouer la version corrigée par le lot 2), dev-exploitation (protection de la voix et
+  de la transcription), chercheur (quels modèles ont un hébergeur sans conservation), dev-rendu (mineurs).
+
+### 2026-11-08 nuit — Lot 4b livré ; guides de chimie écrits ; dépendances fixées
+- dev-consignes : 10 guides de chimie (sec 4 ST, STE marqué, sec 5), calculs refaits ; retouches de la 2e relecture.
+  Prompt système 36 717 caractères. 3e relecture en file.
+- dev-rendu (`dev-rendu.md`, section « LIVRÉ ») : `\ce{}`/`\pu{}` via mhchemparser (`ui/board/manim/chemistry.ts`),
+  vu juste sur `/dev/nesalio` ; `matrix` : cases texte (≤ 24 caractères) ou vides, `column_labels` facultatif,
+  parties `r2c3`/`r2`/`c3` (`matrixParts`) ; `setMathJaxScriptUrl(null)` ; `sceneText` en écriture française ;
+  `transform` sans glyphes fantômes (non vu). En attente : `validate.ts` doit accepter les parties de tableau pour
+  `highlight` (demandé à dev-justesse) ; annoncer `\ce{}` et `column_labels` au modèle (dev-consignes, après la
+  3e relecture) ; `transform` d'au moins 1,2 s à la lecture (lot 4a, plus tard).
+- Claude Code : `package.json` → `mhchemparser` 4.2.1 en dépendance directe, `manim-web` épinglé à 0.39.4
+  (`npm install --save-exact`, 0 vulnérabilité).
+
+### 2026-11-08 nuit — Lot 5 (partie 1) livré, à relire ; points de vigilance
+- dev-exploitation (`dev-exploitation.md`) : `chatCompletions.ts` envoie `providerOptions.gateway`
+  (`zeroDataRetention`, `disallowPromptTraining`) ; `NESALIO_ZDR=0` retire la non-conservation ; `/dev` affiche
+  NesalioApp ou TutorApp selon `explainerFor` ; questionnaire de fin ouvert au retour à l'accueil ou après 60 s
+  (plus de blocage de « Revoir ») ; `/api/status` vérifie la voix ElevenLabs. Signalement avec leçon jointe : non fait
+  (leçon 14 à 33 Ko > limite de 16 000 caractères du champ `replay`).
+- **À VÉRIFIER AVANT TOUT DÉPLOIEMENT** : avec la non-conservation, le Gateway peut répondre 403 (compte non payant)
+  ou 400 (aucun fournisseur de DeepSeek qui s'y engage) → toutes les leçons en échec. À tester par un vrai appel dès
+  que `VERCEL_OIDC_TOKEN` sera rafraîchi (`.env.local` date de ce matin 09:29 : pas encore rafraîchi).
+- `npx tsc` échoue en ce moment sur `domain/tutor/controller.test.ts` (ancien tuteur, non modifié) : signalé à
+  dev-justesse (`expr.ts` modifié, suspect) ; travail en cours des autres lots, à revérifier à la fin.
+
+### 2026-11-08 nuit — 2e relecture : lot 3 accepté, lot 1 à retoucher
+- **Lot 3 ACCEPTÉ** (`relecture-lot3.md`, 2e relecture : 166 tests, 10 scénarios du relecteur corrigés).
+  Limite acceptée et à garder en tête : une tranche illisible dont l'identifiant ne se lit pas est tenue pour
+  corrigée par la tranche acceptée suivante (rare, signalé dans le journal serveur).
+- Lot 1 à retoucher : détecteur de formule chimique trop large (P1, A1, « prix d'équilibre » perdent leur guide de
+  maths), ordre des phrases de la consigne de refus, message de correction qui exige 3 à 5 tranches même pour un refus.
+  Renvoyé à dev-consignes avec le guide de chimie.
+
+### 2026-11-08 nuit — Décisions vie privée et modèles ; lots repris ; lot 5 lancé
+- Décisions de l'utilisateur : **vie privée** → chaque appel au Gateway demande la non-conservation des données et
+  l'interdiction d'entraînement ; **modèles à mesurer** contre DeepSeek : `anthropic/claude-haiku-5.5` et
+  `openai/gpt-6-luna` (dès que `VERCEL_OIDC_TOKEN` sera rafraîchi).
+- Lot 3 repris (7 demandes, 166 tests nesalio, 14 neutralisations sur copie) ; lot 1 repris (9 demandes, 159 tests,
+  prompt système 36 484 caractères). Deuxième relecture en cours.
+- dev-consignes : guide de chimie sec 4/5 à partir de la liste R4. dev-rendu : en plus, virgule décimale dans
+  `sceneText`. Lancé : dev-exploitation (lot 5 : vie privée dans `chatCompletions.ts`, `/dev` → NesalioApp,
+  questionnaire de fin qui ne bloque plus, `/api/status` sur la voix réelle, signalement avec leçon si petit).
+
+### 2026-11-08 nuit — Relectures, lot 6 livré, chercheur, lots 2 et 4b lancés
+- Relecteur (`relecture-lot3.md`, `relecture-lot1.md`) : lots 3 et 1 **à reprendre** (tranche jouée avant celle qui
+  manque ; faux déclencheurs du refus sur des problèmes de maths en contexte, doublons du dictionnaire, « 4.0 ») ;
+  renvoyés aux développeurs. L'« incident » de `generator.ts` venait du relecteur (neutralisation en place puis
+  remise depuis une copie) ; désormais neutralisations sur copie.
+- Lot 6 (dev-mesure, `dev-mesure.md`) : corpus `app/tools/eval/corpus-nesalio.json` (31 questions : 22 maths, 10
+  chimie sec 4/5), banc `tools/eval/banc-nesalio.test.mjs` (`BANC=1`, `TUTOR_MODEL`), grille
+  `app/docs/grille-explication-nesalio.md`, e2e `tools/e2e/nesalio.mjs` (passe sur une copie ; la page `/` exige un
+  compte → accès de test sans compte à prévoir au lot 5). 700 tests. **Essai réel impossible : `VERCEL_OIDC_TOKEN`
+  expiré** (à rafraîchir par l'utilisateur : `npx vercel env pull .env.local --environment=development` dans app/).
+- Chercheur (`chercheur-solutions.md`) : manim-web 0.39.4 = MathJax 4 sans mhchem → `mhchemparser` (installé)
+  convertit `\ce{}` ; justesse : étendre `expr.ts` + fractions exactes d'`assessment.ts` (pas mathjs, Compute
+  Engine en outil de test seulement) ; objets manim-web (Angle, Brace…) ; programme de chimie (MEQ 2011 ; plusieurs
+  notions sont STE et non ST) ; analyseur de formules neuf ; modèles à mesurer : `anthropic/claude-haiku-5.5`,
+  `openai/gpt-6-luna`, `deepseek/deepseek-v4.1-flash-1017` (Grok : `spacexai/…`, pas de variante rapide).
+  **Risque vie privée** : aucune option de non-conservation ni d'interdiction d'entraînement envoyée au Gateway
+  (données d'élèves mineurs) ; MathJax peut se charger depuis jsdelivr.
+- Lancés : dev-justesse (lot 2), dev-rendu (lot 4b + tableau de chimie).
+
+### 2026-11-08 nuit — Lots 3 (P1) et 1 livrés, en relecture
+- Lot 3 (dev-fiabilité, `dev-fiabilite.md`) : ligne illisible renvoyée au modèle au lieu d'être jetée ; leçon jamais
+  « end » s'il manque une tranche ; `escapeLatex`/`restoreLatex` repris de l'ancien système ; la leçon de refus
+  `hors_perimetre` (une tranche) n'est pas relancée pour MIN_SLICES. Tests : neutralisations faites. Pas de
+  génération réelle.
+- Lot 1 (dev-consignes, `dev-consignes.md`) : périmètre maths + chimie sec 4-5 et refus poli (leçon d'une tranche
+  `hors_perimetre`) ; règles de l'ancien prompt reprises ; règles de justesse ; dictionnaire « notion → image » ;
+  leçon d'exemple avec figure qui bouge ; ancres `side_a`/`side_b`/`hypotenuse` annoncées ; guides : statistiques,
+  probabilités, finances, systèmes, valeur absolue, géométrie analytique, lois des sinus/cosinus, polynômes
+  complétés ; guide physique remplacé par le refus ; `CHEMISTRY_GUIDES` vide (attend R4). Prompt système
+  26 837 → 38 398 caractères.
+- **Incident** : une session hors de l'équipe a réécrit `generator.ts` pendant le lot 3 et effacé ses changements ;
+  réappliqués, état vérifié (148/148 tests nesalio, `tsc` OK). Autre session suspectée : Codex ou la session
+  mère, qui partagent ce dossier.
+- Relecteur en cours sur le lot 3 puis le lot 1. Chercheur et dev-mesure en cours.
+
+### 2026-11-08 nuit — Décisions de l'utilisateur et première vague de l'équipe
+- Mesure du testeur (`testeur-mesure-depart.md`) : 20 questions (16 maths, 4 chimie) : 85 % intactes, 2 échecs en
+  chimie (tableau `matrix` limité aux nombres), note 58,6/100, 9 erreurs graves (surtout figures qui contredisent
+  les nombres). Juge visuel (`juge-visuel.md`) : 3,6/10. Liste des manques : `analyste-backlog.md` (9 bloquants,
+  lots 1 à 7 sur fichiers disjoints).
+- Séances réelles chez Vercel : `vercel env pull` refusé à l'IA par le garde-fou (secrets de production) ; script
+  `app/tools/eval/questions-seances.mjs` prêt pour l'utilisateur ; **partie mise de côté par l'utilisateur**.
+- Décisions : Q6 erreur de justesse détectée → corriger ce qui se calcule, sinon refuser ; Q4 tableau chimie →
+  champs facultatifs (en-têtes de colonne, cases texte) + surlignage de case ; Q1 hors périmètre → refus poli ;
+  Q2 → mesurer d'autres modèles pour comparer (l'utilisateur veut **moins cher et plus performant** que DeepSeek si
+  besoin, Grok cité) ; par défaut (sans réponse) : Q5 ancres de polygone puis objets calculés, Q7 critères proposés,
+  Q8 leçon jointe au signalement. **En attente : Q3 enregistrement des séances**, Q9 voix, Q10 micro.
+- Lancés : chercheur (R1-R6), dev-fiabilité (lot 3, P1), dev-consignes (lot 1), dev-mesure (lot 6). Seuls des
+  fichiers disjoints ; aucun commit ; `SUIVI.md` tenu par Claude Code.
+
+### 2026-11-08 nuit — Claude Code (testeur) : mesure de départ, 20 questions maths + chimie
+- Suite `base-*` (`analyses/generations/`, avec `.lisible.txt` ; rendu `analyses/outils/lisible.mjs`) : 16 maths + 4 chimie ;
+  4 questions de physique notées à part (périmètre réduit à maths + chimie, décision utilisateur). Un tirage, un appel.
+- 17/20 intactes (2 échecs en chimie : tableau `matrix` limité aux nombres, 1re tranche refusée 3 fois ; `zeros` a perdu
+  une tranche sur une ligne JSON illisible jetée sans rien dire, `generator.ts` l. 193-197). 1re tranche : médiane 2,6 s, max 4,7 s.
+- Note moyenne 58,6/100 (65,1 sur les leçons jouées) ; 9 erreurs graves dans 9 leçons sur 18, dont 7 figures ou tableaux
+  qui contredisent les nombres. Rapport et problèmes priorisés : `testeur-mesure-depart.md` (dossier de notes). Correcteur
+  unique, pas à l'aveugle : indicatif. Rien dans `app/src`, rien commité.
+
+### 2026-11-08 nuit — Décision de périmètre : mathématiques et chimie seulement
+- L'utilisateur : l'outil se concentre sur les **mathématiques et la chimie**. La physique sort du périmètre pour
+  l'instant (à mettre en « plus tard »). Transmis à l'analyste, au testeur (questions de physique remplacées par de la
+  chimie) et au juge visuel. À reporter dans `pedagogy.ts` (le texte dit encore « sciences physiques ») et dans les
+  guides (aucun guide de chimie aujourd'hui).
+- Audit `audit-casse.md` revenu : 12 passerelles à couper, ~87 fichiers de production à supprimer, ordre en 9 étapes,
+  pièges (`.next/types/validator.ts`, `tools/analyse/seances.ts` dans tsconfig, cron de purge dans `vercel.json`,
+  `test:e2e` à réécrire). Servira le jour de la suppression ; à faire avant : `/dev` doit afficher `NesalioApp`.
+
+### 2026-11-08 nuit — Claude Code : notation sur questions nouvelles (grille stricte) — Nesalio en dessous
+- Notation à l'aveugle, 10 nouvelles questions, grille /100 avec plafonnement d'exactitude
+  (`notation-grille-resultats.md`, lettres décodées par Claude Code) : **ancien tuteur 62,6 ; Nesalio un appel 54,5 ;
+  deux temps 47,7**. Nesalio nettement en dessous sur les notions sans guide (corrélation 30 contre 59, Newton 28
+  contre 67, médiatrice 56 contre 81) ; mieux sur intérêts composés (86 contre 75). Mesure de Nesalio faite avant les
+  corrections de fiabilité. **L'avantage mesuré sur les 8 questions de départ ne se généralise pas.**
+- Audits revenus : `audit-fonctions.md` (à refaire avant : `/dev` affiche encore TutorApp, test e2e sur l'ancien,
+  `/api/status` sur la voix Gemini, purge des séances à garder ; à décider : enregistrement des séances par
+  Nesalio, contexte du signalement, micro pendant l'explication) ; `audit-a-garder.md` (archive
+  `archives/tuteur-2026-11/` proposée, règles pédagogiques et trous des guides à reprendre).
+- Équipe : testeur (mesure de départ), analyste (liste des manques) et juge visuel (qualité « à la 3Blue1Brown »)
+  lancés. L'utilisateur précise : **au moins 5 agents** ; les scénarios de vrais utilisateurs sont les séances
+  enregistrées chez Vercel (`/api/seances`, jeton `SELFTEST_TOKEN` ou stockage Blob ; absent de `app/.env.local`).
+
+### 2026-11-08 nuit — Claude Code : équipe de 5 agents pour rendre Nesalio fiable
+- Objectif reformulé par l'utilisateur : **pouvoir se fier au nouveau système** ; implémenter ce qui manque ;
+  **l'ancien système n'est PAS supprimé** tant que le nouveau n'est pas opérationnel à 100 %.
+- Règle pour combler un manque : bibliothèque externe reconnue d'abord (vérifiée : fiabilité, entretien, licence,
+  sécurité, poids, compatibilité, données envoyées à un tiers) ; sinon reprise de l'ancien système ; sinon code neuf.
+- Équipe (rôles fixes, la balle passe par Claude Code) : analyste (liste des manques classés) → chercheur
+  (bibliothèque ou reprise) → développeur (seul à écrire dans app/src) ↔ relecteur → testeur (vrai système, grille)
+  → retour à l'analyste.
+- Critères proposés pour « on peut s'y fier » : ≥ 95 % de leçons au bout sur ~20 questions variées ; aucune erreur
+  mathématique grave ; notes ≥ ancien tuteur sur des questions nouvelles ; manques bloquants présents et testés.
+- Lancé : le testeur (mesure de départ, 20 questions, `testeur-mesure-depart.md`).
+
+### 2026-11-08 nuit — Claude Code : commit avant suppression, audits lancés
+- Fiabilité après les 4 corrections (`nr-*`, 10 nouvelles questions, un appel) : **10/10 leçons au bout**
+  (avant : 9/10 avec `nq-*`) ; première tranche 1,5 à 10 s.
+- Commit `4c8e447` (accord de l'utilisateur) : tout le travail Nesalio. `.gitignore` : images des vidéos
+  (`analyses/videos/frames-*/`) et journaux de mesure (`analyses/*.log`) exclus.
+- Avant toute suppression, demandé par l'utilisateur : trois agents en lecture seule (rapports dans le dossier de
+  notes) — `audit-fonctions.md` (ce que l'ancien système fait et que Nesalio doit avoir avant), `audit-casse.md`
+  (ce qui casserait, ordre des étapes), `audit-a-garder.md` (ce qu'il faut garder ou archiver pour l'orchestrateur
+  et le futur tuteur). Notation à l'aveugle des 10 nouvelles questions avec la grille : en cours.
+- Rien n'est supprimé.
 
 ### 2026-11-08 nuit — Claude Code : décisions pour supprimer l'ancien système
 - Décision utilisateur : la génération en deux temps est **mise de côté** (« plus tard ») ; elle reste dans le code,

@@ -1,0 +1,84 @@
+QUESTION (chimie-dilution-erreur, chimie, sec 4, erreur) : j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?
+RÉPONSE DE RÉFÉRENCE : C₂ = C₁V₁/V₂ = 2 × 50 / 200 = 0,50 mol/L ; 8 mol/L vient du rapport inversé.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. en diluant, la quantité de soluté ne change pas : n = C₁V₁ = C₂V₂
+  2. diagnostic : 8 mol/L = 2 × 200 / 50, rapport des volumes inversé
+  3. C₂ = 2 × 50 / 200 = 0,50 mol/L écrit
+  4. contrôle de vraisemblance : ajouter de l'eau diminue la concentration (volume × 4, concentration ÷ 4)
+  5. unités cohérentes (les mL s'annulent)
+ERREURS GRAVES À CHERCHER : concentration qui augmente à la dilution ; diagnostic inventé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : La concentration après avoir ajouté de l'eau
+math_context : {"symbols":{},"expressions":{"c2":"2*50/200"}}
+=== Tranche s_erreur
+  OBJET faux [math] "C_2 = 8 \\ \\text{mol/L}" parts=C_2 | = 8 \ \text{mol/L}
+  OBJET raison [text] "l'inverse du bon rapport" 
+DIT (accueil) : Ta réponse est fausse, mais elle vient d'une erreur très fréquente.
+    write faux @beat:start {"part":"c"}
+    write faux @cue:c_fausse {"part":"e"}
+DIT (pourquoi) : Huit moles par litre, ça vient d'avoir multiplié par deux cents puis divisé par cinquante : un volume divisé par un volume.
+    show raison @cue:c_rapport 
+    highlight faux @- {"start":"cue:c_multi","end":"cue_end:c_rapport","role":"unknown"}
+=== Tranche s_solute
+  OBJET rect_avant [polygon] {"vertices":[[0,0],[2,0],[2,2],[0,2]]} 
+  OBJET rect_apres [polygon] {"vertices":[[4,0],[8,0],[8,2],[4,2]]} 
+  OBJET pt1 [point] {"at":[0.5,1.5]} 
+  OBJET pt2 [point] {"at":[1,0.5]} 
+  OBJET pt3 [point] {"at":[1.5,1.5]} 
+  OBJET pt4 [point] {"at":[0.33,0.67]} 
+  OBJET pt5 [point] {"at":[1.67,0.67]} 
+  OBJET pt6 [point] {"at":[4.2,1.6]} 
+  OBJET pt7 [point] {"at":[5,0.5]} 
+  OBJET pt8 [point] {"at":[6.5,1.5]} 
+  OBJET pt9 [point] {"at":[7,0.8]} 
+  OBJET pt10 [point] {"at":[5.5,1]} 
+  OBJET vol_avant [label] "50 mL" attaché à rect_avant
+  OBJET vol_apres [label] "200 mL" attaché à rect_apres
+DIT (avant) : Je te montre la situation. À gauche, tes cinquante millilitres de solution : chaque point est une particule de soluté.
+    draw rect_avant @cue:c_ml 
+    show pt1 @cue:c_point 
+    show pt2 @after:s_pts 
+    show pt3 @after:s_pts2 
+    show pt4 @after:s_pts3 
+    show pt5 @after:s_pts4 
+    show vol_avant @after:s_pts5 
+DIT (apres) : À droite, après l'ajout d'eau : le volume est quatre fois plus grand, mais c'est toujours les mêmes particules.
+    draw rect_apres @cue:c_eau 
+    show pt6 @cue:c_quatre 
+    show pt7 @after:s_pt6 
+    show pt8 @after:s_pt7 
+    show pt9 @after:s_pt8 
+    show pt10 @after:s_pt9 
+    show vol_apres @after:s_pt10 
+    dim rect_avant @cue:c_memes 
+=== Tranche s_calcul
+  OBJET conserv [text] "La quantité de soluté ne change pas" 
+  OBJET formule [math] "C_1 V_1 = C_2 V_2" parts=C_1 V_1 | = | C_2 V_2
+  OBJET remplace [math] "2 \\times 50 = C_2 \\times 200" parts=2 \times 50 | = C_2 \times 200
+  OBJET isole [math] "C_2 = \\frac{2 \\times 50}{200}" 
+  OBJET resultat [math] "C_2 = 0{,}5 \\ \\text{mol/L}" 
+DIT (regle) : D'où la règle de dilution : la quantité de soluté avant égale la quantité après, donc C un V un égale C deux V deux.
+    show conserv @cue:c_quantite 
+    write formule @after:s_conserv {"part":"gauche"}
+    write formule @cue:c_egale {"part":"droite"}
+DIT (chiffres) : On remplace : deux fois cinquante donne cent, et ça égale C deux fois deux cents.
+    write remplace @cue:c_deuxfo {"part":"un"}
+    write remplace @cue:c_deuxcents {"part":"deux"}
+DIT (division) : Pour isoler C deux, on divise les deux côtés par deux cents : cent divisé par deux cents donne zéro virgule cinq.
+    write isole @cue:c_divise 
+    write resultat @cue:c_zero 
+    highlight resultat @after:w_res {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Diluer = plus de solvant, même soluté, concentration plus faible" 
+DIT (retenir) : À retenir : en ajoutant de l'eau, la concentration diminue. On multiplie le volume par quatre, alors la concentration est divisée par quatre.
+    fade_out faux @beat:start 
+    fade_out raison @beat:start 
+    fade_out rect_apres @beat:start 
+    fade_out conserv @beat:start 
+    fade_out remplace @beat:start 
+    fade_out isole @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["formule","idee","resultat"],"bounds":"layout_bounds"}
+    show idee @cue:c_retenir 
+    highlight resultat @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"result"}
+--- 4 tranches, 158 mots dits (≈ 1.1 min d'oral)

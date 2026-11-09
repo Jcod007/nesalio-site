@@ -1,0 +1,67 @@
+QUESTION (ap-endo-exo-exemples, chimie, sec 5, alloprof) : je comprend pas comment reconnaitre quelque chose qui est endothermique ou exothermique comme par exemple la congelation de leau, la combustion du bois, la fermentation du raisin, explosion de TNT, désintégration de luranium et encore moin savoir si cest physique ou chimique
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Reconnaître endothermique, exothermique, physique ou chimique
+=== Tranche s_energie
+  OBJET diag [axes] {"x":[0,6],"y":[0,8]} 
+  OBJET line1 [line] {"from":[0,4],"to":[2,4]} 
+  OBJET line2 [line] {"from":[2,4],"to":[3,7]} 
+  OBJET line3 [line] {"from":[3,7],"to":[4,1]} 
+  OBJET line4 [line] {"from":[4,1],"to":[6,1]} 
+  OBJET lbl_reactifs [label] "réactifs" attaché à line1
+  OBJET lbl_produits [label] "produits" attaché à line4
+  OBJET fleche_act [arrow] {"from":[2.8,4],"to":[2.8,7]} 
+  OBJET lbl_act [label] "énergie d'activation" attaché à fleche_act
+  OBJET fleche_dh [arrow] {"from":[5,4],"to":[5,1]} 
+  OBJET lbl_dh [label] "ΔH" attaché à fleche_dh
+DIT (intro) : Pour reconnaître une transformation exothermique ou endothermique, on regarde l'énergie des réactifs et des produits.
+    camera.focus  @beat:start {"targets":["diag"],"bounds":"layout_bounds","save_as":"vue_energie"}
+    show diag @beat:start 
+    draw line1 @beat:start 
+    show lbl_reactifs @cue:c_reactifs 
+    draw line3 @- {"start":"cue:c_reactifs","end":"cue_end:c_produits"}
+    draw line4 @cue:c_produits 
+    show lbl_produits @cue:c_produits 
+DIT (pic) : Les réactifs montent d'abord : il faut fournir l'énergie d'activation.
+    draw line2 @- {"start":"beat:start","end":"cue_end:c_act"}
+    show fleche_act @cue:c_act 
+    show lbl_act @cue:c_act 
+DIT (delta) : Puis les produits descendent plus bas que les réactifs : la différence, c'est delta H, l'énergie libérée.
+    show fleche_dh @cue:c_delta 
+    show lbl_dh @cue:c_delta 
+    highlight fleche_dh @cue:c_lib {"role":"result"}
+=== Tranche s_sens
+  OBJET regle_exo [math] "\\text{exothermique} : \\Delta H < 0" parts=\text{exothermique} | : \Delta H < 0
+  OBJET regle_endo [math] "\\text{endothermique} : \\Delta H > 0" parts=\text{endothermique} | : \Delta H > 0
+  OBJET ex1 [label] "combustion du bois" attaché à regle_exo
+  OBJET ex2 [label] "congélation de l'eau" attaché à regle_endo
+DIT (exo) : Si les produits sont plus bas, la transformation libère de l'énergie : elle est exothermique, delta H plus petit que zéro.
+    write regle_exo @cue:c_exo {"part":"nom_exo"}
+    write regle_exo @cue:c_pos {"part":"signe_exo"}
+    show ex1 @after:w_exos 
+DIT (endo) : Si les produits montent plus haut, il a fallu fournir de l'énergie : elle est endothermique, delta H plus grand que zéro.
+    write regle_endo @cue:c_endo {"part":"nom_endo"}
+    write regle_endo @cue:c_nego {"part":"signe_endo"}
+    show ex2 @after:w_endos 
+=== Tranche s_phys_chim
+  OBJET phys [text] "physique : la substance reste la même" 
+  OBJET chim [text] "chimique : de nouvelles substances apparaissent" 
+DIT (difference) : Maintenant, physique ou chimique ? C'est une autre question : la transformation change-t-elle la substance elle-même ?
+    dim fleche_dh @cue:c_chimique 
+    dim line1 @cue:c_chimique 
+    show phys @cue:c_chimique 
+    show chim @after:s_phys 
+DIT (exemples) : L'eau qui gèle reste de l'eau : c'est physique. Le bois qui brûle devient de la cendre et des gaz : c'est chimique.
+    highlight ex2 @- {"start":"cue:c_glace","end":"cue_end:c_glace","role":"accent"}
+    highlight ex1 @- {"start":"cue:c_brul","end":"cue_end:c_brul","role":"accent"}
+=== Tranche s_retenir
+DIT (central) : L'idée centrale : exothermique libère, endothermique absorbe, et physique ou chimique se juge sur les substances.
+    camera.focus  @cue:c_central {"targets":["diag","regle_exo","regle_endo","phys","chim"],"bounds":"layout_bounds"}
+    highlight regle_exo @- {"start":"cue:c_lib","end":"cue_end:c_lib","role":"accent"}
+    highlight regle_endo @- {"start":"cue:c_abs","end":"cue_end:c_abs","role":"accent"}
+DIT (congel) : Exemple : la congélation de l'eau est physique et exothermique ; elle libère de la chaleur en gelant.
+    highlight ex2 @- {"start":"cue:c_congel","end":"cue_end:c_gel","role":"result"}
+--- 4 tranches, 159 mots dits (≈ 1.1 min d'oral)

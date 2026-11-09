@@ -1,0 +1,769 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "gaz_dilution_bonbonne",
+  "title": "Combien de ballons avec une bonbonne d'hélium ?",
+  "language": "fr",
+  "learning_goal": "Utiliser la loi générale des gaz pour trouver n dans la bonbonne, puis le volume total à TAPN et le nombre de ballons de 100,0 L."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "n_bonbonne": "15000*10/(8.314*(15+273.15))",
+    "v_total": "15000*10*298.15/(101.3*(15+273.15))",
+    "nb_ballons": "15000*10*298.15/(101.3*(15+273.15)*100)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_plan",
+   "introduces": [
+    {
+     "id": "plan",
+     "content": "n = \\dfrac{pV}{RT}",
+     "parts": [
+      {
+       "id": "p_sym",
+       "text": "n"
+      },
+      {
+       "id": "p_form",
+       "text": "= \\dfrac{pV}{RT}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Bonne question ! On a une bonbonne d'hélium sous forte pression, et on veut savoir combien de ballons mous elle peut remplir.",
+     "cues": [
+      {
+       "id": "c_bonbonne",
+       "text": "bonbonne d'hélium"
+      },
+      {
+       "id": "c_ballons",
+       "text": "ballons"
+      }
+     ],
+     "do": []
+    },
+    {
+     "id": "idee",
+     "say": "L'idée : la quantité de gaz, en moles, ne change pas. C'est le même gaz, simplement réparti dans plus de place, à la pression du laboratoire.",
+     "cues": [
+      {
+       "id": "c_moles",
+       "text": "moles"
+      },
+      {
+       "id": "c_change",
+       "text": "ne change pas"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_plan",
+       "verb": "write",
+       "at": "cue:c_moles",
+       "target": "plan",
+       "part": "p_form"
+      }
+     ]
+    },
+    {
+     "id": "n_formule",
+     "say": "On commence donc par calculer le nombre de moles dans la bonbonne : n égale p V divisé par R T.",
+     "cues": [
+      {
+       "id": "c_n",
+       "text": "n égale"
+      },
+      {
+       "id": "c_pv",
+       "text": "p V divisé par R T"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_plan",
+       "verb": "camera.focus",
+       "at": "cue:c_n",
+       "targets": [
+        "plan"
+       ]
+      },
+      {
+       "id": "h_plan",
+       "verb": "highlight",
+       "start": "cue:c_pv",
+       "end": "cue_end:c_pv",
+       "target": "plan",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_bonbonne",
+   "introduces": [
+    {
+     "id": "conv_p",
+     "layout": {
+      "next_to": "plan",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "15000\\ \\text{kPa}",
+     "type": "math"
+    },
+    {
+     "id": "conv_T",
+     "layout": {
+      "next_to": "conv_p",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "15{,}00\\ ^\\circ\\text{C} + 273{,}15 = 288{,}15\\ \\text{K}",
+     "type": "math"
+    },
+    {
+     "id": "conv_V",
+     "layout": {
+      "next_to": "conv_T",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "10{,}00\\ \\text{L}",
+     "type": "math"
+    },
+    {
+     "id": "calc_n",
+     "layout": {
+      "next_to": "conv_V",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n = \\dfrac{15000 \\times 10{,}00}{8{,}314 \\times 288{,}15}",
+     "type": "math"
+    },
+    {
+     "id": "res_n",
+     "layout": {
+      "next_to": "calc_n",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n \\approx 62{,}6\\ \\text{mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "unites",
+     "say": "Avant de calculer, on met tout dans les bonnes unités. La pression est déjà en kilopascals : quinze mille.",
+     "cues": [
+      {
+       "id": "c_pression",
+       "text": "pression est déjà en kilopascals"
+      },
+      {
+       "id": "c_15000",
+       "text": "quinze mille"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p",
+       "verb": "show",
+       "at": "cue:c_15000",
+       "target": "conv_p"
+      }
+     ]
+    },
+    {
+     "id": "kelvin",
+     "say": "La température doit être en kelvins. On ajoute deux cent soixante-treize virgule quinze à quinze degrés : ça donne deux cent quatre-vingt-huit virgule quinze kelvins.",
+     "cues": [
+      {
+       "id": "c_kelvins",
+       "text": "en kelvins"
+      },
+      {
+       "id": "c_resultat_T",
+       "text": "deux cent quatre-vingt-huit virgule quinze kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_T",
+       "verb": "show",
+       "at": "cue:c_resultat_T",
+       "target": "conv_T"
+      }
+     ]
+    },
+    {
+     "id": "volume",
+     "say": "Le volume de la bonbonne est dix litres, et R vaut huit virgule trois cent quatorze kilopascals fois litre par mole et par kelvin.",
+     "cues": [
+      {
+       "id": "c_dix",
+       "text": "dix litres"
+      },
+      {
+       "id": "c_R",
+       "text": "huit virgule trois cent quatorze kilopascals fois litre par mole et par kelvin"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_V",
+       "verb": "show",
+       "at": "cue:c_dix",
+       "target": "conv_V"
+      }
+     ]
+    },
+    {
+     "id": "n_calcul",
+     "say": "On peut remplacer dans la formule : n égale quinze mille fois dix divisé par huit virgule trois cent quatorze fois deux cent quatre-vingt-huit virgule quinze.",
+     "cues": [
+      {
+       "id": "c_remplacer",
+       "text": "remplacer dans la formule"
+      },
+      {
+       "id": "c_denom",
+       "text": "deux cent quatre-vingt-huit virgule quinze"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_calc",
+       "verb": "show",
+       "at": "cue:c_remplacer",
+       "target": "calc_n"
+      },
+      {
+       "id": "dim_plan",
+       "verb": "dim",
+       "at": "cue:c_remplacer",
+       "target": "plan"
+      }
+     ]
+    },
+    {
+     "id": "n_resultat",
+     "say": "Ça donne environ soixante-deux virgule six moles d'hélium dans la bonbonne.",
+     "cues": [
+      {
+       "id": "c_moles_res",
+       "text": "soixante-deux virgule six moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_res",
+       "verb": "show",
+       "at": "cue:c_moles_res",
+       "target": "res_n"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:s_res",
+       "target": "res_n",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ballons",
+   "introduces": [
+    {
+     "id": "tapn",
+     "layout": {
+      "next_to": "res_n",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "24{,}5\\ \\text{L/mol}",
+     "type": "math"
+    },
+    {
+     "id": "v_total",
+     "layout": {
+      "next_to": "tapn",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "V = n \\times 24{,}5 = 62{,}6 \\times 24{,}5 \\approx 1534\\ \\text{L}",
+     "type": "math"
+    },
+    {
+     "id": "division",
+     "layout": {
+      "next_to": "v_total",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\dfrac{1534\\ \\text{L}}{100{,}0\\ \\text{L par ballon}} \\approx 15{,}3",
+     "type": "math"
+    },
+    {
+     "id": "reponse",
+     "layout": {
+      "next_to": "division",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{Nombre de ballons} = 15",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conditions",
+     "say": "Maintenant, à TAPN, soit vingt-cinq degrés et cent un virgule trois kilopascals, chaque mole de gaz occupe vingt-quatre virgule cinq litres.",
+     "cues": [
+      {
+       "id": "c_tapn",
+       "text": "TAPN"
+      },
+      {
+       "id": "c_24_5",
+       "text": "vingt-quatre virgule cinq litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tapn",
+       "verb": "show",
+       "at": "cue:c_24_5",
+       "target": "tapn"
+      }
+     ]
+    },
+    {
+     "id": "volume_total",
+     "say": "Donc soixante-deux virgule six moles occupent soixante-deux virgule six fois vingt-quatre virgule cinq, soit environ quinze cent trente-quatre litres.",
+     "cues": [
+      {
+       "id": "c_total",
+       "text": "quinze cent trente-quatre litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_vt",
+       "verb": "show",
+       "at": "cue:c_total",
+       "target": "v_total"
+      },
+      {
+       "id": "h_vt",
+       "verb": "highlight",
+       "start": "cue:c_total",
+       "end": "cue_end:c_total",
+       "target": "v_total",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "combien",
+     "say": "Chaque ballon demande cent litres. On divise donc quinze cent trente-quatre par cent : ça donne quinze virgule trois.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "On divise"
+      },
+      {
+       "id": "c_quinze",
+       "text": "quinze virgule trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_div",
+       "verb": "show",
+       "at": "cue:c_quinze",
+       "target": "division"
+      }
+     ]
+    },
+    {
+     "id": "trancher",
+     "say": "Attention : on ne peut pas remplir trois dixièmes de ballon. Il faut donc arrondir à l'entier inférieur : quinze ballons complets.",
+     "cues": [
+      {
+       "id": "c_entier",
+       "text": "arrondir à l'entier inférieur"
+      },
+      {
+       "id": "c_reponse",
+       "text": "quinze ballons complets"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "cue:c_reponse",
+       "target": "reponse"
+      },
+      {
+       "id": "f_conv",
+       "verb": "fade_out",
+       "at": "cue:c_entier",
+       "target": "conv_p"
+      },
+      {
+       "id": "f_convT",
+       "verb": "fade_out",
+       "at": "cue:c_entier",
+       "target": "conv_T"
+      },
+      {
+       "id": "f_convV",
+       "verb": "fade_out",
+       "at": "cue:c_entier",
+       "target": "conv_V"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "reponse",
+      "direction": "up",
+      "gap": "lg"
+     },
+     "content": "n = \\dfrac{pV}{RT}",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "regle",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": "La même quantité de moles, simplement répartie à TAPN.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : on trouve d'abord le nombre de moles avec n égale p V sur R T, en kelvins.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_n",
+       "text": "n égale p V sur R T"
+      },
+      {
+       "id": "c_kelvin",
+       "text": "en kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_vt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v_total"
+      },
+      {
+       "id": "f_div",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "division"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc_n"
+      },
+      {
+       "id": "f_res",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "res_n"
+      },
+      {
+       "id": "f_tapn",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tapn"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "idee",
+        "reponse"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_n",
+       "target": "regle"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_n",
+       "end": "cue_end:c_kelvin",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "conclure",
+     "say": "Ensuite, le volume molaire à TAPN transforme ces moles en litres, et on divise par cent litres par ballon. Résultat : quinze ballons.",
+     "cues": [
+      {
+       "id": "c_molaire",
+       "text": "volume molaire à TAPN"
+      },
+      {
+       "id": "c_resultat",
+       "text": "quinze ballons"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_molaire",
+       "target": "idee"
+      },
+      {
+       "id": "h_rep",
+       "verb": "highlight",
+       "start": "cue:c_resultat",
+       "end": "cue_end:c_resultat",
+       "target": "reponse",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,913 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_des_sinus_appariement",
+  "title": "Loi des sinus : le côté en face de son angle",
+  "language": "fr",
+  "learning_goal": "Apparier chaque côté à l'angle opposé et corriger une inversion de sinus dans la loi des sinus."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "bon": "10*sin(60*3.141592653589793/180)/sin(40*3.141592653589793/180)",
+    "faux": "10*sin(40*3.141592653589793/180)/sin(60*3.141592653589793/180)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_figure",
+   "introduces": [
+    {
+     "id": "pA",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lA",
+     "attachment": {
+      "parent": "pA",
+      "anchor": "left"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "pB",
+     "params": {
+      "at": [
+       11.49,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lB",
+     "attachment": {
+      "parent": "pB",
+      "anchor": "right"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "pC",
+     "params": {
+      "at": [
+       7.66,
+       6.43
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lC",
+     "attachment": {
+      "parent": "pC",
+      "anchor": "top"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "cote_a",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       11.49,
+       0
+      ],
+      "to": [
+       7.66,
+       6.43
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_a",
+     "attachment": {
+      "parent": "cote_a",
+      "anchor": "center"
+     },
+     "content": "a = 10 cm",
+     "type": "label"
+    },
+    {
+     "id": "cote_b",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       7.66,
+       6.43
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_b",
+     "attachment": {
+      "parent": "cote_b",
+      "anchor": "center"
+     },
+     "content": "b = ?",
+     "type": "label"
+    },
+    {
+     "id": "cote_c",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       11.49,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_c",
+     "attachment": {
+      "parent": "cote_c",
+      "anchor": "bottom"
+     },
+     "content": "c",
+     "type": "label"
+    },
+    {
+     "id": "angA",
+     "layout": {
+      "next_to": "pA",
+      "direction": "right",
+      "gap": "xs"
+     },
+     "content": "40°",
+     "type": "label"
+    },
+    {
+     "id": "angB",
+     "layout": {
+      "next_to": "pB",
+      "direction": "left",
+      "gap": "xs"
+     },
+     "content": "60°",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Ton triangle a l'angle A de quarante degrés, l'angle B de soixante degrés, et le côté a de dix centimètres.",
+     "cues": [
+      {
+       "id": "c_A",
+       "text": "l'angle A",
+       "occurrence": 1
+      },
+      {
+       "id": "c_B",
+       "text": "l'angle B",
+       "occurrence": 1
+      },
+      {
+       "id": "c_a",
+       "text": "le côté a"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_A",
+       "verb": "draw",
+       "at": "cue:c_A",
+       "target": "pA"
+      },
+      {
+       "id": "s_lA",
+       "verb": "show",
+       "at": "after:d_A",
+       "target": "lA"
+      },
+      {
+       "id": "s_angA",
+       "verb": "show",
+       "at": "after:d_A",
+       "target": "angA"
+      },
+      {
+       "id": "d_B",
+       "verb": "draw",
+       "at": "cue:c_B",
+       "target": "pB"
+      },
+      {
+       "id": "s_lB",
+       "verb": "show",
+       "at": "after:d_B",
+       "target": "lB"
+      },
+      {
+       "id": "s_angB",
+       "verb": "show",
+       "at": "after:d_B",
+       "target": "angB"
+      },
+      {
+       "id": "d_a",
+       "verb": "draw",
+       "at": "cue:c_a",
+       "target": "cote_a"
+      },
+      {
+       "id": "s_la",
+       "verb": "show",
+       "at": "after:d_a",
+       "target": "lab_a"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "ferme",
+     "say": "Je ferme le triangle avec le point C : le côté a relie B et C, et il est directement en face de l'angle A.",
+     "cues": [
+      {
+       "id": "c_C",
+       "text": "point C"
+      },
+      {
+       "id": "c_face",
+       "text": "en face de l'angle A"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_C",
+       "verb": "draw",
+       "at": "cue:c_C",
+       "target": "pC"
+      },
+      {
+       "id": "s_lC",
+       "verb": "show",
+       "at": "after:d_C",
+       "target": "lC"
+      },
+      {
+       "id": "d_b",
+       "verb": "draw",
+       "start": "cue:c_C",
+       "end": "cue_end:c_face",
+       "target": "cote_b"
+      },
+      {
+       "id": "d_c",
+       "verb": "draw",
+       "start": "cue:c_C",
+       "end": "cue_end:c_face",
+       "target": "cote_c"
+      },
+      {
+       "id": "h_face",
+       "verb": "highlight",
+       "start": "cue:c_face",
+       "end": "cue_end:c_face",
+       "target": "cote_a",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "loi",
+     "layout": {
+      "to_edge": "left",
+      "gap": "xl"
+     },
+     "content": "\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}",
+     "parts": [
+      {
+       "id": "p_a",
+       "text": "\\frac{a}{\\sin A}"
+      },
+      {
+       "id": "p_b",
+       "text": "= \\frac{b}{\\sin B}"
+      },
+      {
+       "id": "p_c",
+       "text": "= \\frac{c}{\\sin C}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "appari",
+     "attachment": {
+      "parent": "loi",
+      "anchor": "bottom"
+     },
+     "content": "côté a ↔ angle A",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "loi_mot",
+     "say": "La loi des sinus dit que a sur sinus de A égale b sur sinus de B égale c sur sinus de C.",
+     "cues": [
+      {
+       "id": "c_a_sin",
+       "text": "a sur sinus de A"
+      },
+      {
+       "id": "c_b_sin",
+       "text": "b sur sinus de B"
+      },
+      {
+       "id": "c_c_sin",
+       "text": "c sur sinus de C"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_a_sin",
+       "target": "loi",
+       "part": "p_a"
+      },
+      {
+       "id": "w_b",
+       "verb": "write",
+       "at": "cue:c_b_sin",
+       "target": "loi",
+       "part": "p_b"
+      },
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_c_sin",
+       "target": "loi",
+       "part": "p_c"
+      }
+     ]
+    },
+    {
+     "id": "appariement",
+     "say": "Le point clé : chaque côté est marié à l'angle qui lui fait face. Le petit a va avec le grand A, le b avec le B.",
+     "cues": [
+      {
+       "id": "c_cle",
+       "text": "chaque côté est marié"
+      },
+      {
+       "id": "c_petit",
+       "text": "Le petit a"
+      },
+      {
+       "id": "c_b",
+       "text": "le b avec le B"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_app",
+       "verb": "show",
+       "at": "cue:c_cle",
+       "target": "appari"
+      },
+      {
+       "id": "h_a",
+       "verb": "highlight",
+       "start": "cue:c_petit",
+       "end": "cue_end:c_petit",
+       "target": "loi",
+       "role": "accent",
+       "part": "p_a"
+      },
+      {
+       "id": "h_cote_a",
+       "verb": "highlight",
+       "start": "cue:c_petit",
+       "end": "cue_end:c_petit",
+       "target": "cote_a",
+       "role": "accent"
+      },
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "start": "cue:c_b",
+       "end": "cue_end:c_b",
+       "target": "loi",
+       "role": "accent",
+       "part": "p_b"
+      },
+      {
+       "id": "h_cote_b",
+       "verb": "highlight",
+       "start": "cue:c_b",
+       "end": "cue_end:c_b",
+       "target": "cote_b",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "calcul_faux",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "faux",
+      "template": "10 \\times \\frac{\\sin 40^\\circ}{\\sin 60^\\circ} = {value}",
+      "precision": 2
+     },
+     "type": "math"
+    },
+    {
+     "id": "calcul_bon",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "bon",
+      "template": "10 \\times \\frac{\\sin 60^\\circ}{\\sin 40^\\circ} = {value}",
+      "precision": 2
+     },
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "etapes",
+     "items": [
+      "calcul_faux",
+      "calcul_bon"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "lg"
+     },
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "lg"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "ton_calcul",
+     "say": "Ton sept virgule quarante-deux vient d'un échange : tu as mis sinus de quarante en haut et sinus de soixante en bas.",
+     "cues": [
+      {
+       "id": "c_echange",
+       "text": "un échange"
+      },
+      {
+       "id": "c_quarante",
+       "text": "sinus de quarante en haut"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_faux",
+       "verb": "write",
+       "at": "cue:c_echange",
+       "target": "calcul_faux"
+      },
+      {
+       "id": "w_faux_frac",
+       "verb": "highlight",
+       "at": "after:w_faux",
+       "target": "calcul_faux",
+       "role": "accent"
+      },
+      {
+       "id": "w_faux_val",
+       "verb": "highlight",
+       "at": "cue:c_quarante",
+       "target": "calcul_faux",
+       "role": "accent"
+      },
+      {
+       "id": "set_faux",
+       "verb": "set_style",
+       "at": "after:w_faux_val",
+       "target": "calcul_faux",
+       "role": "secondary"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "pourquoi",
+     "say": "Mais l'angle B est plus grand que l'angle A, alors le côté b doit être plus grand que dix centimètres. Sept virgule quarante-deux, c'est trop petit, ça ne colle pas.",
+     "cues": [
+      {
+       "id": "c_plus_grand",
+       "text": "l'angle B est plus grand"
+      },
+      {
+       "id": "c_plus_petit",
+       "text": "c'est trop petit"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_grand",
+       "verb": "highlight",
+       "start": "cue:c_plus_grand",
+       "end": "cue_end:c_plus_grand",
+       "target": "angB",
+       "role": "accent"
+      },
+      {
+       "id": "h_petit",
+       "verb": "highlight",
+       "start": "cue:c_plus_petit",
+       "end": "cue_end:c_plus_petit",
+       "target": "cote_b",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "correct",
+     "say": "La bonne écriture part du côté connu : b sur sinus de soixante égale a sur sinus de quarante. En isolant b, on multiplie dix par sinus de soixante divisé par sinus de quarante.",
+     "cues": [
+      {
+       "id": "c_bon",
+       "text": "b sur sinus de soixante"
+      },
+      {
+       "id": "c_isole",
+       "text": "En isolant b"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_bon",
+       "verb": "write",
+       "at": "cue:c_bon",
+       "target": "calcul_bon"
+      },
+      {
+       "id": "w_bon_frac",
+       "verb": "highlight",
+       "at": "cue:c_isole",
+       "target": "calcul_bon",
+       "role": "accent"
+      },
+      {
+       "id": "w_bon_val",
+       "verb": "highlight",
+       "at": "after:w_bon_frac",
+       "target": "calcul_bon",
+       "role": "accent"
+      },
+      {
+       "id": "set_bon",
+       "verb": "set_style",
+       "at": "after:w_bon_val",
+       "target": "calcul_bon",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "mode",
+     "say": "Vérifie que ta calculatrice est en degrés : sinon elle interprète quarante et soixante en radians et tout fausse.",
+     "cues": [
+      {
+       "id": "c_degres",
+       "text": "en degrés"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_fig",
+       "verb": "dim",
+       "at": "cue:c_degres",
+       "target": "cote_c"
+      },
+      {
+       "id": "dim_lab_c",
+       "verb": "dim",
+       "at": "cue:c_degres",
+       "target": "lab_c"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Un côté se marie à l'angle qui lui fait face",
+     "type": "text"
+    },
+    {
+     "id": "loi_finale",
+     "content": "\\frac{b}{\\sin B} = \\frac{a}{\\sin A}",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "retenir",
+     "items": [
+      "idee",
+      "loi_finale"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "fin",
+     "say": "À retenir : dans la loi des sinus, chaque côté se marie à l'angle qui lui fait face. Le plus grand angle donne toujours le plus grand côté.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_mariage",
+       "text": "chaque côté se marie à l'angle"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_faux",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calcul_faux"
+      },
+      {
+       "id": "f_app",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "appari"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "retenir",
+        "cote_b",
+        "angB"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_mariage",
+       "target": "idee"
+      },
+      {
+       "id": "s_loi",
+       "verb": "show",
+       "at": "after:s_idee",
+       "target": "loi_finale"
+      },
+      {
+       "id": "h_b_final",
+       "verb": "highlight",
+       "at": "after:s_loi",
+       "target": "loi_finale",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,993 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "boyle_mariotte_inverse",
+  "title": "Gaz comprimé : pourquoi le volume diminue",
+  "language": "fr",
+  "learning_goal": "Comprendre que la pression et le volume d'un gaz varient en sens inverse (p₁V₁ = p₂V₂) et trouver le volume final."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "p1": "100*2.0",
+    "v2": "100*2.0/250"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "piston1",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        0,
+        3
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "gaz",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0.3,
+        0.3
+       ],
+       [
+        1.9,
+        0.3
+       ],
+       [
+        1.9,
+        2.7
+       ],
+       [
+        0.3,
+        2.7
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "piston2",
+     "params": {
+      "vertices": [
+       [
+        7,
+        0
+       ],
+       [
+        11,
+        0
+       ],
+       [
+        11,
+        3
+       ],
+       [
+        7,
+        3
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "gaz2",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "vertices": [
+       [
+        7.3,
+        0.3
+       ],
+       [
+        8.3,
+        0.3
+       ],
+       [
+        8.3,
+        2.7
+       ],
+       [
+        7.3,
+        2.7
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lbl1",
+     "attachment": {
+      "parent": "gaz",
+      "anchor": "bottom"
+     },
+     "content": "2,0 L",
+     "type": "label"
+    },
+    {
+     "id": "lbl2",
+     "attachment": {
+      "parent": "gaz2",
+      "anchor": "bottom"
+     },
+     "content": "0,80 L",
+     "type": "label"
+    },
+    {
+     "id": "note_sens",
+     "content": "Comprimer : moins de place, plus de chocs",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Bonne idée d'utiliser une loi des gaz, mais vérifions d'abord le sens de ta réponse.",
+     "cues": [
+      {
+       "id": "sens",
+       "text": "sens"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_p1",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "piston1"
+      },
+      {
+       "id": "s_gaz",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "gaz"
+      },
+      {
+       "id": "s_l1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lbl1"
+      },
+      {
+       "id": "d_p2",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "piston2"
+      },
+      {
+       "id": "s_gaz2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "gaz2"
+      },
+      {
+       "id": "s_l2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lbl2"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "note_sens"
+      }
+     ]
+    },
+    {
+     "id": "verif",
+     "say": "Quand tu comprimes un gaz, tu lui donnes moins de place : le volume doit diminuer, pas grossir. Cinq litres, c'est plus grand que deux litres, donc ça ne peut pas être ça.",
+     "cues": [
+      {
+       "id": "diminue",
+       "text": "diminuer"
+      },
+      {
+       "id": "cinq",
+       "text": "Cinq litres"
+      },
+      {
+       "id": "grand",
+       "text": "plus grand que deux litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_gaz",
+       "verb": "highlight",
+       "start": "cue:diminue",
+       "end": "cue_end:diminue",
+       "target": "gaz",
+       "role": "accent"
+      },
+      {
+       "id": "c_l2",
+       "verb": "highlight",
+       "at": "after:h_gaz",
+       "target": "lbl2",
+       "role": "result"
+      },
+      {
+       "id": "h_cinq",
+       "verb": "highlight",
+       "start": "cue:cinq",
+       "end": "cue_end:grand",
+       "target": "lbl1",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "p_1 V_1 = p_2 V_2",
+     "parts": [
+      {
+       "id": "membre1",
+       "text": "p_1 V_1"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "membre2",
+       "text": "p_2 V_2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "cond",
+     "attachment": {
+      "parent": "loi",
+      "anchor": "bottom"
+     },
+     "content": "si n et T sont constants",
+     "type": "label"
+    },
+    {
+     "id": "donnees",
+     "content": "100 \\times 2{,}0 = 250 \\times V_2",
+     "parts": [
+      {
+       "id": "d1",
+       "text": "100 \\times 2{,}0"
+      },
+      {
+       "id": "d2",
+       "text": "= 250 \\times V_2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "enonce",
+     "say": "La loi qui s'applique ici, c'est la loi de Boyle-Mariotte : à température constante, la pression fois le volume au départ égale la pression fois le volume à la fin.",
+     "cues": [
+      {
+       "id": "boyle",
+       "text": "Boyle-Mariotte"
+      },
+      {
+       "id": "pression",
+       "text": "pression fois le volume"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note_sens"
+      },
+      {
+       "id": "w_m1",
+       "verb": "write",
+       "at": "cue:boyle",
+       "target": "loi",
+       "part": "membre1"
+      },
+      {
+       "id": "w_eg",
+       "verb": "write",
+       "at": "cue:boyle",
+       "target": "loi",
+       "part": "egal"
+      },
+      {
+       "id": "w_m2",
+       "verb": "write",
+       "at": "cue:pression",
+       "target": "loi",
+       "part": "membre2"
+      },
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "after:w_m2",
+       "target": "cond"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "Tu as deux données : cent kilopascals et deux litres au début, deux cent cinquante kilopascals à la fin. Il ne reste que le volume final comme inconnue.",
+     "cues": [
+      {
+       "id": "kpab",
+       "text": "cent kilopascals"
+      },
+      {
+       "id": "deuxl",
+       "text": "deux litres"
+      },
+      {
+       "id": "kpakfin",
+       "text": "deux cent cinquante kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_d1",
+       "verb": "write",
+       "at": "cue:deuxl",
+       "target": "donnees",
+       "part": "d1"
+      },
+      {
+       "id": "w_d2",
+       "verb": "write",
+       "at": "cue:kpakfin",
+       "target": "donnees",
+       "part": "d2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resoudre",
+   "introduces": [
+    {
+     "id": "produit",
+     "content": "200 = 250 \\times V_2",
+     "type": "math"
+    },
+    {
+     "id": "isole",
+     "content": "V_2 = \\frac{200}{250}",
+     "type": "math"
+    },
+    {
+     "id": "res",
+     "content": "V_2 = 0{,}80 \\text{ L}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul",
+     "say": "Cent fois deux, ça donne deux cents. Donc deux cents égale deux cent cinquante fois V deux.",
+     "cues": [
+      {
+       "id": "deuxcents",
+       "text": "deux cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_p",
+       "verb": "transform",
+       "at": "cue:deuxcents",
+       "source": "donnees",
+       "target": "produit"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "Pour isoler V deux, on divise les deux côtés par deux cent cinquante. Deux cents divisé par deux cent cinquante.",
+     "cues": [
+      {
+       "id": "divise",
+       "text": "divise les deux côtés"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_i",
+       "verb": "transform",
+       "at": "cue:divise",
+       "source": "produit",
+       "target": "isole"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Ça fait zéro virgule quatre-vingts. Le volume final est de zéro virgule quatre-vingts litre.",
+     "cues": [
+      {
+       "id": "final",
+       "text": "volume final"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_r",
+       "verb": "transform",
+       "at": "cue:final",
+       "source": "isole",
+       "target": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:t_r",
+       "target": "res",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "axe_x",
+     "layout": {
+      "next_to": "graph",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "pression (kPa)",
+     "type": "label"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "200/x",
+      "domain": [
+       60,
+       320
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "graph",
+     "params": {
+      "x": [
+       0,
+       320
+      ],
+      "y": [
+       0,
+       5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "pt1",
+     "frame": "graph",
+     "params": {
+      "at": [
+       100,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt1l",
+     "attachment": {
+      "parent": "pt1",
+      "anchor": "top"
+     },
+     "content": "(100 ; 2,0)",
+     "type": "label"
+    },
+    {
+     "id": "pt2",
+     "style": {
+      "role": "result"
+     },
+     "frame": "graph",
+     "params": {
+      "at": [
+       250,
+       0.8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt2l",
+     "attachment": {
+      "parent": "pt2",
+      "anchor": "right"
+     },
+     "content": "(250 ; 0,80)",
+     "type": "label"
+    },
+    {
+     "id": "idee",
+     "content": "Pression et volume varient en sens inverse",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "graphe",
+     "say": "Si on trace le volume selon la pression, on voit une courbe qui descend : quand la pression augmente, le volume diminue.",
+     "cues": [
+      {
+       "id": "courbe_baisse",
+       "text": "courbe qui descend"
+      },
+      {
+       "id": "augmente",
+       "text": "la pression augmente"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_pistons",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "piston1"
+      },
+      {
+       "id": "f_p1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lbl1"
+      },
+      {
+       "id": "f_piston2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "piston2"
+      },
+      {
+       "id": "f_p2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lbl2"
+      },
+      {
+       "id": "s_graph",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "graph"
+      },
+      {
+       "id": "s_axe",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axe_x"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:courbe_baisse",
+       "end": "cue_end:augmente",
+       "target": "courbe"
+      }
+     ]
+    },
+    {
+     "id": "points",
+     "say": "Nos deux valeurs sont là-dessus : le point à cent kilopascals donne deux litres, et à deux cent cinquante kilopascals, il reste zéro virgule quatre-vingts litre.",
+     "cues": [
+      {
+       "id": "pointc",
+       "text": "point à cent kilopascals"
+      },
+      {
+       "id": "pointfin",
+       "text": "à deux cent cinquante kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt1",
+       "verb": "show",
+       "at": "cue:pointc",
+       "target": "pt1"
+      },
+      {
+       "id": "s_pt1l",
+       "verb": "show",
+       "at": "cue:pointc",
+       "target": "pt1l"
+      },
+      {
+       "id": "s_pt2",
+       "verb": "show",
+       "at": "cue:pointfin",
+       "target": "pt2"
+      },
+      {
+       "id": "s_pt2l",
+       "verb": "show",
+       "at": "cue:pointfin",
+       "target": "pt2l"
+      }
+     ]
+    },
+    {
+     "id": "retenir",
+     "say": "À retenir : dans une compression à température constante, le volume est multiplié par le rapport inverse des pressions. Ici, cent sur deux cent cinquante, ça fait zéro virgule quatre-vingts fois deux litres.",
+     "cues": [
+      {
+       "id": "inverse",
+       "text": "rapport inverse des pressions"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:inverse",
+       "target": "idee"
+      },
+      {
+       "id": "h_courbe",
+       "verb": "highlight",
+       "start": "cue:inverse",
+       "end": "cue_end:inverse",
+       "target": "courbe",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "p_1 V_1 = p_2 V_2",
+     "parts": [
+      {
+       "id": "g1",
+       "text": "p_1 V_1"
+      },
+      {
+       "id": "g2",
+       "text": "= p_2 V_2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rep",
+     "content": "Sens inverse : plus de pression, moins de volume",
+     "type": "text"
+    },
+    {
+     "id": "final",
+     "content": "V_2 = 0{,}80 \\text{ L}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "dire",
+     "say": "En résumé : cent kilopascals fois deux litres égale deux cent cinquante kilopascals fois V deux. Tu multiplies les données du début et tu divises par la pression finale.",
+     "cues": [
+      {
+       "id": "egal",
+       "text": "égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_l2",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "loi"
+      },
+      {
+       "id": "f_c1",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "cond"
+      },
+      {
+       "id": "f_r1",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "res"
+      },
+      {
+       "id": "w_g1",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "regle",
+       "part": "g1"
+      },
+      {
+       "id": "w_g2",
+       "verb": "write",
+       "at": "cue:egal",
+       "target": "regle",
+       "part": "g2"
+      }
+     ]
+    },
+    {
+     "id": "garde",
+     "say": "Et le résultat, c'est que le gaz occupe zéro virgule quatre-vingts litre. Un gaz comprimé prend moins de place : c'est ça, la loi de Boyle-Mariotte.",
+     "cues": [
+      {
+       "id": "quatre_vingts",
+       "text": "zéro virgule quatre-vingts litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_final",
+       "verb": "write",
+       "at": "cue:quatre_vingts",
+       "target": "final"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "after:s_final",
+       "target": "rep"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "at": "after:s_rep",
+       "target": "final",
+       "role": "result"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "regle",
+        "final",
+        "rep"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

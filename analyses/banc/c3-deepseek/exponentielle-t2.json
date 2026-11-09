@@ -1,0 +1,550 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "equation_exponentielle",
+  "title": "Résoudre 3 × 2^x = 48",
+  "language": "fr",
+  "learning_goal": "Isoler 2^x, puis trouver l'exposant en écrivant 16 comme une puissance de 2."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_poser",
+   "introduces": [
+    {
+     "id": "dep",
+     "content": "3 \\times 2^x = 48",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "3 \\times 2^x"
+      },
+      {
+       "id": "droite",
+       "text": "= 48"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso",
+     "content": "2^x = 16",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "poser",
+     "say": "Pour résoudre trois fois deux exposant x égale quarante-huit, on va isoler deux exposant x.",
+     "cues": [
+      {
+       "id": "c_equation",
+       "text": "trois fois deux exposant x"
+      },
+      {
+       "id": "c_48",
+       "text": "quarante-huit"
+      },
+      {
+       "id": "c_isoler",
+       "text": "isoler deux exposant x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_equation",
+       "target": "dep",
+       "part": "gauche"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_48",
+       "target": "dep",
+       "part": "droite"
+      },
+      {
+       "id": "h_gauche",
+       "verb": "highlight",
+       "at": "cue:c_isoler",
+       "target": "dep",
+       "role": "accent",
+       "part": "gauche"
+      }
+     ]
+    },
+    {
+     "id": "diviser",
+     "say": "Le trois multiplie le deux exposant x. Pour l'enlever, on divise les deux côtés par trois, ce qui garde l'égalité.",
+     "cues": [
+      {
+       "id": "c_multiplie",
+       "text": "Le trois multiplie"
+      },
+      {
+       "id": "c_divise",
+       "text": "on divise les deux côtés par trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_trois",
+       "verb": "highlight",
+       "start": "cue:c_multiplie",
+       "end": "cue_end:c_multiplie",
+       "target": "dep",
+       "role": "unknown",
+       "part": "gauche"
+      },
+      {
+       "id": "t_iso",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "dep",
+       "target": "iso"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_reecrire",
+   "introduces": [
+    {
+     "id": "seize",
+     "content": "16 = 2^4",
+     "type": "math"
+    },
+    {
+     "id": "solution",
+     "content": "x = 4",
+     "parts": [
+      {
+       "id": "xset",
+       "text": "x"
+      },
+      {
+       "id": "quatre",
+       "text": "= 4"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "puissances",
+     "say": "Maintenant, il faut reconnaître seize comme une puissance de deux. Deux au carré, c'est quatre. Deux au cube, c'est huit. Deux exposant quatre, c'est seize.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "Deux au carré"
+      },
+      {
+       "id": "c_huit",
+       "text": "Deux au cube"
+      },
+      {
+       "id": "c_seize",
+       "text": "Deux exposant quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_seize",
+       "verb": "write",
+       "at": "cue:c_seize",
+       "target": "seize"
+      },
+      {
+       "id": "h_seize",
+       "verb": "highlight",
+       "start": "cue:c_seize",
+       "end": "cue_end:c_seize",
+       "target": "seize",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "egaler",
+     "say": "Notre équation dit que deux exposant x égale seize, et deux exposant quatre égale seize ; les exposants sont donc égaux.",
+     "cues": [
+      {
+       "id": "c_meme_base",
+       "text": "deux exposant x égale seize"
+      },
+      {
+       "id": "c_exposants",
+       "text": "les exposants sont donc égaux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_iso",
+       "verb": "highlight",
+       "start": "cue:c_meme_base",
+       "end": "cue_end:c_meme_base",
+       "target": "iso",
+       "role": "given"
+      },
+      {
+       "id": "w_sol",
+       "verb": "write",
+       "at": "cue:c_exposants",
+       "target": "solution",
+       "part": "xset"
+      },
+      {
+       "id": "w_quatre",
+       "verb": "write",
+       "at": "after:w_sol",
+       "target": "solution",
+       "part": "quatre"
+      },
+      {
+       "id": "h_sol",
+       "verb": "highlight",
+       "at": "after:w_quatre",
+       "target": "solution",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verifier",
+   "introduces": [
+    {
+     "id": "verif",
+     "content": "3 \\times 2^4 = 3 \\times 16 = 48",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "remplacer",
+     "say": "Vérifions en remplaçant x par quatre dans l'équation de départ : trois fois deux exposant quatre.",
+     "cues": [
+      {
+       "id": "c_remplacant",
+       "text": "remplaçant x par quatre"
+      },
+      {
+       "id": "c_deuxquatre",
+       "text": "trois fois deux exposant quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_verif",
+       "verb": "write",
+       "at": "cue:c_deuxquatre",
+       "target": "verif"
+      }
+     ]
+    },
+    {
+     "id": "calculer",
+     "say": "Deux exposant quatre vaut seize ; trois fois seize égale quarante-huit. On retrouve bien le membre de droite.",
+     "cues": [
+      {
+       "id": "c_seize",
+       "text": "Deux exposant quatre vaut seize"
+      },
+      {
+       "id": "c_48",
+       "text": "égale quarante-huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:c_48",
+       "end": "cue_end:c_48",
+       "target": "verif",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "a^x = a^n \\Rightarrow x = n",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "content": "Même base, exposants égaux.",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "fin",
+     "items": [
+      "regle",
+      "idee"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : on isole d'abord la puissance, puis on écrit les deux côtés avec la même base. Si les bases sont égales, les exposants le sont aussi.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "on isole d'abord la puissance"
+      },
+      {
+       "id": "c_meme_base",
+       "text": "la même base"
+      },
+      {
+       "id": "c_exposants",
+       "text": "les exposants le sont aussi"
+      }
+     ],
+     "do": [
+      {
+       "id": "nettoyer",
+       "verb": "remove",
+       "at": "cue:c_isole",
+       "target": "dep"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_meme_base",
+       "target": "regle"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_exposants",
+       "target": "idee"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_exposants",
+       "targets": [
+        "regle",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

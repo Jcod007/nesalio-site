@@ -1,0 +1,95 @@
+QUESTION (zeros, mathematiques, sec 4, methode) : Comment je trouve les zéros de f(x) = −(x − 2)² + 3 ?
+RÉPONSE DE RÉFÉRENCE : x = 2 ± √3, soit x ≈ 0,27 et x ≈ 3,73.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. zéro = valeur de x où f(x) = 0
+  2. −(x − 2)² + 3 = 0 donc (x − 2)² = 3
+  3. x − 2 = ±√3 (deux cas)
+  4. réponse x = 2 ± √3 (≈ 0,27 et 3,73) écrite
+  5. lien graphique : la parabole ouverte vers le bas, sommet (2, 3), coupe l'axe des x deux fois
+ERREURS GRAVES À CHERCHER : un seul zéro ; racines jamais écrites
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver les zéros de f(x) = −(x − 2)² + 3
+math_context : {"symbols":{"h":{"kind":"constant","value":2},"k":{"kind":"constant","value":3}},"expressions":{}}
+=== Tranche s_idee
+  OBJET defi [callout] "Zéro de f : un x tel que f(x) = 0" 
+  OBJET axes0 [axes] {"x":[-2,4],"y":[-2,4]} 
+  OBJET par0 [function_graph] {"expression":"-(x-2)^2+3","domain":[-1.5,4]} 
+  OBJET sol [line] {"from":[0.27,-2],"to":[0.27,4]}   <<JAMAIS MONTRÉ>>
+  OBJET p_a [point] {"at":[0.27,0]}   <<JAMAIS MONTRÉ>>
+  OBJET lbl_a [label] "0,27" attaché à p_a   <<JAMAIS MONTRÉ>>
+DIT (pose) : Trouver les zéros de f, c'est trouver les x pour lesquels la hauteur vaut zéro : là où la parabole touche l'axe des x.
+    show defi @cue:c_zeros 
+    camera.focus  @beat:start {"targets":["axes0"],"bounds":"layout_bounds","save_as":"vue_para"}
+    show axes0 @beat:start 
+    draw par0 @- {"start":"cue:c_hauteur","end":"cue_end:c_touche"}
+=== Tranche s_sommet
+  OBJET canon [math] "f(x) = -(x - 2)^2 + 3" 
+  OBJET carre [math] "(x - 2)^2" 
+DIT (forme) : Notre règle est déjà en forme canonique : moins, parenthèse x moins deux, au carré, plus trois.
+    move canon @beat:start {"to":{"next_to":"par0","direction":"right","gap":"lg"}}
+    write canon @cue:c_parenthese 
+    highlight canon @cue:c_deux {"role":"accent"}
+DIT (carre) : Le carré, lui, vaut au minimum zéro, jamais moins : c'est la clé de tout.
+    write carre @cue:c_carre 
+    highlight carre @- {"start":"cue:c_minimum","end":"cue_end:c_jamais","role":"accent"}
+=== Tranche s_equation
+  OBJET eq [math] "-(x - 2)^2 + 3 = 0" parts=-(x - 2)^2 + 3 | = 0
+  OBJET eq2 [math] "-(x - 2)^2 = -3" 
+  OBJET eq3 [math] "(x - 2)^2 = 3" 
+DIT (poser) : On veut f de x égale zéro : on pose moins, parenthèse x moins deux au carré, plus trois, égale zéro.
+    camera.focus  @beat:start {"targets":["eq"],"bounds":"layout_bounds","save_as":"vue_eq"}
+    write eq @cue:c_egale {"part":"gauche"}
+    write eq @after:w_gauche {"part":"droite"}
+DIT (isoler) : On enlève trois des deux côtés : il reste moins, parenthèse x moins deux au carré, égale moins trois.
+    transform eq2 @cue:c_enleve {"source":"eq"}
+    highlight eq2 @- {"start":"cue:c_reste","end":"cue_end:c_moins3","role":"accent"}
+DIT (positif) : Ensuite, on divise les deux côtés par moins un : le carré égale trois.
+    transform eq3 @cue:c_divise {"source":"eq2"}
+    highlight eq3 @cue:c_trois {"role":"result"}
+=== Tranche s_solutions
+  OBJET solu [math] "x - 2 = \\pm\\sqrt{3}" parts=x - 2 | = \pm\sqrt{3}
+  OBJET solu2 [math] "x = 2 \\pm \\sqrt{3}" 
+  OBJET resA [math] "x_1 = 2 - \\sqrt{3} \\approx 0{,}27" 
+  OBJET resB [math] "x_2 = 2 + \\sqrt{3} \\approx 3{,}73" 
+DIT (racine) : Un carré qui vaut trois : le binôme x moins deux vaut racine de trois, ou moins racine de trois.
+    camera.focus  @beat:start {"targets":["solu","solu2"],"bounds":"layout_bounds","save_as":"vue_solu"}
+    write solu @cue:c_binome {"part":"binome"}
+    write solu @cue:c_racine {"part":"pm"}
+    highlight solu @- {"start":"cue:c_moinsracine","end":"cue_end:c_moinsracine","role":"accent","part":"pm"}
+DIT (isoler) : On ajoute deux des deux côtés, et on obtient x égale deux plus ou moins racine de trois.
+    transform solu2 @cue:c_ajoute {"source":"solu"}
+    highlight solu2 @cue:c_obtient {"role":"result"}
+DIT (deux) : Deux solutions : deux moins racine de trois, environ zéro virgule vingt-sept, et deux plus racine de trois, environ trois virgule soixante-treize.
+    fade_out solu2 @cue:c_moins 
+    write resA @cue:c_moins 
+    write resB @cue:c_plus 
+=== Tranche s_verif
+  OBJET retour [label] "la parabole coupe l'axe des x en deux points" 
+  OBJET p_b [point] {"at":[3.73,0]} 
+  OBJET lbl_b [label] "3,73" attaché à p_b
+DIT (verif) : Vérifions sur le graphique : la parabole descend, touche l'axe des x en zéro virgule vingt-sept, remonte, et le retouche en trois virgule soixante-treize.
+    camera.restore  @cue:c_graph {"frame":"vue_para"}
+    highlight p_a @- {"start":"cue:c_touche","end":"cue_end:c_touche","role":"accent"}
+    show p_b @cue:c_retouche 
+    show lbl_b @after:s_pb 
+DIT (accord) : Les deux calculs et les deux points sur l'axe disent la même chose : nos zéros sont bons.
+    show retour @cue:c_accord 
+=== Tranche s_retenir
+  OBJET regle [math] "a(x-h)^2+k = 0 \\;\\Rightarrow\\; (x-h)^2 = -\\frac{k}{a}" 
+  OBJET note [text] "On isole le carré, puis on prend la racine des deux côtés." 
+  GROUPE final = regle, note
+DIT (nettoyer) : Rangeons tout ça pour garder l'essentiel.
+    fade_out eq3 @cue:c_range 
+    fade_out resA @cue:c_range 
+    fade_out resB @cue:c_range 
+    fade_out defi @cue:c_range 
+    fade_out retour @cue:c_range 
+    fade_out lbl_a @cue:c_range 
+    fade_out lbl_b @cue:c_range 
+    camera.focus  @cue:c_range {"targets":["regle","note"],"bounds":"layout_bounds"}
+DIT (idee) : À retenir : dans la forme canonique, les zéros sont les x où le carré vaut moins k sur a. Ici, (x moins deux) au carré égale trois, ce qui donne x égale deux plus ou moins racine de trois.
+    write regle @cue:c_retenir 
+    show note @cue:c_retenir 
+    highlight regle @- {"start":"cue:c_result","end":"cue_end:c_result","role":"result"}
+--- 6 tranches, 258 mots dits (≈ 1.7 min d'oral)

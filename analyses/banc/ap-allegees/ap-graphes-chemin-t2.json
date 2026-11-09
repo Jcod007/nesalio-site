@@ -1,0 +1,799 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "graphe_ordonnancement",
+  "title": "Chemin critique ou chaîne de valeur minimale ?",
+  "language": "fr",
+  "learning_goal": "Choisir entre chemin critique et chaîne de valeur minimale selon ce que la situation d'ordonnancement demande de minimiser."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_questions",
+   "introduces": [
+    {
+     "id": "deux",
+     "content": "\\text{chemin critique} \\quad \\text{ou} \\quad \\text{chaîne de valeur minimale}",
+     "parts": [
+      {
+       "id": "cc",
+       "text": "\\text{chemin critique}"
+      },
+      {
+       "id": "ou",
+       "text": "\\text{ou}"
+      },
+      {
+       "id": "cv",
+       "text": "\\text{chaîne de valeur minimale}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "besoin",
+     "layout": {
+      "next_to": "deux",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "ça dépend de ce qu'on te demande de minimiser",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne question. Dans un graphe orienté et valué, ces deux méthodes ne répondent pas à la même question.",
+     "cues": [
+      {
+       "id": "c_graphe",
+       "text": "graphe orienté et valué"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_deux",
+       "verb": "write",
+       "at": "cue:c_graphe",
+       "target": "deux"
+      }
+     ]
+    },
+    {
+     "id": "critere",
+     "say": "Le vrai critère, c'est ce qu'on te demande de minimiser : la durée totale, ou juste la valeur du trajet.",
+     "cues": [
+      {
+       "id": "c_minimiser",
+       "text": "minimiser"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_besoin",
+       "verb": "show",
+       "at": "cue:c_minimiser",
+       "target": "besoin"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_chemin_critique",
+   "introduces": [
+    {
+     "id": "taches",
+     "params": {
+      "rows": [
+       [
+        "A",
+        3,
+        null,
+        "—"
+       ],
+       [
+        "B",
+        null,
+        4,
+        "A"
+       ],
+       [
+        "C",
+        null,
+        2,
+        "B"
+       ],
+       [
+        "D",
+        null,
+        5,
+        "A, B"
+       ]
+      ],
+      "column_labels": [
+       "tâche",
+       "durée (jours)",
+       "début au plus tôt",
+       "préalables"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "cc_regle",
+     "layout": {
+      "next_to": "taches",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\text{durée totale} = \\text{plus long chemin}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "taches_intro",
+     "say": "Regarde ce petit projet : quatre tâches, chacune avec sa durée, et des préalables.",
+     "cues": [
+      {
+       "id": "c_taches",
+       "text": "quatre tâches"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_taches",
+       "verb": "show",
+       "at": "cue:c_taches",
+       "target": "taches"
+      }
+     ]
+    },
+    {
+     "id": "quand_cc",
+     "say": "Quand on te donne des durées de tâches avec des préalables et qu'on demande la durée totale minimale du projet, c'est le chemin critique.",
+     "cues": [
+      {
+       "id": "c_prealables",
+       "text": "préalables"
+      },
+      {
+       "id": "c_duree",
+       "text": "durée totale minimale"
+      },
+      {
+       "id": "c_critique",
+       "text": "chemin critique"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_preal",
+       "verb": "highlight",
+       "start": "cue:c_prealables",
+       "end": "cue_end:c_prealables",
+       "target": "taches",
+       "role": "given",
+       "part": "c4"
+      },
+      {
+       "id": "w_cc",
+       "verb": "write",
+       "at": "cue:c_critique",
+       "target": "cc_regle"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_chaine_min",
+   "introduces": [
+    {
+     "id": "graphe",
+     "params": {
+      "x": [
+       0,
+       5
+      ],
+      "y": [
+       0,
+       4
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "pA",
+     "frame": "graphe",
+     "params": {
+      "at": [
+       0,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pB",
+     "frame": "graphe",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pArr",
+     "frame": "graphe",
+     "params": {
+      "at": [
+       4,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "segAB",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "graphe",
+     "params": {
+      "from": [
+       0,
+       3
+      ],
+      "to": [
+       1,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "segBarr",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "graphe",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       4,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lblAB",
+     "attachment": {
+      "parent": "segAB",
+      "anchor": "center"
+     },
+     "content": "6",
+     "type": "label"
+    },
+    {
+     "id": "lblBarr",
+     "attachment": {
+      "parent": "segBarr",
+      "anchor": "center"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "cv_regle",
+     "layout": {
+      "next_to": "graphe",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\text{valeur du trajet} = \\text{somme des arêtes}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "graphe_intro",
+     "say": "Maintenant, imagine une autre situation : des routes entre des villes, chacune avec une valeur, un coût ou une distance.",
+     "cues": [
+      {
+       "id": "c_routes",
+       "text": "routes"
+      },
+      {
+       "id": "c_valeur",
+       "text": "une valeur"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_graphe",
+       "verb": "show",
+       "at": "cue:c_routes",
+       "target": "graphe"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_routes",
+       "target": "pA"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "cue:c_routes",
+       "target": "pB"
+      },
+      {
+       "id": "s_arr",
+       "verb": "show",
+       "at": "cue:c_routes",
+       "target": "pArr"
+      },
+      {
+       "id": "d_AB",
+       "verb": "draw",
+       "at": "cue:c_valeur",
+       "target": "segAB"
+      },
+      {
+       "id": "s_lblAB",
+       "verb": "show",
+       "at": "cue:c_valeur",
+       "target": "lblAB"
+      }
+     ]
+    },
+    {
+     "id": "quand_cv",
+     "say": "Quand on te demande le trajet le moins coûteux d'un point à un autre, c'est la chaîne de valeur minimale. On additionne les arêtes du trajet et on veut la plus petite somme.",
+     "cues": [
+      {
+       "id": "c_moins",
+       "text": "trajet le moins coûteux"
+      },
+      {
+       "id": "c_chaine",
+       "text": "chaîne de valeur minimale"
+      },
+      {
+       "id": "c_somme",
+       "text": "la plus petite somme"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_Barr",
+       "verb": "draw",
+       "start": "cue:c_chaine",
+       "end": "cue_end:c_somme",
+       "target": "segBarr"
+      },
+      {
+       "id": "s_lblBarr",
+       "verb": "show",
+       "at": "after:d_Barr",
+       "target": "lblBarr"
+      },
+      {
+       "id": "w_cv",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "cv_regle"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_distinguer",
+   "introduces": [
+    {
+     "id": "cle",
+     "content": "Durée totale du projet → chemin critique. Trajet le moins coûteux → chaîne de valeur minimale.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "phrase_cle",
+     "say": "La phrase clé, c'est celle-ci : durée totale d'un projet, chemin critique ; trajet le moins coûteux entre deux points, chaîne de valeur minimale.",
+     "cues": [
+      {
+       "id": "c_duree",
+       "text": "durée totale"
+      },
+      {
+       "id": "c_critique",
+       "text": "chemin critique"
+      },
+      {
+       "id": "c_trajet",
+       "text": "trajet le moins coûteux"
+      },
+      {
+       "id": "c_chaine",
+       "text": "chaîne de valeur minimale"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_taches",
+       "verb": "dim",
+       "at": "cue:c_duree",
+       "target": "taches"
+      },
+      {
+       "id": "d_graphe",
+       "verb": "dim",
+       "at": "cue:c_trajet",
+       "target": "graphe"
+      },
+      {
+       "id": "s_cle",
+       "verb": "show",
+       "at": "cue:c_chaine",
+       "target": "cle"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "piege",
+     "say": "Attention au piège : un graphe orienté et valué peut servir aux deux. C'est la question posée qui choisit la méthode, pas la forme du graphe.",
+     "cues": [
+      {
+       "id": "c_piege",
+       "text": "piège"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_cle",
+       "verb": "highlight",
+       "start": "cue:c_piege",
+       "end": "cue_end:c_piege",
+       "target": "cle",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_choix",
+   "introduces": [
+    {
+     "id": "arbre",
+     "content": "1. Que minimise-t-on ?\n2. Durée du projet → chemin critique\n3. Coût du trajet → chaîne de valeur minimale",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "methode",
+     "say": "Alors voici la démarche. Premièrement, demande-toi ce qu'on minimise dans la situation. Deuxièmement, si c'est la durée du projet, cherche le plus long chemin : c'est le chemin critique. Finalement, si c'est la valeur d'un trajet, additionne les arêtes et garde la plus petite somme : c'est la chaîne de valeur minimale.",
+     "cues": [
+      {
+       "id": "c_min",
+       "text": "ce qu'on minimise"
+      },
+      {
+       "id": "c_projet",
+       "text": "la durée du projet"
+      },
+      {
+       "id": "c_plus",
+       "text": "le chemin critique"
+      },
+      {
+       "id": "c_trajet",
+       "text": "la valeur d'un trajet"
+      },
+      {
+       "id": "c_petite",
+       "text": "la plus petite somme"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_cle",
+       "verb": "fade_out",
+       "at": "cue:c_min",
+       "target": "cle"
+      },
+      {
+       "id": "s_arbre",
+       "verb": "show",
+       "at": "cue:c_projet",
+       "target": "arbre"
+      },
+      {
+       "id": "h_arbre2",
+       "verb": "highlight",
+       "start": "cue:c_plus",
+       "end": "cue_end:c_plus",
+       "target": "arbre",
+       "role": "accent"
+      },
+      {
+       "id": "h_arbre3",
+       "verb": "highlight",
+       "start": "cue:c_petite",
+       "end": "cue_end:c_petite",
+       "target": "arbre",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "center_on": "arbre"
+     },
+     "content": "Chemin critique : la plus longue chaîne de tâches d'un projet. Chaîne de valeur minimale : le plus petit total de valeurs le long d'un trajet.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : le chemin critique, c'est la plus longue chaîne de tâches d'un projet. La chaîne de valeur minimale, c'est le plus petit total de valeurs le long d'un trajet.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_critique",
+       "text": "plus longue chaîne de tâches"
+      },
+      {
+       "id": "c_chaine",
+       "text": "plus petit total de valeurs"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "arbre",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "f_arbre",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "arbre"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_chaine",
+       "target": "idee"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

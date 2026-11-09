@@ -1,0 +1,66 @@
+QUESTION (chimie-equilibrer, chimie, sec 4, methode) : comment j'équilibre l'équation C3H8 + O2 → CO2 + H2O? j'arrive jamais à avoir le même nombre d'oxygènes des deux bords
+RÉPONSE DE RÉFÉRENCE : C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. conservation des atomes ; on change les coefficients, jamais les indices
+  2. C puis H, O à la fin (O₂ seul)
+  3. C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O écrit
+  4. vérification : 3 C, 8 H, 10 O de chaque côté
+  5. l'O à la fin, parce que O₂ est un corps simple
+ERREURS GRAVES À CHERCHER : indices modifiés ; décompte d'atomes faux
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Équilibrer C₃H₈ + O₂ → CO₂ + H₂O
+=== Tranche s_pourquoi
+  OBJET loi [text] "Les atomes ne se créent pas : ils se réarrangent." 
+  OBJET eq_dep [math] "\\ce{C3H8 + O2 -> CO2 + H2O}" 
+DIT (intro) : Équilibrer une combustion, c'est une histoire de comptage.
+    write eq_dep @cue:c_combustion 
+DIT (loi) : Dans une réaction, les atomes ne se créent ni ne disparaissent : ils se réarrangent. Il faut donc autant de chaque sorte d'atome des deux côtés de la flèche.
+    show loi @cue:c_rearrangent 
+    highlight eq_dep @cue:c_rearrangent {"role":"accent"}
+    highlight eq_dep @cue:c_des_deux {"role":"accent"}
+    highlight eq_dep @after:w_co2 {"role":"accent"}
+DIT (piege) : Et la règle d'or : on ajuste seulement les coefficients devant les formules. Jamais les indices : H deux O, c'est de l'eau ; H deux O deux, ce n'est plus la même substance.
+    highlight eq_dep @- {"start":"cue:c_coefficients","end":"cue_end:c_jamais","role":"accent"}
+=== Tranche s_comptage
+  OBJET tab [matrix] {"rows":[[3,8,2],[1,2,3]],"row_labels":["réactifs","produits"],"column_labels":["C","H","O"]} 
+DIT (compte) : Comptons ce qu'on a en ce moment. À gauche : trois carbones, huit hydrogènes et deux oxygènes. À droite : un carbone, deux hydrogènes et trois oxygènes.
+    show tab @beat:start 
+    highlight tab @- {"start":"cue:c_gauche","end":"cue_end:c_gauche","role":"given","part":"r1"}
+    highlight tab @- {"start":"cue:c_droite","end":"cue_end:c_droite","role":"unknown","part":"r2"}
+DIT (ordre) : Pour t'organiser, commence par les éléments qui apparaissent dans une seule substance de chaque côté : le carbone, puis l'hydrogène. L'oxygène, on le garde pour la fin.
+    highlight tab @- {"start":"cue:c_carbone","end":"cue_end:c_carbone","role":"accent","part":"c1"}
+    highlight tab @- {"start":"cue:c_hydrogene","end":"cue_end:c_hydrogene","role":"accent","part":"c2"}
+    highlight tab @- {"start":"cue:c_fin","end":"cue_end:c_fin","role":"secondary","part":"c3"}
+=== Tranche s_etapes
+  OBJET eq1 [math] "\\ce{C3H8 + O2 -> 3CO2 + H2O}" 
+  OBJET eq2 [math] "\\ce{C3H8 + O2 -> 3CO2 + 4H2O}" 
+  OBJET eq3 [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+DIT (carbone) : Le carbone d'abord. À gauche, il y a trois carbones dans C trois H huit. Alors je mets un trois devant C O deux, à droite.
+    dim tab @beat:start 
+    transform eq1 @cue:c_devant {"source":"eq_dep"}
+DIT (hydrogene) : L'hydrogène ensuite. Huit hydrogènes à gauche : quatre H deux O donnent bien huit hydrogènes à droite, puisque quatre fois deux fait huit.
+    transform eq2 @cue:c_quatre {"source":"eq1"}
+DIT (oxygene) : Reste l'oxygène, le fameux. À droite : trois C O deux donnent six oxygènes, plus quatre H deux O donnent quatre autres oxygènes, dix en tout. À gauche, il n'y a que du O deux, par deux. Il m'en faut cinq.
+    transform eq3 @cue:c_cinq {"source":"eq2"}
+=== Tranche s_verifie
+  OBJET bilan [math] "\\text{C : } 3 = 3 \\quad \\text{H : } 8 = 8 \\quad \\text{O : } 10 = 6 + 4" 
+DIT (verif) : Vérifions la ligne finale : trois carbones de chaque côté, huit hydrogènes de chaque côté, et à droite six plus quatre, dix oxygènes, comme les cinq O deux de gauche.
+    write bilan @cue:c_verifions 
+    highlight bilan @- {"start":"cue:c_huit_final","end":"cue_end:c_huit_final","role":"result"}
+DIT (rappel) : Et rappelle-toi : les coefficients sont toujours des nombres entiers les plus petits possible. Ici, on ne peut pas diviser tout par deux, alors on garde cinq, trois et quatre.
+    fade_out tab @cue:c_entiers 
+=== Tranche s_retenir
+  OBJET final [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+  OBJET idee [text] "Autant de chaque atome des deux côtés. C, H, puis O à la fin." 
+DIT (retenir) : À retenir : équilibrer, c'est compter. Même nombre de chaque atome des deux bords, et on ajuste seulement les coefficients.
+    remove eq3 @beat:start 
+    fade_out loi @beat:start 
+    fade_out bilan @beat:start 
+    write final @cue:c_compter 
+    highlight final @after:w_final {"role":"accent"}
+    highlight final @after:w_final2 {"role":"accent"}
+DIT (titre) : Pour le propane, la combustion complète donne cinq O deux, trois C O deux et quatre H deux O. Voilà, tu as ton équation balancée.
+    show idee @cue:c_propane 
+    highlight final @- {"start":"cue:c_baladee","end":"cue_end:c_baladee","role":"result"}
+--- 5 tranches, 320 mots dits (≈ 2.1 min d'oral)

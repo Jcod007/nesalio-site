@@ -1,0 +1,672 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "addition_vecteurs_norme",
+  "title": "Additionner deux vecteurs et trouver la norme du résultat",
+  "language": "fr",
+  "learning_goal": "Additionner les composantes de deux vecteurs, puis calculer la norme du vecteur obtenu avec le théorème de Pythagore."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "norme": "sqrt(2^2+6^2)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "u_def",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\vec{u}=(3,4)",
+     "type": "math"
+    },
+    {
+     "id": "v_def",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\vec{v}=(-1,2)",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "donnees",
+     "items": [
+      "u_def",
+      "v_def"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Pour additionner des vecteurs, on additionne séparément leurs composantes horizontales et leurs composantes verticales.",
+     "cues": [
+      {
+       "id": "additionner",
+       "text": "additionner des vecteurs"
+      },
+      {
+       "id": "separement",
+       "text": "séparément"
+      }
+     ],
+     "do": [
+      {
+       "id": "montre_u",
+       "verb": "write",
+       "at": "cue:additionner",
+       "target": "u_def"
+      },
+      {
+       "id": "montre_v",
+       "verb": "write",
+       "at": "cue:additionner",
+       "target": "v_def"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "repere",
+     "say": "Ici, trois et moins un sont les composantes horizontales; quatre et deux sont les composantes verticales.",
+     "cues": [
+      {
+       "id": "horizontales",
+       "text": "composantes horizontales"
+      },
+      {
+       "id": "verticales",
+       "text": "composantes verticales"
+      }
+     ],
+     "do": [
+      {
+       "id": "sur_u",
+       "verb": "highlight",
+       "start": "cue:horizontales",
+       "end": "cue_end:horizontales",
+       "target": "u_def",
+       "role": "given"
+      },
+      {
+       "id": "sur_v",
+       "verb": "highlight",
+       "start": "cue:verticales",
+       "end": "cue_end:verticales",
+       "target": "v_def",
+       "role": "given"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_somme",
+   "introduces": [
+    {
+     "id": "calcul",
+     "content": "\\vec{u}+\\vec{v}=(3+(-1),\\,4+2)",
+     "parts": [
+      {
+       "id": "sommes",
+       "text": "\\vec{u}+\\vec{v}="
+      },
+      {
+       "id": "composantes",
+       "text": "(3+(-1),\\,4+2)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "resultat",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\vec{u}+\\vec{v}=(2,6)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "associe",
+     "say": "On associe les horizontales ensemble et les verticales ensemble, ce qui donne trois plus moins un, puis quatre plus deux.",
+     "cues": [
+      {
+       "id": "horizontales_ensemble",
+       "text": "horizontales ensemble"
+      },
+      {
+       "id": "verticales_ensemble",
+       "text": "verticales ensemble"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_sommes",
+       "verb": "write",
+       "at": "cue:horizontales_ensemble",
+       "target": "calcul",
+       "part": "sommes"
+      },
+      {
+       "id": "ecrire_composantes",
+       "verb": "write",
+       "at": "cue:verticales_ensemble",
+       "target": "calcul",
+       "part": "composantes"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "Trois plus moins un vaut deux, et quatre plus deux vaut six; le vecteur somme est donc deux, six.",
+     "cues": [
+      {
+       "id": "vaut_deux",
+       "text": "vaut deux"
+      },
+      {
+       "id": "vaut_six",
+       "text": "vaut six"
+      },
+      {
+       "id": "vecteur_somme",
+       "text": "vecteur somme"
+      }
+     ],
+     "do": [
+      {
+       "id": "remplace",
+       "verb": "transform",
+       "at": "cue:vaut_deux",
+       "source": "calcul",
+       "target": "resultat"
+      },
+      {
+       "id": "souligne",
+       "verb": "highlight",
+       "start": "cue:vecteur_somme",
+       "end": "cue_end:vecteur_somme",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_norme",
+   "introduces": [
+    {
+     "id": "triangle",
+     "params": {
+      "leg_a": 2,
+      "leg_b": 6
+     },
+     "type": "triangle_right"
+    },
+    {
+     "id": "cote_deux",
+     "attachment": {
+      "parent": "triangle",
+      "anchor": "side_a"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "cote_six",
+     "attachment": {
+      "parent": "triangle",
+      "anchor": "side_b"
+     },
+     "content": "6",
+     "type": "label"
+    },
+    {
+     "id": "hyp",
+     "attachment": {
+      "parent": "triangle",
+      "anchor": "hypotenuse"
+     },
+     "content": "\\|\\vec{u}+\\vec{v}\\|",
+     "type": "label"
+    },
+    {
+     "id": "calcul_norme",
+     "content": "\\|\\vec{u}+\\vec{v}\\|=\\sqrt{2^2+6^2}=\\sqrt{40}",
+     "type": "math"
+    },
+    {
+     "id": "norme_calc",
+     "style": {
+      "role": "result"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "norme",
+      "template": "\\|\\vec{u}+\\vec{v}\\| = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "norme_approx",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\|\\vec{u}+\\vec{v}\\|\\approx 6,32",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "figure",
+     "say": "Le vecteur deux, six forme un triangle rectangle avec des côtés de longueur deux et six; sa norme est l’hypoténuse.",
+     "cues": [
+      {
+       "id": "triangle_mot",
+       "text": "triangle rectangle"
+      },
+      {
+       "id": "hypotenuse_mot",
+       "text": "hypoténuse"
+      }
+     ],
+     "do": [
+      {
+       "id": "tracer_triangle",
+       "verb": "draw",
+       "at": "cue:triangle_mot",
+       "target": "triangle"
+      },
+      {
+       "id": "montrer_cotes",
+       "verb": "show",
+       "at": "cue:triangle_mot",
+       "target": "cote_deux"
+      },
+      {
+       "id": "montrer_six",
+       "verb": "show",
+       "at": "cue:triangle_mot",
+       "target": "cote_six"
+      },
+      {
+       "id": "montrer_hyp",
+       "verb": "show",
+       "at": "cue:hypotenuse_mot",
+       "target": "hyp"
+      }
+     ]
+    },
+    {
+     "id": "pythagore",
+     "say": "Par Pythagore, le carré de l’hypoténuse égale deux au carré plus six au carré; ça donne la racine carrée de quarante.",
+     "cues": [
+      {
+       "id": "pythagore_mot",
+       "text": "Par Pythagore"
+      },
+      {
+       "id": "racine",
+       "text": "la racine carrée de quarante"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_calcul",
+       "verb": "write",
+       "at": "cue:pythagore_mot",
+       "target": "calcul_norme"
+      },
+      {
+       "id": "ecrire_resultat",
+       "verb": "write",
+       "at": "cue:racine",
+       "target": "norme_calc"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "valeur",
+     "say": "La racine carrée de quarante vaut environ six virgule trente-deux; la norme est une longueur, donc elle est positive.",
+     "cues": [
+      {
+       "id": "environ",
+       "text": "environ six virgule trente-deux"
+      },
+      {
+       "id": "longueur",
+       "text": "une longueur"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_approx",
+       "verb": "show",
+       "at": "cue:environ",
+       "target": "norme_approx"
+      },
+      {
+       "id": "surligner_norme",
+       "verb": "highlight",
+       "start": "cue:longueur",
+       "end": "cue_end:longueur",
+       "target": "norme_approx",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle_retenir",
+     "content": "Addition : composante avec composante",
+     "type": "text"
+    },
+    {
+     "id": "somme_retenir",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\vec{u}+\\vec{v}=(2,6)",
+     "type": "math"
+    },
+    {
+     "id": "norme_retenir",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\|\\vec{u}+\\vec{v}\\|=\\sqrt{2^2+6^2}=\\sqrt{40}\\approx6,32",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "resume",
+     "items": [
+      "regle_retenir",
+      "somme_retenir",
+      "norme_retenir"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_finale",
+     "say": "À retenir : additionne séparément les composantes correspondantes, puis utilise Pythagore pour la norme; ici, le résultat est deux, six, et sa norme est environ six virgule trente-deux.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "additionne",
+       "text": "additionne séparément"
+      },
+      {
+       "id": "norme",
+       "text": "pour la norme"
+      }
+     ],
+     "do": [
+      {
+       "id": "nettoie_triangle",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "triangle"
+      },
+      {
+       "id": "nettoie_calcul",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "calcul_norme"
+      },
+      {
+       "id": "nettoie_norme",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "norme_calc"
+      },
+      {
+       "id": "nettoie_approx",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "norme_approx"
+      },
+      {
+       "id": "affiche_regle",
+       "verb": "show",
+       "at": "cue:additionne",
+       "target": "regle_retenir"
+      },
+      {
+       "id": "affiche_somme",
+       "verb": "show",
+       "at": "cue:additionne",
+       "target": "somme_retenir"
+      },
+      {
+       "id": "affiche_norme",
+       "verb": "show",
+       "at": "cue:norme",
+       "target": "norme_retenir"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

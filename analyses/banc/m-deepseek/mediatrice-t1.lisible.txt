@@ -1,0 +1,107 @@
+QUESTION (mediatrice, mathematiques, sec 4, methode) : comment je trouve l'équation de la médiatrice du segment AB si A(1, 2) et B(5, 6) ?
+RÉPONSE DE RÉFÉRENCE : Milieu M(3, 4), pente perpendiculaire -1 : y = −x + 7.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. médiatrice = droite perpendiculaire au segment passant par son milieu, points équidistants de A et B (figure)
+  2. milieu M(3, 4)
+  3. pente de AB = 1, pente perpendiculaire = -1 (opposé de l'inverse, m1 × m2 = -1)
+  4. réponse y = -x + 7 écrite
+  5. vérification : M sur la droite, ou (0, 7) à √26 de A et de B
+ERREURS GRAVES À CHERCHER : droite tracée qui n'est pas perpendiculaire
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver l'équation de la médiatrice du segment AB
+math_context : {"symbols":{},"expressions":{"verif_M":"-1*3 + 4"}}
+=== Tranche s_figure
+  OBJET rep [axes] {"x":[-1,7],"y":[-1,7]} 
+  OBJET ptA [point] {"at":[1,2]} 
+  OBJET labA [label] "A(1 ; 2)" attaché à ptA
+  OBJET ptB [point] {"at":[5,6]} 
+  OBJET labB [label] "B(5 ; 6)" attaché à ptB
+  OBJET segAB [line] {"from":[1,2],"to":[5,6]} 
+DIT (pose) : On te donne le segment AB, avec A en un, deux et B en cinq, six. On cherche l'équation de sa médiatrice.
+    camera.focus  @beat:start {"targets":["rep"],"bounds":"layout_bounds","save_as":"vue_rep"}
+    show rep @beat:start 
+    show ptA @cue:c_A 
+    show labA @after:s_A 
+    show ptB @cue:c_B 
+    show labB @after:s_B 
+    draw segAB @cue:c_AB 
+DIT (idee) : La médiatrice, c'est la droite qui coupe AB en plein milieu, et qui lui est perpendiculaire.
+    highlight segAB @- {"start":"cue:c_milieu","end":"cue_end:c_perp","role":"accent"}
+=== Tranche s_milieu
+  OBJET milieu_calc [math] "M\\left(\\frac{1+5}{2} ; \\frac{2+6}{2}\\right) = M(3 ; 4)" parts=M\left(\frac{1+5}{2} ; \frac{2+6}{2}\right) | = M(3 ; 4)
+  OBJET ptM [point] {"at":[3,4]} 
+  OBJET labM [label] "M(3 ; 4)" attaché à ptM
+DIT (moyenne) : Première étape : le milieu M. On fait la moyenne des x, puis la moyenne des y.
+    write milieu_calc @cue:c_moyenne {"part":"mf"}
+DIT (resultat) : Un plus cinq donne six, divisé par deux, trois. Deux plus six donne huit, divisé par deux, quatre. Donc M est en trois, quatre.
+    write milieu_calc @cue:c_M {"part":"mr"}
+    show ptM @cue:c_M 
+    show labM @after:s_M 
+    highlight milieu_calc @after:w_mr {"role":"result","part":"mr"}
+=== Tranche s_pente
+  OBJET triangle [polygon] {"vertices":[[1,2],[5,2],[5,6]]} 
+  OBJET montee [label] "montée : 6 − 2 = 4" attaché à triangle
+  OBJET avancee [label] "avancée : 5 − 1 = 4" attaché à triangle
+  OBJET pente_AB [math] "m_{AB} = \\frac{4}{4} = 1" parts=m_{AB} = \frac{4}{4} | = 1
+  OBJET pente_perp [math] "m_{\\perp} = -\\frac{1}{1} = -1" parts=m_{\perp} = -\frac{1}{1} | = -1
+DIT (penteAB) : Deuxième étape : la pente de AB. De A à B, on monte de quatre et on avance de quatre. La pente vaut donc quatre sur quatre, c'est-à-dire un.
+    draw triangle @cue:c_monte 
+    show montee @cue:c_monte 
+    show avancee @cue:c_avance 
+    write pente_AB @cue:c_quatrequatre {"part":"fr"}
+    write pente_AB @cue:c_un {"part":"un"}
+DIT (inverse) : Comme la médiatrice est perpendiculaire, sa pente est l'opposée de l'inverse : un devient moins un.
+    dim milieu_calc @cue:c_opposee 
+    write pente_perp @cue:c_opposee {"part":"fp"}
+    write pente_perp @cue:c_moinsun {"part":"moinsun"}
+=== Tranche s_equation
+  OBJET forme [math] "y = -x + b" parts=y = -x | + b
+  OBJET remplace [math] "4 = -3 + b" parts=4 | = -3 + b
+  OBJET bval [math] "b = 7" 
+  OBJET finale [math] "y = -x + 7" parts=y = -x | + 7
+  OBJET droite [function_graph] {"expression":"-x + 7","domain":[-0.5,7]} 
+DIT (poser) : On connaît la pente : moins un. La médiatrice s'écrit donc y égale moins x plus b.
+    write forme @cue:c_yxb {"part":"mx"}
+    write forme @after:w_mx {"part":"plusb"}
+DIT (trouverb) : Puisqu'elle passe par M, les coordonnées de M doivent fonctionner : on remplace y par quatre et x par trois.
+    write remplace @cue:c_remplace {"part":"left"}
+    write remplace @after:w_left {"part":"right"}
+DIT (isoler) : Pour isoler b, on ajoute trois des deux côtés : quatre plus trois donne sept, donc b égale sept.
+    write bval @cue:c_sept 
+DIT (final) : L'équation de la médiatrice est donc y égale moins x plus sept. Traçons-la : elle coupe bien AB en angle droit, au milieu.
+    write finale @cue:c_equation {"part":"yf"}
+    write finale @after:w_yf {"part":"b7"}
+    highlight finale @after:w_b7 {"role":"result"}
+    draw droite @- {"start":"cue:c_trace","end":"cue_end:c_trace"}
+=== Tranche s_verif
+  OBJET checkM [math] "y = -1 \\times 3 + 4 = 1" parts=y = -1 \times 3 + 4 | = 1
+  OBJET erreur [callout] "Erreur fréquente : garder la même pente que AB" 
+DIT (verifier) : Vérifions avec M : moins un fois trois plus quatre donne bien un. Le point M est sur la droite.
+    write checkM @cue:c_verifie {"part":"expr"}
+    write checkM @cue:c_un2 {"part":"egal"}
+DIT (piege) : Le piège, c'est de réutiliser la pente de AB. Pour une perpendiculaire, il faut toujours l'opposée de l'inverse.
+    show erreur @cue:c_piege 
+    highlight pente_perp @- {"start":"cue:c_opposee2","end":"cue_end:c_opposee2","role":"accent"}
+=== Tranche s_recap
+  OBJET regle [text] "Médiatrice = perpendiculaire passant par le milieu" 
+  OBJET etapes [math] "M\\left(\\frac{x_A+x_B}{2} ; \\frac{y_A+y_B}{2}\\right) \\quad m_{\\perp} = -\\frac{1}{m_{AB}}" parts=M\left(\frac{x_A+x_B}{2} ; \frac{y_A+y_B}{2}\right) | m_{\perp} = -\frac{1}{m_{AB}}
+  OBJET formule [math] "y = -x + 7" parts=y = -x | + 7
+  GROUPE synthese = regle, etapes, formule
+DIT (retenir) : À retenir : la médiatrice est la droite perpendiculaire qui passe par le milieu du segment.
+    fade_out milieu_calc @cue:c_retenir 
+    fade_out pente_AB @cue:c_retenir 
+    fade_out forme @cue:c_retenir 
+    fade_out remplace @cue:c_retenir 
+    fade_out bval @cue:c_retenir 
+    fade_out checkM @cue:c_retenir 
+    fade_out erreur @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["ptA","ptB","segAB","droite","ptM"],"bounds":"layout_bounds"}
+    show regle @cue:c_perp2 
+DIT (methode) : Tu calcules le milieu, puis la pente perpendiculaire par l'opposée de l'inverse, et enfin b en remplaçant M. Ici, ça donne y égale moins x plus sept.
+    write etapes @cue:c_milieu3 {"part":"partM"}
+    write etapes @cue:c_inverse {"part":"partm"}
+    write formule @cue:c_sept {"part":"fmx"}
+    write formule @after:s_fmx {"part":"fb"}
+    highlight formule @after:s_fb {"role":"result"}
+--- 6 tranches, 284 mots dits (≈ 1.9 min d'oral)

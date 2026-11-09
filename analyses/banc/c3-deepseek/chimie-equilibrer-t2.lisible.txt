@@ -1,0 +1,66 @@
+QUESTION (chimie-equilibrer, chimie, sec 4, methode) : comment j'équilibre l'équation C3H8 + O2 → CO2 + H2O? j'arrive jamais à avoir le même nombre d'oxygènes des deux bords
+RÉPONSE DE RÉFÉRENCE : C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. conservation des atomes ; on change les coefficients, jamais les indices
+  2. C puis H, O à la fin (O₂ seul)
+  3. C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O écrit
+  4. vérification : 3 C, 8 H, 10 O de chaque côté
+  5. l'O à la fin, parce que O₂ est un corps simple
+ERREURS GRAVES À CHERCHER : indices modifiés ; décompte d'atomes faux
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comment équilibrer C₃H₈ + O₂ → CO₂ + H₂O
+=== Tranche s_depart
+  OBJET eq [math] "\\ce{C3H8 + O2 -> CO2 + H2O}" 
+  OBJET inv [text] "On change les coefficients, jamais les indices." 
+DIT (pose) : C'est l'équation de la combustion du propane : C trois H huit plus O deux donne C O deux plus H deux O.
+    write eq @cue:c_c3h8 
+    highlight eq @cue:c_o2 {"role":"accent"}
+    highlight eq @cue:c_donne {"role":"accent"}
+    highlight eq @cue:c_h2o {"role":"accent"}
+DIT (loi) : La règle, c'est que les atomes ne se créent pas et ne disparaissent pas : il en faut autant de chaque sorte des deux côtés.
+    show inv @cue:c_autant 
+=== Tranche s_comptage
+  OBJET tab [matrix] {"rows":[[3,8,2],[1,2,3]],"row_labels":["réactifs","produits"],"column_labels":["C","H","O"]} 
+  OBJET noteO [text] "L'oxygène est le seul à bouger avec O₂ : on le garde pour la fin." 
+DIT (compter) : Commençons par compter. Chez les réactifs, il y a trois carbones, huit hydrogènes et deux oxygènes.
+    show tab @beat:start 
+    highlight tab @- {"start":"cue:c_trois","end":"cue_end:c_trois","role":"accent","part":"r1c1"}
+    highlight tab @- {"start":"cue:c_huit","end":"cue_end:c_huit","role":"accent","part":"r1c2"}
+    highlight tab @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"accent","part":"r1c3"}
+DIT (produits) : Chez les produits, un seul carbone, deux hydrogènes et trois oxygènes. Rien n'est égal : il faut ajuster.
+    highlight tab @- {"start":"cue:c_produits","end":"cue_end:c_produits","role":"unknown","part":"r2"}
+    show noteO @cue:pas_egal 
+=== Tranche s_carbone_hydrogene
+  OBJET eqA [math] "\\ce{C3H8 + O2 -> 3CO2 + H2O}" 
+  OBJET eqB [math] "\\ce{C3H8 + O2 -> 3CO2 + 4H2O}" 
+DIT (carbone) : On part des éléments présents dans une seule substance de chaque côté : le carbone d'abord. Trois à gauche, donc un coefficient trois devant C O deux.
+    dim tab @cue:c_carbone 
+    dim noteO @cue:c_carbone 
+    transform eqA @cue:c_coef3 {"source":"eq"}
+    highlight eqA @after:t_A {"role":"accent"}
+DIT (hydrogene) : Ensuite l'hydrogène : huit à gauche, et le quatre de H deux O le double : un coefficient quatre devant H deux O.
+    transform eqB @cue:c_coef4 {"source":"eqA"}
+    highlight eqB @after:t_B {"role":"accent"}
+=== Tranche s_oxygene
+  OBJET eqC [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+  OBJET verif [text] "C 3 = 3, H 8 = 8, O 10 = 6 + 4 : tout est égal." 
+  OBJET eqFin [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+  OBJET regle [text] "On ne change que les coefficients, jamais les indices." 
+DIT (recompte) : L'oxygène maintenant : trois C O deux donnent six oxygènes, quatre H deux O en donnent quatre. Six plus quatre, dix à droite, contre deux à gauche.
+    highlight eqB @- {"start":"cue:c_deuxg","end":"cue_end:c_deuxg","role":"unknown"}
+    highlight eqB @- {"start":"cue:c_six","end":"cue_end:c_quatre","role":"accent"}
+DIT (cinq) : Il faut dix oxygènes à gauche : cinq fois deux, un coefficient cinq devant O deux.
+    transform eqC @cue:c_cinq {"source":"eqB"}
+    highlight eqC @after:t_C {"role":"result"}
+DIT (verifier) : On vérifie en comptant encore : carbone trois et trois, hydrogène huit et huit, oxygène dix et six plus quatre. C'est équilibré.
+    show verif @cue:c_verifie 
+    show eqFin @cue:c_equilibre 
+=== Tranche s_retenir
+DIT (idee) : À retenir : les atomes se conservent, on compte chaque élément, et on ajuste seulement les coefficients.
+    remove verif @cue:c_retenir 
+    remove eqFin @cue:c_retenir 
+    show regle @cue:c_coefficients 
+    highlight eqC @- {"start":"cue:c_coefficients","end":"cue_end:c_coefficients","role":"result"}
+    camera.focus  @cue:c_coefficients {"targets":["eqC","regle"],"bounds":"layout_bounds"}
+--- 5 tranches, 214 mots dits (≈ 1.4 min d'oral)

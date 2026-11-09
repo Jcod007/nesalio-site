@@ -3,13 +3,17 @@ import {
 } from "manim-web";
 import { niceStep } from "@/domain/board/geometry";
 import { FONT_SIZE, TICK_FONT } from "@/domain/board/layout";
-import { axisNumbers, measureSceneObject, sampleSceneCurve, sceneText, tableLayout, tableRows } from "@/domain/nesalio/measurement";
+import {
+  axisNumbers, isTable, measureSceneObject, sampleSceneCurve, sceneText, tableCellParts, tableLayout, tableRows,
+} from "@/domain/nesalio/measurement";
 import type { SceneObject, Slice } from "@/domain/nesalio/contract";
-import type { Point } from "@/domain/nesalio/placement";
+import type { Box, Point } from "@/domain/nesalio/placement";
 import { partVisible, symbolValues, type MeasureObject, type Measurement, type PlacedObject } from "@/domain/nesalio/sceneState";
 import { DIM_OPACITY, type NesalioFrame } from "@/engine/nesalioPlayback";
 import { BRAND } from "@/ui/theme";
+import { readableFormula } from "./formulaFallback";
 import { arrowMark, boardFormula, boardFormulaParts, boardText, circleMark, pointMark, polygonMark, segmentMark } from "./primitives";
+import { TableMarks } from "./tableMarks";
 
 const palette = { neutral: BRAND.ink, given: "#2563a6", unknown: "#a55316", accent: BRAND.violet, result: "#18724b", secondary: "#52617b" };
 type Vec3 = [number, number, number];
@@ -20,6 +24,16 @@ type Content = {
   opacity?: number;
   /** World position the items are drawn at: a `move` shifts them instead of rebuilding them. */
   position: Point;
+  /** A matrix drawn as a grid table: its cells can be highlighted one by one. */
+  table?: TableState;
+};
+type TableCell = { item?: Mobject; parts: readonly string[]; box: Box; color?: string };
+type TableState = {
+  cells: TableCell[];
+  /** Grid lines keep their own colour when the table is recoloured. */
+  grid: Set<Mobject>;
+  /** Outlines around the highlighted parts (cell, row, column): they follow the table's place and opacity. */
+  marks: TableMarks<Mobject>;
 };
 type TextObject = Extract<SceneObject, { type: "text" | "label" | "callout" | "math" | "matrix" }>;
 
@@ -79,7 +93,10 @@ export class NesalioProjection {
         : boardFormula(`$${definition.content}$`, options);
       await math.waitForRender().catch(() => undefined);
       if (signal.aborted) { math.dispose(); return; }
-      const item = math.getRenderError() ? boardText(definition.content, palette.neutral, fontSize(definition)) : math;
+      const error = math.getRenderError();
+      // The student never sees raw LaTeX: an unrenderable formula is written as plain text, and logged.
+      if (error) console.warn(`nesalio: formule non rendue « ${definition.id} » (${definition.content}) :`, error);
+      const item = error ? boardText(readableFormula(definition.content), palette.neutral, fontSize(definition)) : math;
       if (item !== math) math.dispose();
       this.formulas.set(definition.id, { item, measurement: dimensions(item) });
     }));
@@ -87,7 +104,7 @@ export class NesalioProjection {
 
   readonly measure: MeasureObject = (definition, values, math, window) => {
     // A table of values is laid out cell by cell (tableLayout): the drawing follows the same layout.
-    if (!isText(definition) || (definition.type === "matrix" && definition.params.row_labels)) return measureSceneObject(definition, values, math, window);
+    if (!isText(definition) || (definition.type === "matrix" && isTable(definition.params))) return measureSceneObject(definition, values, math, window);
     const formula = this.formulas.get(definition.id);
     if (formula) return formula.measurement;
     const text = definition.type === "matrix" ? definition.params.rows.map((row) => row.join("   ")).join("\n")
@@ -115,7 +132,10 @@ export class NesalioProjection {
     for (const [id, object] of scene.objects) {
       if (!object.visible) continue;
       const { definition, measurement, position, leader } = object;
-      const color = palette[frame.highlights.get(id)?.role ?? frame.styles.get(id) ?? definition.style?.role ?? "neutral"];
+      // A matrix written as plain text cannot show one cell: a part highlight colours it whole.
+      const plainMatrixPart = definition.type === "matrix" && !isTable(definition.params)
+        ? frame.partHighlights.get(id)?.values().next().value?.role : undefined;
+      const color = palette[frame.highlights.get(id)?.role ?? plainMatrixPart ?? frame.styles.get(id) ?? definition.style?.role ?? "neutral"];
       const text = "content" in definition ? sceneText(definition, values, scene.math) : undefined;
       const dynamic = definition.type === "function_graph" || definition.type === "parametric_curve" ? parameters : undefined;
       // The shape alone decides a rebuild; the leader is compared relative to the object.
@@ -124,14 +144,16 @@ export class NesalioProjection {
       let rendered = this.content.get(id);
       if (rendered?.key !== key) {
         if (rendered) this.remove(id, rendered);
-        const items = this.build(object, values, color, text);
-        rendered = { key, items, color, position };
+        const table: TableState = { cells: [], grid: new Set(), marks: this.tableMarks() };
+        const items = this.build(object, values, color, text, table);
+        rendered = { key, items, color, position, ...table.cells.length ? { table } : {} };
         this.content.set(id, rendered);
         this.scene.add(...items);
       } else if (rendered.position[0] !== position[0] || rendered.position[1] !== position[1]) {
         const shift: Vec3 = [position[0] - rendered.position[0], position[1] - rendered.position[1], 0];
         for (const item of rendered.items) item.shift(shift);
         rendered.position = position;
+        // Highlight outlines follow on this frame (drawTable → TableMarks.update).
       }
       const reveal = frame.reveals.get(id);
       if (reveal && reveal.progress < 1) {
@@ -159,13 +181,42 @@ export class NesalioProjection {
         rendered.opacity = opacity;
       }
       if (rendered.color !== color) {
-        for (const item of rendered.items) item.setColor(color);
+        for (const item of rendered.items) if (!rendered.table?.grid.has(item)) item.setColor(color);
         rendered.color = color;
         // The whole formula was recoloured: every part takes its own colour again below.
         for (const state of rendered.parts?.values() ?? []) state.color = color;
+        for (const cell of rendered.table?.cells ?? []) cell.color = color;
       }
       if (byParts) this.drawParts(object, rendered, color, opacity, frame.partReveals.get(id), frame.partHighlights.get(id));
+      if (rendered.table) this.drawTable(rendered, rendered.table, color, opacity, frame.partHighlights.get(id));
     }
+  }
+
+  /** A highlighted cell, row or column takes the highlight colour and is outlined while it lasts. */
+  private drawTable(
+    rendered: Content, table: TableState, color: string, opacity: number,
+    highlights?: ReadonlyMap<string, { role: keyof typeof palette; progress: number }>,
+  ): void {
+    const active = new Map([...highlights ?? []].map(([part, { role }]) => [part, palette[role]]));
+    for (const cell of table.cells) {
+      const hit = cell.parts.find((part) => active.has(part));
+      const cellColor = hit ? active.get(hit)! : color;
+      if (cell.color !== cellColor) {
+        cell.item?.setColor(cellColor);
+        cell.color = cellColor;
+      }
+    }
+    table.marks.update(table.cells, active, rendered.position, opacity);
+  }
+
+  private tableMarks(): TableMarks<Mobject> {
+    return new TableMarks<Mobject>({
+      create: (box, color) => polygonMark({
+        vertices: [[box.x0, box.y0, 0], [box.x1, box.y0, 0], [box.x1, box.y1, 0], [box.x0, box.y1, 0]], color, strokeWidth: 4,
+      }),
+      add: (mark) => this.scene.add(mark),
+      remove: (mark) => this.scene.remove(mark),
+    });
   }
 
   /**
@@ -195,7 +246,9 @@ export class NesalioProjection {
         copy.opacity = 1;
         const group = new VGroup(copy);
         this.scene.add(group);
-        const animation = new TransformMatchingTex(copy, to, { transformMismatches: true });
+        // Unmatched glyphs fade (out in the first third, in during the last third) instead of
+        // morphing into unrelated glyphs: morphing showed ghosts such as « 3̶3xx + 5 == 117 ».
+        const animation = new TransformMatchingTex(copy, to, { transformMismatches: false, fadeRatio: 0.35 });
         animation.begin();
         morph = { key, group, animation };
         this.morphing.set(source, morph);
@@ -256,7 +309,7 @@ export class NesalioProjection {
     });
   }
 
-  private build(object: PlacedObject, values: ReadonlyMap<string, number>, color: string, text?: string): Mobject[] {
+  private build(object: PlacedObject, values: ReadonlyMap<string, number>, color: string, text?: string, table?: TableState): Mobject[] {
     const { definition: def, position: [dx, dy], measurement, leader } = object;
     const world = ([x, y]: Point): Vec3 => [x + dx, y + dy, 0];
     const stroke = { color, strokeWidth: 3 };
@@ -303,17 +356,25 @@ export class NesalioProjection {
         break;
       }
       case "matrix":
-        if (def.params.row_labels) {
+        if (isTable(def.params)) {
           const layout = tableLayout(tableRows(def.params), fontSize(def));
-          for (const [from, to] of layout.lines) items.push(segmentMark([dx + from[0], dy + from[1], 0], [dx + to[0], dy + to[1], 0], palette.secondary, false, 2));
+          for (const [from, to] of layout.lines) {
+            const line = segmentMark([dx + from[0], dy + from[1], 0], [dx + to[0], dy + to[1], 0], palette.secondary, false, 2);
+            table?.grid.add(line);
+            items.push(line);
+          }
           for (const cell of layout.cells) {
-            const text = boardText(cell.text, color, fontSize(def));
-            text.moveTo([dx + cell.at[0], dy + cell.at[1], 0]);
-            items.push(text);
+            // A blank cell has nothing to write, but it keeps its place and can still be outlined.
+            const text = cell.text ? boardText(cell.text, color, fontSize(def)) : undefined;
+            if (text) {
+              text.moveTo([dx + cell.at[0], dy + cell.at[1], 0]);
+              items.push(text);
+            }
+            table?.cells.push({ item: text, parts: tableCellParts(def.params, cell.row, cell.column), box: cell.box, color });
           }
           break;
         }
-      // falls through: a matrix without row titles is written as text
+      // falls through: a matrix of numbers only, without titles, is written as text
       default: {
         const formula = this.formulas.get(def.id);
         const textContent = def.type === "matrix" ? def.params.rows.map((row) => row.join("   ")).join("\n") : text ?? "";
@@ -329,6 +390,7 @@ export class NesalioProjection {
 
   private remove(id: string, entry: Content): void {
     for (const animation of entry.animation ?? []) animation.finish();
+    entry.table?.marks.clear();
     this.scene.remove(...entry.items);
     for (const item of entry.items) if (item !== this.formulas.get(id)?.item) item.dispose();
     this.content.delete(id);

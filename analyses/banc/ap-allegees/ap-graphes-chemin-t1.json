@@ -1,0 +1,765 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "chemin_critique_vs_chaine_minimale",
+  "title": "Chemin critique ou chaîne de valeur minimale ?",
+  "language": "fr",
+  "learning_goal": "Distinguer quand utiliser le chemin critique (le plus long : durée du projet) et quand utiliser la chaîne de valeur minimale (le plus court : optimisation d’un trajet) dans un graphe orienté et valué."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "graphe",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        0,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "A",
+     "frame": "graphe",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "B",
+     "frame": "graphe",
+     "params": {
+      "at": [
+       3,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "C",
+     "frame": "graphe",
+     "params": {
+      "at": [
+       3,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "D",
+     "frame": "graphe",
+     "params": {
+      "at": [
+       0,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "A",
+      "anchor": "left"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "labB",
+     "attachment": {
+      "parent": "B",
+      "anchor": "right"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "labC",
+     "attachment": {
+      "parent": "C",
+      "anchor": "right"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "labD",
+     "attachment": {
+      "parent": "D",
+      "anchor": "left"
+     },
+     "content": "D",
+     "type": "label"
+    },
+    {
+     "id": "titre",
+     "layout": {
+      "next_to": "graphe",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": "Graphe orienté et valué",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Un graphe orienté et valué, c’est un réseau de flèches avec des nombres. Le choix entre chemin critique et chaîne de valeur minimale dépend de ce que tu cherches.",
+     "cues": [
+      {
+       "id": "c_graphe",
+       "text": "graphe orienté et valué"
+      },
+      {
+       "id": "c_choix",
+       "text": "dépend de ce que tu cherches"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_graphe",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "graphe"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "A"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "B"
+      },
+      {
+       "id": "s_C",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "C"
+      },
+      {
+       "id": "s_D",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "D"
+      },
+      {
+       "id": "s_labA",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labA"
+      },
+      {
+       "id": "s_labB",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labB"
+      },
+      {
+       "id": "s_labC",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labC"
+      },
+      {
+       "id": "s_labD",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labD"
+      },
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      }
+     ]
+    },
+    {
+     "id": "cle",
+     "say": "La clé, c’est le sens de l’optimisation : veux-tu finir le plus vite possible, ou arriver le plus court possible ?",
+     "cues": [
+      {
+       "id": "c_optim",
+       "text": "sens de l’optimisation"
+      },
+      {
+       "id": "c_plus_vite",
+       "text": "finir le plus vite possible"
+      },
+      {
+       "id": "c_plus_court",
+       "text": "arriver le plus court possible"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_A",
+       "verb": "highlight",
+       "start": "cue:c_plus_vite",
+       "end": "cue_end:c_plus_vite",
+       "target": "A",
+       "role": "accent"
+      },
+      {
+       "id": "h_B",
+       "verb": "highlight",
+       "start": "cue:c_plus_court",
+       "end": "cue_end:c_plus_court",
+       "target": "B",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_critique",
+   "introduces": [
+    {
+     "id": "tab1",
+     "params": {
+      "rows": [
+       [
+        "Début",
+        0,
+        "—",
+        "—"
+       ],
+       [
+        "A",
+        "3",
+        "Début",
+        "0"
+       ],
+       [
+        "B",
+        "5",
+        "Début",
+        "0"
+       ],
+       [
+        "C",
+        "7",
+        "A",
+        "3"
+       ],
+       [
+        "Fin",
+        "9",
+        "C",
+        "7"
+       ]
+      ],
+      "column_labels": [
+       "Étape",
+       "Durée",
+       "Prédécesseur",
+       "Début au plus tôt"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note1",
+     "layout": {
+      "next_to": "tab1",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": "Chemin critique = le plus long",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "def_critique",
+     "say": "Le chemin critique, c’est le chemin le plus long en durée. Il donne la durée minimale du projet : même si on optimise tout le reste, on ne peut pas finir avant.",
+     "cues": [
+      {
+       "id": "c_chemin_long",
+       "text": "chemin le plus long"
+      },
+      {
+       "id": "c_finir",
+       "text": "on ne peut pas finir avant"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab1",
+       "verb": "show",
+       "at": "cue:c_chemin_long",
+       "target": "tab1"
+      },
+      {
+       "id": "s_note1",
+       "verb": "show",
+       "at": "cue:c_finir",
+       "target": "note1"
+      }
+     ]
+    },
+    {
+     "id": "exemple_critique",
+     "say": "Ici, le chemin Début, A, C, Fin dure trois plus quatre plus deux, soit neuf. C’est le chemin critique.",
+     "cues": [
+      {
+       "id": "c_neuf",
+       "text": "soit neuf"
+      },
+      {
+       "id": "c_critique_mot",
+       "text": "chemin critique"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab1",
+       "verb": "highlight",
+       "start": "cue:c_neuf",
+       "end": "cue_end:c_neuf",
+       "target": "tab1",
+       "role": "accent",
+       "part": "r5"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_minimale",
+   "introduces": [
+    {
+     "id": "tab2",
+     "params": {
+      "rows": [
+       [
+        "Début",
+        "—",
+        "—",
+        "0"
+       ],
+       [
+        "A",
+        "3",
+        "Début",
+        "3"
+       ],
+       [
+        "B",
+        "5",
+        "Début",
+        "5"
+       ],
+       [
+        "C",
+        "7",
+        "A",
+        "7"
+       ],
+       [
+        "Fin",
+        "9",
+        "C",
+        "9"
+       ]
+      ],
+      "column_labels": [
+       "Étape",
+       "Durée",
+       "Prédécesseur",
+       "Fin au plus tard"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note2",
+     "layout": {
+      "next_to": "tab2",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": "Chaîne de valeur minimale = le plus court",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "def_min",
+     "say": "La chaîne de valeur minimale, elle, cherche le chemin le plus court. On l’utilise quand chaque valeur est un coût ou une distance qu’on veut réduire.",
+     "cues": [
+      {
+       "id": "c_plus_court",
+       "text": "chemin le plus court"
+      },
+      {
+       "id": "c_cout",
+       "text": "coût ou une distance"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab1"
+      },
+      {
+       "id": "f_note1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note1"
+      },
+      {
+       "id": "s_tab2",
+       "verb": "show",
+       "at": "cue:c_plus_court",
+       "target": "tab2"
+      },
+      {
+       "id": "s_note2",
+       "verb": "show",
+       "at": "cue:c_cout",
+       "target": "note2"
+      }
+     ]
+    },
+    {
+     "id": "exemple_min",
+     "say": "Par exemple, un livreur qui part de A veut aller à C par le trajet le moins coûteux : on additionne les valeurs et on garde le plus petit total.",
+     "cues": [
+      {
+       "id": "c_livreur",
+       "text": "livreur"
+      },
+      {
+       "id": "c_petit",
+       "text": "plus petit total"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab2",
+       "verb": "highlight",
+       "start": "cue:c_livreur",
+       "end": "cue_end:c_petit",
+       "target": "tab2",
+       "role": "accent",
+       "part": "r4"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "graphe",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{Critique : } \\max \\quad \\text{Minimale : } \\min",
+     "type": "math"
+    },
+    {
+     "id": "synthese",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Le plus long fixe la durée. Le plus court minimise le coût.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : le chemin critique, c’est le maximum, il fixe la durée du projet. La chaîne de valeur minimale, c’est le minimum, elle optimise un coût ou une distance.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_max",
+       "text": "le maximum"
+      },
+      {
+       "id": "c_min",
+       "text": "le minimum"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab2"
+      },
+      {
+       "id": "f_note2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note2"
+      },
+      {
+       "id": "c_cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "graphe",
+        "regle",
+        "synthese"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_max",
+       "target": "regle"
+      },
+      {
+       "id": "w_synthese",
+       "verb": "write",
+       "at": "cue:c_min",
+       "target": "synthese"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

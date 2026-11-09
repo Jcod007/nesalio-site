@@ -1,0 +1,766 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "pente_un_point",
+  "title": "Trouver la pente quand il manque des données",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une pente a besoin de deux points, et trouver la pente ou l'équation de la droite selon l'information donnée."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       5
+      ],
+      "y": [
+       -1,
+       5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "pa",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "la",
+     "attachment": {
+      "parent": "pa",
+      "anchor": "left"
+     },
+     "content": "A(1 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "pb",
+     "params": {
+      "at": [
+       4,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lb",
+     "attachment": {
+      "parent": "pb",
+      "anchor": "right"
+     },
+     "content": "B(4 ; 3)",
+     "type": "label"
+    },
+    {
+     "id": "sec",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       4,
+       3
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "mont",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       4,
+       1
+      ],
+      "to": [
+       4,
+       3
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "av",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       4,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lm",
+     "attachment": {
+      "parent": "mont",
+      "anchor": "right",
+      "gap": "sm"
+     },
+     "content": "montée 2",
+     "type": "label"
+    },
+    {
+     "id": "lav",
+     "attachment": {
+      "parent": "av",
+      "anchor": "bottom",
+      "gap": "sm"
+     },
+     "content": "avancée 3",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Bonne question : une pente, ça compare deux points, jamais un seul.",
+     "cues": [
+      {
+       "id": "c_pente",
+       "text": "pente"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux points"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      }
+     ]
+    },
+    {
+     "id": "pose",
+     "say": "Regarde A un un et B quatre trois. La montée, c'est trois moins un, donc deux. L'avancée, c'est quatre moins un, donc trois.",
+     "cues": [
+      {
+       "id": "c_a",
+       "text": "A un un"
+      },
+      {
+       "id": "c_b",
+       "text": "B quatre trois"
+      },
+      {
+       "id": "c_deux",
+       "text": "donc deux"
+      },
+      {
+       "id": "c_trois",
+       "text": "donc trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pa",
+       "verb": "show",
+       "at": "cue:c_a",
+       "target": "pa"
+      },
+      {
+       "id": "s_la",
+       "verb": "show",
+       "at": "cue:c_a",
+       "target": "la"
+      },
+      {
+       "id": "s_pb",
+       "verb": "show",
+       "at": "cue:c_b",
+       "target": "pb"
+      },
+      {
+       "id": "s_lb",
+       "verb": "show",
+       "at": "cue:c_b",
+       "target": "lb"
+      },
+      {
+       "id": "s_mont",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "mont"
+      },
+      {
+       "id": "s_lm",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "lm"
+      },
+      {
+       "id": "s_av",
+       "verb": "show",
+       "at": "cue:c_trois",
+       "target": "av"
+      },
+      {
+       "id": "s_lav",
+       "verb": "show",
+       "at": "cue:c_trois",
+       "target": "lav"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "rapport",
+     "say": "La pente, c'est la montée divisée par l'avancée : deux divisé par trois.",
+     "cues": [
+      {
+       "id": "c_montee",
+       "text": "montée"
+      },
+      {
+       "id": "c_avancee",
+       "text": "avancée"
+      },
+      {
+       "id": "c_divise",
+       "text": "deux divisé par trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_sec",
+       "verb": "draw",
+       "start": "cue:c_montee",
+       "end": "cue_end:c_divise",
+       "target": "sec"
+      },
+      {
+       "id": "h_mont",
+       "verb": "highlight",
+       "start": "cue:c_montee",
+       "end": "cue_end:c_avancee",
+       "target": "mont",
+       "role": "accent"
+      },
+      {
+       "id": "h_av",
+       "verb": "highlight",
+       "start": "cue:c_montee",
+       "end": "cue_end:c_avancee",
+       "target": "av",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "y = \\frac{2}{3}x + b",
+     "type": "math"
+    },
+    {
+     "id": "sub",
+     "content": "1 = \\frac{2}{3}(1) + b",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "1"
+      },
+      {
+       "id": "droite",
+       "text": "= \\frac{2}{3}(1) + b"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "bsol",
+     "content": "b = \\frac{1}{3}",
+     "type": "math"
+    },
+    {
+     "id": "finale",
+     "content": "y = \\frac{2}{3}x + \\frac{1}{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "besoin",
+     "say": "Donc avec deux points, tout se calcule. Mais ton problème dit : un seul point, et il manque la pente.",
+     "cues": [
+      {
+       "id": "c_un",
+       "text": "un seul point"
+      },
+      {
+       "id": "c_manque",
+       "text": "il manque la pente"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_rep",
+       "verb": "dim",
+       "at": "cue:c_un",
+       "target": "rep"
+      }
+     ]
+    },
+    {
+     "id": "autre",
+     "say": "Alors c'est une autre donnée qui doit remplacer la pente : un parallèle, un perpendiculaire, ou la droite tout entière.",
+     "cues": [
+      {
+       "id": "c_donnee",
+       "text": "autre donnée"
+      },
+      {
+       "id": "c_parallele",
+       "text": "un parallèle"
+      },
+      {
+       "id": "c_perpendiculaire",
+       "text": "un perpendiculaire"
+      }
+     ],
+     "do": [],
+     "pause_after": "normal"
+    },
+    {
+     "id": "branche",
+     "say": "Prenons une droite donnée : y égale deux tiers de x. Si le point A un un est dessus, on peut trouver la pente, puis b.",
+     "cues": [
+      {
+       "id": "c_droite",
+       "text": "y égale deux tiers de x"
+      },
+      {
+       "id": "c_pt",
+       "text": "A un un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_coef",
+       "verb": "write",
+       "at": "cue:c_droite",
+       "target": "eq"
+      },
+      {
+       "id": "w_b",
+       "verb": "highlight",
+       "at": "cue:c_pt",
+       "target": "eq",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "resous",
+     "say": "On remplace x et y par le point : un égale deux tiers plus b. Donc b égale un tiers.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "un égale deux tiers plus b"
+      },
+      {
+       "id": "c_b",
+       "text": "b égale un tiers"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_sub",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "sub",
+       "part": "gauche"
+      },
+      {
+       "id": "w_sub",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "sub",
+       "part": "droite"
+      },
+      {
+       "id": "s_bsol",
+       "verb": "show",
+       "at": "cue:c_b",
+       "target": "bsol"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "resultat",
+     "say": "La droite complète est y égale deux tiers de x plus un tiers.",
+     "cues": [
+      {
+       "id": "c_finale",
+       "text": "y égale deux tiers de x plus un tiers"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_finale",
+       "verb": "show",
+       "at": "cue:c_finale",
+       "target": "finale"
+      },
+      {
+       "id": "h_finale",
+       "verb": "highlight",
+       "at": "after:s_finale",
+       "target": "finale",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_trois",
+   "introduces": [
+    {
+     "id": "trois",
+     "content": "1 point + autre donnée = équation complète",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "suite",
+     "say": "Si la donnée est la pente, tu remplaces x et y par le point et tu trouves b.",
+     "cues": [
+      {
+       "id": "c_si",
+       "text": "Si la donnée est la pente"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_trois",
+       "verb": "show",
+       "at": "cue:c_si",
+       "target": "trois"
+      }
+     ]
+    },
+    {
+     "id": "regle",
+     "say": "Si la donnée est une parallèle, tu gardes la même pente ; si c'est une perpendiculaire, tu prends l'opposée inversée.",
+     "cues": [
+      {
+       "id": "c_parallele",
+       "text": "une parallèle"
+      },
+      {
+       "id": "c_perp",
+       "text": "une perpendiculaire"
+      },
+      {
+       "id": "c_opp",
+       "text": "l'opposée inversée"
+      }
+     ],
+     "do": [],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Un point ne donne jamais la pente seul : il faut un deuxième point ou une autre donnée.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fin",
+     "say": "À retenir : pour une droite, il faut la pente et b. Le point complète une des deux données, il ne fait pas tout.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_complete",
+       "text": "complète une des deux données"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rep",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "rep"
+      },
+      {
+       "id": "f_eq",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "eq"
+      },
+      {
+       "id": "f_sub",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "sub"
+      },
+      {
+       "id": "f_bs",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "bsol"
+      },
+      {
+       "id": "f_fin",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "finale"
+      },
+      {
+       "id": "f_trois",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "trois"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_complete",
+       "target": "idee"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "at": "after:s_idee",
+       "target": "idee",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

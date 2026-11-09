@@ -1,0 +1,97 @@
+QUESTION (ap-endo-exo, chimie, sec 5, alloprof) : Comment on sait si c’est endo ou exo
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Comment savoir si une transformation est endothermique ou exothermique
+=== Tranche s_intro
+  OBJET diag_axes [axes] {"x":[0,6],"y":[0,8]} 
+  OBJET diag_line [polygon] {"vertices":[[0,4],[2,4],[3,7],[4,1],[6,1]]} 
+  OBJET axis_x [label] "progression de la réaction" attaché à diag_axes
+  OBJET axis_y [label] "énergie" attaché à diag_axes
+  OBJET lbl_react [label] "réactifs" attaché à diag_line
+  OBJET lbl_prod [label] "produits" attaché à diag_line
+DIT (dabord) : Pour savoir si c'est endo ou exo, on regarde l'énergie : est-ce qu'il en faut pour que ça se passe, ou est-ce qu'il en sort ?
+    camera.focus  @beat:start {"targets":["diag_axes"],"bounds":"layout_bounds","save_as":"vue_diag"}
+    show diag_axes @beat:start 
+    show axis_x @after:s_axes 
+    show axis_y @after:s_axes 
+DIT (diagramme) : Voici le diagramme d'énergie d'une transformation. La ligne part des réactifs, monte au sommet, puis redescend vers les produits.
+    draw diag_line @- {"start":"cue:c_part","end":"cue_end:c_prod"}
+    show lbl_react @after:d_ligne 
+    show lbl_prod @after:d_ligne 
+=== Tranche s_exothermique
+  OBJET arr_act [arrow] {"from":[2,4],"to":[3,7]} 
+  OBJET lbl_act [label] "énergie d'activation" attaché à arr_act
+  OBJET arr_dh [arrow] {"from":[5,4],"to":[5,1]} 
+  OBJET lbl_dh [label] "ΔH < 0" attaché à arr_dh
+  OBJET note_exo [text] "Exothermique : les produits sont plus bas, il dégage de l'énergie" 
+DIT (activation) : Il faut d'abord fournir l'énergie d'activation pour franchir le sommet : c'est la bosse à surmonter.
+    show arr_act @cue:c_activation 
+    show lbl_act @after:s_arr 
+    highlight diag_line @- {"start":"cue:c_sommet","end":"cue_end:c_sommet","role":"accent"}
+DIT (exo) : Mais ici les produits se retrouvent plus bas que les réactifs : la transformation a libéré de l'énergie. On dit qu'elle est exothermique.
+    show arr_dh @cue:c_plusbas 
+    show lbl_dh @after:s_dh 
+    show note_exo @cue:c_exo 
+    highlight lbl_dh @- {"start":"cue:c_exo","end":"cue_end:c_exo","role":"result"}
+=== Tranche s_endothermique
+  OBJET diag2_axes [axes] {"x":[0,6],"y":[0,8]} 
+  OBJET diag2_line [polygon] {"vertices":[[0,3],[2,3],[3,6],[4,7],[6,7]]} 
+  OBJET lbl_react2 [label] "réactifs" attaché à diag2_line
+  OBJET lbl_prod2 [label] "produits" attaché à diag2_line
+  OBJET arr_dh2 [arrow] {"from":[5,3],"to":[5,7]} 
+  OBJET lbl_dh2 [label] "ΔH > 0" attaché à arr_dh2
+  OBJET note_endo [text] "Endothermique : les produits sont plus hauts, il faut fournir de l'énergie" 
+DIT (autre) : Maintenant l'autre cas : les produits se retrouvent plus hauts que les réactifs.
+    dim diag_axes @beat:start 
+    dim diag_line @beat:start 
+    show diag2_axes @beat:start 
+    draw diag2_line @- {"start":"cue:c_hauts","end":"cue_end:c_hauts"}
+    show lbl_react2 @after:d2_ligne 
+    show lbl_prod2 @after:d2_ligne 
+DIT (endo) : Cette fois, il a fallu fournir de l'énergie en plus : la transformation absorbe de l'énergie, elle est endothermique, et ΔH est positif.
+    show arr_dh2 @cue:c_absorbe 
+    show lbl_dh2 @after:s2_dh 
+    show note_endo @cue:c_endo 
+=== Tranche s_quotidien
+  OBJET tableau [matrix] {"rows":[["exothermique","réchauffe","énergie dégagée","ΔH < 0"],["endothermique","refroidit","énergie absorbée","ΔH > 0"]],"column_labels":["type","effet sur le milieu","énergie","signe de ΔH"]} 
+  OBJET exo1 [text] "Combustion, explosion, congélation de l'eau" 
+  OBJET endo1 [text] "Fusion de la glace, vaporisation, dissolution qui refroidit" 
+DIT (quotidien) : Dans la vie, si ça dégage de la chaleur ou de la lumière, c'est exothermique : une combustion, une explosion, la congélation de l'eau.
+    fade_out diag2_axes @beat:start 
+    fade_out diag2_line @beat:start 
+    fade_out diag_axes @beat:start 
+    fade_out diag_line @beat:start 
+    fade_out note_exo @beat:start 
+    fade_out note_endo @beat:start 
+    show tableau @cue:c_degage 
+    show exo1 @cue:c_exo2 
+DIT (froid) : Si au contraire le milieu se refroidit ou qu'il faut chauffer, c'est endothermique : la fusion de la glace, la vaporisation de l'eau.
+    show endo1 @cue:c_endo2 
+    highlight tableau @- {"start":"cue:c_refroidit","end":"cue_end:c_endo2","role":"accent"}
+=== Tranche s_retenir
+  OBJET dh [math] "\\Delta H = H_{\\text{produits}} - H_{\\text{réactifs}}" parts=\Delta H | = H_{\text{produits}} - H_{\text{réactifs}}
+  OBJET regle [math] "\\Delta H < 0 \\;\\text{exo} \\qquad \\Delta H > 0 \\;\\text{endo}" 
+DIT (formule) : La formule qui tranche : delta H égale l'énergie des produits moins celle des réactifs.
+    fade_out tableau @beat:start 
+    fade_out exo1 @beat:start 
+    fade_out endo1 @beat:start 
+    write dh @cue:c_delta {"part":"membre"}
+    write dh @cue:c_prod {"part":"calcul"}
+DIT (signe) : Si ce résultat est négatif, c'est exothermique ; s'il est positif, c'est endothermique.
+    write regle @cue:c_negatif 
+    highlight regle @- {"start":"cue:c_positif","end":"cue_end:c_positif","role":"result"}
+=== Tranche s_exemple
+  OBJET ex [math] "-110{,}5 - (-393{,}5) = +283{,}0 \\text{ kJ}" parts=-110{,}5 | - (-393{,}5) | = +283{,}0 \text{ kJ}
+  OBJET verdict [text] "ΔH positif : la transformation absorbe de l'énergie, elle est endothermique" 
+DIT (exemple) : Par exemple, si les réactifs sont à moins cent dix virgule cinq kilojoules et les produits à moins trois cent quatre-vingt-treize virgule cinq, on fait la soustraction.
+    dim regle @beat:start 
+    write ex @cue:c_110 {"part":"a"}
+    write ex @cue:c_393 {"part":"b"}
+    write ex @cue:c_soustraction {"part":"r"}
+DIT (conclusion) : Moins trois cent quatre-vingt-treize est plus bas que moins cent dix : la différence est positive, donc la transformation est endothermique.
+    show verdict @cue:c_endo 
+    highlight ex @- {"start":"cue:c_positif","end":"cue_end:c_positif","role":"result","part":"r"}
+--- 6 tranches, 243 mots dits (≈ 1.6 min d'oral)

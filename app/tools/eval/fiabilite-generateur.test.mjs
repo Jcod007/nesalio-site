@@ -13,6 +13,7 @@ import { describe, it } from "vitest";
 import { DEFAULTS, GATEWAY_BASE } from "@/server/config";
 import { generateNesalio } from "@/server/nesalio/generator";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
+import { cause } from "./banc-outils.mjs";
 
 const QUESTIONS = [
   { id: "sommet", ask: "Comment trouver le sommet d'une parabole ?" },
@@ -34,23 +35,8 @@ function gatewayToken() {
   return file.match(/^(?:AI_GATEWAY_API_KEY|VERCEL_OIDC_TOKEN)="?([^"\r\n]+)/m)?.[1] ?? null;
 }
 
-/** Short label for a refusal reason, so that counts group the same cause together. */
-export function cause(message) {
-  const rules = [
-    [/illisible/, "JSON illisible"],
-    [/lesson doit venir avant/, "en-tête absent avant la tranche"],
-    [/parties mises bout à bout/, "parties ≠ formule"],
-    [/Objet effacé/, "objet visé après remove"],
-    [/Cible non déclarée|Objet inconnu|non déclaré/, "cible inconnue"],
-    [/Repère absent/, "repère absent"],
-    [/Unrecognized key/, "clé inconnue"],
-    [/must match pattern/, "identifiant invalide"],
-    [/Nom inconnu/, "nom inconnu dans une expression"],
-    [/Capacité non exécutable/, "capacité non jouable"],
-    [/expected array|expected object|expected string|expected number|Invalid input/, "type ou champ manquant"],
-  ];
-  return rules.find(([pattern]) => pattern.test(message))?.[1] ?? "autre";
-}
+// Shared with the Nesalio bench (banc-nesalio.test.mjs).
+export { cause } from "./banc-outils.mjs";
 
 async function run(question, round, out, label) {
   const logs = [];

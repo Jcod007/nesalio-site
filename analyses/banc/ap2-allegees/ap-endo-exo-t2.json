@@ -1,0 +1,966 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "endo_exo",
+  "title": "Comment savoir si une transformation est endothermique ou exothermique",
+  "language": "fr",
+  "learning_goal": "Reconnaître une transformation endothermique ou exothermique par le sens du transfert d'énergie et lire le signe de ΔH sur le diagramme énergétique."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_reperer",
+   "introduces": [
+    {
+     "id": "exo_txt",
+     "content": "Exothermique : dégage de l'énergie",
+     "type": "text"
+    },
+    {
+     "id": "endo_txt",
+     "content": "Endothermique : absorbe de l'énergie",
+     "type": "text"
+    },
+    {
+     "id": "exo_eg",
+     "attachment": {
+      "parent": "exo_txt",
+      "anchor": "bottom"
+     },
+     "content": "Ex. : combustion, congélation",
+     "type": "text"
+    },
+    {
+     "id": "endo_eg",
+     "attachment": {
+      "parent": "endo_txt",
+      "anchor": "bottom"
+     },
+     "content": "Ex. : fusion, vaporisation",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "question",
+     "say": "Tu veux savoir comment reconnaître une transformation endothermique ou exothermique. Le truc tient en une idée : est-ce que l'énergie entre ou sort ?",
+     "cues": [
+      {
+       "id": "c_reconnaitre",
+       "text": "reconnaître"
+      },
+      {
+       "id": "c_energie",
+       "text": "l'énergie entre ou sort"
+      }
+     ],
+     "do": [],
+     "pause_after": "normal"
+    },
+    {
+     "id": "deux_mots",
+     "say": "Exo, comme dans « sortir » : la transformation dégage de l'énergie vers le milieu. Endo, comme dans « entrer » : elle en absorbe.",
+     "cues": [
+      {
+       "id": "c_exo",
+       "text": "la transformation dégage de l'énergie"
+      },
+      {
+       "id": "c_endo",
+       "text": "elle en absorbe"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_exo",
+       "verb": "show",
+       "at": "cue:c_exo",
+       "target": "exo_txt"
+      },
+      {
+       "id": "s_endo",
+       "verb": "show",
+       "at": "cue:c_endo",
+       "target": "endo_txt"
+      }
+     ]
+    },
+    {
+     "id": "exemples",
+     "say": "Une combustion, la congélation de l'eau : exothermiques. Une fusion, une vaporisation : endothermiques. Vers un état plus désordonné, il faut fournir de l'énergie.",
+     "cues": [
+      {
+       "id": "c_combustion",
+       "text": "Une combustion"
+      },
+      {
+       "id": "c_fusion",
+       "text": "Une fusion"
+      },
+      {
+       "id": "c_desordre",
+       "text": "état plus désordonné"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_exo_eg",
+       "verb": "show",
+       "at": "cue:c_combustion",
+       "target": "exo_eg"
+      },
+      {
+       "id": "s_endo_eg",
+       "verb": "show",
+       "at": "cue:c_fusion",
+       "target": "endo_eg"
+      },
+      {
+       "id": "h_desordre",
+       "verb": "highlight",
+       "start": "cue:c_desordre",
+       "end": "cue_end:c_desordre",
+       "target": "endo_eg",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "sens_txt",
+     "content": "Le milieu se réchauffe → exo",
+     "type": "text"
+    },
+    {
+     "id": "sens_txt2",
+     "attachment": {
+      "parent": "sens_txt",
+      "anchor": "bottom"
+     },
+     "content": "Le milieu se refroidit → endo",
+     "type": "text"
+    },
+    {
+     "id": "attention",
+     "layout": {
+      "next_to": "sens_txt2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "La température n'est pas la chaleur : la chaleur est l'énergie transférée du corps chaud vers le corps froid.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "thermo",
+     "say": "Dans un calorimètre, on regarde le milieu. S'il se réchauffe, la transformation a libéré de l'énergie : elle est exothermique.",
+     "cues": [
+      {
+       "id": "c_milieu",
+       "text": "on regarde le milieu"
+      },
+      {
+       "id": "c_rechauffe",
+       "text": "il se réchauffe"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_exo",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "exo_txt"
+      },
+      {
+       "id": "f_endo",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "endo_txt"
+      },
+      {
+       "id": "f_exo_eg",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "exo_eg"
+      },
+      {
+       "id": "f_endo_eg",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "endo_eg"
+      },
+      {
+       "id": "s_txt",
+       "verb": "show",
+       "at": "cue:c_rechauffe",
+       "target": "sens_txt"
+      }
+     ]
+    },
+    {
+     "id": "froid",
+     "say": "S'il se refroidit, la transformation a pris de l'énergie au milieu : elle est endothermique. Pense à un sac de glace qui fond sur ta peau.",
+     "cues": [
+      {
+       "id": "c_refroidit",
+       "text": "il se refroidit"
+      },
+      {
+       "id": "c_glace",
+       "text": "sac de glace"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_txt2",
+       "verb": "show",
+       "at": "cue:c_refroidit",
+       "target": "sens_txt2"
+      }
+     ]
+    },
+    {
+     "id": "nuance",
+     "say": "Attention : la température n'est pas la chaleur. La température mesure l'agitation des particules ; la chaleur, c'est l'énergie transférée du chaud vers le froid.",
+     "cues": [
+      {
+       "id": "c_temp",
+       "text": "la température n'est pas la chaleur"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_att",
+       "verb": "show",
+       "at": "cue:c_temp",
+       "target": "attention"
+      },
+      {
+       "id": "h_temp",
+       "verb": "highlight",
+       "start": "cue:c_temp",
+       "end": "cue_end:c_temp",
+       "target": "attention",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diagramme",
+   "introduces": [
+    {
+     "id": "axe_x",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6.5,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "axe_y",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       0,
+       8
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_x",
+     "attachment": {
+      "parent": "axe_x",
+      "anchor": "right"
+     },
+     "content": "progression de la réaction",
+     "type": "label"
+    },
+    {
+     "id": "lab_y",
+     "attachment": {
+      "parent": "axe_y",
+      "anchor": "top"
+     },
+     "content": "énergie",
+     "type": "label"
+    },
+    {
+     "id": "reactifs",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0.5,
+       4
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "montee",
+     "params": {
+      "from": [
+       2,
+       4
+      ],
+      "to": [
+       3,
+       7
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "descente",
+     "params": {
+      "from": [
+       3,
+       7
+      ],
+      "to": [
+       4,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "produits",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "from": [
+       4,
+       1
+      ],
+      "to": [
+       6,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_reactifs",
+     "attachment": {
+      "parent": "reactifs",
+      "anchor": "left"
+     },
+     "content": "réactifs",
+     "type": "label"
+    },
+    {
+     "id": "lab_produits",
+     "attachment": {
+      "parent": "produits",
+      "anchor": "right"
+     },
+     "content": "produits",
+     "type": "label"
+    },
+    {
+     "id": "lab_sommet",
+     "attachment": {
+      "parent": "montee",
+      "anchor": "top"
+     },
+     "content": "complexe activé",
+     "type": "label"
+    },
+    {
+     "id": "fl_act",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       3.4,
+       4
+      ],
+      "to": [
+       3.4,
+       7
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_act",
+     "attachment": {
+      "parent": "fl_act",
+      "anchor": "right"
+     },
+     "content": "énergie d'activation",
+     "type": "label"
+    },
+    {
+     "id": "fl_dh",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "from": [
+       4.8,
+       4
+      ],
+      "to": [
+       4.8,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_dh",
+     "attachment": {
+      "parent": "fl_dh",
+      "anchor": "right"
+     },
+     "content": "ΔH < 0",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tracer",
+     "say": "Sur un diagramme énergétique, on porte l'énergie en ordonnée et la progression de la réaction en abscisse. Les réactifs sont ici, à une certaine énergie.",
+     "cues": [
+      {
+       "id": "c_ordonnee",
+       "text": "énergie en ordonnée"
+      },
+      {
+       "id": "c_progress",
+       "text": "progression de la réaction"
+      },
+      {
+       "id": "c_reactifs",
+       "text": "Les réactifs"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_ax",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "axe_x"
+      },
+      {
+       "id": "d_ay",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "axe_y"
+      },
+      {
+       "id": "s_lx",
+       "verb": "show",
+       "at": "cue:c_progress",
+       "target": "lab_x"
+      },
+      {
+       "id": "s_ly",
+       "verb": "show",
+       "at": "cue:c_ordonnee",
+       "target": "lab_y"
+      },
+      {
+       "id": "d_reac",
+       "verb": "draw",
+       "at": "cue:c_reactifs",
+       "target": "reactifs"
+      },
+      {
+       "id": "s_lreac",
+       "verb": "show",
+       "at": "cue:c_reactifs",
+       "target": "lab_reactifs"
+      }
+     ]
+    },
+    {
+     "id": "sommet",
+     "say": "Pour réagir, il faut franchir une bosse : le sommet s'appelle le complexe activé, et sa hauteur, l'énergie d'activation.",
+     "cues": [
+      {
+       "id": "c_bosse",
+       "text": "franchir une bosse"
+      },
+      {
+       "id": "c_complexe",
+       "text": "complexe activé"
+      },
+      {
+       "id": "c_act",
+       "text": "l'énergie d'activation"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_montee",
+       "verb": "draw",
+       "at": "cue:c_bosse",
+       "target": "montee"
+      },
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "cue:c_complexe",
+       "target": "lab_sommet"
+      },
+      {
+       "id": "s_fact",
+       "verb": "show",
+       "at": "cue:c_act",
+       "target": "fl_act"
+      },
+      {
+       "id": "s_lact",
+       "verb": "show",
+       "at": "cue:c_act",
+       "target": "lab_act"
+      }
+     ]
+    },
+    {
+     "id": "produits",
+     "say": "Les produits se retrouvent plus bas que les réactifs. La flèche entre les deux niveaux, c'est delta H : il est négatif, donc la réaction est exothermique.",
+     "cues": [
+      {
+       "id": "c_produits",
+       "text": "Les produits"
+      },
+      {
+       "id": "c_deltah",
+       "text": "c'est delta H"
+      },
+      {
+       "id": "c_negatif",
+       "text": "il est négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_desc",
+       "verb": "draw",
+       "at": "cue:c_produits",
+       "target": "descente"
+      },
+      {
+       "id": "d_prod",
+       "verb": "draw",
+       "at": "cue:c_produits",
+       "target": "produits"
+      },
+      {
+       "id": "s_lprod",
+       "verb": "show",
+       "at": "cue:c_produits",
+       "target": "lab_produits"
+      },
+      {
+       "id": "s_fdh",
+       "verb": "show",
+       "at": "cue:c_deltah",
+       "target": "fl_dh"
+      },
+      {
+       "id": "s_ldh",
+       "verb": "show",
+       "at": "cue:c_negatif",
+       "target": "lab_dh"
+      },
+      {
+       "id": "h_dh",
+       "verb": "highlight",
+       "start": "cue:c_negatif",
+       "end": "cue_end:c_negatif",
+       "target": "lab_dh",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "\\Delta H = H_{\\text{produits}} - H_{\\text{réactifs}}",
+     "parts": [
+      {
+       "id": "dh",
+       "text": "\\Delta H"
+      },
+      {
+       "id": "calc",
+       "text": "= H_{\\text{produits}} - H_{\\text{réactifs}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "signes",
+     "content": "\\Delta H < 0 \\text{ : exo} \\qquad \\Delta H > 0 \\text{ : endo}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "Pour trancher, on compare l'énergie des produits à celle des réactifs : delta H égale H des produits moins H des réactifs.",
+     "cues": [
+      {
+       "id": "c_deltah",
+       "text": "delta H égale"
+      },
+      {
+       "id": "c_prod",
+       "text": "H des produits moins H des réactifs"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axe_x",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axe_x"
+      },
+      {
+       "id": "f_axe_y",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axe_y"
+      },
+      {
+       "id": "f_montee",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "montee"
+      },
+      {
+       "id": "f_descente",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "descente"
+      },
+      {
+       "id": "w_dh",
+       "verb": "write",
+       "at": "cue:c_deltah",
+       "target": "regle",
+       "part": "dh"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_prod",
+       "target": "regle",
+       "part": "calc"
+      }
+     ]
+    },
+    {
+     "id": "conclusion",
+     "say": "Résultat négatif, les produits sont plus bas : exothermique. Résultat positif, il a fallu fournir de l'énergie : endothermique.",
+     "cues": [
+      {
+       "id": "c_negatif",
+       "text": "Résultat négatif"
+      },
+      {
+       "id": "c_positif",
+       "text": "Résultat positif"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_signes",
+       "verb": "write",
+       "at": "cue:c_positif",
+       "target": "signes"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_negatif",
+       "end": "cue_end:c_negatif",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "central",
+     "say": "L'idée centrale : exo ou endo, ce n'est rien d'autre que le sens du transfert d'énergie, et son signe dans delta H.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "L'idée centrale"
+      },
+      {
+       "id": "c_signe",
+       "text": "son signe dans delta H"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_sens",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sens_txt"
+      },
+      {
+       "id": "f_sens2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sens_txt2"
+      },
+      {
+       "id": "f_att",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "attention"
+      },
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "cue:c_idee",
+       "targets": [
+        "regle",
+        "signes"
+       ]
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "start": "cue:c_signe",
+       "end": "cue_end:c_signe",
+       "target": "signes",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,70 @@
+QUESTION (chimie-gaz-parfaits, chimie, sec 5, methode) : combien de moles de gaz il y a dans un ballon de 5,0 L à 25 °C pis 101,3 kPa?
+RÉPONSE DE RÉFÉRENCE : n = PV/RT = 101,3 × 5,0 / (8,314 × 298) ≈ 0,204 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. PV = nRT, donc n = PV / RT
+  2. température en kelvins : 25 + 273 = 298 K
+  3. R = 8,314 kPa·L/(mol·K), unités cohérentes avec kPa et L
+  4. n ≈ 0,204 mol écrit
+  5. contrôle : à TPAN une mole occupe ≈ 24,5 L, et 5,0 / 24,5 ≈ 0,20
+ERREURS GRAVES À CHERCHER : température laissée en °C ; R avec des unités incohérentes
+CONTRÔLE AUTOMATIQUE : réponse absente (0[,.]20\d*\s*mol) ; issue complète
+
+TITRE : Combien de moles dans un ballon de 5,0 L
+math_context : {"symbols":{},"expressions":{"n":"101.3*5.0/(8.314*298.15)"}}
+=== Tranche s_idee
+  OBJET ballon [circle] {"center":[0,0],"radius":1.5} 
+  OBJET particules [text] "les particules du gaz cognent sur les parois"   <<JAMAIS MONTRÉ>>
+  OBJET loi [math] "pV = nRT" parts=pV | = nRT
+  GROUPE g_ballon = particules
+DIT (intro) : Bonne question : on cherche le nombre de moles de gaz dans un ballon, et la loi des gaz parfaits va nous le donner.
+    draw ballon @cue:c_moles 
+DIT (loi) : L'idée, c'est que la pression et le volume du gaz sont reliés à sa quantité par la loi p V égale n R T.
+    write loi @cue:c_pv {"part":"pv"}
+    write loi @cue:c_nrt {"part":"nrt"}
+=== Tranche s_donnees
+  OBJET tab [matrix] {"rows":[[101.3,5,25,298.15]],"row_labels":["valeur"],"column_labels":["p (kPa)","V (L)","θ (°C)","T (K)"]} 
+  OBJET conv [math] "T = 25 + 273{,}15 = 298{,}15" parts=T = 25 + 273{,}15 | = 298{,}15
+  OBJET r_const [math] "R = 8{,}314\\ \\pu{kPa.L/(mol.K)}" 
+DIT (donnees) : Les données : le ballon a un volume de cinq litres, la pression est de cent un virgule trois kilopascals, et la température de vingt-cinq degrés Celsius.
+    show tab @cue:c_pression 
+DIT (kelvin) : Première étape obligatoire : on convertit la température en kelvins. On ajoute deux cent soixante-treize virgule quinze : vingt-cinq plus deux cent soixante-treize virgule quinze donne deux cent quatre-vingt-dix-huit virgule quinze kelvins.
+    write conv @cue:c_convertit {"part":"deg"}
+    write conv @cue:c_total {"part":"kelvin"}
+DIT (constante) : Et la constante des gaz, R, vaut huit virgule trois cent quatorze kilopascals fois litre par mole fois kelvin.
+    write r_const @cue:c_r 
+=== Tranche s_calcul
+  OBJET iso [math] "n = \\frac{pV}{RT}" parts=n | = \frac{pV}{RT}
+  OBJET num [math] "n = \\frac{101{,}3 \\times 5{,}0}{8{,}314 \\times 298{,}15}" 
+  OBJET rep [math] "n = \\frac{506{,}5}{2478{,}8}" 
+  OBJET res [math] "n \\approx 0{,}204\\ \\pu{mol}" 
+DIT (isole) : On isole petit n : on divise les deux côtés par R T. Donc petit n égale p V divisé par R T.
+    dim tab @cue:c_divise 
+    dim conv @cue:c_divise 
+    dim loi @cue:c_divise 
+    write iso @cue:c_n 
+DIT (nombres) : On remplace par nos valeurs : au numérateur, cent un virgule trois fois cinq virgule zéro ; au dénominateur, huit virgule trois cent quatorze fois deux cent quatre-vingt-dix-huit virgule quinze.
+    write num @cue:c_haut 
+    highlight num @cue:c_bas {"role":"accent"}
+DIT (calcule) : En haut : cinq cent six virgule cinq. En bas : deux mille quatre cent soixante-dix-huit virgule huit. On divise, et on obtient environ zéro virgule deux cent quatre mole.
+    write rep @cue:c_h 
+    highlight rep @cue:c_b {"role":"accent"}
+    write res @cue:c_res 
+    highlight res @- {"start":"cue:c_res","end":"cue_end:c_res","role":"result"}
+DIT (verif) : Vérifions : à vingt-cinq degrés et pression normale, une mole occupe environ vingt-quatre virgule cinq litres. Cinq litres divisés par ça donne à peu près zéro virgule deux mole. On retrouve la même chose.
+    highlight ballon @- {"start":"cue:c_vingtquatre","end":"cue_end:c_meme","role":"accent"}
+=== Tranche s_retenir
+  OBJET regle_finale [math] "n = \\frac{pV}{RT}" 
+  OBJET idee_finale [text] "Conversions obligatoires : kPa, litres, kelvins" 
+DIT (retenir) : À retenir : la loi des gaz parfaits, petit n égale p V divisé par R T. Et avant de calculer, on met toujours la pression en kilopascals, le volume en litres et la température en kelvins.
+    fade_out ballon @cue:c_retenir 
+    fade_out particules @cue:c_retenir 
+    fade_out iso @cue:c_retenir 
+    fade_out num @cue:c_retenir 
+    fade_out rep @cue:c_retenir 
+    fade_out res @cue:c_retenir 
+    fade_out r_const @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["regle_finale","idee_finale"],"bounds":"layout_bounds"}
+    show regle_finale @cue:c_formule 
+    show idee_finale @cue:c_conversions 
+    highlight regle_finale @- {"start":"cue:c_formule","end":"cue_end:c_formule","role":"result"}
+--- 4 tranches, 280 mots dits (≈ 1.9 min d'oral)

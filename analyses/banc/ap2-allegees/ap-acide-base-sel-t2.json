@@ -1,0 +1,792 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "reconnaitre_acide_base_sel",
+  "title": "Reconnaître un acide, une base et un sel par sa formule",
+  "language": "fr",
+  "learning_goal": "Classer une substance en acide, base ou sel en lisant sa formule chimique, et savoir ce qu'elle libère en solution."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "question",
+     "content": "Acide, base ou sel : que regarder dans la formule ?",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Tu veux reconnaître un acide, une base ou un sel juste en regardant la formule. Bonne nouvelle : il y a trois indices très simples.",
+     "cues": [
+      {
+       "id": "c_indices",
+       "text": "trois indices"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_q",
+       "verb": "show",
+       "at": "cue:c_indices",
+       "target": "question"
+      }
+     ]
+    },
+    {
+     "id": "plan",
+     "say": "Je te montre les trois indices, chacun avec sa formule, puis on les met ensemble dans un petit tableau.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois indices"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_q",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_trois",
+       "target": "question",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_acide_base",
+   "introduces": [
+    {
+     "id": "regle_acide",
+     "content": "\\text{acide} : \\ce{H^+}",
+     "parts": [
+      {
+       "id": "mot_acide",
+       "text": "\\text{acide}"
+      },
+      {
+       "id": "h_plus",
+       "text": ": \\ce{H^+}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "regle_base",
+     "layout": {
+      "next_to": "regle_acide",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{base} : \\ce{OH^-}",
+     "parts": [
+      {
+       "id": "mot_base",
+       "text": "\\text{base}"
+      },
+      {
+       "id": "oh_moins",
+       "text": ": \\ce{OH^-}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ex_acides",
+     "layout": {
+      "next_to": "regle_acide",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\ce{HCl} \\quad \\ce{H2SO4} \\quad \\ce{HNO3}",
+     "type": "math"
+    },
+    {
+     "id": "ex_bases",
+     "layout": {
+      "next_to": "ex_acides",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "\\ce{NaOH} \\quad \\ce{Ca(OH)2}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "acide",
+     "say": "Premier indice, un acide libère des ions H plus en solution. Sa formule commence presque toujours par un H.",
+     "cues": [
+      {
+       "id": "c_hplus",
+       "text": "ions H plus"
+      },
+      {
+       "id": "c_commenceH",
+       "text": "commence presque toujours par un H"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_q",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "question"
+      },
+      {
+       "id": "w_acide",
+       "verb": "write",
+       "at": "cue:c_hplus",
+       "target": "regle_acide",
+       "part": "mot_acide"
+      },
+      {
+       "id": "w_hplus",
+       "verb": "write",
+       "at": "cue:c_hplus",
+       "target": "regle_acide",
+       "part": "h_plus"
+      },
+      {
+       "id": "s_ex_acides",
+       "verb": "show",
+       "at": "cue:c_commenceH",
+       "target": "ex_acides"
+      }
+     ]
+    },
+    {
+     "id": "base",
+     "say": "Deuxième indice, une base libère des ions OH moins. Sa formule contient le groupe OH.",
+     "cues": [
+      {
+       "id": "c_ohmoins",
+       "text": "ions OH moins"
+      },
+      {
+       "id": "c_groupeOH",
+       "text": "groupe OH"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_base",
+       "verb": "write",
+       "at": "cue:c_ohmoins",
+       "target": "regle_base",
+       "part": "mot_base"
+      },
+      {
+       "id": "w_ohmoins",
+       "verb": "write",
+       "at": "cue:c_groupeOH",
+       "target": "regle_base",
+       "part": "oh_moins"
+      },
+      {
+       "id": "s_ex_bases",
+       "verb": "show",
+       "at": "cue:c_groupeOH",
+       "target": "ex_bases"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sel",
+   "introduces": [
+    {
+     "id": "regle_sel",
+     "content": "\\text{sel} : \\text{métal} + \\text{non-métal}",
+     "parts": [
+      {
+       "id": "mot_sel",
+       "text": "\\text{sel}"
+      },
+      {
+       "id": "metal",
+       "text": ": \\text{métal}"
+      },
+      {
+       "id": "nonmetal",
+       "text": "+ \\text{non-métal}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ex_sels",
+     "layout": {
+      "next_to": "regle_sel",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\ce{NaCl} \\quad \\ce{CaCO3} \\quad \\ce{KNO3}",
+     "type": "math"
+    },
+    {
+     "id": "dissoc",
+     "layout": {
+      "next_to": "ex_sels",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\ce{NaCl(s) -> Na^+(aq) + Cl^-(aq)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sel",
+     "say": "Troisième indice, un sel réunit un métal et un non-métal, ou un groupe comme le carbonate. Aucun H, aucun OH.",
+     "cues": [
+      {
+       "id": "c_metal",
+       "text": "un métal"
+      },
+      {
+       "id": "c_nonmetal",
+       "text": "non-métal"
+      },
+      {
+       "id": "c_aucun",
+       "text": "Aucun H"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sel",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "regle_sel",
+       "part": "mot_sel"
+      },
+      {
+       "id": "w_metal",
+       "verb": "write",
+       "at": "cue:c_metal",
+       "target": "regle_sel",
+       "part": "metal"
+      },
+      {
+       "id": "w_nonmetal",
+       "verb": "write",
+       "at": "cue:c_nonmetal",
+       "target": "regle_sel",
+       "part": "nonmetal"
+      },
+      {
+       "id": "s_ex_sels",
+       "verb": "show",
+       "at": "cue:c_aucun",
+       "target": "ex_sels"
+      }
+     ]
+    },
+    {
+     "id": "dissociation",
+     "say": "Attention, en solution personne ne reste collé : le sel se dissocie en ions libres, ici Na plus et Cl moins.",
+     "cues": [
+      {
+       "id": "c_dissocie",
+       "text": "se dissocie"
+      },
+      {
+       "id": "c_naplus",
+       "text": "Na plus"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_solide",
+       "verb": "write",
+       "at": "cue:c_dissocie",
+       "target": "dissoc"
+      },
+      {
+       "id": "w_fleche",
+       "verb": "highlight",
+       "at": "cue:c_dissocie",
+       "target": "dissoc",
+       "role": "accent"
+      },
+      {
+       "id": "w_ions",
+       "verb": "highlight",
+       "at": "cue:c_naplus",
+       "target": "dissoc",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tableau",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        "\\ce{HCl}",
+        "\\ce{H2SO4}",
+        "\\ce{CH3COOH}"
+       ],
+       [
+        "\\ce{NaOH}",
+        "\\ce{Ca(OH)2}",
+        "—"
+       ],
+       [
+        "\\ce{NaCl}",
+        "\\ce{KNO3}",
+        "—"
+       ]
+      ],
+      "row_labels": [
+       "acide : H au début",
+       "base : groupe OH",
+       "sel : métal + non-métal"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "souvenir",
+     "content": "En solution, un acide donne des H⁺ ; une base donne des OH⁻ ; un sel donne deux ions.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tableau",
+     "say": "Rassemble les trois indices dans un même tableau, avec un exemple pour chacun.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "même tableau"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_regle_acide",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regle_acide"
+      },
+      {
+       "id": "f_regle_base",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regle_base"
+      },
+      {
+       "id": "f_regle_sel",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regle_sel"
+      },
+      {
+       "id": "f_ex_acides",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ex_acides"
+      },
+      {
+       "id": "f_ex_bases",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ex_bases"
+      },
+      {
+       "id": "f_ex_sels",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ex_sels"
+      },
+      {
+       "id": "f_dissoc",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "dissoc"
+      },
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_tableau",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "exception",
+     "say": "Une exception à connaître : l'acide acétique, CH trois COOH. Le H acide est à la fin, pas au début.",
+     "cues": [
+      {
+       "id": "c_exception",
+       "text": "exception"
+      },
+      {
+       "id": "c_ch3cooh",
+       "text": "CH trois COOH"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_exception",
+       "end": "cue_end:c_ch3cooh",
+       "target": "tab",
+       "role": "accent",
+       "part": "r1c3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_neutralisation",
+   "introduces": [
+    {
+     "id": "neutral",
+     "content": "\\ce{HCl + NaOH -> NaCl + H2O}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reaction",
+     "say": "Quand un acide rencontre une base, ils se neutralisent. Le produit forme un sel et de l'eau.",
+     "cues": [
+      {
+       "id": "c_rencontre",
+       "text": "rencontre"
+      },
+      {
+       "id": "c_sel_eau",
+       "text": "un sel et de l'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "dim",
+       "at": "cue:c_rencontre",
+       "target": "tab"
+      },
+      {
+       "id": "w_acide",
+       "verb": "write",
+       "at": "cue:c_rencontre",
+       "target": "neutral"
+      },
+      {
+       "id": "w_plus_naoh",
+       "verb": "highlight",
+       "at": "cue:c_rencontre",
+       "target": "neutral",
+       "role": "accent"
+      },
+      {
+       "id": "w_fleche",
+       "verb": "highlight",
+       "at": "cue:c_sel_eau",
+       "target": "neutral",
+       "role": "accent"
+      },
+      {
+       "id": "w_sel",
+       "verb": "highlight",
+       "at": "cue:c_sel_eau",
+       "target": "neutral",
+       "role": "accent"
+      },
+      {
+       "id": "w_eau",
+       "verb": "highlight",
+       "at": "cue:c_sel_eau",
+       "target": "neutral",
+       "role": "accent"
+      },
+      {
+       "id": "h_fleche",
+       "verb": "highlight",
+       "start": "cue:c_sel_eau",
+       "end": "cue_end:c_sel_eau",
+       "target": "neutral",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "recap",
+     "layout": {
+      "next_to": "souvenir",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Acide : H (ou COOH) • Base : OH • Sel : métal + non-métal",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : trois indices, trois familles. Le H en tête ou le groupe COOH, c'est un acide. Le groupe OH, c'est une base. Un métal avec un non-métal, c'est un sel.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_sel",
+       "text": "c'est un sel"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_neutral",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "neutral"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "tab",
+        "souvenir",
+        "recap"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_souvenir",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "souvenir"
+      },
+      {
+       "id": "w_recap",
+       "verb": "write",
+       "at": "cue:c_sel",
+       "target": "recap"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

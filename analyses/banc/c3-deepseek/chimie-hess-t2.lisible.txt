@@ -1,0 +1,93 @@
+QUESTION (chimie-hess, chimie, sec 5, methode) : comment je trouve le ΔH de C + O2 → CO2 si j'ai C + ½ O2 → CO avec ΔH = -110,5 kJ pis CO + ½ O2 → CO2 avec ΔH = -283,0 kJ?
+RÉPONSE DE RÉFÉRENCE : Les deux étapes s'additionnent (CO s'annule) : ΔH = −110,5 + (−283,0) = −393,5 kJ.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. loi de Hess : la variation d'enthalpie ne dépend que de l'état initial et de l'état final
+  2. additionner les deux équations : CO apparaît des deux côtés et s'annule, ½ O₂ + ½ O₂ = O₂
+  3. additionner les ΔH : −110,5 + (−283,0)
+  4. ΔH = −393,5 kJ écrit, réaction exothermique
+  5. valorisé : diagramme énergétique en deux marches
+ERREURS GRAVES À CHERCHER : signe de ΔH faux ; réaction dite endothermique
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le ΔH de C + O2 → CO2 par la loi de Hess
+=== Tranche s_enonce
+  OBJET global [math] "\\ce{C + O2 -> CO2}" 
+  OBJET etape1 [math] "\\ce{C + 1/2 O2 -> CO} \\quad \\Delta H_1 = -110{,}5 \\text{ kJ}" 
+  OBJET etape2 [math] "\\ce{CO + 1/2 O2 -> CO2} \\quad \\Delta H_2 = -283{,}0 \\text{ kJ}" 
+  GROUPE grp_etapes = etape1, etape2
+DIT (pose) : Pour trouver le delta H de carbone plus O deux qui donne CO deux, on part des deux étapes que tu connais.
+    write global @cue:c_global 
+    highlight global @after:w_global {"role":"accent"}
+    highlight global @after:w_part1 {"role":"accent"}
+    show etape1 @cue:c_etapes 
+    show etape2 @after:s_et1 
+DIT (but) : La première forme le CO, la deuxième le consomme. Si on les additionne, le CO va disparaître.
+    highlight etape1 @- {"start":"cue:c_forme","end":"cue_end:c_forme","role":"accent"}
+    highlight etape2 @- {"start":"cue:c_consomme","end":"cue_end:c_consomme","role":"accent"}
+=== Tranche s_addition
+  OBJET somme [math] "\\ce{C + 1/2 O2 + 1/2 O2 -> CO + CO2}" 
+  OBJET somme2 [math] "\\ce{C + O2 -> CO2}"   <<JAMAIS MONTRÉ>>
+  OBJET dh [math] "\\Delta H = -110{,}5 + (-283{,}0)" 
+  OBJET dh2 [math] "\\Delta H = -393{,}5 \\text{ kJ}" 
+DIT (empile) : Additionnons les deux équations : à gauche, il y a le carbone, un demi O deux, puis un demi autre O deux.
+    write somme @cue:c_gauche 
+    highlight somme @- {"start":"cue:c_demi","end":"cue_end:c_demi","role":"accent"}
+DIT (annule) : À droite, le CO apparaît d'un côté et disparaît de l'autre : il s'annule.
+    highlight somme @cue:c_droite {"role":"accent"}
+    highlight somme @- {"start":"cue:c_annule","end":"cue_end:c_annule","role":"accent"}
+=== Tranche s_reste
+  OBJET bilan [text] "CO s'annule : il reste C + O2 → CO2"   <<JAMAIS MONTRÉ>>
+DIT (nettoie) : Ce qui reste est bien la réaction cherchée : carbone plus O deux donne CO deux.
+    fade_out somme @cue:c_reste 
+    fade_out dh @cue:c_reste 
+    transform global @cue:c_cherchee {"source":"somme2"}
+DIT (prix) : On additionne les delta H de chaque étape, avec leur signe : moins cent dix virgule cinq plus moins deux cent quatre-vingt-trois.
+    write dh @cue:c_addition 
+    highlight dh @- {"start":"cue:c_signe","end":"cue_end:c_signe","role":"accent"}
+DIT (resultat) : Ça donne moins trois cent quatre-vingt-treize virgule cinq kilojoules. La réaction dégage de l'énergie.
+    transform dh2 @cue:c_resultat {"source":"dh"}
+    highlight dh2 @- {"start":"cue:c_degage","end":"cue_end:c_degage","role":"result"}
+=== Tranche s_diagramme
+  OBJET diag [axes] {"x":[0,6],"y":[0,8]} 
+  OBJET niv_reactifs [line] {"from":[0,4],"to":[2,4]} 
+  OBJET montee [line] {"from":[2,4],"to":[3,7]} 
+  OBJET descente [line] {"from":[3,7],"to":[4,1]} 
+  OBJET niv_produits [line] {"from":[4,1],"to":[6,1]} 
+  OBJET fl_act [arrow] {"from":[4,4],"to":[4,7]} 
+  OBJET fl_dh [arrow] {"from":[5,4],"to":[5,1]} 
+  OBJET lbl_act [label] "énergie d'activation" attaché à fl_act
+  OBJET lbl_dh [label] "ΔH" attaché à fl_dh
+  OBJET lbl_reactifs [label] "réactifs" attaché à niv_reactifs
+  OBJET lbl_produits [label] "produits" attaché à niv_produits
+DIT (trace) : Regarde le diagramme énergétique : les réactifs sont en haut, les produits en bas, plus bas que les réactifs.
+    show diag @beat:start 
+    draw niv_reactifs @cue:c_reactifs 
+    show lbl_reactifs @after:d_nivr 
+    draw niv_produits @cue:c_produits 
+    show lbl_produits @after:d_nivp 
+DIT (delta) : La flèche vers le bas, c'est le delta H : la différence entre l'énergie des produits et celle des réactifs.
+    draw descente @- {"start":"cue:c_fleche","end":"cue_end:c_fleche"}
+    show fl_dh @after:d_desc 
+    show lbl_dh @after:s_fldh 
+DIT (signe) : Comme les produits sont plus bas, le delta H est négatif : la réaction est exothermique.
+    draw montee @beat:start 
+    show fl_act @after:d_montee 
+    show lbl_act @after:s_act 
+    highlight dh2 @- {"start":"cue:c_negatif","end":"cue_end:c_exo","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\Delta H_{\\text{globale}} = \\Delta H_1 + \\Delta H_2" 
+  OBJET idee [text] "On annule ce qui est des deux côtés" 
+  GROUPE recap = regle, idee
+DIT (idee_centrale) : À retenir : la loi de Hess dit qu'on peut additionner les étapes et additionner leurs delta H.
+    fade_out diag @beat:start 
+    fade_out lbl_act @beat:start 
+    fade_out lbl_dh @beat:start 
+    fade_out lbl_reactifs @beat:start 
+    fade_out lbl_produits @beat:start 
+    fade_out dh2 @beat:start 
+    fade_out bilan @beat:start 
+    write regle @cue:c_hess 
+DIT (fin) : Un intermédiaire qui apparaît et disparaît s'annule. Ici, moins trois cent quatre-vingt-treize virgule cinq kilojoules.
+    show idee @cue:c_annule 
+    highlight regle @- {"start":"cue:c_ici","end":"cue_end:c_ici","role":"result"}
+--- 5 tranches, 215 mots dits (≈ 1.4 min d'oral)

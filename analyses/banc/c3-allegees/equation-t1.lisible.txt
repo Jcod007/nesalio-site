@@ -1,0 +1,61 @@
+QUESTION (equation, mathematiques, sec 4, methode) : Comment je résous 3x + 5 = 17 ?
+RÉPONSE DE RÉFÉRENCE : x = 4.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. garder l'égalité : même opération des deux côtés
+  2. 3x = 12 en enlevant 5 des deux côtés
+  3. x = 4 en divisant par 3
+  4. réponse x = 4 écrite
+  5. vérification : 3 × 4 + 5 = 17
+ERREURS GRAVES À CHERCHER : « on passe de l'autre côté » sans justification (imprécision)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Résoudre 3x + 5 = 17
+=== Tranche s_depart
+  OBJET eq [math] "3x + 5 = 17" parts=3x + 5 | = 17
+  OBJET idee [text] "Garder l'égalité : même opération des deux côtés" 
+DIT (pose) : Ton équation dit que trois x plus cinq vaut dix-sept.
+    camera.focus  @beat:start {"targets":["eq","idee"],"bounds":"layout_bounds","save_as":"vue_eq"}
+    write eq @cue:c_3x {"part":"membre_g"}
+    write eq @cue:c_17 {"part":"membre_d"}
+DIT (regle) : Résoudre, c'est isoler x : le laisser seul d'un côté. Pour ça, chaque opération se fait des deux côtés, sinon l'égalité casse.
+    show idee @cue:c_isoler 
+    highlight eq @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"accent"}
+=== Tranche s_enlever
+  OBJET etape1 [math] "3x + 5 - 5 = 17 - 5" parts=3x + 5 - 5 | = 17 - 5
+  OBJET etape2 [math] "3x = 12" 
+DIT (enleve) : Devant x, il y a un plus cinq. Pour le faire disparaître, on enlève cinq des deux côtés.
+    transform etape1 @cue:c_plus5 {"source":"eq"}
+    highlight etape1 @- {"start":"cue:c_enleve","end":"cue_end:c_deux2","role":"unknown","part":"g"}
+    highlight etape1 @- {"start":"cue:c_enleve","end":"cue_end:c_deux2","role":"unknown","part":"d"}
+DIT (reste) : À gauche, plus cinq moins cinq s'annule : il reste trois x. À droite, dix-sept moins cinq donne douze.
+    transform etape2 @cue:c_reste {"source":"etape1"}
+    highlight etape2 @- {"start":"cue:c_douze","end":"cue_end:c_douze","role":"accent"}
+=== Tranche s_diviser
+  OBJET etape3 [math] "\\frac{3x}{3} = \\frac{12}{3}" parts=\frac{3x}{3} | = \frac{12}{3}
+  OBJET etape4 [math] "x = 4" 
+DIT (divise) : Maintenant, trois x, c'est trois fois x. On divise les deux côtés par trois pour garder l'égalité.
+    transform etape3 @cue:c_trois_fois {"source":"etape2"}
+    highlight etape3 @- {"start":"cue:c_divise","end":"cue_end:c_divise","role":"unknown","part":"g"}
+    highlight etape3 @- {"start":"cue:c_divise","end":"cue_end:c_divise","role":"unknown","part":"d"}
+DIT (isole) : Trois divisé par trois fait un, donc il reste x. Et douze divisé par trois fait quatre. On obtient x égale quatre.
+    transform etape4 @cue:c_reste_x {"source":"etape3"}
+    highlight etape4 @- {"start":"cue:c_x4","end":"cue_end:c_x4","role":"result"}
+=== Tranche s_verifier
+  OBJET verif [math] "3 \\times 4 + 5 = 12 + 5 = 17" parts=3 \times 4 + 5 | = 12 + 5 | = 17
+  OBJET concl [text] "x = 4 fait bien 17 des deux côtés" 
+DIT (remplace) : Vérifions dans l'équation de départ : on remplace x par quatre. Trois fois quatre fait douze, plus cinq donne dix-sept.
+    write verif @cue:c_trois_quatre {"part":"calc"}
+    write verif @after:d_verif {"part":"suite"}
+    write verif @cue:c_dixsept {"part":"fin"}
+DIT (egal) : Des deux côtés, on trouve dix-sept : l'égalité tient, donc quatre est bien la solution.
+    highlight verif @- {"start":"cue:c_egalite","end":"cue_end:c_egalite","role":"result"}
+    show concl @after:h_verif 
+=== Tranche s_retenir
+  OBJET recap [math] "3x + 5 = 17 \\;\\Rightarrow\\; 3x = 12 \\;\\Rightarrow\\; x = 4" 
+DIT (idee_centrale) : À retenir : on défait les opérations une par une, des deux côtés. On enlève cinq, on divise par trois, et on trouve x égale quatre.
+    fade_out etape4 @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    fade_out concl @cue:c_retenir 
+    write recap @after:f_verif 
+    highlight recap @after:w_recap {"role":"result"}
+--- 5 tranches, 169 mots dits (≈ 1.1 min d'oral)

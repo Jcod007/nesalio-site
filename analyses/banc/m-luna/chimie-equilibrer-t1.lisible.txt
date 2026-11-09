@@ -1,0 +1,36 @@
+QUESTION (chimie-equilibrer, chimie, sec 4, methode) : comment j'équilibre l'équation C3H8 + O2 → CO2 + H2O? j'arrive jamais à avoir le même nombre d'oxygènes des deux bords
+RÉPONSE DE RÉFÉRENCE : C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. conservation des atomes ; on change les coefficients, jamais les indices
+  2. C puis H, O à la fin (O₂ seul)
+  3. C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O écrit
+  4. vérification : 3 C, 8 H, 10 O de chaque côté
+  5. l'O à la fin, parce que O₂ est un corps simple
+ERREURS GRAVES À CHERCHER : indices modifiés ; décompte d'atomes faux
+CONTRÔLE AUTOMATIQUE : réponse absente (5\s*O_?2) ; issue erreur incomplete, tranches perdues : s_oxygene_verification
+
+TITRE : Équilibrer la combustion du propane
+=== Tranche s_conservation
+  OBJET regle [text] "Même nombre d’atomes de chaque élément des deux côtés" 
+  OBJET coeff [text] "On change les coefficients, jamais les indices" 
+DIT (idee) : Pour équilibrer une équation, on conserve chaque sorte d’atome : les atomes ne disparaissent pas, ils se réarrangent.
+    show regle @cue:conserve 
+DIT (regle_coeff) : On ajuste donc les nombres placés devant les formules, les coefficients, sans toucher aux petits indices : changer un indice changerait la substance.
+    show coeff @cue:coeff_mot 
+    highlight coeff @- {"start":"cue:indices","end":"cue_end:indices","role":"accent"}
+=== Tranche s_carbone_hydrogene
+  OBJET eq0 [math] "\\ce{C3H8 + O2 -> CO2 + H2O}" 
+  OBJET eq1 [math] "\\ce{C3H8 + O2 -> 3CO2 + H2O}" 
+  OBJET eq2 [math] "\\ce{C3H8 + O2 -> 3CO2 + 4H2O}" 
+DIT (poser) : On part de la combustion du propane : C trois H huit plus O deux donne CO deux plus H deux O.
+    write eq0 @cue:propane 
+    highlight eq0 @cue:oxygene {"role":"accent"}
+    highlight eq0 @cue:donne {"role":"accent"}
+    highlight eq0 @cue:eau {"role":"accent"}
+DIT (carbone) : Le carbone apparaît dans une seule substance de chaque côté : trois atomes à gauche, donc on met trois devant CO deux.
+    highlight eq0 @- {"start":"cue:carbone_mot","end":"cue_end:carbone_mot","role":"accent"}
+    transform eq1 @cue:trois_co2 {"source":"eq0"}
+DIT (hydrogene) : L’hydrogène est ensuite équilibré : huit atomes à gauche, et quatre molécules d’eau en donnent huit à droite.
+    highlight eq1 @- {"start":"cue:hydrogene_mot","end":"cue_end:hydrogene_mot","role":"accent"}
+    transform eq2 @cue:quatre_eau {"source":"eq1"}
+--- 2 tranches, 103 mots dits (≈ 0.7 min d'oral)

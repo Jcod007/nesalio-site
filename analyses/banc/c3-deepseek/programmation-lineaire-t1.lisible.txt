@@ -1,0 +1,57 @@
+QUESTION (programmation-lineaire, mathematiques, sec 5, methode) : comment je trouve le maximum de 3x + 2y si x ≥ 0, y ≥ 0, x + y ≤ 6 pis x ≤ 4 ? on fait ça avec un polygone de contraintes
+RÉPONSE DE RÉFÉRENCE : Sommets (0, 0), (4, 0), (4, 2), (0, 6) ; valeurs 0, 12, 16, 12 ; maximum 16 en (4, 2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. tracer les droites frontières et ombrer la région qui respecte toutes les contraintes
+  2. trouver les sommets du polygone : (0, 0), (4, 0), (4, 2), (0, 6)
+  3. le maximum d'une fonction à optimiser se trouve à un sommet du polygone
+  4. évaluer 3x + 2y à chaque sommet : 0, 12, 16, 12
+  5. réponse : maximum 16 en (4, 2), écrit
+ERREURS GRAVES À CHERCHER : sommet (4, 2) oublié ou mal calculé ; région ombrée fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (16(?!\d|[,.]\d)) ; issue erreur incomplete
+
+TITRE : Trouver le maximum de 3x + 2y sur un polygone de contraintes
+math_context : {"symbols":{},"expressions":{"obj_s4_3":"3*4+2*3","obj_s6_0":"3*6+2*0","obj_s4_0":"3*4+2*0"}}
+=== Tranche s_zone
+  OBJET ax [axes] {"x":[-1,8],"y":[-1,8]} 
+  OBJET d1 [line] {"from":[0,6],"to":[6,0]} 
+  OBJET d2 [line] {"from":[4,0],"to":[4,6]} 
+  OBJET l_d1 [label] "x + y = 6" attaché à d1
+  OBJET l_d2 [label] "x = 4" attaché à d2
+  OBJET poly [polygon] {"vertices":[[0,0],[4,0],[4,2],[2,4],[0,6]]} 
+DIT (bienvenue) : Bonne question : avec un polygone de contraintes, on peut trouver ce maximum sans essayer au hasard.
+    camera.focus  @beat:start {"targets":["ax"],"bounds":"layout_bounds","save_as":"vue_zone"}
+    show ax @beat:start 
+DIT (contraintes) : Tes contraintes disent deux choses simples : x et y ne sont jamais négatifs, la somme x plus y ne dépasse pas six, et x ne dépasse pas quatre.
+    draw d1 @cue:c_somme 
+    show l_d1 @cue:c_somme 
+    draw d2 @cue:c_quatre 
+    show l_d2 @cue:c_quatre 
+DIT (region) : La zone qui respecte tout ça, c'est ce polygone fermé : chaque point dedans est une paire x et y permise.
+    draw poly @- {"start":"cue:c_zone","end":"cue_end:c_polygone"}
+=== Tranche s_sommets
+  OBJET s0 [point] {"at":[0,0]} 
+  OBJET s1 [point] {"at":[4,0]} 
+  OBJET s2 [point] {"at":[4,2]} 
+  OBJET s3 [point] {"at":[2,4]} 
+  OBJET s4 [point] {"at":[0,6]} 
+  OBJET n0 [label] "(0 ; 0)" attaché à s0
+  OBJET n1 [label] "(4 ; 0)" attaché à s1
+  OBJET n2 [label] "(4 ; 2)" attaché à s2
+  OBJET n3 [label] "(2 ; 4)" attaché à s3
+  OBJET n4 [label] "(0 ; 6)" attaché à s4
+DIT (reperer) : Les coins, ce sont les sommets. Repère-les bien : zéro zéro, quatre zéro, quatre deux, deux quatre, et zéro six.
+    show s0 @cue:c_sommets 
+    show n0 @after:s_s0 
+    show s2 @cue:c_quatredeux 
+    show n2 @after:s_s2 
+    show s3 @cue:c_deuxquatre 
+    show n3 @after:s_s3 
+    show s4 @cue:c_zerosix 
+    show n4 @after:s_s4 
+DIT (intersections) : Le point quatre deux vient du croisement de x égale quatre avec x plus y égale six : quatre plus deux font six. Le point deux quatre vient de l'autre bout de cette même droite.
+    highlight s2 @cue:c_croisement {"role":"accent"}
+    highlight s3 @cue:c_autre {"role":"accent"}
+DIT (coin) : Chaque sommet est un coin du polygone : deux contraintes y sont serrées en même temps.
+    show s1 @cue:c_coin 
+    show n1 @after:s_s1 
+--- 2 tranches, 138 mots dits (≈ 0.9 min d'oral)

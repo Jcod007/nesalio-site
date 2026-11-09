@@ -1,0 +1,998 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "theorie_cinetique_gaz",
+  "title": "La théorie cinétique des gaz et ses hypothèses",
+  "language": "fr",
+  "learning_goal": "Comprendre que les gaz sont des particules en mouvement dont les chocs créent la pression, et utiliser cette idée pour expliquer la loi de Boyle-Mariotte."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "v_boyle": "2/1",
+    "v_boyle2": "2/2.5"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_particules",
+   "introduces": [
+    {
+     "id": "bac",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        5,
+        0
+       ],
+       [
+        5,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "p1",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "params": {
+      "at": [
+       2.6,
+       1.3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3",
+     "params": {
+      "at": [
+       4,
+       2.4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "params": {
+      "at": [
+       1.5,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5",
+     "params": {
+      "at": [
+       3.4,
+       3.4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p6",
+     "params": {
+      "at": [
+       4.3,
+       0.8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "note_bac",
+     "content": "Des particules qui frappent les parois",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "La théorie cinétique des gaz, c'est une image simple : un gaz, c'est une foule de particules minuscules qui bougent tout le temps.",
+     "cues": [
+      {
+       "id": "c_theorie",
+       "text": "La théorie cinétique"
+      },
+      {
+       "id": "c_bougent",
+       "text": "bougent tout le temps"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_bac",
+       "verb": "draw",
+       "at": "cue:c_theorie",
+       "target": "bac"
+      },
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "at": "cue:c_theorie",
+       "target": "p1"
+      },
+      {
+       "id": "s_p2",
+       "verb": "show",
+       "at": "after:s_p1",
+       "target": "p2"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "after:s_p2",
+       "target": "p3"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "after:s_p3",
+       "target": "p4"
+      },
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "after:s_p4",
+       "target": "p5"
+      },
+      {
+       "id": "s_p6",
+       "verb": "show",
+       "at": "cue:c_bougent",
+       "target": "p6"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "paroi",
+     "say": "Chaque fois qu'une particule frappe une paroi, elle pousse dessus. Toutes ces petites poussées additionnées, c'est la pression du gaz.",
+     "cues": [
+      {
+       "id": "c_paroi",
+       "text": "frappe une paroi"
+      },
+      {
+       "id": "c_pression",
+       "text": "c'est la pression"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_pression",
+       "target": "note_bac"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_hypotheses",
+   "introduces": [
+    {
+     "id": "h1",
+     "content": "1. Les particules sont minuscules et très espacées.",
+     "type": "text"
+    },
+    {
+     "id": "h2",
+     "content": "2. Elles se déplacent en ligne droite, au hasard.",
+     "type": "text"
+    },
+    {
+     "id": "h3",
+     "content": "3. Les chocs sont parfaits : aucune énergie perdue.",
+     "type": "text"
+    },
+    {
+     "id": "h4",
+     "content": "4. Elles n'ont aucune interaction entre elles.",
+     "type": "text"
+    },
+    {
+     "id": "h5",
+     "content": "5. La température mesure leur énergie de mouvement.",
+     "type": "text"
+    },
+    {
+     "id": "grp_hyp",
+     "content": "Hypothèses",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "liste",
+     "items": [
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "sm"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "enonce",
+     "say": "Cette image repose sur des hypothèses. Un : les particules sont minuscules, et l'espace entre elles est énorme.",
+     "cues": [
+      {
+       "id": "c_un",
+       "text": "Un"
+      },
+      {
+       "id": "c_minuscules",
+       "text": "minuscules"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_bac2",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "bac"
+      },
+      {
+       "id": "w_h1",
+       "verb": "write",
+       "at": "cue:c_un",
+       "target": "h1"
+      }
+     ]
+    },
+    {
+     "id": "suite",
+     "say": "Deux : elles filent en ligne droite, au hasard, jusqu'au prochain choc. Trois : leurs chocs sont parfaits et ne perdent aucune énergie.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "Deux"
+      },
+      {
+       "id": "c_trois",
+       "text": "Trois"
+      },
+      {
+       "id": "c_parfaits",
+       "text": "chocs sont parfaits"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_h2",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "h2"
+      },
+      {
+       "id": "w_h3",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "h3"
+      }
+     ]
+    },
+    {
+     "id": "fin",
+     "say": "Quatre : elles ne s'attirent pas. Cinq : la température, c'est la mesure de leur énergie de mouvement ; plus il fait chaud, plus elles vont vite.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "Quatre"
+      },
+      {
+       "id": "c_cinq",
+       "text": "Cinq"
+      },
+      {
+       "id": "c_chaud",
+       "text": "plus il fait chaud"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_h4",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "h4"
+      },
+      {
+       "id": "w_h5",
+       "verb": "write",
+       "at": "cue:c_cinq",
+       "target": "h5"
+      },
+      {
+       "id": "h_h5",
+       "verb": "highlight",
+       "start": "cue:c_chaud",
+       "end": "cue_end:c_chaud",
+       "target": "h5",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_boyle",
+   "introduces": [
+    {
+     "id": "axesV",
+     "params": {
+      "x": [
+       0,
+       3.5
+      ],
+      "y": [
+       0,
+       5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "lab_p",
+     "attachment": {
+      "parent": "axesV",
+      "anchor": "right"
+     },
+     "content": "pression (centaines de kPa)",
+     "type": "label"
+    },
+    {
+     "id": "lab_V",
+     "attachment": {
+      "parent": "axesV",
+      "anchor": "top"
+     },
+     "content": "volume (L)",
+     "type": "label"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2/x",
+      "domain": [
+       0.4,
+       3.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "pt1",
+     "params": {
+      "at": [
+       1,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt1lab",
+     "attachment": {
+      "parent": "pt1",
+      "anchor": "right"
+     },
+     "content": "(1 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "pt2",
+     "params": {
+      "at": [
+       2.5,
+       0.8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt2lab",
+     "attachment": {
+      "parent": "pt2",
+      "anchor": "right"
+     },
+     "content": "(2,5 ; 0,8)",
+     "type": "label"
+    },
+    {
+     "id": "loi",
+     "content": "p_1 V_1 = p_2 V_2",
+     "parts": [
+      {
+       "id": "m1",
+       "text": "p_1 V_1"
+      },
+      {
+       "id": "m2",
+       "text": "="
+      },
+      {
+       "id": "m3",
+       "text": "p_2 V_2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pousse",
+     "say": "Si on pousse sur le piston, le volume diminue : les particules ont moins de place et frappent les parois plus souvent. La pression monte.",
+     "cues": [
+      {
+       "id": "c_piston",
+       "text": "pousse sur le piston"
+      },
+      {
+       "id": "c_monte",
+       "text": "pression monte"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axesV"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_piston",
+       "end": "cue_end:c_monte",
+       "target": "courbe"
+      },
+      {
+       "id": "s_pt1",
+       "verb": "show",
+       "at": "cue:c_piston",
+       "target": "pt1"
+      },
+      {
+       "id": "s_pt2",
+       "verb": "show",
+       "at": "cue:c_monte",
+       "target": "pt2"
+      }
+     ]
+    },
+    {
+     "id": "lecture",
+     "say": "Regarde deux situations : à une unité de pression, le volume vaut deux litres ; à deux et demie, il tombe à zéro virgule huit litre.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux litres"
+      },
+      {
+       "id": "c_huit",
+       "text": "zéro virgule huit litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt1lab",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "pt1lab"
+      },
+      {
+       "id": "s_pt2lab",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "target": "pt2lab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "calc",
+     "content": "100 \\times 2{,}0 = 250 \\times V_2",
+     "parts": [
+      {
+       "id": "g1",
+       "text": "100 \\times 2{,}0"
+      },
+      {
+       "id": "g2",
+       "text": "="
+      },
+      {
+       "id": "g3",
+       "text": "250 \\times V_2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res",
+     "content": "V_2 = \\frac{100 \\times 2{,}0}{250} = 0{,}80\\ \\text{L}",
+     "parts": [
+      {
+       "id": "r1",
+       "text": "V_2"
+      },
+      {
+       "id": "r2",
+       "text": "= \\frac{100 \\times 2{,}0}{250}"
+      },
+      {
+       "id": "r3",
+       "text": "= 0{,}80\\ \\text{L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "content": "100 \\times 2{,}0 = 200 \\quad ; \\quad 250 \\times 0{,}80 = 200",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "La loi de Boyle-Mariotte traduit cette idée : pression un fois volume un égale pression deux fois volume deux, quand la température et la quantité de gaz ne changent pas.",
+     "cues": [
+      {
+       "id": "c_p1",
+       "text": "pression un fois volume un"
+      },
+      {
+       "id": "c_p2",
+       "text": "pression deux fois volume deux"
+      },
+      {
+       "id": "c_const",
+       "text": "ne changent pas"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_axes2",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "axesV"
+      },
+      {
+       "id": "w_loi1",
+       "verb": "write",
+       "at": "cue:c_p1",
+       "target": "loi",
+       "part": "m1"
+      },
+      {
+       "id": "w_loi2",
+       "verb": "write",
+       "at": "cue:c_p2",
+       "target": "loi",
+       "part": "m3"
+      },
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "start": "cue:c_const",
+       "end": "cue_end:c_const",
+       "target": "loi",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "exemple",
+     "say": "Par exemple : cent kilopascals pour deux litres deviennent deux cent cinquante kilopascals ; on isole le volume deux.",
+     "cues": [
+      {
+       "id": "c_cent",
+       "text": "cent kilopascals"
+      },
+      {
+       "id": "c_isole",
+       "text": "on isole le volume deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc1",
+       "verb": "write",
+       "at": "cue:c_cent",
+       "target": "calc",
+       "part": "g1"
+      },
+      {
+       "id": "w_calc3",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "calc",
+       "part": "g3"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Le calcul donne zéro virgule huit litre. On vérifie : deux cent cinquante fois zéro virgule huit donne bien deux cents.",
+     "cues": [
+      {
+       "id": "c_resultat",
+       "text": "zéro virgule huit litre"
+      },
+      {
+       "id": "c_verif",
+       "text": "donne bien deux cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res2",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "res",
+       "part": "r2"
+      },
+      {
+       "id": "w_res3",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "res",
+       "part": "r3"
+      },
+      {
+       "id": "w_verif",
+       "verb": "write",
+       "at": "cue:c_verif",
+       "target": "verif"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_resultat",
+       "end": "cue_end:c_resultat",
+       "target": "res",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "La pression vient du choc des particules.",
+     "type": "text"
+    },
+    {
+     "id": "synthese",
+     "content": "p_1 V_1 = p_2 V_2",
+     "parts": [
+      {
+       "id": "a",
+       "text": "p_1 V_1"
+      },
+      {
+       "id": "b",
+       "text": "="
+      },
+      {
+       "id": "c",
+       "text": "p_2 V_2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "bloc",
+     "items": [
+      "idee",
+      "synthese"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "fin",
+     "say": "À retenir : la pression, c'est le choc des particules contre les parois. Comprimer le gaz les fait frapper plus souvent, donc la pression monte.",
+     "cues": [
+      {
+       "id": "c_choc",
+       "text": "choc des particules"
+      },
+      {
+       "id": "c_plus",
+       "text": "la pression monte"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "loi"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc"
+      },
+      {
+       "id": "f_res",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "res"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_choc",
+       "target": "idee"
+      },
+      {
+       "id": "w_synthese",
+       "verb": "write",
+       "at": "cue:c_plus",
+       "target": "synthese"
+      },
+      {
+       "id": "h_synthese",
+       "verb": "highlight",
+       "start": "cue:c_plus",
+       "end": "cue_end:c_plus",
+       "target": "synthese",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

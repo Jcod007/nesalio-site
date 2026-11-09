@@ -1,0 +1,84 @@
+QUESTION (chimie-mole, chimie, sec 4, sens) : c'est quoi une mole pis comment je trouve combien de moles il y a dans 36 g d'eau?
+RÉPONSE DE RÉFÉRENCE : M(H₂O) ≈ 18,02 g/mol ; n = 36 / 18,02 ≈ 2,0 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. mole = 6,02 × 10²³ entités
+  2. M(H₂O) = 2(1,01) + 16,00 ≈ 18 g/mol
+  3. n = m/M
+  4. n ≈ 2,0 mol écrit
+  5. unités dites et écrites
+ERREURS GRAVES À CHERCHER : masse molaire de H₂O fausse (ex. 17 g/mol)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi une mole et combien il y en a dans 36 g d'eau
+math_context : {"symbols":{},"expressions":{"n_eau":"36/18.02"}}
+=== Tranche s_paquet
+  OBJET titres [matrix] {"rows":[["12 œufs","6,02 × 10²³ entités"],[1,1]],"row_labels":["dans 1 paquet","dans 1 mole"]} 
+  OBJET lab_gp [label] "un paquet de 6,02 × 10²³ entités" attaché à titres
+  OBJET nA [math] "N_A = 6{,}02 \\times 10^{23}" parts=N_A = | 6{,}02 \times 10^{23}
+DIT (douzaine) : Une mole, c'est un paquet. Exactement comme une douzaine est un paquet de douze œufs.
+    show titres @cue:c_douzaine 
+    highlight titres @cue:c_paquet_d {"part":"r2c1"}
+DIT (toujours_vrai) : Mais ici, le paquet contient toujours le même nombre, peu importe la substance : c'est le nombre d'Avogadro, six virgule zéro deux fois dix exposant vingt-trois.
+    show nA @cue:c_avogadro 
+    highlight nA @- {"start":"cue:c_nombre","end":"cue_end:c_avogadro","role":"accent","part":"nA_val"}
+DIT (mole_entites) : Le nombre de moles, c'est donc le nombre de paquets de six virgule zéro deux fois dix exposant vingt-trois entités. Une mole d'eau contient ce nombre de molécules d'eau.
+    show lab_gp @cue:c_une_mole 
+    highlight lab_gp @cue:c_molecules {"role":"accent"}
+=== Tranche s_masse_molaire
+  OBJET masse_atom [math] "M_{H_2O} = 2 \\times 1{,}01 + 16{,}00" 
+  OBJET masse_m [math] "M_{H_2O} = 18{,}02 \\ \\text{g/mol}" 
+DIT (definition) : La masse molaire, notée grand M, c'est la masse d'une mole, en grammes par mole. C'est le poids d'un paquet.
+    write masse_atom @cue:c_massemolaire 
+    highlight masse_atom @- {"start":"cue:c_grammes_par_mole","end":"cue_end:c_grammes_par_mole","role":"accent"}
+=== Tranche s_calcul_m
+  OBJET atomes [matrix] {"rows":[["H","1,01","2"],["O","16,00","1"]],"column_labels":["atome","masse atomique (g/mol)","nombre dans H₂O"]} 
+DIT (cherche_masses) : Pour la trouver, on additionne les masses atomiques de tous les atomes de la molécule. Dans l'eau, il y a deux hydrogènes et un oxygène.
+    show atomes @beat:start 
+    highlight atomes @- {"start":"cue:c_deux_h","end":"cue_end:c_deux_h","part":"r1"}
+    highlight atomes @- {"start":"cue:c_un_o","end":"cue_end:c_un_o","part":"r2"}
+DIT (addition) : Deux fois un virgule zéro un donne deux virgule zéro deux. J'ajoute seize virgule zéro zéro et j'obtiens dix-huit virgule zéro deux grammes par mole.
+    fade_out atomes @cue:c_deux_uns 
+    write masse_atom @cue:c_deux_uns 
+    write masse_atom @cue:c_seize 
+    transform masse_m @cue:c_dix_huit {"source":"masse_atom"}
+=== Tranche s_regle_trois
+  OBJET tab_prop [matrix] {"rows":[[18.02,36.04,9.01],[1,2,0.5]],"row_labels":["masse (g)","quantité (mol)"]} 
+  OBJET div_182 [label] "÷ 18,02" attaché à tab_prop
+DIT (tableau) : Avec ça, on peut faire un tableau de proportionnalité. Si une mole pèse dix-huit virgule zéro deux grammes, alors deux moles pèsent trente-six virgule zéro quatre grammes.
+    show tab_prop @beat:start 
+    highlight tab_prop @- {"start":"cue:c_une_pese","end":"cue_end:c_une_pese","role":"accent","part":"c1"}
+    highlight tab_prop @- {"start":"cue:c_deux_pesent","end":"cue_end:c_deux_pesent","role":"given","part":"c2"}
+DIT (diviser) : Pour passer des grammes aux moles, on divise toujours par la masse molaire. Ici, on divisera par dix-huit virgule zéro deux.
+    show div_182 @cue:c_divide 
+    highlight div_182 @- {"start":"cue:c_par_18","end":"cue_end:c_par_18","role":"accent"}
+=== Tranche s_reponse
+  OBJET rep [axes] {"x":[0,2.5],"y":[0,50]} 
+  OBJET droite [function_graph] {"expression":"18.02*x","domain":[0,2.5]} 
+  OBJET p_cible [point] {"at":[2,36.04]} 
+  OBJET lab_cible [label] "36 g" attaché à p_cible
+  OBJET lab_pied [label] "2 mol" attaché à p_cible
+  OBJET calcul [math] "n = \\frac{m}{M} = \\frac{36}{18{,}02}" parts=n = \frac{m}{M} | = \frac{36}{18{,}02}
+  OBJET res [math] {"kind":"computed","expression_ref":"n_eau","template":"n \\approx {value}\\ \\text{mol}","precision":1} 
+  OBJET verif [math] "18{,}02 \\times 2 = 36{,}04" parts=18{,}02 | \times 2 | = 36{,}04
+DIT (formule) : Voici la formule. n, c'est la quantité de moles, m la masse en grammes, et M la masse molaire.
+    write calcul @cue:c_quantite {"part":"npart"}
+    write calcul @cue:c_masse_molaire {"part":"subst"}
+DIT (remplace) : Dans trente-six grammes d'eau, je remplace m par trente-six et je divise. Trente-six divisé par dix-huit virgule zéro deux, ça donne environ deux virgule zéro moles.
+    show res @cue:c_env_deux 
+    highlight res @- {"start":"cue:c_env_deux","end":"cue_end:c_env_deux","role":"result"}
+DIT (verifier) : Vérifions : deux moles fois dix-huit virgule zéro deux, ça donne bien trente-six virgule zéro quatre grammes, presque trente-six. Notre réponse tient la route.
+    write verif @cue:c_verif {"part":"m_182"}
+    write verif @cue:c_verif {"part":"f2"}
+    write verif @cue:c_3604 {"part":"m_3604"}
+=== Tranche s_retenir
+  OBJET graphique [label] "M = 18,02 g/mol" attaché à res   <<JAMAIS MONTRÉ>>
+DIT (image) : Visualisons aussi : sur ce graphique, chaque mole ajoute dix-huit virgule zéro deux grammes. La droite monte régulièrement.
+    show rep @beat:start 
+    draw droite @- {"start":"cue:c_graphique","end":"cue_end:c_droite"}
+DIT (point) : À deux moles, on lit trente-six virgule zéro quatre grammes sur la droite. C'est notre situation.
+    show p_cible @cue:c_deux_moles 
+    show lab_cible @cue:c_trente_six 
+    show lab_pied @after:s_p 
+DIT (sens) : Le graphique et la formule disent la même chose : la masse est proportionnelle à la quantité de moles, et le coefficient, c'est la masse molaire.
+    highlight droite @- {"start":"cue:c_masse","end":"cue_end:c_quantite","role":"accent"}
+--- 6 tranches, 317 mots dits (≈ 2.1 min d'oral)

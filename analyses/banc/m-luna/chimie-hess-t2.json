@@ -1,0 +1,560 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_de_hess",
+  "title": "Trouver le ΔH avec la loi de Hess",
+  "language": "fr",
+  "learning_goal": "Additionner des équations thermochimiques et leurs ΔH pour obtenir l’enthalpie d’une réaction globale."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_addition",
+   "introduces": [
+    {
+     "id": "eq1",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\ce{C + \\frac{1}{2}O2 -> CO}",
+     "type": "math"
+    },
+    {
+     "id": "dh1",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\Delta H_1 = -110{,}5\\ \\pu{kJ}",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\ce{CO + \\frac{1}{2}O2 -> CO2}",
+     "type": "math"
+    },
+    {
+     "id": "dh2",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\Delta H_2 = -283{,}0\\ \\pu{kJ}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "poser_etapes",
+     "say": "On additionne les deux étapes de la réaction, avec leur ΔH, parce que l’enthalpie totale est la somme des variations de chaque étape.",
+     "cues": [
+      {
+       "id": "c_etapes",
+       "text": "les deux étapes"
+      },
+      {
+       "id": "c_dh",
+       "text": "avec leur ΔH"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq1",
+       "verb": "write",
+       "at": "cue:c_etapes",
+       "target": "eq1"
+      },
+      {
+       "id": "w_dh1",
+       "verb": "write",
+       "at": "cue:c_dh",
+       "target": "dh1"
+      },
+      {
+       "id": "w_eq2",
+       "verb": "write",
+       "at": "cue:c_etapes",
+       "target": "eq2"
+      },
+      {
+       "id": "w_dh2",
+       "verb": "write",
+       "at": "cue:c_dh",
+       "target": "dh2"
+      }
+     ]
+    },
+    {
+     "id": "annuler_co",
+     "say": "Le CO apparaît comme produit dans la première équation et comme réactif dans la seconde : ces deux quantités s’annulent lorsqu’on additionne les équations.",
+     "cues": [
+      {
+       "id": "c_co",
+       "text": "Le CO"
+      },
+      {
+       "id": "c_annulent",
+       "text": "s’annulent"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_eq1_co",
+       "verb": "highlight",
+       "start": "cue:c_co",
+       "end": "cue_end:c_annulent",
+       "target": "eq1",
+       "role": "accent"
+      },
+      {
+       "id": "h_eq2_co",
+       "verb": "highlight",
+       "start": "cue:c_co",
+       "end": "cue_end:c_annulent",
+       "target": "eq2",
+       "role": "accent"
+      },
+      {
+       "id": "d_eq1",
+       "verb": "dim",
+       "at": "cue:c_annulent",
+       "target": "eq1"
+      },
+      {
+       "id": "d_eq2",
+       "verb": "dim",
+       "at": "cue:c_annulent",
+       "target": "eq2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_bilan",
+   "introduces": [
+    {
+     "id": "reaction_totale",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\ce{C + O2 -> CO2}",
+     "type": "math"
+    },
+    {
+     "id": "calcul_dh",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\Delta H = -110{,}5 + (-283{,}0) = -393{,}5\\ \\pu{kJ}",
+     "parts": [
+      {
+       "id": "somme",
+       "text": "\\Delta H = -110{,}5 + (-283{,}0)"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "valeur",
+       "text": "-393{,}5\\ \\pu{kJ}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "equation_nette",
+     "say": "En additionnant, il reste le carbone et le dioxygène comme réactifs, puis le dioxyde de carbone comme produit.",
+     "cues": [
+      {
+       "id": "c_carbone",
+       "text": "le carbone"
+      },
+      {
+       "id": "c_dioxyde",
+       "text": "le dioxyde de carbone"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_reactifs",
+       "verb": "write",
+       "at": "cue:c_carbone",
+       "target": "reaction_totale"
+      },
+      {
+       "id": "w_produits",
+       "verb": "highlight",
+       "at": "cue:c_dioxyde",
+       "target": "reaction_totale",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "addition_enthalpies",
+     "say": "On additionne maintenant les deux variations d’enthalpie : moins cent dix virgule cinq plus moins deux cent quatre-vingt-trois donne moins trois cent quatre-vingt-treize virgule cinq kilojoules.",
+     "cues": [
+      {
+       "id": "c_somme",
+       "text": "On additionne maintenant"
+      },
+      {
+       "id": "c_resultat",
+       "text": "moins trois cent quatre-vingt-treize virgule cinq kilojoules"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "calcul_dh",
+       "part": "somme"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "calcul_dh",
+       "part": "egal"
+      },
+      {
+       "id": "w_valeur",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "calcul_dh",
+       "part": "valeur"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "interpretation",
+     "say": "Le signe négatif indique que la réaction globale dégage de l’énergie : elle est exothermique.",
+     "cues": [
+      {
+       "id": "c_negatif",
+       "text": "Le signe négatif"
+      },
+      {
+       "id": "c_exothermique",
+       "text": "exothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_valeur",
+       "verb": "highlight",
+       "start": "cue:c_negatif",
+       "end": "cue_end:c_exothermique",
+       "target": "calcul_dh",
+       "role": "result",
+       "part": "valeur"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle_hess",
+     "layout": {
+      "to_corner": "top_left"
+     },
+     "content": "Additionner les équations et leurs ΔH ; les espèces communes opposées s’annulent.",
+     "type": "text"
+    },
+    {
+     "id": "resultat_final",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\ce{C + O2 -> CO2}\\qquad \\Delta H = -393{,}5\\ \\pu{kJ}",
+     "parts": [
+      {
+       "id": "reaction_finale",
+       "text": "\\ce{C + O2 -> CO2}"
+      },
+      {
+       "id": "dh_final",
+       "text": "\\qquad \\Delta H = -393{,}5\\ \\pu{kJ}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "resume",
+     "say": "À retenir : avec la loi de Hess, tu additionnes les étapes et leurs ΔH, puis tu simplifies les espèces communes opposées. Ici, la réaction globale a un ΔH de moins trois cent quatre-vingt-treize virgule cinq kilojoules.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_loi",
+       "text": "la loi de Hess"
+      },
+      {
+       "id": "c_valeur",
+       "text": "moins trois cent quatre-vingt-treize virgule cinq kilojoules"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_eq1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eq1"
+      },
+      {
+       "id": "f_dh1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "dh1"
+      },
+      {
+       "id": "f_eq2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eq2"
+      },
+      {
+       "id": "f_dh2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "dh2"
+      },
+      {
+       "id": "f_reaction",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "reaction_totale"
+      },
+      {
+       "id": "f_calcul",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calcul_dh"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_loi",
+       "target": "regle_hess"
+      },
+      {
+       "id": "w_resultat",
+       "verb": "write",
+       "at": "cue:c_valeur",
+       "target": "resultat_final"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

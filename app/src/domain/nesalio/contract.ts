@@ -49,8 +49,31 @@ const Coordinate = z.tuple([z.number(), z.number()]);
 const Interval = z.tuple([z.number(), z.number()]).refine(([min, max]) => min < max, "Intervalle non croissant.");
 const Expression = z.string().min(1).max(256);
 const endpoints = z.strictObject({ from: Coordinate, to: Coordinate });
-const matrixRows = z.array(z.array(z.number()).min(1).max(16)).min(1).max(16)
+// A cell is a number, or a short text (unit, "?", symbol); "" or null leaves it blank.
+const MatrixCell = z.union([z.number(), z.string().trim().max(24), z.null()]);
+const matrixRows = z.array(z.array(MatrixCell).min(1).max(16)).min(1).max(16)
   .refine((rows) => rows.every((row) => row.length === rows[0]?.length), "La matrice doit être rectangulaire.");
+const HeaderText = z.string().trim().min(1).max(60);
+export type MatrixParams = {
+  rows: readonly (readonly (number | string | null)[])[];
+  row_labels?: readonly string[];
+  column_labels?: readonly string[];
+};
+
+/**
+ * Parts of a matrix named by the engine, for `highlight` with `part`: each data
+ * cell `r{i}c{j}`, each row `r{i}` (with its title), each column `c{j}` (with its
+ * header). Counted from 1, titles and headers excluded.
+ */
+export function matrixParts(params: MatrixParams): string[] {
+  const rows = params.rows.length, columns = params.rows[0]?.length ?? 0;
+  const range = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
+  return [
+    ...range(rows).flatMap((i) => range(columns).map((j) => `r${i}c${j}`)),
+    ...range(rows).map((i) => `r${i}`),
+    ...range(columns).map((j) => `c${j}`),
+  ];
+}
 const baseObject = {
   id: Id,
   // Kept for v3.3 documents, which use it; no engine rule reads it yet, so the prompt does not offer it.
@@ -88,7 +111,14 @@ export const SceneObject = z.discriminatedUnion("type", [
     rows: matrixRows,
     row_labels: z.array(Text).min(1).max(16).optional()
       .describe("intitulé de chaque ligne (ex. « durée (h) ») : la matrice devient un tableau de valeurs quadrillé, intitulés en première colonne"),
-  }).refine((params) => !params.row_labels || params.row_labels.length === params.rows.length, "Un intitulé par ligne du tableau.") }),
+    column_labels: z.array(HeaderText).min(1).max(17).optional()
+      .describe("en-tête de chaque colonne (ex. « H », « O », « H₂O ») ; avec row_labels, un de plus possible en tête pour la colonne des intitulés"),
+  })
+    .refine((params) => !params.row_labels || params.row_labels.length === params.rows.length, "Un intitulé par ligne du tableau.")
+    .refine((params) => {
+      const labels = params.column_labels?.length, columns = params.rows[0]?.length ?? 0;
+      return labels === undefined || labels === columns || (params.row_labels !== undefined && labels === columns + 1);
+    }, "Un en-tête par colonne du tableau (un de plus seulement pour la colonne des intitulés de lignes).") }),
   object("number_line", { params: z.strictObject({ domain: Interval }) }),
   object("text", { content: Text }),
   object("label", { content: Text }),

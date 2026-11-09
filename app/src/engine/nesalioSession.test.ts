@@ -105,6 +105,28 @@ describe("séance d'explication Nesalio (page élève)", () => {
     expect(session.getSnapshot()).toMatchObject({ status: "idle", question: null, caption: null });
   });
 
+  it("se souvient de la dernière leçon terminée, même revenu à l'accueil (questionnaire d'après essai)", async () => {
+    const session = new NesalioSession(fake().deps);
+    expect(session.getSnapshot().lastFinished).toBeNull();
+    await session.ask("Comment trouver le sommet ?");
+    expect(session.getSnapshot().lastFinished).toBe("Comment trouver le sommet ?");
+    await session.replay();
+    session.stop();
+    expect(session.getSnapshot()).toMatchObject({ status: "idle", question: null, lastFinished: "Comment trouver le sommet ?" });
+  });
+
+  it("ne compte pas comme terminée une leçon interrompue ou qui n'a pas pu commencer", async () => {
+    const stopped = new NesalioSession(fake().deps);
+    const playing = stopped.ask("Q");
+    await tick();
+    stopped.stop();
+    await playing;
+    expect(stopped.getSnapshot().lastFinished).toBeNull();
+    const refused = new NesalioSession(fake({ open: async () => { throw new Error("Non."); } }).deps);
+    await refused.ask("Q");
+    expect(refused.getSnapshot().lastFinished).toBeNull();
+  });
+
   it("met en pause et coupe le son par la commande donnée au lecteur", async () => {
     const session = new NesalioSession(fake().deps);
     session.setPaused(true);

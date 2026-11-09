@@ -1,0 +1,719 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "concentration_solution_nacl",
+  "title": "Calculer la concentration d’une solution de NaCl",
+  "language": "fr",
+  "learning_goal": "Calculer la concentration en g/L, puis la concentration molaire en mol/L à partir de la masse de soluté et du volume de solution."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "idee_concentration",
+     "content": "La concentration compare la quantité de soluté au volume de solution.",
+     "type": "text"
+    },
+    {
+     "id": "masse_volume",
+     "content": "C = \\frac{m}{V}",
+     "type": "math"
+    },
+    {
+     "id": "masse_donnee",
+     "style": {
+      "role": "given"
+     },
+     "content": "m = 10\\,\\text{g}",
+     "type": "math"
+    },
+    {
+     "id": "volume_donne",
+     "style": {
+      "role": "given"
+     },
+     "content": "V = 250\\,\\text{mL} = 0{,}250\\,\\text{L}",
+     "parts": [
+      {
+       "id": "volume_initial",
+       "text": "V = 250\\,\\text{mL}"
+      },
+      {
+       "id": "conversion_volume",
+       "text": "= 0{,}250\\,\\text{L}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "La concentration, c’est la quantité de soluté par volume de solution. Ici, le soluté est le NaCl dissous dans l’eau.",
+     "cues": [
+      {
+       "id": "c_concentration",
+       "text": "La concentration"
+      },
+      {
+       "id": "c_quantite",
+       "text": "quantité de soluté"
+      },
+      {
+       "id": "c_volume",
+       "text": "volume de solution"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_idee",
+       "verb": "show",
+       "at": "cue:c_concentration",
+       "target": "idee_concentration"
+      },
+      {
+       "id": "w_masse",
+       "verb": "show",
+       "at": "cue:c_quantite",
+       "target": "masse_donnee"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:c_volume",
+       "target": "masse_volume"
+      }
+     ]
+    },
+    {
+     "id": "volume",
+     "say": "Pour obtenir des grammes par litre, le volume doit être en litres. Deux cent cinquante millilitres, c’est zéro virgule deux cent cinquante litre.",
+     "cues": [
+      {
+       "id": "c_litres",
+       "text": "en litres"
+      },
+      {
+       "id": "c_millilitres",
+       "text": "Deux cent cinquante millilitres"
+      },
+      {
+       "id": "c_litre",
+       "text": "zéro virgule deux cent cinquante litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_volume",
+       "verb": "write",
+       "at": "cue:c_millilitres",
+       "target": "volume_donne",
+       "part": "volume_initial"
+      },
+      {
+       "id": "w_conversion",
+       "verb": "write",
+       "at": "cue:c_litre",
+       "target": "volume_donne",
+       "part": "conversion_volume"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_g_l",
+   "introduces": [
+    {
+     "id": "calcul_g_l",
+     "content": "C = \\frac{10\\,\\text{g}}{0{,}250\\,\\text{L}} = 40\\,\\text{g/L}",
+     "parts": [
+      {
+       "id": "substitution",
+       "text": "C = \\frac{10\\,\\text{g}}{0{,}250\\,\\text{L}}"
+      },
+      {
+       "id": "resultat_g_l",
+       "text": "= 40\\,\\text{g/L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "interpretation_g_l",
+     "content": "Chaque litre de solution contient 40 g de NaCl.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "substituer",
+     "say": "On remplace la masse par dix grammes et le volume par zéro virgule deux cent cinquante litre, en gardant les unités.",
+     "cues": [
+      {
+       "id": "c_masse",
+       "text": "dix grammes"
+      },
+      {
+       "id": "c_volume",
+       "text": "zéro virgule deux cent cinquante litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_substitution",
+       "verb": "write",
+       "at": "cue:c_masse",
+       "target": "calcul_g_l",
+       "part": "substitution"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Dix divisé par zéro virgule deux cent cinquante donne quarante. La concentration est donc de quarante grammes par litre.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "Dix divisé par zéro virgule deux cent cinquante"
+      },
+      {
+       "id": "c_quarante",
+       "text": "quarante grammes par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_resultat",
+       "verb": "write",
+       "at": "cue:c_quarante",
+       "target": "calcul_g_l",
+       "part": "resultat_g_l"
+      },
+      {
+       "id": "h_resultat",
+       "verb": "highlight",
+       "start": "cue:c_quarante",
+       "end": "cue_end:c_quarante",
+       "target": "calcul_g_l",
+       "role": "result",
+       "part": "resultat_g_l"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sens",
+     "say": "Ça signifie que chaque litre de cette solution contiendrait quarante grammes de NaCl; notre échantillon, lui, fait seulement zéro virgule deux cent cinquante litre.",
+     "cues": [
+      {
+       "id": "c_signifie",
+       "text": "Ça signifie"
+      },
+      {
+       "id": "c_chaque",
+       "text": "chaque litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_interpretation",
+       "verb": "show",
+       "at": "cue:c_chaque",
+       "target": "interpretation_g_l"
+      },
+      {
+       "id": "dim_donnees",
+       "verb": "dim",
+       "at": "cue:c_signifie",
+       "target": "masse_donnee"
+      },
+      {
+       "id": "dim_volume",
+       "verb": "dim",
+       "at": "cue:c_signifie",
+       "target": "volume_donne"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_mol_l",
+   "introduces": [
+    {
+     "id": "masse_molaire",
+     "content": "M(\\ce{NaCl}) = 22{,}99 + 35{,}45 = 58{,}44\\,\\text{g/mol}",
+     "type": "math"
+    },
+    {
+     "id": "conversion_moles",
+     "content": "C = \\frac{40\\,\\text{g/L}}{58{,}44\\,\\text{g/mol}} \\approx 0{,}68\\,\\text{mol/L}",
+     "parts": [
+      {
+       "id": "rapport_masse",
+       "text": "C = \\frac{40\\,\\text{g/L}}{58{,}44\\,\\text{g/mol}}"
+      },
+      {
+       "id": "resultat_molaire",
+       "text": "\\approx 0{,}68\\,\\text{mol/L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_molaire",
+     "content": "La concentration molaire compte les moles de NaCl par litre.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "masse_molaire_voix",
+     "say": "Pour passer en moles par litre, il faut la masse molaire du NaCl. Une mole de NaCl a une masse de vingt-deux virgule quatre-vingt-dix-neuf plus trente-cinq virgule quarante-cinq, soit cinquante-huit virgule quarante-quatre grammes par mole.",
+     "cues": [
+      {
+       "id": "c_masse_molaire",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_sodium",
+       "text": "vingt-deux virgule quatre-vingt-dix-neuf"
+      },
+      {
+       "id": "c_chlore",
+       "text": "trente-cinq virgule quarante-cinq"
+      },
+      {
+       "id": "c_total",
+       "text": "cinquante-huit virgule quarante-quatre grammes par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sodium",
+       "verb": "write",
+       "at": "cue:c_sodium",
+       "target": "masse_molaire"
+      },
+      {
+       "id": "w_chlore",
+       "verb": "highlight",
+       "at": "cue:c_chlore",
+       "target": "masse_molaire",
+       "role": "accent"
+      },
+      {
+       "id": "w_total",
+       "verb": "highlight",
+       "at": "cue:c_total",
+       "target": "masse_molaire",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcul_molaire_voix",
+     "say": "On divise quarante grammes par litre par cinquante-huit virgule quarante-quatre grammes par mole. Les grammes s’annulent, et il reste environ zéro virgule soixante-huit mole par litre.",
+     "cues": [
+      {
+       "id": "c_division",
+       "text": "On divise"
+      },
+      {
+       "id": "c_unites",
+       "text": "Les grammes s’annulent"
+      },
+      {
+       "id": "c_mol",
+       "text": "zéro virgule soixante-huit mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rapport",
+       "verb": "write",
+       "at": "cue:c_division",
+       "target": "conversion_moles",
+       "part": "rapport_masse"
+      },
+      {
+       "id": "w_resultat_molaire",
+       "verb": "write",
+       "at": "cue:c_mol",
+       "target": "conversion_moles",
+       "part": "resultat_molaire"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_unites",
+       "target": "note_molaire"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "liberer",
+     "say": "On garde les deux résultats, puis on dégage les étapes de conversion avant de les résumer.",
+     "cues": [
+      {
+       "id": "c_garde",
+       "text": "On garde les deux résultats"
+      },
+      {
+       "id": "c_degager",
+       "text": "on dégage"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_gl",
+       "verb": "highlight",
+       "at": "cue:c_garde",
+       "target": "calcul_g_l",
+       "role": "accent",
+       "part": "resultat_g_l"
+      },
+      {
+       "id": "f_idee",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "idee_concentration"
+      },
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "masse_volume"
+      },
+      {
+       "id": "f_masse",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "masse_donnee"
+      },
+      {
+       "id": "f_vol",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "volume_donne"
+      },
+      {
+       "id": "f_calcul",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "calcul_g_l"
+      },
+      {
+       "id": "f_interpretation",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "interpretation_g_l"
+      },
+      {
+       "id": "f_molaire",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "masse_molaire"
+      },
+      {
+       "id": "f_conversion",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "conversion_moles"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_degager",
+       "target": "note_molaire"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "idee_finale",
+     "content": "La concentration, c’est la quantité de soluté par volume de solution.",
+     "type": "text"
+    },
+    {
+     "id": "resultat_final_g_l",
+     "style": {
+      "role": "result"
+     },
+     "content": "C = 40\\,\\text{g/L}",
+     "type": "math"
+    },
+    {
+     "id": "resultat_final_mol",
+     "style": {
+      "role": "result"
+     },
+     "content": "C = 0{,}68\\,\\text{mol/L}",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "resume",
+     "items": [
+      "idee_finale",
+      "resultat_final_g_l",
+      "resultat_final_mol"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "conclusion",
+     "say": "À retenir : la concentration compare la quantité de soluté au volume de solution. Pour ta solution, elle vaut quarante grammes par litre, soit environ zéro virgule soixante-huit mole par litre.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_compare",
+       "text": "compare la quantité de soluté au volume de solution"
+      },
+      {
+       "id": "c_g_l",
+       "text": "quarante grammes par litre"
+      },
+      {
+       "id": "c_mol_l",
+       "text": "zéro virgule soixante-huit mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_compare",
+       "target": "idee_finale"
+      },
+      {
+       "id": "s_final_g",
+       "verb": "show",
+       "at": "cue:c_g_l",
+       "target": "resultat_final_g_l"
+      },
+      {
+       "id": "s_final_mol",
+       "verb": "show",
+       "at": "cue:c_mol_l",
+       "target": "resultat_final_mol"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

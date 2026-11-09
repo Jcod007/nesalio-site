@@ -1,0 +1,823 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "conique_c_directrice_foyer",
+  "title": "Trouver c dans une parabole connaissant la directrice et le foyer",
+  "language": "fr",
+  "learning_goal": "Comprendre que c est la moitié de la distance entre le foyer et la directrice, et non la simple différence des y."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "p_ecart": "(6-2)/2",
+    "sommet_y": "(2+6)/2",
+    "demi_abs": "abs(6-2)/2",
+    "c_abs": "abs(6-2)/2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "size": "large",
+     "content": "c : la moitié de la distance foyer–directrice",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne question ! Et ton erreur est très fréquente : tu as pris l'écart entier au lieu de la moitié.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "la moitié"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_moitie",
+       "target": "titre"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_figure",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -6,
+       6
+      ],
+      "y": [
+       -1,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "dir",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       -6,
+       2
+      ],
+      "to": [
+       6,
+       2
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "dir_lab",
+     "attachment": {
+      "parent": "dir",
+      "anchor": "left",
+      "placement": "outside"
+     },
+     "content": "directrice y = 2",
+     "type": "label"
+    },
+    {
+     "id": "foyer",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       0,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "foyer_lab",
+     "attachment": {
+      "parent": "foyer",
+      "anchor": "right"
+     },
+     "content": "F(0 ; 6)",
+     "type": "label"
+    },
+    {
+     "id": "som",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       0,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "som_lab",
+     "attachment": {
+      "parent": "som",
+      "anchor": "right"
+     },
+     "content": "S(0 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "parab",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "x^2/8 + 4",
+      "domain": [
+       -5,
+       5
+      ]
+     },
+     "type": "function_graph"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Prenons un exemple : la directrice est la droite y égale deux, et le foyer est le point F zéro, six.",
+     "cues": [
+      {
+       "id": "c_directrice",
+       "text": "la directrice"
+      },
+      {
+       "id": "c_foyer",
+       "text": "le foyer"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_dir",
+       "verb": "draw",
+       "start": "cue:c_directrice",
+       "end": "cue_end:c_directrice",
+       "target": "dir"
+      },
+      {
+       "id": "s_dir_lab",
+       "verb": "show",
+       "at": "after:d_dir",
+       "target": "dir_lab"
+      },
+      {
+       "id": "s_foyer",
+       "verb": "show",
+       "at": "cue:c_foyer",
+       "target": "foyer"
+      },
+      {
+       "id": "s_foyer_lab",
+       "verb": "show",
+       "at": "after:s_foyer",
+       "target": "foyer_lab"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "milieu",
+     "say": "Le sommet est exactement à mi-chemin entre la directrice et le foyer : ici, à y égale quatre.",
+     "cues": [
+      {
+       "id": "c_mi_chemin",
+       "text": "mi-chemin"
+      },
+      {
+       "id": "c_quatre",
+       "text": "y égale quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_som",
+       "verb": "show",
+       "at": "cue:c_quatre",
+       "target": "som"
+      },
+      {
+       "id": "s_som_lab",
+       "verb": "show",
+       "at": "after:s_som",
+       "target": "som_lab"
+      },
+      {
+       "id": "d_parab",
+       "verb": "draw",
+       "start": "cue:c_mi_chemin",
+       "end": "cue_end:c_quatre",
+       "target": "parab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "formule_p",
+     "content": "p = 6 - 2 = 4",
+     "parts": [
+      {
+       "id": "p_tot",
+       "text": "p = 6 - 2"
+      },
+      {
+       "id": "p_res",
+       "text": "= 4"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "formule_c",
+     "content": "c = \\dfrac{p}{2} = \\dfrac{4}{2} = 2",
+     "parts": [
+      {
+       "id": "c_p",
+       "text": "c = \\dfrac{p}{2}"
+      },
+      {
+       "id": "c_sub",
+       "text": "= \\dfrac{4}{2}"
+      },
+      {
+       "id": "c_res",
+       "text": "= 2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "faux",
+     "layout": {
+      "next_to": "formule_c",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "style": {
+      "role": "unknown"
+     },
+     "content": "6 - 2 = 4",
+     "type": "math"
+    },
+    {
+     "id": "faux_lab",
+     "layout": {
+      "next_to": "faux",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "l'écart entier : ce n'est pas c",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ecart",
+     "say": "D'abord, la distance totale entre la directrice et le foyer : six moins deux donne quatre. On appelle cette distance p.",
+     "cues": [
+      {
+       "id": "c_distance",
+       "text": "distance totale"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_foyer",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "foyer_lab"
+      },
+      {
+       "id": "d_dir",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "dir_lab"
+      },
+      {
+       "id": "w_p_tot",
+       "verb": "write",
+       "at": "cue:c_distance",
+       "target": "formule_p",
+       "part": "p_tot"
+      },
+      {
+       "id": "w_p_res",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "formule_p",
+       "part": "p_res"
+      }
+     ]
+    },
+    {
+     "id": "moitie",
+     "say": "Mais c n'est pas cette distance entière : c'est la moitié. Quatre divisé par deux donne deux.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "la moitié"
+      },
+      {
+       "id": "c_deux",
+       "text": "donne deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c_p",
+       "verb": "write",
+       "at": "cue:c_moitie",
+       "target": "formule_c",
+       "part": "c_p"
+      },
+      {
+       "id": "w_c_sub",
+       "verb": "write",
+       "at": "cue:c_moitie",
+       "target": "formule_c",
+       "part": "c_sub"
+      },
+      {
+       "id": "w_c_res",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "formule_c",
+       "part": "c_res"
+      },
+      {
+       "id": "h_c",
+       "verb": "highlight",
+       "at": "after:w_c_res",
+       "target": "formule_c",
+       "role": "result",
+       "part": "c_res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "nommer",
+     "say": "Ton quatre, tu l'as obtenu en soustrayant les y. C'est l'écart total, pas c.",
+     "cues": [
+      {
+       "id": "c_soustrayant",
+       "text": "soustrayant les y"
+      },
+      {
+       "id": "c_pas_c",
+       "text": "pas c"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_faux",
+       "verb": "show",
+       "at": "cue:c_soustrayant",
+       "target": "faux"
+      },
+      {
+       "id": "s_faux_lab",
+       "verb": "show",
+       "at": "cue:c_pas_c",
+       "target": "faux_lab"
+      },
+      {
+       "id": "h_faux",
+       "verb": "highlight",
+       "at": "cue:c_pas_c",
+       "target": "faux",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verif",
+     "say": "Vérifions : si c valait quatre, la directrice serait à y moins deux et le foyer à y plus six. Ce n'est pas ce qu'on a.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_faux",
+       "verb": "dim",
+       "at": "cue:c_verif",
+       "target": "faux"
+      },
+      {
+       "id": "d_faux_lab",
+       "verb": "dim",
+       "at": "cue:c_verif",
+       "target": "faux_lab"
+      },
+      {
+       "id": "h_som",
+       "verb": "highlight",
+       "at": "cue:c_verif",
+       "target": "som",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_general",
+   "introduces": [
+    {
+     "id": "gen",
+     "content": "c = \\dfrac{|y_F - y_D|}{2}",
+     "type": "math"
+    },
+    {
+     "id": "gen_note",
+     "layout": {
+      "next_to": "gen",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "y_F : foyer   y_D : directrice",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "La règle générale : c égale la valeur absolue de y du foyer moins y de la directrice, le tout divisé par deux.",
+     "cues": [
+      {
+       "id": "c_valeur_abs",
+       "text": "la valeur absolue"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_faux",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "faux"
+      },
+      {
+       "id": "f_faux_lab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "faux_lab"
+      },
+      {
+       "id": "d_p",
+       "verb": "dim",
+       "at": "cue:c_valeur_abs",
+       "target": "formule_p"
+      },
+      {
+       "id": "w_gen",
+       "verb": "write",
+       "at": "cue:c_valeur_abs",
+       "target": "gen"
+      },
+      {
+       "id": "s_gen_note",
+       "verb": "show",
+       "at": "after:w_gen",
+       "target": "gen_note"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "pourquoi",
+     "say": "Pourquoi diviser par deux ? Parce que le sommet est au milieu : la distance du sommet au foyer est la même que du sommet à la directrice.",
+     "cues": [
+      {
+       "id": "c_pourquoi",
+       "text": "Pourquoi diviser par deux"
+      },
+      {
+       "id": "c_milieu",
+       "text": "au milieu"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_dir",
+       "verb": "highlight",
+       "start": "cue:c_milieu",
+       "end": "cue_end:c_milieu",
+       "target": "dir",
+       "role": "given"
+      },
+      {
+       "id": "h_foyer",
+       "verb": "highlight",
+       "start": "cue:c_milieu",
+       "end": "cue_end:c_milieu",
+       "target": "foyer",
+       "role": "given"
+      },
+      {
+       "id": "h_som",
+       "verb": "highlight",
+       "start": "cue:c_milieu",
+       "end": "cue_end:c_milieu",
+       "target": "som",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : c n'est jamais l'écart entier entre les deux y, c'est toujours la moitié de cet écart.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_moitie",
+       "text": "la moitié"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "f_formule_p",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "formule_p"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "gen",
+        "gen_note",
+        "formule_c"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_gen",
+       "verb": "highlight",
+       "start": "cue:c_retenir",
+       "end": "cue_end:c_moitie",
+       "target": "gen",
+       "role": "result"
+      },
+      {
+       "id": "h_c",
+       "verb": "highlight",
+       "start": "cue:c_moitie",
+       "end": "cue_end:c_moitie",
+       "target": "formule_c",
+       "role": "result",
+       "part": "c_res"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

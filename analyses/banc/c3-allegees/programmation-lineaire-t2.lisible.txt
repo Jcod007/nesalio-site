@@ -1,0 +1,77 @@
+QUESTION (programmation-lineaire, mathematiques, sec 5, methode) : comment je trouve le maximum de 3x + 2y si x ≥ 0, y ≥ 0, x + y ≤ 6 pis x ≤ 4 ? on fait ça avec un polygone de contraintes
+RÉPONSE DE RÉFÉRENCE : Sommets (0, 0), (4, 0), (4, 2), (0, 6) ; valeurs 0, 12, 16, 12 ; maximum 16 en (4, 2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. tracer les droites frontières et ombrer la région qui respecte toutes les contraintes
+  2. trouver les sommets du polygone : (0, 0), (4, 0), (4, 2), (0, 6)
+  3. le maximum d'une fonction à optimiser se trouve à un sommet du polygone
+  4. évaluer 3x + 2y à chaque sommet : 0, 12, 16, 12
+  5. réponse : maximum 16 en (4, 2), écrit
+ERREURS GRAVES À CHERCHER : sommet (4, 2) oublié ou mal calculé ; région ombrée fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le maximum de 3x + 2y sous contraintes
+math_context : {"symbols":{},"expressions":{"f_A":"3*0+2*0","f_B":"3*4+2*0","f_C":"3*4+2*2","f_D":"3*2+2*4","f_E":"3*0+2*6"}}
+=== Tranche s_contraintes
+  OBJET rep [axes] {"x":[-1,8],"y":[-1,8]} 
+  OBJET droite_xy [line] {"from":[6,0],"to":[0,6]} 
+  OBJET droite_x4 [line] {"from":[4,0],"to":[4,6]} 
+  OBJET zone [polygon] {"vertices":[[0,0],[4,0],[4,2],[2,4],[0,6]]} 
+  OBJET sys [math] "x \\ge 0, \\; y \\ge 0, \\; x + y \\le 6, \\; x \\le 4" parts=x \ge 0, \; y \ge 0 | , x + y \le 6 | , x \le 4
+DIT (pose) : On va trouver le maximum avec un polygone de contraintes.
+    show rep @beat:start 
+DIT (droites) : La contrainte x plus y plus petit ou égal à six donne la droite d'équation x plus y égale six. Entre les deux points un six et six zéro.
+    write sys @cue:c_six {"part":"p2"}
+    draw droite_xy @- {"start":"cue:c_droite","end":"cue_end:c_trace"}
+DIT (xquatre) : La contrainte x plus petit ou égal à quatre donne la droite verticale x égale quatre.
+    write sys @cue:c_x4 {"part":"p3"}
+    draw droite_x4 @cue:c_x4 
+=== Tranche s_polygone
+  OBJET lab_A [label] "A(0 ; 0)" attaché à pt_A
+  OBJET lab_B [label] "B(4 ; 0)" attaché à pt_B
+  OBJET lab_C [label] "C(4 ; 2)" attaché à pt_C
+  OBJET lab_D [label] "D(2 ; 4)" attaché à pt_D
+  OBJET lab_E [label] "E(0 ; 6)" attaché à pt_E
+  OBJET pt_A [point] {"at":[0,0]} 
+  OBJET pt_B [point] {"at":[4,0]} 
+  OBJET pt_C [point] {"at":[4,2]} 
+  OBJET pt_D [point] {"at":[2,4]} 
+  OBJET pt_E [point] {"at":[0,6]} 
+DIT (droites_vides) : On oublie les droites seules : on garde la région que ces contraintes découpent ensemble.
+    fade_out droite_xy @cue:c_region 
+    fade_out droite_x4 @cue:c_region 
+    show zone @cue:c_region 
+DIT (sommets) : Cette région, c'est un polygone dont les coins sont les seuls candidats possibles pour le maximum.
+    show pt_A @beat:start 
+    show pt_B @beat:start 
+    show pt_C @beat:start 
+    show pt_D @beat:start 
+    show pt_E @beat:start 
+    show lab_A @after:s_A 
+    show lab_B @after:s_B 
+    show lab_C @after:s_C 
+    show lab_D @after:s_D 
+    show lab_E @after:s_E 
+    highlight zone @- {"start":"cue:c_coins","end":"cue_end:c_coins","role":"accent"}
+=== Tranche s_evaluer
+  OBJET tab [matrix] {"rows":[["A(0 ; 0)",0],["B(4 ; 0)",12],["C(4 ; 2)",16],["D(2 ; 4)",14],["E(0 ; 6)",12]],"column_labels":["sommet","3x + 2y"]} 
+  OBJET fct [math] "f(x,y) = 3x + 2y" 
+DIT (formule) : La quantité à maximiser, c'est trois x plus deux y. On la calcule à chaque sommet.
+    dim zone @beat:start 
+    write fct @cue:c_trois 
+    show tab @after:w_fct 
+DIT (calculs) : En A, zéro. En B, trois fois quatre, douze. En C, douze plus quatre, seize. En D, six plus huit, quatorze. En E, douze.
+    highlight tab @- {"start":"cue:c_C","end":"cue_end:c_C","role":"accent"}
+=== Tranche s_max
+  OBJET reponse [math] "(x ; y) = (4 ; 2)" parts=(x ; y) | = (4 ; 2)
+  OBJET max [math] "3x + 2y = 16" parts=3x + 2y | = 16
+DIT (max) : Le plus grand, c'est seize, obtenu au sommet C. Le maximum vaut donc seize en x égale quatre et y égale deux.
+    camera.focus  @cue:c_seize {"targets":["pt_C"],"bounds":"layout_bounds"}
+    set_style pt_C @cue:c_sommet {"role":"result"}
+    write reponse @cue:c_x4 {"part":"pt"}
+    write reponse @cue:c_x4 {"part":"val"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : on trace le polygone de contraintes, puis on évalue la fonction à chaque sommet. Le plus grand résultat est la réponse.
+    write max @cue:c_retenir {"part":"expr"}
+    write max @cue:c_grand {"part":"res"}
+    highlight max @after:w_res {"role":"result"}
+--- 5 tranches, 172 mots dits (≈ 1.1 min d'oral)

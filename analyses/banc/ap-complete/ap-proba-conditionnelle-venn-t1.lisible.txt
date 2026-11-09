@@ -1,0 +1,84 @@
+QUESTION (ap-proba-conditionnelle-venn, mathematiques, sec 5, alloprof) : J'aimerais savoir pourquoi il ya une division de probabilité dans la formule de probabilité conditionnelle quand on travaille avec le diagramme de Venn alors que c'est plus simple quand on travaille avec d'autres modes de représentation? (Parce qu'en général une situation peut etre représenté par plusieurs modes de représentation alors pourquoi cest différent?)
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi P(A | B) divise par P(B)
+=== Tranche s_univers
+  OBJET u1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET u2 [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET u3 [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET u4 [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET u5 [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET u6 [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET n1 [label] "1" attaché à u1
+  OBJET n2 [label] "2" attaché à u2
+  OBJET n3 [label] "3" attaché à u3
+  OBJET n4 [label] "4" attaché à u4
+  OBJET n5 [label] "5" attaché à u5
+  OBJET n6 [label] "6" attaché à u6
+DIT (presente) : Ta question touche le cœur des probabilités : un même tirage peut se dessiner de plusieurs façons, mais le calcul reste le même.
+    show u1 @cue:c_question 
+    show u2 @after:s_univers 
+    show u3 @after:s_u2 
+    show u4 @after:s_u3 
+    show u5 @after:s_u4 
+    show u6 @after:s_u5 
+    show n1 @after:s_u6 
+    show n2 @after:s_n1 
+    show n3 @after:s_n2 
+    show n4 @after:s_n3 
+    show n5 @after:s_n4 
+    show n6 @after:s_n5 
+DIT (uni) : Ici, lancer un dé : six cases égales, une par issue. Chaque case pèse un sixième, donc tous les cas sont équiprobables.
+    highlight u1 @- {"start":"cue:c_six","end":"cue_end:c_six","role":"accent"}
+    highlight u4 @- {"start":"cue:c_chacune","end":"cue_end:c_chacune","role":"accent"}
+=== Tranche s_cond
+  OBJET even [callout] "A : nombre pair  →  {2, 4, 6}" 
+  OBJET plusgrand [callout] "B : plus grand que 3  →  {4, 5, 6}" 
+DIT (definit) : Définissons deux événements. A, c'est tirer un nombre pair : deux, quatre ou six. B, c'est tirer plus grand que trois : quatre, cinq ou six.
+    show even @cue:c_pair 
+    show plusgrand @cue:c_grand 
+DIT (reduit) : Maintenant, quelqu'un te dit que B est réalisé : on sait que le résultat est quatre, cinq ou six. L'univers entier se réduit à ces cases.
+    dim u1 @cue:c_realise 
+    dim u2 @after:d_un 
+    dim u3 @after:d_deux 
+    highlight u4 @- {"start":"cue:c_reduit","end":"cue_end:c_reduit","role":"accent"}
+    highlight u5 @after:h_quatre {"role":"accent"}
+    highlight u6 @after:h_cinq {"role":"accent"}
+DIT (partdeB) : A l'intérieur de ce nouveau tout, A veut dire quatre ou six : deux cases sur trois. La réponse est deux tiers.
+    highlight u4 @- {"start":"cue:c_quatre","end":"cue_end:c_tiers","role":"result"}
+    highlight u6 @after:h_u4b {"role":"result"}
+=== Tranche s_formule
+  OBJET fcond [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = \frac{P(A \cap B)}{P(B)}
+  OBJET calc [math] "\\frac{2/6}{3/6} = \\frac{2}{3}" parts=\frac{2/6}{3/6} | = \frac{2}{3}
+  OBJET cond [label] "si P(B) ≠ 0" attaché à fcond
+DIT (justifie) : Reprends le dessin : la réponse est la part de B où A est aussi vrai. C'est exactement ce que dit la formule : probabilité de A sachant B égale probabilité de A inter B sur probabilité de B. La division apparaît parce que B devient le nouveau tout.
+    write fcond @cue:c_part {"part":"left"}
+    write fcond @cue:c_AinterB {"part":"eq2"}
+    highlight fcond @- {"start":"cue:c_B","end":"cue_end:c_B","role":"accent","part":"eq2"}
+DIT (verif) : Vérifions avec les nombres : A inter B pèse deux sixièmes, B pèse trois sixièmes. La division donne deux tiers. Même résultat que le dessin.
+    write calc @cue:c_nombres {"part":"frac"}
+    write calc @cue:c_meme {"part":"egal"}
+DIT (condition) : Une seule condition : le dénominateur B ne vaut jamais zéro, sinon la division n'existe pas. C'est pourquoi on l'écrit avant la formule.
+    show cond @cue:c_zero 
+=== Tranche s_multimodes
+  OBJET note1 [text] "Venn : on compte la part de B" 
+  OBJET note2 [text] "Tableau ou arbre : on divise les probabilités" 
+  OBJET note3 [text] "La division par P(B) est le prix pour être passé au monde « sachant B »" 
+DIT (traduire) : Et voilà la réponse à ta vraie question : ce n'est pas différent selon la représentation. En Venn on divise le nombre de cases.
+    fade_out even @cue:c_venn 
+    fade_out plusgrand @cue:c_venn 
+    show note1 @cue:c_venn 
+DIT (tableau) : Dans un tableau ou un arbre, on divise les probabilités. Le geste est le même : changer d'univers, c'est toujours diviser par ce que pèse le nouvel univers.
+    show note2 @cue:c_tableau 
+    show note3 @cue:c_geste 
+=== Tranche s_retenir
+  OBJET recap [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)} \\quad \\text{si } P(B) \\neq 0" 
+DIT (idee) : À retenir : conditionner, c'est rapetisser l'univers. B devient le nouveau tout, alors on divise par son poids. C'est la même idée dans toutes les représentations.
+    fade_out fcond @cue:c_retenir 
+    fade_out calc @cue:c_retenir 
+    show recap @cue:c_nouveau 
+    highlight recap @- {"start":"cue:c_poids","end":"cue_end:c_poids","role":"result"}
+--- 5 tranches, 294 mots dits (≈ 2.0 min d'oral)

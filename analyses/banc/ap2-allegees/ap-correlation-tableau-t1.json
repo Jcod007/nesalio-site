@@ -1,0 +1,861 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "correlation_tableau_double_entree",
+  "title": "Corrélation positive ou négative : le sens du nuage",
+  "language": "fr",
+  "learning_goal": "Comprendre que le signe de r vient du sens du nuage de points, et non de la pente visuelle des effectifs dans un tableau à double entrée."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "rep1",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "lab_x1",
+     "attachment": {
+      "parent": "rep1",
+      "anchor": "right"
+     },
+     "content": "heures d'étude",
+     "type": "label"
+    },
+    {
+     "id": "lab_y1",
+     "attachment": {
+      "parent": "rep1",
+      "anchor": "top"
+     },
+     "content": "résultat (%)",
+     "type": "label"
+    },
+    {
+     "id": "a1",
+     "frame": "rep1",
+     "params": {
+      "at": [
+       1,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "a2",
+     "frame": "rep1",
+     "params": {
+      "at": [
+       2,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "a3",
+     "frame": "rep1",
+     "params": {
+      "at": [
+       3,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "a4",
+     "frame": "rep1",
+     "params": {
+      "at": [
+       4,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "a5",
+     "frame": "rep1",
+     "params": {
+      "at": [
+       5,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "a6",
+     "frame": "rep1",
+     "params": {
+      "at": [
+       6,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "a7",
+     "frame": "rep1",
+     "params": {
+      "at": [
+       7,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "d1",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep1",
+     "params": {
+      "expression": "-0.64*x+8.14",
+      "domain": [
+       0,
+       8
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "r1",
+     "layout": {
+      "next_to": "rep1",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "r \\approx -0{,}81",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouverture",
+     "say": "D'abord, ce qu'est la corrélation : un nombre qui dit si les points d'un nuage collent à une droite.",
+     "cues": [
+      {
+       "id": "c_correlation",
+       "text": "corrélation"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep1"
+      },
+      {
+       "id": "s_lx1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_x1"
+      },
+      {
+       "id": "s_ly1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_y1"
+      },
+      {
+       "id": "s_a1",
+       "verb": "show",
+       "at": "cue:c_correlation",
+       "target": "a1"
+      },
+      {
+       "id": "s_a2",
+       "verb": "show",
+       "at": "cue:c_correlation",
+       "target": "a2"
+      },
+      {
+       "id": "s_a3",
+       "verb": "show",
+       "at": "cue:c_correlation",
+       "target": "a3"
+      },
+      {
+       "id": "s_a4",
+       "verb": "show",
+       "at": "cue:c_correlation",
+       "target": "a4"
+      },
+      {
+       "id": "s_a5",
+       "verb": "show",
+       "at": "cue:c_correlation",
+       "target": "a5"
+      },
+      {
+       "id": "s_a6",
+       "verb": "show",
+       "at": "cue:c_correlation",
+       "target": "a6"
+      },
+      {
+       "id": "s_a7",
+       "verb": "show",
+       "at": "cue:c_correlation",
+       "target": "a7"
+      }
+     ]
+    },
+    {
+     "id": "descend",
+     "say": "Regarde ce nuage : quand les heures d'étude augmentent vers la droite, le résultat a tendance à descendre. C'est une corrélation négative.",
+     "cues": [
+      {
+       "id": "c_augmentent",
+       "text": "augmentent"
+      },
+      {
+       "id": "c_descendre",
+       "text": "à descendre"
+      },
+      {
+       "id": "c_negative",
+       "text": "négative"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_d1",
+       "verb": "draw",
+       "start": "cue:c_augmentent",
+       "end": "cue_end:c_descendre",
+       "target": "d1"
+      },
+      {
+       "id": "w_r1",
+       "verb": "write",
+       "at": "cue:c_negative",
+       "target": "r1"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "at": "after:w_r1",
+       "target": "r1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_positive",
+   "introduces": [
+    {
+     "id": "rep2",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "lab_x2",
+     "attachment": {
+      "parent": "rep2",
+      "anchor": "right"
+     },
+     "content": "heures d'étude",
+     "type": "label"
+    },
+    {
+     "id": "lab_y2",
+     "attachment": {
+      "parent": "rep2",
+      "anchor": "top"
+     },
+     "content": "résultat (%)",
+     "type": "label"
+    },
+    {
+     "id": "b1",
+     "frame": "rep2",
+     "params": {
+      "at": [
+       1,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "b2",
+     "frame": "rep2",
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "b3",
+     "frame": "rep2",
+     "params": {
+      "at": [
+       5,
+       6.4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "b4",
+     "frame": "rep2",
+     "params": {
+      "at": [
+       7,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "d2",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep2",
+     "params": {
+      "expression": "0.83*x+2.25",
+      "domain": [
+       0,
+       8
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "r2",
+     "layout": {
+      "next_to": "rep2",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "r \\approx 1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "monte",
+     "say": "Ici, c'est l'inverse : plus les heures montent, plus le résultat monte. La corrélation est positive.",
+     "cues": [
+      {
+       "id": "c_monte",
+       "text": "montent"
+      },
+      {
+       "id": "c_positive",
+       "text": "positive"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep2"
+      },
+      {
+       "id": "s_lx2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_x2"
+      },
+      {
+       "id": "s_ly2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_y2"
+      },
+      {
+       "id": "s_b1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "b1"
+      },
+      {
+       "id": "s_b2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "b2"
+      },
+      {
+       "id": "s_b3",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "b3"
+      },
+      {
+       "id": "s_b4",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "b4"
+      },
+      {
+       "id": "d_d2",
+       "verb": "draw",
+       "start": "cue:c_positive",
+       "end": "cue_end:c_positive",
+       "target": "d2"
+      },
+      {
+       "id": "w_r2",
+       "verb": "write",
+       "at": "cue:c_positive",
+       "target": "r2"
+      }
+     ]
+    },
+    {
+     "id": "memo",
+     "say": "Donc le signe de r, c'est le sens du nuage : qui descend, négatif ; qui monte, positif. Pas l'inverse.",
+     "cues": [
+      {
+       "id": "c_signe",
+       "text": "signe de r"
+      },
+      {
+       "id": "c_sens",
+       "text": "sens du nuage"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_rep1",
+       "verb": "dim",
+       "at": "cue:c_signe",
+       "target": "rep1"
+      },
+      {
+       "id": "h_r2",
+       "verb": "highlight",
+       "start": "cue:c_sens",
+       "end": "cue_end:c_sens",
+       "target": "r2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tableau",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        10,
+        40,
+        50
+       ],
+       [
+        40,
+        60,
+        20
+       ],
+       [
+        50,
+        20,
+        10
+       ]
+      ],
+      "row_labels": [
+       "peu",
+       "moyen",
+       "beaucoup"
+      ],
+      "column_labels": [
+       "rare",
+       "parfois",
+       "souvent"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "legende",
+     "content": "lignes : temps d'étude (vers le bas) ; colonnes : notes (vers la droite)",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "lecture",
+     "say": "Dans un tableau à double entrée, les valeurs d'une variable descendent souvent du petit au grand. Ce n'est pas la diagonale visuelle qui compte.",
+     "cues": [
+      {
+       "id": "c_descendent",
+       "text": "descendent"
+      },
+      {
+       "id": "c_diagonale",
+       "text": "diagonale visuelle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_descendent",
+       "target": "tab"
+      },
+      {
+       "id": "s_leg",
+       "verb": "show",
+       "at": "cue:c_descendent",
+       "target": "legende"
+      }
+     ]
+    },
+    {
+     "id": "gros",
+     "say": "Regarde où sont les gros effectifs : les grands nombres relient peu d'étude et rare succès, puis beaucoup d'étude et souvent succès. Ça, c'est une corrélation positive.",
+     "cues": [
+      {
+       "id": "c_effectifs",
+       "text": "gros effectifs"
+      },
+      {
+       "id": "c_relient",
+       "text": "relient"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "at": "cue:c_relient",
+       "target": "tab",
+       "role": "accent",
+       "part": "r1c1"
+      },
+      {
+       "id": "h_tab2",
+       "verb": "highlight",
+       "at": "cue:c_relient",
+       "target": "tab",
+       "role": "accent",
+       "part": "r3c3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "-1 \\le r \\le 1",
+     "type": "math"
+    },
+    {
+     "id": "sens",
+     "content": "r négatif : x monte, y descend. r positif : les deux montent ensemble.",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "synthese",
+     "items": [
+      "regle",
+      "sens"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "final",
+     "say": "À retenir : r va toujours de moins un à un. Le signe donne le sens du nuage, sa grandeur proche de zéro ou de un dit si le lien est faible ou fort.",
+     "cues": [
+      {
+       "id": "c_ret",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_un",
+       "text": "un"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_ret",
+       "targets": [
+        "regle",
+        "sens"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "f_rep2",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "rep2"
+      },
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "tab"
+      },
+      {
+       "id": "f_leg",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "legende"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_ret",
+       "target": "regle"
+      },
+      {
+       "id": "w_sens",
+       "verb": "write",
+       "at": "cue:c_un",
+       "target": "sens"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

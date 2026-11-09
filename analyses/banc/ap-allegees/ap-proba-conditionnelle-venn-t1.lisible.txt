@@ -1,0 +1,104 @@
+QUESTION (ap-proba-conditionnelle-venn, mathematiques, sec 5, alloprof) : J'aimerais savoir pourquoi il ya une division de probabilité dans la formule de probabilité conditionnelle quand on travaille avec le diagramme de Venn alors que c'est plus simple quand on travaille avec d'autres modes de représentation? (Parce qu'en général une situation peut etre représenté par plusieurs modes de représentation alors pourquoi cest différent?)
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi P(A | B) = P(A ∩ B) ÷ P(B)
+=== Tranche s_univers
+  OBJET c1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET c2 [polygon] {"vertices":[[1.15,0],[2.15,0],[2.15,1],[1.15,1]]} 
+  OBJET c3 [polygon] {"vertices":[[2.3,0],[3.3,0],[3.3,1],[2.3,1]]} 
+  OBJET c4 [polygon] {"vertices":[[3.45,0],[4.45,0],[4.45,1],[3.45,1]]} 
+  OBJET c5 [polygon] {"vertices":[[4.6,0],[5.6,0],[5.6,1],[4.6,1]]} 
+  OBJET c6 [polygon] {"vertices":[[5.75,0],[6.75,0],[6.75,1],[5.75,1]]} 
+  OBJET l1 [label] "1" attaché à c1
+  OBJET l2 [label] "2" attaché à c2
+  OBJET l3 [label] "3" attaché à c3
+  OBJET l4 [label] "4" attaché à c4
+  OBJET l5 [label] "5" attaché à c5
+  OBJET l6 [label] "6" attaché à c6
+DIT (intro) : La division en probabilité conditionnelle n'est pas une règle propre au diagramme de Venn : c'est le changement d'univers qu'on représente visuellement.
+DIT (univers) : Prenons un dé à six faces, toutes équiprobables : chaque issue est un carré de même aire.
+    show c1 @cue:c_issues 
+    show c2 @after:s_c1 
+    show c3 @after:s_c2 
+    show c4 @after:s_c3 
+    show c5 @after:s_c4 
+    show c6 @after:s_c5 
+    show l1 @cue:c_carre 
+    show l2 @after:s_l1 
+    show l3 @after:s_l2 
+    show l4 @after:s_l3 
+    show l5 @after:s_l4 
+    show l6 @after:s_l5 
+=== Tranche s_condition
+  OBJET b_poly [polygon] {"vertices":[[3.4,1.1],[6.8,1.1],[6.8,2.1],[3.4,2.1]]} 
+  OBJET b_label [label] "B : {4, 5, 6}" attaché à b_poly
+  OBJET p_b [math] "P(B) = \\frac{3}{6}" parts=P(B) | = \frac{3}{6}
+DIT (definit) : Définissons l'événement B : la face obtenue est plus grande que trois.
+    show b_poly @cue:c_b 
+    show b_label @cue:c_grand 
+    highlight c4 @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"accent"}
+    highlight c5 @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"accent"}
+    highlight c6 @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"accent"}
+DIT (prob) : Trois issues sur six : P de B vaut trois sixièmes. C'est l'aire de B par rapport à tout l'univers.
+    write p_b @cue:c_pb {"part":"pb_lhs"}
+    write p_b @cue:c_aire {"part":"pb_res"}
+=== Tranche s_reduire
+  OBJET a_poly [polygon] {"vertices":[[5.7,2.2],[6.8,2.2],[6.8,3.2],[5.7,3.2]]} 
+  OBJET a_label [label] "A ∩ B = {4, 6}" attaché à a_poly
+DIT (reduit) : Quand on sait que B s'est produit, les faces un, deux et trois sont éliminées. L'univers n'est plus six issues : il n'en reste que trois.
+    dim c1 @cue:c_elim 
+    dim c2 @after:d_c1 
+    dim c3 @after:d_c2 
+    dim l1 @after:d_c3 
+    dim l2 @after:d_l1 
+    dim l3 @after:d_l2 
+    show a_poly @cue:c_reste 
+    show a_label @after:s_a 
+DIT (part) : A, c'est obtenir un nombre pair. Dans le nouvel univers B, seuls quatre et six sont pairs : deux cases sur trois.
+    highlight c4 @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"accent"}
+    highlight c6 @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"accent"}
+=== Tranche s_formule
+  OBJET formule [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = \frac{P(A \cap B)}{P(B)}
+  OBJET num [math] "\\frac{2}{6} \\div \\frac{3}{6} = \\frac{2}{3}" 
+DIT (explique) : La division ne fait que comparer la part de B qui est dans A à la taille de B tout entier.
+    write formule @cue:c_compare {"part":"f_lhs"}
+    write formule @cue:c_taille {"part":"f_num"}
+DIT (calcul) : P de A inter B vaut deux sixièmes, P de B vaut trois sixièmes : deux sixièmes divisés par trois sixièmes donnent deux tiers.
+    write num @cue:c_deuxsix 
+    highlight num @cue:c_tiers {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Conditionner à B : le tout devient B, d'où la division. Peu importe la représentation." 
+DIT (retenir) : Voilà pourquoi la division est là dans toutes les représentations : dès qu'on restreint l'univers à B, on divise par la probabilité de B.
+    camera.focus  @cue:c_voila {"targets":["formule","idee"],"bounds":"layout_bounds"}
+    dim p_b @cue:c_voila 
+    write idee @cue:c_restreint 
+    highlight formule @- {"start":"cue:c_restreint","end":"cue_end:c_restreint","role":"accent","part":"f_num"}
+=== Tranche s_idee
+  OBJET final [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = \frac{P(A \cap B)}{P(B)}
+DIT (central) : L'idée centrale : conditionner à B, c'est réduire l'univers à B. B devient le nouveau tout, alors on divise par la taille de B.
+    fade_out c4 @cue:c_central 
+    fade_out c5 @after:f_c4 
+    fade_out c6 @after:f_c5 
+    fade_out b_poly @cue:c_reduire 
+    fade_out b_label @after:f_b 
+    fade_out a_poly @after:f_bl 
+    fade_out a_label @after:f_a 
+    fade_out c1 @cue:c_reduire 
+    fade_out c2 @after:f_c1 
+    fade_out c3 @after:f_c2 
+    fade_out l1 @after:f_c3 
+    fade_out l2 @after:f_l1 
+    fade_out l3 @after:f_l2 
+    fade_out l4 @after:f_l3 
+    fade_out l5 @after:f_l4 
+    fade_out l6 @after:f_l5 
+    fade_out p_b @cue:c_reduire 
+    fade_out num @after:f_pb2 
+    fade_out formule @after:f_num2 
+    fade_out idee @after:f_formule 
+    show final @cue:c_central 
+    highlight final @- {"start":"cue:c_central","end":"cue_end:c_reduire","role":"result","part":"droite"}
+--- 6 tranches, 212 mots dits (≈ 1.4 min d'oral)

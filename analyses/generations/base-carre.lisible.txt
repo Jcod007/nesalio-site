@@ -1,0 +1,88 @@
+TITRE : Pourquoi (x + 5)² n'est pas x² + 25
+=== Tranche s_aire
+  OBJET grand [polygon] {"vertices":[[0,0],[6,0],[6,6],[0,6]]} 
+  OBJET carre_x [polygon] {"vertices":[[0,0],[6,0],[6,6],[0,6]]} 
+  OBJET lab_x2 [label] "x²" attaché à carre_x
+  OBJET rect_h [polygon] {"vertices":[[6,0],[7,0],[7,6],[6,6]]} 
+  OBJET lab_5x1 [label] "5x" attaché à rect_h
+  OBJET rect_v [polygon] {"vertices":[[0,6],[6,6],[6,7],[0,7]]} 
+  OBJET lab_5x2 [label] "5x" attaché à rect_v
+  OBJET coin [polygon] {"vertices":[[6,6],[7,6],[7,7],[6,7]]} 
+  OBJET lab_25 [label] "25" attaché à coin
+  OBJET lab_cote_h [label] "x + 5" attaché à grand
+  OBJET lab_cote_v [label] "x + 5" attaché à grand
+  GROUPE figure = grand, carre_x, rect_h, rect_v, coin
+DIT (ouverture) : Bonne question. Un carré de côté x plus cinq, ça se dessine, et le dessin va tout expliquer.
+    camera.focus  @beat:start {"targets":["grand","lab_cote_h","lab_cote_v"],"bounds":"layout_bounds","save_as":"vue_aire"}
+    draw grand @cue:c_cote 
+    show lab_cote_h @cue:c_cote 
+    show lab_cote_v @after:s_ch 
+DIT (parts) : On découpe ce carré à la bonne place : un carré de côté x, deux rectangles de cinq par x, et un petit carré de côté cinq.
+    show carre_x @cue:c_carre_x 
+    show lab_x2 @after:s_cx 
+    show rect_h @cue:c_rects 
+    show lab_5x1 @after:s_rh 
+    show rect_v @after:s_l5x1 
+    show lab_5x2 @after:s_rv 
+    show coin @cue:c_petit 
+    show lab_25 @after:s_coin 
+=== Tranche s_manquant
+  OBJET faux [math] "x^2 + 25" 
+  OBJET vrai [math] "x^2 + 10x + 25" 
+DIT (erreur) : Quand on écrit x carré plus vingt-cinq, on oublie ces deux rectangles. Chacun vaut cinq x, et ensemble ils valent dix x.
+    camera.focus  @cue:c_oublie {"targets":["faux"]}
+    show faux @cue:c_oublie 
+    highlight rect_h @cue:c_chacun {"role":"accent"}
+    highlight rect_v @after:h_h {"role":"accent"}
+    highlight lab_5x1 @cue:c_dix {"role":"accent"}
+    show vrai @after:h_l5x 
+DIT (somme) : L'aire totale, c'est x carré, plus cinq x, plus cinq x, plus vingt-cinq : donc x carré plus dix x plus vingt-cinq.
+    remove faux @cue:c_x2 
+    highlight lab_x2 @cue:c_x2 {"role":"result"}
+    highlight lab_5x1 @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"result"}
+    highlight vrai @cue:c_fin {"role":"result"}
+=== Tranche s_developpe
+  OBJET etape1 [math] "(x + 5)^2 = (x + 5)(x + 5)" parts=(x + 5)^2 | = (x + 5)(x + 5)
+  OBJET etape2 [math] "= x \\cdot x + x \\cdot 5 + 5 \\cdot x + 5 \\cdot 5" 
+  OBJET etape3 [math] "= x^2 + 5x + 5x + 25" 
+  OBJET etape4 [math] "= x^2 + 10x + 25" 
+DIT (reecrit) : Le calcul confirme le dessin. D'abord, un carré, c'est le nombre multiplié par lui-même : x plus cinq fois x plus cinq.
+    camera.focus  @beat:start {"targets":["etape1"],"bounds":"layout_bounds","save_as":"vue_calcul"}
+    write etape1 @cue:c_carre {"part":"dep"}
+    write etape1 @cue:c_fois {"part":"dev"}
+DIT (distrib) : On distribue chaque terme du premier binôme sur chaque terme du deuxième : quatre multiplications, exactement les quatre pièces du dessin.
+    highlight etape1 @cue:c_quatre {"role":"accent","part":"dev"}
+    transform etape2 @after:h_dev {"source":"etape1"}
+DIT (reduire) : x fois x donne x carré, les deux x fois cinq donnent les deux cinq x, et cinq fois cinq donne vingt-cinq.
+    transform etape3 @cue:c_produits {"source":"etape2"}
+    transform etape4 @- {"start":"cue:c_deux5x","end":"cue_end:c_252","source":"etape3"}
+=== Tranche s_regle
+  OBJET regle [math] "(x + 5)^2 = x^2 + 2 \\cdot 5 \\cdot x + 25" parts=(x + 5)^2 | = x^2 + 2 \cdot 5 \cdot x + 25
+  OBJET note [text] "Le double produit relie les deux binômes" 
+  OBJET formule_gen [math] "(a + b)^2 = a^2 + 2ab + b^2" 
+  OBJET memoire [callout] "a² + 2ab + b² : trinôme carré parfait" 
+  GROUPE recap = formule_gen, memoire
+DIT (motif) : Alors retiens le motif : le carré du premier, deux fois le produit des deux, le carré du deuxième.
+    fade_out vrai @cue:c_motif 
+    fade_out coin @cue:c_motif 
+    fade_out etape1 @cue:c_motif 
+    fade_out etape4 @cue:c_motif 
+    write regle @cue:c_motif {"part":"gauche"}
+    write regle @cue:c_double {"part":"double"}
+    show note @cue:c_second 
+DIT (general) : Avec des lettres, ça donne a plus b au carré égale a carré plus deux a b plus b carré : c'est le trinôme carré parfait.
+    dim grand @cue:c_ab 
+    dim carre_x @cue:c_ab 
+    dim rect_h @cue:c_ab 
+    dim rect_v @cue:c_ab 
+    dim lab_cote_h @cue:c_ab 
+    dim lab_cote_v @cue:c_ab 
+    dim regle @cue:c_resultat 
+    write formule_gen @cue:c_resultat 
+    write memoire @cue:c_tcp 
+=== Tranche s_conclusion
+DIT (central) : Voilà pourquoi : x plus cinq au carré, ce n'est pas x carré plus vingt-cinq. Il manque toujours le double produit, dix x, qui vient des deux rectangles du dessin.
+    camera.focus  @cue:c_idee {"targets":["formule_gen","memoire"],"bounds":"layout_bounds","transition":"smooth"}
+    highlight formule_gen @cue:c_manque {"role":"result"}
+    highlight memoire @after:h_manque {"role":"result"}
+--- 5 tranches, 229 mots dits (≈ 1.5 min d'oral)

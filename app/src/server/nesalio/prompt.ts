@@ -4,7 +4,7 @@
  * boucle pédagogique). La description du langage est produite à partir du
  * contrat : le prompt ne peut pas décrire un champ qui n'existe pas.
  */
-import { TEACHING, exampleLessonText, guideSection } from "./pedagogy";
+import { MOVING_EXAMPLE_LESSON, REFUSAL_EXAMPLE, TEACHING, VISUAL_DICTIONARY, exampleLessonText, guideSection, lessonText } from "./pedagogy";
 import { z } from "zod";
 import { Action, NESALIO_FORMAT_VERSION, SceneObject } from "@/domain/nesalio/contract";
 import type { ChatMessage } from "@/server/tutor/prompt";
@@ -98,29 +98,30 @@ const FORMAT = `
 FORMAT DE SORTIE (format Nesalio ${NESALIO_FORMAT_VERSION}) : du JSON, une ligne par élément, rien d'autre (pas de texte, pas de \`\`\`).
 - Ligne 1 : {"lesson": {"id", "title", "language": "fr", "learning_goal"}, "math_context": {"symbols": {...}, "expressions": {...}}}
 - Puis UNE TRANCHE PAR LIGNE : {"slice": {"slice_id", "introduces": [objets], "groups"?: [groupes], "beats": [passages]}}
-- 3 à 5 tranches ; 2 à 5 passages par tranche. Chaque ligne doit être un JSON complet et valide à elle seule.
+- 3 à 5 tranches (une seule tranche, 1 ou 2 passages, pour une question hors périmètre) ; 2 à 5 passages par tranche. Chaque ligne doit être un JSON complet et valide à elle seule.
 - Un passage : {"id", "say", "cues": [repères], "do": [actions], "pause_after"?: "brief" | "normal" | "long"}.
   pause_after laisse un silence après le passage pour que l'élève regarde le tableau : "normal" après une idée importante
   ou un résultat, "long" avant de changer de partie ; sans pause_after, un court souffle sépare déjà les passages.
 - Un repère : {"id", "text", "occurrence"?}. Un groupe : {"id", "items": [ids], "arrange"?: {"direction", "align"?, "gap"?}, "layout"?}.
 - math_context.symbols : {"nom": {"kind": "constant", "value"}} ou {"nom": {"kind": "parameter", "initial", "min", "max"}}.
-  math_context.expressions : {"id": "expression"} pour les formules à valeur calculée.
-- Les identifiants : une lettre, puis lettres, chiffres, _ ou - . Tous uniques dans la leçon.`.trim();
+  math_context.expressions : {"id": "expression"} pour les formules à valeur calculée.`.trim();
 
 const SYNC_RULES = `
 SYNCHRONISATION VOIX ↔ TABLEAU (règles strictes)
-1. say est dit à voix haute : écris les maths EN MOTS (« deux x plus trois », « x au carré », « un demi »), pas en symboles.
-2. Un repère (cue.text) est un ou plusieurs MOTS ENTIERS copiés EXACTEMENT depuis say (mêmes accents, même apostrophe).
-   Jamais un morceau de mot. Si le mot apparaît plusieurs fois, occurrence dit lequel (1 = le premier).
+1. say est dit à voix haute : écris les maths EN MOTS (« deux x plus trois », « x au carré », « un demi »), pas en symboles ;
+   de même pour la chimie et les unités (« H deux O », « donne » pour la flèche, « moles par litre »).
+2. Un repère (cue.text) est un ou plusieurs MOTS ENTIERS copiés EXACTEMENT depuis say.
+   Si le mot apparaît plusieurs fois, occurrence dit lequel (1 = le premier).
 3. Le geste part au DÉBUT du mot du repère. Accroche chaque geste au mot qui NOMME ce qu'il montre :
    l'étiquette « a » sur le mot « a », pas sur un mot général dit avant (« les côtés »).
 4. Une formule dite morceau par morceau se déclare avec parts et s'écrit partie par partie, chaque partie sur son mot :
    « neuf plus seize donne vingt-cinq » → parts 9 | + 16 | = 25, write part sur « neuf », « seize », « vingt-cinq ».
-   Les parties mises bout à bout redonnent exactement content ; chaque partie est du LaTeX complet (accolades équilibrées,
-   exposant collé à sa base, \\frac avec ses deux arguments).
    Une fraction ne se découpe JAMAIS en numérateur et dénominateur : \\frac{3}{4} est une seule partie ; pour parler du
    numérateur puis du dénominateur, écris la fraction entière puis surligne-la (highlight).
 5. Un tracé long (draw d'une courbe, animate_parameter) s'étale entre deux repères : start "cue:…", end "cue_end:…".
+   Un highlight avec at est un éclair bref : pour que l'élève voie la partie surlignée pendant que tu en parles, donne start et end.
+   Dans un matrix, highlight avec part « r2c3 » (case ligne 2, colonne 3), « r2 » (ligne) ou « c3 » (colonne), comptées
+   depuis 1 sans les intitulés (highlight seulement).
    Pour désigner UN MORCEAU d'une formule (le x, un coefficient, un membre), découpe la formule en parts en prévoyant
    ce que tu vas désigner, puis highlight avec part : seule cette partie est surlignée, pas toute la formule.
 6. beat:start seulement pour ce qui doit être là dès le début du passage (cadrage, titre).
@@ -149,12 +150,15 @@ TABLEAU ET PLACEMENT
   (to: {"to_corner": "top_left"}) pour libérer le centre pendant la suite ; rapprocher deux objets à comparer
   (to: {"next_to": id, "direction": "right"}). Déplace sur le mot qui annonce ce changement.
 - Une étiquette se fixe à un objet avec attachment : {"parent": id, "anchor": "top" | "bottom" | "left" | "right" | "center"}.
+  triangle_right a aussi ses côtés : "side_a" (le côté leg_a, horizontal), "side_b" (le côté leg_b, vertical) et
+  "hypotenuse" ; la longueur d'un côté s'attache à son ancre. Un polygon n'a pas d'ancre de sommet : pose un point à ce
+  sommet et attache-lui son label.
   Déclare dans la même tranche que leur parent les étiquettes que tu prévois.
 - Tu n'écris jamais de position à l'écran ni de caméra : camera.focus dit QUOI cadrer, le moteur calcule le reste.
   Pour revenir à une vue d'ensemble après un détail, donne un nom unique avec save_as, puis utilise
   camera.restore avec frame égal à ce nom. Le moteur recadre les cibles du cadrage telles qu'elles sont alors.
 - Un objet déclaré reste invisible jusqu'à son action show, draw ou write. Il reste au tableau tant que tu ne le dégages pas.
-  Les tranches suivantes peuvent réutiliser les objets déjà déclarés (sans les redéclarer).
+  Les tranches suivantes peuvent réutiliser les objets déjà déclarés.
 - GARDE LE TABLEAU LISIBLE : à l'écran, seulement ce qui sert à ce que tu dis. Quand tu passes à une autre idée, dégage
   ce dont tu ne parles plus, sur le mot qui marque le changement :
   dim pour ce qui peut encore servir (l'équation de départ pendant qu'on la résout, la figure qu'on commente) ;
@@ -162,7 +166,7 @@ TABLEAU ET PLACEMENT
   Les deux libèrent la place : la tranche suivante peut s'installer au milieu de ce que voit l'élève si le centre est libre.
   Une tranche est placée au début de son premier passage :
   pour lui laisser la place, dégage dans le DERNIER passage de la tranche précédente.
-  Les étiquettes attachées partent avec leur objet. Un objet effacé par remove ne peut plus être visé.
+  Les étiquettes attachées partent avec leur objet.
 - RÉCAPITULATIF FINAL : UNE SEULE tranche de conclusion, la dernière, qui dit l'idée centrale et réécrit l'essentiel dans une composition courte,
   par exemple une règle et sa formule clé regroupées avec arrange. Fais apparaître cette composition pendant la
   dernière tranche et laisse-la visible jusqu'à la fin. Si tu utilises camera.focus, vise uniquement les objets du
@@ -172,24 +176,24 @@ TABLEAU ET PLACEMENT
 - UNE SUITE DE CALCULS SUR LA MÊME FORMULE (résoudre, simplifier, développer, factoriser) : déclare chaque étape comme
   une formule (math) SANS layout, et passe de l'une à la suivante avec transform (source = l'étape au tableau,
   target = la nouvelle). La nouvelle étape prend la place de l'ancienne ; les morceaux communs glissent, le reste
-  apparaît ou s'efface. N'empile les étapes (write l'une sous l'autre) que si l'élève doit les comparer.
-- Les rôles de style (style.role, highlight.role, set_style.role) : "neutral", "given", "unknown", "accent", "result", "secondary".
-  Pas de couleurs.`.trim();
+  apparaît ou s'efface. N'empile les étapes (write l'une sous l'autre) que si l'élève doit les comparer.`.trim();
 
 const MATH_RULES = `
 MATHÉMATIQUES
-- Formules (math.content, parts) : du LaTeX, sans $ autour.
+- Formules (math.content, parts) : du LaTeX, sans $ autour. Chimie : \\ce{CH4 + 2O2 -> CO2 + 2H2O}, \\ce{N2 + 3H2 <=> 2NH3},
+  \\ce{SO4^2-}, \\pu{12 g/mol} ; un \\ce{…} n'est jamais coupé entre deux parts.
 - Expressions calculées (function_graph.expression, parametric_curve x et y, math_context.expressions) : grammaire restreinte,
-  opérateurs + - * / ^, fonctions sqrt, abs, sin, cos, tan, exp, log. ATTENTION : log est le logarithme en base 10 ;
+  opérateurs + - * / ^, fonctions sqrt, abs, sin, cos, tan, exp, log, floor, ceil (partie entière [x] = floor(x)). ATTENTION : log est le logarithme en base 10 ;
   il n'existe pas de ln (écris log(x)/log(2.718281828) si tu en as besoin). Variable x pour function_graph, t pour parametric_curve,
   et les symboles déclarés dans math_context. Rien d'autre.
-- Un tableau de valeurs (proportionnalité, valeurs d'une fonction) : UN objet matrix avec row_labels (l'intitulé de chaque
-  ligne, ex. « durée (h) »), jamais des label séparés pour les intitulés.
-- Un paramètre animé (animate_parameter) doit être déclaré dans math_context avec ses bornes ; from et to restent dans les bornes.
+- Un tableau de valeurs : UN objet matrix avec row_labels (l'intitulé de chaque
+  ligne, ex. « durée (h) ») et, si les colonnes ont un nom, column_labels (avec row_labels, un de plus titre les
+  intitulés) ; jamais des label séparés. Cases : nombre, texte court (≤ 24 caractères : « 10 g », « ? ») ou null (vide).
 - Évite les domaines où l'expression n'existe pas (log de 0 ou d'un négatif, division par 0) : choisis le domain en conséquence.
-- Des axes doivent tenir à l'écran : au plus 24 unités de large (x) et 13 de haut (y), par exemple x de -6 à 6 et y de -4 à 8.
+- Des axes doivent tenir à l'écran : au plus 24 unités de large (x) et 13 de haut (y).
   Une courbe qui sort de ses axes est coupée à leurs bords : choisis domain et axes pour que l'essentiel soit dedans.
-- Vérifie chaque calcul que tu écris : une formule fausse au tableau est la pire erreur possible.`.trim();
+- Vérifie chaque calcul que tu écris. Contrôlé par le moteur : table « x » / « f(x) » et sa règle f(x) = … écrite ;
+  atomes : une colonne par symbole, lignes « réactifs » et « produits » ; id sommet1, creux1, zero1.`.trim();
 
 /** Short tranches from different domains: they show the mechanics, not a lesson to imitate. */
 export const PROMPT_EXAMPLES = [
@@ -261,22 +265,66 @@ const CHECKLIST = `
 AVANT D'ÉCRIRE CHAQUE LIGNE, VÉRIFIE :
 - ce passage dit POURQUOI (une justification, pas seulement une opération), et la leçon avance vers l'idée centrale ;
 - le tableau montre ce que dit ce passage ;
-- chaque cue.text est copié mot pour mot depuis le say de son passage ;
-- chaque action vise un objet déclaré ou un cadrage déjà sauvegardé, et utilise un repère de son passage ;
 - chaque formule dite en plusieurs morceaux a ses parts, et chaque part est écrite sur son mot ;
-- aucun texte ni formule n'a de coordonnées ; aucune caméra n'a de position ;
 - avant une nouvelle idée, ce dont tu ne parles plus est estompé (dim) ou dégagé (fade_out, remove). Si la prochaine
   tranche est le récapitulatif, vérifie dès maintenant les fade_out ou remove dans le do de ce dernier passage ;
-- chaque calcul est juste.`.trim();
+- chaque calcul est juste, écrit avec son résultat dans la même formule, et la réponse finale est vérifiée au tableau.`.trim();
 
-export function buildNesalioSystemPrompt(): string {
+/**
+ * Version du prompt système. « completes » (défaut) : le prompt tel qu'il est.
+ * « allegees » (NESALIO_CONSIGNES=allegees) : sans les règles de pure forme que
+ * le code répare (normalize.ts) ou refuse avec un message précis (validate.ts,
+ * contract.ts, coherence.ts, sayShow.ts). Sert à mesurer au banc si moins de
+ * règles fait mieux respecter celles qui restent.
+ */
+export type Consignes = "completes" | "allegees";
+
+export function consignesFromEnv(env: Readonly<Record<string, string | undefined>> = process.env): Consignes {
+  return env.NESALIO_CONSIGNES?.trim() === "allegees" ? "allegees" : "completes";
+}
+
+/**
+ * Passages retirés dans la version allégée : [texte exact, remplacement].
+ * Chaque passage doit exister tel quel, sinon `lighten` échoue (un test le vérifie) :
+ * une règle réécrite dans la version complète ne reste pas en silence dans l'allégée.
+ * Le code qui couvre chaque passage : rapport consignes-allegees (side-session-notes).
+ */
+const LIGHT_REMOVALS: Readonly<Record<"FORMAT" | "SYNC_RULES" | "LAYOUT_RULES" | "MATH_RULES" | "CHECKLIST", readonly (readonly [string, string])[]>> = {
+  FORMAT: [],
+  SYNC_RULES: [
+    ["\n   Une fraction ne se découpe JAMAIS en numérateur et dénominateur : \\frac{3}{4} est une seule partie ; pour parler du\n   numérateur puis du dénominateur, écris la fraction entière puis surligne-la (highlight).", ""],
+    [" sans les intitulés (highlight seulement).", " sans les intitulés."],
+  ],
+  LAYOUT_RULES: [
+    [" n'ont JAMAIS de coordonnées : place-les avec layout", " se placent avec layout"],
+    ["- Tu n'écris jamais de position à l'écran ni de caméra : camera.focus", "- camera.focus"],
+  ],
+  MATH_RULES: [
+    [" ; un \\ce{…} n'est jamais coupé entre deux parts.", "."],
+    [" column_labels (avec row_labels, un de plus titre les\n  intitulés) ;", " column_labels ;"],
+  ],
+  CHECKLIST: [],
+};
+
+function lighten(section: keyof typeof LIGHT_REMOVALS, text: string): string {
+  return LIGHT_REMOVALS[section].reduce((current, [removed, replacement]) => {
+    if (current.split(removed).length !== 2) throw new Error(`Consignes allégées : passage introuvable ou ambigu dans ${section} : « ${removed.trim().slice(0, 60)}… »`);
+    return current.replace(removed, () => replacement);
+  }, text);
+}
+
+export function buildNesalioSystemPrompt(consignes: Consignes = consignesFromEnv()): string {
+  const light = consignes === "allegees";
+  const section = (name: keyof typeof LIGHT_REMOVALS, text: string) => light ? lighten(name, text) : text;
   const examples = PROMPT_EXAMPLES.map(({ title, slice }) => `Exemple — ${title} :\n${JSON.stringify({ slice })}`);
   return [
-    ROLE, FORMAT, "LANGAGE NESALIO (généré depuis le contrat)", languageReference(),
-    SYNC_RULES, LAYOUT_RULES, MATH_RULES,
+    ROLE, VISUAL_DICTIONARY, section("FORMAT", FORMAT), "LANGAGE NESALIO (généré depuis le contrat)", languageReference(),
+    section("SYNC_RULES", SYNC_RULES), section("LAYOUT_RULES", LAYOUT_RULES), section("MATH_RULES", MATH_RULES),
     "EXEMPLES DE TRANCHES (des mécanismes à reprendre, pas des leçons à copier)", ...examples,
     "EXEMPLE DE LEÇON COMPLÈTE (pour le fil, la justification et le ton ; ne copie pas son sujet)", exampleLessonText(),
-    CHECKLIST,
+    "EXEMPLE DE LEÇON OÙ LA FIGURE BOUGE (un paramètre animé, une valeur calculée qui suit, des points calculés)", lessonText(MOVING_EXAMPLE_LESSON),
+    "EXEMPLE DE LEÇON DE REFUS (question hors périmètre : une seule tranche)", lessonText(REFUSAL_EXAMPLE),
+    section("CHECKLIST", CHECKLIST),
   ].join("\n\n");
 }
 
@@ -289,13 +337,28 @@ export function buildNesalioMessages(question: string): ChatMessage[] {
   ];
 }
 
-/** Message sent back once when a tranche is refused: the exact issues, and only that tranche to rewrite. */
-export function repairMessage(sliceId: string, issues: readonly { path: readonly PropertyKey[]; message: string }[]): string {
+/** Fixed id of the one tranche of the refusal lesson. */
+const REFUSAL_SLICE = REFUSAL_EXAMPLE.slices[0].slice_id;
+
+/**
+ * Message sent back once when a tranche is refused: the exact issues, and only that tranche to rewrite.
+ * `lineShown`: the refused line ends the model's previous answer (generator.ts), to be edited, not rewritten from memory.
+ */
+export function repairMessage(sliceId: string, issues: readonly { path: readonly PropertyKey[]; message: string }[], lineShown = false): string {
   const lines = issues.slice(0, 12).map(({ path, message }) => `- ${path.map(String).join(".")} : ${message}`);
+  const rewrite = lineShown
+    ? "Ta ligne refusée est ci-dessus : recopie-la en ne changeant que les champs cités, sur une ligne {\"slice\": …}"
+    : "Réécris cette tranche corrigée, sur une ligne {\"slice\": …}";
+  // The refusal lesson has one tranche by design (pedagogy.ts, REFUSAL_EXAMPLE): nothing follows it.
+  if (sliceId === REFUSAL_SLICE) return [
+    `La tranche « ${sliceId} » a été refusée par le moteur :`,
+    ...lines,
+    `${rewrite} : c'est la seule tranche de la leçon de refus, n'écris rien après.`,
+  ].join("\n");
   return [
     `La tranche « ${sliceId} » a été refusée par le moteur :`,
     ...lines,
-    "Réécris cette tranche corrigée, sur une ligne {\"slice\": …}, sans réécrire les tranches déjà acceptées.",
+    `${rewrite}, sans réécrire les tranches déjà acceptées.`,
     "Puis écris TOUTES les tranches qui devaient la suivre, jusqu'à la fin de la leçon (3 à 5 tranches en tout) ;",
     "ne t'arrête après elle que si c'était la dernière.",
   ].join("\n");
@@ -303,6 +366,7 @@ export function repairMessage(sliceId: string, issues: readonly { path: readonly
 
 /** Message sent once when the model stopped before the lesson had its fewest tranches. */
 export function continueMessage(accepted: readonly string[]): string {
+  if (accepted.includes(REFUSAL_SLICE)) return "La leçon de refus n'a qu'une seule tranche : elle est complète, n'écris rien de plus.";
   return [
     `La leçon n'a que ${accepted.length} tranche(s) (${accepted.join(", ")}) : il en faut 3 à 5.`,
     "Continue : écris les tranches suivantes, une par ligne {\"slice\": …}, jusqu'au récapitulatif, sans réécrire celles-ci.",

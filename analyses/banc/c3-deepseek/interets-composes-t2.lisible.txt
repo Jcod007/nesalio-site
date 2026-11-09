@@ -1,0 +1,86 @@
+QUESTION (interets-composes, mathematiques, sec 5, methode) : comment je calcule combien j'vais avoir si je place 2000 $ à 4 % d'intérêt composé par année pendant 5 ans?
+RÉPONSE DE RÉFÉRENCE : 2000 × 1,04⁵ = 2433,31 $ (intérêt gagné 433,31 $).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. intérêt composé = l'intérêt s'ajoute au capital et rapporte à son tour ; ajouter 4 % = multiplier par 1,04
+  2. tableau année par année : 2080 ; 2163,20 ; 2249,73 ; 2339,72 ; 2433,31 $
+  3. formule C = C0(1 + i)^n reliée au tableau : 2000 × 1,04^5
+  4. réponse 2433,31 $ écrite (intérêt gagné 433,31 $)
+  5. valorisé : comparaison avec l'intérêt simple (2400 $)
+ERREURS GRAVES À CHERCHER : arrondi de 1,04⁵ avant la fin (2433,40 $) ; intérêt simple présenté comme composé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comment calculer un placement de 2000 $ à 4 % composé pendant 5 ans
+math_context : {"symbols":{"i":{"kind":"constant","value":0.04}},"expressions":{"montant":"2000*1.04^5"}}
+=== Tranche s_tableau
+  OBJET tab [matrix] {"rows":[[0,1,2,3,4,5],[2000,2080,2163.2,2249.73,2339.72,2433.31]],"row_labels":["année","capital ($)"]} 
+  OBJET note [label] "× 1,04 chaque année" attaché à tab
+DIT (depart) : Tu places deux mille dollars à quatre pour cent d'intérêt composé par année, pendant cinq ans.
+    camera.focus  @beat:start {"targets":["tab"],"bounds":"layout_bounds","save_as":"vue_tab"}
+    show tab @cue:c_place 
+DIT (annee1) : La première année, l'intérêt vaut quatre pour cent de deux mille, soit quatre-vingts dollars. Le capital devient deux mille quatre-vingts.
+    highlight tab @- {"start":"cue:c_interet","end":"cue_end:c_quatrevingts","role":"accent","part":"c2"}
+    highlight tab @- {"start":"cue:c_deuxmillequatrevingts","end":"cue_end:c_deuxmillequatrevingts","role":"accent","part":"c3"}
+DIT (suite) : L'année suivante, l'intérêt se calcule sur deux mille quatre-vingts : l'intérêt sur l'intérêt s'ajoute. Chaque fois, on ajoute quatre pour cent au capital déjà grossi.
+    highlight tab @- {"start":"cue:c_suivante","end":"cue_end:c_suivante","role":"accent","part":"c3"}
+    show note @cue:c_chaque 
+=== Tranche s_multiplicateur
+  OBJET mul [math] "2000 \\times 1{,}04 = 2080" parts=2000 \times 1{,}04 | = 2080
+  OBJET pourcent [text] "Ajouter 4 %, c'est multiplier par 1,04 : le 1 garde le capital, le 0,04 ajoute l'intérêt." 
+DIT (idee) : Pour aller plus vite, remarque une chose : ajouter quatre pour cent, c'est multiplier par un virgule zéro quatre.
+    dim tab @cue:c_ajouter 
+    dim note @cue:c_ajouter 
+    write mul @cue:c_multiplier 
+DIT (premiere) : Vérifions sur la première année : deux mille fois un virgule zéro quatre donne bien deux mille quatre-vingts.
+    highlight mul @- {"start":"cue:c_mille","end":"cue_end:c_mille","role":"accent","part":"m1"}
+    highlight mul @- {"start":"cue:c_quatrevingts","end":"cue_end:c_quatrevingts","role":"result","part":"m2"}
+DIT (repete) : Comme on répète ce calcul cinq années de suite, la valeur finale s'écrit deux mille multiplié par un virgule zéro quatre exposant cinq.
+    show pourcent @cue:c_repete 
+=== Tranche s_formule
+  OBJET formule [math] "C = C_0(1 + i)^n" parts=C = C_0 | (1 + i)^n
+  OBJET calcul [math] {"kind":"computed","expression_ref":"montant","template":"2000 \\times 1{,}04^5 = {value}","precision":2} 
+  OBJET interet [math] "2433{,}31 - 2000 = 433{,}31" 
+  OBJET unite [label] "$" attaché à calcul
+DIT (nommer) : Cette expression porte un nom : le montant final égale le capital de départ multiplié par un plus le taux, exposant le nombre de périodes.
+    write formule @cue:c_capital {"part":"fc"}
+    write formule @cue:c_periodes {"part":"fi"}
+DIT (appliquer) : Ici, le capital de départ vaut deux mille, le taux vaut zéro virgule zéro quatre et n vaut cinq.
+    highlight formule @- {"start":"cue:c_deuxmille","end":"cue_end:c_taux","role":"given","part":"fc"}
+    highlight formule @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"given","part":"fi"}
+DIT (calculer) : On calcule tout d'un bloc : deux mille fois un virgule zéro quatre exposant cinq donne deux mille quatre cent trente-trois dollars et trente et un cents.
+    write calcul @cue:c_bloc 
+    highlight calcul @- {"start":"cue:c_resultat","end":"cue_end:c_resultat","role":"result"}
+    show unite @after:h_calc 
+DIT (gain) : Le gain, c'est ce montant moins les deux mille du départ : quatre cent trente-trois dollars et trente et un cents.
+    write interet @cue:c_gain 
+    highlight interet @- {"start":"cue:c_resultat_gain","end":"cue_end:c_resultat_gain","role":"result"}
+=== Tranche s_piege
+  OBJET faux [math] "2000 \\times 1{,}2167 = 2433{,}40" parts=2000 \times 1{,}2167 | = 2433{,}40
+  OBJET avis [label] "arrondir avant de multiplier change le résultat" attaché à faux
+  OBJET simple [math] "2000 + 5 \\times 80 = 2400" 
+DIT (erreur) : Attention à un piège : si tu arrondis un virgule zéro quatre exposant cinq à un virgule deux mille cent soixante-sept avant de multiplier, tu obtiens deux mille quatre cent trente-trois dollars et quarante cents.
+    dim calcul @cue:c_arrondis 
+    write faux @cue:c_faux 
+    show avis @after:w_faux 
+DIT (pourquoi) : Ce n'est pas la bonne réponse : quatre-vingt-dix cents de trop, parce que l'arrondi a grossi le multiplicateur. Garde un virgule zéro quatre exposant cinq exact jusqu'à la fin.
+    highlight faux @- {"start":"cue:c_pasbonne","end":"cue_end:c_pasbonne","role":"unknown","part":"f2"}
+    highlight faux @- {"start":"cue:c_exact","end":"cue_end:c_exact","role":"unknown","part":"f1"}
+DIT (compare) : À titre de comparaison, à intérêt simple, tu aurais deux mille plus cinq fois quatre-vingts, soit deux mille quatre cents dollars.
+    write simple @cue:c_simple 
+    highlight simple @- {"start":"cue:c_deuxmillequatre","end":"cue_end:c_deuxmillequatre","role":"given"}
+=== Tranche s_retenir
+  OBJET gen [math] "C = C_0(1 + i)^n" 
+  OBJET idee [text] "Chaque période multiplie le capital par (1 + i) : l'intérêt rapporte à son tour." 
+  OBJET exemple [text] "2000 $ à 4 % pendant 5 ans donne 2433,31 $" 
+DIT (idee_centrale) : À retenir : chaque période multiplie le capital par un plus le taux, donc l'intérêt rapporte à son tour.
+    fade_out formule @beat:start 
+    fade_out faux @beat:start 
+    fade_out avis @beat:start 
+    fade_out simple @beat:start 
+    fade_out pourcent @beat:start 
+    camera.focus  @beat:start {"targets":["gen","idee","exemple"],"bounds":"layout_bounds"}
+    write gen @cue:c_multiplie 
+    highlight gen @- {"start":"cue:c_multiplie","end":"cue_end:c_multiplie","role":"result"}
+DIT (concret) : Pour ton placement de deux mille dollars à quatre pour cent pendant cinq ans, ça donne deux mille quatre cent trente-trois dollars et trente et un cents.
+    write idee @cue:c_ton 
+    write exemple @cue:c_donne 
+--- 5 tranches, 344 mots dits (≈ 2.3 min d'oral)

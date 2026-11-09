@@ -1,5 +1,8 @@
 # Grille de revue pédagogique indépendante
 
+> Pour noter une **explication Nesalio** (monologue au tableau) sur 100, avec les critères de confiance Q7, utiliser
+> [`grille-explication-nesalio.md`](grille-explication-nesalio.md). La grille ci-dessous porte sur le tuteur interactif.
+
 À utiliser sur des transcriptions et captures produites par le modèle réel, sans afficher la version évaluée au réviseur lorsque possible. Les cas ci-dessous sont des points de départ, pas un échantillon représentatif ni une mesure d'apprentissage.
 
 Pour chaque cas, noter chaque critère « satisfaisant », « problème » ou « impossible à juger », avec un extrait ou une capture et la raison. Ne pas déduire un résultat d'apprentissage d'une annotation, d'un mot présent ou d'une réponse à choix multiples.

@@ -1,0 +1,491 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "endothermique_exothermique",
+  "title": "Reconnaître endothermique, exothermique, physique ou chimique",
+  "language": "fr",
+  "learning_goal": "Décider si une transformation dégage ou absorbe de l'énergie, et si elle est physique ou chimique, à partir de cas concrets."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Exothermique : dégage de l'énergie. Endothermique : en absorbe.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Deux questions différentes ici : est-ce que ça dégage de l'énergie, et est-ce que ça change la substance.",
+     "cues": [
+      {
+       "id": "c_differentes",
+       "text": "Deux questions différentes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_differentes",
+       "target": "titre"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_energie",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\Delta H = H_{\\text{produits}} - H_{\\text{réactifs}}",
+     "parts": [
+      {
+       "id": "dh",
+       "text": "\\Delta H"
+      },
+      {
+       "id": "diff",
+       "text": "= H_{\\text{produits}} - H_{\\text{réactifs}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "signe",
+     "content": "ΔH négatif : exothermique. ΔH positif : endothermique.",
+     "type": "text"
+    },
+    {
+     "id": "energie",
+     "content": "Briser une liaison coûte de l'énergie ; en former une en libère.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "compare",
+     "say": "On compare l'énergie des produits à celle des réactifs. Cette différence s'appelle delta H.",
+     "cues": [
+      {
+       "id": "c_delta",
+       "text": "delta H"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_dh",
+       "verb": "write",
+       "at": "cue:c_delta",
+       "target": "eq",
+       "part": "dh"
+      },
+      {
+       "id": "w_diff",
+       "verb": "write",
+       "at": "after:w_dh",
+       "target": "eq",
+       "part": "diff"
+      }
+     ]
+    },
+    {
+     "id": "signes",
+     "say": "Si les produits sont plus bas, la transformation a dégagé de l'énergie : delta H est négatif, on dit exothermique. Si les produits sont plus hauts, elle a absorbé de l'énergie : endothermique.",
+     "cues": [
+      {
+       "id": "c_negatif",
+       "text": "négatif"
+      },
+      {
+       "id": "c_exo",
+       "text": "exothermique"
+      },
+      {
+       "id": "c_endo",
+       "text": "endothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_signe",
+       "verb": "show",
+       "at": "cue:c_negatif",
+       "target": "signe"
+      },
+      {
+       "id": "h_exo",
+       "verb": "highlight",
+       "start": "cue:c_exo",
+       "end": "cue_end:c_exo",
+       "target": "signe",
+       "role": "accent"
+      },
+      {
+       "id": "h_endo",
+       "verb": "highlight",
+       "start": "cue:c_endo",
+       "end": "cue_end:c_endo",
+       "target": "signe",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "pourquoi",
+     "say": "Pourquoi ? Il faut fournir de l'énergie pour briser une liaison, et en former une en libère.",
+     "cues": [
+      {
+       "id": "c_briser",
+       "text": "briser une liaison"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_eq",
+       "verb": "dim",
+       "at": "cue:c_briser",
+       "target": "eq"
+      },
+      {
+       "id": "d_signe",
+       "verb": "dim",
+       "at": "cue:c_briser",
+       "target": "signe"
+      },
+      {
+       "id": "s_energie",
+       "verb": "show",
+       "at": "cue:c_briser",
+       "target": "energie"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_physique_chimique",
+   "introduces": [
+    {
+     "id": "critere",
+     "content": "Physique : la substance reste la même (changement d'état, de forme).",
+     "type": "text"
+    },
+    {
+     "id": "critere2",
+     "content": "Chimique : de nouvelles substances apparaissent.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "changement",
+     "say": "Pour le physique ou chimique, la question clé est autre : est-ce que la substance elle-même change ?",
+     "cues": [
+      {
+       "id": "c_change",
+       "text": "la substance elle-même change"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_energie",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "energie"
+      },
+      {
+       "id": "s_critere",
+       "verb": "show",
+       "at": "cue:c_change",
+       "target": "critere"
+      }
+     ]
+    },
+    {
+     "id": "nouvelles",
+     "say": "Si les molécules restent les mêmes, c'est physique. S'il apparaît de nouvelles substances, c'est chimique.",
+     "cues": [
+      {
+       "id": "c_nouvelles",
+       "text": "de nouvelles substances"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_critere2",
+       "verb": "show",
+       "at": "cue:c_nouvelles",
+       "target": "critere2"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemples",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        "physique",
+        "endothermique"
+       ],
+       [
+        "chimique",
+        "exothermique"
+       ],
+       [
+        "chimique",
+        "exothermique"
+       ],
+       [
+        "chimique",
+        "exothermique"
+       ],
+       [
+        "chimique",
+        "exothermique"
+       ]
+      ],
+      "row_labels": [
+       "congélation de l'eau",
+       "combustion du bois",
+       "fermentation du raisin",
+       "explosion de TNT",
+       "désintégration de l'uranium"
+      ],
+      "column_labels": [
+       "Nature",
+       "Énergie"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "classons",
+     "say": "Classons tes exemples dans un tableau.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "tableau"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_tableau",
+       "target": "tab",
+       "stagger": "slow"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

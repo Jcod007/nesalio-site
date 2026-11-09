@@ -1,0 +1,54 @@
+QUESTION (chimie-gaz-parfaits, chimie, sec 5, methode) : combien de moles de gaz il y a dans un ballon de 5,0 L à 25 °C pis 101,3 kPa?
+RÉPONSE DE RÉFÉRENCE : n = PV/RT = 101,3 × 5,0 / (8,314 × 298) ≈ 0,204 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. PV = nRT, donc n = PV / RT
+  2. température en kelvins : 25 + 273 = 298 K
+  3. R = 8,314 kPa·L/(mol·K), unités cohérentes avec kPa et L
+  4. n ≈ 0,204 mol écrit
+  5. contrôle : à TPAN une mole occupe ≈ 24,5 L, et 5,0 / 24,5 ≈ 0,20
+ERREURS GRAVES À CHERCHER : température laissée en °C ; R avec des unités incohérentes
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Combien de moles dans un ballon de 5,0 L à 25 °C et 101,3 kPa
+math_context : {"symbols":{"p":{"kind":"constant","value":101.3},"V":{"kind":"constant","value":5},"theta":{"kind":"constant","value":25},"T":{"kind":"constant","value":298.15},"R":{"kind":"constant","value":8.314}},"expressions":{"nb_mol":"p*V/(R*T)"}}
+=== Tranche s_question
+  OBJET donnees [matrix] {"rows":[[101.3,5,25]],"row_labels":["valeur"],"column_labels":["pression (kPa)","volume (L)","température (°C)"]} 
+  OBJET loi [math] "pV = nRT" parts=pV | = | nRT
+DIT (pose) : Un ballon de cinq litres à vingt-cinq degrés et cent un virgule trois kilopascals : on cherche combien de moles de gaz il contient.
+    show donnees @cue:c_ballon 
+    highlight donnees @- {"start":"cue:c_ballon","end":"cue_end:c_moles","role":"given"}
+DIT (outil) : L'outil, c'est la loi des gaz parfaits : pV égale nRT. La pression p, le volume V, la constante R et la température absolue T.
+    write loi @cue:c_loi {"part":"gauche"}
+    write loi @cue:c_pv {"part":"eg"}
+    write loi @cue:c_temp {"part":"droite"}
+=== Tranche s_temperature
+  OBJET conv [math] "T = 25 + 273{,}15 = 298{,}15" parts=T = 25 + 273{,}15 | = 298{,}15
+  OBJET uniteT [label] "T en kelvins" attaché à conv
+  OBJET uniteP [label] "p en kPa, V en L, R = 8,314 kPa·L/(mol·K)" attaché à loi
+DIT (kelvin) : Premier réflexe : les gaz se calculent toujours en kelvins. On ajoute deux cent soixante-treize virgule quinze à la température en degrés.
+    show uniteT @cue:c_kelvin 
+    write conv @cue:c_ajoute {"part":"T1"}
+DIT (resultatT) : Vingt-cinq plus deux cent soixante-treize virgule quinze donne deux cent quatre-vingt-dix-huit virgule quinze kelvins.
+    write conv @cue:c_298 {"part":"T2"}
+    show uniteP @after:w_T2 
+=== Tranche s_calcul
+  OBJET isole [math] "n = \\frac{pV}{RT}" parts=n | = \frac{pV}{RT}
+  OBJET remplace [math] "n = \\frac{101{,}3 \\times 5{,}0}{8{,}314 \\times 298{,}15}" 
+  OBJET final [math] "n \\approx 0{,}204\\ \\text{mol}" parts=n | \approx 0{,}204\ \text{mol}
+DIT (isoler) : On isole n : pV divisé par RT.
+    transform isole @cue:c_isole {"source":"loi"}
+DIT (nombres) : On remplace : cent un virgule trois fois cinq virgule zéro au numérateur, huit virgule trois cent quatorze fois deux cent quatre-vingt-dix-huit virgule quinze au dénominateur.
+    transform remplace @cue:c_remplace {"source":"isole"}
+    highlight remplace @- {"start":"cue:c_denom","end":"cue_end:c_denom","role":"given"}
+DIT (final) : Le ballon contient environ zéro virgule deux cent quatre moles de gaz.
+    transform final @cue:c_final {"source":"remplace"}
+    highlight final @after:t_final {"role":"result"}
+=== Tranche s_retenir
+  OBJET resume [math] "n = \\frac{pV}{RT},\\quad T\\ \\text{en K}" 
+DIT (idee) : À retenir : la loi des gaz parfaits pV égale nRT relie la pression, le volume, la température et la quantité de gaz. On convertit la température en kelvins, on isole n, puis on calcule.
+    fade_out conv @cue:c_retenir 
+    fade_out uniteT @cue:c_retenir 
+    fade_out donnees @cue:c_retenir 
+    show resume @cue:c_isole_fin 
+    highlight final @- {"start":"cue:c_isole_fin","end":"cue_end:c_isole_fin","role":"result"}
+--- 4 tranches, 166 mots dits (≈ 1.1 min d'oral)

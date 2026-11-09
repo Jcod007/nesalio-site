@@ -1,0 +1,983 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "lois_gaz_combinees",
+  "title": "Pression, volume et température d'un gaz",
+  "language": "fr",
+  "learning_goal": "Appliquer la loi générale des gaz pour prévoir la pression quand le volume et la température changent, et trouver un nombre de moles avec le volume molaire à TPN."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "p1v1": "1*1/(1*1)",
+    "p2v2": "200*100/(2*1)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_point_depart",
+   "introduces": [
+    {
+     "id": "eq",
+     "layout": {
+      "to_corner": "top_left",
+      "gap": "lg"
+     },
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "parts": [
+      {
+       "id": "m1",
+       "text": "\\frac{p_1 V_1}{n_1 T_1}"
+      },
+      {
+       "id": "m2",
+       "text": "= \\frac{p_2 V_2}{n_2 T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "On raye avant de partir :\\nn et T constants → p₁V₁ = p₂V₂\\nn et p constants → V₁/T₁ = V₂/T₂\\nV et T constants → p₁/T₁ = p₂/T₂",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Pour prévoir la pression d'un gaz, on part de la loi générale des gaz.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "loi générale des gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_eq",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "eq"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_loi"
+      },
+      {
+       "id": "w_m1",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "eq",
+       "part": "m1"
+      },
+      {
+       "id": "w_m2",
+       "verb": "write",
+       "at": "after:w_m1",
+       "target": "eq",
+       "part": "m2"
+      }
+     ]
+    },
+    {
+     "id": "simplifie",
+     "say": "Quand un paramètre ne change pas, il s'annule : à quantité de matière et à température constantes, il reste p un V un égale p deux V deux.",
+     "cues": [
+      {
+       "id": "c_ne_change",
+       "text": "ne change pas"
+      },
+      {
+       "id": "c_il_rest",
+       "text": "il reste"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_ne_change",
+       "target": "note"
+      },
+      {
+       "id": "h_m1",
+       "verb": "highlight",
+       "start": "cue:c_il_rest",
+       "end": "cue_end:c_il_rest",
+       "target": "eq",
+       "role": "given",
+       "part": "m1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_question1",
+   "introduces": [
+    {
+     "id": "q1",
+     "content": "Question 1 : le volume est divisé par 2 et la température absolue est multipliée par 2",
+     "type": "text"
+    },
+    {
+     "id": "calc1",
+     "content": "\\frac{p_1 \\times 1}{1} = \\frac{p_2 \\times \\frac{1}{2}}{2}",
+     "parts": [
+      {
+       "id": "g1",
+       "text": "\\frac{p_1 \\times 1}{1}"
+      },
+      {
+       "id": "g2",
+       "text": "= \\frac{p_2 \\times \\frac{1}{2}}{2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res1",
+     "content": "p_1 = \\frac{p_2}{4} \\quad\\Rightarrow\\quad p_2 = 4\\,p_1",
+     "parts": [
+      {
+       "id": "pg",
+       "text": "p_1 = \\frac{p_2}{4}"
+      },
+      {
+       "id": "fl",
+       "text": "\\quad\\Rightarrow\\quad"
+      },
+      {
+       "id": "res_p2",
+       "text": "p_2 = 4\\,p_1"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose1",
+     "say": "Premier cas : on divise le volume par deux, et on multiplie la température absolue par deux.",
+     "cues": [
+      {
+       "id": "c_vol",
+       "text": "on divise le volume par deux"
+      },
+      {
+       "id": "c_temp",
+       "text": "multiplie la température absolue par deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note"
+      },
+      {
+       "id": "s_q1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "q1"
+      },
+      {
+       "id": "w_g1",
+       "verb": "write",
+       "at": "cue:c_vol",
+       "target": "calc1",
+       "part": "g1"
+      },
+      {
+       "id": "w_g2",
+       "verb": "write",
+       "at": "cue:c_temp",
+       "target": "calc1",
+       "part": "g2"
+      },
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "start": "cue:c_temp",
+       "end": "cue_end:c_temp",
+       "target": "eq",
+       "role": "given",
+       "part": "m2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul1",
+     "say": "Remplace : le côté un vaut p un, et le côté deux vaut p deux fois un demi sur deux, c'est-à-dire p deux sur quatre.",
+     "cues": [
+      {
+       "id": "c_un",
+       "text": "le côté un vaut"
+      },
+      {
+       "id": "c_deux",
+       "text": "le côté deux vaut"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_calc1",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "calc1",
+       "role": "accent",
+       "part": "g2"
+      },
+      {
+       "id": "w_res1",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "res1",
+       "part": "pg"
+      }
+     ]
+    },
+    {
+     "id": "concl1",
+     "say": "Donc p un égale p deux sur quatre, et en croisant, p deux égale quatre fois p un : la pression quadruple.",
+     "cues": [
+      {
+       "id": "c_quatre_fois",
+       "text": "quatre fois p un"
+      },
+      {
+       "id": "c_quad",
+       "text": "quadruple"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res_p2",
+       "verb": "write",
+       "at": "cue:c_quatre_fois",
+       "target": "res1",
+       "part": "res_p2"
+      },
+      {
+       "id": "h_res1",
+       "verb": "highlight",
+       "start": "cue:c_quad",
+       "end": "cue_end:c_quad",
+       "target": "res1",
+       "role": "result",
+       "part": "res_p2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_question2",
+   "introduces": [
+    {
+     "id": "q2",
+     "content": "Question 2 : combien de moles de O₂ dans 20 L d'air à TPN ?",
+     "type": "text"
+    },
+    {
+     "id": "calc2",
+     "content": "n = \\frac{V}{V_m} = \\frac{20\\ \\text{L}}{22{,}4\\ \\text{L/mol}}",
+     "parts": [
+      {
+       "id": "n0",
+       "text": "n = \\frac{V}{V_m}"
+      },
+      {
+       "id": "rempl",
+       "text": "= \\frac{20\\ \\text{L}}{22{,}4\\ \\text{L/mol}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res2",
+     "content": "n \\approx 0{,}89\\ \\text{mol}",
+     "parts": [
+      {
+       "id": "val",
+       "text": "n \\approx 0{,}89"
+      },
+      {
+       "id": "unite",
+       "text": "\\ \\text{mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "attention",
+     "layout": {
+      "next_to": "res2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Ne pas utiliser 24,5 L/mol : ça, c'est à TAPN (25 °C).",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose2",
+     "say": "Deuxième cas : combien de moles de O deux dans vingt litres d'air, à température et pression normales.",
+     "cues": [
+      {
+       "id": "c_tpn",
+       "text": "température et pression normales"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_res1",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "res1"
+      },
+      {
+       "id": "f_calc1",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "calc1"
+      },
+      {
+       "id": "f_q1",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "q1"
+      },
+      {
+       "id": "s_q2",
+       "verb": "show",
+       "at": "cue:c_tpn",
+       "target": "q2"
+      }
+     ]
+    },
+    {
+     "id": "molaire",
+     "say": "À TPN, une mole de gaz occupe vingt-deux virgule quatre litres. C'est le volume molaire.",
+     "cues": [
+      {
+       "id": "c_mole",
+       "text": "une mole de gaz"
+      },
+      {
+       "id": "c_224",
+       "text": "vingt-deux virgule quatre litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_calc2",
+       "verb": "camera.focus",
+       "at": "cue:c_mole",
+       "targets": [
+        "q2",
+        "calc2"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_n0",
+       "verb": "write",
+       "at": "cue:c_mole",
+       "target": "calc2",
+       "part": "n0"
+      },
+      {
+       "id": "w_rempl",
+       "verb": "write",
+       "at": "cue:c_224",
+       "target": "calc2",
+       "part": "rempl"
+      },
+      {
+       "id": "h_calc2",
+       "verb": "highlight",
+       "start": "cue:c_224",
+       "end": "cue_end:c_224",
+       "target": "calc2",
+       "role": "given",
+       "part": "rempl"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "division",
+     "say": "On divise donc vingt litres par vingt-deux virgule quatre litres par mole : environ zéro virgule quatre-vingt-neuf mole.",
+     "cues": [
+      {
+       "id": "c_div",
+       "text": "On divise"
+      },
+      {
+       "id": "c_val",
+       "text": "zéro virgule quatre-vingt-neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue:c_val",
+       "target": "res2",
+       "part": "val"
+      },
+      {
+       "id": "w_unite",
+       "verb": "write",
+       "at": "after:w_val",
+       "target": "res2",
+       "part": "unite"
+      },
+      {
+       "id": "h_res2",
+       "verb": "highlight",
+       "start": "cue:c_val",
+       "end": "cue_end:c_val",
+       "target": "res2",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "avert",
+     "say": "Attention : n'utilise jamais vingt-quatre virgule cinq, c'est le volume molaire à TAPN, à vingt-cinq degrés.",
+     "cues": [
+      {
+       "id": "c_jamais",
+       "text": "jamais"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_attention",
+       "verb": "show",
+       "at": "cue:c_jamais",
+       "target": "attention"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_question3",
+   "introduces": [
+    {
+     "id": "q3",
+     "content": "Question 3 : la température absolue double et le volume double",
+     "type": "text"
+    },
+    {
+     "id": "calc3",
+     "content": "\\frac{p_1 \\times 1}{1} = \\frac{p_2 \\times 2}{2}",
+     "parts": [
+      {
+       "id": "h1",
+       "text": "\\frac{p_1 \\times 1}{1}"
+      },
+      {
+       "id": "h2",
+       "text": "= \\frac{p_2 \\times 2}{2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res3",
+     "content": "p_1 = p_2 \\quad\\Rightarrow\\quad p_2 = p_1",
+     "parts": [
+      {
+       "id": "egal",
+       "text": "p_1 = p_2"
+      },
+      {
+       "id": "fl3",
+       "text": "\\quad\\Rightarrow\\quad"
+      },
+      {
+       "id": "meme",
+       "text": "p_2 = p_1"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose3",
+     "say": "Troisième cas : cette fois, la température absolue double et le volume double lui aussi.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "la température absolue double"
+      },
+      {
+       "id": "c_vol_double",
+       "text": "volume double"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_attention",
+       "verb": "fade_out",
+       "at": "cue:c_double",
+       "target": "attention"
+      },
+      {
+       "id": "f_calc2",
+       "verb": "fade_out",
+       "at": "cue:c_double",
+       "target": "calc2"
+      },
+      {
+       "id": "f_q2",
+       "verb": "fade_out",
+       "at": "cue:c_double",
+       "target": "q2"
+      },
+      {
+       "id": "s_q3",
+       "verb": "show",
+       "at": "cue:c_double",
+       "target": "q3"
+      },
+      {
+       "id": "w_h1",
+       "verb": "write",
+       "at": "after:s_q3",
+       "target": "calc3",
+       "part": "h1"
+      },
+      {
+       "id": "w_h2",
+       "verb": "write",
+       "at": "cue:c_vol_double",
+       "target": "calc3",
+       "part": "h2"
+      }
+     ]
+    },
+    {
+     "id": "comparer",
+     "say": "Les deux changements vont dans le même sens : au-dessus, le volume double ; en dessous, la température double.",
+     "cues": [
+      {
+       "id": "c_meme_sens",
+       "text": "même sens"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_h2",
+       "verb": "highlight",
+       "start": "cue:c_meme_sens",
+       "end": "cue_end:c_meme_sens",
+       "target": "calc3",
+       "role": "accent",
+       "part": "h2"
+      }
+     ]
+    },
+    {
+     "id": "annule",
+     "say": "Le deux du volume et le deux de la température s'annulent, il reste p deux égale p un.",
+     "cues": [
+      {
+       "id": "c_annulent",
+       "text": "s'annulent"
+      },
+      {
+       "id": "c_reste",
+       "text": "il reste"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_annulent",
+       "target": "res3",
+       "part": "egal"
+      },
+      {
+       "id": "w_meme",
+       "verb": "write",
+       "at": "cue:c_reste",
+       "target": "res3",
+       "part": "meme"
+      },
+      {
+       "id": "h_res3",
+       "verb": "highlight",
+       "start": "cue:c_reste",
+       "end": "cue_end:c_reste",
+       "target": "res3",
+       "role": "result",
+       "part": "meme"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "parts": [
+      {
+       "id": "fm1",
+       "text": "\\frac{p_1 V_1}{n_1 T_1}"
+      },
+      {
+       "id": "fm2",
+       "text": "= \\frac{p_2 V_2}{n_2 T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "sens",
+     "content": "V et T varient dans le même sens → p ne change pas",
+     "type": "text"
+    },
+    {
+     "id": "rappel",
+     "content": "À TPN : 22,4 L/mol",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "vue",
+     "items": [
+      "regle",
+      "sens",
+      "rappel"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la loi générale des gaz relie tout. Volume divisé par deux et température doublée, la pression quadruple.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_quad",
+       "text": "quadruple"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_calc3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc3"
+      },
+      {
+       "id": "f_res3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "res3"
+      },
+      {
+       "id": "f_q3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "q3"
+      },
+      {
+       "id": "f_eq",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eq"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "sens",
+        "rappel"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "regle"
+      },
+      {
+       "id": "h_fm2",
+       "verb": "highlight",
+       "start": "cue:c_quad",
+       "end": "cue_end:c_quad",
+       "target": "regle",
+       "role": "result",
+       "part": "fm2"
+      }
+     ]
+    },
+    {
+     "id": "suite",
+     "say": "Et volume et température qui varient dans le même sens, la pression ne bouge pas.",
+     "cues": [
+      {
+       "id": "c_meme_sens",
+       "text": "même sens"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sens",
+       "verb": "show",
+       "at": "cue:c_meme_sens",
+       "target": "sens"
+      }
+     ]
+    },
+    {
+     "id": "molaire",
+     "say": "Souviens-toi aussi du volume molaire à TPN : vingt-deux virgule quatre litres par mole.",
+     "cues": [
+      {
+       "id": "c_tpn",
+       "text": "TPN"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rappel",
+       "verb": "show",
+       "at": "cue:c_tpn",
+       "target": "rappel"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

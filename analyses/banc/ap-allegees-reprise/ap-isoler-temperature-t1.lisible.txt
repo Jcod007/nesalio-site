@@ -1,0 +1,60 @@
+QUESTION (ap-isoler-temperature, chimie, sec 5, alloprof) : Comment isoler la variable temperature dans la formule p1v1/n1t1=p2v2/n2t2 avec la quantiter de gaz qui est constante
+RÉPONSE DE RÉFÉRENCE : T2 = P2·V2·T1 / (P1·V1)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Isoler la température dans la loi des gaz combinés
+=== Tranche s_depart
+  OBJET loi [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" parts=\frac{p_1 V_1}{n_1 T_1} | = | \frac{p_2 V_2}{n_2 T_2}
+DIT (pose) : Ta formule, c'est la loi des gaz combinés : pression fois volume sur nombre de moles fois température, d'un côté égale à la même chose de l'autre côté.
+    write loi @cue:c_formule 
+    highlight loi @- {"start":"cue:c_loi","end":"cue_end:c_loi","role":"given"}
+DIT (noms) : À gauche, la situation un : pression p un, volume V un, moles n un, température T un. À droite, la situation deux, avec un indice deux partout.
+    highlight loi @- {"start":"cue:c_indice","end":"cue_end:c_indice","role":"secondary","part":"gauche"}
+=== Tranche s_simplifie
+  OBJET loi2 [math] "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}" parts=\frac{p_1 V_1}{T_1} | = | \frac{p_2 V_2}{T_2}
+  OBJET note_n [label] "n₁ = n₂ : les moles cancellent" attaché à loi2
+DIT (egales) : On te dit que la quantité de gaz est constante : les moles ne changent pas, donc n un égale n deux.
+    highlight loi @- {"start":"cue:c_constante","end":"cue_end:c_egal","role":"accent","part":"gauche"}
+DIT (annule) : Comme ce nombre est le même en haut à gauche et en bas à droite, on peut l'enlever des deux côtés : il ne reste que pression fois volume sur température, des deux côtés.
+    transform loi2 @cue:c_enlever {"source":"loi"}
+    write note_n @cue:c_reste 
+    fade_out note_n @after:w_n 
+=== Tranche s_isole
+  OBJET etape1 [math] "\\frac{p_2 V_2}{T_2} = \\frac{p_1 V_1}{T_1}" parts=\frac{p_2 V_2}{T_2} | = | \frac{p_1 V_1}{T_1}
+  OBJET etape2 [math] "p_2 V_2 \\cdot T_1 = p_1 V_1 \\cdot T_2" parts=p_2 V_2 \cdot T_1 | = | p_1 V_1 \cdot T_2
+  OBJET etape3 [math] "T_2 = \\frac{p_2 V_2 \\cdot T_1}{p_1 V_1}" parts=T_2 | = | \frac{p_2 V_2 \cdot T_1}{p_1 V_1}
+DIT (inverse) : Je mets la situation deux à gauche pour travailler directement sur T deux.
+    transform etape1 @cue:c_sit2 {"source":"loi2"}
+DIT (croise) : Pour faire disparaître les fractions, je multiplie les deux côtés par T deux, puis par T un : le T deux descend, le T un monte, on obtient un produit en croix.
+    transform etape2 @cue:c_croise {"source":"etape1"}
+    highlight etape2 @- {"start":"cue:c_croise","end":"cue_end:c_croise","role":"accent"}
+DIT (divise) : Maintenant, T deux est multiplié par p un V un. Pour l'isoler, je divise les deux côtés par p un V un : il reste T deux égale p deux V deux fois T un, sur p un V un.
+    transform etape3 @cue:c_divise {"source":"etape2"}
+    highlight etape3 @- {"start":"cue:c_reste_t","end":"cue_end:c_reste_t","role":"result","part":"t2"}
+=== Tranche s_verif
+  OBJET ex [math] "T_2 = \\frac{(2)(3)(300)}{(1)(2)}" 
+  OBJET res [math] "T_2 = 900\\ \\text{K}" parts=T_2 | = 900\ \text{K}
+  OBJET verif [math] "\\frac{(1)(2)}{300} = \\frac{(2)(3)}{900}" parts=\frac{(1)(2)}{300} | = | \frac{(2)(3)}{900}
+DIT (exemple) : Prenons des nombres simples : p un vaut un, V un vaut deux, T un vaut trois cents kelvins, p deux vaut deux, V deux vaut trois.
+    write ex @cue:c_p1 
+    dim etape3 @cue:c_t1 
+DIT (calcule) : En haut : deux fois trois fois trois cents, ça fait dix-huit cents. En bas : un fois deux, deux. Dix-huit cents divisé par deux, neuf cents. T deux égale neuf cents kelvins.
+    write res @cue:c_neuf 
+    highlight res @- {"start":"cue:c_neuf","end":"cue_end:c_neuf","role":"result"}
+DIT (check) : Vérifions : à gauche, un fois deux sur trois cents. À droite, deux fois trois sur neuf cents. Six sur neuf cents égale six sur neuf cents : les deux côtés sont égaux, c'est correct.
+    write verif @cue:c_verif 
+    highlight verif @- {"start":"cue:c_egal2","end":"cue_end:c_egal2","role":"given"}
+=== Tranche s_retenir
+  OBJET reponse [math] "T_2 = \\frac{p_2 V_2 T_1}{p_1 V_1}" 
+  OBJET astuce [text] "Moles constantes : multiplier en croix, puis diviser par ce qui reste collé à T₂." 
+DIT (retenir) : À retenir : quand les moles ne changent pas, la loi se simplifie en pression fois volume sur température, et T deux s'isole en faisant le produit en croix, puis en divisant par p un V un.
+    fade_out ex @beat:start 
+    fade_out res @beat:start 
+    fade_out verif @beat:start 
+    fade_out etape3 @beat:start 
+    write reponse @cue:c_retenir 
+    write astuce @cue:c_isole 
+    camera.focus  @cue:c_retenir {"targets":["reponse","astuce"]}
+--- 5 tranches, 329 mots dits (≈ 2.2 min d'oral)

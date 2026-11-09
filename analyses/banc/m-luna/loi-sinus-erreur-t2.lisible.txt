@@ -1,0 +1,106 @@
+QUESTION (loi-sinus-erreur, mathematiques, sec 4, erreur) : dans mon triangle j'ai l'angle A = 40°, l'angle B = 60° pis a = 10 cm. je cherche b avec la loi des sinus pis j'obtiens 7,42 cm mais c'est pas la bonne réponse
+RÉPONSE DE RÉFÉRENCE : b = 10 × sin 60° / sin 40° ≈ 13,47 cm ; 7,42 cm vient des sinus inversés.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. a/sin A = b/sin B dans tout triangle, chaque côté apparié à l'angle opposé (figure)
+  2. diagnostic : 7,42 = 10 × sin 40° / sin 60°, sinus inversés
+  3. b = 10 × sin 60° / sin 40° ≈ 13,47 cm, écrit
+  4. contrôle : le plus grand angle fait face au plus grand côté, B > A donc b > 10
+  5. calculatrice en mode degrés ; valorisé : C = 80°
+ERREURS GRAVES À CHERCHER : figure qui apparie a avec le mauvais angle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Corriger le calcul de b avec la loi des sinus
+math_context : {"symbols":{},"expressions":{"b_correct":"10*sin(60)/sin(40)","b_wrong":"10*sin(40)/sin(60)"}}
+=== Tranche s_triangle
+  OBJET tri [polygon] {"vertices":[[0,0],[7.66,0],[1.74,9.85]]} 
+  OBJET ptA [point] {"at":[0,0]} 
+  OBJET ptB [point] {"at":[7.66,0]} 
+  OBJET ptC [point] {"at":[1.74,9.85]} 
+  OBJET labA [label] "A" attaché à ptA
+  OBJET labB [label] "B" attaché à ptB
+  OBJET labC [label] "C" attaché à ptC
+  OBJET sideA [line] {"from":[7.66,0],"to":[1.74,9.85]} 
+  OBJET sideB [line] {"from":[0,0],"to":[1.74,9.85]} 
+  OBJET sideC [line] {"from":[0,0],"to":[7.66,0]} 
+  OBJET lab_a [label] "a = 10 cm" attaché à sideA
+  OBJET lab_b [label] "b = ?" attaché à sideB
+  OBJET lab_c [label] "c" attaché à sideC
+  OBJET angA [label] "40°" attaché à ptA
+  OBJET angB [label] "60°" attaché à ptB
+DIT (donnees) : Tu as raison de vérifier : dans la loi des sinus, chaque côté doit être associé à l’angle qui lui est opposé.
+    draw tri @cue:c_verifier 
+    show ptA @cue:c_cote 
+    show ptB @cue:c_cote 
+    show ptC @cue:c_cote 
+    show labA @cue:c_cote 
+    show labB @cue:c_cote 
+    show labC @cue:c_cote 
+    draw sideA @cue:c_cote 
+    draw sideB @cue:c_cote 
+    draw sideC @cue:c_cote 
+    show lab_a @cue:c_cote 
+    show lab_b @cue:c_cote 
+    show lab_c @cue:c_cote 
+    show angA @cue:c_cote 
+    show angB @cue:c_cote 
+    highlight lab_a @- {"start":"cue:c_cote","end":"cue_end:c_oppose","role":"given"}
+    highlight angA @- {"start":"cue:c_cote","end":"cue_end:c_oppose","role":"given"}
+=== Tranche s_appairage
+  OBJET loi [math] "\\frac{a}{\\sin A}=\\frac{b}{\\sin B}" parts=\frac{a}{\sin A} | = | \frac{b}{\sin B}
+  OBJET calc [math] "b=10\\times\\frac{\\sin 60^\\circ}{\\sin 40^\\circ}" parts=b= | 10\times\frac{\sin 60^\circ}{\sin 40^\circ}   <<JAMAIS MONTRÉ>>
+  OBJET wrong_calc [math] "10\\times\\frac{\\sin 40^\\circ}{\\sin 60^\\circ}\\approx 7.42\\text{ cm}" 
+DIT (apparie) : Sur la figure, le côté a, dix centimètres, est en face de l’angle A, quarante degrés. Le côté b est en face de l’angle B, soixante degrés.
+    highlight lab_a @- {"start":"cue:c_a","end":"cue_end:c_A","role":"given"}
+    highlight angA @- {"start":"cue:c_A","end":"cue_end:c_A","role":"given"}
+    highlight lab_b @- {"start":"cue:c_b","end":"cue_end:c_B","role":"accent"}
+    highlight angB @- {"start":"cue:c_B","end":"cue_end:c_B","role":"accent"}
+DIT (loi_sinus) : La loi des sinus garde ces paires : a sur sinus A égale b sur sinus B. On isole b en multipliant par sinus B, puis en multipliant par a sur sinus A.
+    write loi @cue:c_loi {"part":"ratioa"}
+    write loi @cue:c_loi {"part":"egal"}
+    write loi @cue:c_loi {"part":"ratiob"}
+    highlight loi @- {"start":"cue:c_loi","end":"cue_end:c_loi","role":"accent"}
+    highlight lab_b @- {"start":"cue:c_isole","end":"cue_end:c_isole","role":"accent"}
+DIT (repere_erreur) : Ton 7,42 vient du rapport inversé : dix fois sinus de quarante degrés, divisé par sinus de soixante degrés. C’est l’inversion des sinus.
+    write wrong_calc @cue:c_742 
+    highlight wrong_calc @- {"start":"cue:c_742","end":"cue_end:c_inversion","role":"unknown"}
+=== Tranche s_calcul
+  OBJET loi_sinus [math] "\\frac{a}{\\sin A}=\\frac{b}{\\sin B}" parts=\frac{a}{\sin A} | = | \frac{b}{\sin B}
+  OBJET etape_isolement [math] "b=\\frac{a\\sin B}{\\sin A}" 
+  OBJET substitution_b [math] "b=\\frac{10\\sin 60^\\circ}{\\sin 40^\\circ}" 
+  OBJET valeur_b [math] {"kind":"computed","expression_ref":"b_correct","template":"b \\approx {value} cm","precision":2} 
+  OBJET valeur_inverse [math] {"kind":"computed","expression_ref":"b_wrong","template":"10 sin 40° ÷ sin 60° ≈ {value} cm","precision":2} 
+DIT (apparier) : La loi des sinus associe chaque côté à son angle opposé : a avec A, et b avec B. Pour trouver b, on garde donc le sinus de B au numérateur.
+    write loi_sinus @cue:c_loi {"part":"rapport_a"}
+    write loi_sinus @cue:c_loi {"part":"egal_sinus"}
+    write loi_sinus @cue:c_loi {"part":"rapport_b"}
+    highlight lab_a @- {"start":"cue:c_cote","end":"cue_end:c_angle","role":"given"}
+    highlight angA @- {"start":"cue:c_cote","end":"cue_end:c_angle","role":"given"}
+    highlight lab_b @- {"start":"cue:c_cote","end":"cue_end:c_angle","role":"accent"}
+    highlight angB @- {"start":"cue:c_cote","end":"cue_end:c_angle","role":"accent"}
+DIT (isoler_b) : En isolant b, on obtient b égale a fois sinus B sur sinus A. On remplace a par dix, B par soixante degrés et A par quarante degrés.
+    write etape_isolement @cue:c_isoler 
+    write substitution_b @cue:c_remplace 
+DIT (calcul_degres) : En mode degrés, la calculatrice donne dix fois sinus de soixante degrés divisé par sinus de quarante degrés, soit environ 13,47 centimètres.
+    write valeur_b @cue:c_cote_resultat 
+    fade_out etape_isolement @cue:c_cote_resultat 
+    fade_out substitution_b @cue:c_cote_resultat 
+=== Tranche s_verification
+  OBJET controle [text] "Le plus grand angle est opposé au plus grand côté" 
+DIT (valeur_inversee) : Le calcul qui donne 7,42 utilise les sinus à l’envers : dix fois sinus de quarante degrés divisé par sinus de soixante degrés vaut environ 7,42 centimètres, pas la longueur cherchée.
+    write valeur_inverse @cue:c_742 
+    highlight valeur_inverse @- {"start":"cue:c_angle","end":"cue_end:c_resultat","role":"unknown"}
+DIT (vraisemblance) : On vérifie aussi le sens : soixante degrés est plus grand que quarante degrés, donc son côté opposé b doit être plus long que a, qui mesure dix centimètres.
+    show controle @cue:c_soixante 
+    highlight lab_b @- {"start":"cue:c_soixante","end":"cue_end:c_plus_long","role":"result"}
+    highlight lab_a @- {"start":"cue:c_soixante","end":"cue_end:c_plus_long","role":"given"}
+    fade_out valeur_inverse @cue:c_plus_long 
+    fade_out controle @cue:c_plus_long 
+=== Tranche s_retenir
+  OBJET regle_finale [math] "b=\\frac{a\\sin B}{\\sin A}" 
+  OBJET resultat_final [math] "b\\approx 13.47\\text{ cm}" 
+  GROUPE resume_groupe = regle_finale, resultat_final
+DIT (resume) : À retenir : dans la loi des sinus, chaque côté va avec l’angle opposé. Ici, le bon calcul donne b environ 13,47 centimètres; 7,42 venait des sinus inversés.
+    write regle_finale @cue:c_retenir 
+    write resultat_final @cue:c_fin 
+    highlight resultat_final @- {"start":"cue:c_bon","end":"cue_end:c_fin","role":"result"}
+--- 5 tranches, 274 mots dits (≈ 1.8 min d'oral)

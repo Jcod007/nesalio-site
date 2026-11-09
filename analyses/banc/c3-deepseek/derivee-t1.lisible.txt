@@ -1,0 +1,98 @@
+QUESTION (derivee, mathematiques, sec 5, sens) : C'est quoi une dérivée, concrètement ?
+RÉPONSE DE RÉFÉRENCE : Le taux de variation instantané : la pente de la tangente, limite des pentes des sécantes.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. taux de variation moyen = pente d'une sécante
+  2. on rapproche le second point : la sécante tend vers la tangente
+  3. dérivée = taux de variation instantané = pente de la tangente
+  4. exemple chiffré mené au résultat (ex. f(x) = x², pente 2 en x = 1)
+  5. interprétation concrète (vitesse instantanée)
+ERREURS GRAVES À CHERCHER : tangente de mauvaise pente ; sécante qui ne passe pas par les points annoncés
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi une dérivée, concrètement ?
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{"pente":"q+1"}}
+=== Tranche s_mot
+  OBJET axe [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-2.9,2.9]} 
+  OBJET ptA [point] {"at":[1,1]} 
+  OBJET labA [label] "A" attaché à ptA
+  OBJET ptP [point] {"at":[3,9]} 
+  OBJET labP [label] "P" attaché à ptP
+DIT (ouverture) : Bonjour ! Aujourd'hui, je vais t'expliquer ce qu'est une dérivée, concrètement.
+    show axe @beat:start 
+DIT (courbe) : Commençons par dessiner la courbe de la fonction x au carré.
+    draw courbe @- {"start":"cue:c_mot","end":"cue_end:c_mot"}
+DIT (points) : Sur cette courbe, plaçons deux points : A fixe au point un, un, et P mobile au point trois, neuf.
+    show ptA @cue:c_A 
+    show labA @cue:c_A 
+    show ptP @cue:c_P 
+    show labP @cue:c_P 
+=== Tranche s_secante
+  OBJET secante [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-1,4]} 
+  OBJET avan [line] {"from":[1,1],"to":[3,1]} 
+  OBJET monte [line] {"from":[3,1],"to":[3,9]} 
+  OBJET labAvan [label] "avancée : 2" attaché à avan
+  OBJET labMonte [label] "montée : 8" attaché à monte
+  OBJET pente [math] "pente = \\frac{8}{2} = 4" parts=pente = | \frac{8}{2} | = 4
+DIT (secante) : Traçons la sécante qui relie A et P : c'est la droite qui coupe la courbe à ces deux points.
+    draw secante @- {"start":"cue:c_sec","end":"cue_end:c_sec"}
+DIT (pente) : Sa pente, c'est la montée divisée par l'avancée. De A à P, on avance de deux et on monte de huit.
+    show avan @cue:c_avance 
+    show labAvan @cue:c_avance 
+    show monte @cue:c_monte 
+    show labMonte @cue:c_monte 
+DIT (calcul) : Huit divisé par deux, ça donne une pente de quatre. C'est le taux de variation moyen entre A et P.
+    write pente @cue:c_div 
+=== Tranche s_rapproche
+  OBJET ptP2 [point] {"at":[2,4]} 
+  OBJET labP2 [label] "P" attaché à ptP2
+  OBJET pente2 [math] "pente = 3" 
+  OBJET ptP3 [point] {"at":[1.5,2.25]} 
+  OBJET labP3 [label] "P" attaché à ptP3
+  OBJET pente3 [math] "pente = 2{,}5" 
+  OBJET trace [parametric_curve] {"x":"1+q*t","y":"1+(q+1)*t","domain":[0,1]} 
+DIT (rapproche1) : Rapprochons maintenant P de A. Plaçons P au point deux, quatre.
+    fade_out secante @beat:start 
+    fade_out avan @beat:start 
+    fade_out monte @beat:start 
+    fade_out labAvan @beat:start 
+    fade_out labMonte @beat:start 
+    show ptP2 @cue:c_P2 
+    show labP2 @cue:c_P2 
+DIT (pente2) : La nouvelle sécante a une pente de trois : la pente a diminué.
+    write pente2 @cue:c_trois 
+DIT (rapproche2) : Encore plus près : P au point un virgule cinq, deux virgule vingt-cinq. La pente tombe à deux virgule cinq.
+    show ptP3 @cue:c_P3 
+    show labP3 @cue:c_P3 
+    write pente3 @after:s_lP3 
+=== Tranche s_tangente
+  OBJET anim [parametric_curve] {"x":"1+q*t","y":"1+(q+1)*t","domain":[0,1]}   <<JAMAIS MONTRÉ>>
+  OBJET penteLim [math] "pente \\to 2" parts=pente \to | 2
+  OBJET tang [function_graph] {"expression":"2*x-1","domain":[-0.5,3.5]} 
+  OBJET ligne [math] "y = 2x - 1" parts=y = | 2x - 1
+DIT (anime) : Faisons glisser P vers A sous nos yeux.
+    fade_out ptP2 @beat:start 
+    fade_out labP2 @beat:start 
+    fade_out ptP3 @beat:start 
+    fade_out labP3 @beat:start 
+    fade_out pente2 @beat:start 
+    fade_out pente3 @beat:start 
+    show trace @beat:start 
+    animate_parameter  @- {"start":"cue:c_glisse","end":"cue_end:c_glisse","parameter":"q","from":3,"to":1}
+DIT (limite) : La pente passe de quatre à deux. Quand P se colle à A, la sécante devient la tangente, et la pente tend vers deux.
+    highlight pente @cue:c_passe {"role":"secondary"}
+    write penteLim @cue:c_tend {"part":"deux"}
+DIT (tangente) : La tangente au point A est la droite d'équation y égale deux x moins un. Sa pente, c'est la dérivée de x au carré en un.
+    draw tang @- {"start":"cue:c_eq","end":"cue_end:c_eq"}
+    write ligne @cue:c_der {"part":"droite"}
+=== Tranche s_retenir
+  OBJET idee [text] "La dérivée en un point = la pente de la tangente en ce point" 
+DIT (retenir) : À retenir : la dérivée de x au carré en un, c'est deux. C'est la pente de la tangente, la limite des pentes des sécantes.
+    fade_out trace @beat:start 
+    fade_out anim @beat:start 
+    fade_out pente @beat:start 
+    fade_out penteLim @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["axe","tang","idee"],"bounds":"layout_bounds"}
+    show idee @cue:c_pente 
+    highlight tang @- {"start":"cue:c_pente","end":"cue_end:c_pente","role":"result"}
+--- 5 tranches, 230 mots dits (≈ 1.5 min d'oral)

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { Action, SceneObject } from "@/domain/nesalio/contract";
 import { validateModelOutput } from "@/domain/nesalio/validate";
 import { PLAYABLE } from "@/engine/nesalioPlayback";
-import { PROMPT_EXAMPLES, buildNesalioMessages, buildNesalioSystemPrompt, describeSchema, languageReference, repairMessage } from "./prompt";
+import { measureSceneObject } from "@/domain/nesalio/measurement";
+import { PROMPT_EXAMPLES, buildNesalioMessages, buildNesalioSystemPrompt, continueMessage, describeSchema, languageReference, repairMessage } from "./prompt";
 
 describe("prompt système Nesalio", () => {
   it("ne montre au modèle que des exemples que le moteur accepte", () => {
@@ -64,7 +65,7 @@ describe("prompt système Nesalio", () => {
     // Seen in real generations: « x = 4 » said but never written, a vertex without its ordinate,
     // a graph of one parabola and calculations on another.
     const prompt = buildNesalioSystemPrompt();
-    expect(prompt).toMatch(/répond COMPLÈTEMENT[\s\S]*résultat est ÉCRIT au tableau/);
+    expect(prompt).toMatch(/réponds COMPLÈTEMENT[\s\S]*résultat est ÉCRIT au tableau/);
     expect(prompt).toContain("UN seul exemple du début à la fin");
   });
 
@@ -77,6 +78,34 @@ describe("prompt système Nesalio", () => {
     const prompt = buildNesalioSystemPrompt();
     expect(prompt).toContain("UN objet matrix avec row_labels");
     expect(prompt).toContain("row_labels?:");
+  });
+
+  it("annonce les ancres nommées de triangle_right, celles que le moteur mesure", () => {
+    // Visual judge V7: « 4 cm » hung along the hypotenuse because the prompt only offered top/bottom/left/right/center.
+    const triangle = SceneObject.parse({ id: "t", type: "triangle_right", params: { leg_a: 3, leg_b: 4 } });
+    const anchors = Object.keys(measureSceneObject(triangle, new Map(), { symbols: {}, expressions: {} }).anchors ?? {});
+    expect(anchors.length).toBeGreaterThan(0);
+    const prompt = buildNesalioSystemPrompt();
+    for (const anchor of anchors) expect(prompt, anchor).toContain(`"${anchor}"`);
+    expect(prompt).toMatch(/polygon n'a pas d'ancre de sommet[^\n]*point/);
+  });
+
+  it("fait tenir un surlignage pendant qu'on en parle et dire les symboles en mots", () => {
+    // Visual judge V2: a highlight with only `at` is a flash; M18: symbols and chemical formulas read aloud.
+    const prompt = buildNesalioSystemPrompt();
+    expect(prompt).toMatch(/highlight[^\n]*start et end/);
+    expect(prompt).toContain("« H deux O »");
+  });
+
+  it("ne demande pas 3 à 5 tranches à la leçon de refus", () => {
+    // 2nd review of lot 1: the out-of-scope lesson has one tranche by design (pedagogy.ts, REFUSAL_EXAMPLE).
+    const issues = [{ path: ["slices", 0], message: "Occurrence introuvable." }];
+    const refusal = repairMessage("s_hors_perimetre", issues);
+    expect(refusal).not.toContain("3 à 5");
+    expect(refusal).toContain("seule tranche");
+    expect(repairMessage("s_courbe", issues)).toContain("3 à 5 tranches");
+    expect(continueMessage(["s_hors_perimetre"])).not.toContain("3 à 5");
+    expect(continueMessage(["s_un"])).toContain("3 à 5");
   });
 
   it("écrit une notation compacte et lisible", () => {

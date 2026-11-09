@@ -1,0 +1,75 @@
+QUESTION (vecteurs, mathematiques, sec 5, methode) : comment j'additionne les vecteurs u = (3, 4) pis v = (-1, 2), pis c'est quoi la norme du résultat?
+RÉPONSE DE RÉFÉRENCE : u + v = (2, 6) ; norme √40 = 2√10 ≈ 6,32.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. addition composante par composante : (3 + (−1), 4 + 2) = (2, 6)
+  2. représentation : vecteurs bout à bout (relation de Chasles) dans un plan cartésien
+  3. norme = √(2² + 6²) = √40, par Pythagore
+  4. réponse (2, 6) et ≈ 6,32 écrites
+  5. valorisé : la norme de la somme n'est pas la somme des normes (5 + √5 ≈ 7,24)
+ERREURS GRAVES À CHERCHER : norme de la somme = somme des normes ; flèches tracées qui ne correspondent pas aux composantes
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Additionner u = (3, 4) et v = (-1, 2), puis la norme
+=== Tranche s_depart
+  OBJET axes [axes] {"x":[-2,4],"y":[-1,7]} 
+  OBJET u [vector] {"from":[0,0],"to":[3,4]} 
+  OBJET u_label [label] "u = (3 ; 4)" attaché à u
+  OBJET v [vector] {"from":[3,4],"to":[2,6]} 
+  OBJET v_label [label] "v = (-1 ; 2)" attaché à v
+DIT (pose) : On a le vecteur u qui part de l'origine jusqu'au point trois, quatre.
+    show axes @beat:start 
+    camera.focus  @beat:start {"targets":["axes"],"bounds":"layout_bounds","save_as":"vue_plan"}
+    draw u @- {"start":"cue:c_u","end":"cue_end:c_34"}
+    show u_label @cue:c_34 
+DIT (place_v) : Et le vecteur v, moins un, deux : on le pose au bout de u, comme une flèche qui recule d'un et monte de deux.
+    draw v @- {"start":"cue:c_minus_un","end":"cue_end:c_bout"}
+    show v_label @cue:c_bout 
+=== Tranche s_addition
+  OBJET somme_formule [math] "u + v = (3 + (-1) ; 4 + 2)" parts=u + v | = (3 + (-1) ; 4 + 2)
+  OBJET somme [math] "u + v = (2 ; 6)" parts=u + v | = (2 ; 6)
+  OBJET diagonale [vector] {"from":[0,0],"to":[2,6]} 
+  OBJET diagonale_label [label] "u + v = (2 ; 6)" attaché à diagonale
+DIT (compter) : Pour additionner, on va composante par composante : les x ensemble, puis les y ensemble.
+    write somme_formule @cue:c_composante {"part":"prem"}
+    write somme_formule @cue:c_composante {"part":"deuxieme"}
+    highlight somme_formule @- {"start":"cue:c_x","end":"cue_end:c_y","role":"accent","part":"deuxieme"}
+DIT (calcul) : Trois plus moins un donne deux, et quatre plus deux donne six : la somme est le vecteur deux, six.
+    write somme @cue:c_trois {"part":"nom"}
+    write somme @cue:c_six {"part":"resultat"}
+    draw diagonale @- {"start":"cue:c_six","end":"cue_end:c_six"}
+    show diagonale_label @cue:c_six 
+=== Tranche s_norme
+  OBJET triangle [triangle_right] {"leg_a":2,"leg_b":6} 
+  OBJET lab_a [label] "2" attaché à triangle
+  OBJET lab_b [label] "6" attaché à triangle
+  OBJET lab_h [label] "norme" attaché à triangle
+  OBJET pyth [math] "\\|u + v\\|^2 = 2^2 + 6^2" parts=\|u + v\|^2 | = 2^2 + 6^2
+  OBJET carres [math] "= 4 + 36 = 40" parts== 4 + 36 | = 40
+  OBJET racine [math] "\\|u + v\\| = \\sqrt{40} \\approx 6{,}32" parts=\|u + v\| | = \sqrt{40} | \approx 6{,}32
+DIT (norme_sens) : La norme, c'est la longueur de la flèche de la somme. Comme elle a un déplacement horizontal de deux et vertical de six, on peut la voir comme l'hypoténuse d'un triangle rectangle.
+    draw triangle @- {"start":"cue:c_hypo","end":"cue_end:c_triangle"}
+    show lab_a @cue:c_hypo 
+    show lab_b @cue:c_triangle 
+    show lab_h @cue:c_triangle 
+DIT (pyth) : Pythagore s'applique : la norme au carré vaut deux au carré plus six au carré.
+    write pyth @cue:c_pyth {"part":"membre"}
+    write pyth @cue:c_carre {"part":"somme_carres"}
+    dim triangle @cue:c_carre 
+    dim lab_a @cue:c_carre 
+    dim lab_b @cue:c_carre 
+    dim lab_h @cue:c_carre 
+DIT (calcule) : Ça fait quatre plus trente-six, donc quarante. La norme est la racine carrée de quarante, environ six virgule trente-deux.
+    write carres @cue:c_quatre {"part":"etape"}
+    write carres @cue:c_quarante {"part":"quarante"}
+    write racine @cue:c_racine {"part":"gauche"}
+    write racine @cue:c_racine {"part":"valeur"}
+    write racine @cue:c_env {"part":"approx"}
+    highlight racine @- {"start":"cue:c_env","end":"cue_end:c_env","role":"result"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : on additionne les vecteurs composante par composante, et la norme du résultat est la longueur de sa flèche, calculée par Pythagore.
+    camera.focus  @beat:start {"targets":["somme","racine"],"bounds":"layout_bounds"}
+    show somme @beat:start 
+    show racine @beat:start 
+    highlight somme @- {"start":"cue:c_composante","end":"cue_end:c_composante","role":"accent","part":"resultat"}
+    highlight racine @- {"start":"cue:c_pythagore","end":"cue_end:c_pythagore","role":"result","part":"valeur"}
+--- 4 tranches, 163 mots dits (≈ 1.1 min d'oral)

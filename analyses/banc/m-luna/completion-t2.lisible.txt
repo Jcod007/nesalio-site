@@ -1,0 +1,60 @@
+QUESTION (completion, mathematiques, sec 4, methode) : C'est quoi la complétion du carré ? Par exemple avec x² + 6x − 7.
+RÉPONSE DE RÉFÉRENCE : x² + 6x − 7 = (x + 3)² − 16.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. on prend la moitié du coefficient de x (3) et on ajoute puis retire son carré (9)
+  2. modèle d'aire : la bande 6x coupée en deux 3x, coin 3 × 3 qui manque
+  3. x² + 6x − 7 = (x + 3)² − 9 − 7 = (x + 3)² − 16 écrit
+  4. lien avec la forme canonique et le sommet (−3, −16)
+  5. vérification par développement
+ERREURS GRAVES À CHERCHER : coin du modèle d'aire de mauvaise taille ; règle fausse (« on ajoute la moitié du coefficient »)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comprendre la complétion du carré avec x² + 6x − 7
+=== Tranche s_sens
+  OBJET expr [math] "x^2 + 6x - 7" parts=x^2 | + 6x | - 7
+DIT (depart) : La complétion du carré, c’est transformer une expression en un carré parfait, plus ou moins un nombre. Ici, on part de x au carré plus six x moins sept.
+    write expr @cue:depart_expr {"part":"carre"}
+    write expr @cue:depart_expr {"part":"terme"}
+    write expr @cue:depart_expr {"part":"constante"}
+DIT (figure) : Pour voir l’idée, x au carré représente un carré de côté x. Le terme six x représente une bande qu’on partage en deux bandes égales, chacune de largeur trois.
+    highlight expr @- {"start":"cue:carre_figure","end":"cue_end:carre_figure","role":"accent","part":"carre"}
+    highlight expr @- {"start":"cue:bande","end":"cue_end:deux_bandes","role":"accent","part":"terme"}
+=== Tranche s_ajout
+  OBJET demi [math] "\\frac{6}{2} = 3" parts=\frac{6}{2} | = 3
+  OBJET ajout_retrait [math] "x^2 + 6x + 9 - 9" parts=x^2 + 6x | + 9 | - 9
+  OBJET coin [text] "coin manquant : 3 × 3 = 9" 
+DIT (moitie) : On coupe six en deux : la moitié vaut trois. Pour fermer le carré, le coin manquant mesure trois par trois, donc son aire vaut neuf.
+    write demi @cue:moitie_mot {"part":"fraction"}
+    write demi @cue:moitie_mot {"part":"egal3"}
+    show coin @cue:coin_mot 
+DIT (ajouter_retirer) : On ajoute neuf et on retire neuf : la valeur ne change pas, car ces deux nombres s’annulent. Le neuf ajouté complète le carré.
+    write ajout_retrait @cue:ajoute {"part":"base"}
+    write ajout_retrait @cue:ajoute {"part":"plus9"}
+    write ajout_retrait @cue:retire {"part":"moins9"}
+    highlight ajout_retrait @- {"start":"cue:complete","end":"cue_end:complete","role":"accent","part":"plus9"}
+=== Tranche s_transformer
+  OBJET forme [math] "x^2 + 6x + 9 - 9 = (x + 3)^2 - 9" parts=x^2 + 6x + 9 - 9 | = | (x + 3)^2 - 9
+  OBJET verification [math] "(x + 3)^2 - 9 = x^2 + 6x + 9 - 9 = x^2 + 6x - 7" parts=(x + 3)^2 - 9 | = x^2 + 6x + 9 - 9 | = x^2 + 6x - 7
+DIT (regroupement) : Les trois premiers termes forment le carré x plus trois, le tout au carré. Le moins neuf reste à l’extérieur : l’expression vaut donc x plus trois au carré moins neuf.
+    transform forme @cue:carre_forme {"source":"ajout_retrait"}
+DIT (verifier) : On vérifie en développant : x plus trois au carré donne x au carré plus six x plus neuf. Moins neuf annule le neuf, et on retrouve bien le moins sept de départ.
+    write verification @cue:developpant 
+    highlight verification @- {"start":"cue:retrouve","end":"cue_end:retrouve","role":"accent","part":"depart_verif"}
+=== Tranche s_retenir
+  OBJET regle [text] "Prendre la moitié du coefficient de x, la mettre au carré, puis l’ajouter et la retirer." 
+  OBJET resultat [math] "x^2 + 6x - 7 = (x + 3)^2 - 16" parts=x^2 + 6x - 7 | = (x + 3)^2 - 16
+  OBJET controle_final [math] "(x + 3)^2 - 16 = x^2 + 6x + 9 - 16 = x^2 + 6x - 7" parts=(x + 3)^2 - 16 | = x^2 + 6x + 9 - 16 | = x^2 + 6x - 7
+DIT (idee) : À retenir : on prend la moitié du coefficient de x, on met cette moitié au carré, puis on ajoute et on retire ce carré. Ici, neuf complète le carré et donne moins seize au total.
+    fade_out expr @cue:retenir 
+    fade_out demi @cue:retenir 
+    fade_out coin @cue:retenir 
+    fade_out ajout_retrait @cue:retenir 
+    fade_out forme @cue:retenir 
+    fade_out verification @cue:retenir 
+    show regle @cue:moitie_finale 
+    write resultat @cue:moins_seize {"part":"initial"}
+    write resultat @cue:moins_seize {"part":"transfo"}
+    write controle_final @cue:moins_seize 
+DIT (conclusion) : La complétion du carré transforme donc x au carré plus six x moins sept en x plus trois au carré moins seize, sans changer sa valeur.
+    highlight resultat @- {"start":"cue:completion_conclu","end":"cue_end:valeur_finale","role":"result"}
+--- 4 tranches, 234 mots dits (≈ 1.6 min d'oral)

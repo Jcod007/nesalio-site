@@ -1,0 +1,878 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_de_hess",
+  "title": "La loi de Hess : additionner les étapes d'une réaction",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'on additionne les équations des étapes comme des égalités, que ce qui apparaît des deux côtés s'annule, et qu'on additionne leurs ΔH pour trouver le ΔH global."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "somme": "-110.5 + (-283.0)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "diag_reactifs",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       4
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "diag_montee",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       2,
+       4
+      ],
+      "to": [
+       3,
+       7
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "diag_descente",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       3,
+       7
+      ],
+      "to": [
+       4,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "diag_produits",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "from": [
+       4,
+       1
+      ],
+      "to": [
+       6,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "fleche_dH",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       1,
+       4
+      ],
+      "to": [
+       1,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "etiq_dH",
+     "attachment": {
+      "parent": "fleche_dH",
+      "anchor": "left"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "ΔH < 0",
+     "type": "label"
+    },
+    {
+     "id": "prog",
+     "size": "small",
+     "layout": {
+      "align_to": "diag_produits",
+      "align": "bottom"
+     },
+     "content": "progression de la réaction",
+     "type": "text"
+    },
+    {
+     "id": "energie",
+     "size": "small",
+     "layout": {
+      "next_to": "diag_reactifs",
+      "direction": "left",
+      "gap": "md"
+     },
+     "content": "énergie",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Pour la loi de Hess, retiens une seule idée : on additionne des équations comme des égalités.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "loi de Hess"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_reactifs",
+       "verb": "draw",
+       "at": "cue:c_idee",
+       "target": "diag_reactifs"
+      },
+      {
+       "id": "s_montee",
+       "verb": "draw",
+       "at": "after:s_reactifs",
+       "target": "diag_montee"
+      },
+      {
+       "id": "s_descente",
+       "verb": "draw",
+       "at": "after:s_montee",
+       "target": "diag_descente"
+      },
+      {
+       "id": "s_produits",
+       "verb": "draw",
+       "at": "after:s_descente",
+       "target": "diag_produits"
+      },
+      {
+       "id": "s_prog",
+       "verb": "show",
+       "at": "after:s_produits",
+       "target": "prog"
+      },
+      {
+       "id": "s_energie",
+       "verb": "show",
+       "at": "after:s_prog",
+       "target": "energie"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "L'énergie ne dépend que du point de départ et du point d'arrivée, pas du chemin. Peu importe par combien d'étapes tu passes.",
+     "cues": [
+      {
+       "id": "c_depart",
+       "text": "point de départ"
+      },
+      {
+       "id": "c_arrivee",
+       "text": "point d'arrivée"
+      },
+      {
+       "id": "c_etapes",
+       "text": "d'étapes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_dH",
+       "verb": "show",
+       "at": "cue:c_depart",
+       "target": "fleche_dH"
+      },
+      {
+       "id": "s_etiq",
+       "verb": "show",
+       "at": "cue:c_arrivee",
+       "target": "etiq_dH"
+      },
+      {
+       "id": "h_descente",
+       "verb": "highlight",
+       "start": "cue:c_etapes",
+       "end": "cue_end:c_etapes",
+       "target": "diag_descente",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "eq1",
+     "content": "\\ce{C + O2 -> CO2}",
+     "type": "math"
+    },
+    {
+     "id": "dh1",
+     "layout": {
+      "next_to": "eq1",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\Delta H_1 = -110{,}5 \\text{ kJ}",
+     "parts": [
+      {
+       "id": "sym1",
+       "text": "\\Delta H_1"
+      },
+      {
+       "id": "val1",
+       "text": "= -110{,}5 \\text{ kJ}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "layout": {
+      "next_to": "eq1",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\ce{CO + \\frac{1}{2}O2 -> CO2}",
+     "type": "math"
+    },
+    {
+     "id": "dh2",
+     "layout": {
+      "next_to": "eq2",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\Delta H_2 = -283{,}0 \\text{ kJ}",
+     "parts": [
+      {
+       "id": "sym2",
+       "text": "\\Delta H_2"
+      },
+      {
+       "id": "val2",
+       "text": "= -283{,}0 \\text{ kJ}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "layout": {
+      "next_to": "eq2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\ce{C + O2 + CO -> CO2 + CO}",
+     "type": "math"
+    },
+    {
+     "id": "dh3",
+     "layout": {
+      "next_to": "eq3",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\Delta H = -110{,}5 + (-283{,}0)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Prenons un exemple classique : le carbone qui brûle en une seule étape donne du CO2. Ou en deux étapes : d'abord du CO, puis le CO qui brûle aussi.",
+     "cues": [
+      {
+       "id": "c_eq1",
+       "text": "une seule étape"
+      },
+      {
+       "id": "c_eq2",
+       "text": "deux étapes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq1",
+       "verb": "write",
+       "at": "cue:c_eq1",
+       "target": "eq1"
+      },
+      {
+       "id": "w_eq1b",
+       "verb": "highlight",
+       "at": "after:w_eq1",
+       "target": "eq1",
+       "role": "accent"
+      },
+      {
+       "id": "w_dh1",
+       "verb": "write",
+       "at": "after:w_eq1b",
+       "target": "dh1"
+      },
+      {
+       "id": "w_eq2",
+       "verb": "write",
+       "at": "cue:c_eq2",
+       "target": "eq2"
+      },
+      {
+       "id": "w_eq2b",
+       "verb": "highlight",
+       "at": "after:w_eq2",
+       "target": "eq2",
+       "role": "accent"
+      },
+      {
+       "id": "w_dh2",
+       "verb": "write",
+       "at": "after:w_eq2b",
+       "target": "dh2"
+      }
+     ]
+    },
+    {
+     "id": "additionne",
+     "say": "On additionne les deux équations membres par membres. Le CO apparaît à droite d'une équation et à gauche de l'autre.",
+     "cues": [
+      {
+       "id": "c_additionne",
+       "text": "additionne"
+      },
+      {
+       "id": "c_CO",
+       "text": "CO apparaît"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_additionne",
+       "target": "eq3"
+      },
+      {
+       "id": "w_droite",
+       "verb": "highlight",
+       "at": "after:w_gauche",
+       "target": "eq3",
+       "role": "accent"
+      },
+      {
+       "id": "h_co",
+       "verb": "highlight",
+       "start": "cue:c_CO",
+       "end": "cue_end:c_CO",
+       "target": "eq3",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_annule",
+   "introduces": [
+    {
+     "id": "eq_finale",
+     "layout": {
+      "next_to": "eq3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\ce{C + O2 -> CO2}",
+     "type": "math"
+    },
+    {
+     "id": "dh_final",
+     "layout": {
+      "next_to": "eq_finale",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\Delta H = -110{,}5 + (-283{,}0) = -393{,}5 \\text{ kJ}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "annuler",
+     "say": "Puisqu'il est des deux côtés, le CO s'annule. Ce qui reste, c'est carbone plus O2 donne CO2 : l'équation globale.",
+     "cues": [
+      {
+       "id": "c_annule",
+       "text": "s'annule"
+      },
+      {
+       "id": "c_reste",
+       "text": "carbone plus O2 donne CO2"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_co",
+       "verb": "dim",
+       "at": "cue:c_annule",
+       "target": "eq3"
+      },
+      {
+       "id": "w_finale",
+       "verb": "write",
+       "at": "cue:c_reste",
+       "target": "eq_finale"
+      }
+     ]
+    },
+    {
+     "id": "energie",
+     "say": "Pour l'énergie, même logique : on additionne les ΔH des étapes. Moins cent dix virgule cinq plus moins deux cent quatre-vingt-trois.",
+     "cues": [
+      {
+       "id": "c_plus",
+       "text": "on additionne"
+      },
+      {
+       "id": "c_moins",
+       "text": "Moins cent dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_h",
+       "verb": "write",
+       "at": "cue:c_moins",
+       "target": "dh_final"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Ça donne moins trois cent quatre-vingt-treize virgule cinq kilojoules. C'est la même valeur que la réaction directe.",
+     "cues": [
+      {
+       "id": "c_resultat",
+       "text": "moins trois cent quatre-vingt-treize virgule cinq kilojoules"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "dh_final",
+       "role": "accent"
+      },
+      {
+       "id": "h_res_style",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "dh_final",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle1",
+     "content": "1. Inverse une équation → change le signe de son ΔH.",
+     "type": "text"
+    },
+    {
+     "id": "regle2",
+     "content": "2. Multiplie une équation par n → multiplie son ΔH par n.",
+     "type": "text"
+    },
+    {
+     "id": "regle3",
+     "content": "3. Additionne les équations et leurs ΔH.",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "regles",
+     "items": [
+      "regle1",
+      "regle2",
+      "regle3"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : tu inverses une équation, tu changes le signe de son ΔH. Tu multiplies une équation, tu multiplies son ΔH. Tu additionnes les équations, tu additionnes leurs énergies.",
+     "cues": [
+      {
+       "id": "c_inverser",
+       "text": "inverses"
+      },
+      {
+       "id": "c_multi",
+       "text": "multiplies"
+      },
+      {
+       "id": "c_add",
+       "text": "additionnes"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_diag1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "diag_reactifs"
+      },
+      {
+       "id": "f_diag2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "diag_montee"
+      },
+      {
+       "id": "f_diag3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "diag_descente"
+      },
+      {
+       "id": "f_diag4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "diag_produits"
+      },
+      {
+       "id": "f_fl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "fleche_dH"
+      },
+      {
+       "id": "f_et",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "etiq_dH"
+      },
+      {
+       "id": "f_pr",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "prog"
+      },
+      {
+       "id": "f_en",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "energie"
+      },
+      {
+       "id": "f_eq1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eq1"
+      },
+      {
+       "id": "f_dh1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "dh1"
+      },
+      {
+       "id": "f_eq2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eq2"
+      },
+      {
+       "id": "f_dh2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "dh2"
+      },
+      {
+       "id": "f_eq3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eq3"
+      },
+      {
+       "id": "f_dh3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "dh3"
+      },
+      {
+       "id": "f_fin",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eq_finale"
+      },
+      {
+       "id": "f_dhf",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "dh_final"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "regles"
+       ]
+      },
+      {
+       "id": "s_r1",
+       "verb": "show",
+       "at": "cue:c_inverser",
+       "target": "regle1"
+      },
+      {
+       "id": "s_r2",
+       "verb": "show",
+       "at": "cue:c_multi",
+       "target": "regle2"
+      },
+      {
+       "id": "s_r3",
+       "verb": "show",
+       "at": "cue:c_add",
+       "target": "regle3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

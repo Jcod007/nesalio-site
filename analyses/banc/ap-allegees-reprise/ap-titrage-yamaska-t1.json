@@ -1,0 +1,688 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ph_yamaska",
+  "title": "Le pH de l'eau de la Yamaska après neutralisation",
+  "language": "fr",
+  "learning_goal": "Calculer le pH d'une solution basique à partir d'un titrage acide-base : moles neutralisées, concentration des ions hydroxyde, puis pOH et pH."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "nha": "0.003*0.050",
+    "noh": "0.003*0.050",
+    "oh": "0.0075/0.020",
+    "poh": "-log(0.375)",
+    "ph": "14-(-log(0.375))"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "echelle",
+     "params": {
+      "domain": [
+       0,
+       14
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "citron",
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "citron_l",
+     "attachment": {
+      "parent": "citron",
+      "anchor": "top"
+     },
+     "content": "jus de citron",
+     "type": "label"
+    },
+    {
+     "id": "pure",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pure_l",
+     "attachment": {
+      "parent": "pure",
+      "anchor": "top"
+     },
+     "content": "eau pure",
+     "type": "label"
+    },
+    {
+     "id": "javel",
+     "params": {
+      "at": [
+       12,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "javel_l",
+     "attachment": {
+      "parent": "javel",
+      "anchor": "top"
+     },
+     "content": "eau de javel",
+     "type": "label"
+    },
+    {
+     "id": "yam",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       11.6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "yam_l",
+     "attachment": {
+      "parent": "yam",
+      "anchor": "bottom"
+     },
+     "content": "eau de la Yamaska ?",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Le tournesol rouge qui vire au bleu nous dit tout de suite une chose : l'eau de la Yamaska est basique. Son pH est au-dessus de sept.",
+     "cues": [
+      {
+       "id": "c_basique",
+       "text": "basique"
+      },
+      {
+       "id": "c_sept",
+       "text": "au-dessus de sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ech",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "echelle"
+      },
+      {
+       "id": "s_cit",
+       "verb": "show",
+       "at": "cue:c_basique",
+       "target": "citron"
+      },
+      {
+       "id": "s_citl",
+       "verb": "show",
+       "at": "cue:c_basique",
+       "target": "citron_l"
+      },
+      {
+       "id": "s_pur",
+       "verb": "show",
+       "at": "cue:c_basique",
+       "target": "pure"
+      },
+      {
+       "id": "s_purl",
+       "verb": "show",
+       "at": "cue:c_basique",
+       "target": "pure_l"
+      },
+      {
+       "id": "s_jav",
+       "verb": "show",
+       "at": "cue:c_sept",
+       "target": "javel"
+      },
+      {
+       "id": "s_javl",
+       "verb": "show",
+       "at": "cue:c_sept",
+       "target": "javel_l"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "titrage",
+     "say": "Le titrage va nous donner la quantité exacte de base à neutraliser, et de là, le pH précis de ton échantillon.",
+     "cues": [
+      {
+       "id": "c_titrage",
+       "text": "titrage"
+      },
+      {
+       "id": "c_echantillon",
+       "text": "échantillon"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_yam",
+       "verb": "show",
+       "at": "cue:c_titrage",
+       "target": "yam"
+      },
+      {
+       "id": "s_yaml",
+       "verb": "show",
+       "at": "cue:c_echantillon",
+       "target": "yam_l"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "bilan",
+     "layout": {
+      "next_to": "echelle",
+      "direction": "down",
+      "gap": "xl"
+     },
+     "content": "\\ce{3 NaOH + H3PO4 -> Na3PO4 + 3 H2O}",
+     "type": "math"
+    },
+    {
+     "id": "nH",
+     "layout": {
+      "next_to": "bilan",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "nha",
+      "template": "n(H_3PO_4) = {value} mol",
+      "precision": 4
+     },
+     "type": "math"
+    },
+    {
+     "id": "nOH",
+     "layout": {
+      "next_to": "nH",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n(NaOH) = n(H_3PO_4) = 0,000 15 mol",
+     "type": "math"
+    },
+    {
+     "id": "annot",
+     "layout": {
+      "next_to": "nH",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "0,003 mol/L × 0,050 L",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "dim",
+     "say": "On garde l'échelle en mémoire, et on passe au cœur du problème.",
+     "cues": [
+      {
+       "id": "c_passe",
+       "text": "cœur du problème"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_cit",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "citron"
+      },
+      {
+       "id": "d_citl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "citron_l"
+      },
+      {
+       "id": "d_pur",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pure"
+      },
+      {
+       "id": "d_purl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pure_l"
+      },
+      {
+       "id": "d_jav",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "javel"
+      },
+      {
+       "id": "d_javl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "javel_l"
+      },
+      {
+       "id": "dim_ech",
+       "verb": "dim",
+       "at": "cue:c_passe",
+       "target": "echelle"
+      },
+      {
+       "id": "dim_yam",
+       "verb": "dim",
+       "at": "cue:c_passe",
+       "target": "yam"
+      },
+      {
+       "id": "dim_yaml",
+       "verb": "dim",
+       "at": "cue:c_passe",
+       "target": "yam_l"
+      },
+      {
+       "id": "w_bilan",
+       "verb": "write",
+       "at": "cue:c_passe",
+       "target": "bilan"
+      }
+     ]
+    },
+    {
+     "id": "n_h3po4",
+     "say": "L'acide phosphorique a cédé trois protons. Le point d'équivalence est atteint, donc on calcule le nombre de moles d'acide versé.",
+     "cues": [
+      {
+       "id": "c_acide",
+       "text": "acide phosphorique"
+      },
+      {
+       "id": "c_trois",
+       "text": "trois protons"
+      },
+      {
+       "id": "c_calcule",
+       "text": "nombre de moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_trois",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_trois",
+       "target": "bilan",
+       "role": "accent"
+      },
+      {
+       "id": "w_nH",
+       "verb": "write",
+       "at": "cue:c_calcule",
+       "target": "nH"
+      },
+      {
+       "id": "s_annot",
+       "verb": "show",
+       "at": "cue:c_calcule",
+       "target": "annot"
+      }
+     ]
+    },
+    {
+     "id": "neutralise",
+     "say": "Concentration fois volume : zéro virgule zéro zéro trois fois cinquante millilitres, ça donne zéro virgule zéro zéro zéro un cinq mole d'acide.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "zéro virgule zéro zéro trois"
+      },
+      {
+       "id": "c_volume",
+       "text": "cinquante millilitres"
+      },
+      {
+       "id": "c_mole",
+       "text": "un cinq mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_annot",
+       "verb": "highlight",
+       "start": "cue:c_zero",
+       "end": "cue_end:c_volume",
+       "target": "annot",
+       "role": "neutral"
+      },
+      {
+       "id": "h_nH",
+       "verb": "highlight",
+       "start": "cue:c_mole",
+       "end": "cue_end:c_mole",
+       "target": "nH",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_naoh",
+   "introduces": [
+    {
+     "id": "rap",
+     "layout": {
+      "next_to": "nOH",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "3 \\text{ mol NaOH} \\leftrightarrow 1 \\text{ mol H}_3\\text{PO}_4",
+     "type": "math"
+    },
+    {
+     "id": "nOH2",
+     "layout": {
+      "next_to": "rap",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n(NaOH) = 3 \\times 0,000 15 = 0,000 45 mol",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ratio",
+     "say": "Mais attention au rapport : il faut trois fois plus de soude que d'acide. Vérifions le nombre de moles de NaOH.",
+     "cues": [
+      {
+       "id": "c_rapport",
+       "text": "rapport"
+      },
+      {
+       "id": "c_trois_fois",
+       "text": "trois fois plus de soude"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rap",
+       "verb": "write",
+       "at": "cue:c_rapport",
+       "target": "rap"
+      },
+      {
+       "id": "w_rapd",
+       "verb": "highlight",
+       "at": "cue:c_trois_fois",
+       "target": "rap",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcul_naoh",
+     "say": "Zéro virgule zéro zéro zéro un cinq fois trois : zéro virgule zéro zéro zéro quatre cinq mole de soude dans l'échantillon.",
+     "cues": [
+      {
+       "id": "c_un_cinq",
+       "text": "un cinq fois trois"
+      },
+      {
+       "id": "c_quatre_cinq",
+       "text": "quatre cinq mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_nOH",
+       "verb": "fade_out",
+       "at": "cue:c_un_cinq",
+       "target": "nOH"
+      },
+      {
+       "id": "w_nOH2",
+       "verb": "write",
+       "at": "cue:c_quatre_cinq",
+       "target": "nOH2"
+      },
+      {
+       "id": "h_nOH2",
+       "verb": "highlight",
+       "start": "cue:c_quatre_cinq",
+       "end": "cue_end:c_quatre_cinq",
+       "target": "nOH2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

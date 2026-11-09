@@ -1,0 +1,66 @@
+QUESTION (ap-regle-majorite, mathematiques, sec 5, alloprof) : La regle de la majorité il veut juste diviser par 2 ou il faut faire (diviser par 2)+1 ?
+RÉPONSE DE RÉFÉRENCE : Majorité = plus de la moitié : le plus petit entier supérieur à n/2 (n/2 + 1 si n est pair).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Majorité absolue : diviser par 2 puis ajouter 1
+=== Tranche s_intuition
+  OBJET sieges [matrix] {"rows":[[1,2,3,4,5,6,7,8,9,10],[null,null,null,null,null,null,null,null,null,null]],"row_labels":["siège","camp"]} 
+  OBJET moitie [math] "\\frac{10}{2} = 5" parts=\frac{10}{2} | = 5
+DIT (depart) : Prenons une assemblée de dix sièges. On veut savoir combien de sièges il faut pour avoir la majorité.
+    show sieges @cue:c_dix 
+    highlight sieges @- {"start":"cue:c_majorite","end":"cue_end:c_majorite","role":"accent"}
+DIT (partage) : Coupons ces dix sièges en deux camps égaux : cinq d'un côté, cinq de l'autre.
+    write moitie @cue:c_coupons {"part":"frac"}
+    write moitie @cue:c_cinq {"part":"cinq"}
+DIT (egalite) : Avec cinq contre cinq, personne n'a plus que l'autre : c'est une égalité, pas une majorité.
+    highlight moitie @- {"start":"cue:c_egalite","end":"cue_end:c_egalite","role":"unknown"}
+    highlight sieges @- {"start":"cue:c_pas","end":"cue_end:c_pas","role":"unknown"}
+=== Tranche s_plus_un
+  OBJET gauche [math] "\\frac{10}{2} = 5" 
+  OBJET droite [math] "\\frac{10}{2} + 1 = 6" 
+  OBJET preuve [math] "6 > 4" parts=6 | > | 4
+  OBJET note_paire [text] "total pair : (total ÷ 2) + 1" 
+DIT (enleve) : Donc la moitié seule ne suffit pas. Prenons un siège de plus : six sièges.
+    fade_out moitie @cue:c_six 
+    write droite @cue:c_sixsieges 
+DIT (reste) : Il ne reste que quatre sièges pour l'autre camp. Six contre quatre, cette fois c'est clair.
+    write gauche @cue:c_quatre 
+    write preuve @cue:c_clair 
+    highlight preuve @after:w_preuve {"role":"result"}
+DIT (regle) : Quand le total est pair, la règle est donc : diviser par deux, puis ajouter un.
+    show note_paire @cue:c_diviser 
+    highlight droite @- {"start":"cue:c_ajouter","end":"cue_end:c_ajouter","role":"accent"}
+=== Tranche s_impair
+  OBJET sieges9 [matrix] {"rows":[[1,2,3,4,5,6,7,8,9],[null,null,null,null,null,null,null,null,null]],"row_labels":["siège","camp"]} 
+  OBJET calc9 [math] "\\frac{9}{2} = 4{,}5" parts=\frac{9}{2} | = 4{,}5
+  OBJET entier [math] "\\lceil 4{,}5 \\rceil = 5" 
+  OBJET note_impair [text] "le premier entier plus grand que la moitié" 
+DIT (neuf) : Avec un total impair, par exemple neuf sièges, la moitié donne quatre et demi.
+    fade_out sieges @cue:c_neuf 
+    show sieges9 @cue:c_neuf 
+    write calc9 @cue:c_neuf {"part":"frac9"}
+    write calc9 @cue:c_quatre {"part":"res9"}
+DIT (arrondi) : Un siège, ça ne se coupe pas en deux : il faut le premier entier plus grand, c'est-à-dire cinq.
+    write entier @cue:c_entier 
+    show note_impair @cue:c_cinq 
+    highlight sieges9 @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"accent"}
+=== Tranche s_retenir
+  OBJET regle_finale [math] "\\frac{n}{2} + 1" parts=\frac{n}{2} | + 1
+  OBJET phrase [text] "majorité absolue : plus de la moitié des votes" 
+DIT (idee) : À retenir : la majorité absolue, c'est plus de la moitié. Alors on divise le total par deux, puis on ajoute un pour dépasser la moitié.
+    fade_out sieges9 @cue:c_retenir 
+    fade_out gauche @cue:c_retenir 
+    fade_out droite @cue:c_retenir 
+    fade_out preuve @cue:c_retenir 
+    fade_out note_paire @cue:c_retenir 
+    fade_out calc9 @cue:c_retenir 
+    fade_out entier @cue:c_retenir 
+    fade_out note_impair @cue:c_retenir 
+    camera.focus  @cue:c_plus {"targets":["regle_finale","phrase"],"bounds":"layout_bounds"}
+    write regle_finale @cue:c_plus {"part":"n_sur_deux"}
+    write regle_finale @cue:c_ajoute {"part":"plus_un"}
+    show phrase @cue:c_ajoute 
+    highlight regle_finale @after:s_phrase {"role":"result"}
+--- 4 tranches, 155 mots dits (≈ 1.0 min d'oral)

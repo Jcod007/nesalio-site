@@ -1,0 +1,784 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "regle_parabole_sommet_point",
+  "title": "Trouver la règle d'une parabole connaissant son sommet et un point",
+  "language": "fr",
+  "learning_goal": "Trouver la règle d'une parabole de forme canonique à partir de son sommet et d'un point qu'elle traverse."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "a": {
+     "kind": "parameter",
+     "initial": 1,
+     "min": 0.25,
+     "max": 2
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_forme",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "f(x) = a(x - h)^2 + k",
+     "parts": [
+      {
+       "id": "f",
+       "text": "f(x) ="
+      },
+      {
+       "id": "canon",
+       "text": "a(x - h)^2 + k"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "content": "sommet à (h ; k)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Avec le sommet et un point, tu peux retrouver la règle complète de la parabole.",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "sommet"
+      },
+      {
+       "id": "c_point",
+       "text": "un point"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_sommet",
+       "target": "regle",
+       "part": "canon"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_point",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "explique",
+     "say": "On part de la forme canonique : f de x égale a fois, parenthèse, x moins h, parenthèse, au carré, plus k. Le sommet donne h et k, le point sert à trouver a.",
+     "cues": [
+      {
+       "id": "c_forme",
+       "text": "forme canonique"
+      },
+      {
+       "id": "c_hk",
+       "text": "Le sommet donne h et k"
+      },
+      {
+       "id": "c_a",
+       "text": "trouver a"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_f",
+       "verb": "highlight",
+       "start": "cue:c_forme",
+       "end": "cue_end:c_forme",
+       "target": "regle",
+       "role": "accent",
+       "part": "f"
+      },
+      {
+       "id": "h_canon",
+       "verb": "highlight",
+       "start": "cue:c_hk",
+       "end": "cue_end:c_a",
+       "target": "regle",
+       "role": "accent",
+       "part": "canon"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_remplace",
+   "introduces": [
+    {
+     "id": "etape1",
+     "content": "f(x) = a(x - 2)^2 - 3",
+     "type": "math"
+    },
+    {
+     "id": "etape2",
+     "content": "a(4 - 2)^2 - 3 = 5",
+     "parts": [
+      {
+       "id": "remplace",
+       "text": "a(4 - 2)^2 - 3"
+      },
+      {
+       "id": "egal",
+       "text": "= 5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape3",
+     "content": "4a - 3 = 5",
+     "parts": [
+      {
+       "id": "quatrea",
+       "text": "4a"
+      },
+      {
+       "id": "moins3",
+       "text": "- 3"
+      },
+      {
+       "id": "cinq",
+       "text": "= 5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Le sommet est deux, moins trois : alors h égale deux et k égale moins trois.",
+     "cues": [
+      {
+       "id": "c_h",
+       "text": "h égale deux"
+      },
+      {
+       "id": "c_k",
+       "text": "k égale moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_h",
+       "verb": "write",
+       "at": "cue:c_h",
+       "target": "etape1"
+      },
+      {
+       "id": "h_x2",
+       "verb": "highlight",
+       "start": "cue:c_h",
+       "end": "cue_end:c_h",
+       "target": "etape1",
+       "role": "accent"
+      },
+      {
+       "id": "h_k",
+       "verb": "highlight",
+       "start": "cue:c_k",
+       "end": "cue_end:c_k",
+       "target": "etape1",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "remplace",
+     "say": "La parabole passe par quatre, cinq : je remplace x par quatre et f de x par cinq.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "quatre, cinq"
+      },
+      {
+       "id": "c_remplace",
+       "text": "x par quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_remplace",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "etape2",
+       "part": "remplace"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "etape2",
+       "part": "egal"
+      }
+     ]
+    },
+    {
+     "id": "simplifie",
+     "say": "Quatre moins deux, ça fait deux ; deux au carré, quatre. Il reste quatre a moins trois égale cinq.",
+     "cues": [
+      {
+       "id": "c_quatrea",
+       "text": "quatre a moins trois"
+      },
+      {
+       "id": "c_cinq",
+       "text": "égale cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_etape",
+       "verb": "transform",
+       "at": "cue:c_quatrea",
+       "source": "etape2",
+       "target": "etape3"
+      },
+      {
+       "id": "h_etape",
+       "verb": "highlight",
+       "at": "cue:c_cinq",
+       "target": "etape3",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isole",
+   "introduces": [
+    {
+     "id": "etape4",
+     "content": "4a = 8",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "4a"
+      },
+      {
+       "id": "droite",
+       "text": "= 8"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape5",
+     "style": {
+      "role": "result"
+     },
+     "content": "a = 2",
+     "type": "math"
+    },
+    {
+     "id": "reglefin",
+     "content": "f(x) = 2(x - 2)^2 - 3",
+     "parts": [
+      {
+       "id": "avant",
+       "text": "f(x) = 2"
+      },
+      {
+       "id": "apres",
+       "text": "(x - 2)^2 - 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isole",
+     "say": "J'ajoute trois des deux côtés : quatre a égale huit.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "J'ajoute trois"
+      },
+      {
+       "id": "c_huit",
+       "text": "quatre a égale huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_isi",
+       "verb": "transform",
+       "at": "cue:c_ajoute",
+       "source": "etape3",
+       "target": "etape4"
+      },
+      {
+       "id": "h_isi",
+       "verb": "highlight",
+       "at": "cue:c_huit",
+       "target": "etape4",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "divise",
+     "say": "Je divise par quatre des deux côtés : a égale deux.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "Je divise par quatre"
+      },
+      {
+       "id": "c_deux",
+       "text": "a égale deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_div",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "etape4",
+       "target": "etape5"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:c_deux",
+       "target": "etape5",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "ecris",
+     "say": "La règle cherchée est donc f de x égale deux, x moins deux, au carré, moins trois.",
+     "cues": [
+      {
+       "id": "c_regle",
+       "text": "règle cherchée"
+      },
+      {
+       "id": "c_fin",
+       "text": "f de x égale deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_fin",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "reglefin",
+       "part": "avant"
+      },
+      {
+       "id": "w_apres",
+       "verb": "write",
+       "at": "cue:c_fin",
+       "target": "reglefin",
+       "part": "apres"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "v1",
+     "layout": {
+      "next_to": "reglefin",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "f(2) = 2(2 - 2)^2 - 3 = -3",
+     "type": "math"
+    },
+    {
+     "id": "v2",
+     "content": "f(4) = 2(4 - 2)^2 - 3 = 5",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verif",
+     "say": "Vérifions avec le sommet : en x égale deux, on obtient moins trois. Ça colle.",
+     "cues": [
+      {
+       "id": "c_x2",
+       "text": "x égale deux"
+      },
+      {
+       "id": "c_moins3",
+       "text": "moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_v1",
+       "verb": "write",
+       "at": "cue:c_x2",
+       "target": "v1"
+      },
+      {
+       "id": "h_v1",
+       "verb": "highlight",
+       "at": "cue:c_moins3",
+       "target": "v1",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "verif2",
+     "say": "Et en x égale quatre : deux, fois deux au carré, moins trois, égale cinq. Le point y est.",
+     "cues": [
+      {
+       "id": "c_x4",
+       "text": "x égale quatre"
+      },
+      {
+       "id": "c_cinqv",
+       "text": "égale cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_v2",
+       "verb": "write",
+       "at": "cue:c_x4",
+       "target": "v2"
+      },
+      {
+       "id": "h_v2",
+       "verb": "highlight",
+       "at": "cue:c_cinqv",
+       "target": "v2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "recap",
+     "say": "À retenir : le sommet donne h et k dans la forme canonique ; le point te sert à trouver a en remplaçant x et f de x.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_trouve",
+       "text": "trouver a"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_v1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "v1"
+      },
+      {
+       "id": "f_v2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "v2"
+      },
+      {
+       "id": "f_e4",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "etape4"
+      },
+      {
+       "id": "f_e5",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "etape5"
+      },
+      {
+       "id": "f_e1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "etape1"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "note",
+        "reglefin"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_canon",
+       "verb": "highlight",
+       "start": "cue:c_trouve",
+       "end": "cue_end:c_trouve",
+       "target": "regle",
+       "role": "result",
+       "part": "canon"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "synthese",
+     "layout": {
+      "next_to": "reglefin",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Sommet (h ; k) → forme canonique → un point donne a",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Voici l'idée centrale : le sommet s'écrit directement dans la forme canonique, puis un seul point suffit pour trouver a et compléter la règle.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "l'idée centrale"
+      },
+      {
+       "id": "c_regle",
+       "text": "compléter la règle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_synth",
+       "verb": "show",
+       "at": "cue:c_idee",
+       "target": "synthese"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "at": "cue:c_regle",
+       "target": "reglefin",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

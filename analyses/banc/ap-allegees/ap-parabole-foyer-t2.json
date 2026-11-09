@@ -1,0 +1,698 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "parabole_c_foyer_directrice",
+  "title": "Trouver c à partir du foyer et de la directrice",
+  "language": "fr",
+  "learning_goal": "Comprendre pourquoi c est la demi-distance entre le foyer et la directrice, et l'appliquer à un exemple."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "p": {
+     "kind": "constant",
+     "value": -1
+    },
+    "c": {
+     "kind": "constant",
+     "value": 3
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "yf",
+     "style": {
+      "role": "given"
+     },
+     "content": "y du foyer : 5",
+     "type": "text"
+    },
+    {
+     "id": "yd",
+     "style": {
+      "role": "given"
+     },
+     "content": "y de la directrice : −1",
+     "type": "text"
+    },
+    {
+     "id": "mauvais",
+     "content": "5 - (-1) = 6",
+     "parts": [
+      {
+       "id": "calc",
+       "text": "5 - (-1)"
+      },
+      {
+       "id": "res",
+       "text": "= 6"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "content": "y_S = \\frac{5 + (-1)}{2} = 2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Tu as le foyer et la directrice. Ici, disons foyer en y égale cinq, directrice y égale moins un.",
+     "cues": [
+      {
+       "id": "c_foyer",
+       "text": "foyer en y égale cinq"
+      },
+      {
+       "id": "c_dir",
+       "text": "directrice y égale moins un"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_yf",
+       "verb": "show",
+       "at": "cue:c_foyer",
+       "target": "yf"
+      },
+      {
+       "id": "s_yd",
+       "verb": "show",
+       "at": "cue:c_dir",
+       "target": "yd"
+      }
+     ]
+    },
+    {
+     "id": "erreur",
+     "say": "Tu as soustrait cinq moins moins un, et tu obtiens six. Mais six, c'est la distance entre les deux, pas le c.",
+     "cues": [
+      {
+       "id": "c_soustrait",
+       "text": "soustrait cinq moins moins un"
+      },
+      {
+       "id": "c_obtiens",
+       "text": "tu obtiens six"
+      },
+      {
+       "id": "c_pas",
+       "text": "pas le c"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_mauvais",
+       "verb": "write",
+       "at": "cue:c_soustrait",
+       "target": "mauvais",
+       "part": "calc"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_obtiens",
+       "target": "mauvais",
+       "part": "res"
+      },
+      {
+       "id": "h_mauvais",
+       "verb": "highlight",
+       "at": "cue:c_pas",
+       "target": "mauvais",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sommet",
+   "introduces": [
+    {
+     "id": "nl",
+     "params": {
+      "domain": [
+       -3,
+       7
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "pF",
+     "params": {
+      "at": [
+       0,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lblF",
+     "attachment": {
+      "parent": "pF",
+      "anchor": "top"
+     },
+     "content": "foyer (y = 5)",
+     "type": "label"
+    },
+    {
+     "id": "pD",
+     "params": {
+      "at": [
+       0,
+       -1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lblD",
+     "attachment": {
+      "parent": "pD",
+      "anchor": "bottom"
+     },
+     "content": "directrice (y = −1)",
+     "type": "label"
+    },
+    {
+     "id": "pS",
+     "params": {
+      "at": [
+       0,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lblS",
+     "attachment": {
+      "parent": "pS",
+      "anchor": "right"
+     },
+     "content": "sommet (y = 2)",
+     "type": "label"
+    },
+    {
+     "id": "cVrai",
+     "content": "c = 3",
+     "parts": [
+      {
+       "id": "cgauche",
+       "text": "c"
+      },
+      {
+       "id": "cdroite",
+       "text": "= 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "milieu",
+     "say": "Le c, c'est la demi-distance. Le sommet est exactement au milieu entre le foyer et la directrice.",
+     "cues": [
+      {
+       "id": "c_demidist",
+       "text": "demi-distance"
+      },
+      {
+       "id": "c_milieu",
+       "text": "au milieu"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_nl",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "nl"
+      },
+      {
+       "id": "s_pF",
+       "verb": "show",
+       "at": "cue:c_demidist",
+       "target": "pF"
+      },
+      {
+       "id": "s_lblF",
+       "verb": "show",
+       "at": "after:s_pF",
+       "target": "lblF"
+      },
+      {
+       "id": "s_pD",
+       "verb": "show",
+       "at": "cue:c_milieu",
+       "target": "pD"
+      },
+      {
+       "id": "s_lblD",
+       "verb": "show",
+       "at": "after:s_pD",
+       "target": "lblD"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "On fait la moyenne des deux y : cinq plus moins un, divisé par deux, ça donne deux.",
+     "cues": [
+      {
+       "id": "c_moyenne",
+       "text": "moyenne des deux y"
+      },
+      {
+       "id": "c_deux",
+       "text": "ça donne deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pS",
+       "verb": "show",
+       "at": "cue:c_moyenne",
+       "target": "pS"
+      },
+      {
+       "id": "s_lblS",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "lblS"
+      },
+      {
+       "id": "c_cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_moyenne",
+       "targets": [
+        "nl",
+        "pF",
+        "pS",
+        "pD"
+       ]
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "valeur",
+     "say": "Le sommet est à y égale deux. Du sommet au foyer, il y a trois. Donc c égale trois.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "il y a trois"
+      },
+      {
+       "id": "c_cegale",
+       "text": "c égale trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "cVrai",
+       "part": "cgauche"
+      },
+      {
+       "id": "w_c3",
+       "verb": "write",
+       "at": "cue:c_cegale",
+       "target": "cVrai",
+       "part": "cdroite"
+      },
+      {
+       "id": "h_c",
+       "verb": "highlight",
+       "at": "after:w_c3",
+       "target": "cVrai",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "c = \\frac{|y_F - y_D|}{2}",
+     "parts": [
+      {
+       "id": "fg",
+       "text": "c"
+      },
+      {
+       "id": "fd",
+       "text": "= \\frac{|y_F - y_D|}{2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "content": "c est la distance du sommet au foyer, pas la distance totale.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "La formule à retenir : c égale la valeur absolue de y du foyer moins y de la directrice, le tout divisé par deux.",
+     "cues": [
+      {
+       "id": "c_formule",
+       "text": "valeur absolue de y du foyer moins y de la directrice"
+      },
+      {
+       "id": "c_div",
+       "text": "divisé par deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_fg",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "formule",
+       "part": "fg"
+      },
+      {
+       "id": "w_fd",
+       "verb": "write",
+       "at": "cue:c_div",
+       "target": "formule",
+       "part": "fd"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "memoire",
+     "say": "Souviens-toi : ton six était la distance totale entre foyer et directrice. Le c est la moitié de ça.",
+     "cues": [
+      {
+       "id": "c_distance",
+       "text": "distance totale"
+      },
+      {
+       "id": "c_moitie",
+       "text": "la moitié de ça"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_distance",
+       "target": "note"
+      },
+      {
+       "id": "f_mauvais",
+       "verb": "fade_out",
+       "at": "cue:c_moitie",
+       "target": "mauvais"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "start": "cue:c_moitie",
+       "end": "cue_end:c_moitie",
+       "target": "formule",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : c se trouve en prenant la moitié de la distance entre le foyer et la directrice.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_moitie2",
+       "text": "la moitié de la distance"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_yf",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "yf"
+      },
+      {
+       "id": "f_yd",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "yd"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "formule",
+        "cVrai"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_f",
+       "verb": "highlight",
+       "at": "cue:c_moitie2",
+       "target": "formule",
+       "role": "result"
+      },
+      {
+       "id": "h_cv",
+       "verb": "highlight",
+       "at": "cue:c_moitie2",
+       "target": "cVrai",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

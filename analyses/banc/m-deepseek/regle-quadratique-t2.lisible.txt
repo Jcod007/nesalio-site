@@ -1,0 +1,95 @@
+QUESTION (regle-quadratique, mathematiques, sec 4, methode) : comment je trouve la règle d'une parabole si le sommet c'est (2, -3) pis qu'elle passe par le point (4, 5)?
+RÉPONSE DE RÉFÉRENCE : y = 2(x − 2)² − 3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. forme canonique y = a(x − h)² + k avec le sommet (h, k) = (2, −3)
+  2. remplacer le point (4, 5) : 5 = a(4 − 2)² − 3
+  3. 4a = 8 donc a = 2
+  4. règle y = 2(x − 2)² − 3 écrite
+  5. vérification avec le point (4, 5), parabole tracée passant par le sommet et le point
+ERREURS GRAVES À CHERCHER : signe de h inversé (x + 2) ; parabole tracée qui ne passe pas par (4, 5)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver la règle d'une parabole avec le sommet et un point
+=== Tranche s_depart
+  OBJET axes [axes] {"x":[-2,8],"y":[-6,8]} 
+  OBJET sommet [point] {"at":[2,-3]} 
+  OBJET et_sommet [label] "S(2 ; -3)" attaché à sommet
+  OBJET pt [point] {"at":[4,5]} 
+  OBJET et_pt [label] "(4 ; 5)" attaché à pt
+  OBJET courbe [function_graph] {"expression":"2*(x-2)^2-3","domain":[-0.5,5]} 
+  OBJET canonique [math] "f(x) = a(x - h)^2 + k" parts=f(x) = | a | (x - h)^2 | + k
+  OBJET role [text] "(h ; k) : le sommet   |   a : l'ouverture" 
+DIT (salut) : Allons-y : on a le sommet, un point, et on veut la règle.
+    camera.focus  @beat:start {"targets":["axes","canonique","role"],"bounds":"layout_bounds"}
+    show axes @beat:start 
+DIT (place) : Place d'abord les deux données : le sommet à deux, moins trois, et le point à quatre, cinq.
+    show sommet @cue:c_deux 
+    show et_sommet @cue:c_deux 
+    show pt @cue:c_quatre 
+    show et_pt @cue:c_quatre 
+DIT (forme) : La forme canonique est toute désignée : f de x égale a, fois x moins h au carré, plus k.
+    write canonique @cue:c_fx {"part":"fx"}
+    write canonique @cue:c_a {"part":"a"}
+    write canonique @cue:c_xh {"part":"xh"}
+    write canonique @cue:c_k {"part":"k"}
+DIT (roles) : Dans cette forme, h et k sont les coordonnées du sommet, et a contrôle l'ouverture.
+    show role @cue:c_coord 
+=== Tranche s_remplace
+  OBJET etape [math] "f(x) = a(x - 2)^2 - 3" parts=f(x) = | a(x - 2)^2 | - 3
+  OBJET subst [math] "5 = a(4 - 2)^2 - 3" parts=5 | = a(4 - 2)^2 - 3
+  OBJET calc [math] "5 = 4a - 3" parts=5 | = 4a - 3
+DIT (ecris) : Le sommet vaut deux, moins trois : je remplace h par deux et k par moins trois dans la forme canonique.
+    dim courbe @beat:start 
+    dim role @beat:start 
+    fade_out canonique @beat:start 
+    write etape @cue:c_sommet {"part":"fx"}
+    write etape @cue:c_sommet {"part":"bloc"}
+    write etape @cue:c_k {"part":"k"}
+DIT (point) : Il ne reste que a à trouver. Le point quatre, cinq est sur la courbe : ses coordonnées satisfont la règle.
+    write subst @cue:c_point {"part":"gauche"}
+    write subst @cue:c_satisfont {"part":"droite"}
+    highlight etape @- {"start":"cue:c_satisfont","end":"cue_end:c_satisfont","role":"accent"}
+=== Tranche s_isole
+  OBJET ligne2 [math] "8 = 4a" parts=8 | = 4a
+  OBJET ligne3 [math] "a = 2" 
+DIT (simplifie) : Je calcule quatre moins deux, ça fait deux ; deux au carré, quatre. Donc cinq égale quatre a moins trois.
+    transform calc @cue:c_cinq {"source":"subst"}
+DIT (isole) : J'ajoute trois des deux côtés : huit égale quatre a. Puis je divise par quatre : a égale deux.
+    write ligne2 @cue:c_huit {"part":"gauche"}
+    write ligne2 @cue:c_huit {"part":"droite"}
+    transform ligne3 @cue:c_deux {"source":"ligne2"}
+    highlight ligne3 @after:t_l3 {"role":"result"}
+=== Tranche s_regle
+  OBJET finale [math] "f(x) = 2(x - 2)^2 - 3" parts=f(x) = | 2(x - 2)^2 | - 3
+  OBJET verif [math] "f(4) = 2(4 - 2)^2 - 3 = 5" parts=f(4) | = 2(4 - 2)^2 - 3 | = 5
+DIT (regle) : Je remets a égale deux dans la forme canonique : la règle est f de x égale deux, fois x moins deux au carré, moins trois.
+    fade_out etape @beat:start 
+    fade_out ligne3 @beat:start 
+    write finale @cue:c_regle {"part":"fx"}
+    write finale @cue:c_regle {"part":"bloc"}
+    write finale @cue:c_moins {"part":"k"}
+    highlight finale @after:w_k {"role":"result"}
+DIT (verifie) : Vérifions avec le point : f de quatre égale deux fois deux au carré moins trois, ça fait cinq. C'est cohérent.
+    show courbe @cue:c_f4 
+    write verif @cue:c_f4 {"part":"gauche"}
+    write verif @cue:c_f4 {"part":"milieu"}
+    write verif @cue:c_cinq {"part":"droite"}
+=== Tranche s_generale
+  OBJET developpe [math] "f(x) = 2(x^2 - 4x + 4) - 3" 
+  OBJET general2 [math] "f(x) = 2x^2 - 8x + 8 - 3" 
+  OBJET general3 [math] "f(x) = 2x^2 - 8x + 5" 
+DIT (forme_generale) : On peut aussi l'écrire en forme générale : je développe le carré, puis je distribue le deux.
+    fade_out verif @beat:start 
+    write developpe @cue:c_developpe 
+DIT (termine) : Il reste à réduire : deux x au carré, moins huit x, plus huit, moins trois donne deux x au carré moins huit x plus cinq.
+    write general2 @cue:c_huit 
+    write general3 @cue:c_finale 
+    highlight general3 @- {"start":"cue:c_finale","end":"cue_end:c_finale","role":"result"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : le sommet donne h et k dans la forme canonique ; un seul autre point suffit pour trouver a.
+    camera.focus  @cue:c_retenir {"targets":["axes","finale","general3"],"bounds":"layout_bounds"}
+    fade_out developpe @beat:start 
+    fade_out general2 @beat:start 
+    highlight finale @- {"start":"cue:c_sommet","end":"cue_end:c_sommet","role":"accent","part":"bloc"}
+    highlight general3 @- {"start":"cue:c_a","end":"cue_end:c_a","role":"result"}
+--- 6 tranches, 259 mots dits (≈ 1.7 min d'oral)

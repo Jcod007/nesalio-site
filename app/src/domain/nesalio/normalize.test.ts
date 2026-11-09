@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeMathContext, normalizeSlice } from "./normalize";
+import { escapeLatex, normalizeMathContext, normalizeSlice } from "./normalize";
 import { validateMathContext, validateModelOutput } from "./validate";
 
 const valid = (slice: unknown) => {
@@ -225,5 +225,268 @@ describe("normalisation des tranches avant validation", () => {
   it("laisse intacte une tranche déjà valide", () => {
     const raw = slice({});
     expect(normalizeSlice(raw)).toEqual({ slice: raw, fixes: [] });
+  });
+
+  it("rend sa barre oblique à une commande LaTeX lue comme un caractère de contrôle dans une formule", () => {
+    // `\frac` written with one backslash in the JSON is valid: a form feed followed by « rac », which trimming then drops.
+    const raw = slice({ introduces: [{ id: "eq", type: "math", content: JSON.parse(String.raw`"x = \frac{1}{2} \times 4"`),
+      parts: [{ id: "a", text: JSON.parse(String.raw`"x = \frac{1}{2}"`) }, { id: "b", text: JSON.parse(String.raw`"\times 4"`) }] }] });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    const item = (fixed as { introduces: { content: string; parts: { text: string }[] }[] }).introduces[0]!;
+    expect(item.content).toBe(String.raw`x = \frac{1}{2} \times 4`);
+    expect(item.parts.map((part) => part.text)).toEqual([String.raw`x = \frac{1}{2}`, String.raw`\times 4`]);
+    expect(fixes).toContainEqual(expect.stringContaining("barre oblique"));
+    // A line break is restored only before a command it can stand for: a system written on two lines stays as it is.
+    const lines = (content: string) => (normalizeSlice(slice({ introduces: [{ id: "eq", type: "math", content }] })).slice as { introduces: { content: string }[] }).introduces[0]!.content;
+    expect(lines("2x+y=5\nx-y=1")).toBe("2x+y=5\nx-y=1");
+    expect(lines("a \neq b \nabla f")).toBe(String.raw`a \neq b \nabla f`);
+    // Only formulas: a line break in a sentence stays a line break.
+    const text = slice({ introduces: [{ id: "t", type: "text", content: "Ligne un\nligne deux" }], do: [] });
+    expect(normalizeSlice(text).fixes).toEqual([]);
+  });
+});
+
+/** The validation state after a first tranche, for the repairs that need the tranches before. */
+function stateAfter(first: unknown, mathContext?: unknown) {
+  const result = validateModelOutput({ ...(mathContext ? { math_context: mathContext } : {}), slices: [first] });
+  if (!result.ok) throw new Error(`tranche de départ invalide : ${JSON.stringify(result.issues)}`);
+  return result.state;
+}
+const validAfter = (state: ReturnType<typeof stateAfter>, next: unknown) => {
+  const result = validateModelOutput({ slices: [next] }, state);
+  return result.ok ? [] : result.issues.map(({ path, message }) => `${path.join(".")} : ${message}`);
+};
+
+describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
+  it("lit une clé after comme at: after:<id>", () => {
+    // calorimetrie#1 : « do.1 : Unrecognized key: "after" ».
+    const raw = slice({ do: [
+      { id: "w", verb: "write", target: "eq", at: "cue:c_isoler" },
+      { id: "h", verb: "highlight", target: "eq", role: "accent", after: "w" },
+      { id: "h2", verb: "highlight", target: "eq", role: "result", after: "after:h" },
+    ] });
+    expect(valid(raw)).toContainEqual(expect.stringContaining('Unrecognized key: "after"'));
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.do.slice(1)).toEqual([
+      { id: "h", verb: "highlight", target: "eq", role: "accent", at: "after:w" },
+      { id: "h2", verb: "highlight", target: "eq", role: "result", at: "after:h" },
+    ]);
+    expect(fixes).toHaveLength(2);
+  });
+
+  it("lit target_id comme target", () => {
+    // zeros#2 : « beats.0.do.2 : Unrecognized key: "target_id" ».
+    const raw = slice({ do: [{ id: "w", verb: "write", target_id: "eq", at: "cue:c_isoler" }] });
+    expect(valid(raw)).toContainEqual(expect.stringContaining('Unrecognized key: "target_id"'));
+    const { slice: fixed } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.do[0]).toEqual({ id: "w", verb: "write", target: "eq", at: "cue:c_isoler" });
+  });
+
+  it("écrit at un intervalle dont une borne attend une action", () => {
+    // exponentielle#1 : « beats.2.do.3.start : Invalid string: must match pattern ».
+    const raw = slice({ do: [
+      { id: "w", verb: "write", target: "eq", at: "cue:c_isoler" },
+      { id: "h", verb: "highlight", target: "eq", role: "accent", start: "after:w", end: "cue_end:c_douze" },
+      { id: "h2", verb: "highlight", target: "eq", role: "result", end: "after:h" },
+    ] });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("start : Invalid string"));
+    const { slice: fixed } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.do.slice(1)).toMatchObject([{ at: "after:w" }, { at: "after:h" }]);
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.do[1]).not.toHaveProperty("end");
+    // A start on a cue with an end waiting for an action: which moment was meant is not certain, the refusal stays.
+    const doubt = slice({ do: [
+      { id: "w", verb: "write", target: "eq", at: "cue:c_isoler" },
+      { id: "h", verb: "highlight", target: "eq", start: "cue:c_isoler", end: "after:w" },
+    ] });
+    expect(valid(normalizeSlice(doubt).slice)).toContainEqual(expect.stringContaining("end : Invalid string"));
+  });
+
+  const table = (params: Record<string, unknown>, extra: unknown[] = []) => slice({
+    introduces: [{ id: "tab", type: "matrix", params }],
+    do: [{ id: "w", verb: "write", target: "tab", at: "cue:c_isoler" }, ...extra],
+  });
+
+  it("retire d'un tableau un champ à null et des en-têtes de colonnes tous vides", () => {
+    // inequation#1 : « params.row_labels : Invalid input: expected array, received null » ;
+    // interets#1 : « column_labels.0..3 : Too small: expected string to have >=1 characters ».
+    const rows = [[1, 2], [3, 4]];
+    const raw = table({ rows, row_labels: null, column_labels: ["", " "] });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("row_labels : Invalid input"));
+    expect(valid(raw)).toContainEqual(expect.stringContaining("column_labels.0 : Too small"));
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { introduces: { params: unknown }[] }).introduces[0]!.params).toEqual({ rows });
+    expect(fixes).toHaveLength(2);
+  });
+
+  it("retire l'en-tête vide du coin quand il y a un en-tête de plus pour les intitulés de lignes", () => {
+    const rows = [[1, 2], [3, 4]];
+    const raw = table({ rows, row_labels: ["P (kPa)", "V (L)"], column_labels: ["", "état 1", "état 2"] });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("column_labels.0 : Too small"));
+    const { slice: fixed } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { introduces: { params: { column_labels: string[] } }[] }).introduces[0]!.params.column_labels).toEqual(["état 1", "état 2"]);
+    // An empty header elsewhere, or with no row titles: which header is missing is not known, the refusal stays.
+    const middle = table({ rows, row_labels: ["P", "V"], column_labels: ["grandeur", "", "état 2"] });
+    expect(valid(normalizeSlice(middle).slice)).not.toEqual([]);
+    const noTitles = table({ rows, column_labels: ["", "état 1", "état 2"] });
+    expect(valid(normalizeSlice(noTitles).slice)).not.toEqual([]);
+  });
+
+  it("écrit un tableau en entier quand write vise une de ses parts", () => {
+    // stoechio#2 : « « tab » est un tableau : write l'écrit en entier, sans part ».
+    const raw = slice({
+      introduces: [{ id: "tab", type: "matrix", params: { rows: [[1, 2]] } }],
+      do: [{ id: "w", verb: "write", target: "tab", part: "r1", at: "cue:c_isoler" }],
+    });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("est un tableau : write"));
+    const { slice: fixed } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.do[0]).not.toHaveProperty("part");
+    // Declared in an earlier tranche: the state knows it is a table.
+    const state = stateAfter({ ...slice({ introduces: [{ id: "tab", type: "matrix", params: { rows: [[1, 2]] } }], do: [{ id: "s", verb: "show", target: "tab", at: "cue:c_isoler" }] }) });
+    const later = { ...slice({ introduces: [], do: [{ id: "w", verb: "write", target: "tab", part: "c1", at: "cue:c_isoler" }] }), slice_id: "s2" };
+    expect(validAfter(state, normalizeSlice(later, state).slice)).toEqual([]);
+  });
+
+  it("écrit d'un coup une valeur calculée découpée en parties", () => {
+    // interets#1 : « introduces.1.parts : Les parties exigent une formule fixe, pas une valeur calculée. »
+    const math = { symbols: { c: { kind: "constant", value: 1000 } }, expressions: { capital: "c*1.05" } };
+    const raw = slice({
+      introduces: [{ id: "res", type: "math", content: { kind: "computed", expression_ref: "capital", template: "C = {value}", precision: 2 },
+        parts: [{ id: "a", text: "C =" }, { id: "b", text: "{value}" }] }],
+      do: [
+        { id: "w1", verb: "write", target: "res", part: "a", at: "cue:c_isoler" },
+        { id: "w2", verb: "write", target: "res", part: "b", at: "cue:c_douze" },
+      ],
+    });
+    const check = (value: unknown) => {
+      const result = validateModelOutput({ math_context: math, slices: [value] });
+      return result.ok ? [] : result.issues.map(({ message }) => message);
+    };
+    expect(check(raw)).toContainEqual(expect.stringContaining("pas une valeur calculée"));
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(check(fixed)).toEqual([]);
+    expect((fixed as { introduces: unknown[] }).introduces[0]).not.toHaveProperty("parts");
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.do).toEqual([
+      { id: "w1", verb: "write", target: "res", at: "cue:c_isoler" },
+      { id: "w2", verb: "highlight", target: "res", role: "accent", at: "cue:c_douze" },
+    ]);
+    expect(fixes.join()).toContain("valeur calculée");
+  });
+
+  it("renomme un objet redéclaré d'une tranche précédente, avec ses références, sauf celles qui visent l'ancien", () => {
+    // exponentielle#1 : « introduces.1.id : Identifiant déjà utilisé « eq2 » » (eq2 vient de s_division).
+    const state = stateAfter({
+      slice_id: "s_division", introduces: [{ id: "eq2", type: "math", content: "2^5 = 32" }, { id: "eq2_2", type: "math", content: "2^4 = 16" }],
+      beats: [{ id: "b1", say: "On divise.", cues: [], do: [{ id: "w", verb: "write", target: "eq2", at: "beat:start" }] }],
+    });
+    const raw = {
+      slice_id: "s_puissance",
+      introduces: [
+        { id: "eq2", type: "math", content: "2^x = 16" },
+        { id: "note", type: "text", content: "puissance", layout: { next_to: "eq2", direction: "down" } },
+      ],
+      groups: [{ id: "g", items: ["eq2", "note"] }],
+      beats: [{ id: "b1", say: "On cherche la puissance.", cues: [], do: [
+        { id: "d", verb: "dim", target: "eq2", at: "beat:start" },
+        { id: "w", verb: "write", target: "eq2", at: "after:d" },
+        { id: "s", verb: "show", target: "note", at: "after:w" },
+        { id: "h", verb: "highlight", target: "eq2", role: "accent", at: "after:s" },
+        { id: "f", verb: "fade_out", target: "eq2", at: "after:h" },
+        { id: "c", verb: "camera.focus", targets: ["eq2", "note"], at: "after:f" },
+      ] }],
+    };
+    expect(validAfter(state, raw)).toContainEqual(expect.stringContaining("Identifiant déjà utilisé « eq2 »"));
+    const { slice: fixed, fixes } = normalizeSlice(raw, state);
+    expect(validAfter(state, fixed)).toEqual([]);
+    const typed = fixed as typeof raw;
+    // eq2_2 is taken too: the next free name.
+    expect(typed.introduces.map(({ id }) => id)).toEqual(["eq2_3", "note"]);
+    expect(typed.introduces[1]!.layout).toEqual({ next_to: "eq2_3", direction: "down" });
+    expect(typed.groups[0]!.items).toEqual(["eq2_3", "note"]);
+    expect(typed.beats[0]!.do.map((action) => ("target" in action ? action.target : action.targets))).toEqual(
+      ["eq2", "eq2_3", "note", "eq2_3", "eq2_3", ["eq2_3", "note"]]);
+    expect(fixes).toContainEqual(expect.stringContaining("« eq2 » déjà déclaré"));
+    // The source of a transform is always the old formula.
+    const morph = { slice_id: "s3", introduces: [{ id: "eq2", type: "math", content: "x = 4" }],
+      beats: [{ id: "b1", say: "Donc.", cues: [], do: [{ id: "t", verb: "transform", source: "eq2", target: "eq2", at: "beat:start" }] }] };
+    const morphed = normalizeSlice(morph, state).slice as typeof morph;
+    expect(morphed.beats[0]!.do[0]).toMatchObject({ source: "eq2", target: "eq2_3" });
+    expect(validAfter(state, morphed)).toEqual([]);
+    // Relecteur: written after the write in the array, a fade_out at beat:start still comes first in time: the old one.
+    const late = { slice_id: "s4", introduces: [{ id: "eq2", type: "math", content: "x = 4" }],
+      beats: [{ id: "b1", say: "On cherche la puissance.", cues: [{ id: "c", text: "puissance" }], do: [
+        { id: "w", verb: "write", target: "eq2", at: "cue:c" },
+        { id: "f", verb: "fade_out", target: "eq2", at: "beat:start" },
+      ] }] };
+    const timed = normalizeSlice(late, state).slice as typeof late;
+    expect(timed.beats[0]!.do.map(({ target }) => target)).toEqual(["eq2_3", "eq2"]);
+    expect(validAfter(state, timed)).toEqual([]);
+  });
+
+  it("retire un retour à un cadrage jamais sauvegardé", () => {
+    // zeros#2 : « do.2.frame : Cadrage non sauvegardé « vue_sommet » ».
+    const raw = slice({ do: [
+      { id: "w", verb: "write", target: "eq", at: "cue:c_isoler" },
+      { id: "r", verb: "camera.restore", frame: "vue_sommet", at: "cue:c_douze" },
+    ] });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("Cadrage non sauvegardé « vue_sommet »"));
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as ReturnType<typeof slice>).beats[0]!.do).toEqual([{ id: "w", verb: "write", target: "eq", at: "cue:c_isoler" }]);
+    expect(fixes).toContainEqual(expect.stringContaining("vue_sommet"));
+    // Saved in this tranche or before: kept.
+    const kept = slice({ do: [
+      { id: "c", verb: "camera.focus", targets: ["eq"], save_as: "vue", at: "cue:c_isoler" },
+      { id: "r", verb: "camera.restore", frame: "vue", at: "cue:c_douze" },
+    ] });
+    expect(normalizeSlice(kept).fixes).toEqual([]);
+    // Another gesture waits for it: removing it would break that one, the refusal stays.
+    const awaited = slice({ do: [
+      { id: "r", verb: "camera.restore", frame: "vue_sommet", at: "cue:c_isoler" },
+      { id: "w", verb: "write", target: "eq", at: "after:r" },
+    ] });
+    expect(valid(normalizeSlice(awaited).slice)).toContainEqual(expect.stringContaining("Cadrage non sauvegardé"));
+  });
+
+  it("place par rapport à la formule qui a remplacé, par transform, celle visée", () => {
+    // « « cas1 » a été remplacée par transform : place-toi par rapport à « cas1c » ».
+    const state = stateAfter({
+      slice_id: "s1", introduces: [{ id: "cas1", type: "math", content: "x + 1 = 3" }, { id: "cas1c", type: "math", content: "x = 2" }],
+      beats: [{ id: "b1", say: "On simplifie.", cues: [], do: [
+        { id: "w", verb: "write", target: "cas1", at: "beat:start" },
+        { id: "t", verb: "transform", source: "cas1", target: "cas1c", at: "after:w" },
+      ] }],
+    });
+    const raw = { slice_id: "s2", introduces: [{ id: "n", type: "text", content: "solution", layout: { next_to: "cas1", direction: "right" } }],
+      beats: [{ id: "b1", say: "Voilà.", cues: [], do: [{ id: "s", verb: "show", target: "n", at: "beat:start" }] }] };
+    expect(validAfter(state, raw)).toContainEqual(expect.stringContaining("place-toi par rapport à « cas1c »"));
+    const { slice: fixed } = normalizeSlice(raw, state);
+    expect(validAfter(state, fixed)).toEqual([]);
+    expect((fixed as typeof raw).introduces[0]!.layout).toEqual({ next_to: "cas1c", direction: "right" });
+  });
+
+  it("laisse intacte une tranche valide qui reprend des objets des tranches précédentes", () => {
+    const state = stateAfter(slice({ introduces: [{ id: "eq", type: "math", content: "3x = 12" }, { id: "tab", type: "matrix", params: { rows: [[1]] } }] }));
+    const later = { ...slice({ introduces: [], do: [{ id: "h", verb: "highlight", target: "tab", part: "r1c1", at: "cue:c_isoler" }, { id: "d", verb: "dim", target: "eq", at: "after:h" }] }), slice_id: "s2" };
+    expect(validAfter(state, later)).toEqual([]);
+    expect(normalizeSlice(later, state)).toEqual({ slice: later, fixes: [] });
+  });
+});
+
+describe("barres obliques LaTeX non doublées dans une ligne JSON", () => {
+  it("double une barre oblique qui ne forme pas un échappement JSON, et rien d'autre", () => {
+    // `\sqrt`, `\cdot`, `\pi`, `\,` written with one backslash make the whole line unreadable.
+    const line = String.raw`{"content":"x = \pm\sqrt{3} \cdot 2\,\pi \{a\}","ok":"\\frac{1}{2} \"q\" é \n"}`;
+    expect(() => JSON.parse(line)).toThrow();
+    expect(JSON.parse(escapeLatex(line))).toEqual({ content: String.raw`x = \pm\sqrt{3} \cdot 2\,\pi \{a\}`, ok: "\\frac{1}{2} \"q\" é \n" });
+    // A valid line is never changed.
+    const valid = String.raw`{"a":"\\sqrt{2} \t A"}`;
+    expect(escapeLatex(valid)).toBe(valid);
+    expect(escapeLatex(String.raw`{"a":"\underline{x}"}`)).toBe(String.raw`{"a":"\\underline{x}"}`);
   });
 });

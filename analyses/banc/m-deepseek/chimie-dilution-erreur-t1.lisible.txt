@@ -1,0 +1,80 @@
+QUESTION (chimie-dilution-erreur, chimie, sec 4, erreur) : j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?
+RÉPONSE DE RÉFÉRENCE : C₂ = C₁V₁/V₂ = 2 × 50 / 200 = 0,50 mol/L ; 8 mol/L vient du rapport inversé.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. en diluant, la quantité de soluté ne change pas : n = C₁V₁ = C₂V₂
+  2. diagnostic : 8 mol/L = 2 × 200 / 50, rapport des volumes inversé
+  3. C₂ = 2 × 50 / 200 = 0,50 mol/L écrit
+  4. contrôle de vraisemblance : ajouter de l'eau diminue la concentration (volume × 4, concentration ÷ 4)
+  5. unités cohérentes (les mL s'annulent)
+ERREURS GRAVES À CHERCHER : concentration qui augmente à la dilution ; diagnostic inventé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Diluer une solution : trouver la nouvelle concentration
+math_context : {"symbols":{"C1":{"kind":"constant","value":2},"V1":{"kind":"constant","value":0.05},"V2":{"kind":"constant","value":0.2}},"expressions":{"n1":"C1*V1","C2":"C1*V1/V2","facteur":"V2/V1"}}
+=== Tranche s_verif
+  OBJET donnees [math] "C_1 = 2 \\text{ mol/L} \\quad V_1 = 50 \\text{ mL} \\quad V_2 = 200 \\text{ mL}" 
+  OBJET erreur [math] "C_2 = 8 \\text{ mol/L}" 
+  OBJET note_erreur [text] "ta réponse : la concentration monterait" attaché à erreur
+DIT (depart) : Tu as cinquante millilitres d'une solution à deux moles par litre, et tu ajoutes de l'eau jusqu'à deux cents millilitres.
+    show donnees @beat:start 
+DIT (ton_idee) : Toi, tu trouves huit moles par litre. Vérifions ça, parce que c'est un beau piège de sens.
+    write erreur @cue:c_huit 
+    show note_erreur @after:w_err 
+=== Tranche s_sens
+  OBJET avant [polygon] {"vertices":[[0,0],[2,0],[2,2],[0,2]]} 
+  OBJET apres [polygon] {"vertices":[[3,0],[7,0],[7,2],[3,2]]} 
+  OBJET p1 [point] {"at":[0.5,1.5]} 
+  OBJET p2 [point] {"at":[1.2,0.6]} 
+  OBJET p3 [point] {"at":[1.6,1.3]} 
+  OBJET texte [text] "même soluté, plus d'eau : concentration plus faible" 
+DIT (avant_mot) : Voici ta solution de départ : les petits points, c'est le soluté, et le rectangle, c'est le volume d'eau.
+    draw avant @cue:c_volume 
+    show p1 @cue:c_solute 
+    show p2 @after:s_p1 
+    show p3 @after:s_p2 
+DIT (apres_mot) : Quand tu ajoutes de l'eau, tu ne rajoutes aucun point : la même quantité de soluté occupe un volume quatre fois plus grand, donc les points sont plus espacés.
+    dim avant @cue:c_aucun 
+    draw apres @cue:c_quatre 
+    show texte @after:d_apres 
+=== Tranche s_calcul
+  OBJET eq [math] "C_1 V_1 = C_2 V_2" parts=C_1 V_1 | = C_2 V_2
+  OBJET remplace [math] "2 \\times 0{,}050 = C_2 \\times 0{,}200" 
+  OBJET resultat [math] "C_2 = 0{,}5 \\text{ mol/L}" 
+DIT (regle) : La bonne relation, c'est que la quantité de soluté ne change pas : C un V un égale C deux V deux.
+    write eq @cue:c_relation {"part":"gauche"}
+    write eq @cue:c_egale {"part":"droite"}
+DIT (unites) : Attention aux unités : cinquante millilitres, c'est zéro virgule zéro cinq zéro litre, et deux cents millilitres, c'est zéro virgule deux cents litre.
+    write remplace @cue:c_cinquante 
+    highlight remplace @- {"start":"cue:c_deuxcents","end":"cue_end:c_deuxcents","role":"accent"}
+DIT (calcul) : Deux fois zéro virgule zéro cinq zéro donne zéro virgule un. On divise zéro virgule un par zéro virgule deux cents, et on obtient zéro virgule cinq mole par litre.
+    write resultat @cue:c_cinq 
+    highlight resultat @after:w_res {"role":"result"}
+=== Tranche s_erreur
+  OBJET mauvais [math] "2 \\times \\frac{200}{50} = 8 \\text{ mol/L}" 
+  OBJET phrase [text] "diviser par 50 au lieu de multiplier" attaché à mauvais
+DIT (retour) : Alors pourquoi huit ? Si on multiplie deux par deux cents, puis qu'on divise par cinquante, on obtient huit.
+    dim avant @cue:c_multiplie 
+    dim apres @cue:c_multiplie 
+    fade_out texte @cue:c_multiplie 
+    show mauvais @cue:c_huit 
+    show phrase @after:s_mauvais 
+DIT (pourquoi) : Mais ajouter de l'eau, ça dilue : la concentration doit baisser. Un nombre plus grand que deux est impossible ici, parce que le volume a quadruplé.
+    highlight mauvais @- {"start":"cue:c_baisser","end":"cue_end:c_baisser","role":"unknown"}
+    highlight resultat @cue:c_quadruple {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle_finale [math] "C_1 V_1 = C_2 V_2" parts=C_1 V_1 | = C_2 V_2
+  OBJET idee [text] "diluer : même quantité de soluté, concentration divisée par le facteur de volume" 
+DIT (idee_centrale) : À retenir : diluer, c'est garder la même quantité de soluté dans plus de volume. La concentration est divisée par le facteur de volume, ici par quatre.
+    remove donnees @cue:c_meme 
+    remove erreur @cue:c_meme 
+    remove note_erreur @after:rm_erreur 
+    remove eq @after:rm_note 
+    remove remplace @after:rm_eq 
+    remove resultat @after:rm_remplace 
+    remove mauvais @after:rm_resultat 
+    remove phrase @after:rm_mauvais 
+    show idee @cue:c_quatre 
+DIT (finale) : Cette relation, C un V un égale C deux V deux, marche pour toutes les dilutions.
+    show regle_finale @cue:c_relation 
+    highlight regle_finale @after:s_regle {"role":"result"}
+--- 5 tranches, 248 mots dits (≈ 1.7 min d'oral)

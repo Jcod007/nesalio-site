@@ -1,0 +1,731 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ppm_vers_mol_l",
+  "title": "Passer d'une concentration en ppm à des mol/L",
+  "language": "fr",
+  "learning_goal": "Comprendre que 1 ppm = 1 mg/L dans l'eau, puis convertir les mg en moles avec la masse molaire pour obtenir des mol/L."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "m_glucose": "10/0.250",
+    "n_glucose": "(10/0.250)/(180.16)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_ppm",
+   "introduces": [
+    {
+     "id": "entete",
+     "content": "1\\ \\text{ppm} = 1\\ \\text{mg/L}",
+     "parts": [
+      {
+       "id": "un",
+       "text": "1\\ \\text{ppm}"
+      },
+      {
+       "id": "eg",
+       "text": "="
+      },
+      {
+       "id": "mgl",
+       "text": "1\\ \\text{mg/L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "donnee",
+     "layout": {
+      "next_to": "entete",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "10 ppm de glucose dans l'eau",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu veux transformer dix parties par million de glucose en moles par litre.",
+     "cues": [
+      {
+       "id": "c_dix",
+       "text": "dix parties par million"
+      },
+      {
+       "id": "c_moles",
+       "text": "en moles par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_entete",
+       "verb": "show",
+       "at": "cue:c_dix",
+       "target": "entete"
+      },
+      {
+       "id": "s_donnee",
+       "verb": "show",
+       "at": "cue:c_moles",
+       "target": "donnee"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "ppm",
+     "say": "Un ppm, c'est une part de soluté par million de parts de solution. Dans l'eau, ça revient à un milligramme par litre.",
+     "cues": [
+      {
+       "id": "c_part",
+       "text": "une part de soluté par million de parts"
+      },
+      {
+       "id": "c_revient",
+       "text": "un milligramme par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_un",
+       "verb": "highlight",
+       "start": "cue:c_part",
+       "end": "cue_end:c_part",
+       "target": "entete",
+       "part": "un"
+      },
+      {
+       "id": "h_mgl",
+       "verb": "highlight",
+       "start": "cue:c_revient",
+       "end": "cue_end:c_revient",
+       "target": "entete",
+       "role": "accent",
+       "part": "mgl"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_mgl",
+   "introduces": [
+    {
+     "id": "dix_mgl",
+     "content": "10\\ \\text{ppm} = 10\\ \\text{mg/L}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "10\\ \\text{ppm}"
+      },
+      {
+       "id": "droite",
+       "text": "= 10\\ \\text{mg/L}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "applique",
+     "say": "Appliquons-le à ta donnée : dix ppm, c'est dix milligrammes de glucose par litre.",
+     "cues": [
+      {
+       "id": "c_dixmgl",
+       "text": "dix milligrammes"
+      },
+      {
+       "id": "c_parlitre",
+       "text": "par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_donnee",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "donnee"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_dixmgl",
+       "target": "dix_mgl",
+       "part": "gauche"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_parlitre",
+       "target": "dix_mgl",
+       "part": "droite"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "attention",
+     "say": "Attention : dix mg par litre, ce n'est pas encore des moles par litre. Ça, c'est une masse ; il nous faut un nombre de moles.",
+     "cues": [
+      {
+       "id": "c_pasencore",
+       "text": "pas encore des moles par litre"
+      },
+      {
+       "id": "c_masse",
+       "text": "c'est une masse"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_droite",
+       "verb": "highlight",
+       "start": "cue:c_pasencore",
+       "end": "cue_end:c_pasencore",
+       "target": "dix_mgl",
+       "role": "secondary",
+       "part": "droite"
+      },
+      {
+       "id": "h_masse",
+       "verb": "highlight",
+       "start": "cue:c_masse",
+       "end": "cue_end:c_masse",
+       "target": "dix_mgl",
+       "role": "unknown",
+       "part": "droite"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse_molaire",
+   "introduces": [
+    {
+     "id": "masse",
+     "content": "M(\\text{C}_6\\text{H}_{12}\\text{O}_6) = 6(12{,}01) + 12(1{,}01) + 6(16{,}00)",
+     "parts": [
+      {
+       "id": "formule",
+       "text": "M(\\text{C}_6\\text{H}_{12}\\text{O}_6)"
+      },
+      {
+       "id": "detail",
+       "text": "= 6(12{,}01) + 12(1{,}01) + 6(16{,}00)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "masse2",
+     "content": "M = 180{,}16\\ \\text{g/mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcule",
+     "say": "Il nous manque la masse molaire du glucose. Six carbones, douze hydrogènes, six oxygènes.",
+     "cues": [
+      {
+       "id": "c_glucose",
+       "text": "masse molaire du glucose"
+      },
+      {
+       "id": "c_atomes",
+       "text": "Six carbones, douze hydrogènes, six oxygènes"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_entete",
+       "verb": "fade_out",
+       "at": "cue:c_glucose",
+       "target": "entete"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:c_glucose",
+       "target": "masse",
+       "part": "formule"
+      },
+      {
+       "id": "w_detail",
+       "verb": "write",
+       "at": "cue:c_atomes",
+       "target": "masse",
+       "part": "detail"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "resultat",
+     "say": "En additionnant, ça donne cent quatre-vingts virgule seize grammes par mole. Une mole de glucose pèse donc environ cent quatre-vingts grammes.",
+     "cues": [
+      {
+       "id": "c_180",
+       "text": "cent quatre-vingts virgule seize grammes par mole"
+      },
+      {
+       "id": "c_pese",
+       "text": "cent quatre-vingts grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_masse",
+       "verb": "transform",
+       "at": "cue:c_180",
+       "source": "masse",
+       "target": "masse2"
+      },
+      {
+       "id": "h_masse2",
+       "verb": "highlight",
+       "start": "cue:c_pese",
+       "end": "cue_end:c_pese",
+       "target": "masse2",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_conversion",
+   "introduces": [
+    {
+     "id": "n",
+     "content": "n = \\frac{m}{M} = \\frac{0{,}010\\ \\text{g}}{180{,}16\\ \\text{g/mol}}",
+     "type": "math"
+    },
+    {
+     "id": "c",
+     "content": "C = \\frac{n}{V} = \\frac{5{,}5 \\times 10^{-5}\\ \\text{mol}}{1\\ \\text{L}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "nb_moles",
+     "say": "Dix milligrammes, c'est zéro virgule zéro dix gramme. Divisons par la masse molaire : ça donne environ cinq virgule cinq fois dix exposant moins cinq moles.",
+     "cues": [
+      {
+       "id": "c_010",
+       "text": "zéro virgule zéro dix gramme"
+      },
+      {
+       "id": "c_division",
+       "text": "Divisons par la masse molaire"
+      },
+      {
+       "id": "c_molesnb",
+       "text": "cinq virgule cinq fois dix exposant moins cinq moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_masse2",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "masse2"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:c_division",
+       "target": "n"
+      },
+      {
+       "id": "w_subst",
+       "verb": "highlight",
+       "at": "cue:c_010",
+       "target": "n",
+       "role": "accent"
+      },
+      {
+       "id": "w_res",
+       "verb": "highlight",
+       "at": "cue:c_molesnb",
+       "target": "n",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "concentration",
+     "say": "On a un litre de solution, donc la concentration, c'est ce nombre de moles divisé par un litre : cinq virgule cinq fois dix exposant moins cinq mole par litre.",
+     "cues": [
+      {
+       "id": "c_parlitre",
+       "text": "divisé par un litre"
+      },
+      {
+       "id": "c_final",
+       "text": "cinq virgule cinq fois dix exposant moins cinq mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_n",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "n"
+      },
+      {
+       "id": "w_formule2",
+       "verb": "write",
+       "at": "cue:c_parlitre",
+       "target": "c"
+      },
+      {
+       "id": "w_subst2",
+       "verb": "highlight",
+       "at": "cue:c_parlitre",
+       "target": "c",
+       "role": "accent"
+      },
+      {
+       "id": "w_res2",
+       "verb": "highlight",
+       "at": "cue:c_final",
+       "target": "c",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "C = \\frac{10\\ \\text{mg/L}}{M}\\times 10^{-3}",
+     "parts": [
+      {
+       "id": "un",
+       "text": "C ="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{10\\ \\text{mg/L}}{M}"
+      },
+      {
+       "id": "mille",
+       "text": "\\times 10^{-3}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "ppm → mg/L → g/L → mol/L",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : un ppm vaut un milligramme par litre, puis on convertit les grammes en moles avec la masse molaire.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_convertit",
+       "text": "les grammes en moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_c",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c"
+      },
+      {
+       "id": "f_masse2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "masse2"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_convertit",
+       "target": "regle",
+       "part": "frac"
+      },
+      {
+       "id": "w_mille",
+       "verb": "write",
+       "at": "cue:c_convertit",
+       "target": "regle",
+       "part": "mille"
+      }
+     ]
+    },
+    {
+     "id": "final",
+     "say": "Ton dix ppm de glucose devient cinq virgule cinq fois dix exposant moins cinq mole par litre.",
+     "cues": [
+      {
+       "id": "c_dixppm",
+       "text": "dix ppm de glucose"
+      },
+      {
+       "id": "c_reponse",
+       "text": "cinq virgule cinq fois dix exposant moins cinq mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "idee"
+      },
+      {
+       "id": "h_frac",
+       "verb": "highlight",
+       "start": "cue:c_dixppm",
+       "end": "cue_end:c_dixppm",
+       "target": "regle",
+       "role": "accent",
+       "part": "frac"
+      },
+      {
+       "id": "pause",
+       "verb": "highlight",
+       "start": "cue:c_reponse",
+       "end": "cue_end:c_reponse",
+       "target": "regle",
+       "role": "result",
+       "part": "mille"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

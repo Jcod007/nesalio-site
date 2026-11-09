@@ -1,8 +1,11 @@
 import { compileNamedExpression } from "@/domain/math/expr";
 import { cueOffset } from "./alignment";
 import { negotiateCapabilities, schemaCapabilities } from "./capabilities";
-import { FIGURE_TYPES, ModelOutput, type Beat, type MathContext, type Slice } from "./contract";
+import { checkCoherence, emptyCoherence, type CoherenceAlert, type CoherenceState } from "./coherence";
+import { FIGURE_TYPES, matrixParts, ModelOutput, type Beat, type MathContext, type Slice } from "./contract";
 import { LessonDocument } from "./lesson";
+
+export type { CoherenceAlert, CoherenceOutcome, CoherenceRule } from "./coherence";
 
 type Path = readonly PropertyKey[];
 export interface ContractIssue {
@@ -29,6 +32,10 @@ export interface ValidationState {
   readonly replacedBy: ReadonlyMap<string, string>;
   readonly cameraFrames: ReadonlySet<string>;
   readonly math: MathContext;
+  /** Table (matrix) id → its cells, rows and columns (r2c3, r2, c3): parts that highlight can aim at. */
+  readonly tableParts?: ReadonlyMap<string, ReadonlySet<string>>;
+  /** Figures and board memory of the correctness checks (coherence.ts). */
+  readonly coherence?: CoherenceState;
 }
 
 const emptyState: ValidationState = {
@@ -256,7 +263,11 @@ function checkBeat(beat: Beat, state: ValidationState, written: Set<string>, rem
         }
       }
     }
-    if ((action.verb === "write" || action.verb === "highlight") && action.part !== undefined) {
+    const tableParts = "target" in action ? state.tableParts?.get(action.target) : undefined;
+    if (tableParts && (action.verb === "write" || action.verb === "highlight") && action.part !== undefined) {
+      if (action.verb === "write") report([...at, "part"], `« ${action.target} » est un tableau : write l’écrit en entier, sans part ; highlight peut viser une case (r2c3), une ligne (r2) ou une colonne (c3).`);
+      else if (!tableParts.has(action.part)) report([...at, "part"], `Case absente « ${action.part} » dans le tableau « ${action.target} » : vise r<ligne>c<colonne>, r<ligne> ou c<colonne>, comptés à partir de 1 sans les intitulés.`);
+    } else if ((action.verb === "write" || action.verb === "highlight") && action.part !== undefined) {
       const parts = state.parts.get(action.target);
       if (!parts) report([...at, "part"], `« ${action.target} » n’est pas une formule découpée en parties.`);
       else if (!parts.has(action.part)) report([...at, "part"], `Partie absente « ${action.part} » dans « ${action.target} ».`);
@@ -319,8 +330,10 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
   const morphed = new Set(before.morphed);
   const replacedBy = new Map(before.replacedBy);
   const cameraFrames = new Set(before.cameraFrames);
+  const tableParts = new Map(before.tableParts ?? []);
   const state: ValidationState = {
     slices: ids, objects, parts, figures, members: owned, removed, formulas, morphed, replacedBy, cameraFrames, math: before.math,
+    tableParts, coherence: before.coherence,
   };
   const symbolNames = new Set(Object.keys(state.math.symbols));
   slices.forEach((slice, index) => {
@@ -373,6 +386,7 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
         && !Object.hasOwn(state.math.expressions, item.content.expression_ref)) {
         report([...at, "content", "expression_ref"], "Expression non déclarée.");
       }
+      if (item.type === "matrix") tableParts.set(item.id, new Set(matrixParts(item.params)));
       if (item.type === "math" && item.parts) {
         checkParts(item, at, report);
         parts.set(item.id, new Set(item.parts.map((part) => part.id)));
@@ -413,7 +427,14 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
   return state;
 }
 
-type Validation<T> = { ok: true; value: T; state: ValidationState } | { ok: false; issues: ContractIssue[] };
+/**
+ * `alerts`: the correctness checks (coherence.ts). On success, the corrected ones
+ * are already applied to `value` and the noted ones are kept for a repair note;
+ * on failure, the refused ones are also among `issues`, with the right value.
+ */
+type Validation<T> =
+  | { ok: true; value: T; state: ValidationState; alerts: CoherenceAlert[] }
+  | { ok: false; issues: ContractIssue[]; alerts?: CoherenceAlert[] };
 
 function checkVocabulary(input: unknown): ContractIssue[] {
   if (typeof input !== "object" || input === null || !("slices" in input) || !Array.isArray(input.slices)) return [];
@@ -443,15 +464,28 @@ export function validateLesson(input: unknown): Validation<LessonDocument> {
   if (vocabularyIssues.length) return { ok: false, issues: vocabularyIssues };
   const parsed = LessonDocument.safeParse(input);
   if (!parsed.success) return { ok: false, issues: parsed.error.issues };
-  return validateSlices(parsed.data, parsed.data.scene.math_context, ["scene", "math_context"], emptyState);
+  return validateSlices(parsed.data, parsed.data.scene.math_context, ["scene", "math_context"], emptyState, "saved");
 }
 
+/**
+ * `model`: a tranche the model just wrote, corrected or refused. `saved`: a lesson already assembled
+ * (saved file, player): it must keep loading as it is, so every alert is only noted, nothing is changed.
+ */
 function validateSlices<T extends { slices: readonly Slice[] }>(
-  value: T, delta: MathContext | undefined, mathPath: Path, before: ValidationState,
+  value: T, delta: MathContext | undefined, mathPath: Path, before: ValidationState, source: "model" | "saved" = "model",
 ): Validation<T> {
   const issues: ContractIssue[] = [];
   const report: Report = (path, message) => issues.push({ path, message });
   const math = mergeMath(before.math, delta, mathPath, report);
   const state = checkSlices(value.slices, { ...before, math }, report);
-  return issues.length ? { ok: false, issues } : { ok: true, value, state };
+  if (issues.length) return { ok: false, issues };
+  // Correctness only on a well-formed output: every reference it reads exists.
+  const coherence = checkCoherence(value.slices, state.math, before.coherence ?? emptyCoherence, before.removed);
+  if (source === "saved") {
+    const noted = coherence.alerts.map((alert) => ({ ...alert, outcome: "noted" as const }));
+    return { ok: true, value, state: { ...state, coherence: coherence.state }, alerts: noted };
+  }
+  const refused = coherence.alerts.filter((alert) => alert.outcome === "refused");
+  if (refused.length) return { ok: false, issues: refused.map(({ path, message }) => ({ path, message })), alerts: coherence.alerts };
+  return { ok: true, value: { ...value, slices: coherence.slices }, state: { ...state, coherence: coherence.state }, alerts: coherence.alerts };
 }

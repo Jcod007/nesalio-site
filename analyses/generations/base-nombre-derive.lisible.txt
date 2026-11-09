@@ -1,0 +1,84 @@
+TITRE : Le nombre dérivé sur un graphique
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{"pente_secante":"(q^2 - 1)/(q - 1)"}}
+=== Tranche s_situation
+  OBJET axes [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-1,3]} 
+  OBJET lbl_courbe [label] "f(x) = x^2" attaché à courbe
+  OBJET A [point] {"at":[1,1]} 
+  OBJET lbl_A [label] "A (1 ; 1)" attaché à A
+  OBJET P [point] {"at":[3,9]} 
+  OBJET lbl_P [label] "P (3 ; 9)" attaché à P
+DIT (intro) : Le nombre dérivé, c'est une pente. Pour le voir, on va suivre un point qui glisse sur une courbe.
+    camera.focus  @beat:start {"targets":["axes"],"bounds":"layout_bounds","save_as":"vue_base"}
+    show axes @beat:start 
+    draw courbe @- {"start":"cue:c_pente","end":"cue_end:c_pente"}
+    show lbl_courbe @after:d_courbe 
+DIT (deux_points) : On plante deux points sur la courbe de x au carré : le point A, fixé à un et un, et le point P, plus loin, à trois et neuf.
+    show A @cue:c_A 
+    show lbl_A @cue:c_unun 
+    show P @cue:c_P 
+    show lbl_P @cue:c_troisneuf 
+=== Tranche s_secante
+  OBJET secante [function_graph] {"expression":"3*(x-1)+1","domain":[-1,3.2]} 
+  OBJET montee [line] {"from":[3,1],"to":[3,9]} 
+  OBJET avancee [line] {"from":[1,1],"to":[3,1]} 
+  OBJET lbl_montee [label] "montée : 8" attaché à montee
+  OBJET lbl_avancee [label] "avancée : 2" attaché à avancee
+  OBJET frac_pente [math] "\\text{pente} = \\frac{9 - 1}{3 - 1} = \\frac{8}{2} = 4" 
+DIT (tracer) : La droite qui passe par A et P, on l'appelle la sécante.
+    draw secante @- {"start":"cue:c_secante","end":"cue_end:c_secante"}
+DIT (montee_avancee) : Sa pente, c'est la montée divisée par l'avancée : pour aller de A à P, on monte de huit et on avance de deux.
+    show avancee @cue:c_avancee 
+    show lbl_avancee @after:s_avancee 
+    show montee @cue:c_montee 
+    show lbl_montee @cue:c_huit 
+DIT (calcul) : Huit divisé par deux donne quatre : la sécante A P a une pente de quatre.
+    write frac_pente @cue:c_quatre 
+=== Tranche s_rapprochement
+  OBJET P2 [point] {"at":[2,4]} 
+  OBJET lbl_P2 [label] "P (2 ; 4)" attaché à P2
+  OBJET frac_pente2 [math] "\\text{pente} = \\frac{4 - 1}{2 - 1} = \\frac{3}{1} = 3" 
+DIT (rapproche) : Maintenant, faisons glisser P vers A, en le rapprochant.
+    dim secante @cue:c_glisser 
+    dim frac_pente @cue:c_glisser 
+    remove P @cue:c_glisser 
+    remove lbl_P @cue:c_glisser 
+    remove montee @cue:c_glisser 
+    remove lbl_montee @cue:c_glisser 
+    remove avancee @cue:c_glisser 
+    remove lbl_avancee @cue:c_glisser 
+DIT (nouveau_p) : Pour un point plus proche, à deux et quatre, la montée est trois sur une avancée de un. La pente vaut trois.
+    show P2 @cue:c_deux_quatre 
+    show lbl_P2 @after:s_P2 
+    write frac_pente2 @cue:c_trois 
+=== Tranche s_tangente
+  OBJET secante_var [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-1,3.2]} 
+  OBJET tangente [function_graph] {"expression":"2*x-1","domain":[-1,3.2]} 
+  OBJET lbl_tangente [label] "tangente : pente 2" attaché à tangente
+  OBJET resultat [math] "\\text{pente de la tangente en A} = 2" 
+DIT (animation) : Quand P se rapproche de A jusqu'à se confondre avec lui, la sécante tourne et sa pente passe de quatre vers deux.
+    remove P2 @beat:start 
+    remove lbl_P2 @beat:start 
+    remove frac_pente2 @beat:start 
+    remove frac_pente @beat:start 
+    remove secante @beat:start 
+    draw secante_var @- {"start":"cue:c_passe","end":"cue_end:c_quatre_deux"}
+    animate_parameter  @- {"start":"cue:c_passe","end":"cue_end:c_quatre_deux","parameter":"q","from":3,"to":1}
+DIT (tangente_mot) : À la limite, la sécante devient la tangente : la droite qui touche la courbe juste au point A.
+    draw tangente @- {"start":"cue:c_tangente","end":"cue_end:c_tangente"}
+    show lbl_tangente @after:d_tang 
+DIT (conclusion) : Donc le nombre dérivé de x au carré en un, c'est deux : la pente de la tangente au point A.
+    write resultat @cue:c_derive 
+    highlight resultat @after:w_res {"role":"result"}
+=== Tranche s_recap
+  OBJET regle [math] "f'(a) = \\text{pente de la tangente en } x = a" 
+  OBJET sens [text] "Sens concret : taux de variation instantané (vitesse)" 
+DIT (retenir) : À retenir : le nombre dérivé en un point, c'est la pente de la tangente à la courbe en ce point.
+    dim courbe @cue:c_tangente2 
+    dim A @cue:c_tangente2 
+    dim tangente @cue:c_tangente2 
+    dim lbl_tangente @cue:c_tangente2 
+    write regle @cue:c_tangente2 
+DIT (concret) : Concrètement, c'est un taux de variation instantané : si la courbe donne la position, la dérivée donne la vitesse.
+    show sens @cue:c_taux 
+--- 5 tranches, 234 mots dits (≈ 1.6 min d'oral)

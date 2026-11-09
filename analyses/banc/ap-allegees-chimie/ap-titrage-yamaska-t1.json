@@ -1,0 +1,551 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ph_neutralisation",
+  "title": "Calculer le pH de l'eau de la Yamaska",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une base neutralisée par un acide se calcule en moles : mole de H⁺ du H₃PO₄ = mole de OH⁻ de la base, puis pOH et pH = 14 − pOH."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "n_OH": {
+     "kind": "constant",
+     "value": 0.0003
+    },
+    "n_H": {
+     "kind": "constant",
+     "value": 0.0003
+    }
+   },
+   "expressions": {
+    "concentration_OH": "0.0003/0.020",
+    "pOH_calc": "-log(0.015)",
+    "pH_calc": "14-(-log(0.015))"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_ecurie",
+   "introduces": [
+    {
+     "id": "eau",
+     "content": "Eau de la Yamaska : vire le tournesol rouge au bleu → base",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "indice",
+     "say": "Le papier tournesol rouge qui vire au bleu, ça nous dit tout de suite que l'eau de la rivière est basique. Il y a donc du OH moins dedans. Pour la titrer, on va verser un acide, le H trois P O quatre, jusqu'au virage du bleu de bromothymol.",
+     "cues": [
+      {
+       "id": "c_basique",
+       "text": "basique"
+      },
+      {
+       "id": "c_OH",
+       "text": "OH moins"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_eau",
+       "verb": "show",
+       "at": "cue:c_basique",
+       "target": "eau"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "n_H_math",
+     "content": "n_{H^+} = 0{,}003 \\times 0{,}050 = 0{,}00015 \\text{ mol}",
+     "parts": [
+      {
+       "id": "formule",
+       "text": "n_{H^+}"
+      },
+      {
+       "id": "calc",
+       "text": "= 0{,}003 \\times 0{,}050"
+      },
+      {
+       "id": "res",
+       "text": "= 0{,}00015 \\text{ mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "n_OH_math",
+     "layout": {
+      "next_to": "n_H_math",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n_{OH^-} = n_{H^+} = 0{,}00015 \\text{ mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcmoles",
+     "say": "Calculons d'abord les moles d'acide versées. Concentration fois volume en litres : zéro virgule zéro zéro trois fois zéro virgule zéro cinquante, ça donne zéro virgule zéro zéro zéro un cinq mole de H plus.",
+     "cues": [
+      {
+       "id": "c_concentration",
+       "text": "Concentration fois volume"
+      },
+      {
+       "id": "c_resultat",
+       "text": "zéro virgule zéro zéro zéro un cinq mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_f",
+       "verb": "write",
+       "at": "cue:c_concentration",
+       "target": "n_H_math",
+       "part": "formule"
+      },
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_concentration",
+       "target": "n_H_math",
+       "part": "calc"
+      },
+      {
+       "id": "w_r",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "n_H_math",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "egalite",
+     "say": "À l'équivalence, tout le OH moins de l'eau a été neutralisé par le H plus. Donc les moles de OH moins dans les vingt millilitres sont égales : zéro virgule zéro zéro zéro un cinq mole.",
+     "cues": [
+      {
+       "id": "c_equivalence",
+       "text": "À l'équivalence"
+      },
+      {
+       "id": "c_egales",
+       "text": "égales"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_oh",
+       "verb": "write",
+       "at": "cue:c_egales",
+       "target": "n_OH_math"
+      },
+      {
+       "id": "h_oh",
+       "verb": "highlight",
+       "at": "after:w_oh",
+       "target": "n_OH_math",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pOH",
+   "introduces": [
+    {
+     "id": "conc_OH",
+     "content": "[OH^-] = \\frac{0{,}00015}{0{,}020} = 0{,}0075 \\text{ mol/L}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "[OH^-] ="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{0{,}00015}{0{,}020}"
+      },
+      {
+       "id": "res",
+       "text": "= 0{,}0075 \\text{ mol/L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pOH_math",
+     "layout": {
+      "next_to": "conc_OH",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pOH = -\\log[OH^-] = -\\log(0{,}0075) \\approx 2{,}12",
+     "type": "math"
+    },
+    {
+     "id": "pH_math",
+     "layout": {
+      "next_to": "pOH_math",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pH = 14 - pOH = 14 - 2{,}12 = 11{,}88",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conc",
+     "say": "Maintenant, la concentration en OH moins. On divise les moles par le volume de l'échantillon, vingt millilitres, c'est-à-dire zéro virgule zéro vingt litre. Zéro virgule zéro zéro zéro un cinq divisé par zéro virgule zéro vingt donne zéro virgule zéro zéro sept cinq mole par litre.",
+     "cues": [
+      {
+       "id": "c_volume",
+       "text": "vingt millilitres"
+      },
+      {
+       "id": "c_concentration",
+       "text": "zéro virgule zéro zéro sept cinq mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_volume",
+       "target": "conc_OH",
+       "part": "gauche"
+      },
+      {
+       "id": "w_f",
+       "verb": "write",
+       "at": "cue:c_volume",
+       "target": "conc_OH",
+       "part": "frac"
+      },
+      {
+       "id": "w_r",
+       "verb": "write",
+       "at": "cue:c_concentration",
+       "target": "conc_OH",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "poh",
+     "say": "Le pOH, c'est le logarithme négatif de cette concentration. Moins log de zéro virgule zéro zéro sept cinq donne environ deux virgule douze.",
+     "cues": [
+      {
+       "id": "c_log",
+       "text": "logarithme négatif"
+      },
+      {
+       "id": "c_poh",
+       "text": "environ deux virgule douze"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_poh",
+       "verb": "write",
+       "at": "cue:c_log",
+       "target": "pOH_math"
+      },
+      {
+       "id": "h_poh",
+       "verb": "highlight",
+       "at": "cue:c_poh",
+       "target": "pOH_math",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "ph",
+     "say": "Et pour finir, à vingt-cinq degrés, pH plus pOH égale quatorze. Donc pH vaut quatorze moins deux virgule douze, c'est-à-dire environ onze virgule quatre-vingt-huit. C'est bien basique, comme annonçait le tournesol.",
+     "cues": [
+      {
+       "id": "c_14",
+       "text": "pH plus pOH égale quatorze"
+      },
+      {
+       "id": "c_resultat",
+       "text": "onze virgule quatre-vingt-huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ph",
+       "verb": "write",
+       "at": "cue:c_14",
+       "target": "pH_math"
+      },
+      {
+       "id": "h_ph",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "pH_math",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "recap",
+     "layout": {
+      "center_on": "conc_OH"
+     },
+     "content": "n(OH⁻) = n(H⁺) puis pH = 14 − pOH",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : d'abord trouver les moles de H plus versées, elles égalent les moles de OH moins. Divise par le volume pour la concentration, puis pOH par logarithme négatif, et pH égale quatorze moins pOH.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_pH",
+       "text": "pH égale quatorze moins pOH"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "n_H_math",
+        "n_OH_math",
+        "conc_OH",
+        "pOH_math",
+        "pH_math",
+        "recap"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "cue:c_pH",
+       "target": "recap"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

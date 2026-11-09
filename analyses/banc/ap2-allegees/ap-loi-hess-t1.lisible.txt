@@ -1,0 +1,76 @@
+QUESTION (ap-loi-hess, chimie, sec 4, alloprof) : Est-ce que vous pourriez m'expliquer la loi de Hess svp? J'ai un examen de chimie dans deux jours et je ne comprends toujours pas comment faire, mon enseignant ne nous a pas donné des étapes.
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : La loi de Hess : additionner des réactions et leurs ΔH
+=== Tranche s_depart
+  OBJET diag [axes] {"x":[0,6],"y":[0,8]} 
+  OBJET lab_x [label] "progression de la réaction" attaché à diag
+  OBJET lab_y [label] "énergie" attaché à diag
+  OBJET l1 [line] {"from":[0,4],"to":[2,4]} 
+  OBJET l2 [line] {"from":[2,4],"to":[3,7]} 
+  OBJET l3 [line] {"from":[3,7],"to":[4,1]} 
+  OBJET l4 [line] {"from":[4,1],"to":[6,1]} 
+  OBJET lab_rea [label] "réactifs" attaché à l1
+  OBJET lab_prod [label] "produits" attaché à l4
+DIT (intro) : La loi de Hess, c'est simplement additionner des réactions comme des égalités, avec leurs énergies.
+    camera.focus  @beat:start {"targets":["diag"],"bounds":"layout_bounds","save_as":"vue_diag"}
+    show diag @beat:start 
+    show lab_x @beat:start 
+    show lab_y @beat:start 
+DIT (diagramme) : Regarde d'abord le diagramme énergétique : les réactifs partent à un niveau, la réaction franchit un sommet, puis les produits descendent plus bas.
+    draw l1 @cue:c_reactifs 
+    show lab_rea @cue:c_reactifs 
+    draw l2 @- {"start":"cue:c_diag","end":"cue_end:c_reactifs"}
+    draw l3 @- {"start":"cue:c_produits","end":"cue_end:c_produits"}
+    draw l4 @cue:c_produits 
+    show lab_prod @cue:c_produits 
+=== Tranche s_etapes
+  OBJET eq1 [math] "\\ce{C + O2 -> CO2}" 
+  OBJET eq2 [math] "\\ce{CO2 -> CO + 1/2 O2}" 
+  OBJET dh1 [math] "\\Delta H_1 = -393{,}5 \\ \\text{kJ}" 
+  OBJET dh2 [math] "\\Delta H_2 = +283{,}0 \\ \\text{kJ}" 
+DIT (deux) : Prenons la formation du dioxyde de carbone en une étape, et la même chose en deux étapes.
+    fade_out diag @cue:c_une 
+    write eq1 @cue:c_une 
+    write dh1 @after:w_eq1 
+    write eq2 @cue:c_deux 
+    write dh2 @after:w_eq2 
+DIT (inverse) : Mais attention : la deuxième équation donne du CO ; il faut donc l'écrire à l'envers, et son énergie change de signe.
+    highlight dh2 @- {"start":"cue:c_signe","end":"cue_end:c_signe","role":"accent"}
+=== Tranche s_addition
+  OBJET somme [math] "\\ce{C + O2 -> CO2}" 
+  OBJET somme2 [math] "\\ce{CO2 -> CO + 1/2 O2}" 
+  OBJET globale [math] "\\ce{C + O2 -> CO2}" 
+  OBJET dh_glob [math] "\\Delta H = -393{,}5 + 283{,}0 = -110{,}5 \\ \\text{kJ}" 
+DIT (empile) : Empilons les deux équations et additionnons-les comme des égalités : le CO2 apparaît des deux côtés.
+    fade_out eq1 @cue:c_empilons 
+    fade_out eq2 @cue:c_empilons 
+    fade_out dh1 @cue:c_empilons 
+    fade_out dh2 @cue:c_empilons 
+    show somme @cue:c_empilons 
+    show somme2 @cue:c_co2 
+DIT (annule) : Le CO2 se retrouve des deux côtés : il s'annule. Il ne reste que le carbone et le dioxygène qui donnent du CO2.
+    highlight somme2 @- {"start":"cue:c_annule","end":"cue_end:c_annule","role":"accent"}
+    dim somme @cue:c_reste 
+DIT (sommer_dh) : Et pour l'énergie de la réaction globale, on additionne les ΔH : moins trois cent quatre-vingt-treize et demi plus deux cent quatre-vingt-trois, ce qui donne moins cent dix et demi kilojoules.
+    show globale @cue:c_dh 
+    show dh_glob @cue:c_moins 
+    highlight dh_glob @after:s_dhg {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\Delta H_{\\text{globale}} = \\Delta H_1 + \\Delta H_2" 
+  OBJET note [text] "Inverser : \\Delta H change de signe" 
+  OBJET note2 [text] "Multiplier par 2 : \\Delta H double" 
+DIT (retenir) : À retenir : la loi de Hess, c'est additionner les équations comme des égalités, faire s'annuler les espèces communes, et additionner les énergies.
+    camera.focus  @cue:c_retenir {"targets":["regle","note","note2"],"bounds":"layout_bounds"}
+    fade_out somme @cue:c_retenir 
+    fade_out somme2 @cue:c_retenir 
+    fade_out globale @cue:c_retenir 
+    fade_out dh_glob @cue:c_retenir 
+    write regle @cue:c_retenir 
+    show note @cue:c_annuler 
+    show note2 @cue:c_annuler 
+    highlight regle @- {"start":"cue:c_annuler","end":"cue_end:c_annuler","role":"result"}
+--- 4 tranches, 170 mots dits (≈ 1.1 min d'oral)

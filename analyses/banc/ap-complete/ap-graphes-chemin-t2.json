@@ -1,0 +1,1221 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "chemin_critique_vs_chaine_min",
+  "title": "Chemin critique ou chaîne de valeur minimale : comment choisir",
+  "language": "fr",
+  "learning_goal": "Distinguer le chemin critique (durée totale minimale, on prend la plus longue) de la chaîne de valeur minimale (coût total, on prend la plus courte) dans un graphe orienté valué."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_question",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Graphe orienté valué : deux questions opposées",
+     "type": "text"
+    },
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       10
+      ],
+      "y": [
+       0,
+       10
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "A",
+     "params": {
+      "at": [
+       0,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "B",
+     "params": {
+      "at": [
+       4,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "C",
+     "params": {
+      "at": [
+       4,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "D",
+     "params": {
+      "at": [
+       8,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "E_fig",
+     "params": {
+      "at": [
+       8,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "F",
+     "params": {
+      "at": [
+       10,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lA",
+     "attachment": {
+      "parent": "A",
+      "anchor": "left"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "lB",
+     "attachment": {
+      "parent": "B",
+      "anchor": "top"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "lC",
+     "attachment": {
+      "parent": "C",
+      "anchor": "bottom"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "lD",
+     "attachment": {
+      "parent": "D",
+      "anchor": "top"
+     },
+     "content": "D",
+     "type": "label"
+    },
+    {
+     "id": "lE",
+     "attachment": {
+      "parent": "E_fig",
+      "anchor": "bottom"
+     },
+     "content": "E",
+     "type": "label"
+    },
+    {
+     "id": "lF",
+     "attachment": {
+      "parent": "F",
+      "anchor": "right"
+     },
+     "content": "F",
+     "type": "label"
+    },
+    {
+     "id": "ab",
+     "params": {
+      "from": [
+       0,
+       5
+      ],
+      "to": [
+       4,
+       8
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "ac",
+     "params": {
+      "from": [
+       0,
+       5
+      ],
+      "to": [
+       4,
+       2
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "bd",
+     "params": {
+      "from": [
+       4,
+       8
+      ],
+      "to": [
+       8,
+       8
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "bf",
+     "params": {
+      "from": [
+       4,
+       8
+      ],
+      "to": [
+       10,
+       5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "ce",
+     "params": {
+      "from": [
+       4,
+       2
+      ],
+      "to": [
+       8,
+       2
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "cf",
+     "params": {
+      "from": [
+       4,
+       2
+      ],
+      "to": [
+       10,
+       5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "de",
+     "params": {
+      "from": [
+       8,
+       8
+      ],
+      "to": [
+       8,
+       2
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "ef",
+     "params": {
+      "from": [
+       8,
+       2
+      ],
+      "to": [
+       10,
+       5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "pab",
+     "attachment": {
+      "parent": "ab",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "pac",
+     "attachment": {
+      "parent": "ac",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "6",
+     "type": "label"
+    },
+    {
+     "id": "pbd",
+     "attachment": {
+      "parent": "bd",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "3",
+     "type": "label"
+    },
+    {
+     "id": "pbf",
+     "attachment": {
+      "parent": "bf",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "9",
+     "type": "label"
+    },
+    {
+     "id": "pce",
+     "attachment": {
+      "parent": "ce",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "5",
+     "type": "label"
+    },
+    {
+     "id": "pcf",
+     "attachment": {
+      "parent": "cf",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "10",
+     "type": "label"
+    },
+    {
+     "id": "pde",
+     "attachment": {
+      "parent": "de",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "pef",
+     "attachment": {
+      "parent": "ef",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "4",
+     "type": "label"
+    },
+    {
+     "id": "legende",
+     "content": "Les nombres sur les flèches sont des valeurs",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Bonne question : le choix dépend de ce que tu cherches, pas du graphe lui-même. Voici un petit graphe orienté et valu, où les flèches vont toujours vers la droite.",
+     "cues": [
+      {
+       "id": "c_graphe",
+       "text": "graphe orienté et valu"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep",
+        "titre"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_graphe"
+      },
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "dA",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "A"
+      },
+      {
+       "id": "dab",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "ab"
+      },
+      {
+       "id": "dac",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "ac"
+      },
+      {
+       "id": "dB",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "B"
+      },
+      {
+       "id": "dC",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "C"
+      },
+      {
+       "id": "dD",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "D"
+      },
+      {
+       "id": "dE",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "E_fig"
+      },
+      {
+       "id": "dF",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "F"
+      },
+      {
+       "id": "dbd",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "bd"
+      },
+      {
+       "id": "dbf",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "bf"
+      },
+      {
+       "id": "dce",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "ce"
+      },
+      {
+       "id": "dcf",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "cf"
+      },
+      {
+       "id": "dde",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "de"
+      },
+      {
+       "id": "def",
+       "verb": "draw",
+       "at": "cue:c_graphe",
+       "target": "ef"
+      },
+      {
+       "id": "sA",
+       "verb": "show",
+       "at": "after:dA",
+       "target": "lA"
+      },
+      {
+       "id": "sB",
+       "verb": "show",
+       "at": "after:dB",
+       "target": "lB"
+      },
+      {
+       "id": "sC",
+       "verb": "show",
+       "at": "after:dC",
+       "target": "lC"
+      },
+      {
+       "id": "sD",
+       "verb": "show",
+       "at": "after:dD",
+       "target": "lD"
+      },
+      {
+       "id": "sE",
+       "verb": "show",
+       "at": "after:dE",
+       "target": "lE"
+      },
+      {
+       "id": "sF",
+       "verb": "show",
+       "at": "after:dF",
+       "target": "lF"
+      },
+      {
+       "id": "spab",
+       "verb": "show",
+       "at": "after:dab",
+       "target": "pab"
+      },
+      {
+       "id": "spac",
+       "verb": "show",
+       "at": "after:dac",
+       "target": "pac"
+      },
+      {
+       "id": "spbd",
+       "verb": "show",
+       "at": "after:dbd",
+       "target": "pbd"
+      },
+      {
+       "id": "spbf",
+       "verb": "show",
+       "at": "after:dbf",
+       "target": "pbf"
+      },
+      {
+       "id": "spce",
+       "verb": "show",
+       "at": "after:dce",
+       "target": "pce"
+      },
+      {
+       "id": "spcf",
+       "verb": "show",
+       "at": "after:dcf",
+       "target": "pcf"
+      },
+      {
+       "id": "spde",
+       "verb": "show",
+       "at": "after:dde",
+       "target": "pde"
+      },
+      {
+       "id": "spef",
+       "verb": "show",
+       "at": "after:def",
+       "target": "pef"
+      },
+      {
+       "id": "sleg",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "legende"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_distinction",
+   "introduces": [
+    {
+     "id": "dist",
+     "content": "Tâches qui s'enchaînent : la plus LONGUE impose la durée totale.",
+     "type": "text"
+    },
+    {
+     "id": "regle_crit",
+     "content": "\\text{chemin critique} = \\text{chemin le plus long}",
+     "type": "math"
+    },
+    {
+     "id": "regle_min",
+     "content": "\\text{chaîne minimale} = \\text{chemin le plus court}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "duree",
+     "say": "Pour un projet, les tâches s'enchaînent : le chemin le plus long est celui qui impose la durée totale, c'est le chemin critique.",
+     "cues": [
+      {
+       "id": "c_long",
+       "text": "chemin le plus long"
+      },
+      {
+       "id": "c_critique",
+       "text": "chemin critique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_dist",
+       "verb": "show",
+       "at": "cue:c_long",
+       "target": "dist"
+      },
+      {
+       "id": "w_crit",
+       "verb": "write",
+       "at": "cue:c_critique",
+       "target": "regle_crit"
+      }
+     ]
+    },
+    {
+     "id": "cout",
+     "say": "Mais s'il s'agit d'un coût, d'un prix à payer, alors tu veux dépenser le moins possible : tu cherches le chemin le plus court, la chaîne de valeur minimale.",
+     "cues": [
+      {
+       "id": "c_cout",
+       "text": "un coût"
+      },
+      {
+       "id": "c_court",
+       "text": "chemin le plus court"
+      },
+      {
+       "id": "c_min",
+       "text": "chaîne de valeur minimale"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_min",
+       "verb": "write",
+       "at": "cue:c_court",
+       "target": "regle_min"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "c1",
+     "content": "A \\to B \\to D \\to E \\to F : 2+3+2+4 = 11",
+     "parts": [
+      {
+       "id": "c1p",
+       "text": "A \\to B \\to D \\to E \\to F"
+      },
+      {
+       "id": "c1s",
+       "text": ": 2+3+2+4"
+      },
+      {
+       "id": "c1r",
+       "text": "= 11"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "c2",
+     "content": "A \\to B \\to F : 2+9 = 11",
+     "parts": [
+      {
+       "id": "c2p",
+       "text": "A \\to B \\to F"
+      },
+      {
+       "id": "c2s",
+       "text": ": 2+9"
+      },
+      {
+       "id": "c2r",
+       "text": "= 11"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "c3",
+     "content": "A \\to C \\to E \\to F : 6+5+4 = 15",
+     "parts": [
+      {
+       "id": "c3p",
+       "text": "A \\to C \\to E \\to F"
+      },
+      {
+       "id": "c3s",
+       "text": ": 6+5+4"
+      },
+      {
+       "id": "c3r",
+       "text": "= 15"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "c4",
+     "content": "A \\to C \\to F : 6+10 = 16",
+     "parts": [
+      {
+       "id": "c4p",
+       "text": "A \\to C \\to F"
+      },
+      {
+       "id": "c4s",
+       "text": ": 6+10"
+      },
+      {
+       "id": "c4r",
+       "text": "= 16"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res_crit",
+     "content": "\\text{Durée totale minimale} = 16 \\text{ jours}",
+     "type": "math"
+    },
+    {
+     "id": "res_min",
+     "content": "\\text{Coût minimal} = 11 \\text{ \\$}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "liste",
+     "say": "Listons tous les chemins de A jusqu'à F, en additionnant les valeurs de chaque flèche.",
+     "cues": [
+      {
+       "id": "c_liste",
+       "text": "tous les chemins"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_graphe",
+       "verb": "dim",
+       "at": "cue:c_liste",
+       "target": "rep"
+      },
+      {
+       "id": "w_c1p",
+       "verb": "write",
+       "at": "cue:c_liste",
+       "target": "c1",
+       "part": "c1p"
+      },
+      {
+       "id": "w_c1s",
+       "verb": "write",
+       "at": "after:w_c1p",
+       "target": "c1",
+       "part": "c1s"
+      },
+      {
+       "id": "w_c1r",
+       "verb": "write",
+       "at": "after:w_c1s",
+       "target": "c1",
+       "part": "c1r"
+      },
+      {
+       "id": "w_c2p",
+       "verb": "write",
+       "at": "after:w_c1r",
+       "target": "c2",
+       "part": "c2p"
+      },
+      {
+       "id": "w_c2s",
+       "verb": "write",
+       "at": "after:w_c2p",
+       "target": "c2",
+       "part": "c2s"
+      },
+      {
+       "id": "w_c2r",
+       "verb": "write",
+       "at": "after:w_c2s",
+       "target": "c2",
+       "part": "c2r"
+      },
+      {
+       "id": "w_c3p",
+       "verb": "write",
+       "at": "after:w_c2r",
+       "target": "c3",
+       "part": "c3p"
+      },
+      {
+       "id": "w_c3s",
+       "verb": "write",
+       "at": "after:w_c3p",
+       "target": "c3",
+       "part": "c3s"
+      },
+      {
+       "id": "w_c3r",
+       "verb": "write",
+       "at": "after:w_c3s",
+       "target": "c3",
+       "part": "c3r"
+      },
+      {
+       "id": "w_c4p",
+       "verb": "write",
+       "at": "after:w_c3r",
+       "target": "c4",
+       "part": "c4p"
+      },
+      {
+       "id": "w_c4s",
+       "verb": "write",
+       "at": "after:w_c4p",
+       "target": "c4",
+       "part": "c4s"
+      },
+      {
+       "id": "w_c4r",
+       "verb": "write",
+       "at": "after:w_c4s",
+       "target": "c4",
+       "part": "c4r"
+      }
+     ],
+     "pause_after": "long"
+    },
+    {
+     "id": "min",
+     "say": "Le plus court, onze : voilà la chaîne de valeur minimale, le coût le plus bas. Le plus long, seize : voilà le chemin critique, la durée totale incompressible.",
+     "cues": [
+      {
+       "id": "c_pluscourt",
+       "text": "Le plus court"
+      },
+      {
+       "id": "c_pluslong",
+       "text": "Le plus long"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_min",
+       "verb": "highlight",
+       "at": "cue:c_pluscourt",
+       "target": "res_min",
+       "role": "result"
+      },
+      {
+       "id": "h_crit",
+       "verb": "highlight",
+       "at": "cue:c_pluslong",
+       "target": "res_crit",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "reco",
+     "content": "On demande une durée totale (projet) → chemin critique : le PLUS LONG.",
+     "type": "text"
+    },
+    {
+     "id": "reco2",
+     "content": "On demande un coût qu'on paie (transport, budget) → chaîne minimale : le PLUS COURT.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : le mot durée dans l'énoncé t'envoie vers le chemin critique, donc le plus long.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_duree",
+       "text": "durée"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_dist",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "dist"
+      },
+      {
+       "id": "f_c1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c1"
+      },
+      {
+       "id": "f_c2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c2"
+      },
+      {
+       "id": "f_c3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c3"
+      },
+      {
+       "id": "f_c4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c4"
+      },
+      {
+       "id": "f_rescrit",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "res_crit"
+      },
+      {
+       "id": "f_admin",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regle_min"
+      },
+      {
+       "id": "f_legende",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "legende"
+      },
+      {
+       "id": "s_reco",
+       "verb": "show",
+       "at": "cue:c_duree",
+       "target": "reco"
+      }
+     ]
+    },
+    {
+     "id": "cout",
+     "say": "Et le mot coût ou prix t'envoie vers la chaîne de valeur minimale, donc le plus court.",
+     "cues": [
+      {
+       "id": "c_cout",
+       "text": "coût"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_reco2",
+       "verb": "show",
+       "at": "cue:c_cout",
+       "target": "reco2"
+      },
+      {
+       "id": "h_ax",
+       "verb": "highlight",
+       "at": "beat:start",
+       "target": "regle_crit",
+       "role": "accent"
+      },
+      {
+       "id": "h_ax2",
+       "verb": "highlight",
+       "at": "after:s_reco2",
+       "target": "regle_min",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Donc la même méthode, mais deux questions opposées : le chemin critique, c'est le plus long pour une durée ; la chaîne de valeur minimale, c'est le plus court pour un coût.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "le plus long pour une durée"
+      },
+      {
+       "id": "c_idee2",
+       "text": "le plus court pour un coût"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_idee",
+       "targets": [
+        "reco",
+        "reco2"
+       ]
+      },
+      {
+       "id": "h_reco",
+       "verb": "highlight",
+       "at": "cue:c_idee",
+       "target": "reco",
+       "role": "result"
+      },
+      {
+       "id": "h_reco2",
+       "verb": "highlight",
+       "at": "cue:c_idee2",
+       "target": "reco2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

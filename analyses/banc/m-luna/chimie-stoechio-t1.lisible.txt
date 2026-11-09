@@ -1,0 +1,58 @@
+QUESTION (chimie-stoechio, chimie, sec 4, methode) : si je fais brûler 4 g d'hydrogène avec assez d'oxygène, combien de grammes d'eau j'obtiens? la réaction c'est 2 H2 + O2 → 2 H2O
+RÉPONSE DE RÉFÉRENCE : n(H₂) = 4 / 2,02 ≈ 1,98 mol = n(H₂O) ; m ≈ 1,98 × 18,02 ≈ 35,7 g (≈ 36 g).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. passer par les moles
+  2. n(H₂) = 4/2,02 ≈ 1,98 mol (≈ 2)
+  3. rapport 2 : 2, donc n(H₂O) = n(H₂)
+  4. m ≈ 36 g écrit (35,7 avec les masses précises)
+  5. contrôle par la masse : 4 g + 32 g d'O₂ = 36 g
+ERREURS GRAVES À CHERCHER : rapport stœchiométrique inversé ; masse molaire de H₂ = 1 g/mol
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue erreur incomplete
+
+TITRE : Calculer la masse d’eau produite à partir de 4 g d’hydrogène
+=== Tranche s_moles
+  OBJET tableau [matrix] {"rows":[["substance","H₂","O₂","H₂O"],["coefficient",2,1,2],["quantité (mol)",1.98,"?","?"],["masse (g)",4,"?","?"]]} 
+  OBJET etape_masse_moles [math] "n(\\ce{H2})=\\frac{4}{2.02}\\approx1.98\\text{ mol}" parts=n(\ce{H2})=\frac{4}{2.02} | \approx1.98\text{ mol}
+  OBJET etape_rapport [math] "n(\\ce{H2O})=1.98\\text{ mol}" parts=n(\ce{H2O}) | =1.98\text{ mol}
+  OBJET etape_masse_eau [math] "m(\\ce{H2O})=1.98\\times18.02\\approx35.68\\text{ g}" parts=m(\ce{H2O}) | =1.98\times18.02 | \approx35.68\text{ g}
+  OBJET etiquette_division [label] "÷ 2,02" attaché à tableau
+  OBJET etiquette_multiplication [label] "× 18,02" attaché à tableau
+DIT (convertir) : Les coefficients donnent des rapports de moles, pas de grammes. On commence donc par convertir les quatre grammes d’hydrogène en moles : quatre divisé par 2,02, soit environ 1,98 mole.
+    show tableau @cue:coefficients 
+    write etape_masse_moles @cue:convertir_masse {"part":"conversion"}
+    write etape_masse_moles @cue:resultat_moles {"part":"valeur"}
+    show etiquette_division @cue:convertir_masse 
+    highlight tableau @- {"start":"cue:resultat_moles","end":"cue_end:resultat_moles","role":"accent","part":"r2c2"}
+DIT (suivre_rapport) : Dans l’équation, deux moles de H deux donnent deux moles de H deux O. Le rapport est donc un pour un : 1,98 mole d’hydrogène produit 1,98 mole d’eau.
+    write etape_rapport @cue:rapport {"part":"produit"}
+    write etape_rapport @cue:moles_eau {"part":"produit_valeur"}
+    highlight tableau @- {"start":"cue:moles_eau","end":"cue_end:moles_eau","role":"accent","part":"r2c4"}
+DIT (convertir_eau) : Pour obtenir des grammes, on multiplie les moles d’eau par sa masse molaire, 18,02 grammes par mole. On obtient environ 35,68 grammes d’eau.
+    write etape_masse_eau @cue:masse_molaire {"part":"masse_eau"}
+    write etape_masse_eau @cue:masse_molaire {"part":"calcul_eau"}
+    write etape_masse_eau @cue:masse_finale {"part":"resultat_eau"}
+    show etiquette_multiplication @cue:masse_molaire 
+    highlight tableau @- {"start":"cue:masse_finale","end":"cue_end:masse_finale","role":"result","part":"r3c4"}
+=== Tranche s_controle
+  OBJET controle_oxygene [math] "n(\\ce{O2})=\\frac{1.98}{2}=0.99\\text{ mol}" parts=n(\ce{O2})=\frac{1.98}{2} | =0.99\text{ mol}
+  OBJET controle_masse_oxygene [math] "m(\\ce{O2})=0.99\\times32=31.68\\text{ g}" parts=m(\ce{O2}) | =0.99\times32 | =31.68\text{ g}
+  OBJET controle_masse_totale [math] "4+31.68=35.68\\text{ g}" parts=4 | +31.68 | =35.68\text{ g}
+DIT (verifier_oxygene) : Vérifions la conservation de la masse. Il faut une demi-mole d’oxygène par mole d’hydrogène, donc 0,99 mole d’oxygène, soit 31,68 grammes.
+    write controle_oxygene @cue:moles_oxygene {"part":"controle_conversion"}
+    write controle_oxygene @cue:moles_oxygene {"part":"controle_valeur"}
+    write controle_masse_oxygene @cue:grammes_oxygene {"part":"masse_oxygene"}
+    write controle_masse_oxygene @cue:grammes_oxygene {"part":"calcul_oxygene"}
+    write controle_masse_oxygene @cue:grammes_oxygene {"part":"valeur_oxygene"}
+    dim tableau @cue:conservation 
+DIT (confirmer_masse) : La masse totale des réactifs est quatre plus 31,68, donc 35,68 grammes. Ça confirme la masse d’eau calculée.
+    write controle_masse_totale @cue:addition {"part":"masse_hydrogene"}
+    write controle_masse_totale @cue:addition {"part":"addition_masses"}
+    write controle_masse_totale @cue:confirmation {"part":"total_masses"}
+    fade_out etape_masse_moles @cue:confirmation 
+    fade_out etape_rapport @cue:confirmation 
+    fade_out controle_oxygene @cue:confirmation 
+    fade_out controle_masse_oxygene @cue:confirmation 
+    fade_out controle_masse_totale @cue:confirmation 
+    fade_out tableau @cue:confirmation 
+    fade_out etape_masse_eau @cue:confirmation 
+--- 2 tranches, 121 mots dits (≈ 0.8 min d'oral)

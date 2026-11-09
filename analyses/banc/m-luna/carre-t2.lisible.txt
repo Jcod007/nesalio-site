@@ -1,0 +1,77 @@
+QUESTION (carre, mathematiques, sec 4, sens) : Pourquoi (x + 5)² ce n'est pas x² + 25 ?
+RÉPONSE DE RÉFÉRENCE : (x + 5)² = x² + 10x + 25 : il manque les deux rectangles 5x.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. (x + 5)² = (x + 5)(x + 5), pas x² + 5²
+  2. modèle d'aire : carré x², deux rectangles 5x, carré 25
+  3. terme croisé 10x = 2 × 5x
+  4. résultat x² + 10x + 25 écrit
+  5. vérification numérique (ex. x = 1 : 36 ≠ 26)
+ERREURS GRAVES À CHERCHER : modèle d'aire mal découpé (pièces hors du grand carré)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi (x + 5)² contient un terme en x
+=== Tranche s_sens
+  OBJET idee [text] "Élever une somme au carré, c’est multiplier la somme par elle-même." 
+DIT (lire) : Le carré de x plus cinq signifie x plus cinq multiplié par x plus cinq, pas seulement x au carré plus cinq au carré.
+    show idee @cue:carre 
+DIT (preparer) : Pour voir tous les morceaux sans en oublier, on va représenter cette multiplication par l’aire d’un carré dont chaque côté mesure x plus cinq.
+    highlight idee @- {"start":"cue:aire","end":"cue_end:cote","role":"accent"}
+=== Tranche s_aire
+  OBJET grand [polygon] {"vertices":[[0,0],[2,0],[2,2],[0,2]]} 
+  OBJET carre_x [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET bande_h [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET bande_v [polygon] {"vertices":[[0,1],[1,1],[1,2],[0,2]]} 
+  OBJET coin [polygon] {"vertices":[[1,1],[2,1],[2,2],[1,2]]} 
+  OBJET aire_x [label] "x²" attaché à carre_x
+  OBJET aire_h [label] "5x" attaché à bande_h
+  OBJET aire_v [label] "5x" attaché à bande_v
+  OBJET aire_coin [label] "25" attaché à coin
+  OBJET cotes [math] "(x+5)\\times(x+5)"   <<JAMAIS MONTRÉ>>
+DIT (dessiner) : Chaque côté se partage en deux longueurs : x et cinq. Le grand carré se découpe donc en quatre pièces, et leurs aires se calculent en multipliant les longueurs de leurs côtés.
+    draw grand @cue:quatre 
+    draw carre_x @cue:quatre 
+    draw bande_h @cue:quatre 
+    draw bande_v @cue:quatre 
+    draw coin @cue:quatre 
+    show aire_x @cue:aires 
+    show aire_h @cue:aires 
+    show aire_v @cue:aires 
+    show aire_coin @cue:aires 
+DIT (lier) : Le petit carré a pour aire x au carré, les deux bandes ont chacune une aire de cinq x, et le coin a une aire de vingt-cinq.
+    highlight aire_x @- {"start":"cue:petit","end":"cue_end:petit","role":"accent"}
+    highlight bande_h @- {"start":"cue:deux_bandes","end":"cue_end:deux_bandes","role":"accent"}
+    highlight aire_coin @- {"start":"cue:coin_mot","end":"cue_end:coin_mot","role":"accent"}
+=== Tranche s_calcul
+  OBJET produit [math] "(x+5)^2=(x+5)(x+5)" parts=(x+5)^2 | = | (x+5)(x+5)
+  OBJET developpe [math] "x^2+5x+5x+25" parts=x^2 | +5x | +5x | +25
+  OBJET reduit [math] "x^2+10x+25" parts=x^2 | +10x | +25
+DIT (multiplier) : En développant, chaque terme du premier facteur multiplie chacun du deuxième : x fois x, x fois cinq, cinq fois x, puis cinq fois cinq.
+    write produit @cue:premier {"part":"p_gauche"}
+    write produit @cue:chaque {"part":"p_egal"}
+    write produit @cue:chaque {"part":"p_droite"}
+DIT (termes) : Ces quatre multiplications donnent x au carré, cinq x, cinq x et vingt-cinq. Les deux morceaux de cinq x viennent des deux bandes du dessin.
+    transform developpe @cue:donne {"source":"produit"}
+    highlight aire_h @- {"start":"cue:deux_morceaux","end":"cue_end:bandes_mot","role":"accent"}
+DIT (additionner) : On additionne les deux termes semblables : cinq x plus cinq x font dix x. L’expression complète est donc x au carré plus dix x plus vingt-cinq.
+    transform reduit @cue:dixx {"source":"developpe"}
+    highlight reduit @- {"start":"cue:dixx","end":"cue_end:dixx","role":"result","part":"r_mixte"}
+=== Tranche s_retenir
+  OBJET regle [math] "(x+5)^2=x^2+10x+25" parts=(x+5)^2 | = | x^2+10x+25
+  OBJET idee_finale [text] "Le terme 10x vient des deux produits croisés : 5x + 5x." 
+DIT (conclure) : À retenir : le carré d’une somme comprend les deux produits croisés. Ici, les deux cinq x s’additionnent; c’est pourquoi x au carré plus vingt-cinq oublie le terme dix x.
+    fade_out idee @cue:retenir 
+    fade_out grand @cue:retenir 
+    fade_out carre_x @cue:retenir 
+    fade_out bande_h @cue:retenir 
+    fade_out bande_v @cue:retenir 
+    fade_out coin @cue:retenir 
+    fade_out cotes @cue:retenir 
+    fade_out produit @cue:retenir 
+    fade_out developpe @cue:retenir 
+    fade_out reduit @cue:retenir 
+    write regle @cue:croises {"part":"g_regle"}
+    write regle @cue:croises {"part":"e_regle"}
+    write regle @cue:croises {"part":"d_regle"}
+    write idee_finale @cue:croises 
+    highlight regle @- {"start":"cue:oublie","end":"cue_end:oublie","role":"result","part":"d_regle"}
+--- 4 tranches, 214 mots dits (≈ 1.4 min d'oral)

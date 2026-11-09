@@ -1,0 +1,1063 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "inequations_polygone_contraintes",
+  "title": "Le polygone de contraintes : la région qui respecte toutes les inéquations",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une inéquation à deux variables garde un demi-plan, que leur partie commune est le polygone de contraintes, et trouver ses sommets par calcul."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_demi_plan",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       8
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "frontiere",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "6 - x",
+      "domain": [
+       -1,
+       7
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "droite_label",
+     "attachment": {
+      "parent": "frontiere",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "y = 6 − x",
+     "type": "label"
+    },
+    {
+     "id": "cote_int",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "test_pt",
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "test_label",
+     "attachment": {
+      "parent": "test_pt",
+      "anchor": "left",
+      "placement": "outside"
+     },
+     "content": "(0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "repere",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "Test : (0) + (0) = 0 ≤ 6 ✓",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Reprenons ton exemple : x plus y plus petit ou égal à six. Une inéquation à deux variables, c'est une grande région, pas un seul point.",
+     "cues": [
+      {
+       "id": "c_inequa",
+       "text": "x plus y plus petit ou égal à six"
+      },
+      {
+       "id": "c_region",
+       "text": "grande région"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      }
+     ]
+    },
+    {
+     "id": "frontiere",
+     "say": "D'abord la frontière : remplace le signe par un égal, ça donne y égale six moins x. C'est la droite frontière.",
+     "cues": [
+      {
+       "id": "c_frontiere",
+       "text": "frontière"
+      },
+      {
+       "id": "c_droite",
+       "text": "droite frontière"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_frontiere",
+       "verb": "draw",
+       "start": "cue:c_frontiere",
+       "end": "cue_end:c_droite",
+       "target": "frontiere"
+      },
+      {
+       "id": "s_dlabel",
+       "verb": "show",
+       "at": "after:d_frontiere",
+       "target": "droite_label"
+      }
+     ]
+    },
+    {
+     "id": "test",
+     "say": "Ensuite, je prends un point test qui n'est pas sur la droite, comme zéro zéro. Zéro plus zéro, ça fait zéro, et zéro est plus petit que six : donc ce côté-ci est le bon.",
+     "cues": [
+      {
+       "id": "c_test",
+       "text": "point test"
+      },
+      {
+       "id": "c_zero",
+       "text": "zéro zéro"
+      },
+      {
+       "id": "c_bon",
+       "text": "ce côté-ci est le bon"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "test_pt"
+      },
+      {
+       "id": "s_plabel",
+       "verb": "show",
+       "at": "after:s_pt",
+       "target": "test_label"
+      },
+      {
+       "id": "s_repere",
+       "verb": "show",
+       "at": "after:s_plabel",
+       "target": "repere"
+      },
+      {
+       "id": "s_cote",
+       "verb": "show",
+       "at": "cue:c_bon",
+       "target": "cote_int"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_polygone",
+   "introduces": [
+    {
+     "id": "contraintes",
+     "content": "x \\ge 0 \\quad y \\ge 0 \\quad x + y \\le 6 \\quad y \\le 2x",
+     "type": "math"
+    },
+    {
+     "id": "frontiere2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2*x",
+      "domain": [
+       -1,
+       3.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "label2",
+     "attachment": {
+      "parent": "frontiere2",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "y = 2x",
+     "type": "label"
+    },
+    {
+     "id": "region",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        2,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    }
+   ],
+   "beats": [
+    {
+     "id": "toutes",
+     "say": "Maintenant ajoutons toutes les contraintes : x plus grand que zéro, y plus grand que zéro, x plus y plus petit que six, et y plus petit que deux x.",
+     "cues": [
+      {
+       "id": "c_toutes",
+       "text": "toutes les contraintes"
+      },
+      {
+       "id": "c_ypos",
+       "text": "y plus grand que zéro"
+      },
+      {
+       "id": "c_y2x",
+       "text": "y plus petit que deux x"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_frontiere",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "frontiere"
+      },
+      {
+       "id": "d_cote",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "cote_int"
+      },
+      {
+       "id": "f_plabel",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "test_label"
+      },
+      {
+       "id": "f_pt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "test_pt"
+      },
+      {
+       "id": "f_repere",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "repere"
+      },
+      {
+       "id": "w_contraintes",
+       "verb": "write",
+       "at": "cue:c_toutes",
+       "target": "contraintes"
+      },
+      {
+       "id": "d_f2",
+       "verb": "draw",
+       "start": "cue:c_y2x",
+       "end": "cue_end:c_y2x",
+       "target": "frontiere2"
+      },
+      {
+       "id": "s_l2",
+       "verb": "show",
+       "at": "after:d_f2",
+       "target": "label2"
+      }
+     ]
+    },
+    {
+     "id": "poly",
+     "say": "La région qui respecte les quatre inéquations en même temps, c'est leur partie commune : un triangle. C'est le polygone de contraintes.",
+     "cues": [
+      {
+       "id": "c_commune",
+       "text": "partie commune"
+      },
+      {
+       "id": "c_triangle",
+       "text": "un triangle"
+      },
+      {
+       "id": "c_polygone",
+       "text": "polygone de contraintes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_region",
+       "verb": "show",
+       "at": "cue:c_triangle",
+       "target": "region"
+      },
+      {
+       "id": "h_region",
+       "verb": "highlight",
+       "start": "cue:c_polygone",
+       "end": "cue_end:c_polygone",
+       "target": "region",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sommets",
+   "introduces": [
+    {
+     "id": "sys",
+     "layout": {
+      "next_to": "region",
+      "direction": "left",
+      "gap": "lg"
+     },
+     "content": "y = 6 - x \\quad \\text{et} \\quad y = 2x",
+     "type": "math"
+    },
+    {
+     "id": "egalite",
+     "layout": {
+      "next_to": "sys",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "6 - x = 2x \\Rightarrow 6 = 3x \\Rightarrow x = 2",
+     "type": "math"
+    },
+    {
+     "id": "yval",
+     "layout": {
+      "next_to": "egalite",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "y = 6 - 2 = 4",
+     "type": "math"
+    },
+    {
+     "id": "sA",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lA",
+     "attachment": {
+      "parent": "sA",
+      "anchor": "left",
+      "placement": "outside"
+     },
+     "content": "(0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "sB",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lB",
+     "attachment": {
+      "parent": "sB",
+      "anchor": "bottom",
+      "placement": "outside"
+     },
+     "content": "(6 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "sC",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lC",
+     "attachment": {
+      "parent": "sC",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "(2 ; 4)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intersection",
+     "say": "Les sommets, on les calcule, jamais à l'œil. Le point qui touche les deux droites, c'est l'intersection : y égale six moins x, et y égale deux x.",
+     "cues": [
+      {
+       "id": "c_calcule",
+       "text": "on les calcule"
+      },
+      {
+       "id": "c_deuxdroites",
+       "text": "y égale six moins x"
+      },
+      {
+       "id": "c_deuxx",
+       "text": "y égale deux x"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_front1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "frontiere"
+      },
+      {
+       "id": "f_l1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "droite_label"
+      },
+      {
+       "id": "f_front2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "frontiere2"
+      },
+      {
+       "id": "f_l2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "label2"
+      },
+      {
+       "id": "w_sys",
+       "verb": "write",
+       "at": "cue:c_deuxdroites",
+       "target": "sys"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Je les mets égaux : six moins x égale deux x. J'ajoute x des deux côtés, six égale trois x, donc x égale deux.",
+     "cues": [
+      {
+       "id": "c_egal",
+       "text": "six moins x égale deux x"
+      },
+      {
+       "id": "c_x2",
+       "text": "x égale deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_egalite",
+       "verb": "write",
+       "at": "cue:c_egal",
+       "target": "egalite"
+      },
+      {
+       "id": "h_x2",
+       "verb": "highlight",
+       "start": "cue:c_x2",
+       "end": "cue_end:c_x2",
+       "target": "egalite",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "yreponse",
+     "say": "Je remplace dans y égale deux x : y égale quatre. Le sommet est deux, quatre.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "y égale quatre"
+      },
+      {
+       "id": "c_sommet",
+       "text": "deux, quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_yval",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "yval"
+      },
+      {
+       "id": "s_sC",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "sC"
+      },
+      {
+       "id": "s_lC",
+       "verb": "show",
+       "at": "after:s_sC",
+       "target": "lC"
+      }
+     ]
+    },
+    {
+     "id": "trois",
+     "say": "Avec x plus grand que zéro et y plus grand que zéro, il y a les deux autres sommets sur les axes : zéro zéro et six zéro.",
+     "cues": [
+      {
+       "id": "c_axes",
+       "text": "sur les axes"
+      },
+      {
+       "id": "c_zerozero",
+       "text": "zéro zéro"
+      },
+      {
+       "id": "c_sixzero",
+       "text": "six zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sA",
+       "verb": "show",
+       "at": "cue:c_zerozero",
+       "target": "sA"
+      },
+      {
+       "id": "s_lA",
+       "verb": "show",
+       "at": "after:s_sA",
+       "target": "lA"
+      },
+      {
+       "id": "s_sB",
+       "verb": "show",
+       "at": "cue:c_sixzero",
+       "target": "sB"
+      },
+      {
+       "id": "s_lB",
+       "verb": "show",
+       "at": "after:s_sB",
+       "target": "lB"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_optim",
+   "introduces": [
+    {
+     "id": "zfun",
+     "layout": {
+      "next_to": "egalite",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "z = 3x + 2y",
+     "type": "math"
+    },
+    {
+     "id": "tab",
+     "layout": {
+      "next_to": "zfun",
+      "direction": "down",
+      "gap": "md"
+     },
+     "params": {
+      "rows": [
+       [
+        0,
+        6,
+        2
+       ],
+       [
+        0,
+        0,
+        4
+       ],
+       [
+        0,
+        18,
+        14
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "y",
+       "z = 3x + 2y"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fonction",
+     "say": "Pour optimiser, on prend la fonction z égale trois x plus deux y. Elle atteint son maximum à un sommet du polygone fermé.",
+     "cues": [
+      {
+       "id": "c_z",
+       "text": "z égale trois x plus deux y"
+      },
+      {
+       "id": "c_sommet",
+       "text": "un sommet"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_yval",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "yval"
+      },
+      {
+       "id": "f_sys",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sys"
+      },
+      {
+       "id": "w_zfun",
+       "verb": "write",
+       "at": "cue:c_z",
+       "target": "zfun"
+      },
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "after:w_zfun",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "calculs",
+     "say": "Je calcule z à chacun des trois sommets : zéro, dix-huit, quatorze.",
+     "cues": [
+      {
+       "id": "c_calc",
+       "text": "Je calcule"
+      },
+      {
+       "id": "c_val",
+       "text": "zéro, dix-huit, quatorze"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_row",
+       "verb": "highlight",
+       "start": "cue:c_val",
+       "end": "cue_end:c_val",
+       "target": "tab",
+       "role": "accent",
+       "part": "r3"
+      }
+     ]
+    },
+    {
+     "id": "comparaison",
+     "say": "Je compare : le plus grand est dix-huit, atteint au sommet six zéro. Le maximum est donc dix-huit.",
+     "cues": [
+      {
+       "id": "c_plus",
+       "text": "le plus grand est dix-huit"
+      },
+      {
+       "id": "c_max",
+       "text": "six zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_max",
+       "verb": "highlight",
+       "start": "cue:c_plus",
+       "end": "cue_end:c_plus",
+       "target": "tab",
+       "role": "result",
+       "part": "r3c2"
+      },
+      {
+       "id": "h_sB",
+       "verb": "highlight",
+       "start": "cue:c_max",
+       "end": "cue_end:c_max",
+       "target": "sB",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "Chaque inéquation garde un côté → la partie commune = polygone de contraintes",
+     "type": "text"
+    },
+    {
+     "id": "method",
+     "content": "\\text{Test (0 ; 0)} \\quad \\Rightarrow \\quad \\text{sommets par intersection}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : chaque inéquation garde un côté de sa droite frontière. Le polygone de contraintes, c'est la partie commune. Le point test départage les côtés, et les sommets se calculent par intersection.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_commun",
+       "text": "partie commune"
+      },
+      {
+       "id": "c_pointtest",
+       "text": "point test"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_egalite",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "egalite"
+      },
+      {
+       "id": "f_zfun",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "zfun"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "f_contraintes",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "contraintes"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "rep",
+        "regle",
+        "method"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_commun",
+       "target": "regle"
+      },
+      {
+       "id": "s_method",
+       "verb": "show",
+       "at": "cue:c_pointtest",
+       "target": "method"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

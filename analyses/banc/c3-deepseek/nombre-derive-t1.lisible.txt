@@ -1,0 +1,76 @@
+QUESTION (nombre-derive, mathematiques, sec 5, sens) : C'est quoi le nombre dérivé, sur un graphique ?
+RÉPONSE DE RÉFÉRENCE : La pente de la tangente à la courbe au point d'abscisse a.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. sécante entre A et P, pente = taux de variation moyen
+  2. P se rapproche de A : la sécante tend vers la tangente
+  3. nombre dérivé = pente de la tangente en A
+  4. exemple chiffré (ex. y = x² en x = 1 : 2)
+  5. lecture de la pente sur le graphique
+ERREURS GRAVES À CHERCHER : sécante tracée qui ne passe pas par P ; pente dite ≠ pente tracée
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Le nombre dérivé sur un graphique
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{}}
+=== Tranche s_secante
+  OBJET repere [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-1,3]} 
+  OBJET ptA [point] {"at":[1,1]} 
+  OBJET labA [label] "A(1 ; 1)" attaché à ptA
+  OBJET ptP [point] {"at":[3,9]} 
+  OBJET labP [label] "P(3 ; 9)" attaché à ptP
+  OBJET secante [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-0.5,3.2]} 
+  OBJET horiz [line] {"from":[1,1],"to":[3,1]} 
+  OBJET h1 [label] "2" attaché à horiz
+  OBJET vert [line] {"from":[3,1],"to":[3,9]} 
+  OBJET v1 [label] "8" attaché à vert
+  OBJET pente [math] "\\text{pente} = \\frac{8}{2} = 4" parts=\text{pente} | = \frac{8}{2} | = 4
+DIT (cquoi) : Le nombre dérivé, c'est la pente de la tangente à la courbe en un point.
+    camera.focus  @beat:start {"targets":["repere"],"bounds":"layout_bounds","save_as":"vue_courbe"}
+    show repere @beat:start 
+    draw courbe @- {"start":"cue:c_pente","end":"cue_end:c_pente"}
+DIT (deuxpoints) : Prenons deux points sur la parabole de x au carré : A en un, un, et P en trois, neuf.
+    show ptA @cue:c_A 
+    show labA @after:s_A 
+    show ptP @cue:c_P 
+    show labP @after:s_P 
+DIT (penteAP) : La pente de la droite AP, c'est la montée divisée par l'avancée : huit divisé par deux, quatre.
+    draw secante @- {"start":"cue:c_montree","end":"cue_end:c_montree"}
+    show horiz @cue:c_montree 
+    show h1 @after:s_h 
+    show vert @after:s_h1 
+    show v1 @after:s_v 
+    write pente @cue:c_quatre {"part":"pmot"}
+    write pente @after:w_pmot {"part":"pf"}
+    write pente @after:w_pf {"part":"pr"}
+=== Tranche s_rapproche
+  OBJET ptP2 [point] {"at":[2,4]} 
+  OBJET labP2 [label] "P(2 ; 4)" attaché à ptP2
+  OBJET sec2 [function_graph] {"expression":"3*(x-1)+1","domain":[-0.5,2.2]}   <<JAMAIS MONTRÉ>>
+  OBJET pente2 [math] "\\text{pente} = 3" 
+DIT (rapproche) : Si P se rapproche, en deux, quatre, la même formule donne trois.
+    fade_out ptP @cue:c_P2 
+    fade_out labP @cue:c_P2 
+    show ptP2 @cue:c_P2 
+    show labP2 @after:s_P2 
+    write pente2 @cue:c_trois 
+DIT (pivote) : La sécante pivote avec P, et sa pente diminue : quatre, puis trois, et elle se rapproche de la tangente.
+    dim courbe @cue:c_pivote 
+    fade_out secante @cue:c_pivote 
+    fade_out sec2 @after:f_sec 
+=== Tranche s_tangente
+  OBJET ptA2 [point] {"at":[1,1]}   <<JAMAIS MONTRÉ>>
+  OBJET tangente [function_graph] {"expression":"2*(x-1)+1","domain":[-0.5,3.5]} 
+  OBJET result [math] "\\text{pente de la tangente} = 2" 
+DIT (limite) : Quand P colle sur A, la sécante devient la tangente, et sa pente se fixe à deux.
+    fade_out pente2 @cue:c_colle 
+    draw tangente @- {"start":"cue:c_colle","end":"cue_end:c_colle"}
+    write result @cue:c_deux 
+DIT (derive) : Ce deux, c'est le nombre dérivé de x au carré en x égale un.
+    highlight tangente @cue:c_derive {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Le nombre dérivé = la pente de la tangente" 
+DIT (retenir) : À retenir : le nombre dérivé en un point, c'est la pente de la tangente en ce point, la limite des pentes des sécantes.
+    camera.focus  @cue:c_retenir {"targets":["repere","result","idee"],"bounds":"layout_bounds"}
+    write idee @cue:c_limite 
+    highlight result @- {"start":"cue:c_limite","end":"cue_end:c_limite","role":"result"}
+--- 4 tranches, 140 mots dits (≈ 0.9 min d'oral)

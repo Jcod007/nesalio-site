@@ -1,0 +1,98 @@
+QUESTION (loi-sinus-erreur, mathematiques, sec 4, erreur) : dans mon triangle j'ai l'angle A = 40°, l'angle B = 60° pis a = 10 cm. je cherche b avec la loi des sinus pis j'obtiens 7,42 cm mais c'est pas la bonne réponse
+RÉPONSE DE RÉFÉRENCE : b = 10 × sin 60° / sin 40° ≈ 13,47 cm ; 7,42 cm vient des sinus inversés.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. a/sin A = b/sin B dans tout triangle, chaque côté apparié à l'angle opposé (figure)
+  2. diagnostic : 7,42 = 10 × sin 40° / sin 60°, sinus inversés
+  3. b = 10 × sin 60° / sin 40° ≈ 13,47 cm, écrit
+  4. contrôle : le plus grand angle fait face au plus grand côté, B > A donc b > 10
+  5. calculatrice en mode degrés ; valorisé : C = 80°
+ERREURS GRAVES À CHERCHER : figure qui apparie a avec le mauvais angle
+CONTRÔLE AUTOMATIQUE : réponse absente (13[,.]4[67]) ; issue erreur upstream
+
+TITRE : Corriger le calcul de b avec la loi des sinus
+math_context : {"symbols":{},"expressions":{"b_correct":"10*sin(60)/sin(40)","b_inverse":"10*sin(40)/sin(60)"}}
+=== Tranche s_figure
+  OBJET axes [axes] {"x":[-2,12],"y":[-1,9]} 
+  OBJET tri [polygon] {"vertices":[[0,0],[6.43,0],[7.66,6.43]]} 
+  OBJET pa [point] {"at":[0,0]} 
+  OBJET pb [point] {"at":[6.43,0]} 
+  OBJET pc [point] {"at":[7.66,6.43]} 
+  OBJET la [label] "A = 40°" attaché à pa
+  OBJET lb [label] "B = 60°" attaché à pb
+  OBJET lc [label] "C = 80°" attaché à pc
+  OBJET side_a [line] {"from":[6.43,0],"to":[7.66,6.43]} 
+  OBJET side_b [line] {"from":[0,0],"to":[7.66,6.43]} 
+  OBJET side_c [line] {"from":[0,0],"to":[6.43,0]} 
+  OBJET lab_a [label] "a = 10 cm" attaché à side_a
+  OBJET lab_b [label] "b ?" attaché à side_b
+  OBJET lab_c [label] "c" attaché à side_c
+DIT (intro) : On va vérifier ton résultat en reliant chaque côté à l’angle qui lui est opposé.
+    show axes @beat:start 
+    draw tri @cue:relier 
+    show pa @cue:relier 
+    show pb @cue:relier 
+    show pc @cue:relier 
+    show la @cue:relier 
+    show lb @cue:relier 
+    show lc @cue:relier 
+    draw side_a @cue:relier 
+    draw side_b @cue:relier 
+    draw side_c @cue:relier 
+    show lab_a @cue:relier 
+    show lab_b @cue:relier 
+    show lab_c @cue:relier 
+DIT (pair) : Le côté a vaut dix centimètres et il est en face de l’angle A, quarante degrés. Le côté b est en face de l’angle B, soixante degrés.
+    highlight lab_a @- {"start":"cue:a","end":"cue_end:A","role":"given"}
+    highlight la @- {"start":"cue:A","end":"cue_end:A","role":"given"}
+    highlight lab_b @- {"start":"cue:b","end":"cue_end:B","role":"accent"}
+    highlight lb @- {"start":"cue:B","end":"cue_end:B","role":"accent"}
+=== Tranche s_regle
+  OBJET loi [math] "\\frac{a}{\\sin A}=\\frac{b}{\\sin B}" parts=\frac{a}{\sin A} | = | \frac{b}{\sin B}
+  OBJET iso [text] "Chaque côté est associé au sinus de son angle opposé" 
+DIT (regle) : La loi des sinus associe toujours chaque côté au sinus de l’angle opposé. On écrit donc a sur sinus A égal b sur sinus B.
+    write loi @cue:a_sur {"part":"ratioa"}
+    write loi @cue:b_sur {"part":"egal"}
+    write loi @cue:b_sur {"part":"ratiob"}
+    show iso @cue:loi_mot 
+DIT (isole) : Pour trouver b, on multiplie les deux côtés par sinus B. Les sinus B s’annulent à droite, et b vaut a fois sinus B divisé par sinus A.
+    dim tri @cue:trouver 
+    highlight loi @- {"start":"cue:trouver","end":"cue_end:annulent","role":"accent"}
+=== Tranche s_erreur
+  OBJET expression [math] "b=\\frac{10\\sin 60^\\circ}{\\sin 40^\\circ}" parts=b= | \frac{10\sin 60^\circ}{\sin 40^\circ}
+  OBJET calc [math] {"kind":"computed","expression_ref":"b_correct","template":"b = {value} cm","precision":2} 
+  OBJET wrong [math] {"kind":"computed","expression_ref":"b_inverse","template":"10 sin 40° ÷ sin 60° = {value} cm","precision":2} 
+  OBJET verif [text] "Le côté opposé à 60° doit être plus long que celui opposé à 40°"   <<JAMAIS MONTRÉ>>
+DIT (pose) : Attention au mode de la calculatrice : règle-la en degrés. On remplace a par dix, B par soixante degrés et A par quarante degrés.
+    dim loi @cue:remplace 
+    write expression @cue:remplace {"part":"b_part"}
+    write expression @cue:remplace {"part":"val_part"}
+DIT (erreur) : Ta valeur de sept virgule quarante-deux vient de dix fois sinus quarante divisé par sinus soixante : les sinus sont inversés. Ça donne environ sept virgule quarante-deux centimètres.
+    write wrong @cue:dixfois 
+    highlight wrong @- {"start":"cue:inverse","end":"cue_end:result_wrong","role":"unknown"}
+DIT (bonne) : Avec les sinus dans le bon ordre, dix fois sinus soixante divisé par sinus quarante donne environ onze virgule trois-deux centimètres.
+    write calc @cue:bon_ordre 
+    set_style calc @cue:resultat {"role":"result"}
+=== Tranche s_verification
+  OBJET compare [math] "40^\\circ < 60^\\circ \\quad\\Longrightarrow\\quad 10\\text{ cm} < b" parts=40^\circ < 60^\circ | \quad\Longrightarrow\quad | 10\text{ cm} < b
+DIT (ordre) : On vérifie avec la figure : soixante degrés est le plus grand angle, donc son côté opposé doit être plus long que dix centimètres. Sept virgule quarante-deux ne peut pas convenir.
+    write compare @cue:grand {"part":"angles"}
+    write compare @cue:long {"part":"implique"}
+    write compare @cue:long {"part":"cotes"}
+    highlight wrong @- {"start":"cue:pas","end":"cue_end:pas","role":"unknown"}
+DIT (conclusion) : La bonne réponse est b égal environ onze virgule trente-deux centimètres : le côté et le sinus doivent garder le même angle opposé.
+    highlight calc @- {"start":"cue:bonne_reponse","end":"cue_end:meme","role":"result"}
+    fade_out wrong @cue:meme 
+    fade_out compare @cue:meme 
+    fade_out verif @cue:meme 
+    fade_out expression @cue:meme 
+    fade_out tri @cue:meme 
+    fade_out loi @cue:meme 
+    fade_out iso @cue:meme 
+=== Tranche s_retenir
+  OBJET reglefinale [math] "b=a\\frac{\\sin B}{\\sin A}" 
+  OBJET ideefinale [text] "Associer chaque côté à son angle opposé" 
+DIT (idee) : À retenir : dans la loi des sinus, chaque côté reste associé à son angle opposé; ici b vaut environ onze virgule trente-deux centimètres.
+    write reglefinale @cue:retenir 
+    show ideefinale @cue:retenir 
+    highlight reglefinale @- {"start":"cue:resultat","end":"cue_end:resultat","role":"accent"}
+--- 5 tranches, 246 mots dits (≈ 1.6 min d'oral)

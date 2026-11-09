@@ -1,6 +1,11 @@
-import { Arrow, Circle, DashedLine, DashedVMobject, Dot, Line, MathTex, Polygon, Text, type MathTexOptions, type PolygonOptions } from "manim-web";
+import { Arrow, Circle, DashedLine, DashedVMobject, Dot, Line, MathTex, Polygon, Text, setMathJaxScriptUrl, type MathTexOptions, type PolygonOptions } from "manim-web";
 import { toLatex } from "@/domain/board/tex";
 import { BRAND } from "@/ui/theme";
+import { CHEM_MACROS, expandChemistry } from "./chemistry";
+
+// Formulas use manim-web's bundled MathJax. If it fails to load, manim-web would fetch a full
+// MathJax from a public CDN: the formula falls back to plain text instead. Throws once loading started.
+try { setMathJaxScriptUrl(null); } catch { /* already loading: the setting can no longer change */ }
 
 export type WorldPoint = [number, number, number];
 
@@ -47,11 +52,14 @@ export function boardText(text: string, color: string, fontSize: number, font: "
   });
 }
 
+/** Chemistry (`\ce{…}`) is converted to base LaTeX first: manim-web's MathJax has no mhchem. */
 export function boardFormula(text: string, options: Omit<MathTexOptions, "latex">) {
-  return new MathTex({ latex: toLatex(text), ...options });
+  return new MathTex({ latex: expandChemistry(toLatex(text)), ...options, macros: { ...CHEM_MACROS, ...options.macros } });
 }
 
 /** One layout for the whole formula, split into parts. A trailing space keeps `\alpha` + `b` from fusing. */
 export function boardFormulaParts(parts: readonly string[], options: Omit<MathTexOptions, "latex">) {
-  return new MathTex({ latex: parts.map((part) => `${toLatex(`$${part}$`)} `), ...options });
+  return new MathTex({
+    latex: parts.map((part) => `${expandChemistry(toLatex(`$${part}$`))} `), ...options, macros: { ...CHEM_MACROS, ...options.macros },
+  });
 }

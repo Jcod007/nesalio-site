@@ -1,0 +1,921 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "probabilite_equiprobable",
+  "title": "Pourquoi on obtient des huitièmes avec trois pièces",
+  "language": "fr",
+  "learning_goal": "Comprendre que la probabilité compte les cas favorables sur les cas possibles, seulement quand les cas sont équiprobables : les fameux huitièmes viennent de huit cas possibles avec trois pièces."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "t1",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "t2",
+     "params": {
+      "vertices": [
+       [
+        1.2,
+        0
+       ],
+       [
+        2.2,
+        0
+       ],
+       [
+        2.2,
+        1
+       ],
+       [
+        1.2,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "t3",
+     "params": {
+      "vertices": [
+       [
+        2.4,
+        0
+       ],
+       [
+        3.4,
+        0
+       ],
+       [
+        3.4,
+        1
+       ],
+       [
+        2.4,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "t4",
+     "params": {
+      "vertices": [
+       [
+        3.6,
+        0
+       ],
+       [
+        4.6,
+        0
+       ],
+       [
+        4.6,
+        1
+       ],
+       [
+        3.6,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "t5",
+     "params": {
+      "vertices": [
+       [
+        4.8,
+        0
+       ],
+       [
+        5.8,
+        0
+       ],
+       [
+        5.8,
+        1
+       ],
+       [
+        4.8,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "t6",
+     "params": {
+      "vertices": [
+       [
+        6,
+        0
+       ],
+       [
+        7,
+        0
+       ],
+       [
+        7,
+        1
+       ],
+       [
+        6,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "t7",
+     "params": {
+      "vertices": [
+       [
+        7.2,
+        0
+       ],
+       [
+        8.2,
+        0
+       ],
+       [
+        8.2,
+        1
+       ],
+       [
+        7.2,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "t8",
+     "params": {
+      "vertices": [
+       [
+        8.4,
+        0
+       ],
+       [
+        9.4,
+        0
+       ],
+       [
+        9.4,
+        1
+       ],
+       [
+        8.4,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab1",
+     "attachment": {
+      "parent": "t1",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "P F F",
+     "type": "label"
+    },
+    {
+     "id": "lab2",
+     "attachment": {
+      "parent": "t2",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "P P F",
+     "type": "label"
+    },
+    {
+     "id": "lab3",
+     "attachment": {
+      "parent": "t3",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "P F P",
+     "type": "label"
+    },
+    {
+     "id": "lab4",
+     "attachment": {
+      "parent": "t4",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "P P P",
+     "type": "label"
+    },
+    {
+     "id": "lab5",
+     "attachment": {
+      "parent": "t5",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "F P F",
+     "type": "label"
+    },
+    {
+     "id": "lab6",
+     "attachment": {
+      "parent": "t6",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "F P P",
+     "type": "label"
+    },
+    {
+     "id": "lab7",
+     "attachment": {
+      "parent": "t7",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "F F P",
+     "type": "label"
+    },
+    {
+     "id": "lab8",
+     "attachment": {
+      "parent": "t8",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "F F F",
+     "type": "label"
+    },
+    {
+     "id": "titre",
+     "content": "Les huit résultats possibles : P = pile, F = face",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Avec trois pièces de monnaie, il y a huit résultats possibles, pas trois. Regarde bien.",
+     "cues": [
+      {
+       "id": "c_huit",
+       "text": "huit résultats possibles"
+      },
+      {
+       "id": "c_trois",
+       "text": "trois pièces"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "s_t1",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "pace": "slow",
+       "target": "t1"
+      },
+      {
+       "id": "s_t2",
+       "verb": "show",
+       "at": "after:s_t1",
+       "target": "t2"
+      },
+      {
+       "id": "s_t3",
+       "verb": "show",
+       "at": "after:s_t2",
+       "target": "t3"
+      },
+      {
+       "id": "s_t4",
+       "verb": "show",
+       "at": "after:s_t3",
+       "target": "t4"
+      },
+      {
+       "id": "s_t5",
+       "verb": "show",
+       "at": "after:s_t4",
+       "target": "t5"
+      },
+      {
+       "id": "s_t6",
+       "verb": "show",
+       "at": "after:s_t5",
+       "target": "t6"
+      },
+      {
+       "id": "s_t7",
+       "verb": "show",
+       "at": "after:s_t6",
+       "target": "t7"
+      },
+      {
+       "id": "s_t8",
+       "verb": "show",
+       "at": "after:s_t7",
+       "target": "t8"
+      }
+     ],
+     "pause_after": "long"
+    },
+    {
+     "id": "compter",
+     "say": "Chaque case liste les trois pièces dans l'ordre. La première colonne, c'est la pièce un, ensuite la deux, puis la trois.",
+     "cues": [
+      {
+       "id": "c_chaque",
+       "text": "Chaque case"
+      },
+      {
+       "id": "c_ordre",
+       "text": "dans l'ordre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tous",
+       "verb": "highlight",
+       "start": "cue:c_chaque",
+       "end": "cue_end:c_ordre",
+       "target": "t1",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pourquoi_8",
+   "introduces": [
+    {
+     "id": "arbre",
+     "content": "2 \\times 2 \\times 2 = 8",
+     "parts": [
+      {
+       "id": "p1",
+       "text": "2"
+      },
+      {
+       "id": "p2",
+       "text": "\\times 2"
+      },
+      {
+       "id": "p3",
+       "text": "\\times 2"
+      },
+      {
+       "id": "p4",
+       "text": "= 8"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "arbre",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "P = \\frac{\\text{cas favorables}}{\\text{cas possibles}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "multiplication",
+     "say": "Pourquoi huit ? Parce que chaque pièce a deux choix : pile ou face. Et trois pièces, ça donne deux fois deux fois deux.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "chaque pièce a deux choix"
+      },
+      {
+       "id": "c_fois",
+       "text": "deux fois deux fois deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_titre",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "w_p1",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "arbre",
+       "part": "p1"
+      },
+      {
+       "id": "w_p2",
+       "verb": "write",
+       "at": "cue:c_fois",
+       "target": "arbre",
+       "part": "p2"
+      },
+      {
+       "id": "w_p3",
+       "verb": "write",
+       "at": "after:w_p2",
+       "target": "arbre",
+       "part": "p3"
+      },
+      {
+       "id": "w_p4",
+       "verb": "write",
+       "at": "after:w_p3",
+       "target": "arbre",
+       "part": "p4"
+      }
+     ]
+    },
+    {
+     "id": "formule",
+     "say": "Une probabilité, c'est toujours le nombre de cas favorables divisé par le nombre de cas possibles. Ici, les cas possibles, ce sont nos huit cases.",
+     "cues": [
+      {
+       "id": "c_favorable",
+       "text": "cas favorables"
+      },
+      {
+       "id": "c_possibles",
+       "text": "cas possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_t1",
+       "verb": "dim",
+       "at": "cue:c_favorable",
+       "target": "t1"
+      },
+      {
+       "id": "w_num",
+       "verb": "write",
+       "at": "cue:c_favorable",
+       "target": "regle"
+      },
+      {
+       "id": "w_den",
+       "verb": "highlight",
+       "at": "cue:c_possibles",
+       "target": "regle",
+       "role": "accent"
+      },
+      {
+       "id": "h_arbre",
+       "verb": "highlight",
+       "start": "cue:c_favorable",
+       "end": "cue_end:c_possibles",
+       "target": "arbre",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple_6_8",
+   "introduces": [
+    {
+     "id": "pcalc",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "P(\\text{au moins un pile}) = \\frac{6}{8}",
+     "parts": [
+      {
+       "id": "px",
+       "text": "P(\\text{au moins un pile})"
+      },
+      {
+       "id": "pval",
+       "text": "= \\frac{6}{8}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "v6",
+     "layout": {
+      "next_to": "t4",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "6 cas favorables",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Prenons l'événement au moins un pile. Regarde : sept de mes huit cases contiennent au moins un pile... non, attends, je recompte.",
+     "cues": [
+      {
+       "id": "c_au_moins",
+       "text": "au moins un pile"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_arbre",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "arbre"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regle"
+      },
+      {
+       "id": "show_t4",
+       "verb": "show",
+       "at": "cue:c_au_moins",
+       "target": "t4"
+      }
+     ]
+    },
+    {
+     "id": "recompte",
+     "say": "Correction : pile pile pile contient un pile, oui. Mais face face face n'en contient aucun. Donc sept cases sur huit, pas six.",
+     "cues": [
+      {
+       "id": "c_sept",
+       "text": "sept cases sur huit"
+      },
+      {
+       "id": "c_pas_six",
+       "text": "pas six"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_t8",
+       "verb": "highlight",
+       "start": "cue:c_sept",
+       "end": "cue_end:c_pas_six",
+       "target": "t8",
+       "role": "unknown"
+      },
+      {
+       "id": "h_t1b",
+       "verb": "highlight",
+       "at": "after:h_t8",
+       "target": "t1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "retiens",
+     "say": "Bref, si on te parle de six huitièmes, c'est que six des huit cases répondent à ta condition. Vérifie toujours quelle est la bonne condition avant de compter.",
+     "cues": [
+      {
+       "id": "c_six_huit",
+       "text": "six huitièmes"
+      },
+      {
+       "id": "c_condition",
+       "text": "bonne condition"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_t1",
+       "verb": "dim",
+       "at": "cue:c_six_huit",
+       "target": "t1"
+      },
+      {
+       "id": "dim_t8",
+       "verb": "dim",
+       "at": "cue:c_six_huit",
+       "target": "t8"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "synthese",
+     "content": "P = \\frac{\\text{favorables}}{\\text{possibles}} = \\frac{6}{8} \\text{ ou } \\frac{2}{8}",
+     "type": "math"
+    },
+    {
+     "id": "final",
+     "content": "Trois pièces → huit cas égaux : un dénominateur de 8.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "souviens",
+     "say": "Souviens-toi : le dénominateur huit, ce sont les huit résultats possibles des trois pièces. Le numérateur, c'est combien de ces huit résultats répondent à ta question.",
+     "cues": [
+      {
+       "id": "c_denom",
+       "text": "dénominateur huit"
+      },
+      {
+       "id": "c_numerateur",
+       "text": "numérateur"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sf",
+       "verb": "write",
+       "at": "cue:c_numerateur",
+       "target": "synthese"
+      },
+      {
+       "id": "w_sp",
+       "verb": "highlight",
+       "at": "cue:c_denom",
+       "target": "synthese",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "conclusion",
+     "say": "Alors les deux huitièmes et les six huitièmes s'expliquent parfaitement : ils comptent seulement des cases différentes parmi les mêmes huit.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux huitièmes"
+      },
+      {
+       "id": "c_huit_cases",
+       "text": "mêmes huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "show_final",
+       "verb": "show",
+       "at": "cue:c_huit_cases",
+       "target": "final"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_huit_cases",
+       "target": "synthese",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

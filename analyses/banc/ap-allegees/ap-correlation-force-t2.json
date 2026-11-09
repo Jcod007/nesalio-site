@@ -1,0 +1,1224 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "correlation_force",
+  "title": "Une corrélation est-elle faible ou forte ?",
+  "language": "fr",
+  "learning_goal": "Comprendre que |r| mesure la force du lien linéaire entre deux variables (r entre −1 et 1) et interpréter un nuage de points."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "txt_r",
+     "content": "r mesure la force d'un lien LINÉAIRE (entre −1 et 1)",
+     "type": "text"
+    },
+    {
+     "id": "txt_signe",
+     "layout": {
+      "next_to": "txt_r",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "le SIGNE : le sens · la GRANDEUR |r| : la force",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Une corrélation, faible ou forte, ça se lit sur un seul nombre : le coefficient r.",
+     "cues": [
+      {
+       "id": "c_r",
+       "text": "coefficient r"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_txt",
+       "verb": "show",
+       "at": "cue:c_r",
+       "target": "txt_r"
+      }
+     ]
+    },
+    {
+     "id": "deux",
+     "say": "Il te donne deux choses d'un coup : le signe, qui dit le sens du lien, et sa grandeur, qui dit la force.",
+     "cues": [
+      {
+       "id": "c_signe",
+       "text": "le signe"
+      },
+      {
+       "id": "c_grandeur",
+       "text": "sa grandeur"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_signe",
+       "verb": "show",
+       "at": "cue:c_signe",
+       "target": "txt_signe"
+      },
+      {
+       "id": "h_signe",
+       "verb": "highlight",
+       "start": "cue:c_grandeur",
+       "end": "cue_end:c_grandeur",
+       "target": "txt_signe",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_force",
+   "introduces": [
+    {
+     "id": "axes_fort",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "pts_fort",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "at": [
+       1,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pts2_fort",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "at": [
+       2,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pts3_fort",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "at": [
+       3,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pts4_fort",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "at": [
+       4,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pts5_fort",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "at": [
+       5,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pts6_fort",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "at": [
+       6,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pts7_fort",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "at": [
+       7,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "droite",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes_fort",
+     "params": {
+      "expression": "-0.64*x+8.14",
+      "domain": [
+       1,
+       7
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "lab_fort",
+     "layout": {
+      "next_to": "axes_fort",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "r ≈ −0,81 : lien linéaire négatif fort",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "nuage",
+     "say": "Regarde ce nuage de points. Les points collent assez bien à une droite qui descend.",
+     "cues": [
+      {
+       "id": "c_nuage",
+       "text": "nuage de points"
+      },
+      {
+       "id": "c_droite",
+       "text": "une droite qui descend"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes_fort"
+      },
+      {
+       "id": "s_pts",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "pts_fort"
+      },
+      {
+       "id": "s_pts2",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "pts2_fort"
+      },
+      {
+       "id": "s_pts3",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "pts3_fort"
+      },
+      {
+       "id": "s_pts4",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "pts4_fort"
+      },
+      {
+       "id": "s_pts5",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "pts5_fort"
+      },
+      {
+       "id": "s_pts6",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "pts6_fort"
+      },
+      {
+       "id": "s_pts7",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "pts7_fort"
+      },
+      {
+       "id": "d_droite",
+       "verb": "draw",
+       "start": "cue:c_droite",
+       "end": "cue_end:c_droite",
+       "target": "droite"
+      }
+     ]
+    },
+    {
+     "id": "valeur",
+     "say": "Pour ce nuage, r vaut environ moins zéro virgule huit un. C'est négatif, et la grandeur est proche de un : lien fort.",
+     "cues": [
+      {
+       "id": "c_vaut",
+       "text": "r vaut environ moins zéro virgule huit un"
+      },
+      {
+       "id": "c_fort",
+       "text": "lien fort"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "cue:c_vaut",
+       "target": "lab_fort"
+      },
+      {
+       "id": "h_lab",
+       "verb": "highlight",
+       "start": "cue:c_fort",
+       "end": "cue_end:c_fort",
+       "target": "lab_fort",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_reperes",
+   "introduces": [
+    {
+     "id": "axes_parf",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "p1",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "at": [
+       1,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "at": [
+       2,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "at": [
+       3,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "at": [
+       4,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "at": [
+       5,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p6",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "at": [
+       6,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p7",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "at": [
+       7,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "droite_parf",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes_parf",
+     "params": {
+      "expression": "8-x",
+      "domain": [
+       1,
+       7
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "lab_parf",
+     "layout": {
+      "next_to": "axes_parf",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "r = −1 : tous les points SUR la droite",
+     "type": "label"
+    },
+    {
+     "id": "axes_nul",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "q1",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_nul",
+     "params": {
+      "at": [
+       1,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q2",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_nul",
+     "params": {
+      "at": [
+       2,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q3",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_nul",
+     "params": {
+      "at": [
+       3,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q4",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_nul",
+     "params": {
+      "at": [
+       4,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q5",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_nul",
+     "params": {
+      "at": [
+       5,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q6",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_nul",
+     "params": {
+      "at": [
+       6,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q7",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes_nul",
+     "params": {
+      "at": [
+       7,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_nul",
+     "layout": {
+      "next_to": "axes_nul",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "r ≈ 0 : aucun lien linéaire",
+     "type": "label"
+    },
+    {
+     "id": "scale",
+     "params": {
+      "domain": [
+       -1,
+       1
+      ]
+     },
+     "type": "number_line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "parfait",
+     "say": "Voici deux repères extrêmes. Si les points sont parfaitement alignés sur une droite qui descend, r égale moins un : corrélation négative parfaite.",
+     "cues": [
+      {
+       "id": "c_parfait",
+       "text": "parfaitement alignés"
+      },
+      {
+       "id": "c_moinsun",
+       "text": "r égale moins un"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes_p",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "axes_parf"
+      },
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "p1"
+      },
+      {
+       "id": "s_p2",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "p2"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "p3"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "p4"
+      },
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "p5"
+      },
+      {
+       "id": "s_p6",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "p6"
+      },
+      {
+       "id": "s_p7",
+       "verb": "show",
+       "at": "cue:c_parfait",
+       "target": "p7"
+      },
+      {
+       "id": "d_parf",
+       "verb": "draw",
+       "start": "cue:c_parfait",
+       "end": "cue_end:c_moinsun",
+       "target": "droite_parf"
+      },
+      {
+       "id": "s_lab_p",
+       "verb": "show",
+       "at": "after:d_parf",
+       "target": "lab_parf"
+      }
+     ]
+    },
+    {
+     "id": "nul",
+     "say": "Tout à droite, les points partent dans tous les sens : aucun lien linéaire, r vaut environ zéro. Faible.",
+     "cues": [
+      {
+       "id": "c_toutsens",
+       "text": "dans tous les sens"
+      },
+      {
+       "id": "c_zero_r",
+       "text": "r vaut environ zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes_n",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "axes_nul"
+      },
+      {
+       "id": "s_q1",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "q1"
+      },
+      {
+       "id": "s_q2",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "q2"
+      },
+      {
+       "id": "s_q3",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "q3"
+      },
+      {
+       "id": "s_q4",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "q4"
+      },
+      {
+       "id": "s_q5",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "q5"
+      },
+      {
+       "id": "s_q6",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "q6"
+      },
+      {
+       "id": "s_q7",
+       "verb": "show",
+       "at": "cue:c_toutsens",
+       "target": "q7"
+      },
+      {
+       "id": "s_lab_n",
+       "verb": "show",
+       "at": "cue:c_zero_r",
+       "target": "lab_nul"
+      },
+      {
+       "id": "h_lab_n",
+       "verb": "highlight",
+       "start": "cue:c_zero_r",
+       "end": "cue_end:c_zero_r",
+       "target": "lab_nul",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "echelle",
+     "say": "Donc r se promène de moins un à un. Plus sa valeur absolue s'approche de un, plus le lien est fort ; près de zéro, il est faible.",
+     "cues": [
+      {
+       "id": "c_promene",
+       "text": "de moins un à un"
+      },
+      {
+       "id": "c_abs",
+       "text": "valeur absolue"
+      },
+      {
+       "id": "c_faible",
+       "text": "il est faible"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_scale",
+       "verb": "show",
+       "at": "cue:c_promene",
+       "target": "scale"
+      },
+      {
+       "id": "h_scale",
+       "verb": "highlight",
+       "start": "cue:c_abs",
+       "end": "cue_end:c_faible",
+       "target": "scale",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_causalite",
+   "introduces": [
+    {
+     "id": "txt_cause",
+     "content": "Corrélation ≠ causalité : la chaleur fait monter les deux",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "attention",
+     "say": "Attention à une piège classique : les ventes de crème glacée et les coups de soleil montent ensemble, mais l'un ne cause pas l'autre.",
+     "cues": [
+      {
+       "id": "c_piege",
+       "text": "piège classique"
+      },
+      {
+       "id": "c_cause",
+       "text": "ne cause pas l'autre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_fort",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes_fort"
+      },
+      {
+       "id": "f_lab_fort",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab_fort"
+      },
+      {
+       "id": "s_txt_cause",
+       "verb": "show",
+       "at": "cue:c_piege",
+       "target": "txt_cause"
+      }
+     ]
+    },
+    {
+     "id": "chaleur",
+     "say": "C'est la chaleur qui pousse les deux à la hausse. Une corrélation forte n'est donc pas une preuve de cause à effet.",
+     "cues": [
+      {
+       "id": "c_chaleur",
+       "text": "la chaleur"
+      },
+      {
+       "id": "c_preuve",
+       "text": "pas une preuve de cause à effet"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_cause",
+       "verb": "highlight",
+       "start": "cue:c_chaleur",
+       "end": "cue_end:c_preuve",
+       "target": "txt_cause",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "layout": {
+      "to_corner": "top_left"
+     },
+     "content": "-1 \\leq r \\leq 1",
+     "type": "math"
+    },
+    {
+     "id": "resume",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "|r| près de 1 : lien linéaire fort · |r| près de 0 : faible",
+     "type": "text"
+    },
+    {
+     "id": "sens",
+     "layout": {
+      "next_to": "resume",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "signe − : y descend quand x monte · signe + : y monte",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : r reste toujours entre moins un et un.",
+     "cues": [
+      {
+       "id": "c_entre",
+       "text": "entre moins un et un"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_parf",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes_parf"
+      },
+      {
+       "id": "f_lab_parf",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab_parf"
+      },
+      {
+       "id": "f_nul",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes_nul"
+      },
+      {
+       "id": "f_lab_nul",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab_nul"
+      },
+      {
+       "id": "f_scale",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "scale"
+      },
+      {
+       "id": "f_txt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "txt_r"
+      },
+      {
+       "id": "f_txt_signe",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "txt_signe"
+      },
+      {
+       "id": "f_txt_cause",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "txt_cause"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_entre",
+       "target": "regle"
+      }
+     ]
+    },
+    {
+     "id": "force",
+     "say": "Sa valeur absolue mesure la force : près de un, le lien est fort ; près de zéro, faible.",
+     "cues": [
+      {
+       "id": "c_mesure",
+       "text": "mesure la force"
+      },
+      {
+       "id": "c_presun",
+       "text": "près de un"
+      },
+      {
+       "id": "c_preszero",
+       "text": "près de zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_resume",
+       "verb": "show",
+       "at": "cue:c_mesure",
+       "target": "resume"
+      },
+      {
+       "id": "h_resume",
+       "verb": "highlight",
+       "start": "cue:c_presun",
+       "end": "cue_end:c_preszero",
+       "target": "resume",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "signe",
+     "say": "Et le signe te dit le sens : négatif, y descend quand x monte ; positif, y monte en même temps.",
+     "cues": [
+      {
+       "id": "c_sens",
+       "text": "le sens"
+      },
+      {
+       "id": "c_neg",
+       "text": "y descend quand x monte"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sens",
+       "verb": "show",
+       "at": "cue:c_sens",
+       "target": "sens"
+      },
+      {
+       "id": "h_sens",
+       "verb": "highlight",
+       "start": "cue:c_neg",
+       "end": "cue_end:c_neg",
+       "target": "sens",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

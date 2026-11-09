@@ -1,0 +1,61 @@
+QUESTION (carre, mathematiques, sec 4, sens) : Pourquoi (x + 5)² ce n'est pas x² + 25 ?
+RÉPONSE DE RÉFÉRENCE : (x + 5)² = x² + 10x + 25 : il manque les deux rectangles 5x.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. (x + 5)² = (x + 5)(x + 5), pas x² + 5²
+  2. modèle d'aire : carré x², deux rectangles 5x, carré 25
+  3. terme croisé 10x = 2 × 5x
+  4. résultat x² + 10x + 25 écrit
+  5. vérification numérique (ex. x = 1 : 36 ≠ 26)
+ERREURS GRAVES À CHERCHER : modèle d'aire mal découpé (pièces hors du grand carré)
+CONTRÔLE AUTOMATIQUE : réponse absente (10\s*x\s*\+\s*25) ; issue complète
+
+TITRE : Pourquoi (x + 5)² n'est pas x² + 25
+=== Tranche s_question
+  OBJET carre [polygon] {"vertices":[[0,0],[6,0],[6,6],[0,6]]} 
+  OBJET l_x [label] "x" attaché à carre
+  OBJET l_5 [label] "5" attaché à carre
+  OBJET pqx [math] "(x + 5)^2 = (x + 5)(x + 5)" parts=(x + 5)^2 | = (x + 5)(x + 5)
+DIT (intro) : Bonne question : on la regarde avec un dessin. Le carré de x plus cinq, c'est un grand carré dont le côté mesure x plus cinq.
+    draw carre @- {"start":"cue:c_carre","end":"cue_end:c_carre"}
+    show l_x @cue:c_cote 
+    show l_5 @cue:c_cote 
+DIT (ecrit) : Donc son aire est (x plus cinq) fois (x plus cinq).
+    write pqx @cue:c_aire {"part":"carre_m"}
+=== Tranche s_decoupe
+  OBJET pc_x2 [polygon] {"vertices":[[0,0],[3,0],[3,3],[0,3]]} 
+  OBJET pc_5x_a [polygon] {"vertices":[[3,0],[6,0],[6,3],[3,3]]} 
+  OBJET pc_5x_b [polygon] {"vertices":[[0,3],[3,3],[3,6],[0,6]]} 
+  OBJET pc_25 [polygon] {"vertices":[[3,3],[6,3],[6,6],[3,6]]} 
+  OBJET a_x2 [label] "x²" attaché à pc_x2
+  OBJET a_5x [label] "5x" attaché à pc_5x_a
+  OBJET a_5x2 [label] "5x" attaché à pc_5x_b
+  OBJET a_25 [label] "25" attaché à pc_25
+  OBJET dev [math] "x^2 + 5x + 5x + 25" parts=x^2 | + 5x | + 5x | + 25
+DIT (decoupe) : Découpons ce carré en quatre pièces. En haut à gauche, un carré de côté x : son aire est x au carré.
+    show pc_x2 @cue:c_decoupe 
+    show a_x2 @cue:c_x2 
+DIT (deux_5x) : Il reste deux rectangles de côtés x et cinq : chacun a une aire de cinq x. Il y en a deux, pas un seul.
+    show pc_5x_a @cue:c_rect 
+    show pc_5x_b @cue:c_rect 
+    show a_5x @cue:c_rect 
+    show a_5x2 @cue:c_rect 
+    highlight pc_5x_b @cue:c_deux {"role":"accent"}
+DIT (coin) : Enfin, le petit carré de côté cinq : son aire est vingt-cinq.
+    show pc_25 @cue:c_coin 
+    show a_25 @cue:c_vingt 
+=== Tranche s_reponse
+  OBJET ecart [text] "Il manque 10x : les deux pièces 5x" 
+DIT (somme) : L'aire totale est donc x au carré, plus cinq x, plus cinq x, plus vingt-cinq.
+    write dev @cue:c_somme {"part":"t1"}
+    write dev @cue:c_somme {"part":"t2"}
+    write dev @cue:c_somme {"part":"t3"}
+    write dev @cue:c_somme {"part":"t4"}
+DIT (reponse) : Donc ce qu'on oublie, ce sont les deux cinq x, qui font dix x. Le bon développement est x au carré, plus dix x, plus vingt-cinq.
+    highlight dev @- {"start":"cue:c_oublie","end":"cue_end:c_oublie","role":"result","part":"t2"}
+    show ecart @cue:c_dix 
+=== Tranche s_retenir
+  OBJET retenir [math] "(a + b)^2 = a^2 + 2ab + b^2" 
+DIT (retenir_b) : À retenir : le carré d'une somme, c'est le carré du premier, plus deux fois le produit, plus le carré du second.
+    fade_out carre @cue:c_retenir 
+    write retenir @cue:c_double 
+--- 4 tranches, 159 mots dits (≈ 1.1 min d'oral)

@@ -1,0 +1,111 @@
+QUESTION (mediatrice, mathematiques, sec 4, methode) : comment je trouve l'équation de la médiatrice du segment AB si A(1, 2) et B(5, 6) ?
+RÉPONSE DE RÉFÉRENCE : Milieu M(3, 4), pente perpendiculaire -1 : y = −x + 7.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. médiatrice = droite perpendiculaire au segment passant par son milieu, points équidistants de A et B (figure)
+  2. milieu M(3, 4)
+  3. pente de AB = 1, pente perpendiculaire = -1 (opposé de l'inverse, m1 × m2 = -1)
+  4. réponse y = -x + 7 écrite
+  5. vérification : M sur la droite, ou (0, 7) à √26 de A et de B
+ERREURS GRAVES À CHERCHER : droite tracée qui n'est pas perpendiculaire
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver l'équation de la médiatrice d'un segment
+=== Tranche s_idee
+  OBJET rep [axes] {"x":[-1,7],"y":[-1,8]} 
+  OBJET ptA [point] {"at":[1,2]} 
+  OBJET labA [label] "A(1 ; 2)" attaché à ptA
+  OBJET ptB [point] {"at":[5,6]} 
+  OBJET labB [label] "B(5 ; 6)" attaché à ptB
+  OBJET segAB [line] {"from":[1,2],"to":[5,6]} 
+DIT (pose) : Pour trouver la médiatrice du segment A B, je place d'abord mes deux points dans un repère.
+    show rep @beat:start 
+    show ptA @cue:c_A 
+    show labA @after:s_A 
+    show ptB @after:s_labA 
+    show labB @after:s_B 
+    draw segAB @after:s_labB 
+DIT (def) : La médiatrice, c'est la droite qui passe par le milieu du segment et qui lui est perpendiculaire.
+    highlight segAB @- {"start":"cue:c_milieu","end":"cue_end:c_milieu","role":"given"}
+=== Tranche s_milieu
+  OBJET ptM [point] {"at":[3,4]} 
+  OBJET labM [label] "M(3 ; 4)" attaché à ptM
+  OBJET calcM [math] "M = \\left( \\frac{1+5}{2} ; \\frac{2+6}{2} \\right) = (3 ; 4)" 
+DIT (xdu) : Pour le milieu, on fait la moyenne des x : un plus cinq sur deux, ça donne trois.
+    write calcM @cue:c_x 
+    highlight calcM @- {"start":"cue:c_x","end":"cue_end:c_x","role":"accent"}
+DIT (ydu) : Et la moyenne des y : deux plus six sur deux, ça donne quatre. Le milieu est donc M trois, quatre.
+    highlight calcM @cue:c_y {"role":"accent"}
+    highlight calcM @cue:c_quatre {"role":"accent"}
+    show ptM @cue:c_M 
+    show labM @after:s_M 
+=== Tranche s_pente
+  OBJET calculs [math] "m_{AB} = \\frac{6-2}{5-1} = \\frac{4}{4} = 1" 
+  OBJET tri [polygon] {"vertices":[[1,2],[5,2],[5,6]]} 
+  OBJET mc [math] "m_{med} = -1" 
+DIT (penteAB) : Maintenant la pente de A B : la montée sur l'avancée. De A à B, j'avance de quatre et je monte de quatre.
+    show tri @cue:c_penteAB 
+    write calculs @after:s_tri 
+    highlight calcM @cue:c_avance {"role":"neutral"}
+    highlight calculs @cue:c_monte {"role":"accent"}
+    highlight calculs @after:w_simpl {"role":"accent"}
+DIT (opposee) : La médiatrice est perpendiculaire : sa pente est l'opposée de l'inverse. L'inverse de un, c'est un, donc la pente devient moins un.
+    fade_out tri @cue:c_perp 
+    write mc @cue:c_moinsun 
+=== Tranche s_equation
+  OBJET eq [math] "y = -1x + b" 
+  OBJET repl [math] "4 = -1 \\times 3 + b" 
+  OBJET isol [math] "4 = -3 + b \\Rightarrow b = 7" parts=4 = -3 + b | \Rightarrow b = 7
+  OBJET eqf [math] "y = -x + 7" 
+  OBJET droite [function_graph] {"expression":"-x+7","domain":[-0.5,6]} 
+DIT (forme) : La médiatrice a donc la forme y égale moins un x plus b. Il reste à trouver b.
+    write eq @cue:c_forme 
+    highlight eq @cue:c_b {"role":"accent"}
+DIT (remplace) : La droite passe par le milieu M trois, quatre. Je remplace x par trois et y par quatre dans l'équation.
+    write repl @cue:c_remplace 
+DIT (isole) : Moins un fois trois, ça fait moins trois. J'ajoute trois des deux côtés pour garder l'égalité, et il reste b égale sept.
+    write isol @cue:c_moins3 
+    highlight isol @cue:c_sept {"role":"result","part":"isol_b"}
+DIT (equation) : L'équation de la médiatrice est donc y égale moins x plus sept. Je la trace dans mon repère.
+    fade_out eq @cue:c_finale 
+    fade_out repl @cue:c_finale 
+    fade_out isol @cue:c_finale 
+    fade_out calcM @cue:c_finale 
+    fade_out calculs @cue:c_finale 
+    fade_out mc @cue:c_finale 
+    write eqf @cue:c_finale 
+    draw droite @- {"start":"cue:c_trace","end":"cue_end:c_trace"}
+=== Tranche s_verif
+  OBJET ptP [point] {"at":[1,6]} 
+  OBJET labP [label] "P(1 ; 6)" attaché à ptP
+  OBJET segPA [line] {"from":[1,6],"to":[1,2]} 
+  OBJET segPB [line] {"from":[1,6],"to":[5,6]} 
+  OBJET verifM [math] "-1 \\times 3 + 7 = 4" 
+  OBJET verifP [math] "PA = 4 \\quad PB = 4" 
+DIT (verifM) : Vérifions le milieu : dans l'équation, moins un fois trois plus sept égale quatre. Oui, le point M est sur la droite.
+    write verifM @cue:c_vm 
+    highlight eqf @- {"start":"cue:c_oui","end":"cue_end:c_oui","role":"accent"}
+DIT (verifP) : Prenons un autre point de la médiatrice, P un, six. La distance de P à A vaut quatre, et de P à B vaut aussi quatre.
+    show ptP @cue:c_P 
+    show labP @after:s_P 
+    show segPA @cue:c_pa 
+    show segPB @cue:c_pb 
+    write verifP @cue:c_pb 
+DIT (conclusion) : Voilà pourquoi c'est la médiatrice : tous ses points sont à égale distance de A et de B.
+    highlight verifP @- {"start":"cue:c_egale","end":"cue_end:c_egale","role":"result"}
+=== Tranche s_retenir
+  OBJET recap [math] "m_{med} = -\\frac{1}{m_{AB}}" 
+  OBJET recap2 [math] "y = -x + 7" 
+  OBJET phrase [text] "Médiatrice : milieu + pente opposée inverse" 
+DIT (retenir) : À retenir : on trouve le milieu, puis la pente opposée inverse pour la perpendiculaire.
+    camera.focus  @cue:c_retenir {"targets":["rep","eqf","verifP","recap","recap2","phrase"],"bounds":"layout_bounds"}
+    fade_out verifM @cue:c_retenir 
+    fade_out segPA @cue:c_retenir 
+    fade_out segPB @cue:c_retenir 
+    fade_out ptP @cue:c_retenir 
+    fade_out labP @cue:c_retenir 
+    write recap @cue:c_inverse 
+DIT (derniere) : Dans notre exemple, ça donne y égale moins x plus sept. Et la droite passe bien par le milieu du segment.
+    write recap2 @cue:c_ex 
+    show phrase @after:w_recap2 
+    highlight ptM @- {"start":"cue:c_ex","end":"cue_end:c_ex","role":"accent"}
+--- 6 tranches, 298 mots dits (≈ 2.0 min d'oral)

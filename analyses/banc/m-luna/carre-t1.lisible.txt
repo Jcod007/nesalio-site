@@ -1,0 +1,84 @@
+QUESTION (carre, mathematiques, sec 4, sens) : Pourquoi (x + 5)² ce n'est pas x² + 25 ?
+RÉPONSE DE RÉFÉRENCE : (x + 5)² = x² + 10x + 25 : il manque les deux rectangles 5x.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. (x + 5)² = (x + 5)(x + 5), pas x² + 5²
+  2. modèle d'aire : carré x², deux rectangles 5x, carré 25
+  3. terme croisé 10x = 2 × 5x
+  4. résultat x² + 10x + 25 écrit
+  5. vérification numérique (ex. x = 1 : 36 ≠ 26)
+ERREURS GRAVES À CHERCHER : modèle d'aire mal découpé (pièces hors du grand carré)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi (x + 5)² contient un terme en x
+=== Tranche s_sens
+  OBJET question [math] "(x+5)^2" 
+  OBJET hypothese [math] "x^2+25" 
+DIT (lire) : Le carré de x plus cinq signifie que le binôme x plus cinq est multiplié par lui-même.
+    write question @cue:binome 
+DIT (comparer) : Écrire seulement x au carré plus vingt-cinq, c’est ne garder que les carrés des deux termes; il faut aussi compter leurs produits croisés.
+    write hypothese @cue:carres 
+    highlight hypothese @- {"start":"cue:produits","end":"cue_end:produits","role":"unknown"}
+=== Tranche s_aire
+  OBJET grand [polygon] {"vertices":[[0,0],[7,0],[7,7],[0,7]]} 
+  OBJET piece_x2 [polygon] {"vertices":[[0,0],[2,0],[2,2],[0,2]]} 
+  OBJET piece_x5a [polygon] {"vertices":[[2,0],[7,0],[7,2],[2,2]]} 
+  OBJET piece_x5b [polygon] {"vertices":[[0,2],[2,2],[2,7],[0,7]]} 
+  OBJET piece_25 [polygon] {"vertices":[[2,2],[7,2],[7,7],[2,7]]} 
+  OBJET lab_x2 [label] "x²" attaché à piece_x2
+  OBJET lab_x5a [label] "5x" attaché à piece_x5a
+  OBJET lab_x5b [label] "5x" attaché à piece_x5b
+  OBJET lab_25 [label] "25" attaché à piece_25
+DIT (dessiner) : Imagine un carré de côté x plus cinq, découpé en quatre morceaux : un carré x par x, deux rectangles x par cinq, et un carré cinq par cinq.
+    draw grand @cue:carre 
+    draw piece_x2 @cue:morceaux 
+    draw piece_x5a @cue:deux_rectangles 
+    draw piece_x5b @after:d_x5a 
+    draw piece_25 @after:d_x5b 
+    show lab_x2 @after:d_x2 
+    show lab_x5a @after:d_x5a 
+    show lab_x5b @after:d_x5b 
+    show lab_25 @after:d_25 
+DIT (compter) : Les deux rectangles ont chacun une aire de cinq x. Ensemble, ils donnent dix x; c’est le terme oublié dans x au carré plus vingt-cinq.
+    highlight piece_x5a @- {"start":"cue:chacun","end":"cue_end:ensemble","role":"accent"}
+    highlight piece_x5b @- {"start":"cue:ensemble","end":"cue_end:terme_oublie","role":"accent"}
+=== Tranche s_calcul
+  OBJET produit [math] "(x+5)^2=(x+5)(x+5)" parts=(x+5)^2 | =(x+5)(x+5)
+  OBJET developpement [math] "x^2+5x+5x+25" parts=x^2 | +5x | +5x | +25
+  OBJET reduit [math] "x^2+10x+25" parts=x^2 | +10x | +25
+DIT (ecrire_produit) : Pour développer, on remplace le carré par le binôme multiplié par lui-même.
+    write produit @cue:carre {"part":"facteur"}
+    write produit @cue:produit_meme {"part":"developpe"}
+DIT (multiplier) : On distribue chaque terme : x fois x donne x au carré, puis les deux produits croisés donnent chacun cinq x, et cinq fois cinq donne vingt-cinq.
+    transform developpement @cue:xcarre_dit {"source":"produit"}
+    highlight developpement @- {"start":"cue:croises","end":"cue_end:croises","role":"accent","part":"premier_croise"}
+    highlight developpement @- {"start":"cue:croises","end":"cue_end:croises","role":"accent","part":"second_croise"}
+DIT (reduire) : On additionne les termes semblables : cinq x plus cinq x font dix x. Donc le développement complet est x au carré plus dix x plus vingt-cinq.
+    transform reduit @cue:additionne {"source":"developpement"}
+    highlight reduit @- {"start":"cue:dixx_dit","end":"cue_end:complet","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "(a+b)^2=a^2+2ab+b^2" parts=(a+b)^2 | =a^2+2ab+b^2
+  OBJET application [math] "(x+5)^2=x^2+2(x)(5)+25=x^2+10x+25" 
+DIT (generaliser) : La règle générale confirme ce qu’on voit dans le carré : il y a deux produits croisés, regroupés en deux a b.
+    write regle @cue:regle_generale {"part":"gauche"}
+    write regle @cue:deuxab {"part":"droite"}
+DIT (appliquer) : Ici, a vaut x et b vaut cinq : le terme croisé devient deux fois x fois cinq, donc dix x.
+    write application @cue:a_x 
+    highlight application @- {"start":"cue:croise","end":"cue_end:dixx","role":"accent"}
+DIT (nettoyer) : Le modèle d’aire et les calculs montrent la même chose : les deux rectangles de cinq x ne disparaissent pas.
+    fade_out produit @cue:modele 
+    fade_out developpement @cue:modele 
+    fade_out grand @cue:modele 
+    fade_out piece_x2 @cue:modele 
+    fade_out piece_x5a @cue:modele 
+    fade_out piece_x5b @cue:modele 
+    fade_out piece_25 @cue:modele 
+    fade_out reduit @cue:modele 
+=== Tranche s_conclusion
+  OBJET idee [text] "Un carré de binôme contient deux produits croisés." 
+  OBJET formule_finale [math] "(x+5)^2=x^2+10x+25" 
+  GROUPE resume = idee, formule_finale
+DIT (retenir_final) : À retenir : le carré d’une somme contient les carrés des termes et deux produits croisés. Alors, x plus cinq au carré égale x au carré plus dix x plus vingt-cinq.
+    show idee @cue:produits_croises 
+    write formule_finale @cue:resultat 
+    highlight formule_finale @- {"start":"cue:resultat","end":"cue_end:resultat","role":"result"}
+--- 5 tranches, 254 mots dits (≈ 1.7 min d'oral)

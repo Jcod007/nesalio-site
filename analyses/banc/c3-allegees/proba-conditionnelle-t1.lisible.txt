@@ -1,0 +1,91 @@
+QUESTION (proba-conditionnelle, mathematiques, sec 5, sens) : pourquoi dans une probabilité conditionnelle on divise par P(B)? je comprends pas d'où ça sort
+RÉPONSE DE RÉFÉRENCE : P(A|B) = P(A∩B)/P(B), avec P(B) ≠ 0 ; exemple du dé (A pair, B > 3) : 2/3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. savoir que B s'est réalisé réduit l'univers à B, d'où la division par P(B)
+  2. P(A|B) = P(A∩B)/P(B) = part de B où A est aussi vrai, avec P(B) ≠ 0
+  3. exemple mené au résultat (dé : A pair, B > 3, P(A|B) = 2/3 = (2/6)/(3/6))
+  4. diagramme de Venn ou tableau à double entrée où l'univers rétrécit à B
+  5. P(A|B) distinguée de P(A∩B) et de P(B|A)
+ERREURS GRAVES À CHERCHER : figure dont les aires contredisent les probabilités dites ; confusion P(A|B) et P(A∩B)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi on divise par P(B) dans P(A | B)
+=== Tranche s_univers
+  OBJET c1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET c2 [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET c3 [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET c4 [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET c5 [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET c6 [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET l1 [label] "1" attaché à c1
+  OBJET l2 [label] "2" attaché à c2
+  OBJET l3 [label] "3" attaché à c3
+  OBJET l4 [label] "4" attaché à c4
+  OBJET l5 [label] "5" attaché à c5
+  OBJET l6 [label] "6" attaché à c6
+DIT (intro) : Bonne question : cette division sort directement du fait que savoir B change l'univers.
+    show c1 @beat:start 
+    draw c2 @beat:start 
+    draw c3 @beat:start 
+    draw c4 @beat:start 
+    draw c5 @beat:start 
+    draw c6 @beat:start 
+    show l1 @beat:start 
+    show l2 @beat:start 
+    show l3 @beat:start 
+    show l4 @beat:start 
+    show l5 @beat:start 
+    show l6 @beat:start 
+DIT (lancer) : On lance un dé. Chaque face est une issue équiprobable : six cas possibles, un sur six chacun.
+    highlight c1 @- {"start":"cue:c_six","end":"cue_end:c_six","role":"accent"}
+=== Tranche s_reduire
+  OBJET evB [math] "B : \\text{plus grand que } 3 = \\{4,\\,5,\\,6\\}" 
+  OBJET evA [math] "A : \\text{pair} = \\{2,\\,4,\\,6\\}" 
+DIT (evenements) : Prenons deux événements. A : le résultat est pair, donc deux, quatre ou six.
+    write evA @cue:c_pair 
+    dim c2 @cue:c_pairs 
+    dim c4 @cue:c_pairs 
+    dim c6 @cue:c_pairs 
+    set_style c2 @after:dim_c2 {"role":"accent"}
+    set_style c4 @after:dim_c4 {"role":"accent"}
+    set_style c6 @after:dim_c6 {"role":"accent"}
+DIT (B) : Et B : le résultat est plus grand que trois, donc quatre, cinq ou six.
+    write evB @cue:c_bmot 
+DIT (reduit) : Maintenant, quelqu'un te dit : B s'est produit. Tu sais que c'est quatre, cinq ou six. Les faces un, deux et trois sont éliminées.
+    fade_out c1 @cue:c_elim 
+    fade_out c2 @cue:c_elim 
+    fade_out c3 @cue:c_elim 
+    fade_out l1 @cue:c_elim 
+    fade_out l2 @cue:c_elim 
+    fade_out l3 @cue:c_elim 
+    fade_out evB @cue:c_elim 
+    fade_out evA @cue:c_elim 
+=== Tranche s_formule
+  OBJET nouveauTout [text] "B est le nouveau tout : 3 cases sur 6" 
+  OBJET partA [text] "A ∩ B : 2 cases sur 6" 
+  OBJET form [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" 
+  OBJET calc [math] "\\frac{2/6}{3/6} = \\frac{2}{3}" 
+DIT (nouveau) : Il ne reste que quatre, cinq et six. B devient le nouveau tout : trois cases au lieu de six.
+    show nouveauTout @cue:c_nouveau 
+DIT (part) : Dans ce nouveau tout, les cas favorables à A sont les pairs encore là : quatre et six, deux cases sur six.
+    show partA @cue:c_favorables 
+    highlight c4 @- {"start":"cue:c_favorables","end":"cue_end:c_favorables","role":"given"}
+    highlight c6 @- {"start":"cue:c_favorables","end":"cue_end:c_favorables","role":"given"}
+DIT (division) : La part de B où A est vrai, c'est deux sur six divisé par le tout de B, trois sur six. On divise par P de B pour ramener sur le nouveau tout.
+    write form @cue:c_part 
+    highlight form @cue:c_part {"role":"accent"}
+    highlight form @cue:c_divise {"role":"accent"}
+DIT (calcule) : On calcule : deux sixièmes sur trois sixièmes. Le six s'annule, il reste deux sur trois.
+    write calc @cue:c_deuxsix 
+    highlight calc @cue:c_troissix {"role":"accent"}
+    highlight calc @cue:c_reste {"role":"accent"}
+    highlight calc @after:w_res {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Savoir B réduit l'univers à B ; on divise par P(B) pour se replacer dans ce nouveau tout." 
+DIT (fin) : À retenir : connaître B réduit l'univers à B. Diviser par P de B, c'est juste replacer les cas favorables dans ce nouveau tout.
+    fade_out nouveauTout @cue:c_retenir 
+    fade_out partA @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["form","idee"]}
+    write idee @cue:c_tout 
+    highlight form @- {"start":"cue:c_b","end":"cue_end:c_b","role":"accent"}
+--- 4 tranches, 200 mots dits (≈ 1.3 min d'oral)

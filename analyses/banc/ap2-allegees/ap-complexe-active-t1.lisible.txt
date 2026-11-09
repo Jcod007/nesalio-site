@@ -1,0 +1,82 @@
+QUESTION (ap-complexe-active, chimie, sec 5, alloprof) : Soit le mécanisme suivant : 1 : H2(g) + I2(g) = H2I2(g) ΔH = +173 kJ 2 : H2I2(g) = 2 HI(g) ΔH = -183 kJ 3 : H2(g) + I2(g) = 2 HI(g) ΔH = -10 kJ Laquelle des molécules inscrites dans ces équations est le complexe activé (C.A.) ? Je sais que c'est H2I2(g), mais je comprend pas pourquoi
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi H₂I₂ est le complexe activé
+=== Tranche s_profil
+  OBJET diag [axes] {"x":[0,6],"y":[0,9]} 
+  OBJET niveau_reactifs [line] {"from":[0,4],"to":[2,4]} 
+  OBJET montee [line] {"from":[2,4],"to":[3,7]} 
+  OBJET sommet [point] {"at":[3,7]} 
+  OBJET label_ca [label] "H₂I₂" attaché à sommet
+  OBJET descente [line] {"from":[3,7],"to":[4,1]} 
+  OBJET niveau_produits [line] {"from":[4,1],"to":[6,1]} 
+  OBJET lab_reactifs [label] "H₂ + I₂" attaché à niveau_reactifs
+  OBJET lab_produits [label] "2 HI" attaché à niveau_produits
+  OBJET fleche_ea [arrow] {"from":[2,4],"to":[2,7]} 
+  OBJET lab_ea [label] "énergie d'activation" attaché à fleche_ea
+DIT (profil) : Pour comprendre, suis le chemin que les molécules font du début à la fin.
+    show diag @beat:start 
+    draw niveau_reactifs @- {"start":"cue:c_chemin","end":"cue_end:c_chemin"}
+    show lab_reactifs @after:d_reactifs 
+DIT (montee) : Au départ, on a H deux et I deux. Les liaisons doivent se casser : ça coûte de l'énergie, alors la courbe monte.
+    draw montee @- {"start":"cue:c_monte","end":"cue_end:c_monte"}
+    show fleche_ea @cue:c_coute 
+    show lab_ea @after:s_fleche_ea 
+DIT (sommet) : Tout en haut, les vieilles liaisons sont brisées, mais les nouvelles ne sont pas encore formées : c'est H deux I deux.
+    show sommet @cue:c_haut 
+    show label_ca @cue:c_h2i2 
+DIT (descente) : Ensuite les nouvelles liaisons se forment et libèrent de l'énergie : la courbe redescend vers les produits.
+    draw descente @- {"start":"cue:c_nouvelles","end":"cue_end:c_redescend"}
+    draw niveau_produits @- {"start":"cue:c_redescend","end":"cue_end:c_redescend"}
+    show lab_produits @after:d_produits 
+=== Tranche s_noms
+  OBJET def_ca [math] "E_{CA} = E_{réactifs} + E_{activation}" parts=E_{CA} | = | E_{réactifs} + E_{activation}
+  OBJET instable [text] "H₂I₂ : état intermédiaire instable" 
+DIT (nom) : Ce point au sommet porte deux noms : l'état de transition, ou le complexe activé.
+    highlight sommet @- {"start":"cue:c_sommet","end":"cue_end:c_sommet","role":"accent"}
+    highlight label_ca @- {"start":"cue:c_noms","end":"cue_end:c_noms","role":"accent"}
+    write def_ca @after:h_label {"part":"eca"}
+DIT (formule) : Son énergie, c'est celle des réactifs plus l'énergie d'activation qu'on vient de fournir.
+    write def_ca @cue:c_energie {"part":"egal"}
+    write def_ca @cue:c_activation {"part":"somme"}
+    highlight fleche_ea @- {"start":"cue:c_activation","end":"cue_end:c_activation","role":"accent"}
+DIT (pourquoi) : Si H deux I deux s'appelle complexe activé, c'est qu'il est instable : les liaisons y sont à moitié défaites, il ne peut pas rester là.
+    show instable @cue:c_instable 
+    move def_ca @cue:c_moitie {"to":{"to_corner":"top_right"}}
+    move instable @cue:c_moitie {"to":{"to_corner":"top_left"}}
+=== Tranche s_etapes
+  OBJET eq1 [math] "\\ce{H2(g) + I2(g) -> H2I2(g)} \\quad \\Delta H = +173\\ \\text{kJ}" 
+  OBJET eq2 [math] "\\ce{H2I2(g) -> 2 HI(g)} \\quad \\Delta H = -183\\ \\text{kJ}" 
+  OBJET eq3 [math] "\\ce{H2(g) + I2(g) -> 2 HI(g)} \\quad \\Delta H = -10\\ \\text{kJ}" 
+DIT (etape1) : Ton mécanisme donne les deux étapes. La première fabrique H deux I deux en absorbant cent soixante-treize kilojoules.
+    fade_out diag @cue:c_premiere 
+    fade_out def_ca @cue:c_premiere 
+    fade_out instable @cue:c_premiere 
+    write eq1 @cue:c_absorbe 
+DIT (etape2) : La deuxième décompose H deux I deux en deux HI en libérant cent quatre-vingt-trois kilojoules.
+    write eq2 @cue:c_lib 
+=== Tranche s_verifie
+  OBJET bilan [math] "\\ce{H2I2(g)} \\rightarrow \\ce{H2I2(g)}" 
+  OBJET somme_dh [math] "+173 + (-183) = -10\\ \\text{kJ}" 
+DIT (addition) : Additionne les deux étapes comme des égalités : H deux I deux apparaît d'un côté et de l'autre, il se simplifie.
+    write bilan @cue:c_additionne 
+    show eq3 @cue:c_apparait 
+DIT (somme) : Et si j'additionne les énergies, cent soixante-treize plus moins cent quatre-vingt-trois donne moins dix kilojoules, exactement le résultat de la troisième équation.
+    write somme_dh @cue:c_energies 
+    highlight eq3 @- {"start":"cue:c_moins_dix","end":"cue_end:c_moins_dix","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\text{C.A.} = \\text{sommet du diagramme, avant les produits}" 
+  OBJET cond [label] "il n'apparaît pas dans le bilan" attaché à regle
+DIT (retenir) : À retenir : le complexe activé, c'est le sommet du diagramme, l'espèce instable où les liaisons sont à moitié faites.
+    fade_out eq1 @cue:c_retenir 
+    fade_out eq2 @cue:c_retenir 
+    fade_out bilan @cue:c_retenir 
+    write regle @cue:c_sommet 
+DIT (invisible) : Voilà pourquoi H deux I deux n'apparaît jamais dans le bilan final : c'est un passage obligé, pas un produit.
+    fade_out somme_dh @cue:c_jamais 
+    show cond @cue:c_passage 
+    highlight regle @- {"start":"cue:c_passage","end":"cue_end:c_passage","role":"result"}
+--- 5 tranches, 246 mots dits (≈ 1.6 min d'oral)

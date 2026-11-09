@@ -1,0 +1,625 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "systeme_produit_somme",
+  "title": "Résoudre un système produit-somme par substitution",
+  "language": "fr",
+  "learning_goal": "Trouver x et y quand on connaît le produit et la somme de deux expressions, en posant u = y+3 et v = 7-x."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_poser",
+   "introduces": [
+    {
+     "id": "sys",
+     "content": "(y+3)(7-x)=32{,}8 \\quad ; \\quad 2(y+3)+2(7-x)=26{,}9",
+     "parts": [
+      {
+       "id": "eq1",
+       "text": "(y+3)(7-x)=32{,}8"
+      },
+      {
+       "id": "eq2",
+       "text": "\\quad ; \\quad 2(y+3)+2(7-x)=26{,}9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pose_u",
+     "content": "u = y+3",
+     "type": "math"
+    },
+    {
+     "id": "pose_v",
+     "content": "v = 7-x",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "lis",
+     "say": "On te donne deux équations : le produit de y plus trois et de sept moins x vaut trente-deux virgule huit. Et deux fois y plus trois, plus deux fois sept moins x, vaut vingt-six virgule neuf.",
+     "cues": [
+      {
+       "id": "m_prod",
+       "text": "le produit"
+      },
+      {
+       "id": "m_som",
+       "text": "vingt-six virgule neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq1",
+       "verb": "write",
+       "at": "cue:m_prod",
+       "target": "sys",
+       "part": "eq1"
+      },
+      {
+       "id": "w_eq2",
+       "verb": "write",
+       "at": "cue:m_som",
+       "target": "sys",
+       "part": "eq2"
+      }
+     ]
+    },
+    {
+     "id": "astuce",
+     "say": "L'astuce, c'est de remarquer que le bloc y plus trois revient dans les deux équations. Appelons-le u, et appelons v le bloc sept moins x.",
+     "cues": [
+      {
+       "id": "m_bloc",
+       "text": "y plus trois revient"
+      },
+      {
+       "id": "m_u",
+       "text": "Appelons-le u"
+      },
+      {
+       "id": "m_v",
+       "text": "sept moins x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_u",
+       "verb": "write",
+       "at": "cue:m_u",
+       "target": "pose_u"
+      },
+      {
+       "id": "w_v",
+       "verb": "write",
+       "at": "cue:m_v",
+       "target": "pose_v"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resoudre",
+   "introduces": [
+    {
+     "id": "sys_uv",
+     "content": "uv = 32{,}8 \\quad ; \\quad u+v = 13{,}45",
+     "parts": [
+      {
+       "id": "p_uv",
+       "text": "uv = 32{,}8"
+      },
+      {
+       "id": "p_uv_somme",
+       "text": "\\quad ; \\quad u+v = 13{,}45"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "carre",
+     "content": "(u-v)^2 = (u+v)^2 - 4uv = 181{,}0225 - 131{,}2 = 49{,}8225",
+     "parts": [
+      {
+       "id": "c_formule",
+       "text": "(u-v)^2 = (u+v)^2 - 4uv"
+      },
+      {
+       "id": "c_sub",
+       "text": "= 181{,}0225 - 131{,}2"
+      },
+      {
+       "id": "c_res",
+       "text": "= 49{,}8225"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "racine",
+     "content": "u-v = \\sqrt{49{,}8225} \\approx 7{,}0585",
+     "parts": [
+      {
+       "id": "r_g",
+       "text": "u-v = \\sqrt{49{,}8225}"
+      },
+      {
+       "id": "r_d",
+       "text": "\\approx 7{,}0585"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "valeurs",
+     "content": "u = \\frac{13{,}45+7{,}0585}{2} \\approx 10{,}2543 \\quad ; \\quad v = \\frac{13{,}45-7{,}0585}{2} = 3{,}19575",
+     "parts": [
+      {
+       "id": "v_u",
+       "text": "u = \\frac{13{,}45+7{,}0585}{2} \\approx 10{,}2543"
+      },
+      {
+       "id": "v_v",
+       "text": "\\quad ; \\quad v = \\frac{13{,}45-7{,}0585}{2} = 3{,}19575"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "simplifie",
+     "say": "Avec ces noms, la première équation devient u fois v égale trente-deux virgule huit. La deuxième, deux u plus deux v, c'est deux fois la somme u plus v : donc u plus v vaut vingt-six virgule neuf divisé par deux, soit treize virgule quarante-cinq.",
+     "cues": [
+      {
+       "id": "s_prod",
+       "text": "u fois v"
+      },
+      {
+       "id": "s_cinq",
+       "text": "treize virgule quarante-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_uv",
+       "verb": "write",
+       "at": "cue:s_prod",
+       "target": "sys_uv",
+       "part": "p_uv"
+      },
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:s_cinq",
+       "target": "sys_uv",
+       "part": "p_uv_somme"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "On a donc le produit et la somme de u et v. La ruse, c'est de considérer u moins v au carré : par l'identité, ça vaut la somme au carré moins quatre fois le produit. Cent quatre-vingt-un virgule zéro deux deux cinq moins cent trente et un virgule deux, ça fait quarante-neuf virgule huit deux deux cinq.",
+     "cues": [
+      {
+       "id": "c_ru",
+       "text": "u moins v au carré"
+      },
+      {
+       "id": "c_ident",
+       "text": "la somme au carré moins quatre fois le produit"
+      },
+      {
+       "id": "c_neuf",
+       "text": "quarante-neuf virgule huit deux deux cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_eq",
+       "verb": "dim",
+       "at": "cue:c_ru",
+       "target": "sys"
+      },
+      {
+       "id": "d_u",
+       "verb": "dim",
+       "at": "cue:c_ru",
+       "target": "pose_u"
+      },
+      {
+       "id": "d_v",
+       "verb": "dim",
+       "at": "cue:c_ru",
+       "target": "pose_v"
+      },
+      {
+       "id": "w_form",
+       "verb": "write",
+       "at": "cue:c_ident",
+       "target": "carre",
+       "part": "c_formule"
+      },
+      {
+       "id": "w_sub",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "carre",
+       "part": "c_sub"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "after:w_sub",
+       "target": "carre",
+       "part": "c_res"
+      }
+     ]
+    },
+    {
+     "id": "racine",
+     "say": "Alors u moins v vaut la racine carrée de quarante-neuf virgule huit deux deux cinq, soit environ sept virgule zéro cinq huit cinq.",
+     "cues": [
+      {
+       "id": "c_rac",
+       "text": "racine carrée de quarante-neuf virgule huit deux deux cinq"
+      },
+      {
+       "id": "c_env",
+       "text": "environ sept virgule zéro cinq huit cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rg",
+       "verb": "write",
+       "at": "cue:c_rac",
+       "target": "racine",
+       "part": "r_g"
+      },
+      {
+       "id": "w_rd",
+       "verb": "write",
+       "at": "cue:c_env",
+       "target": "racine",
+       "part": "r_d"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "trouve",
+     "say": "Il ne reste qu'à combiner : u est la somme plus la différence divisée par deux, ça donne environ dix virgule deux cinq quatre trois. Et v est la somme moins la différence divisée par deux, ça donne trois virgule un neuf cinq sept cinq.",
+     "cues": [
+      {
+       "id": "c_vu",
+       "text": "dix virgule deux cinq quatre trois"
+      },
+      {
+       "id": "c_vv",
+       "text": "trois virgule un neuf cinq sept cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_vu",
+       "verb": "write",
+       "at": "cue:c_vu",
+       "target": "valeurs",
+       "part": "v_u"
+      },
+      {
+       "id": "w_vv",
+       "verb": "write",
+       "at": "cue:c_vv",
+       "target": "valeurs",
+       "part": "v_v"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_xy",
+   "introduces": [
+    {
+     "id": "res_y",
+     "content": "u = y+3 \\Rightarrow y = u-3 = 10{,}2543 - 3 = 7{,}2543",
+     "parts": [
+      {
+       "id": "y_def",
+       "text": "u = y+3 \\Rightarrow y = u-3"
+      },
+      {
+       "id": "y_val",
+       "text": "= 10{,}2543 - 3 = 7{,}2543"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res_x",
+     "content": "v = 7-x \\Rightarrow x = 7-v = 7 - 3{,}19575 = 3{,}80425",
+     "parts": [
+      {
+       "id": "x_def",
+       "text": "v = 7-x \\Rightarrow x = 7-v"
+      },
+      {
+       "id": "x_val",
+       "text": "= 7 - 3{,}19575 = 3{,}80425"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isole_y",
+     "say": "Reprenons nos définitions pour retrouver les vraies inconnues. u valait y plus trois : donc y égale u moins trois, soit dix virgule deux cinq quatre trois moins trois, ce qui donne sept virgule deux cinq quatre trois.",
+     "cues": [
+      {
+       "id": "c_y",
+       "text": "y égale u moins trois"
+      },
+      {
+       "id": "c_yval",
+       "text": "sept virgule deux cinq quatre trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_val",
+       "verb": "dim",
+       "at": "cue:c_y",
+       "target": "valeurs"
+      },
+      {
+       "id": "w_yd",
+       "verb": "write",
+       "at": "cue:c_y",
+       "target": "res_y",
+       "part": "y_def"
+      },
+      {
+       "id": "w_yv",
+       "verb": "write",
+       "at": "cue:c_yval",
+       "target": "res_y",
+       "part": "y_val"
+      }
+     ]
+    },
+    {
+     "id": "isole_x",
+     "say": "Puis v valait sept moins x : donc x égale sept moins v, c'est-à-dire sept moins trois virgule un neuf cinq sept cinq, ce qui donne trois virgule huit zéro quatre deux cinq.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "x égale sept moins v"
+      },
+      {
+       "id": "c_xval",
+       "text": "trois virgule huit zéro quatre deux cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_xd",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "res_x",
+       "part": "x_def"
+      },
+      {
+       "id": "w_xv",
+       "verb": "write",
+       "at": "cue:c_xval",
+       "target": "res_x",
+       "part": "x_val"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

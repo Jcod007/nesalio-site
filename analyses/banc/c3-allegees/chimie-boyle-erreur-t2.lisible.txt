@@ -1,0 +1,98 @@
+QUESTION (chimie-boyle-erreur, chimie, sec 5, erreur) : un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L
+RÉPONSE DE RÉFÉRENCE : P₁V₁ = P₂V₂ : V₂ = 100 × 2,0 / 250 = 0,80 L ; 5 L est impossible (la pression augmente, le volume diminue).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. à température constante, pression et volume sont inversement proportionnels : P₁V₁ = P₂V₂
+  2. diagnostic : 5 L vient du rapport des pressions inversé ; comprimer ne peut pas augmenter le volume
+  3. V₂ = 100 × 2,0 / 250 = 0,80 L écrit
+  4. explication particulaire : moins d'espace, plus de collisions sur les parois
+  5. valorisé : graphique P en fonction de V (hyperbole)
+ERREURS GRAVES À CHERCHER : volume qui augmente avec la pression ; relation dite proportionnelle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Gaz comprimé : pourquoi le volume diminue
+math_context : {"symbols":{},"expressions":{"p1":"100*2.0","v2":"100*2.0/250"}}
+=== Tranche s_sens
+  OBJET piston1 [polygon] {"vertices":[[0,0],[4,0],[4,3],[0,3]]} 
+  OBJET gaz [polygon] {"vertices":[[0.3,0.3],[1.9,0.3],[1.9,2.7],[0.3,2.7]]} 
+  OBJET piston2 [polygon] {"vertices":[[7,0],[11,0],[11,3],[7,3]]} 
+  OBJET gaz2 [polygon] {"vertices":[[7.3,0.3],[8.3,0.3],[8.3,2.7],[7.3,2.7]]} 
+  OBJET lbl1 [label] "2,0 L" attaché à gaz
+  OBJET lbl2 [label] "0,80 L" attaché à gaz2
+  OBJET note_sens [text] "Comprimer : moins de place, plus de chocs" 
+DIT (intro) : Bonne idée d'utiliser une loi des gaz, mais vérifions d'abord le sens de ta réponse.
+    draw piston1 @beat:start 
+    show gaz @beat:start 
+    show lbl1 @beat:start 
+    draw piston2 @beat:start 
+    show gaz2 @beat:start 
+    show lbl2 @beat:start 
+    show note_sens @beat:start 
+DIT (verif) : Quand tu comprimes un gaz, tu lui donnes moins de place : le volume doit diminuer, pas grossir. Cinq litres, c'est plus grand que deux litres, donc ça ne peut pas être ça.
+    highlight gaz @- {"start":"cue:diminue","end":"cue_end:diminue","role":"accent"}
+    highlight lbl2 @after:h_gaz {"role":"result"}
+    highlight lbl1 @- {"start":"cue:cinq","end":"cue_end:grand","role":"unknown"}
+=== Tranche s_loi
+  OBJET loi [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = | p_2 V_2
+  OBJET cond [label] "si n et T sont constants" attaché à loi
+  OBJET donnees [math] "100 \\times 2{,}0 = 250 \\times V_2" parts=100 \times 2{,}0 | = 250 \times V_2
+DIT (enonce) : La loi qui s'applique ici, c'est la loi de Boyle-Mariotte : à température constante, la pression fois le volume au départ égale la pression fois le volume à la fin.
+    fade_out note_sens @beat:start 
+    write loi @cue:boyle {"part":"membre1"}
+    write loi @cue:boyle {"part":"egal"}
+    write loi @cue:pression {"part":"membre2"}
+    show cond @after:w_m2 
+DIT (remplace) : Tu as deux données : cent kilopascals et deux litres au début, deux cent cinquante kilopascals à la fin. Il ne reste que le volume final comme inconnue.
+    write donnees @cue:deuxl {"part":"d1"}
+    write donnees @cue:kpakfin {"part":"d2"}
+=== Tranche s_resoudre
+  OBJET produit [math] "200 = 250 \\times V_2" 
+  OBJET isole [math] "V_2 = \\frac{200}{250}" 
+  OBJET res [math] "V_2 = 0{,}80 \\text{ L}" 
+DIT (calcul) : Cent fois deux, ça donne deux cents. Donc deux cents égale deux cent cinquante fois V deux.
+    transform produit @cue:deuxcents {"source":"donnees"}
+DIT (divise) : Pour isoler V deux, on divise les deux côtés par deux cent cinquante. Deux cents divisé par deux cent cinquante.
+    transform isole @cue:divise {"source":"produit"}
+DIT (resultat) : Ça fait zéro virgule quatre-vingts. Le volume final est de zéro virgule quatre-vingts litre.
+    transform res @cue:final {"source":"isole"}
+    highlight res @after:t_r {"role":"result"}
+=== Tranche s_retenir
+  OBJET axe_x [label] "pression (kPa)" 
+  OBJET courbe [function_graph] {"expression":"200/x","domain":[60,320]} 
+  OBJET graph [axes] {"x":[0,320],"y":[0,5]} 
+  OBJET pt1 [point] {"at":[100,2]} 
+  OBJET pt1l [label] "(100 ; 2,0)" attaché à pt1
+  OBJET pt2 [point] {"at":[250,0.8]} 
+  OBJET pt2l [label] "(250 ; 0,80)" attaché à pt2
+  OBJET idee [text] "Pression et volume varient en sens inverse" 
+DIT (graphe) : Si on trace le volume selon la pression, on voit une courbe qui descend : quand la pression augmente, le volume diminue.
+    fade_out piston1 @beat:start 
+    fade_out lbl1 @beat:start 
+    fade_out piston2 @beat:start 
+    fade_out lbl2 @beat:start 
+    show graph @beat:start 
+    show axe_x @beat:start 
+    draw courbe @- {"start":"cue:courbe_baisse","end":"cue_end:augmente"}
+DIT (points) : Nos deux valeurs sont là-dessus : le point à cent kilopascals donne deux litres, et à deux cent cinquante kilopascals, il reste zéro virgule quatre-vingts litre.
+    show pt1 @cue:pointc 
+    show pt1l @cue:pointc 
+    show pt2 @cue:pointfin 
+    show pt2l @cue:pointfin 
+DIT (retenir) : À retenir : dans une compression à température constante, le volume est multiplié par le rapport inverse des pressions. Ici, cent sur deux cent cinquante, ça fait zéro virgule quatre-vingts fois deux litres.
+    show idee @cue:inverse 
+    highlight courbe @- {"start":"cue:inverse","end":"cue_end:inverse","role":"accent"}
+=== Tranche s_recap
+  OBJET regle [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2
+  OBJET rep [text] "Sens inverse : plus de pression, moins de volume" 
+  OBJET final [math] "V_2 = 0{,}80 \\text{ L}" 
+DIT (dire) : En résumé : cent kilopascals fois deux litres égale deux cent cinquante kilopascals fois V deux. Tu multiplies les données du début et tu divises par la pression finale.
+    remove loi @beat:start 
+    remove cond @beat:start 
+    remove res @beat:start 
+    write regle @beat:start {"part":"g1"}
+    write regle @cue:egal {"part":"g2"}
+DIT (garde) : Et le résultat, c'est que le gaz occupe zéro virgule quatre-vingts litre. Un gaz comprimé prend moins de place : c'est ça, la loi de Boyle-Mariotte.
+    write final @cue:quatre_vingts 
+    show rep @after:s_final 
+    highlight final @after:s_rep {"role":"result"}
+    camera.focus  @beat:start {"targets":["regle","final","rep"],"bounds":"layout_bounds"}
+--- 5 tranches, 293 mots dits (≈ 2.0 min d'oral)

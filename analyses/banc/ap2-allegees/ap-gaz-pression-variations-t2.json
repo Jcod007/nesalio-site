@@ -1,0 +1,1003 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "lois_gaz_combinees",
+  "title": "Pression, volume et température : les lois des gaz",
+  "language": "fr",
+  "learning_goal": "Utiliser la loi générale des gaz p₁V₁/(n₁T₁) = p₂V₂/(n₂T₂) et le volume molaire pour prévoir la pression quand volume et température changent."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "vol_mol": "20/22.4",
+    "p_avant": "1"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_boyle",
+   "introduces": [
+    {
+     "id": "axes_pv",
+     "params": {
+      "x": [
+       0,
+       3.5
+      ],
+      "y": [
+       0,
+       5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe_pv",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2/x",
+      "domain": [
+       0.4,
+       3.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "lab_p",
+     "attachment": {
+      "parent": "axes_pv",
+      "anchor": "bottom"
+     },
+     "content": "pression (centaines de kPa)",
+     "type": "label"
+    },
+    {
+     "id": "lab_v",
+     "attachment": {
+      "parent": "axes_pv",
+      "anchor": "left"
+     },
+     "content": "volume (L)",
+     "type": "label"
+    },
+    {
+     "id": "pt1",
+     "frame": "axes_pv",
+     "params": {
+      "at": [
+       1,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt1_lab",
+     "attachment": {
+      "parent": "pt1",
+      "anchor": "right"
+     },
+     "content": "(1 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "pt2",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes_pv",
+     "params": {
+      "at": [
+       2.5,
+       0.8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt2_lab",
+     "attachment": {
+      "parent": "pt2",
+      "anchor": "right"
+     },
+     "content": "(2,5 ; 0,8)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Trois questions, une seule idée : la loi générale des gaz. Commençons par voir ce qui arrive quand on comprime un gaz.",
+     "cues": [],
+     "do": [
+      {
+       "id": "c_axes",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes_pv"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_pv"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes_pv"
+      },
+      {
+       "id": "s_labp",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_p"
+      },
+      {
+       "id": "s_labv",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_v"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "trace",
+     "say": "Voici la courbe pression-volume : si le volume baisse, la pression monte. Elles varient en sens inverse.",
+     "cues": [
+      {
+       "id": "c_courbe",
+       "text": "courbe pression-volume"
+      },
+      {
+       "id": "c_inverse",
+       "text": "sens inverse"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_courbe",
+       "end": "cue_end:c_inverse",
+       "target": "courbe_pv"
+      }
+     ]
+    },
+    {
+     "id": "points",
+     "say": "Sur la courbe, quand le volume est deux litres, la pression vaut cent kilopascals. Si on réduit le volume à huit dixièmes de litre, la pression grimpe à deux cent cinquante kilopascals.",
+     "cues": [
+      {
+       "id": "c_pt1",
+       "text": "deux litres"
+      },
+      {
+       "id": "c_pt2",
+       "text": "huit dixièmes de litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt1",
+       "verb": "show",
+       "at": "cue:c_pt1",
+       "target": "pt1"
+      },
+      {
+       "id": "s_pt1l",
+       "verb": "show",
+       "at": "cue:c_pt1",
+       "target": "pt1_lab"
+      },
+      {
+       "id": "s_pt2",
+       "verb": "show",
+       "at": "cue:c_pt2",
+       "target": "pt2"
+      },
+      {
+       "id": "s_pt2l",
+       "verb": "show",
+       "at": "cue:c_pt2",
+       "target": "pt2_lab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi_generale",
+   "introduces": [
+    {
+     "id": "loi_gen",
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{p_1 V_1}{n_1 T_1}"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "\\frac{p_2 V_2}{n_2 T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_const",
+     "layout": {
+      "next_to": "loi_gen",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n constant : on le raye",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Toutes les lois des gaz sortent d'une seule relation, la loi générale. Tu y retrouves p, V, n et T des deux côtés.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "loi générale"
+      },
+      {
+       "id": "c_pvnt",
+       "text": "p, V, n et T"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_courbe",
+       "verb": "fade_out",
+       "at": "cue:c_loi",
+       "target": "courbe_pv"
+      },
+      {
+       "id": "f_pt1",
+       "verb": "fade_out",
+       "at": "cue:c_loi",
+       "target": "pt1"
+      },
+      {
+       "id": "f_pt2",
+       "verb": "fade_out",
+       "at": "cue:c_loi",
+       "target": "pt2"
+      },
+      {
+       "id": "w_gen",
+       "verb": "write",
+       "at": "cue:c_pvnt",
+       "target": "loi_gen"
+      },
+      {
+       "id": "h_gen",
+       "verb": "highlight",
+       "start": "cue:c_pvnt",
+       "end": "cue_end:c_pvnt",
+       "target": "loi_gen",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "rayer",
+     "say": "Quand la quantité de gaz ne change pas, les deux n sont égaux : on les raye, il reste p un V un sur T un égale p deux V deux sur T deux.",
+     "cues": [
+      {
+       "id": "c_raye",
+       "text": "on les raye"
+      },
+      {
+       "id": "c_reste",
+       "text": "il reste"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_raye",
+       "target": "note_const"
+      },
+      {
+       "id": "d_axes",
+       "verb": "dim",
+       "at": "cue:c_reste",
+       "target": "axes_pv"
+      },
+      {
+       "id": "d_labp",
+       "verb": "dim",
+       "at": "cue:c_reste",
+       "target": "lab_p"
+      },
+      {
+       "id": "d_labv",
+       "verb": "dim",
+       "at": "cue:c_reste",
+       "target": "lab_v"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_q1_q3",
+   "introduces": [
+    {
+     "id": "cas1",
+     "content": "p_2 = p_1 \\times \\frac{V_1}{V_2} \\times \\frac{T_2}{T_1} = p_1 \\times \\frac{1}{2} \\times 2 = p_1",
+     "parts": [
+      {
+       "id": "prod",
+       "text": "p_2 = p_1 \\times \\frac{V_1}{V_2} \\times \\frac{T_2}{T_1}"
+      },
+      {
+       "id": "num1",
+       "text": "= p_1 \\times \\frac{1}{2} \\times 2"
+      },
+      {
+       "id": "res1",
+       "text": "= p_1"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res1_txt",
+     "layout": {
+      "next_to": "cas1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "La pression ne change pas.",
+     "type": "text"
+    },
+    {
+     "id": "cas2",
+     "layout": {
+      "next_to": "res1_txt",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "p_2 = p_1 \\times \\frac{2}{2} = p_1",
+     "type": "math"
+    },
+    {
+     "id": "verif1",
+     "attachment": {
+      "parent": "cas1",
+      "anchor": "right"
+     },
+     "content": "Vérif : 1/2 × 2 = 1 ✓",
+     "type": "label"
+    },
+    {
+     "id": "verif2",
+     "attachment": {
+      "parent": "cas2",
+      "anchor": "right"
+     },
+     "content": "Vérif : 2/2 = 1 ✓",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "quest1",
+     "say": "Première question : volume réduit de moitié, température absolue doublée. On isole p deux : chaque facteur qui monte va au numérateur, chaque facteur qui baisse va au dénominateur.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "On isole p deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_isole",
+       "target": "note_const"
+      },
+      {
+       "id": "w_prod",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "cas1",
+       "part": "prod"
+      }
+     ]
+    },
+    {
+     "id": "calcul1",
+     "say": "Volume divisé par deux donne le facteur un demi ; température doublée donne le facteur deux. Un demi fois deux, ça fait un : la pression reste la même.",
+     "cues": [
+      {
+       "id": "c_un_demi",
+       "text": "un demi"
+      },
+      {
+       "id": "c_fois_deux",
+       "text": "fois deux"
+      },
+      {
+       "id": "c_meme",
+       "text": "reste la même"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_num1",
+       "verb": "write",
+       "at": "cue:c_un_demi",
+       "target": "cas1",
+       "part": "num1"
+      },
+      {
+       "id": "w_res1",
+       "verb": "write",
+       "at": "cue:c_meme",
+       "target": "cas1",
+       "part": "res1"
+      },
+      {
+       "id": "s_v1",
+       "verb": "show",
+       "at": "after:w_res1",
+       "target": "verif1"
+      },
+      {
+       "id": "h_res1",
+       "verb": "highlight",
+       "at": "after:s_v1",
+       "target": "cas1",
+       "role": "result",
+       "part": "res1"
+      }
+     ]
+    },
+    {
+     "id": "pause1",
+     "say": "Bonne vérification : un demi multiplié par deux donne bien un. La compression est exactement annulée par le doublement de la température.",
+     "cues": [
+      {
+       "id": "c_annule",
+       "text": "annulée"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_r1",
+       "verb": "show",
+       "at": "cue:c_annule",
+       "target": "res1_txt"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "quest3",
+     "say": "Troisième question : température doublée et volume doublé. Cette fois, T deux sur T un vaut deux, et V un sur V deux vaut un demi. Deux fois un demi, encore un.",
+     "cues": [
+      {
+       "id": "c_double_volume",
+       "text": "volume doublé"
+      },
+      {
+       "id": "c_encore_un",
+       "text": "encore un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_prod2",
+       "verb": "write",
+       "at": "cue:c_double_volume",
+       "target": "cas2"
+      },
+      {
+       "id": "w_num2",
+       "verb": "highlight",
+       "at": "cue:c_encore_un",
+       "target": "cas2",
+       "role": "accent"
+      },
+      {
+       "id": "w_res2",
+       "verb": "highlight",
+       "at": "after:w_num2",
+       "target": "cas2",
+       "role": "accent"
+      },
+      {
+       "id": "s_v2",
+       "verb": "show",
+       "at": "after:w_res2",
+       "target": "verif2"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tpn",
+   "introduces": [
+    {
+     "id": "vol_mol",
+     "content": "V_m = 22{,}4 \\text{ L/mol} \\quad \\text{à TPN}",
+     "type": "math"
+    },
+    {
+     "id": "calcul_n",
+     "layout": {
+      "next_to": "vol_mol",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n = \\frac{V}{V_m} = \\frac{20 \\text{ L}}{22{,}4 \\text{ L/mol}} \\approx 0{,}89 \\text{ mol}",
+     "parts": [
+      {
+       "id": "frac",
+       "text": "n = \\frac{V}{V_m}"
+      },
+      {
+       "id": "nombres",
+       "text": "= \\frac{20 \\text{ L}}{22{,}4 \\text{ L/mol}}"
+      },
+      {
+       "id": "resultat",
+       "text": "\\approx 0{,}89 \\text{ mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_o2",
+     "layout": {
+      "next_to": "calcul_n",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "L'air n'est pas du O₂ pur : environ 21 % de O₂.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "molaire",
+     "say": "Deuxième question : les moles dans vingt litres à TPN. À TPN, zéro degré et cent un virgule trois kilopascals, une mole de n'importe quel gaz occupe vingt-deux virgule quatre litres.",
+     "cues": [
+      {
+       "id": "c_tpn",
+       "text": "À TPN"
+      },
+      {
+       "id": "c_224",
+       "text": "vingt-deux virgule quatre litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_cas1",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "cas1"
+      },
+      {
+       "id": "f_r1",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "res1_txt"
+      },
+      {
+       "id": "f_v1",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "verif1"
+      },
+      {
+       "id": "f_cas2",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "cas2"
+      },
+      {
+       "id": "f_v2",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "verif2"
+      },
+      {
+       "id": "w_vmol",
+       "verb": "write",
+       "at": "cue:c_224",
+       "target": "vol_mol"
+      }
+     ]
+    },
+    {
+     "id": "division",
+     "say": "Donc on divise le volume par ce volume molaire : vingt divisé par vingt-deux virgule quatre donne environ zéro virgule quatre-vingt-neuf mole.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "divise le volume"
+      },
+      {
+       "id": "c_approx",
+       "text": "environ zéro virgule quatre-vingt-neuf mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "calcul_n",
+       "part": "frac"
+      },
+      {
+       "id": "w_nombres",
+       "verb": "write",
+       "at": "after:w_frac",
+       "target": "calcul_n",
+       "part": "nombres"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_approx",
+       "target": "calcul_n",
+       "part": "resultat"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_approx",
+       "end": "cue_end:c_approx",
+       "target": "calcul_n",
+       "role": "result",
+       "part": "resultat"
+      }
+     ]
+    },
+    {
+     "id": "attention",
+     "say": "Attention : ces vingt litres d'air ne sont pas du O deux pur. L'air contient environ vingt et un pour cent de O deux, alors la vraie quantité de O deux est plus petite.",
+     "cues": [
+      {
+       "id": "c_pur",
+       "text": "pas du O deux pur"
+      },
+      {
+       "id": "c_vingt_et_un",
+       "text": "vingt et un pour cent"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_pur",
+       "target": "note_o2"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "resume",
+     "layout": {
+      "next_to": "n_espace",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "resume",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Un facteur qui monte au numérateur, un facteur qui baisse au dénominateur.",
+     "type": "text"
+    },
+    {
+     "id": "n_espace",
+     "content": "n = 20 L ÷ 22,4 L/mol ≈ 0,89 mol à TPN",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "central",
+     "say": "À retenir : une seule loi générale gouverne les trois situations. Chaque variable qui change devient un facteur, et on multiplie tous ces facteurs ensemble.",
+     "cues": [
+      {
+       "id": "c_ret",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_ensemble",
+       "text": "ensemble"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_gen",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "loi_gen"
+      },
+      {
+       "id": "f_vmol2",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "vol_mol"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "calcul_n"
+      },
+      {
+       "id": "f_no2",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "note_o2"
+      },
+      {
+       "id": "f_axes2",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "axes_pv"
+      },
+      {
+       "id": "f_labp2",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "lab_p"
+      },
+      {
+       "id": "f_labv2",
+       "verb": "fade_out",
+       "at": "cue:c_ret",
+       "target": "lab_v"
+      },
+      {
+       "id": "s_n",
+       "verb": "show",
+       "at": "cue:c_ret",
+       "target": "n_espace"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_ensemble",
+       "target": "resume"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "after:w_res",
+       "target": "regle"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

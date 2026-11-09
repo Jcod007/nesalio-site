@@ -1,0 +1,102 @@
+QUESTION (completion, mathematiques, sec 4, methode) : C'est quoi la complétion du carré ? Par exemple avec x² + 6x − 7.
+RÉPONSE DE RÉFÉRENCE : x² + 6x − 7 = (x + 3)² − 16.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. on prend la moitié du coefficient de x (3) et on ajoute puis retire son carré (9)
+  2. modèle d'aire : la bande 6x coupée en deux 3x, coin 3 × 3 qui manque
+  3. x² + 6x − 7 = (x + 3)² − 9 − 7 = (x + 3)² − 16 écrit
+  4. lien avec la forme canonique et le sommet (−3, −16)
+  5. vérification par développement
+ERREURS GRAVES À CHERCHER : coin du modèle d'aire de mauvaise taille ; règle fausse (« on ajoute la moitié du coefficient »)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi la complétion du carré ?
+=== Tranche s_idee
+  OBJET titre [text] "x² + 6x − 7" 
+  OBJET question [text] "Comment l'écrire sous forme canonique ?" 
+DIT (accueil) : Bonne question. La complétion du carré, c'est une façon de transformer un trinôme en carré parfait, plus un reste.
+    show titre @beat:start 
+    show question @cue:c_completion 
+=== Tranche s_modele
+  OBJET carre_x [polygon] {"vertices":[[0,0],[2,0],[2,2],[0,2]]} 
+  OBJET l_x1 [label] "x²" attaché à carre_x
+  OBJET bande_h [polygon] {"vertices":[[2,0],[5,0],[5,2],[2,2]]} 
+  OBJET l_h [label] "3x" attaché à bande_h
+  OBJET bande_v [polygon] {"vertices":[[0,2],[2,2],[2,5],[0,5]]} 
+  OBJET l_v [label] "3x" attaché à bande_v
+  OBJET coin [polygon] {"vertices":[[2,2],[5,2],[5,5],[2,5]]} 
+  OBJET l_coin [label] "9" attaché à coin
+  OBJET aide [text] "On coupe la bande 6x en deux bandes de 3x, il manque le coin 3 par 3." 
+DIT (carre) : Pense à x au carré comme un carré de côté x. À côté, le terme six x, c'est une bande de longueur six x et de largeur un x.
+    draw carre_x @cue:c_carre 
+    show l_x1 @after:d_carre 
+    draw bande_h @cue:c_bande 
+    show l_h @after:d_bande 
+DIT (coupe) : On coupe cette bande en deux bandes de trois x : une en dessous, une à droite.
+    draw bande_v @cue:c_coupe 
+    show l_v @after:d_v 
+    highlight bande_h @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"accent"}
+DIT (manque) : Mais il manque le coin en haut à droite : il vaut trois fois trois, donc neuf.
+    draw coin @cue:c_coin 
+    show l_coin @cue:c_neuf 
+    show aide @cue:c_neuf 
+=== Tranche s_algebre
+  OBJET etape1 [math] "x^2 + 6x" parts=x^2 | + | 6x
+  OBJET etape2 [math] "x^2 + 6x + 9 - 9" 
+  OBJET etape3 [math] "(x + 3)^2 - 9" 
+  OBJET etape4 [math] "(x + 3)^2 - 9 - 7" 
+  OBJET pas [text] "On ajoute et on retire le carré de la moitié du coefficient de x : 3² = 9." 
+DIT (partir) : Écrivons-le en algèbre. On part de x au carré plus six x.
+    write etape1 @cue:c_x 
+    fade_out carre_x @cue:c_x 
+    fade_out l_x1 @cue:c_x 
+    fade_out bande_h @cue:c_x 
+    fade_out l_h @cue:c_x 
+    fade_out bande_v @cue:c_x 
+    fade_out l_v @cue:c_x 
+    fade_out coin @cue:c_x 
+    fade_out l_coin @cue:c_x 
+    fade_out aide @cue:c_x 
+DIT (ajoute) : La moitié de six, c'est trois. On ajoute et on retire neuf pour ne rien changer.
+    transform etape2 @cue:c_ajoute {"source":"etape1"}
+    show pas @cue:c_ajoute 
+    highlight etape2 @- {"start":"cue:c_ajoute","end":"cue_end:c_ajoute","role":"accent"}
+DIT (carre_parfait) : Les trois premiers termes forment un carré parfait : x plus trois, le tout au carré.
+    transform etape3 @cue:c_pfc {"source":"etape2"}
+    highlight etape3 @- {"start":"cue:c_pfc","end":"cue_end:c_pfc","role":"accent"}
+=== Tranche s_reponse
+  OBJET canon [math] "(x + 3)^2 - 16" 
+  OBJET verif [math] "(x + 3)^2 - 16 = x^2 + 6x - 7" 
+DIT (remet) : Il reste à remettre le moins sept de la question à côté du moins neuf.
+    transform etape4 @cue:c_moins {"source":"etape3"}
+    highlight etape4 @- {"start":"cue:c_moins","end":"cue_end:c_moins","role":"accent"}
+DIT (simplifie) : Moins neuf moins sept donne moins seize. Voilà la forme canonique : x plus trois au carré, moins seize.
+    transform canon @cue:c_seize {"source":"etape4"}
+    set_style canon @cue:c_seize {"role":"result"}
+DIT (verifie) : On vérifie en redéveloppant : x plus trois au carré, ça fait x au carré plus six x plus neuf, moins seize, on retrouve bien x au carré plus six x moins sept.
+    show verif @cue:c_verifie 
+    highlight verif @- {"start":"cue:c_verifie","end":"cue_end:c_verifie","role":"accent"}
+=== Tranche s_retenir
+  OBJET regle [math] "x^2 + bx = (x + \\frac{b}{2})^2 - \\frac{b^2}{4}" 
+  OBJET texte [text] "On ajoute et on retire le carré de la moitié du coefficient de x." 
+DIT (reco) : À retenir : peu importe le coefficient de x, tu prends la moitié, tu l'élèves au carré, tu ajoutes et tu retires cette valeur.
+    fade_out canon @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    fade_out pas @cue:c_retenir 
+    write regle @cue:c_moitie2 
+    show texte @cue:c_moitie2 
+    highlight regle @after:s_texte {"role":"result"}
+=== Tranche s_sommet
+  OBJET axes [axes] {"x":[-6,4],"y":[-20,6]} 
+  OBJET parabole [function_graph] {"expression":"(x+3)^2 - 16","domain":[-6,2]} 
+  OBJET sommet [point] {"at":[-3,-16]} 
+  OBJET l_sommet [label] "S(-3 ; -16)" attaché à sommet
+  OBJET note [text] "Le sommet donne le minimum." 
+DIT (place) : Pourquoi c'est utile ? Parce que le carré parfait, on le lit directement sur le graphique : le sommet de la parabole est à x égale moins trois, y égale moins seize.
+    show axes @cue:c_graphe 
+    draw parabole @- {"start":"cue:c_graphe","end":"cue_end:c_sommet"}
+    show sommet @cue:c_sommet 
+    show l_sommet @after:s_sommet 
+DIT (lis) : Le x plus trois dans le carré nous dit de décaler de trois vers la gauche ; le moins seize nous dit que le sommet descend à moins seize.
+    highlight sommet @- {"start":"cue:c_decale","end":"cue_end:c_decale","role":"result"}
+    show note @cue:c_descend 
+--- 6 tranches, 278 mots dits (≈ 1.9 min d'oral)

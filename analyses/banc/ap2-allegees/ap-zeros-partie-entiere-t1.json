@@ -1,0 +1,751 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "zeros_partie_entiere",
+  "title": "Trouver les zéros d'une fonction partie entière",
+  "language": "fr",
+  "learning_goal": "Comprendre que les zéros d'une fonction partie entière forment un intervalle, et le trouver en résolvant f(x) = 0."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_rappel",
+   "introduces": [
+    {
+     "id": "def",
+     "layout": {
+      "next_to": "def2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[3{,}7] = 3",
+     "type": "math"
+    },
+    {
+     "id": "def2",
+     "content": "[-2{,}3] = -3",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "def2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Le plus grand entier ≤ x",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "bonjour",
+     "say": "Bonne question ! La partie entière a un piège : ses zéros ne sont pas des points, mais tout un intervalle.",
+     "cues": [
+      {
+       "id": "c_intervalle",
+       "text": "tout un intervalle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_intervalle",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "floor(x)",
+      "domain": [
+       -1,
+       4
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "h0",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "h1",
+     "params": {
+      "at": [
+       0.999,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "axe_zero",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       -1,
+       0
+      ],
+      "to": [
+       4,
+       0
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Voici la fonction partie entière : des marches qui montent, et un saut à chaque entier.",
+     "cues": [
+      {
+       "id": "c_marches",
+       "text": "des marches"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_marches",
+       "end": "cue_end:c_marches",
+       "target": "courbe"
+      },
+      {
+       "id": "d_axe",
+       "verb": "draw",
+       "start": "cue:c_marches",
+       "end": "cue_end:c_marches",
+       "target": "axe_zero"
+      }
+     ]
+    },
+    {
+     "id": "zones",
+     "say": "Sur l'axe des x, entre zéro inclus et un exclu, la fonction vaut zéro : ce sont tous des zéros.",
+     "cues": [
+      {
+       "id": "c_zero_inclus",
+       "text": "zéro inclus"
+      },
+      {
+       "id": "c_un_exclu",
+       "text": "un exclu"
+      },
+      {
+       "id": "c_tous",
+       "text": "tous des zéros"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_h0",
+       "verb": "show",
+       "at": "cue:c_zero_inclus",
+       "target": "h0"
+      },
+      {
+       "id": "s_h1",
+       "verb": "show",
+       "at": "cue:c_un_exclu",
+       "target": "h1"
+      },
+      {
+       "id": "h_h0",
+       "verb": "highlight",
+       "start": "cue:c_tous",
+       "end": "cue_end:c_tous",
+       "target": "h0",
+       "role": "result"
+      },
+      {
+       "id": "h_h1",
+       "verb": "highlight",
+       "start": "cue:c_tous",
+       "end": "cue_end:c_tous",
+       "target": "h1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_methode",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "f(x) = 2[x - 1] - 4",
+     "type": "math"
+    },
+    {
+     "id": "calc1",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "2[x - 1] = 4",
+     "type": "math"
+    },
+    {
+     "id": "calc2",
+     "layout": {
+      "next_to": "calc1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[x - 1] = 2",
+     "type": "math"
+    },
+    {
+     "id": "interval",
+     "layout": {
+      "next_to": "calc2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "2 \\le x - 1 < 3",
+     "type": "math"
+    },
+    {
+     "id": "sol",
+     "layout": {
+      "next_to": "interval",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "x \\in [3\\,;\\,4[",
+     "type": "math"
+    },
+    {
+     "id": "courbe2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2*floor(x-1)-4",
+      "domain": [
+       -1,
+       5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "p3",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "at": [
+       3,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "at": [
+       4,
+       2
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "groups": [
+    {
+     "id": "steps",
+     "items": [
+      "calc1",
+      "calc2",
+      "interval",
+      "sol"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     },
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Prenons un exemple : f de x égale deux fois la partie entière de x moins un, moins quatre.",
+     "cues": [
+      {
+       "id": "c_fx",
+       "text": "f de x égale"
+      },
+      {
+       "id": "c_partie",
+       "text": "partie entière de x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_fx",
+       "target": "eq"
+      },
+      {
+       "id": "w_const",
+       "verb": "highlight",
+       "at": "cue:c_partie",
+       "target": "eq",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resolution",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "isole",
+     "say": "On cherche les zéros : on pose f de x égale zéro. J'ajoute quatre des deux côtés, puis je divise par deux.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "f de x égale zéro"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc1",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "calc1"
+      }
+     ]
+    },
+    {
+     "id": "partie",
+     "say": "Il reste la partie entière de x moins un égale deux.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "égale deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc2",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "calc2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_intervalle",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "inequation",
+     "say": "La partie entière vaut deux quand le nombre est au moins deux, mais strictement moins que trois.",
+     "cues": [
+      {
+       "id": "c_au_moins",
+       "text": "au moins deux"
+      },
+      {
+       "id": "c_trois",
+       "text": "moins que trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_interval",
+       "verb": "write",
+       "at": "cue:c_au_moins",
+       "target": "interval"
+      }
+     ]
+    },
+    {
+     "id": "resous",
+     "say": "J'ajoute un partout : x est entre trois et quatre. Trois inclus, quatre exclu.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "J'ajoute un partout"
+      },
+      {
+       "id": "c_sol",
+       "text": "entre trois et quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sol",
+       "verb": "write",
+       "at": "cue:c_sol",
+       "target": "sol"
+      },
+      {
+       "id": "h_sol",
+       "verb": "highlight",
+       "start": "cue:c_sol",
+       "end": "cue_end:c_sol",
+       "target": "sol",
+       "role": "result"
+      },
+      {
+       "id": "d_courbe2",
+       "verb": "draw",
+       "start": "cue:c_sol",
+       "end": "cue_end:c_sol",
+       "target": "courbe2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : en x égal trois, la partie entière de deux vaut deux, deux fois deux moins quatre égale zéro. C'est bien un zéro.",
+     "cues": [
+      {
+       "id": "c_x3",
+       "text": "x égal trois"
+      },
+      {
+       "id": "c_zero2",
+       "text": "égale zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "cue:c_x3",
+       "target": "p3"
+      },
+      {
+       "id": "h_p3",
+       "verb": "highlight",
+       "start": "cue:c_x3",
+       "end": "cue_end:c_x3",
+       "target": "p3",
+       "role": "result"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "cue:c_zero2",
+       "target": "p4"
+      },
+      {
+       "id": "h_p4",
+       "verb": "highlight",
+       "start": "cue:c_zero2",
+       "end": "cue_end:c_zero2",
+       "target": "p4",
+       "role": "secondary"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cas",
+   "introduces": [
+    {
+     "id": "cas1",
+     "content": "Si −k/a n'est pas entier : aucun zéro",
+     "type": "text"
+    },
+    {
+     "id": "cas2",
+     "layout": {
+      "next_to": "cas1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Si c'est l'entier n : un intervalle de zéros",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "En général, on isole la partie entière : elle doit valoir un entier.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "isole la partie entière"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cas1",
+       "verb": "show",
+       "at": "cue:c_isole",
+       "target": "cas1"
+      }
+     ]
+    },
+    {
+     "id": "deuxcas",
+     "say": "Si ce nombre n'est pas entier, aucun zéro. S'il vaut n, alors x parcourt tout un intervalle de largeur un.",
+     "cues": [
+      {
+       "id": "c_entier",
+       "text": "pas entier"
+      },
+      {
+       "id": "c_n",
+       "text": "vaut n"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cas2",
+       "verb": "show",
+       "at": "cue:c_n",
+       "target": "cas2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

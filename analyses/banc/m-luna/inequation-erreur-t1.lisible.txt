@@ -1,0 +1,79 @@
+QUESTION (inequation-erreur, mathematiques, sec 4, erreur) : j'essaie de résoudre -2x + 5 > 11 pis j'obtiens x > -3, mais mon prof dit que c'est faux, pourquoi?
+RÉPONSE DE RÉFÉRENCE : x < −3 : en divisant par −2, on inverse le sens de l'inégalité.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. −2x > 6 en enlevant 5 des deux côtés
+  2. diagnostic : diviser ou multiplier par un nombre négatif inverse le sens de l'inégalité
+  3. réponse x < −3 écrite
+  4. vérification avec une valeur (ex. x = −4 : 13 > 11 vrai ; x = 0 : 5 > 11 faux)
+  5. valorisé : ensemble-solution sur une droite numérique
+ERREURS GRAVES À CHERCHER : sens non inversé ; explication du changement de sens fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi le sens de l’inégalité change
+=== Tranche s_erreur
+  OBJET ineg_depart [math] "-2x + 5 > 11" parts=-2x + 5 | > | 11
+  OBJET retrait [math] "-2x + 5 - 5 > 11 - 5" parts=-2x + 5 - 5 | > | 11 - 5
+  OBJET simplifie [math] "-2x > 6" parts=-2x | > | 6
+  OBJET erreur_eleve [math] "x > -3" 
+  OBJET test_erreur [math] "x = 0 : -2(0) + 5 = 5" parts=x = 0 : | -2(0) + 5 | = 5
+DIT (depart) : On part de ton inéquation, moins deux x plus cinq est plus grand que onze. Le point important, c’est que le coefficient de x est négatif.
+    write ineg_depart @cue:depart_mot {"part":"membre_gauche"}
+    write ineg_depart @cue:depart_mot {"part":"signe_depart"}
+    write ineg_depart @cue:depart_mot {"part":"membre_droit"}
+    highlight ineg_depart @- {"start":"cue:coef_negatif","end":"cue_end:coef_negatif","role":"accent","part":"membre_gauche"}
+DIT (soustraire) : On enlève cinq des deux côtés pour isoler le terme en x et garder une inégalité équivalente. Moins deux x est alors plus grand que six.
+    transform retrait @cue:enleve {"source":"ineg_depart"}
+    transform simplifie @cue:six {"source":"retrait"}
+DIT (erreur) : Ton résultat, x plus grand que moins trois, vient de diviser moins deux x et six par moins deux sans inverser le signe. Il échoue : zéro le vérifie dans l’inéquation de départ.
+    write erreur_eleve @cue:ton_resultat 
+    write test_erreur @cue:zero {"part":"test_x"}
+    write test_erreur @cue:zero {"part":"test_calc"}
+    write test_erreur @cue:zero {"part":"test_egal"}
+    highlight test_erreur @- {"start":"cue:echoue","end":"cue_end:echoue","role":"unknown","part":"test_egal"}
+=== Tranche s_correction
+  OBJET ineq_depart [math] "-2x + 5 > 11" parts=-2x + 5 | > | 11
+  OBJET retrait_cinq [math] "-2x + 5 - 5 > 11 - 5" parts=-2x + 5 - 5 | > | 11 - 5
+  OBJET simplifie_six [math] "-2x > 6" parts=-2x | > | 6
+  OBJET rep_eleve [math] "x > -3" 
+  OBJET test_zero [math] "x = 0 : -2(0) + 5 = 5" parts=x = 0 : | -2(0) + 5 | = 5   <<JAMAIS MONTRÉ>>
+DIT (poser) : On part de ton inéquation, moins deux x plus cinq est plus grand que onze. Le coefficient de x est négatif, et c’est ce qui compte pour la dernière étape.
+    write ineq_depart @cue:c_depart {"part":"depart_gauche"}
+    write ineq_depart @cue:c_depart {"part":"depart_signe"}
+    write ineq_depart @cue:c_depart {"part":"depart_droite"}
+    highlight ineq_depart @- {"start":"cue:c_negatif","end":"cue_end:c_negatif","role":"accent","part":"depart_gauche"}
+DIT (enlever_cinq) : On enlève cinq des deux côtés pour isoler le terme en x tout en gardant une inégalité équivalente. Il reste moins deux x est plus grand que six.
+    transform retrait_cinq @cue:c_enleve {"source":"ineq_depart"}
+    transform simplifie_six @cue:c_reste {"source":"retrait_cinq"}
+DIT (repere_erreur) : Tu as écrit x plus grand que moins trois. En divisant les deux côtés par moins deux, il fallait inverser le signe de l’inégalité.
+    write rep_eleve @cue:c_ecrit 
+    dim rep_eleve @cue:c_divisant 
+    highlight simplifie_six @- {"start":"cue:c_inverser","end":"cue_end:c_inverser","role":"accent","part":"simplifie_signe"}
+=== Tranche s_division
+  OBJET division_negative [math] "\\frac{-2x}{-2} < \\frac{6}{-2}" parts=\frac{-2x}{-2} | < | \frac{6}{-2}
+  OBJET solution_intermediaire [math] "x < -3" parts=x | < | -3
+  OBJET exemple_solution [math] "x = -4 : -2(-4) + 5 = 13 > 11" parts=x = -4 : | -2(-4) + 5 | = 13 > 11
+DIT (diviser) : Pour isoler x, on divise les deux côtés par moins deux. Comme on divise par un nombre négatif, on inverse le sens : plus grand devient plus petit.
+    write division_negative @cue:c_diviser {"part":"division_mem"}
+    write division_negative @cue:c_diviser {"part":"division_signe"}
+    write division_negative @cue:c_diviser {"part":"division_droite"}
+    highlight division_negative @- {"start":"cue:c_negatif","end":"cue_end:c_inverse","role":"accent","part":"division_signe"}
+DIT (resultat) : Moins deux x divisé par moins deux donne x, et six divisé par moins deux donne moins trois. La solution est donc x plus petit que moins trois.
+    write solution_intermediaire @cue:c_donne_x {"part":"sol_x"}
+    write solution_intermediaire @cue:c_donne_moins {"part":"sol_signe"}
+    write solution_intermediaire @cue:c_donne_moins {"part":"sol_moins_trois"}
+    highlight solution_intermediaire @- {"start":"cue:c_solution","end":"cue_end:c_solution","role":"result"}
+DIT (verifier) : Vérifions avec x égal moins quatre, une valeur plus petite que moins trois : le côté gauche vaut treize, et treize est bien plus grand que onze.
+    write exemple_solution @cue:c_valeur {"part":"exemple_x"}
+    write exemple_solution @cue:c_gauche {"part":"exemple_calcul"}
+    write exemple_solution @cue:c_comparaison {"part":"exemple_inegalite"}
+    highlight exemple_solution @- {"start":"cue:c_comparaison","end":"cue_end:c_comparaison","role":"accent","part":"exemple_inegalite"}
+=== Tranche s_retenir
+  OBJET regle_finale [math] "-2x + 5 > 11 \\iff x < -3" parts=-2x + 5 > 11 | \iff | x < -3
+  OBJET idee_finale [text] "Diviser par un nombre négatif inverse le sens de l’inégalité." 
+DIT (idee) : À retenir : on soustrait cinq des deux côtés, puis on divise par moins deux. Diviser par un nombre négatif inverse le sens de l’inégalité : la solution est x plus petit que moins trois.
+    write regle_finale @cue:c_retenir {"part":"regle_depart"}
+    write regle_finale @cue:c_inverse {"part":"regle_equiv"}
+    write regle_finale @cue:c_solution {"part":"regle_solution"}
+    write idee_finale @cue:c_inverse 
+    highlight regle_finale @- {"start":"cue:c_solution","end":"cue_end:c_solution","role":"result","part":"regle_solution"}
+--- 4 tranches, 285 mots dits (≈ 1.9 min d'oral)

@@ -1,0 +1,67 @@
+QUESTION (chimie-boyle-erreur, chimie, sec 5, erreur) : un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L
+RÉPONSE DE RÉFÉRENCE : P₁V₁ = P₂V₂ : V₂ = 100 × 2,0 / 250 = 0,80 L ; 5 L est impossible (la pression augmente, le volume diminue).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. à température constante, pression et volume sont inversement proportionnels : P₁V₁ = P₂V₂
+  2. diagnostic : 5 L vient du rapport des pressions inversé ; comprimer ne peut pas augmenter le volume
+  3. V₂ = 100 × 2,0 / 250 = 0,80 L écrit
+  4. explication particulaire : moins d'espace, plus de collisions sur les parois
+  5. valorisé : graphique P en fonction de V (hyperbole)
+ERREURS GRAVES À CHERCHER : volume qui augmente avec la pression ; relation dite proportionnelle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Gaz comprimé : trouver le volume avec la loi de Boyle
+math_context : {"symbols":{"p1":{"kind":"constant","value":100},"V1":{"kind":"constant","value":2},"p2":{"kind":"constant","value":250}},"expressions":{"V2":"p1*V1/p2"}}
+=== Tranche s_situation
+  OBJET donnees [matrix] {"rows":[["100","2,0"],["250","?"]],"row_labels":["pression (kPa)","volume (L)"]} 
+  OBJET loi [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2   <<JAMAIS MONTRÉ>>
+DIT (pose) : On a un gaz à cent kilopascals qui occupe deux litres, et on le comprime à deux cent cinquante kilopascals. La température ne change pas.
+    show donnees @cue:c_cent 
+    highlight donnees @cue:c_temp {"role":"given"}
+=== Tranche s_erreur
+  OBJET calcul_eleve [math] "2 \\times 250 \\div 100 = 5\\ \\text{L}" parts=2 \times 250 | \div 100 | = 5\ \text{L}
+DIT (ton_calcul) : Ton calcul donne deux fois deux cent cinquante divisé par cent, donc cinq litres.
+    write calcul_eleve @cue:c_ton {"part":"prod"}
+    write calcul_eleve @cue:c_ton {"part":"div"}
+    write calcul_eleve @cue:c_cinq {"part":"cinq"}
+DIT (probleme) : Le problème, c'est le sens : tu comprimes le gaz, tu le serres. Le volume doit diminuer, pas grossir de deux à cinq litres.
+    highlight calcul_eleve @cue:c_diminuer {"role":"unknown","part":"cinq"}
+=== Tranche s_correction
+  OBJET axes [axes] {"x":[0,3.5],"y":[0,5]} 
+  OBJET xlab [label] "pression (centaines de kPa)" attaché à axes   <<JAMAIS MONTRÉ>>
+  OBJET ylab [label] "volume (L)" attaché à axes   <<JAMAIS MONTRÉ>>
+  OBJET courbe [function_graph] {"expression":"2/x","domain":[0.4,3.5]} 
+  OBJET pt1 [point] {"at":[1,2]} 
+  OBJET pt1_label [label] "(1 ; 2)" attaché à pt1
+  OBJET pt2 [point] {"at":[2.5,0.8]} 
+  OBJET pt2_label [label] "(2,5 ; 0,8)" attaché à pt2
+  OBJET egalite [math] "100 \\times 2{,}0 = 250 \\times V_2" parts=100 \times 2{,}0 | = 250 \times V_2
+  OBJET isole [math] "V_2 = \\frac{2{,}0 \\times 100}{250} = 0{,}80\\ \\text{L}" parts=V_2 = \frac{2{,}0 \times 100}{250} | = 0{,}80\ \text{L}
+DIT (tableau) : Regarde la courbe : quand la pression monte, le volume descend. C'est ça, varier en sens inverse.
+    show axes @beat:start 
+    draw courbe @- {"start":"cue:c_courbe","end":"cue_end:c_descend"}
+    show pt1 @cue:c_monte 
+    show pt1_label @cue:c_monte 
+    show pt2 @cue:c_descend 
+    show pt2_label @cue:c_descend 
+DIT (formule) : À température constante, la pression fois le volume reste le même avant et après. Cent fois deux, ça fait deux cents.
+    fade_out calcul_eleve @cue:c_constante 
+    write egalite @cue:c_deuxcents {"part":"g"}
+DIT (resous) : Après, il faut que deux cent cinquante fois V deux donne deux cents. Donc V deux vaut deux cents divisé par deux cent cinquante : zéro virgule quatre-vingts litre.
+    write egalite @cue:c_apres {"part":"d"}
+    write isole @cue:c_donne {"part":"frac"}
+    write isole @cue:c_quatrevingts {"part":"rep"}
+    highlight isole @after:w_rep {"role":"result","part":"rep"}
+=== Tranche s_retenir
+  OBJET idee [text] "À température constante, pression et volume varient en sens inverse." 
+DIT (retenir) : À retenir : à température constante, la pression et le volume varient en sens inverse. Compresser, c'est diviser le volume.
+    camera.focus  @cue:c_retenir {"targets":["loi","idee"],"bounds":"layout_bounds"}
+    fade_out courbe @cue:c_inverse 
+    fade_out axes @cue:c_inverse 
+    fade_out pt1 @cue:c_inverse 
+    fade_out pt2 @cue:c_inverse 
+    fade_out donnees @cue:c_inverse 
+    fade_out egalite @cue:c_inverse 
+    fade_out isole @cue:c_inverse 
+    show idee @cue:c_compresser 
+    highlight loi @- {"start":"cue:c_compresser","end":"cue_end:c_compresser","role":"result"}
+--- 4 tranches, 150 mots dits (≈ 1.0 min d'oral)

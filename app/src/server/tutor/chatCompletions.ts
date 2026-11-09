@@ -65,10 +65,27 @@ async function* streamOpenAi(options: CompletionOptions): AsyncGenerator<string>
       max_tokens: options.maxTokens ?? 16000,
       // Extension d'AI Gateway, traduite vers le réglage propre à chaque modèle.
       ...(options.reasoningEffort ? { reasoning: { effort: options.reasoningEffort } } : {}),
+      ...gatewayPrivacy(options.endpoint),
     }),
   });
   await ensureOk(response);
   yield* parseSse(response.body!);
+}
+
+/**
+ * Vie privée des élèves sur AI Gateway : ni conservation des requêtes (ZDR) ni entraînement
+ * sur leur contenu. Le Gateway n'envoie alors la requête qu'aux fournisseurs qui s'y engagent,
+ * et répond 400 s'il n'y en a aucun pour le modèle (403 pour la ZDR sans compte payant ni crédits).
+ * NESALIO_ZDR=0 retire la seule ZDR (l'interdiction d'entraînement reste, sans condition de compte).
+ * Hors Gateway (OpenRouter, Claude direct), ces champs n'existent pas : rien n'est ajouté.
+ * Doc : vercel.com/docs/ai-gateway/security-and-compliance (zdr, disallow-prompt-training).
+ */
+export function gatewayPrivacy(endpoint: string, env: NodeJS.ProcessEnv = process.env) {
+  let host = "";
+  try { host = new URL(endpoint).hostname; } catch { /* not a URL: not the Gateway */ }
+  if (host !== "ai-gateway.vercel.sh") return {};
+  const zeroDataRetention = env.NESALIO_ZDR?.trim() !== "0";
+  return { providerOptions: { gateway: { ...(zeroDataRetention ? { zeroDataRetention: true } : {}), disallowPromptTraining: true } } };
 }
 
 /** API Messages de Claude : le système à part, réflexion modérée pour garder la voix réactive. */

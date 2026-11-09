@@ -1,0 +1,87 @@
+QUESTION (ap-proba-conditionnelle-venn, mathematiques, sec 5, alloprof) : J'aimerais savoir pourquoi il ya une division de probabilité dans la formule de probabilité conditionnelle quand on travaille avec le diagramme de Venn alors que c'est plus simple quand on travaille avec d'autres modes de représentation? (Parce qu'en général une situation peut etre représenté par plusieurs modes de représentation alors pourquoi cest différent?)
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi on divise par P(B) dans P(A | B)
+=== Tranche s_question
+  OBJET idee [text] "Savoir que B est arrivé réduit l'univers à B" 
+DIT (reformule) : Ta question est excellente : pourquoi une division dans la formule, alors que le diagramme de Venn semble plus compliqué qu'un arbre ?
+    show idee @cue:c_pourquoi 
+DIT (reponse_courte) : La division n'est pas une complication du dessin : elle vient du fait que savoir que B est arrivé change l'univers. On va le voir sur un dé.
+    highlight idee @- {"start":"cue:c_change","end":"cue_end:c_change","role":"accent"}
+=== Tranche s_univers
+  OBJET c1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET c2 [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET c3 [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET c4 [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET c5 [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET c6 [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET l1 [label] "1" attaché à c1
+  OBJET l2 [label] "2" attaché à c2
+  OBJET l3 [label] "3" attaché à c3
+  OBJET l4 [label] "4" attaché à c4
+  OBJET l5 [label] "5" attaché à c5
+  OBJET l6 [label] "6" attaché à c6
+DIT (de) : Un dé équilibré : six issues, six cases égales, chacune une chance sur six.
+    show c1 @beat:start 
+    show c2 @after:s_c1 
+    show c3 @after:s_c2 
+    show c4 @after:s_c3 
+    show c5 @after:s_c4 
+    show c6 @after:s_c5 
+    show l1 @after:s_c6 
+    show l2 @after:s_l1 
+    show l3 @after:s_l2 
+    show l4 @after:s_l3 
+    show l5 @after:s_l4 
+    show l6 @after:s_l5 
+DIT (evenements) : Événement A : le résultat est pair. Événement B : le résultat est plus grand que trois.
+    highlight c2 @- {"start":"cue:c_pair","end":"cue_end:c_pair","role":"accent"}
+    highlight c4 @- {"start":"cue:c_pair","end":"cue_end:c_pair","role":"accent"}
+    highlight c6 @- {"start":"cue:c_pair","end":"cue_end:c_pair","role":"accent"}
+    highlight c4 @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"given"}
+    highlight c5 @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"given"}
+    highlight c6 @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"given"}
+=== Tranche s_reduire
+  OBJET b_set [math] "B = \\{4 ; 5 ; 6\\}" 
+  OBJET calc [math] "P(A \\mid B) = \\frac{2}{6} \\div \\frac{3}{6} = \\frac{2}{3}" parts=P(A \mid B) | = \frac{2}{6} \div \frac{3}{6} | = \frac{2}{3}
+  OBJET pB [math] "P(B) = \\frac{3}{6}" 
+DIT (reduit) : Maintenant, on te dit que B est arrivé. Les cases un, deux et trois sont hors jeu : estompées, elles ne comptent plus.
+    dim c1 @cue:c_horsjeu 
+    dim c2 @cue:c_horsjeu 
+    dim c3 @cue:c_horsjeu 
+    write b_set @cue:c_horsjeu 
+DIT (nouveau_tout) : B devient le nouveau tout : trois cases égales, c'est le dénominateur. La part de B où A est aussi vrai, c'est quatre et six, deux cases.
+    highlight c4 @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"result"}
+    highlight c6 @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"result"}
+    write pB @cue:c_nouveau 
+    write calc @after:w_pB {"part":"p1"}
+DIT (division) : Deux cas favorables sur les trois cas possibles de B : deux tiers. C'est exactement deux sixièmes divisé par trois sixièmes.
+    write calc @cue:c_divise {"part":"p2"}
+    write calc @cue:c_deux_tiers {"part":"p3"}
+DIT (reponse) : Réponse : la probabilité que A arrive sachant B vaut deux tiers. La division sert à remettre le tout à l'échelle de B.
+    highlight calc @- {"start":"cue:c_reponse","end":"cue_end:c_reponse","role":"result"}
+=== Tranche s_pourquoi_division
+  OBJET formule [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = \frac{P(A \cap B)}{P(B)}
+  OBJET cond [label] "si P(B) ≠ 0" attaché à formule
+DIT (generale) : D'où la formule générale : A sachant B, c'est la part de B où A est aussi vrai, sur tout B.
+    write formule @cue:c_generale {"part":"gauche"}
+    write formule @after:w_g {"part":"droite"}
+DIT (meme_arbre) : Un arbre donne la même chose : la branche B restreint le départ, et on divise par sa probabilité. Le dessin change, la logique reste.
+    show cond @cue:c_meme 
+=== Tranche s_retenir
+  OBJET idee_finale [text] "Savoir que B est arrivé réduit l'univers à B" 
+DIT (retenir) : À retenir : la division n'est pas une affaire de Venn, elle vient du conditionnement. Savoir que B est arrivé réduit l'univers à B.
+    fade_out c1 @cue:c_retenir 
+    fade_out c2 @cue:c_retenir 
+    fade_out c3 @cue:c_retenir 
+    fade_out c5 @cue:c_retenir 
+    fade_out l1 @cue:c_retenir 
+    fade_out l2 @cue:c_retenir 
+    fade_out l3 @cue:c_retenir 
+    fade_out l5 @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["formule","cond","idee_finale"],"bounds":"layout_bounds"}
+    show idee_finale @cue:c_reduit 
+--- 5 tranches, 246 mots dits (≈ 1.6 min d'oral)

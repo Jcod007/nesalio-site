@@ -1,0 +1,41 @@
+QUESTION (interets-composes, mathematiques, sec 5, methode) : comment je calcule combien j'vais avoir si je place 2000 $ à 4 % d'intérêt composé par année pendant 5 ans?
+RÉPONSE DE RÉFÉRENCE : 2000 × 1,04⁵ = 2433,31 $ (intérêt gagné 433,31 $).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. intérêt composé = l'intérêt s'ajoute au capital et rapporte à son tour ; ajouter 4 % = multiplier par 1,04
+  2. tableau année par année : 2080 ; 2163,20 ; 2249,73 ; 2339,72 ; 2433,31 $
+  3. formule C = C0(1 + i)^n reliée au tableau : 2000 × 1,04^5
+  4. réponse 2433,31 $ écrite (intérêt gagné 433,31 $)
+  5. valorisé : comparaison avec l'intérêt simple (2400 $)
+ERREURS GRAVES À CHERCHER : arrondi de 1,04⁵ avant la fin (2433,40 $) ; intérêt simple présenté comme composé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue erreur incomplete, tranches perdues : s_calcul
+
+TITRE : Calculer un placement à intérêt composé
+math_context : {"symbols":{"capital":{"kind":"constant","value":2000},"taux":{"kind":"constant","value":1.04}},"expressions":{"valeur_finale":"2000*1.04^5"}}
+=== Tranche s_premiere_annee
+  OBJET tab [matrix] {"rows":[[0,1],[2000,2080]],"row_labels":["année","capital ($)"],"column_labels":["départ","après un an"]} 
+  OBJET note [label] "× 1,04 chaque année" attaché à tab
+DIT (depart) : Bonne question. Tu places deux mille dollars à quatre pour cent d'intérêt composé, chaque année.
+    show tab @cue:c_place 
+    highlight tab @- {"start":"cue:c_compose","end":"cue_end:c_compose","role":"given"}
+DIT (annee_un) : La première année, quatre pour cent de deux mille, c'est quatre-vingts dollars. Le capital devient deux mille quatre-vingts.
+    highlight tab @- {"start":"cue:c_interet","end":"cue_end:c_interet","role":"accent","part":"r2c2"}
+    show note @cue:c_capital 
+=== Tranche s_annee_par_annee
+  OBJET tab_annees [matrix] {"rows":[[0,1,2,3,4,5],[2000,2080,2163.2,2249.73,2339.72,2433.31]],"row_labels":["année","capital ($)"]} 
+  OBJET note_n [label] "× 1,04 chaque année" attaché à tab_annees
+DIT (tableau) : Regardons ce qui arrive année par année. Je reprends nos deux mille dollars et je multiplie par un virgule zéro quatre à chaque fois.
+    draw tab_annees @- {"start":"cue:c_annee","end":"cue_end:c_multiplie"}
+DIT (suite) : Chaque année, le nouveau capital rapporte à son tour : deux mille cent soixante-trois dollars et vingt cents, puis deux mille deux cent quarante-neuf et soixante-treize, et ainsi de suite jusqu'à la cinquième année.
+    highlight tab_annees @- {"start":"cue:c_gagne","end":"cue_end:c_cinquieme","role":"accent","part":"c6"}
+    show note_n @cue:c_cinquieme 
+=== Tranche s_formule
+  OBJET formule [math] "C = C_0(1+i)^n" parts=C = C_0 | (1+i)^n
+  OBJET calcul [math] {"kind":"computed","expression_ref":"valeur_finale","template":"C = {value}","precision":2}   <<JAMAIS MONTRÉ>>
+  OBJET reponse [label] "Valeur après 5 ans : environ 2433,31 $"   <<JAMAIS MONTRÉ>>
+DIT (formule_generale) : Plutôt que de refaire ces multiplications une par une, on peut utiliser une formule générale : C égale C zéro fois un plus i exposant n.
+    dim tab_annees @beat:start 
+    write formule @cue:c_c0 {"part":"c0"}
+    write formule @cue:c_unplus {"part":"facteur"}
+DIT (valeurs) : Dans notre situation, C zéro vaut deux mille, i vaut zéro virgule zéro quatre, et n vaut cinq, le nombre d'années.
+    highlight formule @- {"start":"cue:c_i","end":"cue_end:c_n","role":"accent"}
+--- 3 tranches, 138 mots dits (≈ 0.9 min d'oral)

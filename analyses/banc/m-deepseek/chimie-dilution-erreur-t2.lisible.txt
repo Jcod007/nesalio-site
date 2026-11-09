@@ -1,0 +1,62 @@
+QUESTION (chimie-dilution-erreur, chimie, sec 4, erreur) : j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?
+RÉPONSE DE RÉFÉRENCE : C₂ = C₁V₁/V₂ = 2 × 50 / 200 = 0,50 mol/L ; 8 mol/L vient du rapport inversé.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. en diluant, la quantité de soluté ne change pas : n = C₁V₁ = C₂V₂
+  2. diagnostic : 8 mol/L = 2 × 200 / 50, rapport des volumes inversé
+  3. C₂ = 2 × 50 / 200 = 0,50 mol/L écrit
+  4. contrôle de vraisemblance : ajouter de l'eau diminue la concentration (volume × 4, concentration ÷ 4)
+  5. unités cohérentes (les mL s'annulent)
+ERREURS GRAVES À CHERCHER : concentration qui augmente à la dilution ; diagnostic inventé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Vérifier la concentration après une dilution
+=== Tranche s_intro
+  OBJET titre [text] "Dilution : même soluté, plus de volume" 
+DIT (accroche) : Bonne idée de vérifier avant de te fier à ta réponse. On va compter la même quantité de soluté deux fois.
+    show titre @cue:c_verifier 
+=== Tranche s_donnees
+  OBJET donnees [matrix] {"rows":[["2","50","200"],["mol/L","mL","mL"]],"row_labels":["valeur","unité"],"column_labels":["C₁","V₁","V₂"]} 
+  OBJET loi [math] "C_1 V_1 = C_2 V_2" parts=C_1 V_1 | = | C_2 V_2
+DIT (pose) : Tu as une solution de deux moles par litre, tu en prends cinquante millilitres, pis tu ajoutes de l'eau jusqu'à deux cents millilitres.
+    camera.focus  @beat:start {"targets":["titre","donnees"]}
+    show donnees @cue:c_deux 
+    highlight donnees @cue:c_deux {"part":"r1c1"}
+    highlight donnees @cue:c_cinquante {"part":"r1c2"}
+    highlight donnees @cue:c_deuxcents {"part":"r1c3"}
+DIT (pourquoi) : Pendant que tu ajoutes de l'eau, ton soluté reste au fond : il n'y en a pas moins, il est juste plus étalé. La quantité de départ, c'est C un fois V un, pis elle se retrouve dans C deux fois V deux.
+    write loi @cue:c_quantite {"part":"gauche"}
+    write loi @after:w_gauche {"part":"eg"}
+    write loi @cue:c_retrouve {"part":"droite"}
+=== Tranche s_erreur
+  OBJET faux [math] "2 \\times \\frac{200}{50} = 8" parts=2 | \times \frac{200}{50} | = 8
+  OBJET pourquoi_err [text] "Volume ×4, donc concentration ÷4 : la réponse doit être plus petite"   <<JAMAIS MONTRÉ>>
+DIT (soncalcul) : Toi, tu as écrit huit moles par litre. Ça vient de deux fois deux cents divisé par cinquante.
+    camera.focus  @beat:start {"targets":["loi","faux"]}
+    show faux @cue:c_huit 
+DIT (verif) : Vérifions dans la loi : avec C deux égale huit, le côté droit donne huit fois deux cents millilitres, soit un virgule six mole. Mais le côté gauche donne deux fois cinquante, soit zéro virgule un mole. Les deux côtés ne s'égalent pas : huit est trop grand, et de loin.
+    highlight loi @- {"start":"cue:c_verif","end":"cue_end:c_verif","part":"gauche"}
+    highlight loi @- {"start":"cue_end:c_verif","end":"cue_end:c_pas","part":"droite"}
+    fade_out donnees @cue:c_pas 
+=== Tranche s_correction
+  OBJET sol [math] "2 \\times 50 = C_2 \\times 200" parts=2 \times 50 | = C_2 | \times 200
+  OBJET etape2 [math] "C_2 = \\frac{2 \\times 50}{200} = 0{,}5 \\text{ mol/L}" parts=C_2 | = \frac{2 \times 50}{200} | = 0{,}5 \text{ mol/L}
+DIT (bon) : Reprenons dans le bon sens. Le côté gauche : deux moles par litre fois zéro virgule zéro cinquante litre, ça fait zéro virgule un mole. On remplace V un par zéro virgule zéro cinquante, en litres.
+    dim faux @beat:start 
+    dim pourquoi_err @beat:start 
+    write sol @cue:c_gauche {"part":"sol_g"}
+    write sol @cue:c_zecinq {"part":"sol_c2"}
+    write sol @after:w_solc2 {"part":"sol_v2"}
+DIT (isole) : Ces zéro virgule un mole sont toujours là, mais dans quatre fois plus de volume. Donc C deux égale deux fois cinquante divisé par deux cents, et ça donne zéro virgule cinq mole par litre.
+    transform etape2 @cue:c_doncc2 {"source":"sol"}
+    highlight etape2 @- {"start":"cue:c_res","end":"cue_end:c_res","role":"result","part":"e_res"}
+=== Tranche s_retenir
+  OBJET idee [text] "Diluer : volume × k, concentration ÷ k" 
+DIT (final) : À retenir : la dilution garde la même quantité de soluté, donc C un V un égale C deux V deux. Ici le volume a été multiplié par quatre, la concentration devait être divisée par quatre : zéro virgule cinq mole par litre.
+    fade_out loi @beat:start 
+    fade_out etape2 @beat:start 
+    fade_out faux @beat:start 
+    fade_out pourquoi_err @beat:start 
+    fade_out titre @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["idee"]}
+    show idee @cue:c_resfinal 
+--- 5 tranches, 270 mots dits (≈ 1.8 min d'oral)

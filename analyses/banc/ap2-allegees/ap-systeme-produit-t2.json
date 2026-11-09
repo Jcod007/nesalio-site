@@ -1,0 +1,572 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "systeme_produit_somme",
+  "title": "Trouver x et y avec un produit et une somme",
+  "language": "fr",
+  "learning_goal": "Résoudre le système (y+3)(7−x)=32,8 et 2(y+3)+2(7−x)=26,9 par substitution, puis vérifier le couple trouvé."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "u": {
+     "kind": "constant",
+     "value": 9.9
+    },
+    "v": {
+     "kind": "constant",
+     "value": 3.5
+    },
+    "x": {
+     "kind": "constant",
+     "value": 3.5
+    },
+    "y": {
+     "kind": "constant",
+     "value": 6.9
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_reperer",
+   "introduces": [
+    {
+     "id": "syst",
+     "content": "\\begin{cases} (y+3)(7-x)=32{,}8 \\\\ 2(y+3)+2(7-x)=26{,}9 \\end{cases}",
+     "type": "math"
+    },
+    {
+     "id": "soust",
+     "layout": {
+      "next_to": "syst",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Astuce : y+3 et 7−x reviennent dans les deux équations",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Tu as deux équations, et le même bloc y plus trois et le même bloc sept moins x dans les deux. On va les remplacer par des lettres simples.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux équations"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_syst",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "syst"
+      }
+     ]
+    },
+    {
+     "id": "poser",
+     "say": "Posons u égale y plus trois, et v égale sept moins x. Le système devient beaucoup plus simple.",
+     "cues": [
+      {
+       "id": "c_u",
+       "text": "u égale y plus trois"
+      },
+      {
+       "id": "c_v",
+       "text": "v égale sept moins x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_soust",
+       "verb": "show",
+       "at": "cue:c_u",
+       "target": "soust"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resoudre",
+   "introduces": [
+    {
+     "id": "sys2",
+     "content": "\\begin{cases} u\\cdot v=32{,}8 \\\\ 2u+2v=26{,}9 \\end{cases}",
+     "type": "math"
+    },
+    {
+     "id": "somme",
+     "content": "u+v = 13{,}45",
+     "type": "math"
+    },
+    {
+     "id": "uv",
+     "layout": {
+      "next_to": "somme",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "u\\cdot v = 32{,}8",
+     "type": "math"
+    },
+    {
+     "id": "resu",
+     "content": "u = 9{,}9 \\quad \\text{et} \\quad v = 3{,}5",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "simplifie",
+     "say": "Divisons la deuxième équation par deux des deux côtés : u plus v égale treize virgule quarante-cinq. L'égalité tient toujours.",
+     "cues": [
+      {
+       "id": "c_div",
+       "text": "Divisons la deuxième équation par deux"
+      },
+      {
+       "id": "c_somme",
+       "text": "u plus v égale treize virgule quarante-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_sys2",
+       "verb": "transform",
+       "at": "cue:c_div",
+       "source": "syst",
+       "target": "sys2"
+      },
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "somme"
+      }
+     ]
+    },
+    {
+     "id": "couple",
+     "say": "On cherche donc deux nombres dont la somme vaut treize virgule quarante-cinq et le produit trente-deux virgule huit. Avec un peu d'essai : neuf virgule neuf et trois virgule cinq fonctionnent.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "le produit trente-deux virgule huit"
+      },
+      {
+       "id": "c_neuf",
+       "text": "neuf virgule neuf et trois virgule cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_uv",
+       "verb": "write",
+       "at": "cue:c_produit",
+       "target": "uv"
+      },
+      {
+       "id": "w_resu",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "resu"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verif",
+     "say": "Vérifions : neuf virgule neuf plus trois virgule cinq donne bien treize virgule quarante-cinq, et neuf virgule neuf fois trois virgule cinq donne trente-deux virgule huit. Parfait.",
+     "cues": [
+      {
+       "id": "c_plus",
+       "text": "neuf virgule neuf plus trois virgule cinq"
+      },
+      {
+       "id": "c_fois",
+       "text": "neuf virgule neuf fois trois virgule cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_somme",
+       "verb": "highlight",
+       "start": "cue:c_plus",
+       "end": "cue_end:c_plus",
+       "target": "somme",
+       "role": "accent"
+      },
+      {
+       "id": "h_uv",
+       "verb": "highlight",
+       "start": "cue:c_fois",
+       "end": "cue_end:c_fois",
+       "target": "uv",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retour",
+   "introduces": [
+    {
+     "id": "yx",
+     "layout": {
+      "next_to": "resu",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "y = u-3 = 9{,}9-3 = 6{,}9",
+     "type": "math"
+    },
+    {
+     "id": "xx",
+     "layout": {
+      "next_to": "yx",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "x = 7-v = 7-3{,}5 = 3{,}5",
+     "type": "math"
+    },
+    {
+     "id": "sol",
+     "content": "x = 3{,}5 \\quad \\text{et} \\quad y = 6{,}9",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retour_y",
+     "say": "Revenons à y : y plus trois égale neuf virgule neuf, donc y égale neuf virgule neuf moins trois, soit six virgule neuf.",
+     "cues": [
+      {
+       "id": "c_y",
+       "text": "y égale neuf virgule neuf moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_yx",
+       "verb": "write",
+       "at": "cue:c_y",
+       "target": "yx"
+      }
+     ]
+    },
+    {
+     "id": "retour_x",
+     "say": "Puis pour x : sept moins x égale trois virgule cinq, donc x égale sept moins trois virgule cinq, soit trois virgule cinq.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "x égale sept moins trois virgule cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_xx",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "xx"
+      }
+     ]
+    },
+    {
+     "id": "verif",
+     "say": "Vérifions dans les équations de départ : six virgule neuf plus trois fois sept moins trois virgule cinq, ça fait bien trente-deux virgule huit. Et deux fois neuf virgule neuf plus deux fois trois virgule cinq donne vingt-six virgule neuf. C'est bon.",
+     "cues": [
+      {
+       "id": "c_v1",
+       "text": "trente-deux virgule huit"
+      },
+      {
+       "id": "c_v2",
+       "text": "vingt-six virgule neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sol",
+       "verb": "write",
+       "at": "cue:c_v1",
+       "target": "sol"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : quand un même bloc revient dans les deux équations, on le remplace par une lettre. On transforme un système compliqué en une somme et un produit faciles.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "on le remplace par une lettre"
+      },
+      {
+       "id": "c_fin",
+       "text": "somme et un produit faciles"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_idee",
+       "targets": [
+        "sol",
+        "soust"
+       ]
+      },
+      {
+       "id": "f_sys2",
+       "verb": "fade_out",
+       "at": "cue:c_idee",
+       "target": "sys2"
+      },
+      {
+       "id": "f_somme",
+       "verb": "fade_out",
+       "at": "cue:c_idee",
+       "target": "somme"
+      },
+      {
+       "id": "f_uv",
+       "verb": "fade_out",
+       "at": "cue:c_idee",
+       "target": "uv"
+      },
+      {
+       "id": "f_resu",
+       "verb": "fade_out",
+       "at": "cue:c_idee",
+       "target": "resu"
+      },
+      {
+       "id": "f_yx",
+       "verb": "fade_out",
+       "at": "cue:c_idee",
+       "target": "yx"
+      },
+      {
+       "id": "f_xx",
+       "verb": "fade_out",
+       "at": "cue:c_idee",
+       "target": "xx"
+      },
+      {
+       "id": "h_sol",
+       "verb": "highlight",
+       "start": "cue:c_fin",
+       "end": "cue_end:c_fin",
+       "target": "sol",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

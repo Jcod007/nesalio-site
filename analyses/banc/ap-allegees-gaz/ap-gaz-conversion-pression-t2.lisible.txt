@@ -1,0 +1,65 @@
+QUESTION (ap-gaz-conversion-pression, chimie, sec 5, alloprof) : Comment est-ce que je fais la conversion mm Hg -> kPa -> atm avec la logique de 760 mmHg = 101,3 kPa = 1 atm si j'ai une valeur de 78 cm Hg et 1345 Pa ? Je veux convertir en atm.
+RÉPONSE DE RÉFÉRENCE : 78 cmHg = 780 mmHg ≈ 1,03 atm ; 1345 Pa = 1,345 kPa ≈ 1,33×10⁻² atm.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Convertir 78 cm Hg et 1345 Pa en atm
+math_context : {"symbols":{"P_kPa":{"kind":"constant","value":103.97}},"expressions":{"mmHg_a_atm":"780/760","kPa_a_atm":"103.97/101.3","pa_a_kPa":"1345/1000","pa_a_atm":"1.345/101.3"}}
+=== Tranche s_egalite
+  OBJET egalite [math] "760\\ \\text{mm Hg} = 101{,}3\\ \\text{kPa} = 1\\ \\text{atm}" parts=760\ \text{mm Hg} | = 101{,}3\ \text{kPa} | = 1\ \text{atm}
+DIT (cle) : Tout part d'une seule égalité : sept cent soixante millimètres de mercure, ça vaut cent un virgule trois kilopascals, et ça vaut aussi une atmosphère.
+    camera.focus  @beat:start {"targets":["egalite"],"bounds":"layout_bounds","save_as":"vue_egalite"}
+    write egalite @cue:c_septcent {"part":"mm"}
+    write egalite @cue:c_kpa {"part":"kpa"}
+    write egalite @cue:c_atm {"part":"atm"}
+DIT (pont) : Cette égalité, c'est ton pont de conversion : trois unités qui décrivent exactement la même pression au niveau de la mer.
+    highlight egalite @- {"start":"cue:c_pont","end":"cue_end:c_pont","role":"accent"}
+=== Tranche s_78cm
+  OBJET v1 [math] "78\\ \\text{cm Hg}" 
+  OBJET v1mm [math] "= 780\\ \\text{mm Hg}" 
+  OBJET v1atm [math] {"kind":"computed","expression_ref":"mmHg_a_atm","template":"= {value}","precision":3} 
+  OBJET v1fin [math] "\\approx 1{,}03\\ \\text{atm}" 
+DIT (premiere) : Première valeur : soixante-dix-huit centimètres de mercure. On la met en millimètres pour rejoindre l'égalité.
+    write v1 @cue:c_78 
+    write v1mm @cue:c_mm2 
+DIT (divise) : Un centimètre vaut dix millimètres, donc sept cent quatre-vingts. Je divise par sept cent soixante, le nombre de millimètres dans une atmosphère.
+    write v1atm @cue:c_div 
+DIT (resultat) : Sept cent quatre-vingts divisé par sept cent soixante donne environ un virgule zéro trois.
+    write v1fin @cue:c_trois 
+    highlight v1fin @after:w_v1fin {"role":"result"}
+=== Tranche s_1345Pa
+  OBJET v2 [math] "1345\\ \\text{Pa}" 
+  OBJET v2kpa [math] "= 1{,}345\\ \\text{kPa}" 
+  OBJET v2atm [math] {"kind":"computed","expression_ref":"pa_a_atm","template":"= {value}","precision":4} 
+  OBJET v2fin [math] "\\approx 0{,}0133\\ \\text{atm}" 
+DIT (pascal) : Deuxième valeur : mille trois cent quarante-cinq pascals. Cette fois, il faut d'abord passer au kilopascal.
+    dim egalite @cue:c_kilo 
+    write v2 @cue:c_pa 
+    write v2kpa @cue:c_kilo 
+DIT (bridge) : Un kilopascal, c'est mille pascals : on a donc un virgule trois quatre cinq kilopascals. Puis on divise par cent un virgule trois.
+    write v2atm @cue:c_centun 
+DIT (petit) : Un virgule trois quatre cinq divisé par cent un virgule trois donne environ zéro virgule zéro un trois trois atmosphères.
+    fade_out v1mm @cue:c_petit 
+    fade_out v1atm @cue:c_petit 
+    write v2fin @cue:c_petit 
+    highlight v2fin @after:w_v2fin {"role":"result"}
+=== Tranche s_proportion
+  OBJET regle [math] "P_{\\text{atm}} = \\frac{P_{\\text{mmHg}}}{760} = \\frac{P_{\\text{kPa}}}{101{,}3}" parts=P_{\text{atm}} | = \frac{P_{\text{mmHg}}}{760} | = \frac{P_{\text{kPa}}}{101{,}3}
+  OBJET cond [text] "Toujours diviser : une atmosphère est plus grande que ces unités" 
+DIT (pourquoi) : Pourquoi ça marche ? Une atmosphère vaut sept cent soixante millimètres de mercure, donc une pression plus petite donne une fraction d'atmosphère.
+    camera.focus  @beat:start {"targets":["regle"],"bounds":"layout_bounds","save_as":"vue_regle"}
+    write regle @cue:c_pluspetite {"part":"gauche"}
+    write regle @cue:c_fraction {"part":"mercure"}
+DIT (formule) : La même logique avec les kilopascals : on divise toujours par cent un virgule trois.
+    write regle @cue:c_kilo3 {"part":"kilo"}
+    show cond @after:w_kilo 
+=== Tranche s_retenir
+DIT (idee) : À retenir : l'égalité sept cent soixante millimètres de mercure, cent un virgule trois kilopascals, une atmosphère. On se ramène à l'une des deux premières unités, puis on divise.
+    fade_out v2 @cue:c_retenir 
+    fade_out v2kpa @cue:c_retenir 
+    fade_out v2atm @cue:c_retenir 
+    fade_out cond @cue:c_retenir 
+    camera.restore  @cue:c_retenir {"frame":"vue_regle"}
+    highlight regle @- {"start":"cue:c_diviser","end":"cue_end:c_diviser","role":"result","part":"mercure"}
+--- 5 tranches, 222 mots dits (≈ 1.5 min d'oral)

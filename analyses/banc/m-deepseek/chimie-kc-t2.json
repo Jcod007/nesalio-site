@@ -1,0 +1,696 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "kc_equilibre",
+  "title": "C'est quoi Kc et comment le calculer",
+  "language": "fr",
+  "learning_goal": "Comprendre que Kc est le rapport des concentrations à l'équilibre, chaque concentration élevée à son coefficient, et le calculer pour H2 + I2 ⇌ 2 HI."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "kc": "0.70^2/(0.10*0.10)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{H2 + I2 <=> 2 HI}",
+     "type": "math"
+    },
+    {
+     "id": "eq_lab",
+     "attachment": {
+      "parent": "eq",
+      "anchor": "right"
+     },
+     "content": "équilibre",
+     "type": "label"
+    },
+    {
+     "id": "regle",
+     "content": "K_c = \\frac{[\\text{produits}]^{\\text{coefficients}}}{[\\text{réactifs}]^{\\text{coefficients}}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Kc, c'est le nombre qui te dit de quel côté penche une réaction à l'équilibre.",
+     "cues": [
+      {
+       "id": "c_kc",
+       "text": "Kc"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "eq",
+        "regle"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_kc"
+      },
+      {
+       "id": "w_w_react",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "eq"
+      }
+     ]
+    },
+    {
+     "id": "fleche",
+     "say": "La double flèche veut dire que la réaction directe et la réaction inverse continuent toutes les deux, à la même vitesse : ça n'arrête pas, ça reste constant.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "double flèche"
+      },
+      {
+       "id": "c_constant",
+       "text": "reste constant"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_w_fleche",
+       "verb": "highlight",
+       "at": "cue:c_double",
+       "target": "eq",
+       "role": "accent"
+      },
+      {
+       "id": "w_w_prod",
+       "verb": "highlight",
+       "at": "after:w_w_fleche",
+       "target": "eq",
+       "role": "accent"
+      },
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "cue:c_constant",
+       "target": "eq_lab"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "K_c = \\frac{[\\ce{HI}]^2}{[\\ce{H2}][\\ce{I2}]}",
+     "type": "math"
+    },
+    {
+     "id": "donnees",
+     "params": {
+      "rows": [
+       [
+        "0,10",
+        "0,10",
+        "0,70"
+       ]
+      ],
+      "row_labels": [
+       "concentration à l'équilibre (mol/L)"
+      ],
+      "column_labels": [
+       "H₂",
+       "I₂",
+       "HI"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reglede",
+     "say": "Voici la règle générale : Kc, c'est le produit des concentrations des produits, divisé par le produit des concentrations des réactifs.",
+     "cues": [
+      {
+       "id": "c_produits",
+       "text": "concentrations des produits"
+      },
+      {
+       "id": "c_reactifs",
+       "text": "concentrations des réactifs"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_eq",
+       "verb": "dim",
+       "at": "cue:c_produits",
+       "target": "eq"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "regle"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_produits",
+       "end": "cue_end:c_reactifs",
+       "target": "regle",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "exposants",
+     "say": "Chaque concentration est élevée à son coefficient, celui de l'équation balancée : le deux devant H I devient l'exposant deux au numérateur.",
+     "cues": [
+      {
+       "id": "c_coeff",
+       "text": "coefficient"
+      },
+      {
+       "id": "c_deux",
+       "text": "exposant deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_formule",
+       "verb": "write",
+       "at": "cue:c_coeff",
+       "target": "formule"
+      },
+      {
+       "id": "h_num",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "formule",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "donnees",
+     "say": "Tes données d'équilibre : H deux vaut zéro virgule dix mole par litre, I deux aussi, et H I vaut zéro virgule soixante-dix.",
+     "cues": [
+      {
+       "id": "c_h2",
+       "text": "H deux vaut zéro virgule dix"
+      },
+      {
+       "id": "c_i2",
+       "text": "I deux aussi"
+      },
+      {
+       "id": "c_hi",
+       "text": "H I vaut zéro virgule soixante-dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_h2",
+       "target": "regle"
+      },
+      {
+       "id": "s_donnees",
+       "verb": "show",
+       "at": "cue:c_h2",
+       "target": "donnees"
+      },
+      {
+       "id": "h_i2",
+       "verb": "highlight",
+       "start": "cue:c_i2",
+       "end": "cue_end:c_i2",
+       "target": "donnees",
+       "part": "c2"
+      },
+      {
+       "id": "h_hi",
+       "verb": "highlight",
+       "start": "cue:c_hi",
+       "end": "cue_end:c_hi",
+       "target": "donnees",
+       "part": "c3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "etape1",
+     "content": "K_c = \\frac{(0{,}70)^2}{(0{,}10)(0{,}10)}",
+     "type": "math"
+    },
+    {
+     "id": "etape2",
+     "content": "K_c = \\frac{0{,}49}{0{,}010}",
+     "type": "math"
+    },
+    {
+     "id": "resultat",
+     "content": "K_c = 49",
+     "type": "math"
+    },
+    {
+     "id": "concl",
+     "content": "Kc plus grand que 1 : les produits sont favorisés",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "remplace",
+     "say": "On remplace chaque symbole par sa valeur, en gardant les exposants : zéro virgule soixante-dix au carré sur zéro virgule dix fois zéro virgule dix.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "zéro virgule soixante-dix au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_e1",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "etape1"
+      },
+      {
+       "id": "h_carre",
+       "verb": "highlight",
+       "start": "cue:c_remplace",
+       "end": "cue_end:c_remplace",
+       "target": "etape1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "On calcule : zéro virgule soixante-dix au carré donne zéro virgule quarante-neuf, et en dessous zéro virgule dix fois zéro virgule dix donne zéro virgule zéro dix.",
+     "cues": [
+      {
+       "id": "c_049",
+       "text": "zéro virgule quarante-neuf"
+      },
+      {
+       "id": "c_0010",
+       "text": "zéro virgule zéro dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e2",
+       "verb": "transform",
+       "at": "cue:c_049",
+       "source": "etape1",
+       "target": "etape2"
+      },
+      {
+       "id": "h_den",
+       "verb": "highlight",
+       "start": "cue:c_0010",
+       "end": "cue_end:c_0010",
+       "target": "etape2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "Quarante-neuf divisé par zéro virgule zéro dix donne quarante-neuf. Donc Kc vaut quarante-neuf.",
+     "cues": [
+      {
+       "id": "c_49",
+       "text": "donne quarante-neuf"
+      },
+      {
+       "id": "c_kc49",
+       "text": "Kc vaut quarante-neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_res",
+       "verb": "transform",
+       "at": "cue:c_49",
+       "source": "etape2",
+       "target": "resultat"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_kc49",
+       "end": "cue_end:c_kc49",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "lecture",
+     "say": "Quand Kc est plus grand que un, les produits sont favorisés : à l'équilibre, il y a beaucoup de H I comparé aux réactifs.",
+     "cues": [
+      {
+       "id": "c_plus",
+       "text": "plus grand que un"
+      },
+      {
+       "id": "c_fav",
+       "text": "produits sont favorisés"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_concl",
+       "verb": "show",
+       "at": "cue:c_plus",
+       "target": "concl"
+      },
+      {
+       "id": "f_donnees",
+       "verb": "fade_out",
+       "at": "cue:c_plus",
+       "target": "donnees"
+      },
+      {
+       "id": "f_eq",
+       "verb": "fade_out",
+       "at": "cue:c_fav",
+       "target": "eq"
+      },
+      {
+       "id": "f_lab",
+       "verb": "fade_out",
+       "at": "cue:c_fav",
+       "target": "eq_lab"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "K_c = \\frac{[\\ce{HI}]^2}{[\\ce{H2}][\\ce{I2}]}",
+     "type": "math"
+    },
+    {
+     "id": "regle_finale",
+     "content": "\\text{chaque concentration exposant son coefficient}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : Kc est un rapport de concentrations à l'équilibre, chaque concentration élevée à son coefficient de l'équation balancée.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_coefffinal",
+       "text": "coefficient de l'équation balancée"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre_final",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "idee",
+        "regle_finale"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "formule"
+      },
+      {
+       "id": "f_etape2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "etape2"
+      },
+      {
+       "id": "f_concl",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "concl"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "s_reglefinale",
+       "verb": "show",
+       "at": "cue:c_coefffinal",
+       "target": "regle_finale"
+      }
+     ]
+    },
+    {
+     "id": "expos",
+     "say": "Ici, le coefficient deux de H I fait l'exposant deux, et c'est ce qui donne quarante-neuf. Plus Kc est grand, plus la réaction penche vers les produits.",
+     "cues": [
+      {
+       "id": "c_grand",
+       "text": "Plus Kc est grand"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_grand",
+       "end": "cue_end:c_grand",
+       "target": "idee",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

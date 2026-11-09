@@ -1,0 +1,812 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_des_sinus_erreur",
+  "title": "Retrouver b avec la loi des sinus",
+  "language": "fr",
+  "learning_goal": "Apparier chaque côté à l'angle opposé et corriger un sinus inversé dans la loi des sinus."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_figure",
+   "introduces": [
+    {
+     "id": "A",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "A",
+      "anchor": "left"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "B",
+     "params": {
+      "at": [
+       6.4,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labB",
+     "attachment": {
+      "parent": "B",
+      "anchor": "right"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "C",
+     "params": {
+      "at": [
+       6.13,
+       6.43
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labC",
+     "attachment": {
+      "parent": "C",
+      "anchor": "top"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "cote_a",
+     "params": {
+      "from": [
+       6.4,
+       0
+      ],
+      "to": [
+       6.13,
+       6.43
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "cote_b",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6.13,
+       6.43
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "cote_c",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6.4,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_a",
+     "attachment": {
+      "parent": "cote_a",
+      "anchor": "right"
+     },
+     "content": "a = 10",
+     "type": "label"
+    },
+    {
+     "id": "lab_b",
+     "attachment": {
+      "parent": "cote_b",
+      "anchor": "left"
+     },
+     "content": "b = ?",
+     "type": "label"
+    },
+    {
+     "id": "lab_c",
+     "attachment": {
+      "parent": "cote_c",
+      "anchor": "bottom"
+     },
+     "content": "c",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "On a un triangle avec l'angle A de quarante degrés, l'angle B de soixante degrés, et le côté a qui mesure dix centimètres.",
+     "cues": [
+      {
+       "id": "tri",
+       "text": "triangle"
+      },
+      {
+       "id": "cA",
+       "text": "l'angle A de quarante degrés"
+      },
+      {
+       "id": "cB",
+       "text": "l'angle B de soixante degrés"
+      },
+      {
+       "id": "ca",
+       "text": "le côté a qui mesure dix centimètres"
+      }
+     ],
+     "do": [
+      {
+       "id": "sA",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "A"
+      },
+      {
+       "id": "sB",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "B"
+      },
+      {
+       "id": "sC",
+       "verb": "show",
+       "at": "cue:tri",
+       "target": "C"
+      },
+      {
+       "id": "sab",
+       "verb": "show",
+       "at": "cue:tri",
+       "target": "cote_a"
+      },
+      {
+       "id": "sbc",
+       "verb": "show",
+       "at": "cue:tri",
+       "target": "cote_b"
+      },
+      {
+       "id": "sca",
+       "verb": "show",
+       "at": "cue:tri",
+       "target": "cote_c"
+      },
+      {
+       "id": "sla",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labA"
+      },
+      {
+       "id": "slb",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labB"
+      },
+      {
+       "id": "slc",
+       "verb": "show",
+       "at": "cue:tri",
+       "target": "labC"
+      },
+      {
+       "id": "slaa",
+       "verb": "show",
+       "at": "cue:ca",
+       "target": "lab_a"
+      },
+      {
+       "id": "slbb",
+       "verb": "show",
+       "at": "cue:ca",
+       "target": "lab_b"
+      },
+      {
+       "id": "slcc",
+       "verb": "show",
+       "at": "cue:ca",
+       "target": "lab_c"
+      }
+     ]
+    },
+    {
+     "id": "oppose",
+     "say": "Le point clé : chaque côté porte le nom de l'angle qui lui fait face. Le côté a est en face de l'angle A, et le côté b est en face de l'angle B.",
+     "cues": [
+      {
+       "id": "face",
+       "text": "fait face"
+      },
+      {
+       "id": "caA",
+       "text": "côté a est en face de l'angle A"
+      },
+      {
+       "id": "cbB",
+       "text": "côté b est en face de l'angle B"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_a",
+       "verb": "highlight",
+       "start": "cue:caA",
+       "end": "cue_end:caA",
+       "target": "cote_a",
+       "role": "accent"
+      },
+      {
+       "id": "h_A",
+       "verb": "highlight",
+       "start": "cue:caA",
+       "end": "cue_end:caA",
+       "target": "labA",
+       "role": "accent"
+      },
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "start": "cue:cbB",
+       "end": "cue_end:cbB",
+       "target": "cote_b",
+       "role": "accent"
+      },
+      {
+       "id": "h_B",
+       "verb": "highlight",
+       "start": "cue:cbB",
+       "end": "cue_end:cbB",
+       "target": "labB",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "\\frac{a}{\\sin A} = \\frac{b}{\\sin B}",
+     "parts": [
+      {
+       "id": "pa",
+       "text": "\\frac{a}{\\sin A}"
+      },
+      {
+       "id": "pb",
+       "text": "= \\frac{b}{\\sin B}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "enonce",
+     "say": "Cette relation s'appelle la loi des sinus : a sur sinus A égale b sur sinus B.",
+     "cues": [
+      {
+       "id": "loi",
+       "text": "loi des sinus"
+      },
+      {
+       "id": "pa",
+       "text": "a sur sinus A"
+      },
+      {
+       "id": "pb",
+       "text": "b sur sinus B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_loi",
+       "verb": "write",
+       "at": "cue:pa",
+       "target": "loi",
+       "part": "pa"
+      },
+      {
+       "id": "w_pb",
+       "verb": "write",
+       "at": "cue:pb",
+       "target": "loi",
+       "part": "pb"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "On veut b, alors on multiplie les deux côtés par sinus B : b égale dix fois sinus soixante sur sinus quarante.",
+     "cues": [
+      {
+       "id": "mult",
+       "text": "par sinus B"
+      },
+      {
+       "id": "formule",
+       "text": "b égale dix fois sinus soixante sur sinus quarante"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_mult",
+       "verb": "highlight",
+       "at": "cue:mult",
+       "target": "loi",
+       "role": "accent"
+      },
+      {
+       "id": "h_pa",
+       "verb": "highlight",
+       "start": "cue:formule",
+       "end": "cue_end:formule",
+       "target": "loi",
+       "role": "given",
+       "part": "pa"
+      },
+      {
+       "id": "h_pb2",
+       "verb": "highlight",
+       "start": "cue:formule",
+       "end": "cue_end:formule",
+       "target": "loi",
+       "role": "accent",
+       "part": "pb"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "erreur",
+     "content": "b = \\frac{10 \\times \\sin 40^\\circ}{\\sin 60^\\circ} \\approx 7{,}42\\ \\text{cm}",
+     "parts": [
+      {
+       "id": "faux",
+       "text": "b = \\frac{10 \\times \\sin 40^\\circ}{\\sin 60^\\circ}"
+      },
+      {
+       "id": "val",
+       "text": "\\approx 7{,}42\\ \\text{cm}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "correct",
+     "content": "b = \\frac{10 \\times \\sin 60^\\circ}{\\sin 40^\\circ} \\approx 13{,}47\\ \\text{cm}",
+     "parts": [
+      {
+       "id": "bon",
+       "text": "b = \\frac{10 \\times \\sin 60^\\circ}{\\sin 40^\\circ}"
+      },
+      {
+       "id": "val2",
+       "text": "\\approx 13{,}47\\ \\text{cm}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ton",
+     "say": "Ton sept virgule quarante-deux vient d'un échange inversé : dix fois sinus quarante sur sinus soixante.",
+     "cues": [
+      {
+       "id": "echange",
+       "text": "échange inversé"
+      },
+      {
+       "id": "calcul",
+       "text": "dix fois sinus quarante sur sinus soixante"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_loi",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "loi"
+      },
+      {
+       "id": "w_faux",
+       "verb": "write",
+       "at": "cue:calcul",
+       "target": "erreur",
+       "part": "faux"
+      },
+      {
+       "id": "set_faux",
+       "verb": "set_style",
+       "at": "cue:calcul",
+       "target": "erreur",
+       "role": "secondary"
+      },
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "after:w_faux",
+       "target": "erreur",
+       "part": "val"
+      }
+     ]
+    },
+    {
+     "id": "vraisemblance",
+     "say": "Vérifions : soixante degrés est plus grand que quarante, donc le côté b doit être plus grand que a. Treize virgule quarante-sept tient debout, sept virgule quarante-deux non.",
+     "cues": [
+      {
+       "id": "plusgrand",
+       "text": "plus grand que quarante"
+      },
+      {
+       "id": "doit",
+       "text": "plus grand que a"
+      },
+      {
+       "id": "debout",
+       "text": "tient debout"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_err",
+       "verb": "highlight",
+       "start": "cue:doit",
+       "end": "cue_end:doit",
+       "target": "erreur",
+       "role": "secondary"
+      },
+      {
+       "id": "d_erreur",
+       "verb": "dim",
+       "at": "cue:debout",
+       "target": "erreur"
+      },
+      {
+       "id": "w_bon",
+       "verb": "write",
+       "at": "cue:debout",
+       "target": "correct",
+       "part": "bon"
+      },
+      {
+       "id": "w_val2",
+       "verb": "write",
+       "at": "after:w_bon",
+       "target": "correct",
+       "part": "val2"
+      },
+      {
+       "id": "h_correct",
+       "verb": "highlight",
+       "at": "after:w_val2",
+       "target": "correct",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "\\frac{a}{\\sin A} = \\frac{b}{\\sin B}",
+     "parts": [
+      {
+       "id": "ra",
+       "text": "\\frac{a}{\\sin A}"
+      },
+      {
+       "id": "rb",
+       "text": "= \\frac{b}{\\sin B}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rappel",
+     "content": "chaque côté en face de son angle",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "synthese",
+     "items": [
+      "regle",
+      "rappel"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "final",
+     "say": "À retenir : chaque côté va avec l'angle opposé, et le plus grand angle a toujours le plus grand côté en face de lui.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "oppose2",
+       "text": "l'angle opposé"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_err",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "erreur"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "regle",
+        "rappel"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:retenir",
+       "target": "regle"
+      },
+      {
+       "id": "s_rappel",
+       "verb": "show",
+       "at": "cue:oppose2",
+       "target": "rappel"
+      },
+      {
+       "id": "h_ra",
+       "verb": "highlight",
+       "start": "cue:oppose2",
+       "end": "cue_end:oppose2",
+       "target": "regle",
+       "role": "accent",
+       "part": "ra"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

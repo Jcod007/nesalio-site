@@ -1,0 +1,86 @@
+QUESTION (programmation-lineaire, mathematiques, sec 5, methode) : comment je trouve le maximum de 3x + 2y si x ≥ 0, y ≥ 0, x + y ≤ 6 pis x ≤ 4 ? on fait ça avec un polygone de contraintes
+RÉPONSE DE RÉFÉRENCE : Sommets (0, 0), (4, 0), (4, 2), (0, 6) ; valeurs 0, 12, 16, 12 ; maximum 16 en (4, 2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. tracer les droites frontières et ombrer la région qui respecte toutes les contraintes
+  2. trouver les sommets du polygone : (0, 0), (4, 0), (4, 2), (0, 6)
+  3. le maximum d'une fonction à optimiser se trouve à un sommet du polygone
+  4. évaluer 3x + 2y à chaque sommet : 0, 12, 16, 12
+  5. réponse : maximum 16 en (4, 2), écrit
+ERREURS GRAVES À CHERCHER : sommet (4, 2) oublié ou mal calculé ; région ombrée fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le maximum de 3x + 2y sous contraintes
+math_context : {"symbols":{},"expressions":{"val_a":"3*4 + 2*2","val_b":"3*4 + 2*0","val_c":"3*2 + 2*4","val_d":"3*0 + 2*6","val_e":"3*0 + 2*0"}}
+=== Tranche s_zone
+  OBJET rep [axes] {"x":[-1,8],"y":[-1,8]} 
+  OBJET droite1 [function_graph] {"expression":"6 - x","domain":[0,6]} 
+  OBJET poly [polygon] {"vertices":[[0,0],[4,0],[4,2],[2,4],[0,6]]} 
+  OBJET lbl_a [label] "A(0 ; 0)" attaché à poly
+  OBJET p_b [point] {"at":[4,0]} 
+  OBJET lbl_b [label] "B(4 ; 0)" attaché à p_b
+  OBJET p_c [point] {"at":[4,2]} 
+  OBJET lbl_c [label] "C(4 ; 2)" attaché à p_c
+  OBJET p_d [point] {"at":[2,4]} 
+  OBJET lbl_d [label] "D(2 ; 4)" attaché à p_d
+  OBJET p_e [point] {"at":[0,6]} 
+  OBJET lbl_e [label] "E(0 ; 6)" attaché à p_e
+  OBJET l_vert [line] {"from":[4,0],"to":[4,2]} 
+  OBJET l_haut [line] {"from":[4,2],"to":[2,4]}   <<JAMAIS MONTRÉ>>
+  OBJET l_gauche [line] {"from":[2,4],"to":[0,6]}   <<JAMAIS MONTRÉ>>
+DIT (cadre) : Pour trouver le maximum, on dessine d'abord la zone permise par les contraintes.
+    camera.focus  @beat:start {"targets":["rep"],"bounds":"layout_bounds","save_as":"vue_zone"}
+    show rep @beat:start 
+    draw droite1 @- {"start":"cue:c_zone","end":"cue_end:c_zone"}
+DIT (murs) : x plus y plus petit ou égal à six, ça donne la droite qui descend, et x plus petit ou égal à quatre la coupe à partir de quatre.
+    show l_vert @cue:c_coupe 
+    draw poly @cue:c_coupe 
+=== Tranche s_sommets
+DIT (coins) : Avec x et y positifs, la zone est ce polygone. Ses coins, ou sommets, sont les seuls endroits où le maximum peut se cacher.
+    highlight poly @cue:c_polygone {"role":"accent"}
+    highlight poly @cue:c_sommets {"role":"accent"}
+    show lbl_a @cue:c_sommets 
+    show p_b @cue:c_sommets 
+    show lbl_b @cue:c_sommets 
+    show p_c @cue:c_sommets 
+    show lbl_c @cue:c_sommets 
+    show p_d @cue:c_sommets 
+    show lbl_d @cue:c_sommets 
+    show p_e @cue:c_sommets 
+    show lbl_e @cue:c_sommets 
+=== Tranche s_tableau
+  OBJET tab [matrix] {"rows":[[4,2,16],[4,0,12],[2,4,14],[0,6,12],[0,0,0]],"row_labels":["A","B","C","D","E"],"column_labels":["x","y","3x + 2y"]} 
+DIT (pente) : Alors la réponse se trouve parmi ces coins. Regarde ce qui se passe quand on glisse la droite de la fonction vers le haut.
+    show tab @cue:c_coins 
+    highlight tab @cue:c_glisse {"role":"accent"}
+DIT (lire) : On calcule 3x plus 2y à chaque sommet : au point A, zéro ; à B, douze ; à C, seize ; à D, quatorze ; et à E, douze.
+    highlight tab @cue:c_a {"part":"r1c3"}
+    highlight tab @cue:c_b {"part":"r2c3"}
+    highlight tab @cue:c_c {"part":"r3c3"}
+    highlight tab @cue:c_d {"part":"r4c3"}
+    highlight tab @cue:c_e {"part":"r5c3"}
+=== Tranche s_retenir
+  OBJET res [math] "3(4) + 2(2) = 16" 
+  OBJET pt [text] "Maximum au sommet C(4 ; 2)" 
+DIT (reponse) : Le plus grand résultat est seize, et il arrive au sommet C, quand x vaut quatre et y vaut deux.
+    write res @cue:c_seize 
+    highlight res @after:w_res {"role":"result"}
+    show pt @cue:c_c 
+DIT (methode) : Tu vérifies toujours un sommet à la fois, tu gardes le plus grand, et tu donnes le point qui l'atteint.
+    highlight tab @- {"start":"cue:c_verifie","end":"cue_end:c_verifie","part":"c3"}
+=== Tranche s_recap
+  OBJET regle [text] "Le maximum de 3x + 2y est atteint à un sommet du polygone de contraintes." 
+  OBJET formule [math] "3(4) + 2(2) = 16" parts=3(4) + 2(2) | = 16
+  OBJET point [text] "Maximum au sommet C(4 ; 2)" 
+  GROUPE recap = regle, formule, point
+DIT (idee) : À retenir : pour trouver le maximum, on évalue la fonction à chaque sommet du polygone et on garde le plus grand.
+    fade_out tab @beat:start 
+    fade_out res @beat:start 
+    fade_out pt @beat:start 
+    camera.focus  @cue:c_sommets {"targets":["recap"],"bounds":"layout_bounds","save_as":"vue_recap"}
+    show regle @cue:c_sommets 
+    write formule @cue:c_plus_grand {"part":"left"}
+    write formule @cue:c_plus_grand {"part":"right"}
+DIT (final) : Ici, ça donne seize au point C, avec x égale quatre et y égale deux.
+    show point @cue:c_seize 
+    highlight formule @cue:c_deux {"role":"result"}
+--- 5 tranches, 197 mots dits (≈ 1.3 min d'oral)

@@ -1,0 +1,58 @@
+QUESTION (ap-perpendiculaire-point, mathematiques, sec 4, alloprof) : Si AB est perpendiculaire à CB et que l'équation pour AB est 5x+4y-684=0 et le point C est de (60,14), comment faire pour trouver les coordonnées du point b
+RÉPONSE DE RÉFÉRENCE : B(100, 46)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver le point B quand AB est perpendiculaire à CB
+=== Tranche s_pente
+  OBJET eq_ab [math] "5x + 4y - 684 = 0" parts=5x | + 4y | - 684 | = 0
+  OBJET iso [math] "4y = -5x + 684" parts=4y | = -5x + 684
+  OBJET pente_ab [math] "y = -\\frac{5}{4}x + 171" 
+DIT (pose) : On a la droite AB d'équation cinq x plus quatre y moins six cent quatre-vingt-quatre égale zéro, et le point C en soixante, quatorze.
+    write eq_ab @cue:c_eq {"part":"terme5x"}
+    write eq_ab @after:w_eq {"part":"terme4y"}
+    write eq_ab @after:w_4y {"part":"const"}
+    write eq_ab @after:w_const {"part":"egal"}
+DIT (isole) : Pour lire la pente de AB, on isole y. On ajoute cinq x et on enlève le six cent quatre-vingt-quatre de chaque côté.
+    highlight eq_ab @- {"start":"cue:c_isole","end":"cue_end:c_isole","role":"accent","part":"terme4y"}
+    transform iso @cue:c_ajoute {"source":"eq_ab"}
+DIT (divise) : On divise tout par quatre. La pente de AB est moins cinq quarts.
+    transform pente_ab @cue:c_divise {"source":"iso"}
+    highlight pente_ab @- {"start":"cue:c_pente","end":"cue_end:c_pente","role":"accent"}
+=== Tranche s_perp
+  OBJET regle_perp [math] "m_1 \\times m_2 = -1" parts=m_1 \times m_2 | = -1
+  OBJET calcul_pente [math] "-\\frac{5}{4} \\times m_{CB} = -1 \\quad \\Rightarrow \\quad m_{CB} = \\frac{4}{5}" 
+DIT (regle) : Deux droites perpendiculaires ont des pentes opposées inverses : leur produit vaut moins un.
+    write regle_perp @cue:c_perp {"part":"prod"}
+    write regle_perp @cue:c_produit {"part":"egm1"}
+DIT (calcule) : On remplace par moins cinq quarts : la pente de CB vaut quatre cinquièmes.
+    dim regle_perp @cue:c_remplace 
+    write calcul_pente @cue:c_remplace 
+    highlight calcul_pente @after:w_frac {"role":"accent"}
+    highlight calcul_pente @cue:c_cb {"role":"accent"}
+    highlight calcul_pente @- {"start":"cue:c_cb","end":"cue_end:c_cb","role":"result"}
+=== Tranche s_equation_cb
+  OBJET eq_cb [math] "4x - 5y + 310 = 0" parts=4x | - 5y | + 310 | = 0
+DIT (forme) : CB passe par C en soixante, quatorze et a pour pente quatre cinquièmes. On écrit y moins quatorze égale quatre cinquièmes fois x moins soixante.
+    fade_out calcul_pente @cue:c_forme 
+DIT (developpe) : On développe et on regroupe : quatre x moins cinq y plus trois cent dix égale zéro.
+    write eq_cb @cue:c_dev {"part":"m4x"}
+    write eq_cb @after:w_m4x {"part":"mm5y"}
+    write eq_cb @after:w_mm5y {"part":"p310"}
+    write eq_cb @after:w_p310 {"part":"e0"}
+=== Tranche s_systeme
+  OBJET sys [matrix] {"rows":[[5,4,-684],[4,-5,310]],"column_labels":["x","y","="]} 
+  OBJET final [text] "B(76 ; 91)" 
+DIT (systeme) : B est le point d'intersection : il doit satisfaire les deux équations à la fois.
+    show sys @cue:c_intersection 
+DIT (methode) : On multiplie la première par cinq et la deuxième par quatre, on additionne : le y s'annule.
+    highlight sys @- {"start":"cue:c_mult","end":"cue_end:c_add","role":"accent","part":"c2"}
+DIT (resultat) : On trouve x égale soixante-seize, puis y égale quatre-vingt-onze. Donc B est au point soixante-seize, quatre-vingt-onze.
+    fade_out sys @cue:c_b 
+    show final @cue:c_b 
+=== Tranche s_retenir
+DIT (idee) : À retenir : on lit la pente de AB, on prend l'opposée inverse pour CB, puis on résout le système des deux droites.
+    camera.focus  @cue:c_retenir {"targets":["final"]}
+    highlight final @- {"start":"cue:c_opposee","end":"cue_end:c_opposee","role":"result"}
+--- 5 tranches, 201 mots dits (≈ 1.3 min d'oral)

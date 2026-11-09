@@ -199,7 +199,9 @@ describe("contrat Nesalio", () => {
     expect(evaluate(new Map([["speed_now", 4]]))).toBe(0.25);
     expect(evaluate(new Map([["speed_now", 0]]))).toBeNull();
     expect(() => compileNamedExpression("speed_now^33", new Set(["speed_now"]))).toThrow("Exposant");
-    expect(() => compileNamedExpression("floor(speed_now)", new Set(["speed_now"]))).toThrow("Nom inconnu");
+    // floor and ceil: the integer part, announced by the prompt (P5); other names stay unknown.
+    expect(compileNamedExpression("floor(speed_now)", new Set(["speed_now"]))(new Map([["speed_now", -1.5]]))).toBe(-2);
+    expect(() => compileNamedExpression("round(speed_now)", new Set(["speed_now"]))).toThrow("Nom inconnu");
   });
 });
 

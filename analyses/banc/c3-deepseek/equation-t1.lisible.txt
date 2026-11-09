@@ -1,0 +1,58 @@
+QUESTION (equation, mathematiques, sec 4, methode) : Comment je résous 3x + 5 = 17 ?
+RÉPONSE DE RÉFÉRENCE : x = 4.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. garder l'égalité : même opération des deux côtés
+  2. 3x = 12 en enlevant 5 des deux côtés
+  3. x = 4 en divisant par 3
+  4. réponse x = 4 écrite
+  5. vérification : 3 × 4 + 5 = 17
+ERREURS GRAVES À CHERCHER : « on passe de l'autre côté » sans justification (imprécision)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Résoudre 3x + 5 = 17
+=== Tranche s_depart
+  OBJET eq [math] "3x + 5 = 17" parts=3x + 5 | = 17
+  OBJET but [text] "On cherche le nombre x qui rend l'égalité vraie." 
+DIT (pose) : Pour résoudre trois x plus cinq égale dix-sept, on va isoler x.
+    write eq @cue:c_eq 
+    show but @after:w_eq 
+=== Tranche s_enleve
+  OBJET eq_moins [math] "3x + 5 - 5 = 17 - 5" 
+  OBJET eq_simple [math] "3x = 12" 
+DIT (pourquoi) : Le cinq dérange : pour le faire disparaître à gauche, on enlève cinq des deux côtés, parce qu'une égalité reste vraie si on fait la même chose partout.
+    transform eq_moins @cue:c_enleve {"source":"eq"}
+    highlight eq_moins @- {"start":"cue:c_pareil","end":"cue_end:c_pareil","role":"accent"}
+DIT (simplifie) : À gauche, plus cinq moins cinq s'annule : il reste trois x. À droite, dix-sept moins cinq donne douze.
+    transform eq_simple @cue:c_reste {"source":"eq_moins"}
+=== Tranche s_divise
+  OBJET eq_div [math] "\\frac{3x}{3} = \\frac{12}{3}" parts=\frac{3x}{3} | = \frac{12}{3}
+  OBJET eq_sol [math] "x = 4" 
+  OBJET note [text] "On divise les deux côtés par 3." 
+DIT (divise) : Maintenant trois multiplie x : pour l'enlever, on divise les deux côtés par trois.
+    transform eq_div @cue:c_divise {"source":"eq_simple"}
+    show note @after:t_div 
+DIT (solution) : À gauche, trois divisé par trois donne un, il reste x. À droite, douze divisé par trois donne quatre.
+    transform eq_sol @cue:c_un {"source":"eq_div"}
+    highlight eq_sol @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"result"}
+=== Tranche s_verifie
+  OBJET verif [math] "3 \\times 4 + 5 = 12 + 5 = 17" parts=3 \times 4 + 5 | = 12 + 5 | = 17
+DIT (verifie) : Vérifions dans l'équation de départ : trois fois quatre plus cinq.
+    dim eq_sol @cue:c_trois_fois 
+    dim note @cue:c_trois_fois 
+    write verif @cue:c_trois_fois {"part":"membre"}
+DIT (calcul) : Trois fois quatre fait douze, puis douze plus cinq fait dix-sept. Les deux côtés sont bien égaux.
+    write verif @cue:c_douze {"part":"reduit"}
+    write verif @cue:c_egaux {"part":"total"}
+    highlight verif @- {"start":"cue:c_egaux","end":"cue_end:c_egaux","role":"result","part":"total"}
+=== Tranche s_retenir
+  OBJET regle [text] "On défait les opérations dans l'ordre inverse, des deux côtés à la fois." 
+  OBJET sol [math] "x = 4" 
+  GROUPE bilan = regle, sol
+DIT (retenir) : À retenir : pour isoler x, on défait les opérations dans l'ordre inverse, toujours des deux côtés à la fois.
+    fade_out but @beat:start 
+    fade_out verif @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["regle","sol"],"bounds":"layout_bounds"}
+    show regle @cue:c_retenir 
+    show sol @cue:c_inverse 
+    highlight sol @after:s_sol {"role":"result"}
+--- 5 tranches, 140 mots dits (≈ 0.9 min d'oral)

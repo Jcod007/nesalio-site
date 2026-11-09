@@ -1,0 +1,69 @@
+QUESTION (chimie-mole, chimie, sec 4, sens) : c'est quoi une mole pis comment je trouve combien de moles il y a dans 36 g d'eau?
+RÉPONSE DE RÉFÉRENCE : M(H₂O) ≈ 18,02 g/mol ; n = 36 / 18,02 ≈ 2,0 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. mole = 6,02 × 10²³ entités
+  2. M(H₂O) = 2(1,01) + 16,00 ≈ 18 g/mol
+  3. n = m/M
+  4. n ≈ 2,0 mol écrit
+  5. unités dites et écrites
+ERREURS GRAVES À CHERCHER : masse molaire de H₂O fausse (ex. 17 g/mol)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi une mole, et combien de moles dans 36 g d'eau
+math_context : {"symbols":{},"expressions":{"m_h2o":"2*1.01+16.00","n_eau":"36/18.02"}}
+=== Tranche s_paquet
+  OBJET douzaine [math] "1\\ \\text{douzaine} = 12\\ \\text{entités}" parts=1\ \text{douzaine} | = | 12\ \text{entités}
+  OBJET mole_idee [math] "1\\ \\text{mol} = 6{,}02 \\times 10^{23}\\ \\text{entités}" parts=1\ \text{mol} | = | 6{,}02 \times 10^{23}\ \text{entités}
+  OBJET note_mol [text] "le nombre d'Avogadro" attaché à mole_idee
+DIT (accueil) : Bonne question ! La mole, c'est juste une façon de compter en paquets, comme on compte les œufs par douzaines.
+    write douzaine @cue:c_douzaines 
+DIT (grand_paquet) : Une mole, c'est un paquet de six virgule zéro deux fois dix exposant vingt-trois entités : atomes, molécules, ions.
+    write mole_idee @cue:c_mole {"part":"une_mol"}
+    write mole_idee @cue:c_entites {"part":"paquet"}
+    write mole_idee @after:w_paquet {"part":"eg2"}
+    show note_mol @after:w_eg2 
+=== Tranche s_masse_molaire
+  OBJET calc_M [math] "M(\\text{H}_2\\text{O}) = 2 \\times 1{,}01 + 16{,}00 = 18{,}02\\ \\text{g/mol}" parts=M(\text{H}_2\text{O}) | = 2 \times 1{,}01 + 16{,}00 | = 18{,}02\ \text{g/mol}
+  OBJET legende [text] "H : 1,01   •   O : 16,00   (tableau périodique, g/mol)" attaché à calc_M
+DIT (definition) : La masse molaire, notée M majuscule, c'est la masse d'une mole, en grammes par mole.
+    fade_out douzaine @cue:c_M 
+    fade_out mole_idee @cue:c_M 
+    fade_out note_mol @cue:c_M 
+    write calc_M @cue:c_M {"part":"formule_M"}
+    write calc_M @cue:c_gmol {"part":"resultat_M"}
+DIT (somme) : Pour l'eau, H deux O, on additionne les masses du tableau périodique : deux fois un virgule zéro un pour les hydrogènes, plus seize virgule zéro zéro pour l'oxygène.
+    show legende @beat:start 
+    write calc_M @- {"start":"cue:c_deux","end":"cue_end:c_seize","part":"calcul_M"}
+DIT (totaux) : Ça donne dix-huit virgule zéro deux grammes par mole : une mole d'eau pèse environ dix-huit grammes.
+    highlight calc_M @- {"start":"cue:c_dixhuit","end":"cue_end:c_dixhuit","role":"accent","part":"resultat_M"}
+=== Tranche s_calcul
+  OBJET tab_prop [matrix] {"rows":[[18.02,36.04,9.01],[1,2,0.5]],"row_labels":["masse (g)","quantité (mol)"]} 
+  OBJET divise [text] "÷ 18,02" attaché à tab_prop
+  OBJET formule_n [math] "n = \\frac{m}{M}" parts=n | = \frac{m}{M}
+  OBJET rep [math] "n = \\frac{36\\ \\text{g}}{18{,}02\\ \\text{g/mol}} = 2{,}0\\ \\text{mol}" parts=n | = \frac{36\ \text{g}}{18{,}02\ \text{g/mol}} | = 2{,}0\ \text{mol}
+DIT (passer) : Pour passer des grammes aux moles, on divise par la masse molaire : n égale m sur M.
+    show tab_prop @beat:start 
+    show divise @cue:c_divise 
+    write formule_n @cue:c_n {"part":"n"}
+    write formule_n @after:w_n {"part":"frac"}
+DIT (applique) : Avec trente-six grammes d'eau : trente-six divisé par dix-huit virgule zéro deux donne environ deux moles.
+    write rep @cue:c_36 {"part":"rep_n"}
+    write rep @after:w_rep_n {"part":"rep_calc"}
+    write rep @cue:c_rep_res {"part":"rep_res"}
+DIT (verifie) : Vérifions avec le tableau : si une mole pèse dix-huit grammes, alors trente-six grammes, c'est exactement deux moles.
+    highlight tab_prop @- {"start":"cue:c_tableau","end":"cue_end:c_deux_mol","role":"accent"}
+=== Tranche s_retenir
+  OBJET gen [math] "n = \\frac{m}{M}" parts=n | = \frac{m}{M}
+  OBJET gen_note [text] "M = masse molaire (g/mol)" attaché à gen
+DIT (idee) : À retenir : une mole, c'est un paquet de six virgule zéro deux fois dix exposant vingt-trois entités.
+    fade_out tab_prop @beat:start 
+    fade_out divise @beat:start 
+    fade_out formule_n @beat:start 
+    write gen @cue:c_retenir {"part":"g_n"}
+    write gen @cue:c_paquet {"part":"g_frac"}
+    show gen_note @after:w_frac2 
+DIT (conclusion) : Et pour trouver combien de moles il y a dans une masse, on divise cette masse par la masse molaire.
+    fade_out calc_M @cue:c_combien 
+    fade_out legende @cue:c_combien 
+    highlight gen @- {"start":"cue:c_combien","end":"cue_end:c_masse","role":"result"}
+--- 4 tranches, 190 mots dits (≈ 1.3 min d'oral)

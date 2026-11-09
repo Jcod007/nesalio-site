@@ -1,0 +1,930 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "forme_canonique_parabole",
+  "title": "Trouver la règle d’une parabole avec son sommet et un point",
+  "language": "fr",
+  "learning_goal": "Utiliser le sommet pour écrire la forme canonique, puis déterminer le paramètre a avec un point de la parabole."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_forme",
+   "introduces": [
+    {
+     "id": "forme",
+     "content": "f(x)=a(x-h)^2+k",
+     "parts": [
+      {
+       "id": "fonction",
+       "text": "f(x)="
+      },
+      {
+       "id": "parametre",
+       "text": "a"
+      },
+      {
+       "id": "carre",
+       "text": "(x-h)^2"
+      },
+      {
+       "id": "ord",
+       "text": "+k"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "sommet",
+     "content": "Sommet : (h ; k)",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "def_forme",
+     "items": [
+      "forme",
+      "sommet"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "La forme canonique est pratique ici : le sommet donne directement les nombres h et k.",
+     "cues": [
+      {
+       "id": "canonique",
+       "text": "forme canonique"
+      },
+      {
+       "id": "sommet_mot",
+       "text": "le sommet"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_base",
+       "verb": "write",
+       "at": "cue:canonique",
+       "target": "forme",
+       "part": "fonction"
+      },
+      {
+       "id": "ecrire_a",
+       "verb": "write",
+       "at": "cue:canonique",
+       "target": "forme",
+       "part": "parametre"
+      },
+      {
+       "id": "ecrire_carre",
+       "verb": "write",
+       "at": "cue:canonique",
+       "target": "forme",
+       "part": "carre"
+      },
+      {
+       "id": "ecrire_ord",
+       "verb": "write",
+       "at": "cue:canonique",
+       "target": "forme",
+       "part": "ord"
+      },
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "cue:sommet_mot",
+       "target": "sommet"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "remplacement",
+     "say": "Ton sommet est deux, moins trois : on remplace h par deux et k par moins trois, sans encore connaître a.",
+     "cues": [
+      {
+       "id": "h_deux",
+       "text": "deux"
+      },
+      {
+       "id": "k_moins_trois",
+       "text": "moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_forme",
+       "verb": "highlight",
+       "start": "cue:h_deux",
+       "end": "cue_end:h_deux",
+       "target": "forme",
+       "role": "accent",
+       "part": "carre"
+      },
+      {
+       "id": "h_sommet",
+       "verb": "highlight",
+       "start": "cue:k_moins_trois",
+       "end": "cue_end:k_moins_trois",
+       "target": "sommet",
+       "role": "given"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_point",
+   "introduces": [
+    {
+     "id": "substitution",
+     "content": "f(x)=a(x-2)^2-3",
+     "parts": [
+      {
+       "id": "sub_f",
+       "text": "f(x)="
+      },
+      {
+       "id": "sub_a",
+       "text": "a"
+      },
+      {
+       "id": "sub_carre",
+       "text": "(x-2)^2"
+      },
+      {
+       "id": "sub_moins",
+       "text": "-3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "point_donne",
+     "content": "Point donné : (4 ; 5)",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "donnees",
+     "items": [
+      "substitution",
+      "point_donne"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "substituer",
+     "say": "Avec ces coordonnées, la règle devient f de x égale a fois x moins deux au carré, moins trois.",
+     "cues": [
+      {
+       "id": "regle_devient",
+       "text": "la règle devient"
+      },
+      {
+       "id": "moins_trois",
+       "text": "moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_f",
+       "verb": "transform",
+       "at": "cue:regle_devient",
+       "source": "forme",
+       "target": "substitution"
+      },
+      {
+       "id": "s_point",
+       "verb": "show",
+       "at": "cue:regle_devient",
+       "target": "point_donne"
+      }
+     ]
+    },
+    {
+     "id": "utiliser_point",
+     "say": "Le point quatre, cinq appartient à la parabole : sa coordonnée x vaut quatre et sa coordonnée y, donc f de quatre, vaut cinq.",
+     "cues": [
+      {
+       "id": "point_appartient",
+       "text": "Le point quatre, cinq"
+      },
+      {
+       "id": "x_quatre",
+       "text": "vaut quatre"
+      },
+      {
+       "id": "y_cinq",
+       "text": "vaut cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_point",
+       "verb": "highlight",
+       "start": "cue:point_appartient",
+       "end": "cue_end:x_quatre",
+       "target": "point_donne",
+       "role": "given"
+      },
+      {
+       "id": "h_sub",
+       "verb": "highlight",
+       "start": "cue:y_cinq",
+       "end": "cue_end:y_cinq",
+       "target": "substitution",
+       "role": "accent",
+       "part": "sub_f"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "etape1",
+     "content": "5=a(4-2)^2-3",
+     "parts": [
+      {
+       "id": "e1_gauche",
+       "text": "5="
+      },
+      {
+       "id": "e1_a",
+       "text": "a"
+      },
+      {
+       "id": "e1_parenthese",
+       "text": "(4-2)^2"
+      },
+      {
+       "id": "e1_moins",
+       "text": "-3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape2",
+     "content": "5=4a-3",
+     "parts": [
+      {
+       "id": "e2_gauche",
+       "text": "5="
+      },
+      {
+       "id": "e2_terme",
+       "text": "4a"
+      },
+      {
+       "id": "e2_moins",
+       "text": "-3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape3",
+     "content": "8=4a",
+     "parts": [
+      {
+       "id": "e3_gauche",
+       "text": "8="
+      },
+      {
+       "id": "e3_terme",
+       "text": "4a"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape4",
+     "content": "a=2",
+     "parts": [
+      {
+       "id": "e4_a",
+       "text": "a="
+      },
+      {
+       "id": "e4_deux",
+       "text": "2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "substituer",
+     "say": "On remplace x par quatre et f de quatre par cinq, puisque le point est sur la parabole : cinq égale a fois quatre moins deux au carré, moins trois.",
+     "cues": [
+      {
+       "id": "substitution",
+       "text": "On remplace x par quatre"
+      },
+      {
+       "id": "egalite",
+       "text": "cinq égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_e1_gauche",
+       "verb": "write",
+       "at": "cue:egalite",
+       "target": "etape1",
+       "part": "e1_gauche"
+      },
+      {
+       "id": "w_e1_a",
+       "verb": "write",
+       "at": "cue:egalite",
+       "target": "etape1",
+       "part": "e1_a"
+      },
+      {
+       "id": "w_e1_parenthese",
+       "verb": "write",
+       "at": "cue:egalite",
+       "target": "etape1",
+       "part": "e1_parenthese"
+      },
+      {
+       "id": "w_e1_moins",
+       "verb": "write",
+       "at": "cue:egalite",
+       "target": "etape1",
+       "part": "e1_moins"
+      }
+     ]
+    },
+    {
+     "id": "simplifier",
+     "say": "Quatre moins deux vaut deux, puis deux au carré vaut quatre : on obtient cinq égale quatre a moins trois.",
+     "cues": [
+      {
+       "id": "carre_vaut",
+       "text": "deux au carré vaut quatre"
+      },
+      {
+       "id": "obtient",
+       "text": "on obtient"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e2",
+       "verb": "transform",
+       "at": "cue:obtient",
+       "source": "etape1",
+       "target": "etape2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "isoler",
+     "say": "On ajoute trois aux deux côtés pour garder l’égalité : huit égale quatre a.",
+     "cues": [
+      {
+       "id": "ajoute",
+       "text": "On ajoute trois aux deux côtés"
+      },
+      {
+       "id": "huit",
+       "text": "huit égale quatre a"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e3",
+       "verb": "transform",
+       "at": "cue:huit",
+       "source": "etape2",
+       "target": "etape3"
+      }
+     ]
+    },
+    {
+     "id": "diviser",
+     "say": "On divise les deux côtés par quatre pour isoler a : a égale deux.",
+     "cues": [
+      {
+       "id": "divise",
+       "text": "On divise les deux côtés par quatre"
+      },
+      {
+       "id": "a_deux",
+       "text": "a égale deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e4",
+       "verb": "transform",
+       "at": "cue:a_deux",
+       "source": "etape3",
+       "target": "etape4"
+      },
+      {
+       "id": "h_a",
+       "verb": "highlight",
+       "start": "cue:a_deux",
+       "end": "cue_end:a_deux",
+       "target": "etape4",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "regle_finale",
+     "content": "f(x)=2(x-2)^2-3",
+     "parts": [
+      {
+       "id": "rf",
+       "text": "f(x)="
+      },
+      {
+       "id": "ra",
+       "text": "2"
+      },
+      {
+       "id": "rc",
+       "text": "(x-2)^2"
+      },
+      {
+       "id": "rk",
+       "text": "-3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "content": "f(4)=2(4-2)^2-3=5",
+     "parts": [
+      {
+       "id": "vf",
+       "text": "f(4)="
+      },
+      {
+       "id": "vcalc",
+       "text": "2(4-2)^2-3"
+      },
+      {
+       "id": "vresultat",
+       "text": "=5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ecrire_regle",
+     "say": "On remet a égale deux dans la forme canonique : la règle est f de x égale deux fois x moins deux au carré, moins trois.",
+     "cues": [
+      {
+       "id": "remet",
+       "text": "On remet a égale deux"
+      },
+      {
+       "id": "regle_est",
+       "text": "la règle est"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rf",
+       "verb": "write",
+       "at": "cue:regle_est",
+       "target": "regle_finale",
+       "part": "rf"
+      },
+      {
+       "id": "w_ra",
+       "verb": "write",
+       "at": "cue:regle_est",
+       "target": "regle_finale",
+       "part": "ra"
+      },
+      {
+       "id": "w_rc",
+       "verb": "write",
+       "at": "cue:regle_est",
+       "target": "regle_finale",
+       "part": "rc"
+      },
+      {
+       "id": "w_rk",
+       "verb": "write",
+       "at": "cue:regle_est",
+       "target": "regle_finale",
+       "part": "rk"
+      },
+      {
+       "id": "f_calcul",
+       "verb": "fade_out",
+       "at": "cue:remet",
+       "target": "etape4"
+      }
+     ]
+    },
+    {
+     "id": "verifier",
+     "say": "Vérifions avec x égal quatre : deux fois quatre moins deux au carré, moins trois, donne cinq. Le point donné est bien sur cette parabole.",
+     "cues": [
+      {
+       "id": "x_quatre",
+       "text": "x égal quatre"
+      },
+      {
+       "id": "donne_cinq",
+       "text": "donne cinq"
+      },
+      {
+       "id": "point_bien",
+       "text": "Le point donné"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_vf",
+       "verb": "write",
+       "at": "cue:x_quatre",
+       "target": "verif",
+       "part": "vf"
+      },
+      {
+       "id": "w_vcalc",
+       "verb": "write",
+       "at": "cue:x_quatre",
+       "target": "verif",
+       "part": "vcalc"
+      },
+      {
+       "id": "w_vresultat",
+       "verb": "write",
+       "at": "cue:donne_cinq",
+       "target": "verif",
+       "part": "vresultat"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:point_bien",
+       "end": "cue_end:point_bien",
+       "target": "verif",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "resume",
+     "content": "Sommet (h ; k) → f(x)=a(x-h)²+k",
+     "type": "text"
+    },
+    {
+     "id": "resume_regle",
+     "content": "f(x)=2(x-2)^2-3",
+     "parts": [
+      {
+       "id": "srf",
+       "text": "f(x)="
+      },
+      {
+       "id": "sra",
+       "text": "2"
+      },
+      {
+       "id": "src",
+       "text": "(x-2)^2"
+      },
+      {
+       "id": "srk",
+       "text": "-3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "resume_groupe",
+     "items": [
+      "resume",
+      "resume_regle"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_centrale",
+     "say": "À retenir : le sommet fournit h et k dans la forme canonique; le point donné permet de calculer a. Ici, la règle est f de x égale deux fois x moins deux au carré, moins trois.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "sommet_fournit",
+       "text": "le sommet fournit h et k"
+      },
+      {
+       "id": "point_permet",
+       "text": "le point donné permet de calculer a"
+      },
+      {
+       "id": "regle_ici",
+       "text": "la règle est"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "verif"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "regle_finale"
+      },
+      {
+       "id": "s_resume",
+       "verb": "show",
+       "at": "cue:retenir",
+       "target": "resume"
+      },
+      {
+       "id": "w_resume_regle",
+       "verb": "write",
+       "at": "cue:regle_ici",
+       "target": "resume_regle",
+       "part": "srf"
+      },
+      {
+       "id": "w_resume_a",
+       "verb": "write",
+       "at": "cue:regle_ici",
+       "target": "resume_regle",
+       "part": "sra"
+      },
+      {
+       "id": "w_resume_c",
+       "verb": "write",
+       "at": "cue:regle_ici",
+       "target": "resume_regle",
+       "part": "src"
+      },
+      {
+       "id": "w_resume_k",
+       "verb": "write",
+       "at": "cue:regle_ici",
+       "target": "resume_regle",
+       "part": "srk"
+      },
+      {
+       "id": "h_resume",
+       "verb": "highlight",
+       "start": "cue:regle_ici",
+       "end": "cue_end:regle_ici",
+       "target": "resume_regle",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

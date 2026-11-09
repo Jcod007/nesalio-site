@@ -1,0 +1,724 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "carre_binome",
+  "title": "Pourquoi (x + 5)² n'est pas x² + 25",
+  "language": "fr",
+  "learning_goal": "Comprendre que le double produit 2·x·5 = 10x ne peut pas être oublié dans le développement de (x + 5)²."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_question",
+   "introduces": [
+    {
+     "id": "carre",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        6
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "l_x",
+     "attachment": {
+      "parent": "carre",
+      "anchor": "bottom"
+     },
+     "content": "x",
+     "type": "label"
+    },
+    {
+     "id": "l_5",
+     "attachment": {
+      "parent": "carre",
+      "anchor": "right"
+     },
+     "content": "5",
+     "type": "label"
+    },
+    {
+     "id": "pqx",
+     "content": "(x + 5)^2 = (x + 5)(x + 5)",
+     "parts": [
+      {
+       "id": "carre_m",
+       "text": "(x + 5)^2"
+      },
+      {
+       "id": "egal",
+       "text": "= (x + 5)(x + 5)"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Bonne question : on la regarde avec un dessin. Le carré de x plus cinq, c'est un grand carré dont le côté mesure x plus cinq.",
+     "cues": [
+      {
+       "id": "c_carre",
+       "text": "grand carré"
+      },
+      {
+       "id": "c_cote",
+       "text": "x plus cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_carre",
+       "verb": "draw",
+       "start": "cue:c_carre",
+       "end": "cue_end:c_carre",
+       "target": "carre"
+      },
+      {
+       "id": "s_lx",
+       "verb": "show",
+       "at": "cue:c_cote",
+       "target": "l_x"
+      },
+      {
+       "id": "s_l5",
+       "verb": "show",
+       "at": "cue:c_cote",
+       "target": "l_5"
+      }
+     ]
+    },
+    {
+     "id": "ecrit",
+     "say": "Donc son aire est (x plus cinq) fois (x plus cinq).",
+     "cues": [
+      {
+       "id": "c_aire",
+       "text": "son aire"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_carre",
+       "verb": "write",
+       "at": "cue:c_aire",
+       "target": "pqx",
+       "part": "carre_m"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_decoupe",
+   "introduces": [
+    {
+     "id": "pc_x2",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        0,
+        3
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "pc_5x_a",
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "pc_5x_b",
+     "params": {
+      "vertices": [
+       [
+        0,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        6
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "pc_25",
+     "params": {
+      "vertices": [
+       [
+        3,
+        3
+       ],
+       [
+        6,
+        3
+       ],
+       [
+        6,
+        6
+       ],
+       [
+        3,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "a_x2",
+     "attachment": {
+      "parent": "pc_x2",
+      "anchor": "center"
+     },
+     "content": "x²",
+     "type": "label"
+    },
+    {
+     "id": "a_5x",
+     "attachment": {
+      "parent": "pc_5x_a",
+      "anchor": "center"
+     },
+     "content": "5x",
+     "type": "label"
+    },
+    {
+     "id": "a_5x2",
+     "attachment": {
+      "parent": "pc_5x_b",
+      "anchor": "center"
+     },
+     "content": "5x",
+     "type": "label"
+    },
+    {
+     "id": "a_25",
+     "attachment": {
+      "parent": "pc_25",
+      "anchor": "center"
+     },
+     "content": "25",
+     "type": "label"
+    },
+    {
+     "id": "dev",
+     "layout": {
+      "next_to": "pqx",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "x^2 + 5x + 5x + 25",
+     "parts": [
+      {
+       "id": "t1",
+       "text": "x^2"
+      },
+      {
+       "id": "t2",
+       "text": "+ 5x"
+      },
+      {
+       "id": "t3",
+       "text": "+ 5x"
+      },
+      {
+       "id": "t4",
+       "text": "+ 25"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "decoupe",
+     "say": "Découpons ce carré en quatre pièces. En haut à gauche, un carré de côté x : son aire est x au carré.",
+     "cues": [
+      {
+       "id": "c_decoupe",
+       "text": "Découpons"
+      },
+      {
+       "id": "c_x2",
+       "text": "x au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_x2",
+       "verb": "show",
+       "at": "cue:c_decoupe",
+       "target": "pc_x2"
+      },
+      {
+       "id": "s_a_x2",
+       "verb": "show",
+       "at": "cue:c_x2",
+       "target": "a_x2"
+      }
+     ]
+    },
+    {
+     "id": "deux_5x",
+     "say": "Il reste deux rectangles de côtés x et cinq : chacun a une aire de cinq x. Il y en a deux, pas un seul.",
+     "cues": [
+      {
+       "id": "c_rect",
+       "text": "deux rectangles"
+      },
+      {
+       "id": "c_deux",
+       "text": "Il y en a deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_5xa",
+       "verb": "show",
+       "at": "cue:c_rect",
+       "target": "pc_5x_a"
+      },
+      {
+       "id": "s_5xb",
+       "verb": "show",
+       "at": "cue:c_rect",
+       "target": "pc_5x_b"
+      },
+      {
+       "id": "s_a5xa",
+       "verb": "show",
+       "at": "cue:c_rect",
+       "target": "a_5x"
+      },
+      {
+       "id": "s_a5xb",
+       "verb": "show",
+       "at": "cue:c_rect",
+       "target": "a_5x2"
+      },
+      {
+       "id": "h_deux",
+       "verb": "highlight",
+       "at": "cue:c_deux",
+       "target": "pc_5x_b",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "coin",
+     "say": "Enfin, le petit carré de côté cinq : son aire est vingt-cinq.",
+     "cues": [
+      {
+       "id": "c_coin",
+       "text": "petit carré"
+      },
+      {
+       "id": "c_vingt",
+       "text": "vingt-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_25",
+       "verb": "show",
+       "at": "cue:c_coin",
+       "target": "pc_25"
+      },
+      {
+       "id": "s_a25",
+       "verb": "show",
+       "at": "cue:c_vingt",
+       "target": "a_25"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_reponse",
+   "introduces": [
+    {
+     "id": "ecart",
+     "content": "Il manque 10x : les deux pièces 5x",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "somme",
+     "say": "L'aire totale est donc x au carré, plus cinq x, plus cinq x, plus vingt-cinq.",
+     "cues": [
+      {
+       "id": "c_somme",
+       "text": "L'aire totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_dev",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "dev",
+       "part": "t1"
+      },
+      {
+       "id": "w_t2",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "dev",
+       "part": "t2"
+      },
+      {
+       "id": "w_t3",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "dev",
+       "part": "t3"
+      },
+      {
+       "id": "w_t4",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "dev",
+       "part": "t4"
+      }
+     ]
+    },
+    {
+     "id": "reponse",
+     "say": "Donc ce qu'on oublie, ce sont les deux cinq x, qui font dix x. Le bon développement est x au carré, plus dix x, plus vingt-cinq.",
+     "cues": [
+      {
+       "id": "c_oublie",
+       "text": "les deux cinq x"
+      },
+      {
+       "id": "c_dix",
+       "text": "dix x"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_5x",
+       "verb": "highlight",
+       "start": "cue:c_oublie",
+       "end": "cue_end:c_oublie",
+       "target": "dev",
+       "role": "result",
+       "part": "t2"
+      },
+      {
+       "id": "w_ecart",
+       "verb": "show",
+       "at": "cue:c_dix",
+       "target": "ecart"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "retenir",
+     "layout": {
+      "next_to": "dev",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "(a + b)^2 = a^2 + 2ab + b^2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir_b",
+     "say": "À retenir : le carré d'une somme, c'est le carré du premier, plus deux fois le produit, plus le carré du second.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_double",
+       "text": "deux fois le produit"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_decoupe",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "carre"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_double",
+       "target": "retenir"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

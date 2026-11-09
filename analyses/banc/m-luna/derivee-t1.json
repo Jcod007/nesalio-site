@@ -1,0 +1,1003 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "derivee_concretement",
+  "title": "Ce que mesure une dérivée en un point",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une dérivée est le taux de variation instantané, soit la pente de la tangente, obtenue comme limite des pentes des sécantes."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "q": {
+     "kind": "parameter",
+     "initial": 3,
+     "min": 1,
+     "max": 3
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_pente",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -1,
+       4
+      ],
+      "y": [
+       -1,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "params": {
+      "expression": "x^2",
+      "domain": [
+       -1,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "A",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "A_label",
+     "attachment": {
+      "parent": "A",
+      "anchor": "right"
+     },
+     "content": "A(1 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "P",
+     "params": {
+      "at": [
+       3,
+       9
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "P_label",
+     "attachment": {
+      "parent": "P",
+      "anchor": "right"
+     },
+     "content": "P(3 ; 9)",
+     "type": "label"
+    },
+    {
+     "id": "secante",
+     "params": {
+      "from": [
+       1,
+       1
+      ],
+      "to": [
+       3,
+       9
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "avance",
+     "params": {
+      "from": [
+       1,
+       0
+      ],
+      "to": [
+       3,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "montee",
+     "params": {
+      "from": [
+       3,
+       1
+      ],
+      "to": [
+       3,
+       9
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "avance_label",
+     "attachment": {
+      "parent": "avance",
+      "anchor": "bottom"
+     },
+     "content": "avancée : 2",
+     "type": "label"
+    },
+    {
+     "id": "montee_label",
+     "attachment": {
+      "parent": "montee",
+      "anchor": "right"
+     },
+     "content": "montée : 8",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "concret",
+     "say": "Concrètement, une dérivée dit à quel rythme une quantité change à un instant précis.",
+     "cues": [
+      {
+       "id": "rythme",
+       "text": "à quel rythme une quantité change"
+      },
+      {
+       "id": "instant",
+       "text": "à un instant précis"
+      }
+     ],
+     "do": [
+      {
+       "id": "montre_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "trace_courbe",
+       "verb": "draw",
+       "start": "cue:rythme",
+       "end": "cue_end:instant",
+       "target": "courbe"
+      }
+     ]
+    },
+    {
+     "id": "pente",
+     "say": "Sur ce dessin, on suit la fonction x au carré et on compare les points A et P de sa courbe.",
+     "cues": [
+      {
+       "id": "fonction",
+       "text": "fonction x au carré"
+      },
+      {
+       "id": "points",
+       "text": "les points A et P"
+      }
+     ],
+     "do": [
+      {
+       "id": "dessine_A",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "A"
+      },
+      {
+       "id": "nomme_A",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "A_label"
+      },
+      {
+       "id": "dessine_P",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "P"
+      },
+      {
+       "id": "nomme_P",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "P_label"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_secante",
+   "introduces": [
+    {
+     "id": "formule_pente",
+     "content": "\\frac{\\text{montée}}{\\text{avancée}} = \\frac{8}{2} = 4",
+     "parts": [
+      {
+       "id": "quotient_mots",
+       "text": "\\frac{\\text{montée}}{\\text{avancée}}"
+      },
+      {
+       "id": "calcul",
+       "text": "= \\frac{8}{2}"
+      },
+      {
+       "id": "resultat",
+       "text": "= 4"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_taux",
+     "content": "Taux de variation moyen entre A et P",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "secante",
+     "say": "La sécante relie A à P. Elle monte de huit pendant une avancée de deux : la pente, c'est montée divisée par avancée.",
+     "cues": [
+      {
+       "id": "relie",
+       "text": "relie A à P"
+      },
+      {
+       "id": "monte",
+       "text": "monte de huit"
+      },
+      {
+       "id": "avance",
+       "text": "avancée de deux"
+      },
+      {
+       "id": "pente_mot",
+       "text": "la pente"
+      }
+     ],
+     "do": [
+      {
+       "id": "trace_secante",
+       "verb": "draw",
+       "at": "cue:relie",
+       "target": "secante"
+      },
+      {
+       "id": "trace_avance",
+       "verb": "draw",
+       "at": "cue:monte",
+       "target": "avance"
+      },
+      {
+       "id": "trace_montee",
+       "verb": "draw",
+       "at": "cue:monte",
+       "target": "montee"
+      },
+      {
+       "id": "label_avance",
+       "verb": "show",
+       "at": "cue:avance",
+       "target": "avance_label"
+      },
+      {
+       "id": "label_montee",
+       "verb": "show",
+       "at": "cue:monte",
+       "target": "montee_label"
+      },
+      {
+       "id": "ecrit_quotient",
+       "verb": "write",
+       "at": "cue:pente_mot",
+       "target": "formule_pente",
+       "part": "quotient_mots"
+      },
+      {
+       "id": "ecrit_calcul",
+       "verb": "write",
+       "at": "cue:avance",
+       "target": "formule_pente",
+       "part": "calcul"
+      },
+      {
+       "id": "ecrit_resultat",
+       "verb": "write",
+       "at": "cue:avance",
+       "target": "formule_pente",
+       "part": "resultat"
+      }
+     ]
+    },
+    {
+     "id": "moyenne",
+     "say": "Ici, la montée vaut neuf moins un, et l'avancée vaut trois moins un : le taux de variation moyen est donc quatre.",
+     "cues": [
+      {
+       "id": "montee_calc",
+       "text": "neuf moins un"
+      },
+      {
+       "id": "avance_calc",
+       "text": "trois moins un"
+      },
+      {
+       "id": "taux",
+       "text": "taux de variation moyen"
+      },
+      {
+       "id": "quatre",
+       "text": "quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "montre_note",
+       "verb": "show",
+       "at": "cue:taux",
+       "target": "note_taux"
+      },
+      {
+       "id": "rappel_resultat",
+       "verb": "highlight",
+       "start": "cue:quatre",
+       "end": "cue_end:quatre",
+       "target": "formule_pente",
+       "role": "accent",
+       "part": "resultat"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_limite",
+   "introduces": [
+    {
+     "id": "secante_q",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "(q+1)*(x-1)+1",
+      "domain": [
+       -1,
+       4
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "P2",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "P2_label",
+     "attachment": {
+      "parent": "P2",
+      "anchor": "right"
+     },
+     "content": "P(2 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "P15",
+     "params": {
+      "at": [
+       1.5,
+       2.25
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "P15_label",
+     "attachment": {
+      "parent": "P15",
+      "anchor": "right"
+     },
+     "content": "P(1,5 ; 2,25)",
+     "type": "label"
+    },
+    {
+     "id": "tangente",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "expression": "2*x-1",
+      "domain": [
+       -1,
+       4
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "pente3",
+     "content": "\\frac{9-1}{3-1}=4",
+     "parts": [
+      {
+       "id": "fraction3",
+       "text": "\\frac{9-1}{3-1}"
+      },
+      {
+       "id": "egal3",
+       "text": "=4"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pente2",
+     "content": "\\frac{4-1}{2-1}=3",
+     "parts": [
+      {
+       "id": "fraction2",
+       "text": "\\frac{4-1}{2-1}"
+      },
+      {
+       "id": "egal2",
+       "text": "=3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pente15",
+     "content": "\\frac{2.25-1}{1.5-1}=2.5",
+     "parts": [
+      {
+       "id": "fraction15",
+       "text": "\\frac{2.25-1}{1.5-1}"
+      },
+      {
+       "id": "egal15",
+       "text": "=2.5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pente_limite",
+     "content": "f'(1)=\\lim_{q\\to1}\\frac{q^2-1}{q-1}=2",
+     "parts": [
+      {
+       "id": "deriv_def",
+       "text": "f'(1)"
+      },
+      {
+       "id": "limite_expr",
+       "text": "=\\lim_{q\\to1}\\frac{q^2-1}{q-1}"
+      },
+      {
+       "id": "limite_val",
+       "text": "=2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "tangente_eq",
+     "content": "y=2x-1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "rapproche",
+     "say": "Quand P se rapproche de A, la sécante pivote et sa pente passe de quatre vers deux.",
+     "cues": [
+      {
+       "id": "approche",
+       "text": "P se rapproche de A"
+      },
+      {
+       "id": "pivote",
+       "text": "la sécante pivote"
+      },
+      {
+       "id": "deux",
+       "text": "vers deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_ancienne",
+       "verb": "dim",
+       "at": "cue:approche",
+       "target": "secante"
+      },
+      {
+       "id": "trace_param",
+       "verb": "draw",
+       "start": "cue:approche",
+       "end": "cue_end:pivote",
+       "target": "secante_q"
+      },
+      {
+       "id": "anime_q",
+       "verb": "animate_parameter",
+       "start": "cue:approche",
+       "end": "cue_end:deux",
+       "parameter": "q",
+       "from": 3,
+       "to": 1
+      },
+      {
+       "id": "montre_P2",
+       "verb": "show",
+       "at": "cue:pivote",
+       "target": "P2"
+      },
+      {
+       "id": "nomme_P2",
+       "verb": "show",
+       "at": "cue:pivote",
+       "target": "P2_label"
+      },
+      {
+       "id": "w_pente3",
+       "verb": "write",
+       "at": "cue:approche",
+       "target": "pente3",
+       "part": "fraction3"
+      },
+      {
+       "id": "w_egal3",
+       "verb": "write",
+       "at": "cue:deux",
+       "target": "pente3",
+       "part": "egal3"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "nombres",
+     "say": "À x égal trois, la pente moyenne vaut quatre ; à x égal deux, elle vaut trois ; à un virgule cinq, elle vaut deux virgule cinq.",
+     "cues": [
+      {
+       "id": "trois",
+       "text": "À x égal trois"
+      },
+      {
+       "id": "deux_point",
+       "text": "à x égal deux"
+      },
+      {
+       "id": "un_cinq",
+       "text": "à un virgule cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_pente3",
+       "verb": "highlight",
+       "start": "cue:trois",
+       "end": "cue_end:trois",
+       "target": "pente3",
+       "role": "accent"
+      },
+      {
+       "id": "ecrire_pente2",
+       "verb": "write",
+       "at": "cue:deux_point",
+       "target": "pente2",
+       "part": "fraction2"
+      },
+      {
+       "id": "ecrire_egal2",
+       "verb": "write",
+       "at": "cue:deux_point",
+       "target": "pente2",
+       "part": "egal2"
+      },
+      {
+       "id": "ecrire_pente15",
+       "verb": "write",
+       "at": "cue:un_cinq",
+       "target": "pente15",
+       "part": "fraction15"
+      },
+      {
+       "id": "ecrire_egal15",
+       "verb": "write",
+       "at": "cue:un_cinq",
+       "target": "pente15",
+       "part": "egal15"
+      },
+      {
+       "id": "montrer_P15",
+       "verb": "show",
+       "at": "cue:un_cinq",
+       "target": "P15"
+      },
+      {
+       "id": "nommer_P15",
+       "verb": "show",
+       "at": "cue:un_cinq",
+       "target": "P15_label"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "limite",
+     "say": "La pente se rapproche de deux : cette limite est la dérivée en un, et la tangente a pour équation y égale deux x moins un.",
+     "cues": [
+      {
+       "id": "limite_mot",
+       "text": "cette limite"
+      },
+      {
+       "id": "derivee_mot",
+       "text": "la dérivée en un"
+      },
+      {
+       "id": "tangente_mot",
+       "text": "la tangente"
+      },
+      {
+       "id": "equation",
+       "text": "y égale deux x moins un"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrit_def",
+       "verb": "write",
+       "at": "cue:derivee_mot",
+       "target": "pente_limite",
+       "part": "deriv_def"
+      },
+      {
+       "id": "ecrit_lim",
+       "verb": "write",
+       "at": "cue:limite_mot",
+       "target": "pente_limite",
+       "part": "limite_expr"
+      },
+      {
+       "id": "ecrit_val",
+       "verb": "write",
+       "at": "cue:derivee_mot",
+       "target": "pente_limite",
+       "part": "limite_val"
+      },
+      {
+       "id": "dessine_tangente",
+       "verb": "draw",
+       "start": "cue:tangente_mot",
+       "end": "cue_end:equation",
+       "target": "tangente"
+      },
+      {
+       "id": "ecrit_tangente",
+       "verb": "write",
+       "at": "cue:equation",
+       "target": "tangente_eq"
+      },
+      {
+       "id": "fade_moyenne",
+       "verb": "fade_out",
+       "at": "cue:limite_mot",
+       "target": "note_taux"
+      },
+      {
+       "id": "fade_avance",
+       "verb": "fade_out",
+       "at": "cue:limite_mot",
+       "target": "avance"
+      },
+      {
+       "id": "fade_montee",
+       "verb": "fade_out",
+       "at": "cue:limite_mot",
+       "target": "montee"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee_finale",
+     "content": "La dérivée en un point = la pente de la tangente = la limite des pentes des sécantes.",
+     "type": "text"
+    },
+    {
+     "id": "formule_finale",
+     "content": "f'(1)=2",
+     "type": "math"
+    },
+    {
+     "id": "taux_final",
+     "content": "Taux de variation instantané",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "resume",
+     "items": [
+      "idee_finale",
+      "formule_finale",
+      "taux_final"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : la dérivée est le taux de variation instantané, c'est la pente de la tangente et la limite des pentes des sécantes.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "derivee",
+       "text": "la dérivée"
+      },
+      {
+       "id": "tangente",
+       "text": "la pente de la tangente"
+      },
+      {
+       "id": "limite",
+       "text": "la limite des pentes des sécantes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_idee",
+       "verb": "show",
+       "at": "cue:derivee",
+       "target": "idee_finale"
+      },
+      {
+       "id": "w_formule",
+       "verb": "show",
+       "at": "cue:tangente",
+       "target": "formule_finale"
+      },
+      {
+       "id": "w_taux",
+       "verb": "show",
+       "at": "cue:limite",
+       "target": "taux_final"
+      },
+      {
+       "id": "focus_fin",
+       "verb": "camera.focus",
+       "at": "cue:retenir",
+       "targets": [
+        "idee_finale",
+        "formule_finale",
+        "taux_final"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

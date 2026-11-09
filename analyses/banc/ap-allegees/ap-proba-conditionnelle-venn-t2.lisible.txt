@@ -1,0 +1,92 @@
+QUESTION (ap-proba-conditionnelle-venn, mathematiques, sec 5, alloprof) : J'aimerais savoir pourquoi il ya une division de probabilité dans la formule de probabilité conditionnelle quand on travaille avec le diagramme de Venn alors que c'est plus simple quand on travaille avec d'autres modes de représentation? (Parce qu'en général une situation peut etre représenté par plusieurs modes de représentation alors pourquoi cest différent?)
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi on divise par P(B) dans P(A | B)
+=== Tranche s_univers
+  OBJET sq1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET sq2 [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET sq3 [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET sq4 [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET sq5 [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET sq6 [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET d1 [label] "1" attaché à sq1
+  OBJET d2 [label] "2" attaché à sq2
+  OBJET d3 [label] "3" attaché à sq3
+  OBJET d4 [label] "4" attaché à sq4
+  OBJET d5 [label] "5" attaché à sq5
+  OBJET d6 [label] "6" attaché à sq6
+  OBJET legende [text] "lancer d'un dé : 6 issues équiprobables" 
+DIT (pose) : Bonne question. Pour voir d'où vient cette division, prenons le lancer d'un dé : six issues, toutes également possibles.
+    show sq1 @cue:c_de 
+    show sq2 @after:s1 
+    show sq3 @after:s2 
+    show sq4 @after:s3 
+    show sq5 @after:s4 
+    show sq6 @cue:c_six 
+DIT (noms) : Chaque case est une issue, et le dé est équilibré : chaque case a la même chance, un sixième.
+    show d1 @cue:c_case 
+    show d2 @after:sl1 
+    show d3 @after:sl2 
+    show d4 @after:sl3 
+    show d5 @after:sl4 
+    show d6 @cue:c_un_sixieme 
+    show legende @after:sl6 
+=== Tranche s_reduire
+  OBJET formule [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = \frac{P(A \cap B)}{P(B)}
+  OBJET cond [label] "si P(B) ≠ 0" attaché à formule
+DIT (evenement) : Maintenant, jouons à un jeu. On nous dit que B est réalisé : le résultat est plus grand que trois.
+    dim sq1 @cue:c_plus_grand 
+    dim sq2 @after:d1b 
+    dim sq3 @after:d2b 
+DIT (reduit) : Ces trois cases sont éliminées. Il ne reste que quatre, cinq et six. L'univers n'est plus six, il est réduit à trois issues.
+    highlight sq4 @- {"start":"cue:c_reduit","end":"cue_end:c_reduit","role":"accent"}
+    highlight sq5 @- {"start":"cue:c_reduit","end":"cue_end:c_reduit","role":"accent"}
+    highlight sq6 @- {"start":"cue:c_reduit","end":"cue_end:c_reduit","role":"accent"}
+DIT (part) : La probabilité qu'un événement A arrive, sachant B, c'est la part de B où A est aussi vrai. Alors on divise la part commune par le nouveau tout, la probabilité de B.
+    write formule @cue:c_part {"part":"membre"}
+    write formule @cue:c_divise {"part":"rapport"}
+    highlight formule @- {"start":"cue:c_pb","end":"cue_end:c_pb","role":"accent","part":"rapport"}
+DIT (condition) : Condition à retenir : on ne peut diviser que si B a une chance non nulle. Sinon, la nouvelle univers est vide.
+    show cond @cue:c_condition 
+=== Tranche s_exemple
+  OBJET calc [math] "P(A \\mid B) = \\frac{2 \\div 6}{3 \\div 6} = \\frac{2}{3}" parts=P(A \mid B) = \frac{2 \div 6}{3 \div 6} | = \frac{2}{3}
+  OBJET pint [math] "P(A \\cap B) = \\frac{2}{6}" 
+  OBJET pB [math] "P(B) = \\frac{3}{6}" 
+DIT (evenements) : Prenons un exemple précis sur le même dé. A, c'est tomber sur un nombre pair. B, c'est plus grand que trois.
+    highlight sq2 @- {"start":"cue:c_pair","end":"cue_end:c_pair","role":"accent"}
+    highlight sq4 @- {"start":"cue:c_pair","end":"cue_end:c_pair","role":"accent"}
+    highlight sq6 @- {"start":"cue:c_pair","end":"cue_end:c_pair","role":"accent"}
+DIT (valeurs) : B contient trois issues : quatre, cinq, six, donc P de B vaut trois sixièmes. La part commune, les pairs dans B, c'est quatre et six, donc deux sixièmes.
+    write pB @cue:c_trois_six 
+    write pint @cue:c_deux_six 
+DIT (calcul) : En divisant, les sixièmes s'annulent : il reste deux sur trois. C'est logique, puisque sur les trois issues de B, deux sont paires.
+    write calc @cue:c_divisant {"part":"rapport"}
+    write calc @cue:c_deux_tiers {"part":"res"}
+    highlight calc @- {"start":"cue:c_deux_tiers","end":"cue_end:c_deux_tiers","role":"result","part":"res"}
+=== Tranche s_lien
+  OBJET lien [text] "le diagramme force à voir le nouveau tout" 
+DIT (reponse) : Voilà pourquoi on divise dans un diagramme de Venn : dès qu'on sait B réalisé, le tout change de taille. Les cases de B deviennent cent pour cent du monde.
+    fade_out calc @cue:c_venn 
+    fade_out pint @cue:c_venn 
+    fade_out pB @cue:c_venn 
+    highlight formule @- {"start":"cue:c_tout","end":"cue_end:c_tout","role":"accent","part":"rapport"}
+DIT (meme) : C'est le même calcul dans toutes les représentations : un tableau, un arbre, un diagramme. La division n'apparaît pas, mais elle est cachée dans la façon dont on lit l'univers conditionnel.
+    show lien @cue:c_tableau 
+    highlight cond @- {"start":"cue:c_division","end":"cue_end:c_division","role":"accent"}
+=== Tranche s_retenir
+  OBJET idee [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}"   <<JAMAIS MONTRÉ>>
+DIT (retenir) : À retenir : conditionner, c'est changer de tout. On passe de l'univers entier à B seul, et P de A sachant B est la part de B où A est aussi réalisé.
+    fade_out lien @cue:c_retenir 
+    fade_out sq1 @cue:c_retenir 
+    fade_out sq2 @cue:c_retenir 
+    fade_out sq3 @cue:c_retenir 
+    fade_out sq4 @cue:c_retenir 
+    fade_out sq5 @cue:c_retenir 
+    fade_out sq6 @cue:c_retenir 
+    fade_out legende @cue:c_retenir 
+    camera.focus  @cue:c_changer {"targets":["formule","idee"],"bounds":"layout_bounds","save_as":"final"}
+    highlight formule @- {"start":"cue:c_part","end":"cue_end:c_part","role":"result","part":"rapport"}
+--- 5 tranches, 301 mots dits (≈ 2.0 min d'oral)

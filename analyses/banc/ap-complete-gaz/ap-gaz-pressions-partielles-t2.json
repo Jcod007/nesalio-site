@@ -1,0 +1,932 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "pression_partielle_gaz",
+  "title": "Mélanger deux gaz : les pressions s'additionnent",
+  "language": "fr",
+  "learning_goal": "Comprendre que la pression totale d'un mélange est la somme des pressions partielles, et que la pression partielle d'un gaz dépend de sa fraction de moles (Pᵢ = xᵢ·P totale), pas de sa masse ni d'un facteur n·P."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "amorce",
+     "say": "Ta question touche la loi des pressions partielles. Regardons ensemble pourquoi les pressions s'additionnent et pourquoi on n'écrit pas P fois n.",
+     "cues": [
+      {
+       "id": "c_partielles",
+       "text": "loi des pressions partielles"
+      }
+     ],
+     "do": [],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi_dalton",
+   "introduces": [
+    {
+     "id": "gaz_a",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "center": [
+       -2,
+       1
+      ],
+      "radius": 1.2
+     },
+     "type": "circle"
+    },
+    {
+     "id": "tag_a",
+     "attachment": {
+      "parent": "gaz_a",
+      "anchor": "bottom"
+     },
+     "style": {
+      "role": "given"
+     },
+     "content": "gaz A : n(A)",
+     "type": "label"
+    },
+    {
+     "id": "gaz_b",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "center": [
+       2,
+       1
+      ],
+      "radius": 2
+     },
+     "type": "circle"
+    },
+    {
+     "id": "tag_b",
+     "attachment": {
+      "parent": "gaz_b",
+      "anchor": "bottom"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "gaz B : n(B)",
+     "type": "label"
+    },
+    {
+     "id": "melange",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "center": [
+       0,
+       -2
+      ],
+      "radius": 2.6
+     },
+     "type": "circle"
+    },
+    {
+     "id": "tag_m",
+     "attachment": {
+      "parent": "melange",
+      "anchor": "bottom"
+     },
+     "content": "mélange",
+     "type": "label"
+    },
+    {
+     "id": "dalton",
+     "content": "P_{tot} = P_A + P_B",
+     "parts": [
+      {
+       "id": "ptot",
+       "text": "P_{tot}"
+      },
+      {
+       "id": "egal",
+       "text": "= P_A + P_B"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pA",
+     "content": "P_A = \\frac{n_A\\,R\\,T}{V}",
+     "type": "math"
+    },
+    {
+     "id": "pB",
+     "content": "P_B = \\frac{n_B\\,R\\,T}{V}",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "gr_p",
+     "items": [
+      "pA",
+      "pB"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     },
+     "layout": {
+      "next_to": "dalton",
+      "direction": "down",
+      "gap": "lg"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "deux_gaz",
+     "say": "Imagine deux bonbonnes. Dans la première, un gaz A avec un certain nombre de moles n A. Dans la seconde, un gaz B avec un autre nombre de moles n B.",
+     "cues": [
+      {
+       "id": "c_gazA",
+       "text": "un gaz A"
+      },
+      {
+       "id": "c_nA",
+       "text": "n A"
+      },
+      {
+       "id": "c_gazB",
+       "text": "un gaz B"
+      },
+      {
+       "id": "c_nB",
+       "text": "n B"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ga",
+       "verb": "show",
+       "at": "cue:c_gazA",
+       "target": "gaz_a"
+      },
+      {
+       "id": "s_ta",
+       "verb": "show",
+       "at": "cue:c_nA",
+       "target": "tag_a"
+      },
+      {
+       "id": "s_gb",
+       "verb": "show",
+       "at": "cue:c_gazB",
+       "target": "gaz_b"
+      },
+      {
+       "id": "s_tb",
+       "verb": "show",
+       "at": "cue:c_nB",
+       "target": "tag_b"
+      }
+     ]
+    },
+    {
+     "id": "dalton_enonce",
+     "say": "Chaque gaz, tout seul, exerce sa propre pression sur les parois. Quand ils se retrouvent dans le même volume, chaque gaz continue de frapper les parois comme s'il était seul. La pression totale est donc la somme des deux : P totale égale P A plus P B.",
+     "cues": [
+      {
+       "id": "c_seul",
+       "text": "comme s'il était seul"
+      },
+      {
+       "id": "c_totale",
+       "text": "P totale"
+      },
+      {
+       "id": "c_somme",
+       "text": "P A plus P B"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_ga",
+       "verb": "fade_out",
+       "at": "cue:c_seul",
+       "target": "gaz_a"
+      },
+      {
+       "id": "f_gb",
+       "verb": "fade_out",
+       "at": "cue:c_seul",
+       "target": "gaz_b"
+      },
+      {
+       "id": "s_mel",
+       "verb": "show",
+       "at": "cue:c_seul",
+       "target": "melange"
+      },
+      {
+       "id": "s_tm",
+       "verb": "show",
+       "at": "cue:c_seul",
+       "target": "tag_m"
+      },
+      {
+       "id": "w_ptot",
+       "verb": "write",
+       "at": "cue:c_totale",
+       "target": "dalton",
+       "part": "ptot"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "dalton",
+       "part": "egal"
+      }
+     ]
+    },
+    {
+     "id": "d_ou_vient",
+     "say": "Et d'où vient P A ? De la loi des gaz parfaits appliquée au gaz A seulement : P A égale n A R T sur V. Pareil pour B.",
+     "cues": [
+      {
+       "id": "c_gazA2",
+       "text": "gaz A seulement"
+      },
+      {
+       "id": "c_pA",
+       "text": "P A égale"
+      },
+      {
+       "id": "c_pB",
+       "text": "Pareil pour B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pA",
+       "verb": "write",
+       "at": "cue:c_pA",
+       "target": "pA"
+      },
+      {
+       "id": "w_pB",
+       "verb": "write",
+       "at": "cue:c_pB",
+       "target": "pB"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pourquoi_pas_np",
+   "introduces": [
+    {
+     "id": "faux",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "P_A = n_A \\times P",
+     "type": "math"
+    },
+    {
+     "id": "vrai",
+     "content": "P_A = \\frac{n_A}{n_{tot}} \\times P_{tot}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "P_A"
+      },
+      {
+       "id": "frac",
+       "text": "= \\frac{n_A}{n_{tot}}"
+      },
+      {
+       "id": "droite",
+       "text": "\\times P_{tot}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ton_idee",
+     "say": "Ton idée, c'était P A égale n A fois P. C'est là que ça accroche : cette formule donnerait une pression énorme, deux fois plus grande dès qu'il y a deux moles de A. Ce n'est pas ce qu'on observe.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "n A fois P"
+      },
+      {
+       "id": "c_observe",
+       "text": "pas ce qu'on observe"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_faux",
+       "verb": "write",
+       "at": "cue:c_idee",
+       "target": "faux"
+      },
+      {
+       "id": "h_faux",
+       "verb": "highlight",
+       "start": "cue:c_idee",
+       "end": "cue_end:c_observe",
+       "target": "faux",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "fraction",
+     "say": "Ce qui compte, c'est la part de molécules de A dans le mélange. Le nombre de moles de A divisé par le nombre total de moles, ça donne sa fraction molaire.",
+     "cues": [
+      {
+       "id": "c_part",
+       "text": "part de molécules"
+      },
+      {
+       "id": "c_fraction",
+       "text": "nombre total de moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_faux",
+       "verb": "fade_out",
+       "at": "cue:c_part",
+       "target": "faux"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_part",
+       "target": "vrai",
+       "part": "gauche"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_fraction",
+       "target": "vrai",
+       "part": "frac"
+      }
+     ]
+    },
+    {
+     "id": "multiplie",
+     "say": "Et cette fraction, on la multiplie par la pression totale. C'est la loi des pressions partielles sous sa forme utile : P A égale n A sur n total, fois P totale.",
+     "cues": [
+      {
+       "id": "c_multiplie",
+       "text": "on la multiplie"
+      },
+      {
+       "id": "c_ptot",
+       "text": "P totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_ptot",
+       "target": "vrai",
+       "part": "droite"
+      },
+      {
+       "id": "h_vrai",
+       "verb": "highlight",
+       "start": "cue:c_ptot",
+       "end": "cue_end:c_ptot",
+       "target": "vrai",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "donnees",
+     "params": {
+      "rows": [
+       [
+        "n_A",
+        "3",
+        "mol"
+       ],
+       [
+        "n_B",
+        "2",
+        "mol"
+       ],
+       [
+        "P_tot",
+        "5",
+        "atm"
+       ]
+      ],
+      "row_labels": [
+       "grandeur",
+       "valeur",
+       "unité"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "rep_A",
+     "content": "P_A = \\frac{3}{3+2} \\times 5 = \\frac{3}{5} \\times 5 = 3\\ \\text{atm}",
+     "type": "math"
+    },
+    {
+     "id": "rep_B",
+     "content": "P_B = \\frac{2}{5} \\times 5 = 2\\ \\text{atm}",
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "content": "P_A + P_B = 3 + 2 = 5\\ \\text{atm}",
+     "parts": [
+      {
+       "id": "somme",
+       "text": "P_A + P_B"
+      },
+      {
+       "id": "resultat",
+       "text": "= 3 + 2 = 5\\ \\text{atm}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Prenons un exemple simple. Dans un mélange, n A égale trois moles, n B égale deux moles, et la pression totale mesure cinq atmosphères.",
+     "cues": [
+      {
+       "id": "c_nA",
+       "text": "n A égale trois moles"
+      },
+      {
+       "id": "c_nB",
+       "text": "n B égale deux moles"
+      },
+      {
+       "id": "c_ptot",
+       "text": "cinq atmosphères"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_donnees",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "donnees"
+      },
+      {
+       "id": "h_nA",
+       "verb": "highlight",
+       "at": "cue:c_nA",
+       "target": "donnees",
+       "part": "r1"
+      },
+      {
+       "id": "h_nB",
+       "verb": "highlight",
+       "at": "cue:c_nB",
+       "target": "donnees",
+       "part": "r2"
+      },
+      {
+       "id": "h_ptot",
+       "verb": "highlight",
+       "at": "cue:c_ptot",
+       "target": "donnees",
+       "part": "r3"
+      }
+     ]
+    },
+    {
+     "id": "calc_A",
+     "say": "Le total de moles, c'est trois plus deux, donc cinq. La fraction de A, c'est trois cinquièmes. Trois cinquièmes fois cinq atmosphères, ça fait trois atmosphères.",
+     "cues": [
+      {
+       "id": "c_total",
+       "text": "trois plus deux"
+      },
+      {
+       "id": "c_cinq",
+       "text": "trois cinquièmes"
+      },
+      {
+       "id": "c_trois_atm",
+       "text": "trois atmosphères"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_repA",
+       "verb": "show",
+       "at": "cue:c_cinq",
+       "target": "rep_A"
+      },
+      {
+       "id": "h_repA",
+       "verb": "highlight",
+       "start": "cue:c_trois_atm",
+       "end": "cue_end:c_trois_atm",
+       "target": "rep_A",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calc_B",
+     "say": "Pour B, la fraction est deux cinquièmes, donc P B égale deux atmosphères.",
+     "cues": [
+      {
+       "id": "c_repB",
+       "text": "donc P B égale deux atmosphères"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_repB",
+       "verb": "show",
+       "at": "cue:c_repB",
+       "target": "rep_B"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verif",
+     "say": "Vérifions : trois atmosphères plus deux atmosphères, ça fait bien cinq atmosphères, la pression totale. Les pressions partielles s'additionnent pour redonner la pression totale.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "trois atmosphères plus deux atmosphères"
+      },
+      {
+       "id": "c_total_final",
+       "text": "cinq atmosphères, la pression totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_verif",
+       "verb": "show",
+       "at": "cue:c_verif",
+       "target": "verif"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:c_total_final",
+       "end": "cue_end:c_total_final",
+       "target": "verif",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "P_i = x_i \\times P_{tot}",
+     "parts": [
+      {
+       "id": "pi",
+       "text": "P_i"
+      },
+      {
+       "id": "xi",
+       "text": "= x_i"
+      },
+      {
+       "id": "pt",
+       "text": "\\times P_{tot}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "content": "x_i = n_i / n_tot : la fraction molaire",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "rappel",
+     "items": [
+      "regle",
+      "note"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : ce n'est pas la masse du gaz qui fixe sa pression partielle, c'est sa part de molécules dans le mélange. P i égale x i, sa fraction molaire, fois P totale.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_part",
+       "text": "sa part de molécules"
+      },
+      {
+       "id": "c_formule",
+       "text": "P i égale x i"
+      },
+      {
+       "id": "c_ptot",
+       "text": "fois P totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_donnees",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "donnees"
+      },
+      {
+       "id": "f_repA",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "rep_A"
+      },
+      {
+       "id": "f_repB",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "rep_B"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "verif"
+      },
+      {
+       "id": "w_pi",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "regle",
+       "part": "pi"
+      },
+      {
+       "id": "w_xi",
+       "verb": "write",
+       "at": "cue:c_part",
+       "target": "regle",
+       "part": "xi"
+      },
+      {
+       "id": "w_pt",
+       "verb": "write",
+       "at": "cue:c_ptot",
+       "target": "regle",
+       "part": "pt"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_ptot",
+       "target": "note"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

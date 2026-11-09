@@ -1,0 +1,636 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "polygones_contraintes",
+  "title": "Les polygones de contraintes : une inéquation, une frontière",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une inéquation décrit une région du plan, limitée par des droites, et que le polygone de contraintes est l'intersection de ces régions."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_regions",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -1,
+       6
+      ],
+      "y": [
+       -1,
+       6
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "front",
+     "params": {
+      "from": [
+       -1,
+       5.5
+      ],
+      "to": [
+       4.5,
+       -1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "reg",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        -1,
+        -1
+       ],
+       [
+        4.5,
+        -1
+       ],
+       [
+        -1,
+        5.5
+       ]
+      ]
+     },
+     "type": "polygon"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Pas de panique : un polygone de contraintes, c'est juste une région du plan, et une inéquation en dessine le bord.",
+     "cues": [
+      {
+       "id": "c_region",
+       "text": "région du plan"
+      },
+      {
+       "id": "c_ineq",
+       "text": "inéquation"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_front",
+       "verb": "draw",
+       "start": "cue:c_region",
+       "end": "cue_end:c_ineq",
+       "target": "front"
+      }
+     ]
+    },
+    {
+     "id": "cote",
+     "say": "Regarde la droite x plus y égale quatre : elle sépare le plan en deux côtés. Le signe de l'inéquation dit lequel on garde.",
+     "cues": [
+      {
+       "id": "c_droite",
+       "text": "droite x plus y égale quatre"
+      },
+      {
+       "id": "c_signe",
+       "text": "signe de l'inéquation"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_reg",
+       "verb": "show",
+       "at": "cue:c_signe",
+       "target": "reg"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_inequation",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "x + y \\leq 4",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "x + y"
+      },
+      {
+       "id": "signe",
+       "text": "\\leq 4"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "test",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "0 + 0 = 0 \\leq 4",
+     "type": "math"
+    },
+    {
+     "id": "pt",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt_label",
+     "attachment": {
+      "parent": "pt",
+      "anchor": "right"
+     },
+     "content": "(0 ; 0)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "lis",
+     "say": "Ici, l'inéquation est x plus y inférieur ou égal à quatre. Le côté qu'on garde, c'est celui du plus petit.",
+     "cues": [
+      {
+       "id": "c_xplus",
+       "text": "x plus y inférieur ou égal à quatre"
+      },
+      {
+       "id": "c_garde",
+       "text": "côté qu'on garde"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_xplus",
+       "target": "eq",
+       "part": "gauche"
+      },
+      {
+       "id": "w_s",
+       "verb": "write",
+       "at": "cue:c_garde",
+       "target": "eq",
+       "part": "signe"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Pour savoir de quel côté, on teste un point simple. Zéro plus zéro donne zéro, et zéro est bien plus petit que quatre : l'origine est du bon côté.",
+     "cues": [
+      {
+       "id": "c_test",
+       "text": "teste un point"
+      },
+      {
+       "id": "c_zero",
+       "text": "Zéro plus zéro donne zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_test",
+       "target": "pt"
+      },
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "after:s_pt",
+       "target": "pt_label"
+      },
+      {
+       "id": "w_test",
+       "verb": "write",
+       "at": "cue:c_zero",
+       "target": "test"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ajoute",
+   "introduces": [
+    {
+     "id": "eq2",
+     "content": "y \\geq 1",
+     "parts": [
+      {
+       "id": "gauche2",
+       "text": "y"
+      },
+      {
+       "id": "signe2",
+       "text": "\\geq 1"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "haut",
+     "frame": "axes",
+     "params": {
+      "from": [
+       -1,
+       1
+      ],
+      "to": [
+       6,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "bande",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes",
+     "params": {
+      "vertices": [
+       [
+        -1,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        -1,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    }
+   ],
+   "beats": [
+    {
+     "id": "deuxieme",
+     "say": "Ajoutons une deuxième contrainte : y plus grand ou égal à un. C'est une droite horizontale.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "y plus grand ou égal à un"
+      },
+      {
+       "id": "c_horiz",
+       "text": "droite horizontale"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_haut",
+       "verb": "draw",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_horiz",
+       "target": "haut"
+      },
+      {
+       "id": "w_g2",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "eq2",
+       "part": "gauche2"
+      },
+      {
+       "id": "w_s2",
+       "verb": "write",
+       "at": "cue:c_horiz",
+       "target": "eq2",
+       "part": "signe2"
+      }
+     ]
+    },
+    {
+     "id": "superpose",
+     "say": "La région qui respecte les deux contraintes, c'est ce qui est du bon côté des deux droites, en même temps : un polygone.",
+     "cues": [
+      {
+       "id": "c_deuxc",
+       "text": "deux contraintes"
+      },
+      {
+       "id": "c_poly",
+       "text": "un polygone"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_bande",
+       "verb": "show",
+       "at": "cue:c_deuxc",
+       "target": "bande"
+      },
+      {
+       "id": "h_poly",
+       "verb": "highlight",
+       "start": "cue:c_poly",
+       "end": "cue_end:c_poly",
+       "target": "bande",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "eq2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Chaque inéquation = une frontière ; le polygone = la région qui respecte TOutes les contraintes",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : une inéquation trace une frontière, et le polygone de contraintes, c'est la zone où toutes les contraintes sont respectées en même temps.",
+     "cues": [
+      {
+       "id": "c_atr",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_toutes",
+       "text": "toutes les contraintes"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "cue:c_atr",
+       "target": "axes"
+      },
+      {
+       "id": "f_eq",
+       "verb": "fade_out",
+       "at": "cue:c_atr",
+       "target": "eq"
+      },
+      {
+       "id": "f_test",
+       "verb": "fade_out",
+       "at": "cue:c_atr",
+       "target": "test"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_atr",
+       "targets": [
+        "bande",
+        "eq2",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_toutes",
+       "target": "idee"
+      },
+      {
+       "id": "h_bande",
+       "verb": "highlight",
+       "start": "cue:c_toutes",
+       "end": "cue_end:c_toutes",
+       "target": "bande",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

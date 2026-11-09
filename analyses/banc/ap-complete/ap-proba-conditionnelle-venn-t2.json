@@ -1,0 +1,911 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "prob_cond_venn",
+  "title": "Pourquoi la division dans la probabilité conditionnelle",
+  "language": "fr",
+  "learning_goal": "Comprendre que P(A | B) = P(A ∩ B) ÷ P(B) parce que B devient le nouvel univers, et que le diagramme de Venn montre ce changement de tout mieux que les autres représentations."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "c1",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c2",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        1,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c3",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        2,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c4",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c5",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        4,
+        0
+       ],
+       [
+        5,
+        0
+       ],
+       [
+        5,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c6",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        5,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        5,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "l1",
+     "attachment": {
+      "parent": "c1",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "1",
+     "type": "label"
+    },
+    {
+     "id": "l2",
+     "attachment": {
+      "parent": "c2",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "l3",
+     "attachment": {
+      "parent": "c3",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "3",
+     "type": "label"
+    },
+    {
+     "id": "l4",
+     "attachment": {
+      "parent": "c4",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "4",
+     "type": "label"
+    },
+    {
+     "id": "l5",
+     "attachment": {
+      "parent": "c5",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "5",
+     "type": "label"
+    },
+    {
+     "id": "l6",
+     "attachment": {
+      "parent": "c6",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "6",
+     "type": "label"
+    },
+    {
+     "id": "univers",
+     "content": "Univers : les 6 issues d'un dé",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "de",
+     "items": [
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6"
+     ],
+     "arrange": {
+      "direction": "right",
+      "gap": "xs"
+     }
+    },
+    {
+     "id": "lbls_de",
+     "items": [
+      "l1",
+      "l2",
+      "l3",
+      "l4",
+      "l5",
+      "l6"
+     ]
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Pour comprendre la division, prends un dé ordinaire. L'univers, c'est les six issues possibles, chacune une case égale.",
+     "cues": [
+      {
+       "id": "c_univers",
+       "text": "L'univers"
+      },
+      {
+       "id": "c_six",
+       "text": "six issues"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_de",
+       "verb": "show",
+       "at": "cue:c_univers",
+       "target": "c1"
+      },
+      {
+       "id": "s_rest",
+       "verb": "show",
+       "at": "after:s_de",
+       "target": "c2"
+      },
+      {
+       "id": "s_l1",
+       "verb": "show",
+       "at": "cue:c_six",
+       "target": "l1"
+      },
+      {
+       "id": "s_label",
+       "verb": "show",
+       "at": "cue:c_six",
+       "target": "univers"
+      }
+     ]
+    },
+    {
+     "id": "egal",
+     "say": "Sur ce dé, chaque case a la même chance : un sixième. Toute la surface, c'est un, l'univers entier.",
+     "cues": [
+      {
+       "id": "c_meme",
+       "text": "même chance"
+      },
+      {
+       "id": "c_sixieme",
+       "text": "un sixième"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_de",
+       "verb": "highlight",
+       "start": "cue:c_meme",
+       "end": "cue_end:c_sixieme",
+       "target": "univers",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_condition",
+   "introduces": [
+    {
+     "id": "dimB",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "c4",
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "formule",
+     "layout": {
+      "next_to": "c4",
+      "direction": "up",
+      "gap": "lg"
+     },
+     "content": "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "P(A \\mid B)"
+      },
+      {
+       "id": "divise",
+       "text": "= \\frac{P(A \\cap B)}{P(B)}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "cond",
+     "attachment": {
+      "parent": "formule",
+      "anchor": "right"
+     },
+     "content": "si P(B) ≠ 0",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sait",
+     "say": "Maintenant, on te dit que B est réalisé : le dé a donné plus grand que trois. On sait donc que le résultat est dans quatre, cinq ou six.",
+     "cues": [
+      {
+       "id": "c_realise",
+       "text": "B est réalisé"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre, cinq ou six"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_l1",
+       "verb": "fade_out",
+       "at": "cue:c_realise",
+       "target": "c1"
+      },
+      {
+       "id": "f_l2",
+       "verb": "fade_out",
+       "at": "cue:c_realise",
+       "target": "c2"
+      },
+      {
+       "id": "f_l3",
+       "verb": "fade_out",
+       "at": "cue:c_realise",
+       "target": "c3"
+      },
+      {
+       "id": "f_l4",
+       "verb": "fade_out",
+       "at": "cue:c_realise",
+       "target": "l4"
+      },
+      {
+       "id": "f_l5",
+       "verb": "fade_out",
+       "at": "cue:c_realise",
+       "target": "l5"
+      },
+      {
+       "id": "f_l6",
+       "verb": "fade_out",
+       "at": "cue:c_realise",
+       "target": "l6"
+      },
+      {
+       "id": "s_dimB",
+       "verb": "show",
+       "at": "cue:c_quatre",
+       "target": "dimB"
+      }
+     ]
+    },
+    {
+     "id": "nouveau",
+     "say": "Ces trois cases deviennent tout ton univers. C'est là que la division apparaît : B est le nouveau tout, et on regarde quelle part de B est aussi dans A.",
+     "cues": [
+      {
+       "id": "c_tout",
+       "text": "nouveau tout"
+      },
+      {
+       "id": "c_division",
+       "text": "la division"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_c4",
+       "verb": "set_style",
+       "at": "cue:c_tout",
+       "target": "c4",
+       "role": "accent"
+      },
+      {
+       "id": "dim_c5",
+       "verb": "set_style",
+       "at": "cue:c_tout",
+       "target": "c5",
+       "role": "accent"
+      },
+      {
+       "id": "dim_c6",
+       "verb": "set_style",
+       "at": "cue:c_tout",
+       "target": "c6",
+       "role": "accent"
+      },
+      {
+       "id": "s_form",
+       "verb": "write",
+       "at": "cue:c_division",
+       "target": "formule",
+       "part": "gauche"
+      },
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "cue:c_division",
+       "target": "cond"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "etape",
+     "content": "\\frac{2}{6} \\div \\frac{3}{6} = \\frac{2}{6} \\times \\frac{6}{3} = \\frac{2}{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcule",
+     "say": "Vérifions avec A égal pair et B égal plus grand que trois. Dans B, quatre, cinq, six. Dans A et B à la fois, quatre et six.",
+     "cues": [
+      {
+       "id": "c_pair",
+       "text": "A égal pair"
+      },
+      {
+       "id": "c_trois",
+       "text": "plus grand que trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "at": "cue:c_trois",
+       "target": "dimB",
+       "role": "accent"
+      },
+      {
+       "id": "h_etape",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "etape"
+      }
+     ]
+    },
+    {
+     "id": "fraction",
+     "say": "La part de B où A est vrai, c'est deux cases sur trois, donc deux tiers. Et la formule donne deux sixièmes divisé par trois sixièmes, ce qui fait aussi deux tiers.",
+     "cues": [
+      {
+       "id": "c_deux_tiers",
+       "text": "deux tiers"
+      },
+      {
+       "id": "c_meme_val",
+       "text": "aussi deux tiers"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_frac",
+       "verb": "highlight",
+       "start": "cue:c_deux_tiers",
+       "end": "cue_end:c_meme_val",
+       "target": "etape",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pourquoi",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Le diagramme de Venn montre visuellement que B devient le tout, ce qui explique la division.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reponds",
+     "say": "C'est là la réponse à ta question : la division vient du changement d'univers. Le diagramme de Venn montre justement ce changement, parce que tu vois B encerclé et les cases hors de B qui sortent du jeu.",
+     "cues": [
+      {
+       "id": "c_changement",
+       "text": "changement d'univers"
+      },
+      {
+       "id": "c_venn",
+       "text": "diagramme de Venn"
+      }
+     ],
+     "do": [
+      {
+       "id": "focus",
+       "verb": "camera.focus",
+       "at": "cue:c_changement",
+       "targets": [
+        "dimB",
+        "formule"
+       ]
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_venn",
+       "target": "idee"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "reduit",
+     "say": "Le tableau ou l'arbre donnent le même résultat, mais ils ne dessinent pas ce rétrécissement de l'univers. Avec Venn, ton regard refait le calcul de la division.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "tableau ou l'arbre"
+      },
+      {
+       "id": "c_division2",
+       "text": "la division"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_l4",
+       "verb": "fade_out",
+       "at": "cue:c_tableau",
+       "target": "l1"
+      },
+      {
+       "id": "f_l5",
+       "verb": "fade_out",
+       "at": "cue:c_tableau",
+       "target": "l2"
+      },
+      {
+       "id": "f_l6",
+       "verb": "fade_out",
+       "at": "cue:c_tableau",
+       "target": "l3"
+      },
+      {
+       "id": "f_de",
+       "verb": "fade_out",
+       "at": "cue:c_tableau",
+       "target": "de"
+      },
+      {
+       "id": "f_etape",
+       "verb": "fade_out",
+       "at": "cue:c_tableau",
+       "target": "etape"
+      },
+      {
+       "id": "h_fin",
+       "verb": "highlight",
+       "start": "cue:c_division2",
+       "end": "cue_end:c_division2",
+       "target": "formule",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee_finale",
+     "say": "À retenir : P de A sachant B, c'est la part de A dans le nouvel univers B. D'où la division par P de B.",
+     "cues": [
+      {
+       "id": "c_sachant",
+       "text": "A sachant B"
+      },
+      {
+       "id": "c_par",
+       "text": "division par P de B"
+      }
+     ],
+     "do": [
+      {
+       "id": "focus_final",
+       "verb": "camera.focus",
+       "at": "cue:c_sachant",
+       "targets": [
+        "formule"
+       ]
+      },
+      {
+       "id": "f_idee",
+       "verb": "fade_out",
+       "at": "cue:c_sachant",
+       "target": "idee"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "start": "cue:c_par",
+       "end": "cue_end:c_par",
+       "target": "formule",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

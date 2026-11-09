@@ -1,0 +1,668 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "zeros_partie_entiere",
+  "title": "Trouver les zéros d'une fonction partie entière",
+  "language": "fr",
+  "learning_goal": "Trouver les zéros d'une fonction partie entière f(x) = a[b(x − h)] + k en comprenant la marche et le plateau."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "f(x) = a\\,[b(x-h)] + k",
+     "type": "math"
+    },
+    {
+     "id": "forme_std",
+     "content": "f(x) = 2\\,[x] - 3",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne question : on cherche les x où la fonction partie entière vaut zéro. Prenons un exemple simple : f de x égale deux fois partie entière de x, moins trois.",
+     "cues": [
+      {
+       "id": "c_partie",
+       "text": "partie entière de x"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux fois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_deux",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "forme_std"
+      },
+      {
+       "id": "w_moins",
+       "verb": "highlight",
+       "at": "after:w_deux",
+       "target": "forme_std",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_marche",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        -1,
+        0,
+        1,
+        2,
+        3
+       ],
+       [
+        -5,
+        -3,
+        -1,
+        1,
+        3
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "f(x)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "droite",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       -1,
+       0
+      ],
+      "to": [
+       3,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "ligne3",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       1.5,
+       0
+      ],
+      "to": [
+       1.5,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "ligne1",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       2.5,
+       0
+      ],
+      "to": [
+       2.5,
+       1
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tableau",
+     "say": "Étudions quelques valeurs : quand x est entre zéro et un, la partie entière vaut zéro, alors f de x égale moins trois.",
+     "cues": [
+      {
+       "id": "c_entre",
+       "text": "entre zéro et un"
+      },
+      {
+       "id": "c_moins3",
+       "text": "égale moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_entre",
+       "end": "cue_end:c_moins3",
+       "target": "tab",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "monte",
+     "say": "Quand x passe à un, la partie entière devient un, et f de x monte à moins un. La fonction avance par paliers.",
+     "cues": [
+      {
+       "id": "c_passe",
+       "text": "x passe à un"
+      },
+      {
+       "id": "c_paliers",
+       "text": "paliers"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab2",
+       "verb": "highlight",
+       "start": "cue:c_passe",
+       "end": "cue_end:c_passe",
+       "target": "tab",
+       "role": "result",
+       "part": "r2"
+      },
+      {
+       "id": "s_droite",
+       "verb": "show",
+       "at": "cue:c_paliers",
+       "target": "droite"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_zero",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "2\\,[x] - 3 = 0",
+     "parts": [
+      {
+       "id": "membre",
+       "text": "2\\,[x] - 3"
+      },
+      {
+       "id": "zero",
+       "text": "= 0"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso",
+     "content": "2\\,[x] = 3",
+     "parts": [
+      {
+       "id": "deux",
+       "text": "2\\,[x]"
+      },
+      {
+       "id": "trois",
+       "text": "= 3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso2",
+     "content": "[x] = 1{,}5",
+     "parts": [
+      {
+       "id": "brack",
+       "text": "[x]"
+      },
+      {
+       "id": "unpt",
+       "text": "= 1{,}5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Pour trouver un zéro, on résout f de x égale zéro. On isole le crochet : deux partie entière de x, moins trois, égale zéro.",
+     "cues": [
+      {
+       "id": "c_resout",
+       "text": "résout f de x égale zéro"
+      },
+      {
+       "id": "c_isole",
+       "text": "isole le crochet"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_resout",
+       "target": "tab"
+      },
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "eq"
+      }
+     ]
+    },
+    {
+     "id": "ajoute",
+     "say": "On ajoute trois des deux côtés : deux partie entière de x égale trois.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "ajoute trois"
+      },
+      {
+       "id": "c_egal",
+       "text": "égale trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq",
+       "verb": "transform",
+       "at": "cue:c_ajoute",
+       "source": "eq",
+       "target": "iso"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "On divise par deux : la partie entière de x doit valoir un virgule cinq.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "divise par deux"
+      },
+      {
+       "id": "c_valoir",
+       "text": "un virgule cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_iso",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "iso",
+       "target": "iso2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_intervalle",
+   "introduces": [
+    {
+     "id": "interv",
+     "content": "1 \\le x < 2",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "content": "Le zéro est un intervalle, pas un point",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "piege",
+     "say": "Attention au piège : aucune valeur de x ne donne une partie entière de un virgule cinq.",
+     "cues": [
+      {
+       "id": "c_piege",
+       "text": "piège"
+      },
+      {
+       "id": "c_aucune",
+       "text": "aucune valeur de x"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_iso",
+       "verb": "highlight",
+       "start": "cue:c_piege",
+       "end": "cue_end:c_aucune",
+       "target": "iso2",
+       "role": "unknown"
+      }
+     ]
+    },
+    {
+     "id": "comprendre",
+     "say": "La partie entière donne un entier. Pour que ce deux fois entier moins trois fasse zéro, il faut que x soit entre un et deux, un inclus, deux exclu.",
+     "cues": [
+      {
+       "id": "c_entre",
+       "text": "x soit entre un et deux"
+      },
+      {
+       "id": "c_inclus",
+       "text": "un inclus"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_interv",
+       "verb": "write",
+       "at": "cue:c_entre",
+       "target": "interv"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_inclus",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : si x égale un, partie entière vaut un, deux fois un moins trois, ça fait moins un, non. Si x égale un virgule cinq, partie entière vaut un, même résultat. Le zéro n'est atteint à aucun moment ici.",
+     "cues": [
+      {
+       "id": "c_verifions",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_xun",
+       "text": "x égale un"
+      },
+      {
+       "id": "c_xunpt",
+       "text": "x égale un virgule cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_interv",
+       "verb": "fade_out",
+       "at": "cue:c_verifions",
+       "target": "interv"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Zéro de partie entière = un plateau entier, ou un intervalle",
+     "type": "text"
+    },
+    {
+     "id": "recap",
+     "content": "a\\,[b(x-h)] + k = 0",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : on isole le crochet, on divise par a, et on regarde si le résultat est un entier atteignable dans un plateau.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_isole",
+       "text": "isole le crochet"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_iso",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "iso2"
+      },
+      {
+       "id": "w_recap",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "recap"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "after:w_recap",
+       "target": "idee"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

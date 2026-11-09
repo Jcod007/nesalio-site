@@ -1,0 +1,49 @@
+QUESTION (equation, mathematiques, sec 4, methode) : Comment je résous 3x + 5 = 17 ?
+RÉPONSE DE RÉFÉRENCE : x = 4.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. garder l'égalité : même opération des deux côtés
+  2. 3x = 12 en enlevant 5 des deux côtés
+  3. x = 4 en divisant par 3
+  4. réponse x = 4 écrite
+  5. vérification : 3 × 4 + 5 = 17
+ERREURS GRAVES À CHERCHER : « on passe de l'autre côté » sans justification (imprécision)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue erreur upstream
+
+TITRE : Résoudre l’équation 3x + 5 = 17
+=== Tranche s_equation
+  OBJET eq0 [math] "3x + 5 = 17" parts=3x + 5 | = 17
+  OBJET eq1 [math] "3x + 5 - 5 = 17 - 5" parts=3x + 5 - 5 | = 17 - 5
+  OBJET eq2 [math] "3x = 12" parts=3x | = 12
+  OBJET eq3 [math] "\\frac{3x}{3} = \\frac{12}{3}" parts=\frac{3x}{3} | = \frac{12}{3}
+  OBJET eq4 [math] "x = 4" parts=x | = 4
+DIT (poser) : On part de trois x plus cinq égale dix-sept. Le but est de laisser x tout seul, sans changer l’égalité.
+    write eq0 @cue:depart {"part":"membre_gauche"}
+    write eq0 @cue:depart {"part":"egalite_dix_sept"}
+DIT (enlever_cinq) : On enlève cinq des deux côtés, parce qu’ainsi le cinq disparaît à gauche et l’égalité est conservée.
+    transform eq1 @cue:operation_deux_cotes {"source":"eq0"}
+    transform eq2 @cue:cinq_disparait {"source":"eq1"}
+DIT (diviser_trois) : Trois x vaut maintenant douze. On divise les deux côtés par trois pour isoler x, puisque trois divisé par trois vaut un.
+    highlight eq2 @- {"start":"cue:trois_vaut","end":"cue_end:trois_vaut","role":"accent"}
+    transform eq3 @cue:divise {"source":"eq2"}
+    transform eq4 @cue:isoler {"source":"eq3"}
+=== Tranche s_verification
+  OBJET verif_depart [math] "3(4) + 5 = 17" parts=3(4) + 5 | = 17
+  OBJET verif_calcul [math] "12 + 5 = 17" parts=12 + 5 | = 17
+  OBJET verif_finale [math] "17 = 17" parts=17 | = 17
+DIT (solution) : La solution est x égale quatre. Vérifions-la dans l’équation de départ en remplaçant x par quatre.
+    highlight eq4 @- {"start":"cue:solution_dite","end":"cue_end:solution_dite","role":"result"}
+    write verif_depart @cue:remplacement_dit {"part":"remplacement"}
+    write verif_depart @cue:remplacement_dit {"part":"egalite_verif"}
+DIT (calcul_verif) : À gauche, trois fois quatre plus cinq donne douze plus cinq, donc dix-sept. C’est bien égal à dix-sept à droite.
+    transform verif_calcul @cue:calcul_gauche {"source":"verif_depart"}
+    transform verif_finale @cue:egalite_deux_cotes {"source":"verif_calcul"}
+=== Tranche s_retenir
+  OBJET regle_resume [text] "Même opération des deux côtés : l’égalité reste vraie." 
+  OBJET solution_resume [math] "3x + 5 = 17 \\;\\Longrightarrow\\; x = 4" parts=3x + 5 = 17 | \;\Longrightarrow\; | x = 4
+  GROUPE resume_groupe = regle_resume, solution_resume
+DIT (conclusion) : À retenir : tu fais la même opération des deux côtés pour garder l’égalité, puis tu vérifies la solution dans l’équation de départ. Ici, x égale quatre.
+    show regle_resume @cue:retenir 
+    write solution_resume @cue:meme_operation {"part":"equation_resume"}
+    write solution_resume @cue:meme_operation {"part":"fleche_resume"}
+    write solution_resume @cue:resultat_ici {"part":"resultat_resume"}
+--- 3 tranches, 122 mots dits (≈ 0.8 min d'oral)

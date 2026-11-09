@@ -1,0 +1,92 @@
+QUESTION (proba-conditionnelle, mathematiques, sec 5, sens) : pourquoi dans une probabilité conditionnelle on divise par P(B)? je comprends pas d'où ça sort
+RÉPONSE DE RÉFÉRENCE : P(A|B) = P(A∩B)/P(B), avec P(B) ≠ 0 ; exemple du dé (A pair, B > 3) : 2/3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. savoir que B s'est réalisé réduit l'univers à B, d'où la division par P(B)
+  2. P(A|B) = P(A∩B)/P(B) = part de B où A est aussi vrai, avec P(B) ≠ 0
+  3. exemple mené au résultat (dé : A pair, B > 3, P(A|B) = 2/3 = (2/6)/(3/6))
+  4. diagramme de Venn ou tableau à double entrée où l'univers rétrécit à B
+  5. P(A|B) distinguée de P(A∩B) et de P(B|A)
+ERREURS GRAVES À CHERCHER : figure dont les aires contredisent les probabilités dites ; confusion P(A|B) et P(A∩B)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi divise-t-on par P(B) ?
+=== Tranche s_univers
+  OBJET univers [polygon] {"vertices":[[0,0],[6,0],[6,1],[0,1]]} 
+  OBJET issue1 [label] "1" attaché à univers
+  OBJET issue2 [label] "2" attaché à univers
+  OBJET issue3 [label] "3" attaché à univers
+  OBJET issue4 [label] "4" attaché à univers
+  OBJET issue5 [label] "5" attaché à univers
+  OBJET issue6 [label] "6" attaché à univers
+  OBJET titre_a [text] "A : résultat pair" 
+  OBJET titre_b [text] "B : résultat supérieur à 3" 
+  OBJET part_b [polygon] {"vertices":[[3,0],[6,0],[6,1],[3,1]]} 
+  OBJET part_inter [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET case4 [label] "4" attaché à part_inter
+  OBJET case5 [label] "5" attaché à part_b
+  OBJET case6 [label] "6" attaché à part_inter
+  OBJET axe_x [axes] {"x":[0,6],"y":[0,1]}   <<JAMAIS MONTRÉ>>
+DIT (depart) : Imagine un dé équilibré : ses six résultats ont la même chance.
+    draw univers @cue:six 
+    show issue1 @cue:six 
+    show issue2 @cue:six 
+    show issue3 @cue:six 
+    show issue4 @cue:six 
+    show issue5 @cue:six 
+    show issue6 @cue:six 
+DIT (definir) : On prend A comme « obtenir un nombre pair », et B comme « obtenir plus que trois ».
+    show titre_a @cue:c_a 
+    show titre_b @cue:c_b 
+    draw part_b @cue:c_b 
+    show case4 @cue:c_b 
+    show case5 @cue:c_b 
+    show case6 @cue:c_b 
+=== Tranche s_reduire
+DIT (condition) : Quand on sait que B est arrivé, les résultats 1, 2 et 3 ne sont plus possibles : le nouvel univers est seulement 4, 5 et 6.
+    dim univers @cue:sait 
+    dim issue1 @cue:sait 
+    dim issue2 @cue:sait 
+    dim issue3 @cue:sait 
+    highlight part_b @- {"start":"cue:seulement","end":"cue_end:seulement","role":"given"}
+DIT (part) : Parmi ces trois résultats possibles, deux sont pairs : 4 et 6. La probabilité cherchée est donc la part de B qui est aussi dans A.
+    show part_inter @cue:deux 
+    highlight part_inter @- {"start":"cue:part_de_b","end":"cue_end:part_de_b","role":"accent"}
+=== Tranche s_diviser
+  OBJET formule_cond [math] "P(A\\mid B)=\\frac{P(A\\cap B)}{P(B)}" parts=P(A\mid B)= | \frac{P(A\cap B)}{P(B)}
+  OBJET compte [math] "P(A\\mid B)=\\frac{2}{3}" parts=P(A\mid B)= | \frac{2}{3}
+  OBJET divisions [math] "\\frac{2/6}{3/6}=\\frac{2}{3}" parts=\frac{2/6}{3/6}= | \frac{2}{3}
+  OBJET note_condition [text] "Condition : P(B) ≠ 0" 
+DIT (condition) : La formule exige que B ait une probabilité non nulle : sinon, on ne peut pas se retrouver dans B.
+    show note_condition @cue:non_nulle 
+DIT (formule) : On divise par P de B parce que, parmi toutes les issues, seule la fraction P de B reste possible. La fraction commune à A et B est P de A intersection B.
+    write formule_cond @cue:divise {"part":"part_cond"}
+    write formule_cond @cue:commune {"part":"frac_cond"}
+DIT (calcul) : Ici, deux résultats sur les six sont à la fois pairs et supérieurs à trois, donc P de A intersection B vaut deux sur six.
+    write compte @cue:deux_six {"part":"egal_compte"}
+    write compte @cue:deux_six {"part":"val_compte"}
+DIT (division) : Et P de B vaut trois sur six. Diviser deux sur six par trois sur six donne deux tiers : dans B, deux résultats sur trois sont pairs.
+    write divisions @cue:trois_six {"part":"quotient"}
+    write divisions @cue:donne {"part":"egal_deux_tiers"}
+    highlight part_inter @- {"start":"cue:donne","end":"cue_end:donne","role":"result"}
+=== Tranche s_retenir
+  OBJET idee_finale [text] "P(A | B) : la part de B où A est vrai" 
+  OBJET regle_finale [math] "P(A\\mid B)=\\frac{P(A\\cap B)}{P(B)}" parts=P(A\mid B)= | \frac{P(A\cap B)}{P(B)}
+  GROUPE resume = idee_finale, regle_finale
+DIT (nettoyer) : Le dé et les calculs nous ont montré pourquoi on divise par P de B : on garde seulement B comme nouvel univers.
+    fade_out univers @cue:nouvel 
+    fade_out titre_a @cue:nouvel 
+    fade_out titre_b @cue:nouvel 
+    fade_out part_b @cue:nouvel 
+    fade_out part_inter @cue:nouvel 
+    fade_out issue4 @cue:nouvel 
+    fade_out issue5 @cue:nouvel 
+    fade_out issue6 @cue:nouvel 
+    fade_out note_condition @cue:nouvel 
+    fade_out formule_cond @cue:nouvel 
+    fade_out compte @cue:nouvel 
+    fade_out divisions @cue:nouvel 
+DIT (idee) : À retenir : P de A sachant B, c’est la part de B où A est vrai. On divise par P de B pour mesurer cette part dans le nouvel univers.
+    write idee_finale @cue:part 
+    write regle_finale @cue:part {"part":"cle_finale"}
+    write regle_finale @cue:part {"part":"fraction_finale"}
+--- 4 tranches, 244 mots dits (≈ 1.6 min d'oral)

@@ -1,0 +1,43 @@
+QUESTION (chimie-dilution-erreur, chimie, sec 4, erreur) : j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?
+RÉPONSE DE RÉFÉRENCE : C₂ = C₁V₁/V₂ = 2 × 50 / 200 = 0,50 mol/L ; 8 mol/L vient du rapport inversé.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. en diluant, la quantité de soluté ne change pas : n = C₁V₁ = C₂V₂
+  2. diagnostic : 8 mol/L = 2 × 200 / 50, rapport des volumes inversé
+  3. C₂ = 2 × 50 / 200 = 0,50 mol/L écrit
+  4. contrôle de vraisemblance : ajouter de l'eau diminue la concentration (volume × 4, concentration ÷ 4)
+  5. unités cohérentes (les mL s'annulent)
+ERREURS GRAVES À CHERCHER : concentration qui augmente à la dilution ; diagnostic inventé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi la concentration diminue quand on dilue
+=== Tranche s_erreur
+  OBJET q_eleve [text] "50 mL à 2 mol/L, puis 200 mL : 8 mol/L ?" 
+DIT (accueil) : Ta question est très bonne, et ta réponse de huit mol par litre n'est pas juste. Regardons pourquoi.
+    show q_eleve @cue:c_reponse 
+DIT (principe) : Quand on ajoute de l'eau, la quantité de soluté ne change pas. On a seulement plus de place, donc la solution devient moins concentrée.
+    highlight q_eleve @cue:c_quantite {"role":"accent"}
+=== Tranche s_calcul
+  OBJET regle [math] "C_1 V_1 = C_2 V_2" parts=C_1 V_1 | = | C_2 V_2
+  OBJET calc [math] "2 \\times 50 = C_2 \\times 200" 
+  OBJET res [math] "C_2 = 0{,}5 \\text{ mol/L}" 
+DIT (formule) : La formule de dilution dit que C un fois V un égale C deux fois V deux.
+    write regle @cue:c_formule {"part":"gauche"}
+    write regle @cue:c_deux {"part":"droite"}
+DIT (valeurs) : Ici, C un vaut deux mol par litre et V un vaut cinquante millilitres. V deux vaut deux cents millilitres.
+    write calc @cue:c_valeurs 
+DIT (resultat) : Deux fois cinquante égale C deux fois deux cents, donc C deux vaut zéro virgule cinq mol par litre.
+    write res @cue:c_donc 
+=== Tranche s_erreur_source
+  OBJET mauvais [math] "2 \\times 200 \\div 50 = 8" 
+  OBJET explic [text] "le volume est multiplié par 4, la concentration est divisée par 4" 
+DIT (erreur) : Ta réponse vient de deux fois deux cents divisé par cinquante. Mais ça inverse le rapport : le volume est multiplié par quatre, alors la concentration doit être divisée par quatre.
+    show mauvais @beat:start 
+    show explic @cue:c_inverse 
+    highlight explic @cue:c_quatre {"role":"accent"}
+=== Tranche s_retenir
+  OBJET idee [text] "Dilution : la quantité ne change pas, donc le volume qui augmente fait baisser la concentration." 
+DIT (retenir) : À retenir : en diluant, la quantité de soluté reste la même. Si le volume augmente, la concentration baisse, et c'est C un fois V un égale C deux fois V deux.
+    fade_out q_eleve @beat:start 
+    show idee @cue:c_retenir 
+    highlight idee @cue:c_baisse {"role":"result"}
+--- 4 tranches, 161 mots dits (≈ 1.1 min d'oral)

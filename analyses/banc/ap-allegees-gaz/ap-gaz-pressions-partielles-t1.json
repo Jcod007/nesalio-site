@@ -1,0 +1,778 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "pressions_partielles",
+  "title": "Pourquoi les pressions partielles s'additionnent",
+  "language": "fr",
+  "learning_goal": "Comprendre que la pression totale d'un mélange est la somme des pressions partielles de chaque gaz, et pourquoi ce n'est pas P×n + P×n."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "n1": {
+     "kind": "constant",
+     "value": 2
+    },
+    "n2": {
+     "kind": "constant",
+     "value": 3
+    },
+    "nT": {
+     "kind": "constant",
+     "value": 5
+    },
+    "k": {
+     "kind": "constant",
+     "value": 2
+    },
+    "P1": {
+     "kind": "constant",
+     "value": 4
+    },
+    "P2": {
+     "kind": "constant",
+     "value": 6
+    },
+    "PT": {
+     "kind": "constant",
+     "value": 10
+    }
+   },
+   "expressions": {
+    "partielle1": "k*n1",
+    "partielle2": "k*n2",
+    "totale": "P1 + P2",
+    "fausse": "P1*n1 + P2*n2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_mole_paquet",
+   "introduces": [
+    {
+     "id": "tab_mole",
+     "params": {
+      "rows": [
+       [
+        18.02,
+        36.04,
+        9.01
+       ],
+       [
+        1,
+        2,
+        0.5
+       ]
+      ],
+      "row_labels": [
+       "masse (g)",
+       "quantité (mol)"
+      ],
+      "column_labels": [
+       "eau",
+       "double",
+       "demi"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "div_M",
+     "attachment": {
+      "parent": "tab_mole",
+      "anchor": "right"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "÷ 18,02",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Bonne question : tu as raison de te méfier d'une formule qui multiplie une pression par un nombre de moles.",
+     "cues": [],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab_mole"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "mole",
+     "say": "D'abord, rappelons ce qu'est une mole : c'est un paquet, comme une douzaine, mais un paquet de six virgule zéro deux fois dix exposant vingt-trois entités. La masse molaire de l'eau, c'est dix-huit virgule zéro deux grammes par mole.",
+     "cues": [
+      {
+       "id": "c_mole",
+       "text": "un paquet"
+      },
+      {
+       "id": "c_M",
+       "text": "dix-huit virgule zéro deux grammes par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_mole",
+       "end": "cue_end:c_M",
+       "target": "tab_mole",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Pour passer des grammes aux moles, on divise par dix-huit virgule zéro deux. Dans trente-six grammes d'eau, il y a deux moles. C'est de la proportionnalité : deux fois plus de masse, deux fois plus de moles.",
+     "cues": [
+      {
+       "id": "c_div",
+       "text": "on divise par dix-huit virgule zéro deux"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_div",
+       "verb": "show",
+       "at": "cue:c_div",
+       "target": "div_M"
+      },
+      {
+       "id": "h_tab2",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "tab_mole",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pression_partielle",
+   "introduces": [
+    {
+     "id": "schema",
+     "content": "Chaque gaz remplit tout le volume, tout seul",
+     "type": "text"
+    },
+    {
+     "id": "formule_P1",
+     "content": "P_1 = k \\cdot n_1 = 2 \\times 2 = 4 \\text{ kPa}",
+     "parts": [
+      {
+       "id": "p1a",
+       "text": "P_1 = k \\cdot n_1"
+      },
+      {
+       "id": "p1b",
+       "text": "= 2 \\times 2"
+      },
+      {
+       "id": "p1c",
+       "text": "= 4 \\text{ kPa}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "formule_P2",
+     "layout": {
+      "next_to": "formule_P1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "P_2 = k \\cdot n_2 = 2 \\times 3 = 6 \\text{ kPa}",
+     "parts": [
+      {
+       "id": "p2a",
+       "text": "P_2 = k \\cdot n_2"
+      },
+      {
+       "id": "p2b",
+       "text": "= 2 \\times 3"
+      },
+      {
+       "id": "p2c",
+       "text": "= 6 \\text{ kPa}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "repere",
+     "layout": {
+      "next_to": "formule_P1",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "k est le même pour les deux gaz : à température fixe, même k, même volume",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pression",
+     "say": "Quand un gaz est seul dans un contenant, il exerce une pression qui dépend de son nombre de moles. Ici, chaque mole apporte deux kilopascals, c'est notre k.",
+     "cues": [
+      {
+       "id": "c_gaz",
+       "text": "un gaz est seul"
+      },
+      {
+       "id": "c_k",
+       "text": "deux kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_schema",
+       "verb": "show",
+       "at": "cue:c_gaz",
+       "target": "schema"
+      },
+      {
+       "id": "s_repere",
+       "verb": "show",
+       "at": "cue:c_k",
+       "target": "repere"
+      }
+     ]
+    },
+    {
+     "id": "gaz1",
+     "say": "Avec deux moles, ce gaz a une pression de deux fois deux, donc quatre kilopascals. C'est sa pression partielle.",
+     "cues": [
+      {
+       "id": "c_deux_moles",
+       "text": "deux moles"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p1a",
+       "verb": "write",
+       "at": "cue:c_deux_moles",
+       "target": "formule_P1",
+       "part": "p1a"
+      },
+      {
+       "id": "w_p1b",
+       "verb": "write",
+       "at": "cue:c_deux_moles",
+       "target": "formule_P1",
+       "part": "p1b"
+      },
+      {
+       "id": "w_p1c",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "formule_P1",
+       "part": "p1c"
+      }
+     ]
+    },
+    {
+     "id": "gaz2",
+     "say": "Avec trois moles, le deuxième gaz a une pression de deux fois trois, donc six kilopascals. Lui aussi remplit tout le contenant à lui seul.",
+     "cues": [
+      {
+       "id": "c_trois_moles",
+       "text": "trois moles"
+      },
+      {
+       "id": "c_six",
+       "text": "six kilopascals"
+      },
+      {
+       "id": "c_remplit",
+       "text": "remplit tout le contenant"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p2a",
+       "verb": "write",
+       "at": "cue:c_trois_moles",
+       "target": "formule_P2",
+       "part": "p2a"
+      },
+      {
+       "id": "w_p2b",
+       "verb": "write",
+       "at": "cue:c_trois_moles",
+       "target": "formule_P2",
+       "part": "p2b"
+      },
+      {
+       "id": "w_p2c",
+       "verb": "write",
+       "at": "cue:c_six",
+       "target": "formule_P2",
+       "part": "p2c"
+      },
+      {
+       "id": "h_p2",
+       "verb": "highlight",
+       "start": "cue:c_remplit",
+       "end": "cue_end:c_remplit",
+       "target": "formule_P2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_somme",
+   "introduces": [
+    {
+     "id": "formule_PT",
+     "content": "P_T = P_1 + P_2 = 4 + 6 = 10 \\text{ kPa}",
+     "type": "math"
+    },
+    {
+     "id": "formule_fausse",
+     "layout": {
+      "next_to": "formule_PT",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "style": {
+      "role": "unknown"
+     },
+     "content": "P_1 \\cdot n_1 + P_2 \\cdot n_2 = 4 \\times 2 + 6 \\times 3 = 26",
+     "parts": [
+      {
+       "id": "fa",
+       "text": "P_1 \\cdot n_1 + P_2 \\cdot n_2"
+      },
+      {
+       "id": "fb",
+       "text": "= 4 \\times 2 + 6 \\times 3"
+      },
+      {
+       "id": "fc",
+       "text": "= 26"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "explication",
+     "layout": {
+      "next_to": "formule_PT",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Le même volume reçoit les deux contributions : on additionne les pressions, pas les moles",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "melange",
+     "say": "Quand les deux gaz se retrouvent ensemble, chacun ajoute sa petite poussée aux parois. La pression totale, c'est la somme des pressions partielles : quatre plus six donne dix kilopascals.",
+     "cues": [
+      {
+       "id": "c_ensemble",
+       "text": "les deux gaz se retrouvent ensemble"
+      },
+      {
+       "id": "c_quatre_six",
+       "text": "quatre plus six"
+      },
+      {
+       "id": "c_dix",
+       "text": "dix kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pta",
+       "verb": "write",
+       "at": "cue:c_ensemble",
+       "target": "formule_PT"
+      },
+      {
+       "id": "w_ptb",
+       "verb": "highlight",
+       "at": "cue:c_quatre_six",
+       "target": "formule_PT",
+       "role": "accent"
+      },
+      {
+       "id": "w_ptc",
+       "verb": "highlight",
+       "at": "cue:c_dix",
+       "target": "formule_PT",
+       "role": "accent"
+      },
+      {
+       "id": "h_pt",
+       "verb": "highlight",
+       "start": "cue:c_dix",
+       "end": "cue_end:c_dix",
+       "target": "formule_PT",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "erreur",
+     "say": "Maintenant, ton idée : pression fois moles. Ça donnerait quatre fois deux, plus six fois trois, c'est-à-dire vingt-six. Ce nombre ne correspond à rien de physique : le nombre de moles est déjà à l'intérieur du calcul de la pression partielle.",
+     "cues": [
+      {
+       "id": "c_ton_idee",
+       "text": "ton idée"
+      },
+      {
+       "id": "c_vingt_six",
+       "text": "vingt-six"
+      },
+      {
+       "id": "c_deja",
+       "text": "déjà à l'intérieur"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_fausse",
+       "verb": "show",
+       "at": "cue:c_ton_idee",
+       "target": "formule_fausse"
+      },
+      {
+       "id": "h_fb",
+       "verb": "highlight",
+       "start": "cue:c_vingt_six",
+       "end": "cue_end:c_vingt_six",
+       "target": "formule_fausse",
+       "role": "unknown",
+       "part": "fb"
+      },
+      {
+       "id": "h_fa",
+       "verb": "highlight",
+       "start": "cue:c_deja",
+       "end": "cue_end:c_deja",
+       "target": "formule_fausse",
+       "role": "unknown",
+       "part": "fa"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "Pression totale = somme des pressions partielles",
+     "type": "text"
+    },
+    {
+     "id": "formule_finale",
+     "content": "P_T = P_1 + P_2 + \\dots",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "resume",
+     "items": [
+      "loi",
+      "formule_finale"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : chaque gaz presse les parois avec sa propre pression partielle. La pression totale d'un mélange, c'est la somme de ces pressions.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_somme",
+       "text": "la somme de ces pressions"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_schema",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "schema"
+      },
+      {
+       "id": "f_repere",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "repere"
+      },
+      {
+       "id": "f_p1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "formule_P1"
+      },
+      {
+       "id": "f_p2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "formule_P2"
+      },
+      {
+       "id": "f_pt",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "formule_PT"
+      },
+      {
+       "id": "f_fausse",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "formule_fausse"
+      },
+      {
+       "id": "s_loi",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "loi"
+      },
+      {
+       "id": "s_final",
+       "verb": "show",
+       "at": "cue:c_somme",
+       "target": "formule_finale"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "start": "cue:c_somme",
+       "end": "cue_end:c_somme",
+       "target": "formule_finale",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

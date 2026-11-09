@@ -1,0 +1,69 @@
+QUESTION (chimie-boyle-erreur, chimie, sec 5, erreur) : un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L
+RÉPONSE DE RÉFÉRENCE : P₁V₁ = P₂V₂ : V₂ = 100 × 2,0 / 250 = 0,80 L ; 5 L est impossible (la pression augmente, le volume diminue).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. à température constante, pression et volume sont inversement proportionnels : P₁V₁ = P₂V₂
+  2. diagnostic : 5 L vient du rapport des pressions inversé ; comprimer ne peut pas augmenter le volume
+  3. V₂ = 100 × 2,0 / 250 = 0,80 L écrit
+  4. explication particulaire : moins d'espace, plus de collisions sur les parois
+  5. valorisé : graphique P en fonction de V (hyperbole)
+ERREURS GRAVES À CHERCHER : volume qui augmente avec la pression ; relation dite proportionnelle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Compression d'un gaz à température constante
+math_context : {"symbols":{"p1":{"kind":"constant","value":100},"V1":{"kind":"constant","value":2},"p2":{"kind":"constant","value":250}},"expressions":{"V2_expr":"p1*V1/p2"}}
+=== Tranche s_enonce
+  OBJET donnees [math] "p_1 = \\pu{100 kPa} \\quad V_1 = \\pu{2,0 L} \\quad p_2 = \\pu{250 kPa}" parts=p_1 = \pu{100 kPa} | V_1 = \pu{2,0 L} | p_2 = \pu{250 kPa}
+  OBJET constante [text] "La température et la quantité de gaz ne changent pas." 
+DIT (enonce) : On a deux litres de gaz à cent kilopascals, et on le comprime à deux cent cinquante kilopascals, à température constante.
+    write donnees @cue:c_cent {"part":"p1p"}
+    write donnees @cue:c_deux {"part":"v1p"}
+    write donnees @cue:c_deuxcent {"part":"p2p"}
+    show constante @after:w_p2 
+=== Tranche s_erreur
+  OBJET calcul_eleve [math] "2 \\times 250 \\div 100 = 5\\ \\text{L}" parts=2 \times 250 \div 100 | = 5\ \text{L}
+  OBJET faux [label] "l'élève" attaché à calcul_eleve
+  OBJET verif [callout] "Comprimer : le volume doit diminuer, pas augmenter." 
+DIT (mon_calcul) : Ton calcul donne cinq litres : deux fois deux cent cinquante, divisé par cent.
+    write calcul_eleve @cue:c_deux {"part":"le"}
+    write calcul_eleve @cue:c_cinq {"part":"lr"}
+    show faux @after:w_lr 
+    set_style calcul_eleve @after:w_lr {"role":"secondary"}
+DIT (impossible) : Or on comprime le gaz : il occupe moins de place. Un volume qui passe de deux à cinq litres, ça voudrait dire qu'on a agrandi le gaz.
+    show verif @cue:c_moins 
+=== Tranche s_boyle
+  OBJET loi [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2
+  OBJET isole [math] "V_2 = \\frac{p_1 V_1}{p_2}" parts=V_2 | = \frac{p_1 V_1}{p_2}
+DIT (loi_dite) : À température constante, la loi de Boyle-Mariotte dit que le produit pression fois volume ne bouge pas : p un V un égale p deux V deux.
+    fade_out verif @beat:start 
+    write loi @cue:c_produit {"part":"gauche"}
+    write loi @cue:c_egal {"part":"droite"}
+DIT (isole_dit) : On isole le volume final : V deux égale p un V un divisé par p deux. Puisque la pression monte, le volume doit descendre.
+    write isole @cue:c_isole {"part":"iso_l"}
+    write isole @cue:c_divise {"part":"iso_r"}
+    fade_out calcul_eleve @cue:c_descend 
+    fade_out faux @cue:c_descend 
+=== Tranche s_calcul
+  OBJET remplace [math] "V_2 = \\frac{100 \\times 2,0}{250}" 
+  OBJET resultat [math] {"kind":"computed","expression_ref":"V2_expr","template":"V_2 = {value}\\ \\text{L}","precision":2} 
+DIT (remplace_dit) : Je remplace : cent kilopascals fois deux litres, que je divise par deux cent cinquante kilopascals.
+    dim loi @beat:start 
+    dim isole @beat:start 
+    dim donnees @beat:start 
+    write remplace @cue:c_cent 
+DIT (resultat_dit) : Cent fois deux, ça fait deux cents. Deux cents divisé par deux cent cinquante, ça donne zéro virgule huit. Le volume final est de zéro virgule huit litre.
+    write resultat @cue:c_huit 
+    highlight resultat @after:w_res {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "p_1 V_1 = p_2 V_2" 
+  OBJET idee [text] "À T constante : pression et volume varient en sens inverse." 
+  OBJET final [math] "V_2 = 0,80\\ \\text{L}" 
+  GROUPE resume = regle, idee, final
+DIT (retenir) : À retenir : à température constante, la pression et le volume varient en sens inverse. Le produit p un V un ne change pas.
+    fade_out remplace @beat:start 
+    fade_out resultat @beat:start 
+    fade_out constante @beat:start 
+    camera.focus  @beat:start {"targets":["resume"],"bounds":"layout_bounds"}
+    show regle @cue:c_retenir 
+    show idee @cue:c_invers 
+    show final @cue:c_produit 
+--- 5 tranches, 183 mots dits (≈ 1.2 min d'oral)

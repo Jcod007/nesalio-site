@@ -1,0 +1,72 @@
+QUESTION (carre, mathematiques, sec 4, sens) : Pourquoi (x + 5)² ce n'est pas x² + 25 ?
+RÉPONSE DE RÉFÉRENCE : (x + 5)² = x² + 10x + 25 : il manque les deux rectangles 5x.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. (x + 5)² = (x + 5)(x + 5), pas x² + 5²
+  2. modèle d'aire : carré x², deux rectangles 5x, carré 25
+  3. terme croisé 10x = 2 × 5x
+  4. résultat x² + 10x + 25 écrit
+  5. vérification numérique (ex. x = 1 : 36 ≠ 26)
+ERREURS GRAVES À CHERCHER : modèle d'aire mal découpé (pièces hors du grand carré)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi (x + 5)² n'est pas x² + 25
+=== Tranche s_erreur
+  OBJET faux [math] "(x + 5)^2 = x^2 + 25" parts=(x + 5)^2 | = | x^2 + 25
+  OBJET vraie [math] "(x + 5)^2 = x^2 + 10x + 25" parts=(x + 5)^2 | = | x^2 + 10x + 25
+DIT (question) : Bonne question : carré un binôme, c'est tentant de carré chaque terme. Mais ce n'est pas ça, et je vais te montrer pourquoi.
+    show faux @cue:c_tentant 
+DIT (enonce) : Écrire x plus cinq au carré égale x au carré plus vingt-cinq, ça oublie un morceau. Le vrai résultat est x au carré plus dix x plus vingt-cinq.
+    highlight faux @beat:start {"role":"secondary"}
+    show vraie @cue:c_vraie 
+=== Tranche s_aire
+  OBJET carre [polygon] {"vertices":[[0,0],[7,0],[7,7],[0,7]]} 
+  OBJET pi_x2 [polygon] {"vertices":[[0,5],[5,5],[5,7],[0,7]]} 
+  OBJET pi_5x_bas [polygon] {"vertices":[[0,0],[5,0],[5,5],[0,5]]} 
+  OBJET pi_5x_droite [polygon] {"vertices":[[5,0],[7,0],[7,5],[5,5]]} 
+  OBJET pi_25 [polygon] {"vertices":[[5,5],[7,5],[7,7],[5,7]]} 
+  OBJET lab_x2 [label] "x²" attaché à pi_x2
+  OBJET lab_5x_a [label] "5x" attaché à pi_5x_bas
+  OBJET lab_5x_b [label] "5x" attaché à pi_5x_droite
+  OBJET lab_25 [label] "25" attaché à pi_25
+  OBJET legende [label] "un carré de côté (x + 5)" 
+DIT (figure) : Prends un carré dont le côté vaut x plus cinq. Son aire, c'est x plus cinq au carré.
+    camera.focus  @beat:start {"targets":["carre"],"bounds":"layout_bounds","save_as":"vue_aire"}
+    draw carre @cue:c_cote 
+    show legende @cue:c_aire 
+DIT (decoupe) : Découpons ce carré en quatre pièces : en haut à gauche un carré de côté x, en bas à gauche un rectangle de x par cinq, à droite un autre rectangle, et le petit coin.
+    draw pi_x2 @cue:c_x 
+    show lab_x2 @after:d_x2 
+    draw pi_5x_bas @cue:c_rectangle 
+    show lab_5x_a @after:d_bas 
+    draw pi_5x_droite @after:s_lbas 
+    show lab_5x_b @after:d_droite 
+    draw pi_25 @cue:c_coin 
+    show lab_25 @after:d_25 
+=== Tranche s_calcul
+  OBJET somme [math] "(x + 5)^2 = x^2 + 5x + 5x + 25" parts=(x + 5)^2 | = x^2 | + 5x | + 5x | + 25
+  OBJET res [math] "(x + 5)^2 = x^2 + 10x + 25" parts=(x + 5)^2 | = x^2 + 10x + 25
+DIT (additionne) : Additionnons les aires : x au carré, plus cinq x, plus cinq x, plus vingt-cinq.
+    write somme @cue:c_x2 {"part":"m2"}
+    write somme @cue:c_cinqx {"part":"m3"}
+    write somme @after:w_m3 {"part":"m4"}
+    write somme @cue:c_25 {"part":"m5"}
+DIT (regroupe) : Les deux termes cinq x s'additionnent : cinq x plus cinq x, ça fait dix x. Voilà le morceau qu'on oublie.
+    highlight somme @- {"start":"cue:c_dixx","end":"cue_end:c_oubli","role":"accent","part":"m3"}
+    write res @cue:c_oubli {"part":"r2"}
+    highlight lab_5x_a @- {"start":"cue:c_oubli","end":"cue_end:c_oubli","role":"accent"}
+=== Tranche s_verifie
+  OBJET test [matrix] {"rows":[["(0 + 5)^2","25"],["0^2 + 25","25"],["(1 + 5)^2","36"],["1^2 + 25","26"]],"column_labels":["calcul","résultat"]} 
+DIT (essai) : Vérifions avec un nombre. Si x vaut zéro, les deux formules donnent vingt-cinq : elles se ressemblent. Prenons x égale un.
+    show test @cue:c_un 
+DIT (ecart) : Avec la vraie formule, x plus cinq au carré fait trente-six. Avec x au carré plus vingt-cinq, ça fait vingt-six. Dix d'écart : exactement le dix x oublié.
+    highlight test @- {"start":"cue:c_trente","end":"cue_end:c_trente","role":"accent","part":"r3"}
+    highlight test @- {"start":"cue:c_vingt","end":"cue_end:c_vingt","role":"secondary","part":"r4"}
+    highlight res @- {"start":"cue:c_ecart","end":"cue_end:c_ecart","role":"result","part":"r2"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : un binôme au carré, ce n'est pas chaque terme au carré. C'est deux fois le produit des deux termes qui s'ajoute au milieu.
+    fade_out test @cue:c_retenir 
+    fade_out somme @cue:c_retenir 
+    fade_out faux @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["res"]}
+    highlight res @- {"start":"cue:c_milieu","end":"cue_end:c_milieu","role":"result","part":"r2"}
+--- 5 tranches, 215 mots dits (≈ 1.4 min d'oral)

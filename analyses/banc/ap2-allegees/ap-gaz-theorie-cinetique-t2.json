@@ -1,0 +1,1101 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "theorie_cinetique_gaz",
+  "title": "La théorie cinétique des gaz et ses hypothèses",
+  "language": "fr",
+  "learning_goal": "Comprendre ce qu'est la théorie cinétique des gaz, ses hypothèses et comment la pression vient des chocs des particules sur la paroi."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Théorie cinétique des gaz",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne question : la théorie cinétique des gaz, c'est la façon d'expliquer les propriétés d'un gaz en imaginant ses particules.",
+     "cues": [
+      {
+       "id": "c_theorie",
+       "text": "théorie cinétique des gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_theorie",
+       "target": "titre"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_particules",
+   "introduces": [
+    {
+     "id": "boite",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "p1",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "params": {
+      "at": [
+       2.5,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3",
+     "params": {
+      "at": [
+       4,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "params": {
+      "at": [
+       5,
+       3.2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5",
+     "params": {
+      "at": [
+       3,
+       2.2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "fleche",
+     "params": {
+      "from": [
+       3.6,
+       1.3
+      ],
+      "to": [
+       5.2,
+       2.9
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "note_mvt",
+     "layout": {
+      "next_to": "boite",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "Les particules bougent sans arrêt et se frappent entre elles.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "modele",
+     "say": "Imagine un récipient fermé rempli d'un gaz. Ce gaz est fait de millions de particules minuscules.",
+     "cues": [
+      {
+       "id": "c_recipient",
+       "text": "récipient fermé"
+      },
+      {
+       "id": "c_particules",
+       "text": "millions de particules"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_boite",
+       "verb": "draw",
+       "start": "cue:c_recipient",
+       "end": "cue_end:c_recipient",
+       "target": "boite"
+      },
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "at": "cue:c_particules",
+       "target": "p1"
+      },
+      {
+       "id": "s_p2",
+       "verb": "show",
+       "at": "after:s_p1",
+       "target": "p2"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "after:s_p2",
+       "target": "p3"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "after:s_p3",
+       "target": "p4"
+      },
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "after:s_p4",
+       "target": "p5"
+      }
+     ]
+    },
+    {
+     "id": "mouvement",
+     "say": "Première hypothèse : ces particules sont en mouvement constant et désordonné. Elles se déplacent en ligne droite et rebondissent quand elles se frappent.",
+     "cues": [
+      {
+       "id": "c_mouvement",
+       "text": "mouvement constant"
+      },
+      {
+       "id": "c_desordre",
+       "text": "désordonné"
+      },
+      {
+       "id": "c_rebondissent",
+       "text": "rebondissent"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_fleche",
+       "verb": "draw",
+       "start": "cue:c_mouvement",
+       "end": "cue_end:c_desordre",
+       "target": "fleche"
+      },
+      {
+       "id": "h_boite",
+       "verb": "highlight",
+       "at": "cue:c_rebondissent",
+       "target": "boite",
+       "role": "accent"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_rebondissent",
+       "target": "note_mvt"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_hypotheses",
+   "introduces": [
+    {
+     "id": "h1",
+     "content": "1. Particules en mouvement constant, au hasard",
+     "type": "text"
+    },
+    {
+     "id": "h2",
+     "content": "2. Chocs élastiques : aucune énergie perdue",
+     "type": "text"
+    },
+    {
+     "id": "h3",
+     "content": "3. Très petites devant les distances entre elles",
+     "type": "text"
+    },
+    {
+     "id": "h4",
+     "content": "4. Aucune force d'attraction entre elles",
+     "type": "text"
+    },
+    {
+     "id": "h5",
+     "content": "5. Énergie liée à la température (en kelvins)",
+     "type": "text"
+    },
+    {
+     "id": "liste",
+     "layout": {
+      "next_to": "boite",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Hypothèses de la théorie cinétique",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "hyp",
+     "items": [
+      "liste",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "sm"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "chocs",
+     "say": "Deuxième hypothèse : les chocs sont élastiques, c'est-à-dire que les particules perdent très peu d'énergie en se frappant.",
+     "cues": [
+      {
+       "id": "c_chocs",
+       "text": "chocs sont élastiques"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_liste",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "liste"
+      },
+      {
+       "id": "s_h2",
+       "verb": "show",
+       "at": "cue:c_chocs",
+       "target": "h2"
+      },
+      {
+       "id": "s_h1",
+       "verb": "show",
+       "at": "after:s_liste",
+       "target": "h1"
+      }
+     ]
+    },
+    {
+     "id": "taille",
+     "say": "Troisième hypothèse : les particules sont tellement petites que leur volume est négligeable devant les espaces vides entre elles.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "Troisième hypothèse"
+      },
+      {
+       "id": "c_negligeable",
+       "text": "volume est négligeable"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_h3",
+       "verb": "show",
+       "at": "cue:c_trois",
+       "target": "h3"
+      }
+     ]
+    },
+    {
+     "id": "forces",
+     "say": "Quatrième hypothèse : il n'y a aucune force d'attraction entre les particules. Elles n'interagissent qu'en se frappant.",
+     "cues": [
+      {
+       "id": "c_quatrieme",
+       "text": "Quatrième hypothèse"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_h4",
+       "verb": "show",
+       "at": "cue:c_quatrieme",
+       "target": "h4"
+      }
+     ]
+    },
+    {
+     "id": "energie",
+     "say": "Cinquième hypothèse : l'énergie des particules dépend de la température. Plus il fait chaud, plus elles bougent vite. La température se mesure en kelvins, soit les degrés Celsius plus deux cent soixante-treize virgule quinze.",
+     "cues": [
+      {
+       "id": "c_cinquieme",
+       "text": "Cinquième hypothèse"
+      },
+      {
+       "id": "c_kelvins",
+       "text": "kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_h5",
+       "verb": "show",
+       "at": "cue:c_cinquieme",
+       "target": "h5"
+      },
+      {
+       "id": "h_h5",
+       "verb": "highlight",
+       "at": "cue:c_kelvins",
+       "target": "h5",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pression",
+   "introduces": [
+    {
+     "id": "paroi",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       5.5,
+       2.5
+      ],
+      "to": [
+       6,
+       2.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "pression",
+     "layout": {
+      "next_to": "boite",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "p = \\frac{\\text{force}}{\\text{surface}}",
+     "type": "math"
+    },
+    {
+     "id": "note_p",
+     "layout": {
+      "next_to": "pression",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "La pression = les chocs sur la paroi",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "chocs_paroi",
+     "say": "Voilà la conséquence la plus importante : quand une particule frappe la paroi, elle pousse dessus. Des millions de chocs par seconde créent la pression du gaz.",
+     "cues": [
+      {
+       "id": "c_paroi",
+       "text": "frappe la paroi"
+      },
+      {
+       "id": "c_pression",
+       "text": "créent la pression"
+      }
+     ],
+     "do": [
+      {
+       "id": "b_pression",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "pression",
+        "note_p"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_pression"
+      },
+      {
+       "id": "d_paroi",
+       "verb": "draw",
+       "at": "cue:c_paroi",
+       "target": "paroi"
+      },
+      {
+       "id": "s_pression",
+       "verb": "show",
+       "at": "cue:c_pression",
+       "target": "pression"
+      },
+      {
+       "id": "s_note_p",
+       "verb": "show",
+       "at": "after:s_pression",
+       "target": "note_p"
+      }
+     ]
+    },
+    {
+     "id": "formule",
+     "say": "La pression, c'est la force totale des chocs divisée par la surface de la paroi. La formule s'écrit p égale F divisé par A.",
+     "cues": [
+      {
+       "id": "c_formule",
+       "text": "p égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_pression",
+       "verb": "highlight",
+       "start": "cue:c_formule",
+       "end": "cue_end:c_formule",
+       "target": "pression",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_particules_plus",
+   "introduces": [
+    {
+     "id": "boite2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "pa",
+     "params": {
+      "at": [
+       0.5,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pb",
+     "params": {
+      "at": [
+       1.8,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pc",
+     "params": {
+      "at": [
+       2.5,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pd",
+     "params": {
+      "at": [
+       1.2,
+       2.2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "explication",
+     "layout": {
+      "next_to": "boite2",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "Même gaz, même température, moitié du volume : deux fois plus de chocs, donc deux fois plus de pression.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "compare",
+     "say": "Comparons : prenons le même nombre de particules, à la même température, mais dans un volume deux fois plus petit.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "volume deux fois plus petit"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tout",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pression"
+      },
+      {
+       "id": "f_note_p",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note_p"
+      },
+      {
+       "id": "f_paroi",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "paroi"
+      },
+      {
+       "id": "f_note_mvt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note_mvt"
+      },
+      {
+       "id": "f_fleche",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "fleche"
+      },
+      {
+       "id": "d_boite2",
+       "verb": "draw",
+       "at": "cue:c_moitie",
+       "target": "boite2"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Chaque particule atteint la paroi plus souvent. La pression double : c'est exactement ce que la théorie cinétique prédit, et ce que la loi de Boyle-Mariotte, p un V un égale p deux V deux, confirme.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "pression double"
+      },
+      {
+       "id": "c_boyle",
+       "text": "Boyle-Mariotte"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pa",
+       "verb": "show",
+       "at": "cue:c_double",
+       "target": "pa"
+      },
+      {
+       "id": "s_pb",
+       "verb": "show",
+       "at": "after:s_pa",
+       "target": "pb"
+      },
+      {
+       "id": "s_pc",
+       "verb": "show",
+       "at": "after:s_pb",
+       "target": "pc"
+      },
+      {
+       "id": "s_pd",
+       "verb": "show",
+       "at": "after:s_pc",
+       "target": "pd"
+      },
+      {
+       "id": "s_expl",
+       "verb": "show",
+       "at": "cue:c_boyle",
+       "target": "explication"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Un gaz = des particules en mouvement constant qui frappent la paroi.",
+     "type": "text"
+    },
+    {
+     "id": "formule",
+     "content": "p_1 V_1 = p_2 V_2",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "p_1 V_1"
+      },
+      {
+       "id": "droite",
+       "text": "= p_2 V_2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_cle",
+     "say": "À retenir : un gaz est un ensemble de particules en mouvement constant et désordonné, sans aucune attraction entre elles.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_mouvement",
+       "text": "mouvement constant"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_boite",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "boite"
+      },
+      {
+       "id": "f_p1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p1"
+      },
+      {
+       "id": "f_p2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p2"
+      },
+      {
+       "id": "f_p3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p3"
+      },
+      {
+       "id": "f_p4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p4"
+      },
+      {
+       "id": "f_p5",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p5"
+      },
+      {
+       "id": "f_fleche",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "fleche"
+      },
+      {
+       "id": "f_note_mvt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note_mvt"
+      },
+      {
+       "id": "f_liste",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "liste"
+      },
+      {
+       "id": "f_h1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "h1"
+      },
+      {
+       "id": "f_h2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "h2"
+      },
+      {
+       "id": "f_h3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "h3"
+      },
+      {
+       "id": "f_h4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "h4"
+      },
+      {
+       "id": "f_h5",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "h5"
+      },
+      {
+       "id": "f_boite2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "boite2"
+      },
+      {
+       "id": "f_pa",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pa"
+      },
+      {
+       "id": "f_pb",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pb"
+      },
+      {
+       "id": "f_pc",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pc"
+      },
+      {
+       "id": "f_pd",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pd"
+      },
+      {
+       "id": "f_expl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "explication"
+      },
+      {
+       "id": "f_titre",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "c_recap",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "idee",
+        "formule"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_mouvement",
+       "target": "idee"
+      }
+     ]
+    },
+    {
+     "id": "formule_cle",
+     "say": "Et quand on comprime un gaz à température constante, deux fois moins de volume donne deux fois plus de pression, comme dans p un V un égale p deux V deux.",
+     "cues": [
+      {
+       "id": "c_p1v1",
+       "text": "p un V un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_p1v1",
+       "target": "formule",
+       "part": "gauche"
+      },
+      {
+       "id": "w_d",
+       "verb": "write",
+       "at": "after:w_g",
+       "target": "formule",
+       "part": "droite"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "at": "after:w_d",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

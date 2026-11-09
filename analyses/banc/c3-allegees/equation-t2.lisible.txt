@@ -1,0 +1,53 @@
+QUESTION (equation, mathematiques, sec 4, methode) : Comment je résous 3x + 5 = 17 ?
+RÉPONSE DE RÉFÉRENCE : x = 4.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. garder l'égalité : même opération des deux côtés
+  2. 3x = 12 en enlevant 5 des deux côtés
+  3. x = 4 en divisant par 3
+  4. réponse x = 4 écrite
+  5. vérification : 3 × 4 + 5 = 17
+ERREURS GRAVES À CHERCHER : « on passe de l'autre côté » sans justification (imprécision)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Résoudre 3x + 5 = 17
+=== Tranche s_poser
+  OBJET eq1 [math] "3x + 5 = 17" 
+DIT (poser) : Une équation, c'est une égalité : le côté gauche vaut exactement le côté droit. Ici, trois x plus cinq égale dix-sept.
+    write eq1 @cue:c_gauche 
+    highlight eq1 @cue:c_droite {"role":"accent"}
+DIT (but) : Le but, c'est d'isoler x : que x se retrouve tout seul d'un côté. Pour y arriver, on défait les opérations une par une, en gardant toujours l'équilibre.
+    highlight eq1 @- {"start":"cue:c_isoler","end":"cue_end:c_isoler","role":"accent"}
+    highlight eq1 @- {"start":"cue:c_equilibre","end":"cue_end:c_equilibre","role":"accent"}
+=== Tranche s_enlever
+  OBJET etape1 [math] "3x + 5 - 5 = 17 - 5" parts=3x + 5 - 5 | = 17 - 5
+  OBJET etape2 [math] "3x = 12" parts=3x | = 12
+DIT (enlever) : La première opération qui touche x, c'est le plus cinq. Pour l'enlever, on enlève cinq des deux côtés : à gauche, cinq moins cinq donne zéro, et à droite, dix-sept moins cinq donne douze.
+    transform etape1 @cue:c_enlever {"source":"eq1"}
+    transform etape2 @cue:c_douze {"source":"etape1"}
+    highlight etape2 @after:t2 {"role":"result"}
+=== Tranche s_diviser
+  OBJET etape3 [math] "\\frac{3x}{3} = \\frac{12}{3}" parts=\frac{3x}{3} | = \frac{12}{3}
+  OBJET solution [math] "x = 4" parts=x | = 4
+DIT (diviser) : Maintenant, trois x, c'est trois fois x. L'opération inverse de multiplier par trois, c'est diviser par trois. On divise donc les deux côtés par trois.
+    transform etape3 @cue:c_trois_fois {"source":"etape2"}
+    highlight etape3 @- {"start":"cue:c_inverse","end":"cue_end:c_inverse","role":"accent"}
+DIT (resultat) : À gauche, trois x divisé par trois, il reste x. À droite, douze divisé par trois donne quatre. Donc x égale quatre.
+    transform solution @cue:c_quatre {"source":"etape3"}
+    highlight solution @after:t4 {"role":"result"}
+=== Tranche s_verifier
+  OBJET verif [math] "3 \\times 4 + 5 = 12 + 5 = 17" parts=3 \times 4 + 5 | = 12 + 5 = 17
+DIT (remplacer) : Vérifions toujours : on remplace x par quatre dans l'équation de départ. Trois fois quatre donne douze, plus cinq donne dix-sept.
+    write verif @cue:c_remplace {"part":"vg"}
+    write verif @cue:c_dixsept {"part":"vd"}
+    highlight verif @after:w_vd {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "On défait les opérations dans l'ordre inverse" 
+  OBJET cle [math] "x = 4" 
+DIT (retenir) : À retenir : on défait les opérations une par une, dans l'ordre inverse de celles qui touchent x. D'abord le plus cinq, ensuite le fois trois. Et la solution, x égale quatre, se vérifie toujours dans l'équation de départ.
+    camera.focus  @cue:c_retenir {"targets":["idee","cle"],"bounds":"layout_bounds"}
+    fade_out verif @cue:c_retenir 
+    fade_out solution @cue:c_retenir 
+    show idee @cue:c_retenir 
+    show cle @cue:c_quatre 
+    highlight cle @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"result"}
+--- 5 tranches, 190 mots dits (≈ 1.3 min d'oral)

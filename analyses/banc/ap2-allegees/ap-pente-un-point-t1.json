@@ -1,0 +1,855 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "un_point_manquant",
+  "title": "Résoudre avec un seul point complet",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'un seul point ne suffit pas à trouver une droite, et utiliser la pente donnée pour compléter l'équation y = mx + b."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_manque",
+   "introduces": [
+    {
+     "id": "yform",
+     "content": "y = mx + b",
+     "type": "math"
+    },
+    {
+     "id": "ptA",
+     "layout": {
+      "next_to": "yform",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "A(2 ; 3)",
+     "type": "math"
+    },
+    {
+     "id": "ptB",
+     "layout": {
+      "next_to": "ptA",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "unknown"
+     },
+     "content": "B(4 ; ?)",
+     "type": "math"
+    },
+    {
+     "id": "manque",
+     "layout": {
+      "next_to": "ptB",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "style": {
+      "role": "secondary"
+     },
+     "content": "Il manque le y de B",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu as un point complet A, deux trois, et un deuxième point B dont il te manque le y.",
+     "cues": [
+      {
+       "id": "cA",
+       "text": "A, deux trois"
+      },
+      {
+       "id": "cB",
+       "text": "le y"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_yform",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "yform"
+      },
+      {
+       "id": "s_ptA",
+       "verb": "show",
+       "at": "cue:cA",
+       "target": "ptA"
+      },
+      {
+       "id": "s_ptB",
+       "verb": "show",
+       "at": "cue:cB",
+       "target": "ptB"
+      },
+      {
+       "id": "s_manque",
+       "verb": "show",
+       "at": "cue:cB",
+       "target": "manque"
+      }
+     ]
+    },
+    {
+     "id": "regle",
+     "say": "Attention, un seul point ne détermine pas une seule droite : par A passent une infinité de droites.",
+     "cues": [
+      {
+       "id": "cseul",
+       "text": "un seul point"
+      },
+      {
+       "id": "cinfini",
+       "text": "une infinité de droites"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_ptB",
+       "verb": "fade_out",
+       "at": "cue:cseul",
+       "target": "ptB"
+      },
+      {
+       "id": "h_yform",
+       "verb": "highlight",
+       "start": "cue:cseul",
+       "end": "cue_end:cinfini",
+       "target": "yform",
+       "role": "accent"
+      },
+      {
+       "id": "f_manque",
+       "verb": "fade_out",
+       "at": "cue:cseul",
+       "target": "manque"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pente",
+   "introduces": [
+    {
+     "id": "axe",
+     "params": {
+      "x": [
+       -1,
+       6
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "ptA2",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axe",
+     "params": {
+      "at": [
+       2,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "ptA2",
+      "anchor": "left"
+     },
+     "content": "A(2 ; 3)",
+     "type": "label"
+    },
+    {
+     "id": "montee",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axe",
+     "params": {
+      "from": [
+       2,
+       3
+      ],
+      "to": [
+       4,
+       3
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "avancee",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axe",
+     "params": {
+      "from": [
+       4,
+       3
+      ],
+      "to": [
+       4,
+       5
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "labM",
+     "attachment": {
+      "parent": "montee",
+      "anchor": "bottom"
+     },
+     "content": "avancée = 2",
+     "type": "label"
+    },
+    {
+     "id": "labV",
+     "attachment": {
+      "parent": "avancee",
+      "anchor": "right"
+     },
+     "content": "montée = 1",
+     "type": "label"
+    },
+    {
+     "id": "ptB2",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axe",
+     "params": {
+      "at": [
+       4,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labB",
+     "attachment": {
+      "parent": "ptB2",
+      "anchor": "right"
+     },
+     "content": "B(4 ; 5)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pente",
+     "say": "La deuxième information, c'est la pente. Prenons la pente un demi, donnée dans ton énoncé.",
+     "cues": [
+      {
+       "id": "cpente",
+       "text": "la pente"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axe",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axe"
+      },
+      {
+       "id": "s_A2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ptA2"
+      },
+      {
+       "id": "s_labA",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labA"
+      },
+      {
+       "id": "h_pente",
+       "verb": "highlight",
+       "start": "cue:cpente",
+       "end": "cue_end:cpente",
+       "target": "yform",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "dessine",
+     "say": "Une pente de un demi, c'est une montée de un pour une avancée de deux. On avance de deux à partir de A.",
+     "cues": [
+      {
+       "id": "cmontee",
+       "text": "une montée de un"
+      },
+      {
+       "id": "cavancee",
+       "text": "une avancée de deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_av",
+       "verb": "draw",
+       "start": "cue:cavancee",
+       "end": "cue_end:cavancee",
+       "target": "montee"
+      },
+      {
+       "id": "s_labM",
+       "verb": "show",
+       "at": "cue:cavancee",
+       "target": "labM"
+      },
+      {
+       "id": "d_mo",
+       "verb": "draw",
+       "start": "cue:cmontee",
+       "end": "cue_end:cmontee",
+       "target": "avancee"
+      },
+      {
+       "id": "s_labV",
+       "verb": "show",
+       "at": "cue:cmontee",
+       "target": "labV"
+      }
+     ]
+    },
+    {
+     "id": "pntB",
+     "say": "On arrive au point B : x vaut quatre, y vaut trois plus un, donc cinq.",
+     "cues": [
+      {
+       "id": "cquatre",
+       "text": "x vaut quatre"
+      },
+      {
+       "id": "ccinq",
+       "text": "donc cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_B2",
+       "verb": "show",
+       "at": "cue:cquatre",
+       "target": "ptB2"
+      },
+      {
+       "id": "s_labB",
+       "verb": "show",
+       "at": "cue:ccinq",
+       "target": "labB"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_equation",
+   "introduces": [
+    {
+     "id": "eq1",
+     "content": "3 = 0{,}5 \\times 2 + b",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "3 = 1 + b",
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "content": "b = 2",
+     "type": "math"
+    },
+    {
+     "id": "finale",
+     "content": "y = 0{,}5x + 2",
+     "type": "math"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axe",
+     "params": {
+      "expression": "0.5*x+2",
+      "domain": [
+       2,
+       4
+      ]
+     },
+     "type": "function_graph"
+    }
+   ],
+   "beats": [
+    {
+     "id": "remplace",
+     "say": "On remplace le point A et la pente dans y égale m x plus b : trois égale zéro virgule cinq fois deux plus b.",
+     "cues": [
+      {
+       "id": "cremplace",
+       "text": "On remplace"
+      },
+      {
+       "id": "cA",
+       "text": "trois égale zéro virgule cinq fois deux plus b"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_ptA2",
+       "verb": "fade_out",
+       "at": "cue:cremplace",
+       "target": "ptA2"
+      },
+      {
+       "id": "f_labA",
+       "verb": "fade_out",
+       "at": "cue:cremplace",
+       "target": "labA"
+      },
+      {
+       "id": "f_ptB2",
+       "verb": "fade_out",
+       "at": "cue:cremplace",
+       "target": "ptB2"
+      },
+      {
+       "id": "f_labB",
+       "verb": "fade_out",
+       "at": "cue:cremplace",
+       "target": "labB"
+      },
+      {
+       "id": "f_labM",
+       "verb": "fade_out",
+       "at": "cue:cremplace",
+       "target": "labM"
+      },
+      {
+       "id": "f_labV",
+       "verb": "fade_out",
+       "at": "cue:cremplace",
+       "target": "labV"
+      },
+      {
+       "id": "w_eq1",
+       "verb": "write",
+       "at": "cue:cA",
+       "target": "eq1"
+      }
+     ]
+    },
+    {
+     "id": "simplifie",
+     "say": "Zéro virgule cinq fois deux, c'est un. Donc trois égale un plus b, et b vaut deux.",
+     "cues": [
+      {
+       "id": "cun",
+       "text": "c'est un"
+      },
+      {
+       "id": "cdeux",
+       "text": "b vaut deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq2",
+       "verb": "transform",
+       "at": "cue:cun",
+       "source": "eq1",
+       "target": "eq2"
+      },
+      {
+       "id": "t_eq3",
+       "verb": "transform",
+       "at": "cue:cdeux",
+       "source": "eq2",
+       "target": "eq3"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : zéro virgule cinq fois deux plus deux fait bien trois, et zéro virgule cinq fois quatre plus deux fait cinq, donc B est sur la droite.",
+     "cues": [
+      {
+       "id": "cv1",
+       "text": "fait bien trois"
+      },
+      {
+       "id": "cv2",
+       "text": "fait cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_fin",
+       "verb": "transform",
+       "at": "cue:cv1",
+       "source": "eq3",
+       "target": "finale"
+      },
+      {
+       "id": "s_courbe",
+       "verb": "show",
+       "at": "cue_end:cv2",
+       "target": "courbe"
+      }
+     ]
+    },
+    {
+     "id": "trace",
+     "say": "La droite de ton problème est y égale zéro virgule cinq x plus deux, et elle passe par A et par B.",
+     "cues": [
+      {
+       "id": "ccourbe",
+       "text": "y égale zéro virgule cinq x plus deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_fin",
+       "verb": "highlight",
+       "start": "cue:ccourbe",
+       "end": "cue_end:ccourbe",
+       "target": "finale",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "finale",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Un point + la pente = une seule droite",
+     "type": "text"
+    },
+    {
+     "id": "cond",
+     "content": "\\text{il faut 2 informations}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : un seul point, ce n'est pas assez. Il faut une deuxième information : ici, la pente.",
+     "cues": [
+      {
+       "id": "cretenir",
+       "text": "un seul point"
+      },
+      {
+       "id": "cdeux",
+       "text": "la pente"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:cretenir",
+       "targets": [
+        "axe",
+        "finale",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "d_axe",
+       "verb": "dim",
+       "at": "cue:cretenir",
+       "target": "axe"
+      },
+      {
+       "id": "f_eq1",
+       "verb": "fade_out",
+       "at": "cue:cretenir",
+       "target": "eq1"
+      },
+      {
+       "id": "f_eq2",
+       "verb": "fade_out",
+       "at": "cue:cretenir",
+       "target": "eq2"
+      },
+      {
+       "id": "f_eq3",
+       "verb": "fade_out",
+       "at": "cue:cretenir",
+       "target": "eq3"
+      },
+      {
+       "id": "f_courbe",
+       "verb": "fade_out",
+       "at": "cue:cretenir",
+       "target": "courbe"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:cdeux",
+       "target": "idee"
+      }
+     ]
+    },
+    {
+     "id": "suite",
+     "say": "Ensuite, tu remplaces les coordonnées du point et la pente dans y égale m x plus b, et tu trouves b.",
+     "cues": [
+      {
+       "id": "cremplace",
+       "text": "tu remplaces"
+      },
+      {
+       "id": "cb",
+       "text": "tu trouves b"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "cue:cremplace",
+       "target": "cond"
+      },
+      {
+       "id": "h_finale",
+       "verb": "highlight",
+       "start": "cue:cb",
+       "end": "cue_end:cb",
+       "target": "finale",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

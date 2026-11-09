@@ -1,0 +1,828 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "systeme_comparaison",
+  "title": "Corriger une résolution par comparaison",
+  "language": "fr",
+  "learning_goal": "Repérer l’erreur de signe, résoudre le système par comparaison et vérifier le couple dans les deux équations."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "essai",
+     "style": {
+      "role": "given"
+     },
+     "content": "2x + 3 = -x + 9",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "2x + 3"
+      },
+      {
+       "id": "egal",
+       "text": "= -x + 9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "x4",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "x = 4",
+     "type": "math"
+    },
+    {
+     "id": "verif4",
+     "content": "2(4) + 3 = 11 \\qquad -4 + 9 = 5",
+     "parts": [
+      {
+       "id": "verifg",
+       "text": "2(4) + 3 = 11"
+      },
+      {
+       "id": "verifd",
+       "text": "\\qquad -4 + 9 = 5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_erreur",
+     "content": "Les deux y doivent être égaux.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Tu as bien choisi la comparaison : au point de rencontre, les deux expressions de y doivent donner la même valeur.",
+     "cues": [
+      {
+       "id": "comparaison",
+       "text": "la comparaison"
+      },
+      {
+       "id": "meme",
+       "text": "la même valeur"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_essai",
+       "verb": "write",
+       "at": "cue:comparaison",
+       "target": "essai",
+       "part": "gauche"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:meme",
+       "target": "essai",
+       "part": "egal"
+      }
+     ]
+    },
+    {
+     "id": "test",
+     "say": "Avec x égal quatre, la première équation donne onze, mais la deuxième donne cinq. Ce n’est donc pas une solution; l’égalité échoue.",
+     "cues": [
+      {
+       "id": "quatre",
+       "text": "x égal quatre"
+      },
+      {
+       "id": "onze",
+       "text": "onze"
+      },
+      {
+       "id": "cinq",
+       "text": "cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_x4",
+       "verb": "write",
+       "at": "cue:quatre",
+       "target": "x4"
+      },
+      {
+       "id": "w_vg",
+       "verb": "write",
+       "at": "cue:onze",
+       "target": "verif4",
+       "part": "verifg"
+      },
+      {
+       "id": "w_vd",
+       "verb": "write",
+       "at": "cue:cinq",
+       "target": "verif4",
+       "part": "verifd"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:cinq",
+       "target": "note_erreur"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_correction",
+   "introduces": [
+    {
+     "id": "ligne1",
+     "content": "2x + 3 = -x + 9",
+     "parts": [
+      {
+       "id": "l1a",
+       "text": "2x + 3"
+      },
+      {
+       "id": "l1b",
+       "text": "= -x + 9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ligne2",
+     "content": "3x + 3 = 9",
+     "type": "math"
+    },
+    {
+     "id": "ligne3",
+     "content": "3x = 6",
+     "type": "math"
+    },
+    {
+     "id": "ligne4",
+     "style": {
+      "role": "result"
+     },
+     "content": "x = 2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reprend",
+     "say": "L’erreur vient du signe : en ajoutant x aux deux côtés, le moins x devient zéro et deux x devient trois x.",
+     "cues": [
+      {
+       "id": "moins",
+       "text": "le moins x"
+      },
+      {
+       "id": "trois",
+       "text": "trois x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_l1a",
+       "verb": "write",
+       "at": "cue:moins",
+       "target": "ligne1",
+       "part": "l1a"
+      },
+      {
+       "id": "w_l1b",
+       "verb": "write",
+       "at": "cue:moins",
+       "target": "ligne1",
+       "part": "l1b"
+      },
+      {
+       "id": "tr_l2",
+       "verb": "transform",
+       "at": "cue:trois",
+       "source": "ligne1",
+       "target": "ligne2"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "On enlève trois des deux côtés pour isoler trois x, puis on divise les deux côtés par trois. On obtient x égal deux.",
+     "cues": [
+      {
+       "id": "enleve",
+       "text": "On enlève trois"
+      },
+      {
+       "id": "divise",
+       "text": "on divise"
+      },
+      {
+       "id": "deux",
+       "text": "x égal deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "tr_l3",
+       "verb": "transform",
+       "at": "cue:enleve",
+       "source": "ligne2",
+       "target": "ligne3"
+      },
+      {
+       "id": "tr_l4",
+       "verb": "transform",
+       "at": "cue:divise",
+       "source": "ligne3",
+       "target": "ligne4"
+      },
+      {
+       "id": "h_l4",
+       "verb": "highlight",
+       "start": "cue:deux",
+       "end": "cue_end:deux",
+       "target": "ligne4",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_y_verification",
+   "introduces": [
+    {
+     "id": "calcul_y",
+     "content": "y = 2(2) + 3 = 7",
+     "parts": [
+      {
+       "id": "cy1",
+       "text": "y ="
+      },
+      {
+       "id": "cy2",
+       "text": "2(2) + 3"
+      },
+      {
+       "id": "cy3",
+       "text": "= 7"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "verif_systeme",
+     "content": "2(2) + 3 = 7 \\qquad -2 + 9 = 7",
+     "parts": [
+      {
+       "id": "vs1",
+       "text": "2(2) + 3 = 7"
+      },
+      {
+       "id": "vs2",
+       "text": "\\qquad -2 + 9 = 7"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "couple",
+     "style": {
+      "role": "result"
+     },
+     "content": "(x ; y) = (2 ; 7)",
+     "type": "math"
+    },
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       0,
+       5
+      ],
+      "y": [
+       0,
+       11
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "droite1",
+     "params": {
+      "expression": "2*x+3",
+      "domain": [
+       0,
+       4
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "droite2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "-x+9",
+      "domain": [
+       0,
+       4
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "p_inter",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "at": [
+       2,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "etiquette_inter",
+     "attachment": {
+      "parent": "p_inter",
+      "anchor": "right"
+     },
+     "content": "(2 ; 7)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trouve_y",
+     "say": "Je remplace x par deux dans la première équation : deux fois deux plus trois donne y égal sept.",
+     "cues": [
+      {
+       "id": "remplace",
+       "text": "Je remplace x par deux"
+      },
+      {
+       "id": "sept",
+       "text": "y égal sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cy1",
+       "verb": "write",
+       "at": "cue:remplace",
+       "target": "calcul_y",
+       "part": "cy1"
+      },
+      {
+       "id": "w_cy2",
+       "verb": "write",
+       "at": "cue:remplace",
+       "target": "calcul_y",
+       "part": "cy2"
+      },
+      {
+       "id": "w_cy3",
+       "verb": "write",
+       "at": "cue:sept",
+       "target": "calcul_y",
+       "part": "cy3"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Dans la première, sept égale sept; dans la deuxième aussi, moins deux plus neuf égale sept. Le couple deux, sept vérifie les deux équations.",
+     "cues": [
+      {
+       "id": "premiere",
+       "text": "Dans la première"
+      },
+      {
+       "id": "deuxieme",
+       "text": "dans la deuxième"
+      },
+      {
+       "id": "couplemot",
+       "text": "Le couple deux, sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_vs1",
+       "verb": "write",
+       "at": "cue:premiere",
+       "target": "verif_systeme",
+       "part": "vs1"
+      },
+      {
+       "id": "w_vs2",
+       "verb": "write",
+       "at": "cue:deuxieme",
+       "target": "verif_systeme",
+       "part": "vs2"
+      },
+      {
+       "id": "w_couple",
+       "verb": "write",
+       "at": "cue:couplemot",
+       "target": "couple"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "rencontre",
+     "say": "Sur le graphique, les droites se rencontrent au point deux, sept : c’est le couple qui satisfait les deux équations en même temps.",
+     "cues": [
+      {
+       "id": "graphique",
+       "text": "Sur le graphique"
+      },
+      {
+       "id": "pointmot",
+       "text": "au point deux, sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "cue:graphique",
+       "target": "axes"
+      },
+      {
+       "id": "d_d1",
+       "verb": "draw",
+       "start": "cue:graphique",
+       "end": "cue_end:pointmot",
+       "target": "droite1"
+      },
+      {
+       "id": "d_d2",
+       "verb": "draw",
+       "start": "cue:graphique",
+       "end": "cue_end:pointmot",
+       "target": "droite2"
+      },
+      {
+       "id": "s_p",
+       "verb": "show",
+       "at": "cue:pointmot",
+       "target": "p_inter"
+      },
+      {
+       "id": "s_et",
+       "verb": "show",
+       "at": "cue:pointmot",
+       "target": "etiquette_inter"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "Comparaison : égaler les deux expressions de y.",
+     "type": "text"
+    },
+    {
+     "id": "solution",
+     "style": {
+      "role": "result"
+     },
+     "content": "(x ; y) = (2 ; 7)",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "resume",
+     "items": [
+      "regle",
+      "solution"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_centrale",
+     "say": "À retenir : la solution est le couple qui donne le même y dans les deux équations; graphiquement, c’est leur point de rencontre.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "meme_y",
+       "text": "le même y"
+      },
+      {
+       "id": "rencontre_finale",
+       "text": "leur point de rencontre"
+      }
+     ],
+     "do": [
+      {
+       "id": "fo_essai",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "essai"
+      },
+      {
+       "id": "fo_x4",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "x4"
+      },
+      {
+       "id": "fo_v4",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "verif4"
+      },
+      {
+       "id": "fo_note",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "note_erreur"
+      },
+      {
+       "id": "fo_calc",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "calcul_y"
+      },
+      {
+       "id": "fo_verif",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "verif_systeme"
+      },
+      {
+       "id": "fo_couple",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "couple"
+      },
+      {
+       "id": "fo_axes",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "axes"
+      },
+      {
+       "id": "fo_d1",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "droite1"
+      },
+      {
+       "id": "fo_d2",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "droite2"
+      },
+      {
+       "id": "fo_point",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "p_inter"
+      },
+      {
+       "id": "fo_et",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "etiquette_inter"
+      },
+      {
+       "id": "s_regle",
+       "verb": "write",
+       "at": "cue:meme_y",
+       "target": "regle"
+      },
+      {
+       "id": "s_solution",
+       "verb": "write",
+       "at": "cue:rencontre_finale",
+       "target": "solution"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

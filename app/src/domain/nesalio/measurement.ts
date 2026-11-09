@@ -1,7 +1,7 @@
 import { niceStep } from "@/domain/board/geometry";
 import { FONT_SIZE, matrixLayout, textWorldExtent } from "@/domain/board/layout";
 import { compileNamedExpression } from "@/domain/math/expr";
-import type { MathContext, SceneObject } from "./contract";
+import type { MathContext, MatrixParams, SceneObject } from "./contract";
 import { union, type Box, type Point } from "./placement";
 import type { MeasureObject, Measurement } from "./sceneState";
 
@@ -147,7 +147,11 @@ export function sceneText(object: Extract<SceneObject, { type: "text" | "label" 
   const { expression_ref: id, template, precision } = object.content;
   if (!Object.hasOwn(math.expressions, id)) throw new Error(`Expression indisponible « ${id} ».`);
   const value = compileNamedExpression(math.expressions[id]!, new Set(values.keys()))(values);
-  return template.replaceAll("{value}", value === null ? "—" : value.toFixed(precision));
+  if (value === null) return template.replaceAll("{value}", "—");
+  // French writing: decimal comma, minus sign, no "−0". The board draws a computed value as plain
+  // text (NesalioProjection prepares only fixed formulas), so no LaTeX such as {,} here.
+  const fixed = value.toFixed(precision).replace(/^-(?=[0.]+$)/, "");
+  return template.replaceAll("{value}", fixed.replace(".", ",").replace("-", "−"));
 }
 
 /** Thin boxes along a path: what a text must avoid, instead of the path's whole rectangle. */
@@ -168,10 +172,35 @@ function strokeBoxes(points: readonly Point[], closed = false, thickness = 0.06)
   return boxes;
 }
 
-/** The cells of a matrix as written: row titles first when it is a table of values, numbers in French. */
-export function tableRows(params: { rows: readonly (readonly number[])[]; row_labels?: readonly string[] }): string[][] {
-  const write = (value: number) => String(value).replace(".", ",").replace("-", "−");
-  return params.rows.map((row, i) => [...params.row_labels ? [params.row_labels[i] ?? ""] : [], ...row.map(write)]);
+/** A matrix is drawn as a grid table as soon as it has titles or a non-numeric cell. */
+export function isTable(params: MatrixParams): boolean {
+  return params.row_labels !== undefined || params.column_labels !== undefined
+    || params.rows.some((row) => row.some((cell) => typeof cell !== "number"));
+}
+
+/** Header row (if any), then each row: its title first, numbers in French, blank cells empty. */
+export function tableRows(params: MatrixParams): string[][] {
+  const write = (value: number | string | null) => typeof value === "number"
+    ? String(value).replace(".", ",").replace("-", "−") : value ?? "";
+  const titled = params.row_labels !== undefined;
+  const columns = params.rows[0]?.length ?? 0;
+  const header = params.column_labels
+    ? [[...titled && params.column_labels.length === columns ? [""] : [], ...params.column_labels]] : [];
+  return [...header, ...params.rows.map((row, i) => [...titled ? [params.row_labels![i] ?? ""] : [], ...row.map(write)])];
+}
+
+/**
+ * Parts (contract `matrixParts`) a cell of the drawn table belongs to, by its
+ * position in `tableRows`: a data cell, its row and its column; a row title its
+ * row; a column header its column; the corner none.
+ */
+export function tableCellParts(params: MatrixParams, row: number, column: number): string[] {
+  const i = row - (params.column_labels ? 1 : 0) + 1;
+  const j = column - (params.row_labels ? 1 : 0) + 1;
+  if (i >= 1 && j >= 1) return [`r${i}c${j}`, `r${i}`, `c${j}`];
+  if (i >= 1) return [`r${i}`];
+  if (j >= 1) return [`c${j}`];
+  return [];
 }
 
 /**
@@ -188,7 +217,8 @@ export function tableLayout(rows: readonly (readonly string[])[], fontSize: numb
   const left = -width / 2, top = height / 2;
   const starts = columns.map((_, j) => left + columns.slice(0, j).reduce((a, b) => a + b, 0));
   const cells = rows.flatMap((row, i) => row.map((text, j) => ({ text, row: i, column: j,
-    at: [starts[j]! + columns[j]! / 2, top - (i + 0.5) * rowHeight] as Point })));
+    at: [starts[j]! + columns[j]! / 2, top - (i + 0.5) * rowHeight] as Point,
+    box: { x0: starts[j]!, y0: top - (i + 1) * rowHeight, x1: starts[j]! + columns[j]!, y1: top - i * rowHeight } as Box })));
   const lines: [Point, Point][] = [
     [[left, top], [-left, top]], [[left, -top], [-left, -top]], [[left, top], [left, -top]], [[-left, top], [-left, -top]],
     ...rows.slice(1).map((_, i): [Point, Point] => [[left, top - (i + 1) * rowHeight], [-left, top - (i + 1) * rowHeight]]),
@@ -266,7 +296,7 @@ export const measureSceneObject: MeasureObject = (object, values, math, window) 
     }
     case "triangle_right": return triangleMeasurement(object, values, math);
     case "matrix": {
-      if (object.params.row_labels) {
+      if (isTable(object.params)) {
         const { width, height } = tableLayout(tableRows(object.params), fontSize);
         return { body: centered(width, height) };
       }

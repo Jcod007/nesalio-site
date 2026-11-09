@@ -1,0 +1,89 @@
+QUESTION (systeme-comparaison-erreur, mathematiques, sec 4, erreur) : J'essaie de résoudre y = 2x + 3 et y = -x + 9 par comparaison, j'obtiens x = 4 mais quand je vérifie ça marche pas
+RÉPONSE DE RÉFÉRENCE : x = 2, y = 7 : solution (2, 7) ; x = 4 vient de 3x = 9 + 3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. comparaison : les deux y sont égaux au point de rencontre, donc 2x + 3 = -x + 9
+  2. diagnostic : x = 4 vient de 3x = 9 + 3 ; il faut soustraire 3 des deux côtés, donc 3x = 6
+  3. réponse x = 2, y = 7, solution (2, 7) écrite
+  4. vérification dans les deux équations (7 = 7) et échec montré de x = 4 (11 contre 5)
+  5. valorisé : point d'intersection des deux droites
+ERREURS GRAVES À CHERCHER : diagnostic inventé (signe oublié) ; titre ou réponse affichée fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (y\s*=\s*7(?!\d|[,.]\d)) ; issue complète
+
+TITRE : Résoudre y = 2x + 3 et y = −x + 9 par comparaison
+=== Tranche s_erreur
+  OBJET eq1 [math] "y = 2x + 3" parts=y = | 2x + 3
+  OBJET eq2 [math] "y = -x + 9" parts=y = | -x + 9
+  OBJET faux [math] "x = 4" 
+  OBJET ech [math] "11 \\neq 5" 
+DIT (pose) : Tu as deux équations : y égale deux x plus trois, et y égale moins x plus neuf.
+    show eq1 @cue:c_eq1 
+    show eq2 @cue:c_eq2 
+DIT (verif) : Vérifions ton x égale quatre. Dans la première, deux fois quatre plus trois donne onze. Dans la deuxième, moins quatre plus neuf donne cinq. Onze n'est pas égal à cinq : ce n'est pas la solution.
+    show faux @cue:c_4 
+    highlight faux @- {"start":"cue:c_4","end":"cue_end:c_4","role":"unknown"}
+    show ech @cue:c_cinq 
+=== Tranche s_comparaison
+  OBJET comp [math] "2x + 3 = -x + 9" parts=2x + 3 | = -x + 9
+  OBJET etape2 [math] "3x + 3 = 9" 
+  OBJET etape3 [math] "3x = 6" 
+  OBJET sol [math] "x = 2" 
+DIT (idee) : La bonne méthode est la comparaison. Comme les deux y sont isolés, au point de rencontre les deux expressions sont égales : deux x plus trois égale moins x plus neuf.
+    fade_out faux @cue:c_egaux 
+    fade_out ech @cue:c_egaux 
+    write comp @cue:c_eg {"part":"cg"}
+    write comp @cue:c_eg {"part":"cd"}
+DIT (deuxcotes) : On ajoute un x des deux côtés pour réunir les x à gauche, et on obtient trois x plus trois égale neuf.
+    transform etape2 @cue:c_troisx {"source":"comp"}
+DIT (moins3) : On enlève trois des deux côtés : trois x égale six.
+    transform etape3 @cue:c_egale6 {"source":"etape2"}
+DIT (divise) : Et on divise par trois : x égale deux.
+    transform sol @cue:c_deux {"source":"etape3"}
+    highlight sol @after:t_4 {"role":"result"}
+=== Tranche s_graphique
+  OBJET rep [axes] {"x":[-1,6],"y":[-1,13]} 
+  OBJET d1 [function_graph] {"expression":"2*x+3","domain":[-1,6]} 
+  OBJET d2 [function_graph] {"expression":"-x+9","domain":[-1,6]} 
+  OBJET pt [point] {"at":[2,7]} 
+  OBJET ptlab [label] "(2 ; 7)" attaché à pt
+  OBJET ptfaux [point] {"at":[4,11]} 
+  OBJET ptfauxlab [label] "(4 ; 11)" attaché à ptfaux
+DIT (droites) : Regarde pourquoi : la première est une droite qui monte, la deuxième descend. Elles se croisent à un seul endroit.
+    show rep @beat:start 
+    draw d1 @- {"start":"cue:c_monte","end":"cue_end:c_monte"}
+    draw d2 @- {"start":"cue:c_croisent","end":"cue_end:c_croisent"}
+DIT (point) : Ce point de rencontre, c'est x égale deux et y égale sept : le couple deux, sept.
+    show pt @cue:c_sept 
+    show ptlab @cue:c_couple 
+DIT (tonx) : Ton x égale quatre plaçait le point tout en haut à droite : il est sur la première droite, mais pas sur la deuxième.
+    show ptfaux @cue:c_quatre 
+    show ptfauxlab @cue:c_pas 
+=== Tranche s_verification
+  OBJET ver1 [math] "2(2) + 3 = 7" parts=2(2) + 3 | = 7
+  OBJET ver2 [math] "-(2) + 9 = 7" parts=-(2) + 9 | = 7
+  OBJET reponse [math] "S(2 ; 7)" 
+DIT (verif1) : Vérifions dans les deux équations. Dans la première : deux fois deux plus trois, ça fait sept.
+    fade_out ptfaux @beat:start 
+    fade_out ptfauxlab @beat:start 
+    write ver1 @cue:c_prem {"part":"v1g"}
+    write ver1 @cue:c_sept {"part":"v1d"}
+DIT (verif2) : Et dans la deuxième : moins deux plus neuf, ça fait aussi sept. Les deux donnent le même y : c'est le bon couple.
+    write ver2 @cue:c_deuxieme {"part":"v2g"}
+    write ver2 @cue:c_aussi {"part":"v2d"}
+DIT (ecris) : On écrit la solution : S parenthèse deux point-virgule sept.
+    write reponse @cue:c_s 
+    highlight reponse @after:w_rep {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Comparer, c'est égaler les deux y ; la solution est le point de rencontre, à vérifier dans les deux équations." 
+DIT (retenir) : À retenir : par comparaison, on égale les deux y, on trouve le x, puis le y, et on vérifie toujours dans les deux équations.
+    camera.focus  @cue:c_retenir {"targets":["reponse","idee","sol"],"bounds":"layout_bounds"}
+    fade_out rep @cue:c_egale 
+    fade_out d1 @cue:c_egale 
+    fade_out d2 @cue:c_egale 
+    fade_out pt @cue:c_egale 
+    fade_out ptlab @cue:c_egale 
+    fade_out ver1 @cue:c_egale 
+    fade_out ver2 @cue:c_egale 
+    fade_out eq1 @cue:c_egale 
+    fade_out eq2 @cue:c_egale 
+    show idee @cue:c_egale 
+--- 5 tranches, 264 mots dits (≈ 1.8 min d'oral)

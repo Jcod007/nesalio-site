@@ -1,0 +1,46 @@
+QUESTION (ap-isoler-temperature, chimie, sec 5, alloprof) : Comment isoler la variable temperature dans la formule p1v1/n1t1=p2v2/n2t2 avec la quantiter de gaz qui est constante
+RÉPONSE DE RÉFÉRENCE : T2 = P2·V2·T1 / (P1·V1)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Isoler T₂ dans la loi des gaz combinés
+=== Tranche s_pose
+  OBJET eq1 [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" parts=\frac{p_1 V_1}{n_1 T_1} | = | \frac{p_2 V_2}{n_2 T_2}
+  OBJET constant [label] "n₁ = n₂ (gaz constant)" attaché à eq1
+DIT (pose) : On part de la loi des gaz combinés : p un V un sur n un T un égale p deux V deux sur n deux T deux.
+    write eq1 @cue:c_gauche {"part":"gauche"}
+    write eq1 @after:w_gauche {"part":"egal"}
+    write eq1 @cue:c_droite {"part":"droite"}
+DIT (constante) : Puisque la quantité de gaz est constante, n un égale n deux : ces deux-là vont s'annuler.
+    show constant @cue:c_constant 
+    highlight eq1 @- {"start":"cue:c_annuler","end":"cue_end:c_annuler","role":"accent"}
+=== Tranche s_simplifie
+  OBJET eq2 [math] "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}" parts=\frac{p_1 V_1}{T_1} | = | \frac{p_2 V_2}{T_2}
+DIT (retire_n) : Comme n un égale n deux, on peut les retirer des deux côtés : il reste p un V un sur T un égale p deux V deux sur T deux.
+    transform eq2 @cue:c_retire {"source":"eq1"}
+    highlight eq2 @- {"start":"cue:c_reste","end":"cue_end:c_reste","role":"given"}
+DIT (pourquoi) : C'est logique : dans une fraction, un même facteur en haut et en bas vaut un, donc il ne change rien au rapport.
+    highlight eq2 @- {"start":"cue:c_facteur","end":"cue_end:c_facteur","role":"accent"}
+=== Tranche s_croise
+  OBJET eq3 [math] "p_1 V_1 \\cdot T_2 = p_2 V_2 \\cdot T_1" parts=p_1 V_1 \cdot T_2 | = | p_2 V_2 \cdot T_1
+DIT (croise) : On fait les produits croisés : p un V un fois T deux égale p deux V deux fois T un.
+    transform eq3 @cue:c_prod {"source":"eq2"}
+    highlight eq3 @- {"start":"cue:c_fin","end":"cue_end:c_fin","role":"unknown"}
+DIT (justifie) : Pourquoi ça marche : on multiplie les deux côtés par T un, puis par T deux, ce qui chasse les dénominateurs.
+    highlight eq3 @- {"start":"cue:c_mult","end":"cue_end:c_mult","role":"accent"}
+=== Tranche s_isole
+  OBJET eq4 [math] "T_2 = \\frac{p_2 V_2 T_1}{p_1 V_1}" parts=T_2 | = | \frac{p_2 V_2 T_1}{p_1 V_1}
+  OBJET verif [text] "n est constant : on peut simplifier avant de calculer." 
+DIT (divise) : Pour isoler T deux, on divise les deux côtés par p un V un. T deux se retrouve seul.
+    transform eq4 @cue:c_div {"source":"eq3"}
+    highlight eq4 @- {"start":"cue:c_seul","end":"cue_end:c_seul","role":"result","part":"t2"}
+DIT (note) : Donc T deux égale p deux V deux T un sur p un V un. Vérifie les unités : la température doit être en kelvins.
+    highlight eq4 @- {"start":"cue:c_formule","end":"cue_end:c_formule","role":"result","part":"frac"}
+    show verif @cue:c_unites 
+=== Tranche s_retenir
+DIT (idee) : À retenir : n constant s'annule, les produits croisés chassent les fractions, puis on divise par le bloc qui colle à T deux.
+    fade_out verif @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["eq4"],"bounds":"layout_bounds"}
+    highlight eq4 @- {"start":"cue:c_divise","end":"cue_end:c_divise","role":"result"}
+--- 5 tranches, 208 mots dits (≈ 1.4 min d'oral)

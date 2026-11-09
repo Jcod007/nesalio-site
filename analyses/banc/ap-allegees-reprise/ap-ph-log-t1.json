@@ -1,0 +1,920 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ph_et_concentration_h",
+  "title": "Pourquoi pH = −log[H⁺] donne [H⁺] = 10^(−pH)",
+  "language": "fr",
+  "learning_goal": "Comprendre que le pH est un compteur d'exposants de 10 : chaque unité de pH change [H⁺] par un facteur 10, ce qui rend les deux formules équivalentes."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_echelle",
+   "introduces": [
+    {
+     "id": "ligne",
+     "params": {
+      "domain": [
+       0,
+       14
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "p_citron",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "ligne",
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_citron",
+     "attachment": {
+      "parent": "p_citron",
+      "anchor": "top"
+     },
+     "content": "jus de citron (pH 2)",
+     "type": "label"
+    },
+    {
+     "id": "p_eau",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "ligne",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_eau",
+     "attachment": {
+      "parent": "p_eau",
+      "anchor": "top"
+     },
+     "content": "eau pure (pH 7)",
+     "type": "label"
+    },
+    {
+     "id": "p_javel",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "ligne",
+     "params": {
+      "at": [
+       12,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_javel",
+     "attachment": {
+      "parent": "p_javel",
+      "anchor": "top"
+     },
+     "content": "eau de javel (pH 12)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Le pH, c'est juste un compteur qui mesure la concentration des ions H plus.",
+     "cues": [
+      {
+       "id": "c_ph",
+       "text": "Le pH"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ligne",
+       "verb": "show",
+       "at": "cue:c_ph",
+       "target": "ligne"
+      }
+     ]
+    },
+    {
+     "id": "poser",
+     "say": "Sur cette échelle de zéro à quatorze, on place les substances du quotidien.",
+     "cues": [
+      {
+       "id": "c_echelle",
+       "text": "échelle"
+      },
+      {
+       "id": "c_place",
+       "text": "on place"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_citron",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "p_citron"
+      },
+      {
+       "id": "s_l_citron",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "l_citron"
+      },
+      {
+       "id": "s_eau",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "p_eau"
+      },
+      {
+       "id": "s_l_eau",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "l_eau"
+      },
+      {
+       "id": "s_javel",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "p_javel"
+      },
+      {
+       "id": "s_l_javel",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "l_javel"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_puissances",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        -4,
+        -3,
+        -2,
+        -1,
+        0,
+        1,
+        2,
+        3,
+        4
+       ],
+       [
+        0.0001,
+        0.001,
+        0.01,
+        0.1,
+        1,
+        10,
+        100,
+        1000,
+        10000
+       ]
+      ],
+      "row_labels": [
+       "exposant",
+       "dix exposant ce nombre"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "rappel",
+     "say": "Avant la formule, il faut voir un motif : les puissances de dix.",
+     "cues": [
+      {
+       "id": "c_motif",
+       "text": "motif"
+      },
+      {
+       "id": "c_puissances",
+       "text": "puissances de dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_puissances",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "lire",
+     "say": "Dix exposant moins quatre, c'est zéro virgule zéro zéro zéro un. Dix exposant moins deux, c'est zéro virgule zéro un. Dix exposant zéro, c'est un.",
+     "cues": [
+      {
+       "id": "c_moins4",
+       "text": "moins quatre"
+      },
+      {
+       "id": "c_moins2",
+       "text": "moins deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_ligne1",
+       "verb": "highlight",
+       "start": "cue:c_moins4",
+       "end": "cue_end:c_moins2",
+       "target": "tab",
+       "role": "accent",
+       "part": "r1"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_log",
+   "introduces": [
+    {
+     "id": "def_log",
+     "content": "\\log(10^n) = n",
+     "parts": [
+      {
+       "id": "log_m",
+       "text": "\\log(10^n)"
+      },
+      {
+       "id": "eg_n",
+       "text": "= n"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_log",
+     "layout": {
+      "next_to": "def_log",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "log = « quel exposant sur 10 ? »",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "dire",
+     "say": "Le logarithme, c'est la question inverse : quel exposant faut-il mettre sur dix ?",
+     "cues": [
+      {
+       "id": "c_log",
+       "text": "logarithme"
+      },
+      {
+       "id": "c_question",
+       "text": "quel exposant"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_log",
+       "target": "tab"
+      },
+      {
+       "id": "w_log",
+       "verb": "write",
+       "at": "cue:c_question",
+       "target": "def_log",
+       "part": "log_m"
+      }
+     ]
+    },
+    {
+     "id": "reponse",
+     "say": "Log de dix exposant n donne donc simplement n : c'est le nombre qui était déjà en haut.",
+     "cues": [
+      {
+       "id": "c_donne",
+       "text": "donne donc simplement n"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eg",
+       "verb": "write",
+       "at": "cue:c_donne",
+       "target": "def_log",
+       "part": "eg_n"
+      }
+     ]
+    },
+    {
+     "id": "exemple",
+     "say": "Par exemple, log de zéro virgule zéro un, c'est log de dix exposant moins deux, donc moins deux.",
+     "cues": [
+      {
+       "id": "c_exemple",
+       "text": "Par exemple"
+      },
+      {
+       "id": "c_moins2b",
+       "text": "donc moins deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_log",
+       "verb": "highlight",
+       "start": "cue:c_exemple",
+       "end": "cue_end:c_moins2b",
+       "target": "def_log",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ph",
+   "introduces": [
+    {
+     "id": "ph_math",
+     "layout": {
+      "to_edge": "left"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "pH = -\\log[H^+]",
+     "parts": [
+      {
+       "id": "ph_g",
+       "text": "pH ="
+      },
+      {
+       "id": "ph_m",
+       "text": "-\\log[H^+]"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "h_math",
+     "layout": {
+      "next_to": "ph_math",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "[H^+] = 10^{-pH}",
+     "parts": [
+      {
+       "id": "h_g",
+       "text": "[H^+] ="
+      },
+      {
+       "id": "h_m",
+       "text": "10^{-pH}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "def",
+     "say": "Le pH est fait exactement pour ça : le pH d'une solution, c'est moins le logarithme de la concentration des ions H plus.",
+     "cues": [
+      {
+       "id": "c_ph",
+       "text": "le pH"
+      },
+      {
+       "id": "c_moinslog",
+       "text": "moins le logarithme"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ph_g",
+       "verb": "write",
+       "at": "cue:c_ph",
+       "target": "ph_math",
+       "part": "ph_g"
+      },
+      {
+       "id": "w_ph_m",
+       "verb": "write",
+       "at": "cue:c_moinslog",
+       "target": "ph_math",
+       "part": "ph_m"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "inverser",
+     "say": "On veut parfois l'inverse : trouver la concentration à partir du pH. On isole H plus en mettant dix des deux côtés, et la règle du log transforme tout ça.",
+     "cues": [
+      {
+       "id": "c_inverse",
+       "text": "l'inverse"
+      },
+      {
+       "id": "c_isole",
+       "text": "On isole H plus"
+      },
+      {
+       "id": "c_regle",
+       "text": "règle du log"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_ph",
+       "verb": "highlight",
+       "start": "cue:c_isole",
+       "end": "cue_end:c_isole",
+       "target": "ph_math",
+       "role": "accent",
+       "part": "ph_m"
+      },
+      {
+       "id": "w_h_g",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "h_math",
+       "part": "h_g"
+      },
+      {
+       "id": "w_h_m",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "h_math",
+       "part": "h_m"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "calc1",
+     "layout": {
+      "next_to": "h_math",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "[H^+] = 0{,}01 = 10^{-2}\\ \\text{mol/L}",
+     "parts": [
+      {
+       "id": "c1_g",
+       "text": "[H^+] ="
+      },
+      {
+       "id": "c1_v",
+       "text": "0{,}01 = 10^{-2}\\ \\text{mol/L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calc2",
+     "layout": {
+      "next_to": "calc1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "pH = -\\log(10^{-2}) = 2",
+     "parts": [
+      {
+       "id": "c2_g",
+       "text": "pH ="
+      },
+      {
+       "id": "c2_m",
+       "text": "-\\log(10^{-2}) = 2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donne",
+     "say": "Vérifions ta donnée : zéro virgule zéro un mole par litre, c'est dix exposant moins deux.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "zéro virgule zéro un"
+      },
+      {
+       "id": "c_expos",
+       "text": "dix exposant moins deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_ph",
+       "verb": "dim",
+       "at": "cue:c_zero",
+       "target": "ph_math"
+      },
+      {
+       "id": "w_c1_g",
+       "verb": "write",
+       "at": "cue:c_zero",
+       "target": "calc1",
+       "part": "c1_g"
+      },
+      {
+       "id": "w_c1_v",
+       "verb": "write",
+       "at": "cue:c_expos",
+       "target": "calc1",
+       "part": "c1_v"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcule",
+     "say": "On remplace dans la formule. Log de dix exposant moins deux donne moins deux. Avec le signe moins devant, il reste deux. Donc un pH de deux, pas de un.",
+     "cues": [
+      {
+       "id": "c_logm2",
+       "text": "donne moins deux"
+      },
+      {
+       "id": "c_restedeux",
+       "text": "il reste deux"
+      },
+      {
+       "id": "c_ph2",
+       "text": "un pH de deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c2_g",
+       "verb": "write",
+       "at": "cue:c_logm2",
+       "target": "calc2",
+       "part": "c2_g"
+      },
+      {
+       "id": "w_c2_m",
+       "verb": "write",
+       "at": "cue:c_restedeux",
+       "target": "calc2",
+       "part": "c2_m"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "start": "cue:c_ph2",
+       "end": "cue_end:c_ph2",
+       "target": "calc2",
+       "role": "result",
+       "part": "c2_m"
+      }
+     ]
+    },
+    {
+     "id": "retour",
+     "say": "Pour obtenir un pH de un, il faudrait dix exposant moins un, c'est-à-dire zéro virgule un mole par litre. Une unité de pH, c'est donc un facteur dix sur la concentration.",
+     "cues": [
+      {
+       "id": "c_un1",
+       "text": "un pH de un"
+      },
+      {
+       "id": "c_facteur",
+       "text": "facteur dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_h",
+       "verb": "highlight",
+       "start": "cue:c_un1",
+       "end": "cue_end:c_un1",
+       "target": "h_math",
+       "role": "accent",
+       "part": "h_m"
+      },
+      {
+       "id": "h_c1",
+       "verb": "highlight",
+       "at": "cue:c_facteur",
+       "target": "calc1",
+       "role": "secondary",
+       "part": "c1_v"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "recap",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\text{pH} \\longleftrightarrow [H^+] = 10^{-\\text{pH}}",
+     "type": "math"
+    },
+    {
+     "id": "recap_txt",
+     "layout": {
+      "next_to": "recap",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "1 unité de pH = ×10 sur [H⁺]",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conclure",
+     "say": "À retenir : le pH est l'exposant de dix de la concentration, changé de signe. Sa formule et son inversion disent exactement la même chose.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_exposant",
+       "text": "l'exposant de dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_all",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc1"
+      },
+      {
+       "id": "f_all2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc2"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "recap",
+        "recap_txt"
+       ]
+      },
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "recap"
+      },
+      {
+       "id": "s_txt",
+       "verb": "show",
+       "at": "cue:c_exposant",
+       "target": "recap_txt"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

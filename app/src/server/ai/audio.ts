@@ -21,6 +21,13 @@ export interface SpeechResult {
   alignment?: z.infer<typeof CharacterAlignment>;
 }
 
+/**
+ * Pas d'options de vie privée ici (contrairement au modèle et à la transcription) : ElevenLabs,
+ * la voix de Nesa, ne figure ni parmi les fournisseurs ZDR ni parmi ceux sans entraînement de la doc
+ * AI Gateway (security-and-compliance, novembre 2026), et la doc des voix n'en parle pas. Si le
+ * Gateway appliquait ces filtres, il n'y aurait plus aucun fournisseur et la voix tomberait.
+ * Le texte envoyé est celui de la leçon (écrit par le modèle), pas les paroles de l'élève.
+ */
 export async function synthesizeSpeech(options: {
   token: string;
   model: string;
@@ -85,9 +92,28 @@ interface TranscriptionOptions {
   fetchImpl?: typeof fetch;
 }
 
-async function postTranscription(options: TranscriptionOptions, extra: Record<string, unknown> = {}): Promise<Record<string, unknown>> {
+/** Transcription models with a ZDR provider on AI Gateway (catalogue read on 9 Nov 2026). */
+export const ZDR_TRANSCRIPTION_MODELS: readonly string[] = ["microsoft/mai-transcribe-2", "mistral/voxtral-mini-transcribe-3", "spacexai/grok-stt"];
+
+/**
+ * Vie privée de la voix de l'élève. Interdiction d'entraînement toujours (OpenAI, donc Whisper, est
+ * sur la liste « sans entraînement » du Gateway : rien ne tombe). Non-conservation (ZDR) seulement
+ * pour un modèle qui a un fournisseur ZDR : openai/whisper-1 (défaut actuel) n'en a aucun, la lui
+ * demander ferait refuser l'appel et basculer le micro sur la reconnaissance du navigateur (Chrome
+ * l'envoie à Google), pire pour la vie privée. NESALIO_ZDR=0 la retire partout. La doc du Gateway
+ * ne décrit ces options que pour le texte ; le SDK AI les transmet telles quelles à ce point d'accès.
+ * Changer de modèle après l'essai tools/eval/transcription-zdr.test.mjs (TRANSCRIPTION_MODEL).
+ */
+export function transcriptionPrivacy(model: string, env: NodeJS.ProcessEnv = process.env) {
+  const zeroDataRetention = ZDR_TRANSCRIPTION_MODELS.includes(model) && env.NESALIO_ZDR?.trim() !== "0";
+  return { gateway: { ...(zeroDataRetention ? { zeroDataRetention: true } : {}), disallowPromptTraining: true } };
+}
+
+async function postTranscription(options: TranscriptionOptions, extra: { providerOptions?: Record<string, unknown> } = {}): Promise<Record<string, unknown>> {
   const fetchImpl = options.fetchImpl ?? fetch;
-  const response = await fetchImpl(`${GATEWAY_BASE}/v4/ai/transcription-model`, {
+  const url = `${GATEWAY_BASE}/v4/ai/transcription-model`;
+  const providerOptions = { ...extra.providerOptions, ...transcriptionPrivacy(options.model) };
+  const response = await fetchImpl(url, {
     method: "POST",
     signal: options.signal,
     headers: {
@@ -97,13 +123,13 @@ async function postTranscription(options: TranscriptionOptions, extra: Record<st
       "ai-model-id": options.model,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ audio: options.audioBase64, mediaType: options.mediaType, ...extra }),
+    body: JSON.stringify({ audio: options.audioBase64, mediaType: options.mediaType, ...extra, providerOptions }),
   });
   if (!response.ok) {
-    throw new UpstreamError(
-      `Transcription : ${response.status} ${(await response.text().catch(() => "")).slice(0, 300)}`,
-      response.status,
-    );
+    const detail = (await response.text().catch(() => "")).slice(0, 300);
+    // Refused by the privacy filter (a model wrongly listed as ZDR): treated like a forbidden service.
+    const status = response.status === 400 && detail.includes("no_zdr_providers_available") ? 403 : response.status;
+    throw new UpstreamError(`Transcription : ${response.status} ${detail}`, status);
   }
   return (await response.json()) as Record<string, unknown>;
 }

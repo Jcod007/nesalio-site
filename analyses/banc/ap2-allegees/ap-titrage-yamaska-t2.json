@@ -1,0 +1,698 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ph_eau_yamaska",
+  "title": "Calculer le pH de l'eau de la Yamaska après titrage par H₃PO₄",
+  "language": "fr",
+  "learning_goal": "Déterminer la concentration de la base NaOH et son pH à partir d'un titrage acide-base où n(H⁺) = n(OH⁻) au point d'équivalence."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "Ca": {
+     "kind": "constant",
+     "value": 0.003
+    },
+    "Va": {
+     "kind": "constant",
+     "value": 0.05
+    },
+    "Vb": {
+     "kind": "constant",
+     "value": 0.02
+    }
+   },
+   "expressions": {
+    "nH_plus": "Ca*Va*3",
+    "nOH_moins": "Ca*Va*3",
+    "Cb": "(Ca*Va*3)/Vb",
+    "pOH": "-log((Ca*Va*3)/Vb)",
+    "pH": "14-(-log((Ca*Va*3)/Vb))"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_identification",
+   "introduces": [
+    {
+     "id": "offre",
+     "layout": {
+      "to_corner": "top_left"
+     },
+     "content": "Je t'explique : le titrage acide-base et le pH d'une base forte",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Ici, tu as un déversement de soude caustique dans la Yamaska : l'eau est basique, le papier tournesol rouge vire au bleu.",
+     "cues": [
+      {
+       "id": "c_soude",
+       "text": "soude caustique"
+      },
+      {
+       "id": "c_basique",
+       "text": "l'eau est basique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_offre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "offre"
+      }
+     ]
+    },
+    {
+     "id": "inconnue",
+     "say": "Tu titres vingt millilitres de cette eau et il faut cinquante millilitres d'acide phosphorique à zéro virgule zéro zéro trois mole par litre pour atteindre le virage vert.",
+     "cues": [
+      {
+       "id": "c_titres",
+       "text": "vingt millilitres"
+      },
+      {
+       "id": "c_acide",
+       "text": "acide phosphorique à zéro virgule zéro zéro trois mole par litre"
+      }
+     ],
+     "do": []
+    }
+   ]
+  },
+  {
+   "slice_id": "s_equation",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{H3PO4 + 3NaOH -> Na3PO4 + 3H2O}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ecrit",
+     "say": "Commençons par l'équation balancée de la neutralisation.",
+     "cues": [
+      {
+       "id": "c_bal",
+       "text": "équation balancée"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_bal",
+       "target": "eq"
+      }
+     ]
+    },
+    {
+     "id": "explique",
+     "say": "L'acide phosphorique libère trois H plus, et il faut trois NaOH pour les neutraliser : les coefficients trois et trois sont obligatoires pour balancer.",
+     "cues": [
+      {
+       "id": "c_trois_h",
+       "text": "trois H plus"
+      },
+      {
+       "id": "c_trois_naoh",
+       "text": "trois NaOH"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_acide",
+       "verb": "highlight",
+       "start": "cue:c_trois_h",
+       "end": "cue_end:c_trois_h",
+       "target": "eq",
+       "role": "given"
+      },
+      {
+       "id": "h_base",
+       "verb": "highlight",
+       "start": "cue:c_trois_naoh",
+       "end": "cue_end:c_trois_naoh",
+       "target": "eq",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "nH",
+     "content": "n(\\ce{H+}) = C_a \\times V_a \\times 3 = 0{,}003 \\times 0{,}050 \\times 3 = 4{,}5 \\times 10^{-4}\\ \\text{mol}",
+     "parts": [
+      {
+       "id": "form",
+       "text": "n(\\ce{H+}) = C_a \\times V_a \\times 3"
+      },
+      {
+       "id": "calc",
+       "text": "= 0{,}003 \\times 0{,}050 \\times 3"
+      },
+      {
+       "id": "res",
+       "text": "= 4{,}5 \\times 10^{-4}\\ \\text{mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "nOH",
+     "layout": {
+      "next_to": "nH",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n(\\ce{OH-}) = n(\\ce{H+}) = 4{,}5 \\times 10^{-4}\\ \\text{mol}",
+     "type": "math"
+    },
+    {
+     "id": "Cb",
+     "layout": {
+      "next_to": "nOH",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "C_b = \\dfrac{n(\\ce{OH-})}{V_b} = \\dfrac{4{,}5 \\times 10^{-4}}{0{,}020} = 0{,}0225\\ \\text{mol/L}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "moles_h",
+     "say": "D'abord les moles de H plus versés. Concentration fois volume fois trois parce que chaque molécule d'acide donne trois H plus.",
+     "cues": [
+      {
+       "id": "c_concentration",
+       "text": "Concentration fois volume"
+      },
+      {
+       "id": "c_fois3",
+       "text": "fois trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_form",
+       "verb": "write",
+       "at": "cue:c_concentration",
+       "target": "nH",
+       "part": "form"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_fois3",
+       "target": "nH",
+       "part": "calc"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "after:w_calc",
+       "target": "nH",
+       "part": "res"
+      }
+     ]
+    },
+    {
+     "id": "moles_oh",
+     "say": "Au virage, c'est l'équivalence : moles de H plus égale moles de OH moins. La soude en face a donc libéré quatre virgule cinq fois dix exposant moins quatre moles de OH moins.",
+     "cues": [
+      {
+       "id": "c_equiv",
+       "text": "l'équivalence"
+      },
+      {
+       "id": "c_egales",
+       "text": "égale moles de OH moins"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_noh",
+       "verb": "write",
+       "at": "cue:c_egales",
+       "target": "nOH"
+      }
+     ]
+    },
+    {
+     "id": "concentration",
+     "say": "Maintenant la concentration de la soude : ces moles de OH moins divisées par vingt millilitres, zéro virgule zéro vingt litre.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "divisées par vingt millilitres"
+      },
+      {
+       "id": "c_vingt",
+       "text": "zéro virgule zéro vingt litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cb",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "Cb"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_cb",
+       "target": "Cb",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ph",
+   "introduces": [
+    {
+     "id": "pOH",
+     "content": "\\text{pOH} = -\\log(0{,}0225) \\approx 1{,}65",
+     "parts": [
+      {
+       "id": "form",
+       "text": "\\text{pOH} = -\\log(0{,}0225)"
+      },
+      {
+       "id": "val",
+       "text": "\\approx 1{,}65"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pH",
+     "layout": {
+      "next_to": "pOH",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{pH} = 14 - 1{,}65 = 12{,}35",
+     "parts": [
+      {
+       "id": "form",
+       "text": "\\text{pH} = 14 - 1{,}65"
+      },
+      {
+       "id": "val",
+       "text": "= 12{,}35"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pOH",
+     "say": "Notre solution est une base : on calcule d'abord le pOH, qui vaut moins log de zéro virgule zéro deux deux cinq. Log de zéro virgule zéro deux deux cinq, c'est à peu près moins un virgule soixante-cinq, donc pOH environ un virgule soixante-cinq.",
+     "cues": [
+      {
+       "id": "c_poh",
+       "text": "le pOH"
+      },
+      {
+       "id": "c_log",
+       "text": "moins log de zéro virgule zéro deux deux cinq"
+      },
+      {
+       "id": "c_unsoixante",
+       "text": "un virgule soixante-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_poh_form",
+       "verb": "write",
+       "at": "cue:c_log",
+       "target": "pOH",
+       "part": "form"
+      },
+      {
+       "id": "w_poh_val",
+       "verb": "write",
+       "at": "cue:c_unsoixante",
+       "target": "pOH",
+       "part": "val"
+      }
+     ]
+    },
+    {
+     "id": "pH",
+     "say": "Puis pH plus pOH égale quatorze à vingt-cinq degrés. Le pH de l'eau de la Yamaska est donc quatorze moins un virgule soixante-cinq, soit environ douze virgule trente-cinq. C'est très basique.",
+     "cues": [
+      {
+       "id": "c_quatorze",
+       "text": "pH plus pOH égale quatorze"
+      },
+      {
+       "id": "c_douze",
+       "text": "douze virgule trente-cinq"
+      },
+      {
+       "id": "c_basique",
+       "text": "très basique"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ph_form",
+       "verb": "write",
+       "at": "cue:c_quatorze",
+       "target": "pH",
+       "part": "form"
+      },
+      {
+       "id": "w_ph_val",
+       "verb": "write",
+       "at": "cue:c_douze",
+       "target": "pH",
+       "part": "val"
+      },
+      {
+       "id": "h_ph",
+       "verb": "highlight",
+       "at": "after:w_ph_val",
+       "target": "pH",
+       "role": "result",
+       "part": "val"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee_cle",
+     "layout": {
+      "next_to": "pH",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n(\\ce{H+}) = n(\\ce{OH-})\\ \\text{ au virage}",
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "idee_cle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "pH = 14 − pOH",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reco",
+     "say": "À retenir : au virage de l'indicateur, moles de H plus égale moles de OH moins ; c'est ça qui nous donne la concentration.",
+     "cues": [
+      {
+       "id": "c_moles",
+       "text": "moles de H plus égale moles de OH moins"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_eq",
+       "verb": "fade_out",
+       "at": "cue:c_moles",
+       "target": "eq"
+      },
+      {
+       "id": "f_nH",
+       "verb": "fade_out",
+       "at": "cue:c_moles",
+       "target": "nH"
+      },
+      {
+       "id": "f_nOH",
+       "verb": "fade_out",
+       "at": "cue:c_moles",
+       "target": "nOH"
+      },
+      {
+       "id": "f_Cb",
+       "verb": "fade_out",
+       "at": "cue:c_moles",
+       "target": "Cb"
+      },
+      {
+       "id": "f_pOH",
+       "verb": "fade_out",
+       "at": "cue:c_moles",
+       "target": "pOH"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_moles",
+       "target": "idee_cle"
+      }
+     ],
+     "pause_after": "brief"
+    },
+    {
+     "id": "reponse",
+     "say": "Et pour une base, le pH se trouve avec pH plus pOH égale quatorze : ici, environ douze virgule trente-cinq.",
+     "cues": [
+      {
+       "id": "c_q14",
+       "text": "pH plus pOH égale quatorze"
+      },
+      {
+       "id": "c_reponse",
+       "text": "douze virgule trente-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_q14",
+       "target": "regle"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_reponse",
+       "end": "cue_end:c_reponse",
+       "target": "idee_cle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

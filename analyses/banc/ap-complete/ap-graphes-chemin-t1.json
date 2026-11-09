@@ -1,0 +1,1063 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "chemin_critique_vs_chaine_minimale",
+  "title": "Choisir entre chemin critique et chaîne de valeur minimale",
+  "language": "fr",
+  "learning_goal": "Savoir que le chemin critique donne la durée minimale d'un projet (on prend le plus long à chaque étape), tandis que la chaîne de valeur minimale donne le trajet le moins coûteux (on prend le plus court) : c'est l'objectif qui décide."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "crit",
+     "content": "\\text{durée du projet} = \\text{le plus long}",
+     "parts": [
+      {
+       "id": "crit_g",
+       "text": "\\text{durée du projet}"
+      },
+      {
+       "id": "crit_d",
+       "text": "= \\text{le plus long}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "min",
+     "content": "\\text{coût du trajet} = \\text{le plus court}",
+     "parts": [
+      {
+       "id": "min_g",
+       "text": "\\text{coût du trajet}"
+      },
+      {
+       "id": "min_d",
+       "text": "= \\text{le plus court}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "question",
+     "say": "Bonne question, parce que les deux méthodes font des calculs opposés sur le même genre de graphe.",
+     "cues": [
+      {
+       "id": "opposes",
+       "text": "des calculs opposés"
+      }
+     ],
+     "do": []
+    },
+    {
+     "id": "objectif",
+     "say": "Le choix ne dépend pas du graphe : il dépend de la question posée. Si on veut la durée minimale d'un projet, c'est le chemin critique. Si on veut le trajet le moins coûteux, c'est la chaîne de valeur minimale.",
+     "cues": [
+      {
+       "id": "duree",
+       "text": "la durée minimale d'un projet"
+      },
+      {
+       "id": "critique",
+       "text": "le chemin critique"
+      },
+      {
+       "id": "couteux",
+       "text": "le trajet le moins coûteux"
+      },
+      {
+       "id": "mini_mot",
+       "text": "la chaîne de valeur minimale"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_crit",
+       "verb": "write",
+       "at": "cue:duree",
+       "target": "crit",
+       "part": "crit_g"
+      },
+      {
+       "id": "w_crit_d",
+       "verb": "write",
+       "at": "cue:critique",
+       "target": "crit",
+       "part": "crit_d"
+      },
+      {
+       "id": "w_min",
+       "verb": "write",
+       "at": "cue:couteux",
+       "target": "min",
+       "part": "min_g"
+      },
+      {
+       "id": "w_min_d",
+       "verb": "write",
+       "at": "cue:mini_mot",
+       "target": "min",
+       "part": "min_d"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_projet",
+   "introduces": [
+    {
+     "id": "axes1",
+     "params": {
+      "x": [
+       -1,
+       7
+      ],
+      "y": [
+       -1,
+       6
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "A1",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "B1",
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "C1",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "art1_AB",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "art1_AC",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "art1_CB",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       6,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lblA1",
+     "attachment": {
+      "parent": "A1",
+      "anchor": "bottom"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "lblB1",
+     "attachment": {
+      "parent": "B1",
+      "anchor": "top"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "lblC1",
+     "attachment": {
+      "parent": "C1",
+      "anchor": "bottom"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "val1_AB",
+     "attachment": {
+      "parent": "art1_AB",
+      "anchor": "left"
+     },
+     "content": "3",
+     "type": "label"
+    },
+    {
+     "id": "val1_AC",
+     "attachment": {
+      "parent": "art1_AC",
+      "anchor": "bottom"
+     },
+     "content": "5",
+     "type": "label"
+    },
+    {
+     "id": "val1_CB",
+     "attachment": {
+      "parent": "art1_CB",
+      "anchor": "right"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "duree",
+     "layout": {
+      "next_to": "axes1",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\text{durée}(A B) = 7",
+     "type": "math"
+    },
+    {
+     "id": "duree2",
+     "layout": {
+      "next_to": "duree",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{durée}(A C B) = 8",
+     "type": "math"
+    },
+    {
+     "id": "duree3",
+     "layout": {
+      "next_to": "duree2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{le plus long} = 8",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Prenons un projet en trois étapes : A, B et C. Les flèches partent de A, avec les durées en jours.",
+     "cues": [
+      {
+       "id": "trois",
+       "text": "trois étapes"
+      },
+      {
+       "id": "durees",
+       "text": "les durées"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ax",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes1"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "A1"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "B1"
+      },
+      {
+       "id": "s_C",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "C1"
+      },
+      {
+       "id": "d_AB",
+       "verb": "draw",
+       "at": "cue:trois",
+       "target": "art1_AB"
+      },
+      {
+       "id": "d_AC",
+       "verb": "draw",
+       "at": "cue:trois",
+       "target": "art1_AC"
+      },
+      {
+       "id": "d_CB",
+       "verb": "draw",
+       "at": "cue:trois",
+       "target": "art1_CB"
+      },
+      {
+       "id": "s_valAB",
+       "verb": "show",
+       "at": "cue:durees",
+       "target": "val1_AB"
+      },
+      {
+       "id": "s_valAC",
+       "verb": "show",
+       "at": "cue:durees",
+       "target": "val1_AC"
+      },
+      {
+       "id": "s_valCB",
+       "verb": "show",
+       "at": "cue:durees",
+       "target": "val1_CB"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul",
+     "say": "Pour la durée minimale du projet, les étapes doivent toutes finir avant que le projet finisse : on additionne les durées de chaque chemin, puis on prend le plus long.",
+     "cues": [
+      {
+       "id": "additionne",
+       "text": "on additionne les durées"
+      },
+      {
+       "id": "pluslong",
+       "text": "on prend le plus long"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_dur1",
+       "verb": "write",
+       "at": "cue:additionne",
+       "target": "duree"
+      },
+      {
+       "id": "w_dur2",
+       "verb": "write",
+       "at": "cue:additionne",
+       "target": "duree2"
+      },
+      {
+       "id": "w_dur3",
+       "verb": "write",
+       "at": "cue:pluslong",
+       "target": "duree3"
+      },
+      {
+       "id": "h_dur3",
+       "verb": "highlight",
+       "start": "cue:pluslong",
+       "end": "cue_end:pluslong",
+       "target": "duree3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_min",
+   "introduces": [
+    {
+     "id": "axes2",
+     "params": {
+      "x": [
+       -1,
+       7
+      ],
+      "y": [
+       -1,
+       6
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "A2",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "B2",
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "C2",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "art2_AB",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "art2_AC",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "art2_CB",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       6,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lblA2",
+     "attachment": {
+      "parent": "A2",
+      "anchor": "bottom"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "lblB2",
+     "attachment": {
+      "parent": "B2",
+      "anchor": "top"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "lblC2",
+     "attachment": {
+      "parent": "C2",
+      "anchor": "bottom"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "val2_AB",
+     "attachment": {
+      "parent": "art2_AB",
+      "anchor": "left"
+     },
+     "content": "3",
+     "type": "label"
+    },
+    {
+     "id": "val2_AC",
+     "attachment": {
+      "parent": "art2_AC",
+      "anchor": "bottom"
+     },
+     "content": "5",
+     "type": "label"
+    },
+    {
+     "id": "val2_CB",
+     "attachment": {
+      "parent": "art2_CB",
+      "anchor": "right"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "cout",
+     "layout": {
+      "next_to": "axes2",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\text{coût}(A B) = 10",
+     "type": "math"
+    },
+    {
+     "id": "cout2",
+     "layout": {
+      "next_to": "cout",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{coût}(A C B) = 7",
+     "type": "math"
+    },
+    {
+     "id": "cout3",
+     "layout": {
+      "next_to": "cout2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{le plus court} = 7",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "autre",
+     "say": "Maintenant, la même forme de graphe, mais les nombres sont des coûts en dollars. Cette fois, on veut le trajet le moins cher de A à B.",
+     "cues": [
+      {
+       "id": "couts",
+       "text": "des coûts en dollars"
+      },
+      {
+       "id": "moinscher",
+       "text": "le trajet le moins cher"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ax2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes2"
+      },
+      {
+       "id": "s_A2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "A2"
+      },
+      {
+       "id": "s_B2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "B2"
+      },
+      {
+       "id": "s_C2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "C2"
+      },
+      {
+       "id": "d2_AB",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "art2_AB"
+      },
+      {
+       "id": "d2_AC",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "art2_AC"
+      },
+      {
+       "id": "d2_CB",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "art2_CB"
+      },
+      {
+       "id": "s2_valAB",
+       "verb": "show",
+       "at": "cue:couts",
+       "target": "val2_AB"
+      },
+      {
+       "id": "s2_valAC",
+       "verb": "show",
+       "at": "cue:couts",
+       "target": "val2_AC"
+      },
+      {
+       "id": "s2_valCB",
+       "verb": "show",
+       "at": "cue:couts",
+       "target": "val2_CB"
+      },
+      {
+       "id": "dim_projet",
+       "verb": "dim",
+       "at": "cue:moinscher",
+       "target": "axes1"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul2",
+     "say": "Là, ce n'est plus une question d'attente : on peut choisir. On additionne les coûts de chaque chemin, puis on prend le plus court.",
+     "cues": [
+      {
+       "id": "choisir",
+       "text": "on peut choisir"
+      },
+      {
+       "id": "pluscourt",
+       "text": "on prend le plus court"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cout1",
+       "verb": "write",
+       "at": "cue:choisir",
+       "target": "cout"
+      },
+      {
+       "id": "w_cout2",
+       "verb": "write",
+       "at": "cue:choisir",
+       "target": "cout2"
+      },
+      {
+       "id": "w_cout3",
+       "verb": "write",
+       "at": "cue:pluscourt",
+       "target": "cout3"
+      },
+      {
+       "id": "h_cout3",
+       "verb": "highlight",
+       "start": "cue:pluscourt",
+       "end": "cue_end:pluscourt",
+       "target": "cout3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "resume",
+     "layout": {
+      "next_to": "crit",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "La question posée décide de la méthode",
+     "type": "text"
+    },
+    {
+     "id": "resume2",
+     "layout": {
+      "next_to": "resume",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Durée minimale, toutes les étapes comptent : le plus long.",
+     "type": "text"
+    },
+    {
+     "id": "resume3",
+     "layout": {
+      "next_to": "resume2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Coût ou distance minimale, on choisit son trajet : le plus court.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la question posée décide de la méthode. Pour la durée minimale d'un projet, toutes les étapes doivent être terminées, alors on prend le chemin le plus long : c'est le chemin critique.",
+     "cues": [
+      {
+       "id": "retenir_mot",
+       "text": "À retenir"
+      },
+      {
+       "id": "duree_projet",
+       "text": "la durée minimale d'un projet"
+      },
+      {
+       "id": "pluslong_mot",
+       "text": "le chemin le plus long"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axes1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes1"
+      },
+      {
+       "id": "f_axes2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes2"
+      },
+      {
+       "id": "f_min",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "min"
+      },
+      {
+       "id": "cadre_fin",
+       "verb": "camera.focus",
+       "at": "cue:retenir_mot",
+       "targets": [
+        "crit",
+        "resume"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_resume",
+       "verb": "write",
+       "at": "cue:retenir_mot",
+       "target": "resume"
+      },
+      {
+       "id": "h_crit",
+       "verb": "highlight",
+       "start": "cue:pluslong_mot",
+       "end": "cue_end:pluslong_mot",
+       "target": "crit",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "chaine",
+     "say": "Pour un coût ou une distance, on peut choisir son trajet, alors on prend le plus court : c'est la chaîne de valeur minimale. Même graphe, mais l'objectif n'est pas le même.",
+     "cues": [
+      {
+       "id": "cout_distance",
+       "text": "un coût ou une distance"
+      },
+      {
+       "id": "pluscourt_mot",
+       "text": "la chaîne de valeur minimale"
+      },
+      {
+       "id": "objectif",
+       "text": "l'objectif n'est pas le même"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_resume2",
+       "verb": "write",
+       "at": "cue:cout_distance",
+       "target": "resume2"
+      },
+      {
+       "id": "w_resume3",
+       "verb": "write",
+       "at": "cue:pluscourt_mot",
+       "target": "resume3"
+      },
+      {
+       "id": "h_resume3",
+       "verb": "highlight",
+       "start": "cue:objectif",
+       "end": "cue_end:objectif",
+       "target": "resume3",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

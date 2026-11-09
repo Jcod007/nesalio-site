@@ -1,0 +1,595 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "complexe_active_hess",
+  "title": "Pourquoi H₂I₂ est le complexe activé dans ces trois équations",
+  "language": "fr",
+  "learning_goal": "Comprendre que H₂I₂ est l'intermédiaire / complexe activé : il apparaît dans une étape et disparaît dans la suivante, donc il s'annule dans le bilan (loi de Hess)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "dH1": {
+     "kind": "constant",
+     "value": 173
+    },
+    "dH2": {
+     "kind": "constant",
+     "value": -183
+    },
+    "dH3": {
+     "kind": "constant",
+     "value": -10
+    }
+   },
+   "expressions": {
+    "somme": "dH1 + dH2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_question",
+   "introduces": [
+    {
+     "id": "reperes",
+     "content": "Ce qu'on cherche : la molécule qui est le complexe activé (C.A.)",
+     "type": "text"
+    },
+    {
+     "id": "eq1",
+     "layout": {
+      "next_to": "reperes",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\ce{H2(g) + I2(g) -> H2I2(g)} \\quad \\Delta H = +173\\ \\text{kJ}",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "layout": {
+      "next_to": "eq1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\ce{H2I2(g) -> 2 HI(g)} \\quad \\Delta H = -183\\ \\text{kJ}",
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "layout": {
+      "next_to": "eq2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\ce{H2(g) + I2(g) -> 2 HI(g)} \\quad \\Delta H = -10\\ \\text{kJ}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Tu as raison : le complexe activé, c'est H deux I deux. Voyons pourquoi, à partir des trois équations que tu m'as données.",
+     "cues": [
+      {
+       "id": "c_raison",
+       "text": "H deux I deux"
+      },
+      {
+       "id": "c_equations",
+       "text": "trois équations"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_reperes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "reperes"
+      },
+      {
+       "id": "s_eq1",
+       "verb": "show",
+       "at": "cue:c_raison",
+       "target": "eq1"
+      },
+      {
+       "id": "s_eq2",
+       "verb": "show",
+       "at": "after:s_eq1",
+       "target": "eq2"
+      },
+      {
+       "id": "s_eq3",
+       "verb": "show",
+       "at": "cue:c_equations",
+       "target": "eq3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_intermediaire",
+   "introduces": [
+    {
+     "id": "cible_h2i2",
+     "content": "H₂I₂ apparaît puis disparaît",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "repere",
+     "say": "Dans la première étape, H deux I deux est un produit : il se forme.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "H deux I deux"
+      },
+      {
+       "id": "c_forme",
+       "text": "il se forme"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_eq1",
+       "verb": "highlight",
+       "start": "cue:c_produit",
+       "end": "cue_end:c_forme",
+       "target": "eq1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "disparait",
+     "say": "Dans la deuxième étape, H deux I deux est un réactif : il est consommé pour donner deux HI.",
+     "cues": [
+      {
+       "id": "c_deuxieme",
+       "text": "H deux I deux"
+      },
+      {
+       "id": "c_consomme",
+       "text": "il est consommé"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_eq2",
+       "verb": "highlight",
+       "start": "cue:c_deuxieme",
+       "end": "cue_end:c_consomme",
+       "target": "eq2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "intermediaire",
+     "say": "Une molécule qui se forme dans une étape et qui est consommée dans la suivante s'appelle un intermédiaire réactionnel : c'est exactement ce qu'on nomme le complexe activé.",
+     "cues": [
+      {
+       "id": "c_intermediaire",
+       "text": "intermédiaire réactionnel"
+      },
+      {
+       "id": "c_complexe",
+       "text": "complexe activé"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cible",
+       "verb": "show",
+       "at": "cue:c_intermediaire",
+       "target": "cible_h2i2"
+      },
+      {
+       "id": "h_cible",
+       "verb": "highlight",
+       "at": "cue:c_complexe",
+       "target": "cible_h2i2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_hess",
+   "introduces": [
+    {
+     "id": "somme",
+     "content": "\\Delta H_{1} + \\Delta H_{2} = (+173) + (-183) = -10\\ \\text{kJ}",
+     "parts": [
+      {
+       "id": "d1",
+       "text": "\\Delta H_{1} + \\Delta H_{2}"
+      },
+      {
+       "id": "calc",
+       "text": "= (+173) + (-183)"
+      },
+      {
+       "id": "res",
+       "text": "= -10\\ \\text{kJ}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "annule",
+     "say": "Si on additionne les deux premières équations comme la loi de Hess nous le permet, H deux I deux apparaît à gauche d'un côté et à droite de l'autre : il s'annule.",
+     "cues": [
+      {
+       "id": "c_add",
+       "text": "loi de Hess"
+      },
+      {
+       "id": "c_annule",
+       "text": "il s'annule"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_eq1",
+       "verb": "dim",
+       "at": "cue:c_add",
+       "target": "eq1"
+      },
+      {
+       "id": "d_eq2",
+       "verb": "dim",
+       "at": "cue:c_add",
+       "target": "eq2"
+      },
+      {
+       "id": "h_eq3a",
+       "verb": "highlight",
+       "start": "cue:c_annule",
+       "end": "cue_end:c_annule",
+       "target": "eq3",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "sommeH",
+     "say": "Et leurs énergies s'additionnent : cent soixante-treize plus moins cent quatre-vingt-trois donne moins dix kilojoules, ce qu'on retrouve dans la troisième équation.",
+     "cues": [
+      {
+       "id": "c_donne",
+       "text": "donne moins dix kilojoules"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_d1",
+       "verb": "write",
+       "at": "cue:c_donne",
+       "target": "somme",
+       "part": "d1"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "after:w_d1",
+       "target": "somme",
+       "part": "calc"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "after:w_calc",
+       "target": "somme",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Le complexe activé est l'intermédiaire qui se forme puis est consommé : il s'annule dans le bilan.",
+     "type": "text"
+    },
+    {
+     "id": "rappel",
+     "layout": {
+      "next_to": "idee",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\ce{H2I2(g)}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : H deux I deux n'apparaît pas dans l'équation bilan parce qu'il est fabriqué puis consommé. C'est cet intermédiaire, ce complexe activé, qui porte le mécanisme en deux étapes.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_inter",
+       "text": "intermédiaire"
+      },
+      {
+       "id": "c_bilan",
+       "text": "équation bilan"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_eq1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eq1"
+      },
+      {
+       "id": "f_eq2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eq2"
+      },
+      {
+       "id": "f_eq3",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eq3"
+      },
+      {
+       "id": "f_somme",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "somme"
+      },
+      {
+       "id": "f_reperes",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "reperes"
+      },
+      {
+       "id": "f_cible",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "cible_h2i2"
+      },
+      {
+       "id": "c_cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_inter",
+       "targets": [
+        "idee",
+        "rappel"
+       ]
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_inter",
+       "target": "idee"
+      },
+      {
+       "id": "s_rappel",
+       "verb": "show",
+       "at": "cue:c_bilan",
+       "target": "rappel"
+      },
+      {
+       "id": "h_rap",
+       "verb": "highlight",
+       "at": "after:s_rappel",
+       "target": "rappel",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

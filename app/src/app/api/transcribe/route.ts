@@ -1,13 +1,15 @@
 /**
  * POST /api/transcribe — ce que l'élève a dit au micro :
  * { audio: base64, mediaType } → { text }.
+ * En cas d'échec (non-conservation refusée, compte, fournisseur), 502 avec un message
+ * pour l'élève, sans repli : le navigateur n'utilise plus sa propre reconnaissance
+ * vocale (elle enverrait la voix de l'élève à Google, Apple ou Microsoft).
  */
 import { z } from "zod";
 import { transcribeAudio } from "@/server/ai/audio";
 import { readAiConfig } from "@/server/config";
 import { checkRate, jsonError, readJson } from "@/server/http";
 import { createSessionLimits } from "@/server/rateLimit";
-import { isUnavailable } from "@/server/tutor/service";
 import { requireAccount } from "@/server/account";
 
 export const runtime = "nodejs";
@@ -21,6 +23,7 @@ const Body = z.object({
   audio: z.string().min(100),
   mediaType: z.string().refine((type) => MEDIA_TYPES.some((allowed) => type.startsWith(allowed)), "Format audio non pris en charge"),
 });
+const MIC_UNAVAILABLE = "Micro indisponible pour le moment : écris ta question.";
 const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000, developerAccess: true });
 
 export async function POST(request: Request): Promise<Response> {
@@ -34,7 +37,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return jsonError(400, "Audio invalide.");
 
   const config = readAiConfig(request.headers);
-  if (!config.gatewayToken) return jsonError(503, "Transcription non configurée.");
+  if (!config.gatewayToken) return jsonError(503, MIC_UNAVAILABLE);
 
   try {
     const text = await transcribeAudio({
@@ -47,9 +50,8 @@ export async function POST(request: Request): Promise<Response> {
     });
     return Response.json({ text }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
+    if (request.signal.aborted) return new Response(null, { status: 499 });
     console.warn("transcribe: échec", error);
-    // 503 : le navigateur passe à sa propre reconnaissance vocale.
-    if (isUnavailable(error)) return jsonError(503, "Transcription indisponible pour le moment.");
-    return jsonError(502, "Je n'ai pas réussi à comprendre l'enregistrement.");
+    return jsonError(502, MIC_UNAVAILABLE);
   }
 }

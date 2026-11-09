@@ -1,0 +1,79 @@
+QUESTION (chimie-stoechio, chimie, sec 4, methode) : si je fais brûler 4 g d'hydrogène avec assez d'oxygène, combien de grammes d'eau j'obtiens? la réaction c'est 2 H2 + O2 → 2 H2O
+RÉPONSE DE RÉFÉRENCE : n(H₂) = 4 / 2,02 ≈ 1,98 mol = n(H₂O) ; m ≈ 1,98 × 18,02 ≈ 35,7 g (≈ 36 g).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. passer par les moles
+  2. n(H₂) = 4/2,02 ≈ 1,98 mol (≈ 2)
+  3. rapport 2 : 2, donc n(H₂O) = n(H₂)
+  4. m ≈ 36 g écrit (35,7 avec les masses précises)
+  5. contrôle par la masse : 4 g + 32 g d'O₂ = 36 g
+ERREURS GRAVES À CHERCHER : rapport stœchiométrique inversé ; masse molaire de H₂ = 1 g/mol
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : De 4 g d'hydrogène à la masse d'eau formée
+=== Tranche s_depart
+  OBJET eq [math] "2\\,\\ce{H2} + \\ce{O2} -> 2\\,\\ce{H2O}" parts=2\,\ce{H2} | + \ce{O2} | -> 2\,\ce{H2O}
+  OBJET masse [math] "m(\\ce{H2}) = 4\\ \\text{g}" 
+DIT (pose) : Bonne question. On fait brûler quatre grammes d'hydrogène, et on veut la masse d'eau qui se forme.
+    show eq @beat:start 
+    write masse @cue:quatre 
+DIT (lire) : Regarde l'équation balancée : deux H deux plus un O deux donnent deux H deux O.
+    write eq @cue:deuxh2 {"part":"h2"}
+    write eq @cue:undo2 {"part":"o2"}
+    write eq @cue:deuxh2o {"part":"h2o"}
+=== Tranche s_moles
+  OBJET tab [matrix] {"rows":[[2,1,2],[null,null,null],[4,null,null]],"row_labels":["coefficient","quantité (mol)","masse (g)"],"column_labels":["substance","H₂","O₂","H₂O"]} 
+  OBJET div [label] "÷ 2,02" attaché à tab
+DIT (attention) : Attention, un piège : ces coefficients ne sont pas des grammes, ce sont des moles. Alors la première chose à faire, c'est transformer les quatre grammes en moles.
+    show tab @beat:start 
+    highlight tab @- {"start":"cue:piege","end":"cue_end:moles","role":"accent","part":"r1"}
+DIT (calcul) : La masse molaire de H deux, c'est deux virgule zéro deux grammes par mole. On divise : quatre divisé par deux virgule zéro deux donne environ un virgule quatre-vingt-dix-huit moles.
+    show div @cue:mm 
+    highlight tab @- {"start":"cue:mm","end":"cue_end:mm","role":"given","part":"r2c2"}
+    highlight tab @- {"start":"cue:resultat","end":"cue_end:resultat","role":"given","part":"r2c2"}
+=== Tranche s_rapport
+  OBJET rapport [math] "\\frac{n(\\ce{H2})}{2} = \\frac{n(\\ce{H2O})}{2}" 
+DIT (regle) : Maintenant le rapport. Devant H deux il y a un deux, devant H deux O aussi : pour deux moles d'hydrogène, il se forme deux moles d'eau.
+    highlight tab @- {"start":"cue:un_deux","end":"cue_end:un_deux","role":"accent","part":"r1"}
+    highlight tab @- {"start":"cue:deux_deux","end":"cue_end:deux_deux","role":"accent","part":"c3"}
+    write rapport @cue:deux_deux 
+DIT (un_pour_un) : Un pour un, donc : on part de un virgule quatre-vingt-dix-huit moles d'hydrogène, on obtient la même quantité d'eau, un virgule quatre-vingt-dix-huit moles.
+    fade_out tab @cue:meme 
+    fade_out rapport @cue:meme 
+    highlight rapport @- {"start":"cue:meme","end":"cue_end:meme","role":"accent"}
+=== Tranche s_retour_grammes
+  OBJET retour [math] "m(\\ce{H2O}) = n \\times M = 1{,}98 \\times 18{,}02" parts=m(\ce{H2O}) = n \times M | = 1{,}98 \times 18{,}02
+  OBJET x18 [label] "× 18,02" 
+DIT (masse_molaire) : Il reste la dernière étape : revenir en grammes. La masse molaire de l'eau, c'est dix-huit virgule zéro deux grammes par mole.
+    camera.focus  @beat:start {"targets":["retour"],"bounds":"layout_bounds"}
+    write retour @beat:start {"part":"formule"}
+    show x18 @cue:dixhuit 
+DIT (multiplication) : On multiplie : un virgule quatre-vingt-dix-huit fois dix-huit virgule zéro deux, ça donne environ trente-cinq virgule six-huit grammes d'eau.
+    write retour @cue:multiplie {"part":"nombres"}
+    highlight retour @- {"start":"cue:resultat","end":"cue_end:resultat","role":"result"}
+=== Tranche s_verif
+  OBJET verif [math] "m(\\ce{O2}) = 0{,}99 \\times 32{,}00 \\approx 31{,}68\\ \\text{g}" parts=m(\ce{O2}) | = 0{,}99 \times 32{,}00 | \approx 31{,}68\ \text{g}
+  OBJET bilan [math] "4\\ \\text{g} + 31{,}68\\ \\text{g} = 35{,}68\\ \\text{g}" 
+DIT (controle) : Vérifions avec la conservation de la masse. Pour brûler tout l'hydrogène, il faut zéro virgule quatre-vingt-dix-neuf mole d'oxygène, soit environ trente et un virgule six-huit grammes.
+    write verif @beat:start {"part":"oxygene"}
+    write verif @beat:start {"part":"calcul"}
+    write verif @cue:oxygene_g {"part":"valeur"}
+DIT (somme) : Quatre grammes plus trente et un virgule six-huit grammes, ça fait exactement trente-cinq virgule six-huit. Le compte est bon : rien ne s'est perdu.
+    write bilan @cue:quatre 
+    highlight bilan @- {"start":"cue:trentecinq","end":"cue_end:trentecinq","role":"result"}
+=== Tranche s_retenir
+  OBJET chemin [text] "masse → moles → rapport des coefficients → moles → masse" 
+  OBJET regle [math] "n = \\frac{m}{M}" 
+  OBJET idee [text] "Les coefficients sont un rapport de moles, jamais de grammes." 
+DIT (recap) : À retenir : les coefficients de l'équation sont un rapport de moles, jamais de grammes. Le chemin, c'est masse, moles, rapport, moles, masse.
+    fade_out verif @cue:coef 
+    fade_out bilan @cue:coef 
+    fade_out retour @cue:coef 
+    fade_out x18 @cue:coef 
+    fade_out div @cue:coef 
+    fade_out masse @cue:coef 
+    camera.focus  @cue:chemin_mot {"targets":["chemin","regle","idee"],"bounds":"layout_bounds"}
+    show chemin @cue:chemin_mot 
+    show regle @cue:chemin_mot 
+    show idee @cue:chemin_mot 
+    highlight idee @- {"start":"cue:chemin_mot","end":"cue_end:chemin_mot","role":"result"}
+--- 6 tranches, 255 mots dits (≈ 1.7 min d'oral)

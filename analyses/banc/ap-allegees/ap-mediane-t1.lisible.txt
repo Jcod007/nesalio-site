@@ -1,0 +1,92 @@
+QUESTION (ap-mediane, mathematiques, sec 4, alloprof) : J’aimerais avoir plus d’explications sur la médiane en statistiques Maths CST secondaire4. Je comprends pas trop la différence lorsque le nombre est pair et lorsque c’est impaire car dans mon aide mémoire j’ai ecrit lorsque c’est impair: calculer la médiane entre les deux valeurs puis diviser par 2. Ça me melange
+RÉPONSE DE RÉFÉRENCE : Impair : la valeur du milieu. Pair : moyenne des deux valeurs du milieu (l'aide-mémoire inverse les deux cas).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : La médiane : pair ou impair ?
+=== Tranche s_idee
+  OBJET idee [text] "La médiane : la valeur du MILIEU des données ordonnées" 
+  OBJET ligne [number_line] {"domain":[0,10]} 
+  OBJET d1 [point] {"at":[1,0]} 
+  OBJET d2 [point] {"at":[3,0]} 
+  OBJET d3 [point] {"at":[4,0]} 
+  OBJET d4 [point] {"at":[8,0]} 
+  OBJET d5 [point] {"at":[9,0]} 
+  OBJET v1 [label] "1" attaché à d1
+  OBJET v2 [label] "3" attaché à d2
+  OBJET v3 [label] "4" attaché à d3
+  OBJET v4 [label] "8" attaché à d4
+  OBJET v5 [label] "9" attaché à d5
+  OBJET d3b [circle] {"center":[4,0],"radius":0.45} 
+DIT (intro) : La médiane, c'est la valeur du milieu quand les données sont placées en ordre.
+    camera.focus  @beat:start {"targets":["ligne"]}
+    show ligne @beat:start 
+    write idee @cue:c_milieu 
+DIT (trier) : Par exemple, cinq notes placées en ordre : un, trois, quatre, huit, neuf. La donnée du milieu est le quatre.
+    show d1 @cue:c_un 
+    show v1 @cue:c_un 
+    show d2 @cue:c_trois 
+    show v2 @cue:c_trois 
+    show d3 @cue:c_quatre 
+    show v3 @cue:c_quatre 
+    show d4 @cue:c_huit 
+    show v4 @cue:c_huit 
+    show d5 @cue:c_neuf 
+    show v5 @cue:c_neuf 
+DIT (milieu) : Avec cinq données, il y a exactement deux valeurs de chaque côté du quatre : la médiane est donc quatre.
+    show d3b @cue:c_quatre_med 
+    highlight idee @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"accent"}
+=== Tranche s_impair
+  OBJET regle_impair [math] "n impair : position \\dfrac{n+1}{2}" parts=n impair | : position \dfrac{n+1}{2}
+  OBJET calc_impair [math] "\\dfrac{5+1}{2} = 3" parts=\dfrac{5+1}{2} | = 3
+DIT (pourquoi) : Pourquoi c'est si simple avec un nombre impair de données ? Parce qu'il y a un vrai milieu.
+    fade_out idee @cue:c_impair 
+    write regle_impair @cue:c_impair {"part":"n"}
+    write regle_impair @cue:c_milieu {"part":"form"}
+DIT (position) : La médiane est à la position n plus un, divisé par deux. Avec cinq données, cinq plus un donne six, divisé par deux donne trois : la troisième donnée.
+    write calc_impair @cue:c_nplus {"part":"frac"}
+    write calc_impair @cue:c_trois {"part":"res"}
+=== Tranche s_pair
+  OBJET calc_pair [math] "\\dfrac{3+4}{2} = 3{,}5" parts=\dfrac{3+4}{2} | = 3{,}5
+  OBJET d3c [point] {"at":[3,0]} 
+  OBJET d3d [point] {"at":[4,0]} 
+  OBJET milieu_pair [point] {"at":[3.5,0]} 
+  OBJET etiquette_pair [label] "3,5" attaché à milieu_pair
+DIT (pair_intro) : Maintenant, retirons le neuf : il ne reste que quatre données. Deux de chaque côté du milieu, mais le milieu tombe entre deux valeurs.
+    fade_out d5 @cue:c_quatre_donnees 
+    fade_out v5 @cue:c_quatre_donnees 
+    fade_out d3b @cue:c_entre 
+    show d3c @cue:c_entre 
+    show d3d @cue:c_entre 
+DIT (moyenne_pair) : On prend donc la moyenne des deux valeurs du milieu : trois et quatre donnent trois virgule cinq.
+    write calc_pair @cue:c_moyenne {"part":"frac"}
+    write calc_pair @cue:c_cinq {"part":"res"}
+    show milieu_pair @after:w_res 
+    show etiquette_pair @after:w_res 
+    highlight calc_pair @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"result"}
+DIT (comparaison) : Compare les deux situations : impair, on lit la donnée du milieu ; pair, on calcule la moyenne des deux données du milieu.
+    highlight regle_impair @- {"start":"cue:c_impair","end":"cue_end:c_impair","role":"accent"}
+    highlight calc_pair @- {"start":"cue:c_pair","end":"cue_end:c_pair","role":"accent"}
+=== Tranche s_erreur
+  OBJET erreur [math] "\\text{Médiane} = \\dfrac{\\text{valeur du milieu}}{2} \\quad \\text{(incorrect)}" parts=\text{Médiane} = | \dfrac{\text{valeur du milieu}}{2} | \text{(incorrect)}
+  OBJET pourquoi_err [text] "La position se divise par 2, jamais la valeur" 
+DIT (erreur_intro) : Ton aide-mémoire mélange deux choses. La division par deux sert à trouver la POSITION du milieu, pas à modifier la valeur.
+    fade_out calc_impair @beat:start 
+    camera.focus  @beat:start {"targets":["calc_pair","erreur"],"bounds":"layout_bounds"}
+    write erreur @cue:c_position {"part":"lhs"}
+    write erreur @cue:c_valeur {"part":"frac"}
+DIT (verif) : Si on divisait la valeur du milieu par deux, avec un, trois, quatre, huit, neuf, on écrirait quatre divisé par deux, donc deux, et deux n'est pas une valeur du milieu.
+    highlight erreur @cue:c_deux {"role":"unknown","part":"frac"}
+    write pourquoi_err @cue:c_deux 
+=== Tranche s_retenir
+  OBJET resume_impair [text] "Impair : on lit la donnée du milieu" 
+  OBJET resume_pair [text] "Pair : on fait la moyenne des deux du milieu" 
+  GROUPE resume = resume_impair, resume_pair
+DIT (bilan) : Retiens la différence : impair, on lit directement la donnée du milieu ; pair, on fait la moyenne des deux données du milieu.
+    fade_out erreur @cue:c_impair 
+    fade_out pourquoi_err @cue:c_impair 
+    fade_out calc_pair @cue:c_impair 
+    show resume_impair @cue:c_impair 
+    show resume_pair @cue:c_pair 
+--- 5 tranches, 241 mots dits (≈ 1.6 min d'oral)

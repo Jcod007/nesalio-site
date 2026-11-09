@@ -1,0 +1,68 @@
+QUESTION (chimie-hess, chimie, sec 5, methode) : comment je trouve le ΔH de C + O2 → CO2 si j'ai C + ½ O2 → CO avec ΔH = -110,5 kJ pis CO + ½ O2 → CO2 avec ΔH = -283,0 kJ?
+RÉPONSE DE RÉFÉRENCE : Les deux étapes s'additionnent (CO s'annule) : ΔH = −110,5 + (−283,0) = −393,5 kJ.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. loi de Hess : la variation d'enthalpie ne dépend que de l'état initial et de l'état final
+  2. additionner les deux équations : CO apparaît des deux côtés et s'annule, ½ O₂ + ½ O₂ = O₂
+  3. additionner les ΔH : −110,5 + (−283,0)
+  4. ΔH = −393,5 kJ écrit, réaction exothermique
+  5. valorisé : diagramme énergétique en deux marches
+ERREURS GRAVES À CHERCHER : signe de ΔH faux ; réaction dite endothermique
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le ΔH de formation de CO₂ avec la loi de Hess
+=== Tranche s_etapes
+  OBJET eq1 [math] "\\ce{C + \\frac{1}{2}O2 -> CO}" 
+  OBJET h1 [math] "\\Delta H_1 = -110{,}5\\ \\pu{kJ}" 
+  OBJET eq2 [math] "\\ce{CO + \\frac{1}{2}O2 -> CO2}" 
+  OBJET h2 [math] "\\Delta H_2 = -283{,}0\\ \\pu{kJ}" 
+DIT (intro) : Pour trouver le ΔH de la réaction globale, on va additionner les deux étapes comme des égalités énergétiques.
+    write eq1 @beat:start 
+    write h1 @beat:start 
+    write eq2 @beat:start 
+    write h2 @beat:start 
+DIT (idee) : La loi de Hess permet de faire ça parce que l’enthalpie totale ne dépend pas du chemin, seulement des réactifs et des produits finaux.
+    highlight eq1 @- {"start":"cue:hess","end":"cue_end:hess","role":"accent"}
+    highlight eq2 @- {"start":"cue:hess","end":"cue_end:hess","role":"accent"}
+=== Tranche s_annulation
+  OBJET somme [math] "\\ce{C + \\frac{1}{2}O2 -> CO} + \\ce{CO + \\frac{1}{2}O2 -> CO2}" parts=\ce{C + \frac{1}{2}O2 -> CO} + | \ce{CO + \frac{1}{2}O2 -> CO2}
+  OBJET co_gauche [math] "\\ce{CO}" 
+  OBJET co_droite [math] "\\ce{CO}" 
+DIT (addition) : On additionne les équations : le CO est produit dans la première étape et consommé dans la deuxième.
+    write somme @cue:additionne {"part":"sum1"}
+    write somme @cue:additionne {"part":"sum2"}
+DIT (annule) : Ce CO apparaît donc des deux côtés de l’égalité; il s’annule, comme un terme commun qu’on retire des deux côtés.
+    write co_gauche @cue:des_deux 
+    write co_droite @cue:des_deux 
+    highlight co_gauche @- {"start":"cue:des_deux","end":"cue_end:annule_mot","role":"accent"}
+    highlight co_droite @- {"start":"cue:des_deux","end":"cue_end:annule_mot","role":"accent"}
+    dim co_gauche @cue:annule_mot 
+    dim co_droite @cue:annule_mot 
+DIT (reste) : Il reste le carbone et une mole de dioxygène qui donnent une mole de dioxyde de carbone.
+    fade_out eq1 @cue:reste_mot 
+    fade_out eq2 @cue:reste_mot 
+    fade_out somme @cue:reste_mot 
+    fade_out co_gauche @cue:reste_mot 
+    fade_out co_droite @cue:reste_mot 
+=== Tranche s_calcul
+  OBJET calcul [math] "\\Delta H = -110{,}5 + (-283{,}0) = -393{,}5\\ \\pu{kJ}" parts=\Delta H = -110{,}5 | + (-283{,}0) | = -393{,}5\ \pu{kJ}
+  OBJET reaction [math] "\\ce{C + O2 -> CO2}" 
+  OBJET exothermique [text] "ΔH négatif : réaction exothermique" 
+DIT (enthalpie) : On additionne aussi les ΔH des étapes, car chaque étape transfère une partie de l’énergie totale de la réaction.
+    write calcul @cue:addition_h {"part":"terme1"}
+DIT (somme_h) : Moins cent dix virgule cinq plus moins deux cent quatre-vingt-trois virgule zéro donne moins trois cent quatre-vingt-treize virgule cinq kilojoules.
+    write calcul @cue:moins_deux {"part":"terme2"}
+    write calcul @cue:moins_trois {"part":"terme3"}
+DIT (reaction_finale) : La réaction globale est le carbone plus le dioxygène qui donne le dioxyde de carbone, avec un ΔH de moins trois cent quatre-vingt-treize virgule cinq kilojoules.
+    write reaction @cue:globale_finale 
+    highlight calcul @- {"start":"cue:moins_final","end":"cue_end:moins_final","role":"result"}
+    show exothermique @cue:moins_final 
+=== Tranche s_retenir
+  OBJET regle [text] "Additionner les étapes : les espèces intermédiaires s’annulent." 
+  OBJET resultat [math] "\\ce{C + O2 -> CO2}\\qquad \\Delta H = -393{,}5\\ \\pu{kJ}" parts=\ce{C + O2 -> CO2} | \qquad \Delta H = -393{,}5\ \pu{kJ}
+  GROUPE resume = regle, resultat
+DIT (conclusion) : À retenir : avec la loi de Hess, tu additionnes les équations et leurs ΔH; l’intermédiaire CO s’annule. Ici, ΔH vaut moins trois cent quatre-vingt-treize virgule cinq kilojoules.
+    show regle @cue:retenir 
+    write resultat @cue:equations {"part":"r_eq"}
+    write resultat @cue:valeur {"part":"r_h"}
+    highlight resultat @- {"start":"cue:valeur","end":"cue_end:valeur","role":"result"}
+--- 4 tranches, 190 mots dits (≈ 1.3 min d'oral)

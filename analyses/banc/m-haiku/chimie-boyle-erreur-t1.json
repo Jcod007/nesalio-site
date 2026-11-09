@@ -1,0 +1,604 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "boyle_compression",
+  "title": "Comprimer un gaz : le volume baisse",
+  "language": "fr",
+  "learning_goal": "Appliquer la loi de Boyle-Mariotte et voir que, à température constante, pression et volume varient en sens inverse."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "calc_eleve",
+     "content": "\\frac{2 \\times 250}{100} = 5\\ \\text{L}",
+     "parts": [
+      {
+       "id": "e_num",
+       "text": "\\frac{2 \\times 250}{100}"
+      },
+      {
+       "id": "e_res",
+       "text": "= 5\\ \\text{L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "titre",
+     "layout": {
+      "to_corner": "top_left",
+      "gap": "md"
+     },
+     "content": "Ton calcul : 2 × 250 ÷ 100",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Ton idée est bonne : il faut multiplier et diviser. Mais regardons le sens de la compression.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "Ton idée est bonne"
+      },
+      {
+       "id": "c_sens",
+       "text": "le sens de la compression"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_idee",
+       "target": "titre"
+      },
+      {
+       "id": "s_calc",
+       "verb": "show",
+       "at": "cue:c_sens",
+       "target": "calc_eleve"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sens",
+     "say": "Quand on comprime un gaz, la pression augmente et le volume diminue. Ton résultat de cinq litres est plus grand que deux litres : il ne peut pas être juste.",
+     "cues": [
+      {
+       "id": "c_pression",
+       "text": "la pression augmente"
+      },
+      {
+       "id": "c_plus_grand",
+       "text": "plus grand que deux litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "start": "cue:c_plus_grand",
+       "end": "cue_end:c_plus_grand",
+       "target": "calc_eleve",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "loi",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "p_1 V_1 = p_2 V_2",
+     "parts": [
+      {
+       "id": "l_gauche",
+       "text": "p_1 V_1"
+      },
+      {
+       "id": "l_egal",
+       "text": "="
+      },
+      {
+       "id": "l_droite",
+       "text": "p_2 V_2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "donnees",
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "100 \\times 2{,}0 = 250 \\times V_2",
+     "type": "math"
+    },
+    {
+     "id": "resultat",
+     "layout": {
+      "next_to": "donnees",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "V_2 = 0{,}80\\ \\text{L}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "loi_boyle",
+     "say": "La loi de Boyle-Mariotte dit : à température constante, pression fois volume reste constant. Donc p un fois V un égale p deux fois V deux.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "Boyle-Mariotte"
+      },
+      {
+       "id": "c_constant",
+       "text": "pression fois volume reste constant"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_loi",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi"
+      },
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "start": "cue:c_constant",
+       "end": "cue_end:c_constant",
+       "target": "loi",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "remplace",
+     "say": "On remplace : cent kPa fois deux litres égale deux cent cinquante kPa fois V deux.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "On remplace"
+      },
+      {
+       "id": "c_fois",
+       "text": "deux cent cinquante kPa fois V deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_donnees",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "donnees"
+      }
+     ]
+    },
+    {
+     "id": "resout",
+     "say": "Donc V deux vaut environ zéro virgule quatre-vingts litre... exactement zéro virgule quatre-vingts litre.",
+     "cues": [
+      {
+       "id": "c_resout",
+       "text": "V deux vaut"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_resout",
+       "target": "resultat"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_courbe",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       3.5
+      ],
+      "y": [
+       0,
+       5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "lab_x",
+     "attachment": {
+      "parent": "rep",
+      "anchor": "bottom"
+     },
+     "content": "pression (centaines de kPa)",
+     "type": "label"
+    },
+    {
+     "id": "lab_y",
+     "attachment": {
+      "parent": "rep",
+      "anchor": "left"
+     },
+     "content": "volume (L)",
+     "type": "label"
+    },
+    {
+     "id": "hyper",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2/x",
+      "domain": [
+       0.4,
+       3.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "pA",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       1,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pB",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       2.5,
+       0.8
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "courbe",
+     "say": "Voici la courbe. Plus la pression monte, plus le volume descend : c'est une hyperbole.",
+     "cues": [
+      {
+       "id": "c_courbe",
+       "text": "la courbe"
+      },
+      {
+       "id": "c_hyper",
+       "text": "une hyperbole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_hyper",
+       "verb": "draw",
+       "start": "cue:c_courbe",
+       "end": "cue_end:c_hyper",
+       "target": "hyper"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "points",
+     "say": "Le point un, deux correspond à ton gaz de départ. Le point deux virgule cinq, zéro virgule huit, est la compression.",
+     "cues": [
+      {
+       "id": "c_depart",
+       "text": "ton gaz de départ"
+      },
+      {
+       "id": "c_compression",
+       "text": "la compression"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pA",
+       "verb": "show",
+       "at": "cue:c_depart",
+       "target": "pA"
+      },
+      {
+       "id": "s_pB",
+       "verb": "show",
+       "at": "cue:c_compression",
+       "target": "pB"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Pression et volume varient en sens inverse",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : à température constante, si la pression augmente, le volume diminue. Multiplie les deux côtés, puis divise.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_inverse",
+       "text": "le volume diminue"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "h_inv",
+       "verb": "highlight",
+       "start": "cue:c_inverse",
+       "end": "cue_end:c_inverse",
+       "target": "idee",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

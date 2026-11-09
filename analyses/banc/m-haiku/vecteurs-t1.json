@@ -1,0 +1,634 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "somme_vecteurs",
+  "title": "Additionner deux vecteurs et trouver la norme",
+  "language": "fr",
+  "learning_goal": "Additionner les composantes de deux vecteurs, puis calculer la norme du résultat avec Pythagore."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "norme": "sqrt(5^2+6^2)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -2,
+       5
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "u",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "v",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       -1,
+       2
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "u_lab",
+     "attachment": {
+      "parent": "u",
+      "anchor": "center"
+     },
+     "content": "u = (3 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "v_lab",
+     "attachment": {
+      "parent": "v",
+      "anchor": "center"
+     },
+     "content": "v = (−1 ; 2)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "presente",
+     "say": "Deux vecteurs, u et v. Un vecteur se lit par ses composantes : u va trois vers la droite et quatre vers le haut.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "Deux vecteurs"
+      },
+      {
+       "id": "c_comp",
+       "text": "ses composantes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_u",
+       "verb": "draw",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "u"
+      },
+      {
+       "id": "d_v",
+       "verb": "draw",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "v"
+      },
+      {
+       "id": "s_ul",
+       "verb": "show",
+       "at": "cue:c_comp",
+       "target": "u_lab"
+      },
+      {
+       "id": "s_vl",
+       "verb": "show",
+       "at": "cue:c_comp",
+       "target": "v_lab"
+      }
+     ]
+    },
+    {
+     "id": "somme",
+     "say": "Pour additionner, on additionne composante par composante : les x ensemble, les y ensemble.",
+     "cues": [
+      {
+       "id": "c_add",
+       "text": "additionne composante par composante"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "calc",
+     "content": "u + v = (3 + (-1) ; 4 + 2) = (2 ; 6)",
+     "parts": [
+      {
+       "id": "def",
+       "text": "u + v ="
+      },
+      {
+       "id": "x",
+       "text": "(3 + (−1)"
+      },
+      {
+       "id": "y",
+       "text": "; 4 + 2)"
+      },
+      {
+       "id": "res",
+       "text": "= (2 ; 6)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res_pt",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "res_lab",
+     "attachment": {
+      "parent": "res_pt",
+      "anchor": "right"
+     },
+     "content": "u + v = (2 ; 6)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calc_x",
+     "say": "Trois plus moins un, ça fait deux. Quatre plus deux, ça fait six. Donc u plus v égale deux, six.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "Trois plus moins un"
+      },
+      {
+       "id": "c_y",
+       "text": "Quatre plus deux"
+      },
+      {
+       "id": "c_res",
+       "text": "égale deux, six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_def",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "calc",
+       "part": "def"
+      },
+      {
+       "id": "w_x",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "calc",
+       "part": "x"
+      },
+      {
+       "id": "w_y",
+       "verb": "write",
+       "at": "cue:c_y",
+       "target": "calc",
+       "part": "y"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_res",
+       "target": "calc",
+       "part": "res"
+      },
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_res",
+       "target": "res_pt"
+      },
+      {
+       "id": "s_rl",
+       "verb": "show",
+       "at": "cue:c_res",
+       "target": "res_lab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_norme",
+   "introduces": [
+    {
+     "id": "tri",
+     "params": {
+      "leg_a": 2,
+      "leg_b": 6
+     },
+     "type": "triangle_right"
+    },
+    {
+     "id": "hyp",
+     "content": "\\|u+v\\| = \\sqrt{2^2 + 6^2}",
+     "parts": [
+      {
+       "id": "nm",
+       "text": "\\|u+v\\| ="
+      },
+      {
+       "id": "rac",
+       "text": "\\sqrt{2^2 + 6^2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "norme_val",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "norme",
+      "template": "\\|u+v\\| = {value}",
+      "precision": 2
+     },
+     "type": "math"
+    }
+   ],
+   "groups": [],
+   "beats": [
+    {
+     "id": "norme_idee",
+     "say": "La norme, c'est la longueur de la flèche. On voit un triangle rectangle : deux pour le côté horizontal, six pour le côté vertical.",
+     "cues": [
+      {
+       "id": "c_norme",
+       "text": "La norme"
+      },
+      {
+       "id": "c_tri",
+       "text": "triangle rectangle"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre2",
+       "verb": "camera.focus",
+       "at": "cue:c_tri",
+       "targets": [
+        "tri"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "d_tri",
+       "verb": "draw",
+       "start": "cue:c_tri",
+       "end": "cue_end:c_tri",
+       "target": "tri"
+      }
+     ]
+    },
+    {
+     "id": "pyth",
+     "say": "Pythagore : la norme est la racine carrée de deux au carré plus six au carré.",
+     "cues": [
+      {
+       "id": "c_pyth",
+       "text": "Pythagore"
+      },
+      {
+       "id": "c_racine",
+       "text": "racine carrée"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_nm",
+       "verb": "write",
+       "at": "cue:c_pyth",
+       "target": "hyp",
+       "part": "nm"
+      },
+      {
+       "id": "w_rac",
+       "verb": "write",
+       "at": "cue:c_racine",
+       "target": "hyp",
+       "part": "rac"
+      }
+     ]
+    },
+    {
+     "id": "valeur",
+     "say": "Deux au carré, quatre ; six au carré, trente-six ; quatre plus trente-six, quarante ; racine de quarante, environ six virgule trois deux.",
+     "cues": [
+      {
+       "id": "c_val",
+       "text": "racine de quarante"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue:c_val",
+       "target": "norme_val"
+      },
+      {
+       "id": "h_val",
+       "verb": "highlight",
+       "at": "after:w_val",
+       "target": "norme_val",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Additionner : composante par composante. Norme : Pythagore sur ces composantes.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : on additionne les composantes, puis la norme se calcule avec Pythagore sur le résultat.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_norme2",
+       "text": "la norme se calcule"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre3",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "idee"
+       ]
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_norme2",
+       "target": "idee"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

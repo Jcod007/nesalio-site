@@ -1,0 +1,814 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "refraction_paille",
+  "title": "Pourquoi la paille paraît cassée dans l'eau",
+  "language": "fr",
+  "learning_goal": "Comprendre que la réfraction, le changement de direction de la lumière en changeant de milieu, fait paraître la paille cassée à la surface de l'eau."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "n_eau": {
+     "kind": "constant",
+     "value": 1.33
+    },
+    "n_air": {
+     "kind": "constant",
+     "value": 1
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_observation",
+   "introduces": [
+    {
+     "id": "verre",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        6
+       ],
+       [
+        4,
+        6
+       ],
+       [
+        4,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "eau",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "surface",
+     "params": {
+      "from": [
+       0,
+       3
+      ],
+      "to": [
+       4,
+       3
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "vraie",
+     "params": {
+      "from": [
+       1,
+       7.5
+      ],
+      "to": [
+       3,
+       -0.4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "apparente",
+     "params": {
+      "from": [
+       3,
+       -0.4
+      ],
+      "to": [
+       4.8,
+       7.5
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "oeil_obs",
+     "attachment": {
+      "parent": "verre",
+      "anchor": "top",
+      "placement": "outside",
+      "gap": "md"
+     },
+     "content": "ton œil",
+     "type": "label"
+    },
+    {
+     "id": "vraie_lab",
+     "attachment": {
+      "parent": "vraie",
+      "anchor": "top",
+      "placement": "outside",
+      "gap": "xs"
+     },
+     "content": "vraie paille",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Tu plonges une paille bien droite dans un verre d'eau, et à la surface, elle a l'air cassée.",
+     "cues": [
+      {
+       "id": "c_paille",
+       "text": "paille"
+      },
+      {
+       "id": "c_cassee",
+       "text": "l'air cassée"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_verre",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "verre"
+      },
+      {
+       "id": "d_eau",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "eau"
+      },
+      {
+       "id": "d_surface",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "surface"
+      },
+      {
+       "id": "d_vraie",
+       "verb": "draw",
+       "at": "cue:c_paille",
+       "target": "vraie"
+      },
+      {
+       "id": "s_vraie_lab",
+       "verb": "show",
+       "at": "cue:c_paille",
+       "target": "vraie_lab"
+      },
+      {
+       "id": "d_apparente",
+       "verb": "draw",
+       "at": "cue:c_cassee",
+       "target": "apparente"
+      }
+     ]
+    },
+    {
+     "id": "pourtant",
+     "say": "Pourtant la paille n'a pas bougé : elle est encore parfaitement droite dans l'eau.",
+     "cues": [
+      {
+       "id": "c_bouge",
+       "text": "pas bougé"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_vraie",
+       "verb": "highlight",
+       "at": "cue:c_bouge",
+       "target": "vraie",
+       "role": "given"
+      },
+      {
+       "id": "h_appa",
+       "verb": "highlight",
+       "at": "after:h_vraie",
+       "target": "apparente",
+       "role": "unknown"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_lumiere",
+   "introduces": [
+    {
+     "id": "rayon",
+     "params": {
+      "from": [
+       1.35,
+       4.2
+      ],
+      "to": [
+       2.6,
+       3.05
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "rayon2",
+     "params": {
+      "from": [
+       2.6,
+       3.05
+      ],
+      "to": [
+       3.3,
+       6.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "normale",
+     "params": {
+      "from": [
+       2.6,
+       3.05
+      ],
+      "to": [
+       2.6,
+       6.2
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "air_lab",
+     "attachment": {
+      "parent": "verre",
+      "anchor": "top",
+      "placement": "inside",
+      "gap": "xs"
+     },
+     "content": "air",
+     "type": "label"
+    },
+    {
+     "id": "eau_lab",
+     "attachment": {
+      "parent": "verre",
+      "anchor": "bottom",
+      "placement": "inside",
+      "gap": "xs"
+     },
+     "content": "eau",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "voit",
+     "say": "Ce que ton œil voit, c'est la lumière qui part de la paille et qui voyage jusqu'à lui.",
+     "cues": [
+      {
+       "id": "c_lumiere",
+       "text": "lumière"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_rayon",
+       "verb": "draw",
+       "at": "cue:c_lumiere",
+       "target": "rayon"
+      },
+      {
+       "id": "a_rayon",
+       "verb": "draw",
+       "start": "cue:c_lumiere",
+       "end": "cue_end:c_lumiere",
+       "target": "rayon2"
+      }
+     ]
+    },
+    {
+     "id": "milieux",
+     "say": "Or cette lumière traverse deux milieux différents : l'eau et l'air.",
+     "cues": [
+      {
+       "id": "c_eau",
+       "text": "l'eau"
+      },
+      {
+       "id": "c_air",
+       "text": "l'air"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_eau_lab",
+       "verb": "show",
+       "at": "cue:c_eau",
+       "target": "eau_lab"
+      },
+      {
+       "id": "s_air_lab",
+       "verb": "show",
+       "at": "cue:c_air",
+       "target": "air_lab"
+      }
+     ]
+    },
+    {
+     "id": "penche",
+     "say": "En passant de l'eau à l'air, elle change de vitesse et se penche : c'est la réfraction.",
+     "cues": [
+      {
+       "id": "c_penche",
+       "text": "se penche"
+      },
+      {
+       "id": "c_refraction",
+       "text": "réfraction"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_normale",
+       "verb": "draw",
+       "at": "cue:c_penche",
+       "target": "normale"
+      },
+      {
+       "id": "h_rayon2",
+       "verb": "highlight",
+       "at": "cue:c_refraction",
+       "target": "rayon2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_direction",
+   "introduces": [
+    {
+     "id": "oeil",
+     "params": {
+      "at": [
+       3.5,
+       6.9
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "oeil_lab",
+     "attachment": {
+      "parent": "oeil",
+      "anchor": "right"
+     },
+     "content": "œil",
+     "type": "label"
+    },
+    {
+     "id": "prolonge",
+     "params": {
+      "from": [
+       2.6,
+       3.05
+      ],
+      "to": [
+       4.8,
+       7.5
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "oeil",
+     "say": "Ton œil, lui, reçoit ce rayon penché et suppose tout simplement que la lumière a toujours été en ligne droite.",
+     "cues": [
+      {
+       "id": "c_oeil",
+       "text": "Ton œil"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_oeil",
+       "verb": "show",
+       "at": "cue:c_oeil",
+       "target": "oeil"
+      },
+      {
+       "id": "s_oeil_lab",
+       "verb": "show",
+       "at": "cue:c_oeil",
+       "target": "oeil_lab"
+      },
+      {
+       "id": "h_rayon",
+       "verb": "highlight",
+       "at": "cue:c_oeil",
+       "target": "rayon",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "prolonger",
+     "say": "Alors il prolonge le rayon vers le bas, dans sa direction d'arrivée.",
+     "cues": [
+      {
+       "id": "c_prolonge",
+       "text": "prolonge"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_prolonge",
+       "verb": "draw",
+       "at": "cue:c_prolonge",
+       "target": "prolonge"
+      }
+     ]
+    },
+    {
+     "id": "croisement",
+     "say": "Cette ligne prolongée est plus haute que la vraie paille : l'œil place donc l'image de la paille décalée vers le haut.",
+     "cues": [
+      {
+       "id": "c_haute",
+       "text": "plus haute"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_vraie",
+       "verb": "dim",
+       "at": "cue:c_haute",
+       "target": "vraie"
+      },
+      {
+       "id": "h_prolonge",
+       "verb": "highlight",
+       "at": "after:dim_vraie",
+       "target": "prolonge",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "resume",
+     "content": "La lumière est penchée sous l'eau, l'œil la croit droite : l'image remonte.",
+     "type": "text"
+    },
+    {
+     "id": "regle",
+     "content": "n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "bloc",
+     "items": [
+      "resume",
+      "regle"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : la paille n'est pas cassée, c'est la lumière qui se penche en traversant la surface.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_penche2",
+       "text": "se penche"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "bloc"
+       ]
+      },
+      {
+       "id": "s_resume",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "resume"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_penche2",
+       "target": "regle"
+      },
+      {
+       "id": "f_verre",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "verre"
+      },
+      {
+       "id": "f_eau",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eau"
+      },
+      {
+       "id": "f_surface",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "surface"
+      },
+      {
+       "id": "f_vraie",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "vraie"
+      },
+      {
+       "id": "f_appa",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "apparente"
+      },
+      {
+       "id": "f_rayon",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "rayon"
+      },
+      {
+       "id": "f_rayon2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "rayon2"
+      },
+      {
+       "id": "f_normale",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "normale"
+      },
+      {
+       "id": "f_prolonge",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "prolonge"
+      },
+      {
+       "id": "f_oeil",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "oeil"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "at": "after:s_regle",
+       "target": "regle",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

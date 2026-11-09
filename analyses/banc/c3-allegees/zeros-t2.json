@@ -1,0 +1,789 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "zeros_forme_canonique",
+  "title": "Trouver les zéros de f(x) = −(x − 2)² + 3",
+  "language": "fr",
+  "learning_goal": "Trouver les zéros d'une fonction sous forme canonique en isolant le carré, puis en lisant le sommet sur le graphique."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sommet",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -2,
+       6
+      ],
+      "y": [
+       -3,
+       4
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "parabole",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "-(x-2)^2+3",
+      "domain": [
+       -0.5,
+       4.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "axes",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "f(x) = -(x-2)^2 + 3",
+     "type": "math"
+    },
+    {
+     "id": "sommet",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "at": [
+       2,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sommet_lab",
+     "attachment": {
+      "parent": "sommet",
+      "anchor": "right"
+     },
+     "content": "S(2 ; 3)",
+     "type": "label"
+    },
+    {
+     "id": "axe_sym",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       2,
+       -3
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "poseprobleme",
+     "say": "Pour trouver les zéros, on cherche les x où la courbe touche l'axe des x.",
+     "cues": [
+      {
+       "id": "c_trouve",
+       "text": "trouver les zéros"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_parabole",
+       "verb": "draw",
+       "start": "cue:c_trouve",
+       "end": "cue_end:c_trouve",
+       "target": "parabole"
+      }
+     ]
+    },
+    {
+     "id": "lis",
+     "say": "Cette parabole a une forme canonique : le sommet se lit directement, et c'est S de deux, trois.",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "le sommet"
+      },
+      {
+       "id": "c_s",
+       "text": "c'est S"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_sommet",
+       "target": "regle"
+      },
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "sommet"
+      },
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "cue:c_s",
+       "target": "sommet_lab"
+      },
+      {
+       "id": "d_axe",
+       "verb": "draw",
+       "at": "after:s_lab",
+       "target": "axe_sym"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isoler",
+   "introduces": [
+    {
+     "id": "eq0",
+     "content": "-(x-2)^2 + 3 = 0",
+     "parts": [
+      {
+       "id": "carre",
+       "text": "-(x-2)^2"
+      },
+      {
+       "id": "plus",
+       "text": "+ 3"
+      },
+      {
+       "id": "zero",
+       "text": "= 0"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq1",
+     "content": "-(x-2)^2 = -3",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "(x-2)^2 = 3",
+     "type": "math"
+    },
+    {
+     "id": "racine",
+     "content": "x - 2 = \\pm\\sqrt{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Un zéro, c'est une valeur de x pour laquelle f de x vaut zéro. Écrivons l'équation : moins, parenthèse x moins deux, au carré, plus trois égale zéro.",
+     "cues": [
+      {
+       "id": "c_vaut",
+       "text": "vaut zéro"
+      },
+      {
+       "id": "c_carre",
+       "text": "au carré"
+      },
+      {
+       "id": "c_trois",
+       "text": "plus trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_carre",
+       "verb": "write",
+       "at": "cue:c_carre",
+       "target": "eq0",
+       "part": "carre"
+      },
+      {
+       "id": "w_plus",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "eq0",
+       "part": "plus"
+      },
+      {
+       "id": "w_zero",
+       "verb": "write",
+       "at": "cue:c_vaut",
+       "target": "eq0",
+       "part": "zero"
+      }
+     ]
+    },
+    {
+     "id": "enleve",
+     "say": "On enlève trois des deux côtés pour garder l'égalité : il reste moins, parenthèse x moins deux, au carré, égale moins trois.",
+     "cues": [
+      {
+       "id": "c_enleve",
+       "text": "On enlève trois"
+      },
+      {
+       "id": "c_egale",
+       "text": "égale moins trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq1",
+       "verb": "transform",
+       "at": "cue:c_enleve",
+       "source": "eq0",
+       "target": "eq1"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "Ensuite on divise les deux côtés par moins un : le carré redevient positif, parenthèse x moins deux, au carré, égale trois.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "on divise les deux côtés"
+      },
+      {
+       "id": "c_positif",
+       "text": "égale trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq2",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "eq1",
+       "target": "eq2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "racine",
+     "say": "On prend la racine carrée des deux côtés : x moins deux vaut plus ou moins racine de trois.",
+     "cues": [
+      {
+       "id": "c_racine",
+       "text": "la racine carrée"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_rac",
+       "verb": "transform",
+       "at": "cue:c_racine",
+       "source": "eq2",
+       "target": "racine"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_solutions",
+   "introduces": [
+    {
+     "id": "x1lab",
+     "style": {
+      "role": "result"
+     },
+     "content": "x = 2 + \\sqrt{3}",
+     "type": "label"
+    },
+    {
+     "id": "x1",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       3.7,
+       0.11
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x2",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       0.3,
+       0.11
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x2lab",
+     "attachment": {
+      "parent": "x2",
+      "anchor": "bottom"
+     },
+     "content": "x = 2 - \\sqrt{3}",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "deux",
+     "say": "Il y a deux solutions : on ajoute deux des deux côtés, ce qui donne x égale deux plus racine de trois.",
+     "cues": [
+      {
+       "id": "c_deuxsol",
+       "text": "deux solutions"
+      },
+      {
+       "id": "c_plus",
+       "text": "deux plus racine de trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_x1",
+       "verb": "show",
+       "at": "cue:c_deuxsol",
+       "target": "x1"
+      },
+      {
+       "id": "h_x1lab",
+       "verb": "highlight",
+       "at": "cue:c_plus",
+       "target": "x1lab",
+       "role": "result"
+      },
+      {
+       "id": "s_x1lab",
+       "verb": "show",
+       "at": "cue:c_plus",
+       "target": "x1lab"
+      }
+     ]
+    },
+    {
+     "id": "moins",
+     "say": "Et pour l'autre, x égale deux moins racine de trois. Racine de trois vaut environ un virgule sept trois.",
+     "cues": [
+      {
+       "id": "c_moins",
+       "text": "deux moins racine de trois"
+      },
+      {
+       "id": "c_env",
+       "text": "environ un virgule sept trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_x2",
+       "verb": "show",
+       "at": "cue:c_moins",
+       "target": "x2"
+      },
+      {
+       "id": "s_x2lab",
+       "verb": "show",
+       "at": "cue:c_moins",
+       "target": "x2lab"
+      },
+      {
+       "id": "c_x1",
+       "verb": "camera.focus",
+       "at": "cue:c_env",
+       "targets": [
+        "x1",
+        "x2lab"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "valeurs",
+     "say": "Donc x vaut environ trois virgule sept trois ou zéro virgule vingt-sept.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois virgule sept trois"
+      },
+      {
+       "id": "c_vingt",
+       "text": "zéro virgule vingt-sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_x1",
+       "verb": "highlight",
+       "at": "cue:c_trois",
+       "target": "x1",
+       "role": "result"
+      },
+      {
+       "id": "h_x2",
+       "verb": "highlight",
+       "at": "cue:c_vingt",
+       "target": "x2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "recap",
+     "content": "(x-2)^2 = 3 \\Rightarrow x = 2 \\pm \\sqrt{3}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "(x-2)^2 = 3"
+      },
+      {
+       "id": "droite",
+       "text": "\\Rightarrow x = 2 \\pm \\sqrt{3}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "content": "Un zéro est un x où f(x) = 0.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : pour une forme canonique, on isole le carré, puis on prend la racine des deux côtés.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_isole",
+       "text": "on isole le carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axes",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "axes"
+      },
+      {
+       "id": "f_parabole",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "parabole"
+      },
+      {
+       "id": "f_regle",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "regle"
+      },
+      {
+       "id": "f_x1",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "x1"
+      },
+      {
+       "id": "f_x2",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "x2"
+      },
+      {
+       "id": "f_x1lab",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "x1lab"
+      },
+      {
+       "id": "f_x2lab",
+       "verb": "remove",
+       "at": "cue:c_retenir",
+       "target": "x2lab"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "recap",
+       "part": "gauche"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Ici, ça donne x égale deux plus ou moins racine de trois : deux zéros, environ trois virgule sept trois et zéro virgule vingt-sept.",
+     "cues": [
+      {
+       "id": "c_egal",
+       "text": "x égale deux"
+      },
+      {
+       "id": "c_zeros",
+       "text": "deux zéros"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_egal",
+       "target": "recap",
+       "part": "droite"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_zeros",
+       "target": "idee"
+      },
+      {
+       "id": "h_recap",
+       "verb": "highlight",
+       "at": "after:s_idee",
+       "target": "recap",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

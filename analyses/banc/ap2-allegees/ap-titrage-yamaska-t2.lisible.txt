@@ -1,0 +1,57 @@
+QUESTION (ap-titrage-yamaska, chimie, sec 4, alloprof) : Suite à un déversement de NaOH, vous devez déterminer le pH d’un échantillon d’eau de la rivière Yamaska. Votre premier test montre que cette eau vire bleu le papier tournesol rouge. Vous titrez 20 ml de cette solution et le bleu de bromothymol vire vert après l’ajout de 50 ml d’une solution de H3PO4 à 0,003 mol/l. Calculez le pH de cette eau de la Yamaska.
+RÉPONSE DE RÉFÉRENCE : H3PO4 libère 3 H+ : 4,5×10⁻⁴ mol ; [NaOH] = 0,0225 mol/L ; pOH ≈ 1,65 ; pH ≈ 12,35.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Calculer le pH de l'eau de la Yamaska après titrage par H₃PO₄
+math_context : {"symbols":{"Ca":{"kind":"constant","value":0.003},"Va":{"kind":"constant","value":0.05},"Vb":{"kind":"constant","value":0.02}},"expressions":{"nH_plus":"Ca*Va*3","nOH_moins":"Ca*Va*3","Cb":"(Ca*Va*3)/Vb","pOH":"-log((Ca*Va*3)/Vb)","pH":"14-(-log((Ca*Va*3)/Vb))"}}
+=== Tranche s_identification
+  OBJET offre [text] "Je t'explique : le titrage acide-base et le pH d'une base forte" 
+DIT (reformule) : Ici, tu as un déversement de soude caustique dans la Yamaska : l'eau est basique, le papier tournesol rouge vire au bleu.
+    show offre @beat:start 
+DIT (inconnue) : Tu titres vingt millilitres de cette eau et il faut cinquante millilitres d'acide phosphorique à zéro virgule zéro zéro trois mole par litre pour atteindre le virage vert.
+=== Tranche s_equation
+  OBJET eq [math] "\\ce{H3PO4 + 3NaOH -> Na3PO4 + 3H2O}" 
+DIT (ecrit) : Commençons par l'équation balancée de la neutralisation.
+    write eq @cue:c_bal 
+DIT (explique) : L'acide phosphorique libère trois H plus, et il faut trois NaOH pour les neutraliser : les coefficients trois et trois sont obligatoires pour balancer.
+    highlight eq @- {"start":"cue:c_trois_h","end":"cue_end:c_trois_h","role":"given"}
+    highlight eq @- {"start":"cue:c_trois_naoh","end":"cue_end:c_trois_naoh","role":"accent"}
+=== Tranche s_calcul
+  OBJET nH [math] "n(\\ce{H+}) = C_a \\times V_a \\times 3 = 0{,}003 \\times 0{,}050 \\times 3 = 4{,}5 \\times 10^{-4}\\ \\text{mol}" parts=n(\ce{H+}) = C_a \times V_a \times 3 | = 0{,}003 \times 0{,}050 \times 3 | = 4{,}5 \times 10^{-4}\ \text{mol}
+  OBJET nOH [math] "n(\\ce{OH-}) = n(\\ce{H+}) = 4{,}5 \\times 10^{-4}\\ \\text{mol}" 
+  OBJET Cb [math] "C_b = \\dfrac{n(\\ce{OH-})}{V_b} = \\dfrac{4{,}5 \\times 10^{-4}}{0{,}020} = 0{,}0225\\ \\text{mol/L}" 
+DIT (moles_h) : D'abord les moles de H plus versés. Concentration fois volume fois trois parce que chaque molécule d'acide donne trois H plus.
+    write nH @cue:c_concentration {"part":"form"}
+    write nH @cue:c_fois3 {"part":"calc"}
+    write nH @after:w_calc {"part":"res"}
+DIT (moles_oh) : Au virage, c'est l'équivalence : moles de H plus égale moles de OH moins. La soude en face a donc libéré quatre virgule cinq fois dix exposant moins quatre moles de OH moins.
+    write nOH @cue:c_egales 
+DIT (concentration) : Maintenant la concentration de la soude : ces moles de OH moins divisées par vingt millilitres, zéro virgule zéro vingt litre.
+    write Cb @cue:c_divise 
+    highlight Cb @after:w_cb {"role":"result"}
+=== Tranche s_ph
+  OBJET pOH [math] "\\text{pOH} = -\\log(0{,}0225) \\approx 1{,}65" parts=\text{pOH} = -\log(0{,}0225) | \approx 1{,}65
+  OBJET pH [math] "\\text{pH} = 14 - 1{,}65 = 12{,}35" parts=\text{pH} = 14 - 1{,}65 | = 12{,}35
+DIT (pOH) : Notre solution est une base : on calcule d'abord le pOH, qui vaut moins log de zéro virgule zéro deux deux cinq. Log de zéro virgule zéro deux deux cinq, c'est à peu près moins un virgule soixante-cinq, donc pOH environ un virgule soixante-cinq.
+    write pOH @cue:c_log {"part":"form"}
+    write pOH @cue:c_unsoixante {"part":"val"}
+DIT (pH) : Puis pH plus pOH égale quatorze à vingt-cinq degrés. Le pH de l'eau de la Yamaska est donc quatorze moins un virgule soixante-cinq, soit environ douze virgule trente-cinq. C'est très basique.
+    write pH @cue:c_quatorze {"part":"form"}
+    write pH @cue:c_douze {"part":"val"}
+    highlight pH @after:w_ph_val {"role":"result","part":"val"}
+=== Tranche s_retenir
+  OBJET idee_cle [math] "n(\\ce{H+}) = n(\\ce{OH-})\\ \\text{ au virage}" 
+  OBJET regle [text] "pH = 14 − pOH" 
+DIT (reco) : À retenir : au virage de l'indicateur, moles de H plus égale moles de OH moins ; c'est ça qui nous donne la concentration.
+    fade_out eq @cue:c_moles 
+    fade_out nH @cue:c_moles 
+    fade_out nOH @cue:c_moles 
+    fade_out Cb @cue:c_moles 
+    fade_out pOH @cue:c_moles 
+    show idee_cle @cue:c_moles 
+DIT (reponse) : Et pour une base, le pH se trouve avec pH plus pOH égale quatorze : ici, environ douze virgule trente-cinq.
+    show regle @cue:c_q14 
+    highlight idee_cle @- {"start":"cue:c_reponse","end":"cue_end:c_reponse","role":"result"}
+--- 5 tranches, 275 mots dits (≈ 1.8 min d'oral)

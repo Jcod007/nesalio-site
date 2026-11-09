@@ -1,0 +1,74 @@
+QUESTION (completion, mathematiques, sec 4, methode) : C'est quoi la complétion du carré ? Par exemple avec x² + 6x − 7.
+RÉPONSE DE RÉFÉRENCE : x² + 6x − 7 = (x + 3)² − 16.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. on prend la moitié du coefficient de x (3) et on ajoute puis retire son carré (9)
+  2. modèle d'aire : la bande 6x coupée en deux 3x, coin 3 × 3 qui manque
+  3. x² + 6x − 7 = (x + 3)² − 9 − 7 = (x + 3)² − 16 écrit
+  4. lien avec la forme canonique et le sommet (−3, −16)
+  5. vérification par développement
+ERREURS GRAVES À CHERCHER : coin du modèle d'aire de mauvaise taille ; règle fausse (« on ajoute la moitié du coefficient »)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comprendre la complétion du carré avec x² + 6x − 7
+=== Tranche s_sens
+  OBJET idee [text] "Compléter le carré : former un carré parfait sans changer l’expression" 
+DIT (intuition) : La complétion du carré, c’est réorganiser une expression pour faire apparaître un carré parfait, tout en gardant la même valeur.
+    show idee @cue:carre 
+DIT (figure) : Pour x au carré plus six x, imagine un carré x par x et une bande d’aire six x, coupée en deux bandes de trois x.
+    highlight idee @- {"start":"cue:bande","end":"cue_end:trois","role":"accent"}
+=== Tranche s_morceaux
+  OBJET grand [polygon] {"vertices":[[0,0],[6,0],[6,6],[0,6]]} 
+  OBJET piece_x2 [polygon] {"vertices":[[0,0],[3,0],[3,3],[0,3]]} 
+  OBJET piece_3x_a [polygon] {"vertices":[[3,0],[6,0],[6,3],[3,3]]} 
+  OBJET piece_3x_b [polygon] {"vertices":[[0,3],[3,3],[3,6],[0,6]]} 
+  OBJET coin [polygon] {"vertices":[[3,3],[6,3],[6,6],[3,6]]} 
+  OBJET lab_x2 [label] "x²" attaché à piece_x2
+  OBJET lab_3xa [label] "3x" attaché à piece_3x_a
+  OBJET lab_3xb [label] "3x" attaché à piece_3x_b
+  OBJET lab_coin [label] "3 × 3 = 9" attaché à coin
+  OBJET eq_geom [math] "x^2 + 6x + 9 = (x+3)^2" parts=x^2 + 6x + 9 | = (x+3)^2
+DIT (deux_bandes) : Les deux bandes de trois x forment bien six x; il reste un coin de trois par trois, donc une aire de neuf.
+    draw grand @cue:deux_band 
+    draw piece_x2 @cue:deux_band 
+    draw piece_3x_a @cue:deux_band 
+    draw piece_3x_b @cue:deux_band 
+    draw coin @cue:coin_mot 
+    show lab_x2 @cue:deux_band 
+    show lab_3xa @cue:deux_band 
+    show lab_3xb @cue:deux_band 
+    show lab_coin @cue:neuf_mot 
+DIT (carre_parfait) : Avec ce coin ajouté, les pièces pavent le carré de côté x plus trois; son aire s’écrit x au carré plus six x plus neuf.
+    write eq_geom @cue:aire {"part":"somme"}
+    write eq_geom @cue:cote {"part":"egal"}
+=== Tranche s_calcul
+  OBJET etape1 [math] "x^2 + 6x - 7" 
+  OBJET etape2 [math] "x^2 + 6x + 9 - 9 - 7" 
+  OBJET etape3 [math] "(x+3)^2 - 9 - 7" 
+  OBJET etape4 [math] "(x+3)^2 - 16" 
+  OBJET resultat [math] "x^2 + 6x - 7 = (x+3)^2 - 16" parts=x^2 + 6x - 7 | = (x+3)^2 - 16
+DIT (depart) : Dans ton exemple, on garde le terme moins sept de côté au début et on complète seulement x au carré plus six x.
+    write etape1 @cue:exemple 
+DIT (ajout_retrait) : La moitié de six est trois, et son carré est neuf. On ajoute donc neuf, puis on le retranche aussi pour ne pas changer la valeur; moins sept reste présent.
+    highlight eq_geom @- {"start":"cue:moitie","end":"cue_end:carre_neuf","role":"accent"}
+    transform etape2 @cue:retranche {"source":"etape1"}
+DIT (regrouper) : Les trois premiers termes forment le carré parfait qu’on vient de voir. Le neuf ajouté et retranché s’annulent, et neuf plus sept donne seize.
+    transform etape3 @cue:carre {"source":"etape2"}
+    transform etape4 @cue:seize {"source":"etape3"}
+DIT (reponse) : Donc x au carré plus six x moins sept égale x plus trois au carré moins seize. La forme obtenue est une forme canonique, et elle vaut bien l’expression de départ.
+    transform resultat @cue:donc {"source":"etape4"}
+    highlight resultat @- {"start":"cue:forme","end":"cue_end:forme","role":"result"}
+    fade_out grand @cue:forme 
+    fade_out eq_geom @cue:forme 
+=== Tranche s_retenir
+  OBJET regle_finale [math] "x^2 + bx = (x+\\frac{b}{2})^2 - (\\frac{b}{2})^2" parts=x^2 + bx | = (x+\frac{b}{2})^2 - (\frac{b}{2})^2
+  OBJET application [math] "x^2 + 6x - 7 = (x+3)^2 - 16" 
+  OBJET note [text] "Prendre la moitié du coefficient de x, la mettre au carré, puis ajouter et retrancher ce carré" 
+  GROUPE resume = regle_finale, application, note
+DIT (idee_centrale) : À retenir : on prend la moitié du coefficient de x, on la met au carré, puis on ajoute et on retranche ce même carré. Ici, la moitié de six est trois, et trois au carré vaut neuf.
+    write regle_finale @cue:moitie_coef {"part":"regle_g"}
+    write regle_finale @cue:meme_carre {"part":"regle_d"}
+    show application @cue:ici 
+    show note @cue:retenir 
+DIT (derniere_idee) : La complétion du carré transforme donc l’expression en carré parfait plus ou moins un nombre, sans changer sa valeur; ici, la forme canonique est x plus trois au carré moins seize.
+    highlight application @- {"start":"cue:forme_fin","end":"cue_end:forme_fin","role":"result"}
+--- 4 tranches, 271 mots dits (≈ 1.8 min d'oral)

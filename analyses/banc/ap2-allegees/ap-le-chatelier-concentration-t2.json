@@ -1,0 +1,883 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "equilibre_deplacement_concentration",
+  "title": "Ajouter un réactif : vers où va l'équilibre ?",
+  "language": "fr",
+  "learning_goal": "Prévoir le déplacement d'un équilibre quand on ajoute un réactif (principe de Le Chatelier) et interpréter une solution plus foncée par une concentration plus élevée."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_equilibre",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{N2(g) + 3H2(g) <=> 2NH3(g)}",
+     "type": "math"
+    },
+    {
+     "id": "dyn",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Les deux réactions continuent, à la même vitesse.",
+     "type": "text"
+    },
+    {
+     "id": "fl",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Équilibre dynamique : les concentrations restent constantes — pas nécessairement égales côté réactifs et produits.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Tu travailles l'équilibre chimique, et tu veux savoir ce qui se passe quand on ajoute un réactif. Commençons par une réaction claire : le diazote et le dihydrogène donnent de l'ammoniac.",
+     "cues": [
+      {
+       "id": "c_diazote",
+       "text": "diazote"
+      },
+      {
+       "id": "c_dihydrogene",
+       "text": "dihydrogène"
+      },
+      {
+       "id": "c_ammoniac",
+       "text": "ammoniac"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_diazote",
+       "target": "eq"
+      },
+      {
+       "id": "h_h2",
+       "verb": "highlight",
+       "start": "cue:c_dihydrogene",
+       "end": "cue_end:c_dihydrogene",
+       "target": "eq",
+       "role": "accent"
+      },
+      {
+       "id": "h_nh3",
+       "verb": "highlight",
+       "start": "cue:c_ammoniac",
+       "end": "cue_end:c_ammoniac",
+       "target": "eq",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "dyna",
+     "say": "À l'équilibre, les deux réactions continuent : la directe et l'inverse. Les concentrations ne bougent plus, elles restent constantes.",
+     "cues": [
+      {
+       "id": "c_equilibre",
+       "text": "À l'équilibre"
+      },
+      {
+       "id": "c_constantes",
+       "text": "restent constantes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_dyn",
+       "verb": "show",
+       "at": "cue:c_equilibre",
+       "target": "dyn"
+      },
+      {
+       "id": "s_fl",
+       "verb": "show",
+       "at": "cue:c_constantes",
+       "target": "fl"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_chatelier",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "Le système s'oppose à la perturbation.",
+     "type": "text"
+    },
+    {
+     "id": "casA",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{ajout d'un réactif} \\Rightarrow \\text{déplacement vers les produits}",
+     "parts": [
+      {
+       "id": "perturb",
+       "text": "\\text{ajout d'un réactif}"
+      },
+      {
+       "id": "fleche",
+       "text": "\\Rightarrow"
+      },
+      {
+       "id": "depl",
+       "text": "\\text{déplacement vers les produits}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "principe",
+     "say": "C'est le principe de Le Chatelier : quand on perturbe un système à l'équilibre, il réagit en s'opposant à la perturbation.",
+     "cues": [
+      {
+       "id": "c_principe",
+       "text": "principe de Le Chatelier"
+      },
+      {
+       "id": "c_oppose",
+       "text": "s'opposant"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_principe",
+       "target": "regle"
+      },
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "at": "cue:c_oppose",
+       "target": "eq",
+       "role": "neutral"
+      }
+     ]
+    },
+    {
+     "id": "ajout",
+     "say": "Alors si on ajoute un réactif, disons du diazote, le système en a trop : il le consomme en se déplaçant vers les produits.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "on ajoute un réactif"
+      },
+      {
+       "id": "c_produits",
+       "text": "vers les produits"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_perturb",
+       "verb": "write",
+       "at": "cue:c_ajoute",
+       "target": "casA",
+       "part": "perturb"
+      },
+      {
+       "id": "w_depl",
+       "verb": "write",
+       "at": "cue:c_produits",
+       "target": "casA",
+       "part": "depl"
+      },
+      {
+       "id": "h_n2",
+       "verb": "highlight",
+       "start": "cue:c_ajoute",
+       "end": "cue_end:c_ajoute",
+       "target": "eq",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_concentration",
+   "introduces": [
+    {
+     "id": "eq2",
+     "content": "\\ce{H2(g) + I2(g) <=> 2HI(g)}",
+     "type": "math"
+    },
+    {
+     "id": "plus",
+     "content": "Solution plus foncée = colorant plus concentré.",
+     "type": "text"
+    },
+    {
+     "id": "v1",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        0,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "v2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        4,
+        0
+       ],
+       [
+        10,
+        0
+       ],
+       [
+        10,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "p1",
+     "params": {
+      "at": [
+       0.6,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "params": {
+      "at": [
+       1.5,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3",
+     "params": {
+      "at": [
+       2.4,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "params": {
+      "at": [
+       4.6,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5",
+     "params": {
+      "at": [
+       5.5,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p6",
+     "params": {
+      "at": [
+       6.4,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab1",
+     "attachment": {
+      "parent": "v1",
+      "anchor": "bottom"
+     },
+     "content": "peu concentrée",
+     "type": "label"
+    },
+    {
+     "id": "lab2",
+     "attachment": {
+      "parent": "v2",
+      "anchor": "bottom"
+     },
+     "content": "plus concentrée",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "couleur",
+     "say": "Passons à ta deuxième question. Une solution plus foncée, c'est simplement une solution où le soluté coloré est plus concentré : il y a plus de particules de colorant par litre de solution.",
+     "cues": [
+      {
+       "id": "c_foncee",
+       "text": "plus foncée"
+      },
+      {
+       "id": "c_concentre",
+       "text": "plus concentré"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_eq2",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "eq2"
+      },
+      {
+       "id": "s_v1",
+       "verb": "show",
+       "at": "cue:c_foncee",
+       "target": "v1"
+      },
+      {
+       "id": "s_v2",
+       "verb": "show",
+       "at": "cue:c_concentre",
+       "target": "v2"
+      },
+      {
+       "id": "s_lab1",
+       "verb": "show",
+       "at": "cue:c_foncee",
+       "target": "lab1"
+      },
+      {
+       "id": "s_lab2",
+       "verb": "show",
+       "at": "cue:c_concentre",
+       "target": "lab2"
+      }
+     ]
+    },
+    {
+     "id": "particules",
+     "say": "Regarde les particules : dans le petit rectangle, il y en a trois, dans le grand, il y en a trois aussi, mais le volume est plus grand. C'est la concentration, la quantité de soluté divisée par le volume.",
+     "cues": [
+      {
+       "id": "c_particules",
+       "text": "particules"
+      },
+      {
+       "id": "c_volume",
+       "text": "volume"
+      },
+      {
+       "id": "c_concentration",
+       "text": "concentration"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "at": "cue:c_particules",
+       "target": "p1"
+      },
+      {
+       "id": "s_p2",
+       "verb": "show",
+       "at": "after:s_p1",
+       "target": "p2"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "after:s_p2",
+       "target": "p3"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "cue:c_volume",
+       "target": "p4"
+      },
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "after:s_p4",
+       "target": "p5"
+      },
+      {
+       "id": "s_p6",
+       "verb": "show",
+       "at": "after:s_p5",
+       "target": "p6"
+      },
+      {
+       "id": "s_plus",
+       "verb": "show",
+       "at": "cue:c_concentration",
+       "target": "plus"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cmp",
+   "introduces": [
+    {
+     "id": "cmp",
+     "layout": {
+      "next_to": "plus",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Une teinte plus foncée signale une concentration plus grande du colorant.",
+     "type": "callout"
+    },
+    {
+     "id": "rappel",
+     "content": "C = \\frac{n}{V}",
+     "parts": [
+      {
+       "id": "c",
+       "text": "C"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{n}{V}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sens",
+     "say": "Donc si une solution te paraît plus foncée, c'est qu'il y a plus de soluté dissous dans le même volume : la concentration a augmenté.",
+     "cues": [
+      {
+       "id": "c_solute",
+       "text": "plus de soluté"
+      },
+      {
+       "id": "c_augmente",
+       "text": "concentration a augmenté"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cmp",
+       "verb": "show",
+       "at": "cue:c_solute",
+       "target": "cmp"
+      },
+      {
+       "id": "h_plus",
+       "verb": "highlight",
+       "start": "cue:c_augmente",
+       "end": "cue_end:c_augmente",
+       "target": "plus",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "formule",
+     "say": "Rappelle-toi la formule : C égale n sur V. Si le nombre de moles de soluté augmente et que le volume reste le même, la concentration monte, et la couleur devient plus foncée.",
+     "cues": [
+      {
+       "id": "c_c",
+       "text": "C égale"
+      },
+      {
+       "id": "c_nv",
+       "text": "n sur V"
+      },
+      {
+       "id": "c_volume2",
+       "text": "volume reste le même"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_c",
+       "target": "rappel",
+       "part": "c"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_c",
+       "target": "rappel",
+       "part": "egal"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_nv",
+       "target": "rappel",
+       "part": "frac"
+      },
+      {
+       "id": "h_rappel",
+       "verb": "highlight",
+       "start": "cue:c_volume2",
+       "end": "cue_end:c_volume2",
+       "target": "rappel",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Ajouter un réactif = déplacer l'équilibre vers les produits.",
+     "type": "text"
+    },
+    {
+     "id": "idee2",
+     "content": "Solution plus foncée = plus concentrée.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : quand on ajoute un réactif, l'équilibre se déplace vers les produits pour s'opposer à la perturbation. Et une solution plus foncée, c'est une solution plus concentrée en colorant.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_ajoute",
+       "text": "ajoute un réactif"
+      },
+      {
+       "id": "c_foncee",
+       "text": "plus foncée"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_eq",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eq"
+      },
+      {
+       "id": "f_dyn",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "dyn"
+      },
+      {
+       "id": "f_fl",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "fl"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "regle"
+      },
+      {
+       "id": "f_casA",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "casA"
+      },
+      {
+       "id": "f_v1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "v1"
+      },
+      {
+       "id": "f_v2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "v2"
+      },
+      {
+       "id": "f_plus",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "plus"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_ajoute",
+       "target": "idee"
+      },
+      {
+       "id": "s_idee2",
+       "verb": "show",
+       "at": "cue:c_foncee",
+       "target": "idee2"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

@@ -26,6 +26,11 @@ export interface SessionSnapshot {
   error: string | null;
   /** The whole lesson was received: it can be played again without asking the model. */
   canReplay: boolean;
+  /**
+   * The question of the last lesson that reached the end (even cut short), kept after
+   * « Nouvelle notion »: the after-trial questions open when the student comes back home.
+   */
+  lastFinished: string | null;
 }
 
 export interface SessionDeps {
@@ -40,6 +45,7 @@ export interface SessionDeps {
 
 export const INITIAL_SESSION: SessionSnapshot = {
   status: "idle", question: null, title: null, caption: null, waiting: false, paused: false, muted: false, error: null, canReplay: false,
+  lastFinished: null,
 };
 
 const OFFLINE = "Je n'arrive pas à joindre Nesalio. Vérifie ta connexion, puis réessaie.";
@@ -113,7 +119,7 @@ export class NesalioSession {
     this.said = [];
     this.control.setPaused(false);
     this.deps.board.reset();
-    this.set({ ...INITIAL_SESSION, muted: this.control.muted });
+    this.set({ ...INITIAL_SESSION, muted: this.control.muted, lastFinished: this.snapshot.lastFinished });
   }
 
   setPaused(paused: boolean): void { this.control.setPaused(paused); }
@@ -134,7 +140,7 @@ export class NesalioSession {
     this.said = [];
     this.control.setPaused(false);
     this.deps.board.reset();
-    this.set({ ...INITIAL_SESSION, ...identity, status: "preparing", muted: this.control.muted });
+    this.set({ ...INITIAL_SESSION, ...identity, status: "preparing", muted: this.control.muted, lastFinished: this.snapshot.lastFinished });
     return run;
   }
 
@@ -157,12 +163,12 @@ export class NesalioSession {
       });
       if (this.current !== run) return;
       this.set({ status: played ? "done" : "error", waiting: false, canReplay: Boolean(this.recorded?.complete),
-        error: played ? null : FAILED });
+        error: played ? null : FAILED, ...(played ? { lastFinished: this.snapshot.question } : {}) });
     } catch (error) {
       if (run.signal.aborted || this.current !== run) return;
       // What was explained stays on the board; the student is told the rest is missing.
       this.set(played
-        ? { status: "done", waiting: false, canReplay: false, error: STOPPED }
+        ? { status: "done", waiting: false, canReplay: false, error: STOPPED, lastFinished: this.snapshot.question }
         : { status: "error", waiting: false, canReplay: false, error: forStudent(error) });
     }
   }

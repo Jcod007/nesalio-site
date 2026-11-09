@@ -1,0 +1,71 @@
+QUESTION (programmation-lineaire, mathematiques, sec 5, methode) : comment je trouve le maximum de 3x + 2y si x ≥ 0, y ≥ 0, x + y ≤ 6 pis x ≤ 4 ? on fait ça avec un polygone de contraintes
+RÉPONSE DE RÉFÉRENCE : Sommets (0, 0), (4, 0), (4, 2), (0, 6) ; valeurs 0, 12, 16, 12 ; maximum 16 en (4, 2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. tracer les droites frontières et ombrer la région qui respecte toutes les contraintes
+  2. trouver les sommets du polygone : (0, 0), (4, 0), (4, 2), (0, 6)
+  3. le maximum d'une fonction à optimiser se trouve à un sommet du polygone
+  4. évaluer 3x + 2y à chaque sommet : 0, 12, 16, 12
+  5. réponse : maximum 16 en (4, 2), écrit
+ERREURS GRAVES À CHERCHER : sommet (4, 2) oublié ou mal calculé ; région ombrée fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le maximum de 3x + 2y avec un polygone de contraintes
+=== Tranche s_contraintes
+  OBJET rep [axes] {"x":[0,7],"y":[0,7]} 
+  OBJET droite_somme [line] {"from":[0,6],"to":[6,0]} 
+  OBJET droite_x [line] {"from":[4,0],"to":[4,2]} 
+  OBJET sommet_o [point] {"at":[0,0]} 
+  OBJET sommet_a [point] {"at":[4,0]} 
+  OBJET sommet_b [point] {"at":[4,2]} 
+  OBJET sommet_c [point] {"at":[0,6]} 
+  OBJET etiquette_o [label] "O(0 ; 0)" attaché à sommet_o
+  OBJET etiquette_a [label] "A(4 ; 0)" attaché à sommet_a
+  OBJET etiquette_b [label] "B(4 ; 2)" attaché à sommet_b
+  OBJET etiquette_c [label] "C(0 ; 6)" attaché à sommet_c
+  OBJET regle_somme [math] "x+y=6" 
+  OBJET regle_x [math] "x=4" 
+  OBJET liste_sommets [text] "Sommets : O(0 ; 0), A(4 ; 0), B(4 ; 2), C(0 ; 6)"   <<JAMAIS MONTRÉ>>
+DIT (sens) : On représente chaque contrainte dans le plan : x et y sont positifs, donc on garde le premier quadrant; x plus y au plus six et x au plus quatre délimitent le polygone permis.
+    show rep @cue:c_plan 
+    draw droite_somme @cue:c_somme 
+    draw droite_x @cue:c_x 
+DIT (coins) : La droite x plus y égale six passe par zéro, six et six, zéro; celle de x égale quatre coupe la première à quatre, deux. Avec les axes, les sommets sont O, A, B et C.
+    write regle_somme @cue:c_zero 
+    write regle_x @cue:c_quatre 
+    show sommet_o @cue:c_sommets 
+    show sommet_a @cue:c_sommets 
+    show sommet_b @cue:c_sommets 
+    show sommet_c @cue:c_sommets 
+    show etiquette_o @cue:c_sommets 
+    show etiquette_a @cue:c_sommets 
+    show etiquette_b @cue:c_sommets 
+    show etiquette_c @cue:c_sommets 
+=== Tranche s_evaluer
+  OBJET val_o [math] "3(0)+2(0)=0" 
+  OBJET val_a [math] "3(4)+2(0)=12" 
+  OBJET val_b [math] "3(4)+2(2)=16" 
+  OBJET val_c [math] "3(0)+2(6)=12" 
+  OBJET conclusion [text] "Maximum : 16, au sommet B(4 ; 2)" 
+DIT (idee) : Pour une fonction linéaire, le maximum sur un polygone de contraintes se trouve à un sommet : on calcule trois x plus deux y pour chacun des quatre sommets.
+    dim rep @cue:c_max 
+    dim droite_somme @cue:c_max 
+    dim droite_x @cue:c_max 
+    write val_o @cue:c_calcule 
+    write val_a @cue:c_calcule 
+    write val_b @cue:c_calcule 
+    write val_c @cue:c_calcule 
+    highlight sommet_b @- {"start":"cue:c_max","end":"cue_end:c_calcule","role":"accent"}
+DIT (resultat) : Les valeurs sont zéro, douze, seize et douze. Le maximum est donc seize, obtenu au point B, quatre, deux; l’unité dépend de ce que représente la fonction objectif.
+    highlight val_b @- {"start":"cue:c_valeurs","end":"cue_end:c_maximum","role":"result"}
+    show conclusion @cue:c_maximum 
+    fade_out val_o @cue:c_maximum 
+    fade_out val_a @cue:c_maximum 
+    fade_out val_c @cue:c_maximum 
+=== Tranche s_retenir
+  OBJET resume_regle [text] "Évaluer la fonction objectif à chaque sommet" 
+  OBJET resume_calc [math] "\\max(3x+2y)=16\\quad\\text{à }B(4,2)" 
+  GROUPE resume = resume_regle, resume_calc
+DIT (idee_centrale) : À retenir : dessine le polygone permis, trouve tous ses sommets, puis évalue la fonction objectif à chacun. Ici, le maximum vaut seize au sommet B, quatre, deux.
+    show resume_regle @cue:c_retenir 
+    write resume_calc @cue:c_seize 
+--- 3 tranches, 155 mots dits (≈ 1.0 min d'oral)

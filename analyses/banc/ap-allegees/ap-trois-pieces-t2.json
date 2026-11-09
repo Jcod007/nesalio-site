@@ -1,0 +1,987 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "proba_trois_pieces",
+  "title": "Pourquoi 2/8 et 6/8 avec trois pièces",
+  "language": "fr",
+  "learning_goal": "Comprendre que les 8 résultats de trois pièces sont équiprobables et que 2/8, 6/8 comptent des chemins, pas des pièces."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "titre",
+     "layout": {
+      "to_corner": "top_left",
+      "gap": "md"
+     },
+     "content": "Probabilité = cas favorables ÷ cas possibles",
+     "type": "text"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "titre",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Le dénominateur n'est pas le nombre de pièces : c'est le nombre de résultats possibles.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Ta question touche le cœur des probabilités : le huit, en bas, ne compte pas les pièces.",
+     "cues": [
+      {
+       "id": "c_huit",
+       "text": "le huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "c1",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c2",
+     "params": {
+      "vertices": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c3",
+     "params": {
+      "vertices": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c4",
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c5",
+     "params": {
+      "vertices": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        5,
+        1
+       ],
+       [
+        5,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c6",
+     "params": {
+      "vertices": [
+       [
+        5,
+        0
+       ],
+       [
+        5,
+        1
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        6,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c7",
+     "params": {
+      "vertices": [
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        7,
+        1
+       ],
+       [
+        7,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c8",
+     "params": {
+      "vertices": [
+       [
+        7,
+        0
+       ],
+       [
+        7,
+        1
+       ],
+       [
+        8,
+        1
+       ],
+       [
+        8,
+        0
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "l1",
+     "attachment": {
+      "parent": "c1",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "FFF",
+     "type": "label"
+    },
+    {
+     "id": "l2",
+     "attachment": {
+      "parent": "c2",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "FFP",
+     "type": "label"
+    },
+    {
+     "id": "l3",
+     "attachment": {
+      "parent": "c3",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "FPF",
+     "type": "label"
+    },
+    {
+     "id": "l4",
+     "attachment": {
+      "parent": "c4",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "FPP",
+     "type": "label"
+    },
+    {
+     "id": "l5",
+     "attachment": {
+      "parent": "c5",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "PFF",
+     "type": "label"
+    },
+    {
+     "id": "l6",
+     "attachment": {
+      "parent": "c6",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "PFP",
+     "type": "label"
+    },
+    {
+     "id": "l7",
+     "attachment": {
+      "parent": "c7",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "PPF",
+     "type": "label"
+    },
+    {
+     "id": "l8",
+     "attachment": {
+      "parent": "c8",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "PPP",
+     "type": "label"
+    }
+   ],
+   "groups": [
+    {
+     "id": "g_cases",
+     "items": [
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8"
+     ],
+     "arrange": {
+      "direction": "right",
+      "gap": "xs"
+     }
+    },
+    {
+     "id": "g_labels",
+     "items": [
+      "l1",
+      "l2",
+      "l3",
+      "l4",
+      "l5",
+      "l6",
+      "l7",
+      "l8"
+     ],
+     "arrange": {
+      "direction": "right",
+      "gap": "xs"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "liste",
+     "say": "Avec trois pièces, chaque lancer donne une suite de trois faces ou piles. Voici les huit suites possibles.",
+     "cues": [
+      {
+       "id": "c_suites",
+       "text": "huit suites possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cases",
+       "verb": "show",
+       "at": "cue:c_suites",
+       "target": "g_cases",
+       "stagger": "quick"
+      },
+      {
+       "id": "s_labels",
+       "verb": "show",
+       "at": "after:s_cases",
+       "target": "g_labels",
+       "stagger": "quick"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "equi",
+     "say": "Chaque case a la même chance : un huitième. Le total de l'univers, c'est huit.",
+     "cues": [
+      {
+       "id": "c_huitieme",
+       "text": "un huitième"
+      },
+      {
+       "id": "c_univers",
+       "text": "l'univers"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_cases",
+       "verb": "highlight",
+       "start": "cue:c_huitieme",
+       "end": "cue_end:c_univers",
+       "target": "g_cases",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exactement_deux",
+   "introduces": [
+    {
+     "id": "fav",
+     "layout": {
+      "next_to": "g_cases",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Exactement deux faces : 4PP, PFP, PPF",
+     "type": "callout"
+    },
+    {
+     "id": "p2",
+     "layout": {
+      "next_to": "fav",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "P(\\text{exactement 2 faces}) = \\frac{3}{8}",
+     "parts": [
+      {
+       "id": "p2_nom",
+       "text": "P(\\text{exactement 2 faces})"
+      },
+      {
+       "id": "p2_val",
+       "text": "= \\frac{3}{8}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "compte",
+     "say": "Pour exactement deux faces, je compte les cases gagnantes : F F P, F P F, P F F. Il y en a trois sur huit.",
+     "cues": [
+      {
+       "id": "c_gagnantes",
+       "text": "cases gagnantes"
+      },
+      {
+       "id": "c_trois",
+       "text": "trois sur huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_l2",
+       "verb": "highlight",
+       "at": "cue:c_gagnantes",
+       "target": "l2",
+       "role": "result"
+      },
+      {
+       "id": "h_l3",
+       "verb": "highlight",
+       "at": "cue:c_gagnantes",
+       "target": "l3",
+       "role": "result"
+      },
+      {
+       "id": "h_l4",
+       "verb": "highlight",
+       "at": "cue:c_gagnantes",
+       "target": "l4",
+       "role": "result"
+      },
+      {
+       "id": "w_p2_nom",
+       "verb": "write",
+       "at": "cue:c_gagnantes",
+       "target": "p2",
+       "part": "p2_nom"
+      },
+      {
+       "id": "w_p2_val",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "p2",
+       "part": "p2_val"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sixhuit",
+     "say": "Trois sur huit, ce n'est pas trois pièces : c'est trois chemins parmi huit aussi probables.",
+     "cues": [
+      {
+       "id": "c_trois_chemins",
+       "text": "trois chemins"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_fav",
+       "verb": "show",
+       "at": "cue:c_trois_chemins",
+       "target": "fav"
+      },
+      {
+       "id": "h_p2",
+       "verb": "highlight",
+       "start": "cue:c_trois_chemins",
+       "end": "cue_end:c_trois_chemins",
+       "target": "p2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_six_huit",
+   "introduces": [
+    {
+     "id": "au_moins",
+     "layout": {
+      "next_to": "p2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Au moins une face : FFP, FPF, FPP, PFF, PFP, PPF, PPP",
+     "type": "callout"
+    },
+    {
+     "id": "p6",
+     "layout": {
+      "next_to": "au_moins",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "P(\\text{au moins 1 face}) = \\frac{7}{8}",
+     "parts": [
+      {
+       "id": "p6_nom",
+       "text": "P(\\text{au moins 1 face})"
+      },
+      {
+       "id": "p6_val",
+       "text": "= \\frac{7}{8}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "set",
+     "say": "Si je demande au moins une face, presque tout l'univers gagne : seul P P P perd.",
+     "cues": [
+      {
+       "id": "c_au_moins",
+       "text": "au moins une face"
+      },
+      {
+       "id": "c_ppp",
+       "text": "P P P"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_au_moins",
+       "verb": "show",
+       "at": "cue:c_au_moins",
+       "target": "au_moins"
+      },
+      {
+       "id": "h_l8",
+       "verb": "highlight",
+       "at": "cue:c_ppp",
+       "target": "l8",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sept",
+     "say": "Sept cases gagnantes sur huit : sept huitièmes. Le dénominateur reste huit, le nombre de résultats possibles.",
+     "cues": [
+      {
+       "id": "c_sept",
+       "text": "sept huitièmes"
+      },
+      {
+       "id": "c_denom",
+       "text": "dénominateur reste huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p6_nom",
+       "verb": "write",
+       "at": "cue:c_sept",
+       "target": "p6",
+       "part": "p6_nom"
+      },
+      {
+       "id": "w_p6_val",
+       "verb": "write",
+       "at": "cue:c_sept",
+       "target": "p6",
+       "part": "p6_val"
+      },
+      {
+       "id": "h_p6",
+       "verb": "highlight",
+       "at": "cue:c_denom",
+       "target": "p6",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "P = \\frac{\\text{cas favorables}}{\\text{cas possibles}}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "P ="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{\\text{cas favorables}}{\\text{cas possibles}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_fin",
+     "content": "Trois pièces → huit résultats possibles, pas trois",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retour",
+     "say": "Alors le 2 et le 6 ne sont jamais des pièces : ce sont des chemins comptés dans les huit résultats possibles.",
+     "cues": [
+      {
+       "id": "c_chemins",
+       "text": "des chemins comptés"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_titre",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "titre"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "note"
+      },
+      {
+       "id": "f_cases",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "g_cases"
+      },
+      {
+       "id": "f_labels",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "g_labels"
+      },
+      {
+       "id": "f_fav",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "fav"
+      },
+      {
+       "id": "f_au",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "au_moins"
+      },
+      {
+       "id": "f_p2",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "p2"
+      },
+      {
+       "id": "f_p6",
+       "verb": "fade_out",
+       "at": "cue:c_chemins",
+       "target": "p6"
+      }
+     ],
+     "pause_after": "long"
+    },
+    {
+     "id": "finale",
+     "say": "À retenir : le bas de la fraction est le nombre de résultats possibles, et le haut le nombre de ceux qui gagnent.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_possibles",
+       "text": "nombre de résultats possibles"
+      },
+      {
+       "id": "c_gagnent",
+       "text": "ceux qui gagnent"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "idee",
+        "note_fin"
+       ]
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "idee",
+       "part": "gauche"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_possibles",
+       "target": "idee",
+       "part": "frac"
+      },
+      {
+       "id": "s_note_fin",
+       "verb": "show",
+       "at": "cue:c_gagnent",
+       "target": "note_fin"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "at": "after:s_note_fin",
+       "target": "idee",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

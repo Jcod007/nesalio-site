@@ -1,0 +1,846 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "coefficient_correlation",
+  "title": "Ce que veut dire concrètement un coefficient de corrélation",
+  "language": "fr",
+  "learning_goal": "Comprendre que le coefficient de corrélation r mesure la force et le sens d'un lien linéaire entre deux variables, et interpréter concrètement une valeur comme r = -0,8."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_nuage",
+   "introduces": [
+    {
+     "id": "axes_nuage",
+     "params": {
+      "x": [
+       0,
+       7
+      ],
+      "y": [
+       0,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "p_a",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "at": [
+       1,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_b",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "at": [
+       2,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_c",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_d",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "at": [
+       4,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_e",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "at": [
+       5,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_f",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "at": [
+       6,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nuage_label",
+     "content": "Des points (x ; y) : chaque personne donne un point",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Le coefficient de corrélation, c'est un nombre entre moins un et un qui décrit ce que fait un nuage de points.",
+     "cues": [
+      {
+       "id": "c_moins_un",
+       "text": "entre moins un et un"
+      },
+      {
+       "id": "c_nuage",
+       "text": "nuage de points"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre_nuage",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes_nuage"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_nuage"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes_nuage"
+      },
+      {
+       "id": "s_pts",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "p_a"
+      },
+      {
+       "id": "s_pb",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "p_b"
+      },
+      {
+       "id": "s_pc",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "p_c"
+      },
+      {
+       "id": "s_pd",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "p_d"
+      },
+      {
+       "id": "s_pe",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "p_e"
+      },
+      {
+       "id": "s_pf",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "p_f"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "deuxvars",
+     "say": "Chaque point raconte deux affaires en même temps : une valeur de x, et la valeur de y qui va avec.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "valeur de x"
+      },
+      {
+       "id": "c_y",
+       "text": "valeur de y"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_pts",
+       "verb": "highlight",
+       "at": "cue:c_x",
+       "target": "p_c",
+       "role": "accent"
+      },
+      {
+       "id": "h_pts2",
+       "verb": "highlight",
+       "at": "cue:c_y",
+       "target": "p_d",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_lien",
+   "introduces": [
+    {
+     "id": "droite",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       0.5,
+       6.5
+      ],
+      "to": [
+       6.5,
+       0.5
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "mot_lien",
+     "attachment": {
+      "parent": "droite",
+      "anchor": "top"
+     },
+     "content": "lien linéaire décroissant",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ligne",
+     "say": "Regarde la tendance : quand x augmente, y diminue, et les points suivent à peu près une ligne droite qui descend.",
+     "cues": [
+      {
+       "id": "c_augmente",
+       "text": "x augmente"
+      },
+      {
+       "id": "c_diminue",
+       "text": "y diminue"
+      },
+      {
+       "id": "c_ligne",
+       "text": "ligne droite qui descend"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_droite",
+       "verb": "draw",
+       "start": "cue:c_augmente",
+       "end": "cue_end:c_ligne",
+       "target": "droite"
+      },
+      {
+       "id": "s_mot",
+       "verb": "show",
+       "at": "cue:c_ligne",
+       "target": "mot_lien"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "force",
+     "say": "Le coefficient de corrélation, note r, mesure deux choses à la fois : la force de ce lien, et son sens.",
+     "cues": [
+      {
+       "id": "c_r",
+       "text": "note r"
+      },
+      {
+       "id": "c_force",
+       "text": "la force"
+      },
+      {
+       "id": "c_sens",
+       "text": "son sens"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_r",
+       "verb": "highlight",
+       "at": "cue:c_r",
+       "target": "mot_lien",
+       "role": "accent"
+      },
+      {
+       "id": "h_force",
+       "verb": "highlight",
+       "at": "cue:c_force",
+       "target": "droite",
+       "role": "accent"
+      },
+      {
+       "id": "h_sens",
+       "verb": "highlight",
+       "at": "cue:c_sens",
+       "target": "droite",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moins08",
+   "introduces": [
+    {
+     "id": "eq_r",
+     "content": "r = -0{,}8",
+     "parts": [
+      {
+       "id": "r_part",
+       "text": "r"
+      },
+      {
+       "id": "val_part",
+       "text": "= -0{,}8"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "signe",
+     "layout": {
+      "next_to": "eq_r",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Le signe = le sens : moins, ça descend",
+     "type": "text"
+    },
+    {
+     "id": "grandeur",
+     "layout": {
+      "next_to": "eq_r",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "La grandeur = la force : 0,8 c'est fort",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "poser",
+     "say": "Alors si on te dit r égale moins zéro virgule huit, qu'est-ce que ça veut concrètement ?",
+     "cues": [
+      {
+       "id": "c_r08",
+       "text": "r égale moins zéro virgule huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_droite",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "droite"
+      },
+      {
+       "id": "s_eq",
+       "verb": "write",
+       "at": "cue:c_r08",
+       "target": "eq_r",
+       "part": "r_part"
+      },
+      {
+       "id": "s_val",
+       "verb": "write",
+       "at": "cue:c_r08",
+       "target": "eq_r",
+       "part": "val_part"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sens",
+     "say": "Le signe négatif dit le sens : le lien est décroissant, quand une variable monte, l'autre tend à descendre.",
+     "cues": [
+      {
+       "id": "c_signe",
+       "text": "signe négatif"
+      },
+      {
+       "id": "c_descend",
+       "text": "tend à descendre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_signe",
+       "verb": "show",
+       "at": "cue:c_signe",
+       "target": "signe"
+      },
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "at": "cue:c_descend",
+       "target": "eq_r",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "force2",
+     "say": "Et le zéro virgule huit dit la force : c'est proche de un, donc les points sont serrés autour de la ligne.",
+     "cues": [
+      {
+       "id": "c_proche",
+       "text": "proche de un"
+      },
+      {
+       "id": "c_serres",
+       "text": "serrés autour de la ligne"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_grandeur",
+       "verb": "show",
+       "at": "cue:c_proche",
+       "target": "grandeur"
+      },
+      {
+       "id": "h_eq2",
+       "verb": "highlight",
+       "at": "cue:c_serres",
+       "target": "eq_r",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cas",
+   "introduces": [
+    {
+     "id": "tab_r",
+     "params": {
+      "rows": [
+       [
+        -1,
+        -0.8,
+        -0.3,
+        0,
+        0.6,
+        0.95
+       ],
+       [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+       ]
+      ],
+      "row_labels": [
+       "valeur de r",
+       "pourcentage de variation expliquée (r² × 100)"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tableau",
+     "say": "Pour t'aider, voici des valeurs de r et le pourcentage de variation de y que x explique.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "valeurs de r"
+      },
+      {
+       "id": "c_pourcent",
+       "text": "pourcentage de variation"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_tableau",
+       "target": "tab_r"
+      },
+      {
+       "id": "h_pourcent",
+       "verb": "highlight",
+       "at": "cue:c_pourcent",
+       "target": "tab_r",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "lecture",
+     "say": "Quand r vaut moins un, tout est parfaitement sur la ligne ; quand r vaut zéro, il n'y a aucun lien linéaire.",
+     "cues": [
+      {
+       "id": "c_moinsun",
+       "text": "r vaut moins un"
+      },
+      {
+       "id": "c_batons",
+       "text": "parfaitement sur la ligne"
+      },
+      {
+       "id": "c_zero",
+       "text": "r vaut zéro"
+      },
+      {
+       "id": "c_aucun",
+       "text": "aucun lien linéaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_moinsun",
+       "verb": "highlight",
+       "at": "cue:c_moinsun",
+       "target": "tab_r",
+       "role": "result"
+      },
+      {
+       "id": "h_zero",
+       "verb": "highlight",
+       "at": "cue:c_zero",
+       "target": "tab_r",
+       "role": "secondary"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "attention",
+     "say": "Attention : r mesure seulement un lien linéaire, une droite. Un lien en courbe peut avoir r proche de zéro.",
+     "cues": [
+      {
+       "id": "c_lineaire",
+       "text": "lien linéaire"
+      },
+      {
+       "id": "c_courbe",
+       "text": "lien en courbe"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_attention",
+       "verb": "highlight",
+       "at": "cue:c_lineaire",
+       "target": "tab_r",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : r entre moins un et un résume le signe par le sens et la grandeur par la force ; moins zéro virgule huit, c'est un lien décroissant plutôt fort.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_fort",
+       "text": "plutôt fort"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab_r"
+      },
+      {
+       "id": "f_signe",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "signe"
+      },
+      {
+       "id": "f_grandeur",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "grandeur"
+      },
+      {
+       "id": "f_eq",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eq_r"
+      },
+      {
+       "id": "cadre_final",
+       "verb": "camera.restore",
+       "at": "beat:start",
+       "frame": "vue_nuage"
+      },
+      {
+       "id": "r_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes_nuage"
+      },
+      {
+       "id": "h_r_axes",
+       "verb": "highlight",
+       "at": "cue:c_fort",
+       "target": "droite",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

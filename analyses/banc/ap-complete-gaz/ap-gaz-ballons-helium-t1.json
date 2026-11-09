@@ -1,0 +1,735 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "gaz_tapn_bonbonne",
+  "title": "Combien de ballons à TAPN avec une bonbonne d'hélium",
+  "language": "fr",
+  "learning_goal": "Utiliser la loi combinée des gaz pour trouver le volume total d'hélium à TAPN, puis le nombre de ballons de 100,0 L."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "V2": {
+     "kind": "constant",
+     "value": 1500
+    }
+   },
+   "expressions": {
+    "V2calc": "15000*10/101.3",
+    "nballons": "1500/100"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_plan",
+   "introduces": [
+    {
+     "id": "but",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "Trouver le volume total à TAPN, puis diviser par 100,0 L",
+     "type": "text"
+    },
+    {
+     "id": "loi",
+     "layout": {
+      "next_to": "but",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{p_1 V_1}{T_1}"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "\\frac{p_2 V_2}{T_2}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "On te donne une bonbonne d'hélium comprimé, et on veut savoir combien de ballons elle peut remplir à la température et pression ambiantes normales.",
+     "cues": [
+      {
+       "id": "c_bonbonne",
+       "text": "bonbonne"
+      },
+      {
+       "id": "c_ballons",
+       "text": "ballons"
+      },
+      {
+       "id": "c_tapn",
+       "text": "ambiantes normales"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_but",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "but"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "etapes",
+     "say": "La démarche a deux temps : d'abord trouver le volume total que cet hélium occuperait à TAPN, ensuite diviser ce volume par cent litres, un ballon à la fois.",
+     "cues": [
+      {
+       "id": "c_volume",
+       "text": "volume total"
+      },
+      {
+       "id": "c_diviser",
+       "text": "diviser"
+      },
+      {
+       "id": "c_cent",
+       "text": "cent litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_loi",
+       "verb": "write",
+       "at": "cue:c_volume",
+       "target": "loi"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        "10,00 L",
+        "15,00 °C"
+       ],
+       [
+        "?",
+        "25,00 °C"
+       ],
+       [
+        "15000 kPa",
+        "101,3 kPa"
+       ]
+      ],
+      "row_labels": [
+       "Volume",
+       "Température",
+       "Pression"
+      ],
+      "column_labels": [
+       "Bonbonne (état 1)",
+       "TAPN (état 2)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "kelvins",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "T_1 = 15{,}00 + 273{,}15 = 288{,}15",
+     "parts": [
+      {
+       "id": "t1",
+       "text": "T_1 = 15{,}00 + 273{,}15"
+      },
+      {
+       "id": "val",
+       "text": "= 288{,}15"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Mettons les données côte à côte. État un, la bonbonne : dix litres à quinze degrés et à quinze mille kilopascals. État deux, la TAPN : vingt-cinq degrés et cent un virgule trois kilopascals.",
+     "cues": [
+      {
+       "id": "c_etat1",
+       "text": "État un"
+      },
+      {
+       "id": "c_etat2",
+       "text": "État deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_etat1",
+       "target": "tab"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "conversion",
+     "say": "Attention aux unités : la température doit être en kelvins, on ajoute deux cent soixante-treize virgule quinze. Quinze plus deux cent soixante-treize virgule quinze donne deux cent quatre-vingt-huit virgule quinze.",
+     "cues": [
+      {
+       "id": "c_kelvins",
+       "text": "en kelvins"
+      },
+      {
+       "id": "c_ajout",
+       "text": "on ajoute"
+      },
+      {
+       "id": "c_resultat",
+       "text": "deux cent quatre-vingt-huit virgule quinze"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_t1",
+       "verb": "write",
+       "at": "cue:c_ajout",
+       "target": "kelvins",
+       "part": "t1"
+      },
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "kelvins",
+       "part": "val"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isole",
+   "introduces": [
+    {
+     "id": "isole1",
+     "content": "V_2 = \\frac{p_1 V_1 T_2}{T_1 \\cdot p_2}",
+     "type": "math"
+    },
+    {
+     "id": "isole2",
+     "content": "V_2 = \\frac{15000 \\times 10{,}00 \\times 298{,}15}{288{,}15 \\times 101{,}3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isole",
+     "say": "Les deux états sont reliés, et n reste le même : aucun gaz ne s'échappe, on ferme puis on ouvre. La seule quantité inconnue est le volume à TAPN, V deux.",
+     "cues": [
+      {
+       "id": "c_inconnue",
+       "text": "inconnue"
+      },
+      {
+       "id": "c_vdeux",
+       "text": "V deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tab",
+       "verb": "dim",
+       "at": "cue:c_inconnue",
+       "target": "tab"
+      },
+      {
+       "id": "w_i1",
+       "verb": "write",
+       "at": "cue:c_vdeux",
+       "target": "isole1"
+      }
+     ]
+    },
+    {
+     "id": "isole_suite",
+     "say": "On isole V deux : on multiplie les deux côtés par T deux et on divise par p deux. V deux égale p un fois V un fois T deux, le tout divisé par T un fois p deux.",
+     "cues": [
+      {
+       "id": "c_multiplie",
+       "text": "on multiplie"
+      },
+      {
+       "id": "c_divise",
+       "text": "on divise"
+      },
+      {
+       "id": "c_formule",
+       "text": "T un fois p deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_i2",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "isole2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul",
+     "say": "Remplaçons : quinze mille fois dix, fois deux cent quatre-vingt-dix-huit virgule quinze, divisé par deux cent quatre-vingt-huit virgule quinze fois cent un virgule trois. Ça donne environ mille cinq cents litres d'hélium à TAPN.",
+     "cues": [
+      {
+       "id": "c_quinze",
+       "text": "quinze mille"
+      },
+      {
+       "id": "c_litres",
+       "text": "mille cinq cents litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_i2b",
+       "verb": "write",
+       "at": "cue:c_quinze",
+       "target": "isole2"
+      },
+      {
+       "id": "h_i2",
+       "verb": "highlight",
+       "start": "cue:c_litres",
+       "end": "cue_end:c_litres",
+       "target": "isole2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ballons",
+   "introduces": [
+    {
+     "id": "div",
+     "content": "\\frac{1500 \\text{ L}}{100{,}0 \\text{ L par ballon}} = 15",
+     "parts": [
+      {
+       "id": "frac",
+       "text": "\\frac{1500 \\text{ L}}{100{,}0 \\text{ L par ballon}}"
+      },
+      {
+       "id": "res",
+       "text": "= 15"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rep",
+     "content": "Chaque ballon prend exactement 100,0 L : un rapport de volumes, pas de masses",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "partage",
+     "say": "Chaque ballon contient cent litres. Combien de ballons dans mille cinq cents litres ? On divise : quinze.",
+     "cues": [
+      {
+       "id": "c_chaque",
+       "text": "Chaque ballon"
+      },
+      {
+       "id": "c_cent2",
+       "text": "cent litres"
+      },
+      {
+       "id": "c_quinze2",
+       "text": "quinze"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_i1",
+       "verb": "fade_out",
+       "at": "cue:c_chaque",
+       "target": "isole1"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_cent2",
+       "target": "div",
+       "part": "frac"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_quinze2",
+       "target": "div",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "unites",
+     "say": "L'unité disparaît : des litres divisés par des litres, c'est un nombre pur. On peut remplir quinze ballons avec cette bonbonne.",
+     "cues": [
+      {
+       "id": "c_unite",
+       "text": "unité disparaît"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "cue:c_unite",
+       "target": "rep"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "p₁V₁ ÷ T₁ = p₂V₂ ÷ T₂ : deux états, même quantité de gaz",
+     "type": "text"
+    },
+    {
+     "id": "reponse",
+     "content": "V_2 \\approx 1500 \\text{ L} \\;\\Rightarrow\\; 15 \\text{ ballons}",
+     "parts": [
+      {
+       "id": "vol",
+       "text": "V_2 \\approx 1500 \\text{ L}"
+      },
+      {
+       "id": "fleche",
+       "text": "\\Rightarrow"
+      },
+      {
+       "id": "nb",
+       "text": "15 \\text{ ballons}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la loi combinée relie les deux états. On convertit toujours la température en kelvins, la pression en kilopascals, le volume en litres, puis on isole ce qu'on cherche.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "loi combinée"
+      },
+      {
+       "id": "c_temp",
+       "text": "kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "f_k",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "kelvins"
+      },
+      {
+       "id": "f_i2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "isole2"
+      },
+      {
+       "id": "f_div",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "div"
+      },
+      {
+       "id": "f_but",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "but"
+      },
+      {
+       "id": "w_reponse",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "reponse",
+       "part": "vol"
+      },
+      {
+       "id": "w_fl",
+       "verb": "write",
+       "at": "after:w_reponse",
+       "target": "reponse",
+       "part": "fleche"
+      },
+      {
+       "id": "w_nb",
+       "verb": "write",
+       "at": "cue:c_temp",
+       "target": "reponse",
+       "part": "nb"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "conclusion",
+     "say": "Donc avec cette bonbonne, on remplit quinze ballons de cent litres à la température et pression ambiantes normales.",
+     "cues": [
+      {
+       "id": "c_remplit",
+       "text": "quinze ballons"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_remplit",
+       "target": "idee"
+      },
+      {
+       "id": "h_nb",
+       "verb": "highlight",
+       "start": "cue:c_remplit",
+       "end": "cue_end:c_remplit",
+       "target": "reponse",
+       "role": "result",
+       "part": "nb"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

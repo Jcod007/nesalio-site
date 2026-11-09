@@ -1,0 +1,58 @@
+QUESTION (ap-exponentielle-bases, mathematiques, sec 5, alloprof) : Quelles sont les étapes pour déterminer la valeur de x? 7 exposant 2x−3= 5 exposant x
+RÉPONSE DE RÉFÉRENCE : x = 3 log 7 / (2 log 7 − log 5) ≈ 2,56
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Résoudre 7^(2x−3) = 5^x
+math_context : {"symbols":{},"expressions":{"droite":"log(5)/log(7)","k":"3*log(7)/(2*log(7)-log(5))"}}
+=== Tranche s_impossible
+  OBJET eq [math] "7^{2x-3} = 5^{x}" parts=7^{2x-3} | = | 5^{x}
+  OBJET rappel [math] "a^{m} = a^{n} \\Rightarrow m = n" parts=a^{m} = a^{n} | \Rightarrow | m = n
+DIT (pose) : Sept exposant deux x moins trois égale cinq exposant x.
+    write eq @cue:c_gauche {"part":"gauche"}
+    write eq @after:w_gauche {"part":"eg"}
+    write eq @cue:c_droite {"part":"droite"}
+DIT (pourquoi_log) : Les deux bases sont différentes. Je ne peux donc pas simplement égaler deux x moins trois à x.
+    show rappel @cue:c_bases 
+    dim rappel @after:s_rappel 
+    dim eq @cue:c_bases 
+=== Tranche s_log
+  OBJET line1 [math] "\\log\\left(7^{2x-3}\\right) = \\log\\left(5^{x}\\right)" parts=\log\left(7^{2x-3}\right) | = | \log\left(5^{x}\right)
+  OBJET line2 [math] "(2x-3)\\log 7 = x\\log 5" parts=(2x-3)\log 7 | = | x\log 5
+DIT (applique) : J’applique le logarithme des deux côtés. C’est permis, parce que le logarithme est défini pour tout nombre positif.
+    write line1 @cue:c_applique {"part":"lo"}
+    write line1 @after:w_lo {"part":"eg2"}
+    write line1 @after:w_eg2 {"part":"ld"}
+DIT (exposant) : La règle du logarithme d’une puissance fait descendre l’exposant devant : deux x moins trois fois log sept, égale x fois log cinq.
+    transform line2 @cue:c_fait {"source":"line1"}
+    highlight line2 @- {"start":"cue:c_logcinq","end":"cue_end:c_logcinq","role":"accent","part":"pd"}
+=== Tranche s_isoler
+  OBJET line3 [math] "2x\\log 7 - x\\log 5 = 3\\log 7" parts=2x\log 7 - x\log 5 | = | 3\log 7
+  OBJET line4 [math] "x\\left(2\\log 7 - \\log 5\\right) = 3\\log 7" parts=x\left(2\log 7 - \log 5\right) | = | 3\log 7
+  OBJET line5 [math] "x = \\frac{3\\log 7}{2\\log 7 - \\log 5}" parts=x | = | \frac{3\log 7}{2\log 7 - \log 5}
+DIT (deplace) : Je regroupe les termes en x à gauche et le terme constant à droite.
+    transform line3 @cue:c_regroupe {"source":"line2"}
+    highlight line3 @- {"start":"cue:c_constante","end":"cue_end:c_constante","role":"given","part":"const"}
+DIT (factorise) : Je factorise x à gauche : x fois, entre parenthèses, deux log sept moins log cinq.
+    transform line4 @cue:c_factorise {"source":"line3"}
+    highlight line4 @- {"start":"cue:c_factorise","end":"cue_end:c_factorise","role":"accent","part":"fact"}
+DIT (divise) : Je divise les deux côtés par la parenthèse : j’obtiens x égale trois log sept, sur deux log sept moins log cinq.
+    transform line5 @cue:c_divise {"source":"line4"}
+    highlight line5 @- {"start":"cue:c_obtiens","end":"cue_end:c_obtiens","role":"accent","part":"xseul"}
+=== Tranche s_valeur
+  OBJET valeur [math] {"kind":"computed","expression_ref":"k","template":"x \\approx {value}","precision":2} 
+  OBJET verif [text] "Réponse exacte : x = 3log7 / (2log7 − log5)" 
+DIT (calcul) : À la calculatrice, log sept vaut environ zéro virgule huit quatre cinq un, et log cinq environ zéro virgule six neuf neuf.
+    show valeur @cue:c_calc 
+DIT (resultat) : x vaut donc environ trois virgule quatre-vingt-six. Les bases de départ étant différentes, la valeur exacte s’écrit avec des logarithmes.
+    show verif @cue:c_exacte 
+    highlight valeur @- {"start":"cue:c_resultat","end":"cue_end:c_resultat","role":"result"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : quand l’inconnue est en exposant et que les bases diffèrent, on applique le logarithme, on fait descendre l’exposant, puis on isole x.
+    fade_out eq @beat:start 
+    fade_out rappel @beat:start 
+    fade_out verif @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["line5","valeur"],"bounds":"layout_bounds"}
+    highlight line5 @- {"start":"cue:c_isoler","end":"cue_end:c_isoler","role":"result","part":"fraction"}
+--- 5 tranches, 188 mots dits (≈ 1.3 min d'oral)

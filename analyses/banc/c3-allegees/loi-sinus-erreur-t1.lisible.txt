@@ -1,0 +1,88 @@
+QUESTION (loi-sinus-erreur, mathematiques, sec 4, erreur) : dans mon triangle j'ai l'angle A = 40°, l'angle B = 60° pis a = 10 cm. je cherche b avec la loi des sinus pis j'obtiens 7,42 cm mais c'est pas la bonne réponse
+RÉPONSE DE RÉFÉRENCE : b = 10 × sin 60° / sin 40° ≈ 13,47 cm ; 7,42 cm vient des sinus inversés.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. a/sin A = b/sin B dans tout triangle, chaque côté apparié à l'angle opposé (figure)
+  2. diagnostic : 7,42 = 10 × sin 40° / sin 60°, sinus inversés
+  3. b = 10 × sin 60° / sin 40° ≈ 13,47 cm, écrit
+  4. contrôle : le plus grand angle fait face au plus grand côté, B > A donc b > 10
+  5. calculatrice en mode degrés ; valorisé : C = 80°
+ERREURS GRAVES À CHERCHER : figure qui apparie a avec le mauvais angle
+CONTRÔLE AUTOMATIQUE : réponse absente (13[,.]4[67]) ; issue complète
+
+TITRE : Loi des sinus : le côté en face de son angle
+math_context : {"symbols":{},"expressions":{"bon":"10*sin(60*3.141592653589793/180)/sin(40*3.141592653589793/180)","faux":"10*sin(40*3.141592653589793/180)/sin(60*3.141592653589793/180)"}}
+=== Tranche s_figure
+  OBJET pA [point] {"at":[0,0]} 
+  OBJET lA [label] "A" attaché à pA
+  OBJET pB [point] {"at":[11.49,0]} 
+  OBJET lB [label] "B" attaché à pB
+  OBJET pC [point] {"at":[7.66,6.43]} 
+  OBJET lC [label] "C" attaché à pC
+  OBJET cote_a [line] {"from":[11.49,0],"to":[7.66,6.43]} 
+  OBJET lab_a [label] "a = 10 cm" attaché à cote_a
+  OBJET cote_b [line] {"from":[0,0],"to":[7.66,6.43]} 
+  OBJET lab_b [label] "b = ?" attaché à cote_b   <<JAMAIS MONTRÉ>>
+  OBJET cote_c [line] {"from":[0,0],"to":[11.49,0]} 
+  OBJET lab_c [label] "c" attaché à cote_c   <<JAMAIS MONTRÉ>>
+  OBJET angA [label] "40°" 
+  OBJET angB [label] "60°" 
+DIT (pose) : Ton triangle a l'angle A de quarante degrés, l'angle B de soixante degrés, et le côté a de dix centimètres.
+    draw pA @cue:c_A 
+    show lA @after:d_A 
+    show angA @after:d_A 
+    draw pB @cue:c_B 
+    show lB @after:d_B 
+    show angB @after:d_B 
+    draw cote_a @cue:c_a 
+    show lab_a @after:d_a 
+DIT (ferme) : Je ferme le triangle avec le point C : le côté a relie B et C, et il est directement en face de l'angle A.
+    draw pC @cue:c_C 
+    show lC @after:d_C 
+    draw cote_b @- {"start":"cue:c_C","end":"cue_end:c_face"}
+    draw cote_c @- {"start":"cue:c_C","end":"cue_end:c_face"}
+    highlight cote_a @- {"start":"cue:c_face","end":"cue_end:c_face","role":"accent"}
+=== Tranche s_loi
+  OBJET loi [math] "\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}" parts=\frac{a}{\sin A} | = \frac{b}{\sin B} | = \frac{c}{\sin C}
+  OBJET appari [label] "côté a ↔ angle A" attaché à loi
+DIT (loi_mot) : La loi des sinus dit que a sur sinus de A égale b sur sinus de B égale c sur sinus de C.
+    write loi @cue:c_a_sin {"part":"p_a"}
+    write loi @cue:c_b_sin {"part":"p_b"}
+    write loi @cue:c_c_sin {"part":"p_c"}
+DIT (appariement) : Le point clé : chaque côté est marié à l'angle qui lui fait face. Le petit a va avec le grand A, le b avec le B.
+    show appari @cue:c_cle 
+    highlight loi @- {"start":"cue:c_petit","end":"cue_end:c_petit","role":"accent","part":"p_a"}
+    highlight cote_a @- {"start":"cue:c_petit","end":"cue_end:c_petit","role":"accent"}
+    highlight loi @- {"start":"cue:c_b","end":"cue_end:c_b","role":"accent","part":"p_b"}
+    highlight cote_b @- {"start":"cue:c_b","end":"cue_end:c_b","role":"accent"}
+=== Tranche s_erreur
+  OBJET calcul_faux [math] {"kind":"computed","expression_ref":"faux","template":"10 \\times \\frac{\\sin 40^\\circ}{\\sin 60^\\circ} = {value}","precision":2} 
+  OBJET calcul_bon [math] {"kind":"computed","expression_ref":"bon","template":"10 \\times \\frac{\\sin 60^\\circ}{\\sin 40^\\circ} = {value}","precision":2} 
+  GROUPE etapes = calcul_faux, calcul_bon
+DIT (ton_calcul) : Ton sept virgule quarante-deux vient d'un échange : tu as mis sinus de quarante en haut et sinus de soixante en bas.
+    write calcul_faux @cue:c_echange 
+    highlight calcul_faux @after:w_faux {"role":"accent"}
+    highlight calcul_faux @cue:c_quarante {"role":"accent"}
+    set_style calcul_faux @after:w_faux_val {"role":"secondary"}
+DIT (pourquoi) : Mais l'angle B est plus grand que l'angle A, alors le côté b doit être plus grand que dix centimètres. Sept virgule quarante-deux, c'est trop petit, ça ne colle pas.
+    highlight angB @- {"start":"cue:c_plus_grand","end":"cue_end:c_plus_grand","role":"accent"}
+    highlight cote_b @- {"start":"cue:c_plus_petit","end":"cue_end:c_plus_petit","role":"accent"}
+DIT (correct) : La bonne écriture part du côté connu : b sur sinus de soixante égale a sur sinus de quarante. En isolant b, on multiplie dix par sinus de soixante divisé par sinus de quarante.
+    write calcul_bon @cue:c_bon 
+    highlight calcul_bon @cue:c_isole {"role":"accent"}
+    highlight calcul_bon @after:w_bon_frac {"role":"accent"}
+    set_style calcul_bon @after:w_bon_val {"role":"result"}
+DIT (mode) : Vérifie que ta calculatrice est en degrés : sinon elle interprète quarante et soixante en radians et tout fausse.
+    dim cote_c @cue:c_degres 
+    dim lab_c @cue:c_degres 
+=== Tranche s_retenir
+  OBJET idee [text] "Un côté se marie à l'angle qui lui fait face" 
+  OBJET loi_finale [math] "\\frac{b}{\\sin B} = \\frac{a}{\\sin A}" 
+  GROUPE retenir = idee, loi_finale
+DIT (fin) : À retenir : dans la loi des sinus, chaque côté se marie à l'angle qui lui fait face. Le plus grand angle donne toujours le plus grand côté.
+    fade_out calcul_faux @cue:c_retenir 
+    fade_out appari @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["retenir","cote_b","angB"],"bounds":"layout_bounds"}
+    show idee @cue:c_mariage 
+    show loi_finale @after:s_idee 
+    highlight loi_finale @after:s_loi {"role":"result"}
+--- 4 tranches, 228 mots dits (≈ 1.5 min d'oral)

@@ -1,0 +1,605 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "proba_somme_deux_des",
+  "title": "Probabilité d'une somme de 7 avec deux dés",
+  "language": "fr",
+  "learning_goal": "Comprendre que les 11 sommes possibles ne sont pas équiprobables et que P(somme 7) = 6/36 = 1/6."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+       ],
+       [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+       ],
+       [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+       ],
+       [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+       ],
+       [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+       ],
+       [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+       ]
+      ],
+      "row_labels": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "6"
+      ],
+      "column_labels": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "6"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne intuition de compter les sommes possibles, mais il y a un piège : toutes ces sommes ne sortent pas aussi souvent.",
+     "cues": [],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "tableau",
+     "say": "Regarde le tableau des résultats possibles : la ligne est le premier dé, la colonne est le deuxième, et chaque case donne la somme.",
+     "cues": [
+      {
+       "id": "c_ligne",
+       "text": "la ligne est le premier dé"
+      },
+      {
+       "id": "c_colonne",
+       "text": "la colonne est le deuxième"
+      },
+      {
+       "id": "c_case",
+       "text": "chaque case donne la somme"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_ligne",
+       "end": "cue_end:c_case",
+       "target": "tab",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_non_equipro",
+   "introduces": [
+    {
+     "id": "sept",
+     "content": "\\frac{6}{36} = \\frac{1}{6}",
+     "parts": [
+      {
+       "id": "six",
+       "text": "\\frac{6}{36}"
+      },
+      {
+       "id": "un_six",
+       "text": "= \\frac{1}{6}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "compte",
+     "say": "Compte les cases où la somme vaut sept : il y en a six. Une seule case donne deux, une seule donne douze.",
+     "cues": [
+      {
+       "id": "c_sept",
+       "text": "somme vaut sept"
+      },
+      {
+       "id": "c_six",
+       "text": "six"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_sept",
+       "verb": "highlight",
+       "start": "cue:c_sept",
+       "end": "cue_end:c_six",
+       "target": "tab",
+       "part": "r1c6"
+      },
+      {
+       "id": "h_sept2",
+       "verb": "highlight",
+       "at": "cue:c_six",
+       "target": "tab",
+       "part": "r2c5"
+      },
+      {
+       "id": "h_sept3",
+       "verb": "highlight",
+       "at": "cue:c_six",
+       "target": "tab",
+       "part": "r3c4"
+      },
+      {
+       "id": "h_sept4",
+       "verb": "highlight",
+       "at": "cue:c_six",
+       "target": "tab",
+       "part": "r4c3"
+      },
+      {
+       "id": "h_sept5",
+       "verb": "highlight",
+       "at": "cue:c_six",
+       "target": "tab",
+       "part": "r5c2"
+      },
+      {
+       "id": "h_sept6",
+       "verb": "highlight",
+       "at": "cue:c_six",
+       "target": "tab",
+       "part": "r6c1"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "C'est là ton erreur : les onze sommes ne sont pas équiprobables. Le sept sort de six façons, le deux d'une seule.",
+     "cues": [
+      {
+       "id": "c_erreur",
+       "text": "les onze sommes ne sont pas équiprobables"
+      },
+      {
+       "id": "c_facons",
+       "text": "six façons"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_erreur",
+       "verb": "highlight",
+       "start": "cue:c_erreur",
+       "end": "cue_end:c_facons",
+       "target": "tab",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul",
+     "say": "On divise donc les six cas favorables par les trente-six cas possibles : six sur trente-six, ce qui donne un sixième.",
+     "cues": [
+      {
+       "id": "c_favorables",
+       "text": "six cas favorables"
+      },
+      {
+       "id": "c_possibles",
+       "text": "trente-six cas possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_six",
+       "verb": "write",
+       "at": "cue:c_favorables",
+       "target": "sept",
+       "part": "six"
+      },
+      {
+       "id": "w_un_six",
+       "verb": "write",
+       "at": "cue:c_possibles",
+       "target": "sept",
+       "part": "un_six"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "rappelle",
+     "layout": {
+      "next_to": "sept",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "On ne peut pas diviser par le nombre de sommes :\\n les cases ne sont pas égales.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "À retenir : une probabilité, c'est les cas favorables divisés par les cas possibles, mais seulement si toutes les issues ont la même chance.",
+     "cues": [
+      {
+       "id": "c_favorables",
+       "text": "cas favorables"
+      },
+      {
+       "id": "c_possibles",
+       "text": "cas possibles"
+      },
+      {
+       "id": "c_meme_chance",
+       "text": "la même chance"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_meme_chance",
+       "targets": [
+        "sept",
+        "rappelle"
+       ]
+      },
+      {
+       "id": "s_rap",
+       "verb": "show",
+       "at": "cue:c_meme_chance",
+       "target": "rappelle"
+      },
+      {
+       "id": "h_sept",
+       "verb": "highlight",
+       "start": "cue:c_meme_chance",
+       "end": "cue_end:c_meme_chance",
+       "target": "sept",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "finit",
+     "say": "Ici, les trente-six cases du tableau sont équiprobables, alors la probabilité d'une somme de sept est bien de un sixième.",
+     "cues": [
+      {
+       "id": "c_equipro",
+       "text": "trente-six cases"
+      },
+      {
+       "id": "c_un_sixieme",
+       "text": "un sixième"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_equipro",
+       "end": "cue_end:c_un_sixieme",
+       "target": "tab",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_final",
+   "introduces": [
+    {
+     "id": "regle_finale",
+     "layout": {
+      "next_to": "sept",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "P(\\text{somme } 7) = \\frac{6}{36} = \\frac{1}{6}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "Donc rappelle-toi : on compte les cases gagnantes, six, sur toutes les cases, trente-six. Un sixième, pas un onzième.",
+     "cues": [
+      {
+       "id": "c_rappel",
+       "text": "on compte les cases"
+      },
+      {
+       "id": "c_verdict",
+       "text": "Un sixième, pas un onzième"
+      }
+     ],
+     "do": [
+      {
+       "id": "r_tab",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "r_rap",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "rappelle"
+      },
+      {
+       "id": "w_finale",
+       "verb": "write",
+       "at": "cue:c_verdict",
+       "target": "regle_finale"
+      },
+      {
+       "id": "h_finale",
+       "verb": "highlight",
+       "start": "cue:c_verdict",
+       "end": "cue_end:c_verdict",
+       "target": "regle_finale",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

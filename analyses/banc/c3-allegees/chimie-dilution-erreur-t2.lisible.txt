@@ -1,0 +1,74 @@
+QUESTION (chimie-dilution-erreur, chimie, sec 4, erreur) : j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?
+RÉPONSE DE RÉFÉRENCE : C₂ = C₁V₁/V₂ = 2 × 50 / 200 = 0,50 mol/L ; 8 mol/L vient du rapport inversé.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. en diluant, la quantité de soluté ne change pas : n = C₁V₁ = C₂V₂
+  2. diagnostic : 8 mol/L = 2 × 200 / 50, rapport des volumes inversé
+  3. C₂ = 2 × 50 / 200 = 0,50 mol/L écrit
+  4. contrôle de vraisemblance : ajouter de l'eau diminue la concentration (volume × 4, concentration ÷ 4)
+  5. unités cohérentes (les mL s'annulent)
+ERREURS GRAVES À CHERCHER : concentration qui augmente à la dilution ; diagnostic inventé
+CONTRÔLE AUTOMATIQUE : réponse absente (0[,.]5\d*\s*mol) ; issue complète
+
+TITRE : Diluer : pourquoi la concentration diminue
+math_context : {"symbols":{},"expressions":{"c2":"2*50/200"}}
+=== Tranche s_verif
+  OBJET donnees [matrix] {"rows":[[2,50,"?"],[200,"",""]],"row_labels":["concentration (mol/L)","volume (mL)"]} 
+DIT (pose) : Bonne question ! On va vérifier ta réponse avec les données : une solution à deux moles par litre, dont on prend cinquante millilitres, et qu'on amène à deux cents millilitres.
+    show donnees @cue:c_deux 
+=== Tranche s_solute
+  OBJET bac1 [polygon] {"vertices":[[0,0],[3,0],[3,4],[0,4]]} 
+  OBJET bac2 [polygon] {"vertices":[[5,0],[11,0],[11,4],[5,4]]} 
+  OBJET pA [point] {"at":[1,1]} 
+  OBJET pB [point] {"at":[1,2]} 
+  OBJET pC [point] {"at":[2,1]} 
+  OBJET pD [point] {"at":[2,2]} 
+  OBJET pA2 [point] {"at":[6,1]} 
+  OBJET pB2 [point] {"at":[6,2]} 
+  OBJET pC2 [point] {"at":[7,1]} 
+  OBJET pD2 [point] {"at":[7,2]} 
+DIT (avant) : D'abord l'idée : dans la solution, il y a une certaine quantité de soluté, ici quatre particules, réparties dans la petite solution de cinquante millilitres.
+    draw bac1 @cue:c_solute 
+    show pA @cue:c_reparties 
+    show pB @cue:c_reparties 
+    show pC @cue:c_reparties 
+    show pD @cue:c_reparties 
+DIT (apres) : Quand on ajoute de l'eau, les particules restent les mêmes : quatre. Mais elles ont maintenant bien plus de place.
+    dim bac1 @cue:c_eau 
+    draw bac2 @cue:c_eau 
+    show pA2 @cue:c_place 
+    show pB2 @cue:c_place 
+    show pC2 @cue:c_place 
+    show pD2 @cue:c_place 
+=== Tranche s_erreur
+  OBJET faux [math] "2 \\times 200 \\div 50 = 8" parts=2 \times 200 | \div 50 | = 8
+  OBJET juste [math] "C_2 = \\frac{C_1 V_1}{V_2} = \\frac{2 \\times 50}{200} = 0{,}5 \\ \\pu{mol/L}" parts=C_2 = \frac{C_1 V_1}{V_2} | = \frac{2 \times 50}{200} | = 0{,}5 \ \pu{mol/L}
+DIT (erreur) : Ton huit moles par litre vient de deux fois deux cents divisé par cinquante.
+    fade_out donnees @cue:c_faux 
+    fade_out bac1 @cue:c_faux 
+    fade_out bac2 @cue:c_faux 
+    write faux @cue:c_faux 
+DIT (recalcule) : La concentration a pourtant diminué : le volume passe de cinquante à deux cents, il est multiplié par quatre, donc la concentration est divisée par quatre. Deux divisé par quatre, ça donne zéro virgule cinq.
+    write juste @cue:c_diminue {"part":"regle"}
+    write juste @cue:c_divise {"part":"sub"}
+    write juste @cue:c_cinq {"part":"res"}
+    highlight juste @after:w_res {"role":"result","part":"res"}
+=== Tranche s_verif_finale
+  OBJET vraie [math] "2 \\times 50 = 0{,}5 \\times 200" parts=2 \times 50 | = 0{,}5 \times 200
+DIT (conservation) : On vérifie : deux fois cinquante donne cent, et zéro virgule cinq fois deux cents donne aussi cent. La quantité de soluté est bien la même avant et après.
+    fade_out faux @cue:c_cent 
+    write vraie @cue:c_cent {"part":"gauche"}
+    write vraie @cue:c_aussi {"part":"droite"}
+    highlight vraie @- {"start":"cue:c_meme","end":"cue_end:c_meme","role":"given"}
+DIT (erreur_nommee) : Donc non : huit moles par litre, c'est impossible. Ajouter de l'eau ne peut que diluer, jamais concentrer.
+    highlight juste @- {"start":"cue:c_non","end":"cue_end:c_non","role":"result","part":"res"}
+=== Tranche s_retenir
+  OBJET regle [math] "C_1 V_1 = C_2 V_2" parts=C_1 V_1 | = C_2 V_2
+  OBJET idee [text] "même quantité de soluté, plus de volume → concentration plus petite" 
+DIT (retenir) : À retenir : quand on dilue, la quantité de soluté ne change pas, donc C un fois V un égale C deux fois V deux. Et comme le volume augmente, la concentration diminue.
+    fade_out juste @cue:c_retenir 
+    fade_out vraie @cue:c_retenir 
+    write regle @cue:c_egale {"part":"avant"}
+    write regle @cue:c_egale {"part":"apres"}
+    show idee @cue:c_diminue 
+    highlight regle @after:s_idee {"role":"result"}
+--- 5 tranches, 205 mots dits (≈ 1.4 min d'oral)

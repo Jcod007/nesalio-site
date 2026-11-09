@@ -1,0 +1,846 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "stoechiometrie_h2o",
+  "title": "De 4 g d'hydrogène à la masse d'eau formée",
+  "language": "fr",
+  "learning_goal": "Passer des grammes aux moles, appliquer le rapport des coefficients, puis revenir aux grammes pour trouver la masse d'eau produite."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_depart",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "2\\,\\ce{H2} + \\ce{O2} -> 2\\,\\ce{H2O}",
+     "parts": [
+      {
+       "id": "h2",
+       "text": "2\\,\\ce{H2}"
+      },
+      {
+       "id": "o2",
+       "text": "+ \\ce{O2}"
+      },
+      {
+       "id": "h2o",
+       "text": "-> 2\\,\\ce{H2O}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "masse",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "m(\\ce{H2}) = 4\\ \\text{g}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Bonne question. On fait brûler quatre grammes d'hydrogène, et on veut la masse d'eau qui se forme.",
+     "cues": [
+      {
+       "id": "quatre",
+       "text": "quatre grammes d'hydrogène"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_eq",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "eq"
+      },
+      {
+       "id": "w_masse",
+       "verb": "write",
+       "at": "cue:quatre",
+       "target": "masse"
+      }
+     ]
+    },
+    {
+     "id": "lire",
+     "say": "Regarde l'équation balancée : deux H deux plus un O deux donnent deux H deux O.",
+     "cues": [
+      {
+       "id": "deuxh2",
+       "text": "deux H deux"
+      },
+      {
+       "id": "undo2",
+       "text": "un O deux"
+      },
+      {
+       "id": "deuxh2o",
+       "text": "deux H deux O"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_h2",
+       "verb": "write",
+       "at": "cue:deuxh2",
+       "target": "eq",
+       "part": "h2"
+      },
+      {
+       "id": "w_o2",
+       "verb": "write",
+       "at": "cue:undo2",
+       "target": "eq",
+       "part": "o2"
+      },
+      {
+       "id": "w_h2o",
+       "verb": "write",
+       "at": "cue:deuxh2o",
+       "target": "eq",
+       "part": "h2o"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        2,
+        1,
+        2
+       ],
+       [
+        null,
+        null,
+        null
+       ],
+       [
+        4,
+        null,
+        null
+       ]
+      ],
+      "row_labels": [
+       "coefficient",
+       "quantité (mol)",
+       "masse (g)"
+      ],
+      "column_labels": [
+       "substance",
+       "H₂",
+       "O₂",
+       "H₂O"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "div",
+     "attachment": {
+      "parent": "tab",
+      "anchor": "left",
+      "placement": "outside"
+     },
+     "content": "÷ 2,02",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "attention",
+     "say": "Attention, un piège : ces coefficients ne sont pas des grammes, ce sont des moles. Alors la première chose à faire, c'est transformer les quatre grammes en moles.",
+     "cues": [
+      {
+       "id": "piege",
+       "text": "un piège"
+      },
+      {
+       "id": "moles",
+       "text": "des moles"
+      },
+      {
+       "id": "transformer",
+       "text": "transformer les quatre grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "h_coef",
+       "verb": "highlight",
+       "start": "cue:piege",
+       "end": "cue_end:moles",
+       "target": "tab",
+       "role": "accent",
+       "part": "r1"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "La masse molaire de H deux, c'est deux virgule zéro deux grammes par mole. On divise : quatre divisé par deux virgule zéro deux donne environ un virgule quatre-vingt-dix-huit moles.",
+     "cues": [
+      {
+       "id": "mm",
+       "text": "deux virgule zéro deux grammes par mole"
+      },
+      {
+       "id": "resultat",
+       "text": "un virgule quatre-vingt-dix-huit moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_div",
+       "verb": "show",
+       "at": "cue:mm",
+       "target": "div"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "start": "cue:mm",
+       "end": "cue_end:mm",
+       "target": "tab",
+       "role": "given",
+       "part": "r2c2"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:resultat",
+       "end": "cue_end:resultat",
+       "target": "tab",
+       "role": "given",
+       "part": "r2c2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_rapport",
+   "introduces": [
+    {
+     "id": "rapport",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\frac{n(\\ce{H2})}{2} = \\frac{n(\\ce{H2O})}{2}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "Maintenant le rapport. Devant H deux il y a un deux, devant H deux O aussi : pour deux moles d'hydrogène, il se forme deux moles d'eau.",
+     "cues": [
+      {
+       "id": "un_deux",
+       "text": "il y a un deux"
+      },
+      {
+       "id": "deux_deux",
+       "text": "deux moles d'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_coef2",
+       "verb": "highlight",
+       "start": "cue:un_deux",
+       "end": "cue_end:un_deux",
+       "target": "tab",
+       "role": "accent",
+       "part": "r1"
+      },
+      {
+       "id": "h_h2o",
+       "verb": "highlight",
+       "start": "cue:deux_deux",
+       "end": "cue_end:deux_deux",
+       "target": "tab",
+       "role": "accent",
+       "part": "c3"
+      },
+      {
+       "id": "w_rapport",
+       "verb": "write",
+       "at": "cue:deux_deux",
+       "target": "rapport"
+      }
+     ]
+    },
+    {
+     "id": "un_pour_un",
+     "say": "Un pour un, donc : on part de un virgule quatre-vingt-dix-huit moles d'hydrogène, on obtient la même quantité d'eau, un virgule quatre-vingt-dix-huit moles.",
+     "cues": [
+      {
+       "id": "meme",
+       "text": "la même quantité d'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "cue:meme",
+       "target": "tab"
+      },
+      {
+       "id": "f_rapport",
+       "verb": "fade_out",
+       "at": "cue:meme",
+       "target": "rapport"
+      },
+      {
+       "id": "h_res2",
+       "verb": "highlight",
+       "start": "cue:meme",
+       "end": "cue_end:meme",
+       "target": "rapport",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retour_grammes",
+   "introduces": [
+    {
+     "id": "retour",
+     "content": "m(\\ce{H2O}) = n \\times M = 1{,}98 \\times 18{,}02",
+     "parts": [
+      {
+       "id": "formule",
+       "text": "m(\\ce{H2O}) = n \\times M"
+      },
+      {
+       "id": "nombres",
+       "text": "= 1{,}98 \\times 18{,}02"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "x18",
+     "layout": {
+      "next_to": "retour",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "× 18,02",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "masse_molaire",
+     "say": "Il reste la dernière étape : revenir en grammes. La masse molaire de l'eau, c'est dix-huit virgule zéro deux grammes par mole.",
+     "cues": [
+      {
+       "id": "dixhuit",
+       "text": "dix-huit virgule zéro deux grammes par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "retour"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "retour",
+       "part": "formule"
+      },
+      {
+       "id": "s_x18",
+       "verb": "show",
+       "at": "cue:dixhuit",
+       "target": "x18"
+      }
+     ]
+    },
+    {
+     "id": "multiplication",
+     "say": "On multiplie : un virgule quatre-vingt-dix-huit fois dix-huit virgule zéro deux, ça donne environ trente-cinq virgule six-huit grammes d'eau.",
+     "cues": [
+      {
+       "id": "multiplie",
+       "text": "On multiplie"
+      },
+      {
+       "id": "resultat",
+       "text": "trente-cinq virgule six-huit grammes d'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_nombres",
+       "verb": "write",
+       "at": "cue:multiplie",
+       "target": "retour",
+       "part": "nombres"
+      },
+      {
+       "id": "h_resultat",
+       "verb": "highlight",
+       "start": "cue:resultat",
+       "end": "cue_end:resultat",
+       "target": "retour",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "verif",
+     "content": "m(\\ce{O2}) = 0{,}99 \\times 32{,}00 \\approx 31{,}68\\ \\text{g}",
+     "parts": [
+      {
+       "id": "oxygene",
+       "text": "m(\\ce{O2})"
+      },
+      {
+       "id": "calcul",
+       "text": "= 0{,}99 \\times 32{,}00"
+      },
+      {
+       "id": "valeur",
+       "text": "\\approx 31{,}68\\ \\text{g}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "bilan",
+     "layout": {
+      "next_to": "verif",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "4\\ \\text{g} + 31{,}68\\ \\text{g} = 35{,}68\\ \\text{g}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "controle",
+     "say": "Vérifions avec la conservation de la masse. Pour brûler tout l'hydrogène, il faut zéro virgule quatre-vingt-dix-neuf mole d'oxygène, soit environ trente et un virgule six-huit grammes.",
+     "cues": [
+      {
+       "id": "verifier",
+       "text": "conservation de la masse"
+      },
+      {
+       "id": "oxygene_g",
+       "text": "trente et un virgule six-huit grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_oxygene",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "verif",
+       "part": "oxygene"
+      },
+      {
+       "id": "w_calcul",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "verif",
+       "part": "calcul"
+      },
+      {
+       "id": "w_valeur",
+       "verb": "write",
+       "at": "cue:oxygene_g",
+       "target": "verif",
+       "part": "valeur"
+      }
+     ]
+    },
+    {
+     "id": "somme",
+     "say": "Quatre grammes plus trente et un virgule six-huit grammes, ça fait exactement trente-cinq virgule six-huit. Le compte est bon : rien ne s'est perdu.",
+     "cues": [
+      {
+       "id": "quatre",
+       "text": "Quatre grammes"
+      },
+      {
+       "id": "trentecinq",
+       "text": "trente-cinq virgule six-huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_bilan",
+       "verb": "write",
+       "at": "cue:quatre",
+       "target": "bilan"
+      },
+      {
+       "id": "h_bilan",
+       "verb": "highlight",
+       "start": "cue:trentecinq",
+       "end": "cue_end:trentecinq",
+       "target": "bilan",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "chemin",
+     "content": "masse → moles → rapport des coefficients → moles → masse",
+     "type": "text"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "chemin",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n = \\frac{m}{M}",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Les coefficients sont un rapport de moles, jamais de grammes.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : les coefficients de l'équation sont un rapport de moles, jamais de grammes. Le chemin, c'est masse, moles, rapport, moles, masse.",
+     "cues": [
+      {
+       "id": "coef",
+       "text": "un rapport de moles"
+      },
+      {
+       "id": "chemin_mot",
+       "text": "masse, moles, rapport, moles, masse"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:coef",
+       "target": "verif"
+      },
+      {
+       "id": "f_bilan",
+       "verb": "fade_out",
+       "at": "cue:coef",
+       "target": "bilan"
+      },
+      {
+       "id": "f_retour",
+       "verb": "fade_out",
+       "at": "cue:coef",
+       "target": "retour"
+      },
+      {
+       "id": "f_x18",
+       "verb": "fade_out",
+       "at": "cue:coef",
+       "target": "x18"
+      },
+      {
+       "id": "f_div",
+       "verb": "fade_out",
+       "at": "cue:coef",
+       "target": "div"
+      },
+      {
+       "id": "f_masse",
+       "verb": "fade_out",
+       "at": "cue:coef",
+       "target": "masse"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:chemin_mot",
+       "targets": [
+        "chemin",
+        "regle",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_chemin",
+       "verb": "show",
+       "at": "cue:chemin_mot",
+       "target": "chemin"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:chemin_mot",
+       "target": "regle"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:chemin_mot",
+       "target": "idee"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:chemin_mot",
+       "end": "cue_end:chemin_mot",
+       "target": "idee",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

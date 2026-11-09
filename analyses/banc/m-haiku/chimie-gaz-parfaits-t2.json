@@ -1,0 +1,564 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "gaz_moles_ballon",
+  "title": "Combien de moles de gaz dans le ballon",
+  "language": "fr",
+  "learning_goal": "Calculer n avec la loi des gaz parfaits pV = nRT, en convertissant T en kelvins."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "p": {
+     "kind": "constant",
+     "value": 101.3
+    },
+    "V": {
+     "kind": "constant",
+     "value": 5
+    },
+    "R": {
+     "kind": "constant",
+     "value": 8.314
+    }
+   },
+   "expressions": {
+    "n": "p*V/(R*(25+273.15))"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "donnees",
+     "params": {
+      "rows": [
+       [
+        "5,0",
+        "25",
+        "101,3"
+       ],
+       [
+        "L",
+        "°C",
+        "kPa"
+       ]
+      ],
+      "row_labels": [
+       "valeur",
+       "unité"
+      ],
+      "column_labels": [
+       "volume",
+       "température",
+       "pression"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "loi",
+     "content": "pV = nRT",
+     "parts": [
+      {
+       "id": "pv",
+       "text": "pV"
+      },
+      {
+       "id": "eg",
+       "text": "="
+      },
+      {
+       "id": "nrt",
+       "text": "nRT"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees_pose",
+     "say": "On a un ballon de cinq virgule zéro litres, à vingt-cinq degrés Celsius, sous cent un virgule trois kilopascals.",
+     "cues": [
+      {
+       "id": "c_volume",
+       "text": "cinq virgule zéro litres"
+      },
+      {
+       "id": "c_temp",
+       "text": "vingt-cinq degrés Celsius"
+      },
+      {
+       "id": "c_press",
+       "text": "cent un virgule trois kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_donnees",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "donnees"
+      },
+      {
+       "id": "h_vol",
+       "verb": "highlight",
+       "at": "cue:c_volume",
+       "target": "donnees",
+       "role": "given",
+       "part": "r1c1"
+      },
+      {
+       "id": "h_temp",
+       "verb": "highlight",
+       "at": "cue:c_temp",
+       "target": "donnees",
+       "role": "given",
+       "part": "r1c2"
+      },
+      {
+       "id": "h_press",
+       "verb": "highlight",
+       "at": "cue:c_press",
+       "target": "donnees",
+       "role": "given",
+       "part": "r1c3"
+      }
+     ]
+    },
+    {
+     "id": "loi_pose",
+     "say": "Pour trouver le nombre de moles, on utilise la loi des gaz parfaits : p V égale n R T.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "loi des gaz parfaits"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_loi",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_temperature",
+   "introduces": [
+    {
+     "id": "kelvin",
+     "content": "T = 25 + 273{,}15 = 298{,}15\\ \\text{K}",
+     "parts": [
+      {
+       "id": "t_def",
+       "text": "T = 25 + 273{,}15"
+      },
+      {
+       "id": "t_res",
+       "text": "= 298{,}15\\ \\text{K}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "kelvin_pose",
+     "say": "Attention, la température doit être en kelvins : on ajoute deux cent soixante-treize virgule quinze à vingt-cinq, ce qui fait deux cent quatre-vingt-dix-huit virgule quinze kelvins.",
+     "cues": [
+      {
+       "id": "c_kelvin",
+       "text": "en kelvins"
+      },
+      {
+       "id": "c_ajoute",
+       "text": "on ajoute"
+      },
+      {
+       "id": "c_res",
+       "text": "deux cent quatre-vingt-dix-huit virgule quinze"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_t_def",
+       "verb": "write",
+       "at": "cue:c_ajoute",
+       "target": "kelvin",
+       "part": "t_def"
+      },
+      {
+       "id": "w_t_res",
+       "verb": "write",
+       "at": "cue:c_res",
+       "target": "kelvin",
+       "part": "t_res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "n_formule",
+     "content": "n = \\frac{pV}{RT} = \\frac{101{,}3 \\times 5{,}0}{8{,}314 \\times 298{,}15}",
+     "parts": [
+      {
+       "id": "n_def",
+       "text": "n = \\frac{pV}{RT}"
+      },
+      {
+       "id": "n_num",
+       "text": "= \\frac{101{,}3 \\times 5{,}0}{8{,}314 \\times 298{,}15}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "n_res",
+     "style": {
+      "role": "result"
+     },
+     "content": "n \\approx 0{,}204\\ \\text{mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isole",
+     "say": "On isole n : n égale p V sur R T.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "On isole n"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n_def",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "n_formule",
+       "part": "n_def"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "On remplace : cent un virgule trois fois cinq virgule zéro, sur huit virgule trois cent quatorze fois deux cent quatre-vingt-dix-huit virgule quinze.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "On remplace"
+      },
+      {
+       "id": "c_num",
+       "text": "cent un virgule trois fois cinq virgule zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n_num",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "n_formule",
+       "part": "n_num"
+      },
+      {
+       "id": "h_num",
+       "verb": "highlight",
+       "start": "cue:c_num",
+       "end": "cue_end:c_num",
+       "target": "n_formule",
+       "role": "accent",
+       "part": "n_num"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "resultat",
+     "say": "Ça donne environ zéro virgule deux cent quatre moles.",
+     "cues": [
+      {
+       "id": "c_result",
+       "text": "zéro virgule deux cent quatre moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_res",
+       "verb": "show",
+       "at": "cue:c_result",
+       "target": "n_res"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Environ 0,204 mol de gaz : toujours des kelvins !",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : pour un gaz, on passe toujours la température en kelvins avant d'utiliser p V égale n R T.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_kelvins",
+       "text": "en kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_donnees",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "donnees"
+      },
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "loi"
+      },
+      {
+       "id": "f_kelvin",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "kelvin"
+      },
+      {
+       "id": "f_n",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "n_formule"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "at": "cue:c_kelvins",
+       "target": "idee",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

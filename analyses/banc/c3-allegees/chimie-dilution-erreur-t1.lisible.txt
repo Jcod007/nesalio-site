@@ -1,0 +1,65 @@
+QUESTION (chimie-dilution-erreur, chimie, sec 4, erreur) : j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?
+RÉPONSE DE RÉFÉRENCE : C₂ = C₁V₁/V₂ = 2 × 50 / 200 = 0,50 mol/L ; 8 mol/L vient du rapport inversé.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. en diluant, la quantité de soluté ne change pas : n = C₁V₁ = C₂V₂
+  2. diagnostic : 8 mol/L = 2 × 200 / 50, rapport des volumes inversé
+  3. C₂ = 2 × 50 / 200 = 0,50 mol/L écrit
+  4. contrôle de vraisemblance : ajouter de l'eau diminue la concentration (volume × 4, concentration ÷ 4)
+  5. unités cohérentes (les mL s'annulent)
+ERREURS GRAVES À CHERCHER : concentration qui augmente à la dilution ; diagnostic inventé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Vérifier la concentration après une dilution
+math_context : {"symbols":{"C1":{"kind":"constant","value":2},"V1":{"kind":"constant","value":50},"V2":{"kind":"constant","value":200}},"expressions":{"C2":"C1*V1/V2","facteur":"V2/V1"}}
+=== Tranche s_erreur
+  OBJET donnees [text] "C₁ = 2 mol/L   V₁ = 50 mL   V₂ = 200 mL" 
+  OBJET rep_eleve [math] "C_2 = 8\\ \\text{mol/L}" 
+  OBJET note [text] "à vérifier" 
+DIT (accueil) : Bonne nouvelle : tu as bien vu qu'il fallait utiliser les volumes. Mais huit moles par litre, c'est trop haut, et je vais te montrer pourquoi.
+    show donnees @beat:start 
+    show rep_eleve @cue:c_trop 
+    show note @cue:c_trop 
+DIT (sens) : Diluer, ça veut dire ajouter de l'eau. La même quantité de soluté se retrouve dans plus de liquide : la concentration doit baisser, pas monter.
+    highlight rep_eleve @- {"start":"cue:c_baisser","end":"cue_end:c_baisser","role":"unknown"}
+=== Tranche s_pas_images
+  OBJET verre1 [polygon] {"vertices":[[0,0],[1.5,0],[1.5,2],[0,2]]} 
+  OBJET verre2 [polygon] {"vertices":[[2.5,0],[8.5,0],[8.5,2],[2.5,2]]} 
+  OBJET grains [text] "8 grains de soluté dans chaque verre" 
+DIT (meme) : Imagine huit grains de sel dans un petit verre de cinquante millilitres. Je les ai dessinés ici.
+    draw verre1 @- {"start":"cue:c_cinquante","end":"cue_end:c_cinquante"}
+    show grains @cue:c_grains 
+DIT (plus_grand) : Maintenant j'ajoute de l'eau jusqu'à deux cents millilitres. Le verre s'élargit, mais je n'ai ajouté aucun grain : c'est toujours huit grains.
+    draw verre2 @- {"start":"cue:c_ajoute","end":"cue_end:c_ajoute"}
+    dim verre1 @cue:c_ajoute 
+    show grains @cue:c_huit 
+=== Tranche s_formule
+  OBJET loi [math] "C_1 V_1 = C_2 V_2" parts=C_1 V_1 | = C_2 V_2
+  OBJET isole [math] "C_2 = \\frac{C_1 V_1}{V_2}" 
+  OBJET calc [math] {"kind":"computed","expression_ref":"C2","template":"C_2 = {value} \\text{ mol/L}","precision":1} 
+DIT (conservation) : La quantité de soluté ne change pas quand on ajoute de l'eau. Concentration fois volume avant, égale concentration fois volume après.
+    write loi @cue:c_quantite {"part":"gauche"}
+    write loi @cue:c_egale {"part":"droite"}
+DIT (calcule) : Je remplace : deux moles par litre fois cinquante millilitres, divisé par deux cents millilitres. Deux fois cinquante fait cent, cent divisé par deux cents fait zéro virgule cinq.
+    write isole @cue:c_divise 
+    write calc @cue:c_zero_cinq 
+=== Tranche s_facteur
+  OBJET fac [math] {"kind":"computed","expression_ref":"facteur","template":"\\frac{200}{50} = {value}","precision":0} 
+  OBJET phr [text] "Plus de place, moins concentré." 
+DIT (verif) : Regarde l'autre bout : le volume a été multiplié par quatre, parce que deux cents divisé par cinquante fait quatre. Donc la concentration doit être divisée par quatre, pas multipliée.
+    show fac @cue:c_quatre 
+DIT (erreur) : Ton huit, lui, vient de deux fois deux cents divisé par cinquante : tu as mis le grand volume au numérateur. Ça donne quatre fois plus concentré, ce qui est impossible quand on rajoute de l'eau.
+    fade_out rep_eleve @cue:c_impossible 
+    fade_out note @cue:c_impossible 
+    fade_out grains @cue:c_impossible 
+    fade_out verre1 @cue:c_impossible 
+    show phr @cue:c_impossible 
+=== Tranche s_retenir
+  OBJET idee [text] "Même soluté, plus de volume : la concentration baisse." 
+  OBJET res [math] "C_2 = 0{,}5\\ \\text{mol/L}" 
+DIT (idee) : À retenir : quand on ajoute de l'eau, la quantité de soluté reste la même, mais le volume augmente, alors la concentration diminue.
+    camera.focus  @beat:start {"targets":["verre2","loi","isole","calc","idee"],"bounds":"layout_bounds"}
+    write idee @cue:c_retenir 
+DIT (resultat) : Ta nouvelle concentration est donc de zéro virgule cinq mole par litre, et non huit.
+    show res @cue:c_zero_cinq 
+    highlight res @after:s_res {"role":"result"}
+--- 5 tranches, 244 mots dits (≈ 1.6 min d'oral)

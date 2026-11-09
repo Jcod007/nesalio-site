@@ -1,0 +1,103 @@
+QUESTION (loi-sinus-erreur, mathematiques, sec 4, erreur) : dans mon triangle j'ai l'angle A = 40°, l'angle B = 60° pis a = 10 cm. je cherche b avec la loi des sinus pis j'obtiens 7,42 cm mais c'est pas la bonne réponse
+RÉPONSE DE RÉFÉRENCE : b = 10 × sin 60° / sin 40° ≈ 13,47 cm ; 7,42 cm vient des sinus inversés.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. a/sin A = b/sin B dans tout triangle, chaque côté apparié à l'angle opposé (figure)
+  2. diagnostic : 7,42 = 10 × sin 40° / sin 60°, sinus inversés
+  3. b = 10 × sin 60° / sin 40° ≈ 13,47 cm, écrit
+  4. contrôle : le plus grand angle fait face au plus grand côté, B > A donc b > 10
+  5. calculatrice en mode degrés ; valorisé : C = 80°
+ERREURS GRAVES À CHERCHER : figure qui apparie a avec le mauvais angle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Retrouver b avec la loi des sinus
+=== Tranche s_figure
+  OBJET pa [point] {"at":[0,0]} 
+  OBJET pb [point] {"at":[4,0]} 
+  OBJET pc [point] {"at":[2.57,3.06]} 
+  OBJET la [label] "A" attaché à pa
+  OBJET lb [label] "B" attaché à pb
+  OBJET lc [label] "C" attaché à pc
+  OBJET cote_a [line] {"from":[4,0],"to":[2.57,3.06]} 
+  OBJET cote_b [line] {"from":[2.57,3.06],"to":[0,0]} 
+  OBJET cote_c [line] {"from":[0,0],"to":[4,0]} 
+  OBJET lab_a [label] "a = 10 cm" attaché à cote_a
+  OBJET lab_b [label] "b = ?" attaché à cote_b
+  OBJET lab_c [label] "c" attaché à cote_c
+  OBJET angA [label] "40°" attaché à pa
+DIT (pose) : Ton triangle : l'angle A vaut quarante degrés, l'angle B vaut soixante degrés, et le côté a mesure dix centimètres.
+    show pa @beat:start 
+    show pb @beat:start 
+    show pc @beat:start 
+    draw cote_a @beat:start 
+    draw cote_b @beat:start 
+    draw cote_c @beat:start 
+    show la @beat:start 
+    show lb @beat:start 
+    show lc @beat:start 
+    show angA @cue:c_a 
+    show lab_a @cue:c_cote 
+DIT (oppose) : Le point clé : le côté a est en face de l'angle A, et le côté b est en face de l'angle B. Chaque côté va avec l'angle opposé.
+    highlight lab_a @- {"start":"cue:c_face","end":"cue_end:c_face","role":"given"}
+    highlight angA @- {"start":"cue:c_face","end":"cue_end:c_face","role":"given"}
+    show lab_b @cue:c_oppose 
+    show lab_c @cue:c_oppose 
+=== Tranche s_formule
+  OBJET loi [math] "\\frac{a}{\\sin A} = \\frac{b}{\\sin B}" parts=\frac{a}{\sin A} | = | \frac{b}{\sin B}
+DIT (ecris) : La loi des sinus dit que a sur sinus A égale b sur sinus B. Chaque rapport associe un côté à son angle opposé.
+    write loi @cue:c_a_sur {"part":"p_a"}
+    write loi @after:w_a {"part":"p_egal"}
+    write loi @cue:c_b_sur {"part":"p_b"}
+    highlight loi @- {"start":"cue:c_a_sur","end":"cue_end:c_a_sur","role":"given","part":"p_a"}
+    highlight loi @- {"start":"cue:c_b_sur","end":"cue_end:c_b_sur","role":"accent","part":"p_b"}
+DIT (isole) : Tu cherches b : multiplie les deux côtés par sinus B. Il reste b égale a fois sinus B, divisé par sinus A.
+    dim lab_c @cue:c_fois 
+    dim cote_c @cue:c_fois 
+    show loi @beat:start 
+    highlight loi @- {"start":"cue:c_fois","end":"cue_end:c_div","role":"accent","part":"p_b"}
+=== Tranche s_calcul
+  OBJET calc_bon [math] "b = \\frac{10 \\times \\sin 60^\\circ}{\\sin 40^\\circ}" parts=b | = | \frac{10 \times \sin 60^\circ}{\sin 40^\circ}
+  OBJET res_bon [math] "b \\approx 13{,}47 \\text{ cm}" parts=b | \approx 13{,}47 \text{ cm}
+  OBJET calc_faux [math] "\\frac{10 \\times \\sin 40^\\circ}{\\sin 60^\\circ} \\approx 7{,}42" 
+  OBJET note_err [text] "Les sinus sont inversés" 
+DIT (bon) : Avec la bonne formule, tu remplaces : b égale dix fois sinus soixante degrés, sur sinus quarante degrés. Assure-toi que ta calculatrice est en mode degrés.
+    show calc_bon @beat:start 
+    write calc_bon @cue:c_remp {"part":"cb_gauche"}
+    write calc_bon @after:w_cb_g {"part":"cb_egal"}
+    write calc_bon @cue:c_sur {"part":"cb_frac"}
+    highlight calc_bon @- {"start":"cue:c_sur","end":"cue_end:c_mode","role":"given","part":"cb_frac"}
+DIT (err) : Toi, tu as mis sinus quarante en haut et sinus soixante en bas : tu as inversé les sinus. Ça donne sept virgule quarante-deux, mais ce n'est pas b.
+    show calc_faux @cue:c_sin40haut 
+    highlight calc_faux @- {"start":"cue:c_inverse","end":"cue_end:c_inverse","role":"unknown"}
+    show note_err @cue:c_742 
+DIT (vrai) : Le bon calcul donne treize virgule quarante-sept centimètres. Vérifions : l'angle B, soixante degrés, est plus grand que A, quarante degrés.
+    show res_bon @cue:c_1347 
+    highlight res_bon @- {"start":"cue:c_1347","end":"cue_end:c_1347","role":"result"}
+    dim calc_faux @cue:c_verif 
+    dim note_err @cue:c_verif 
+    highlight lab_b @- {"start":"cue:c_verif","end":"cue_end:c_verif","role":"accent"}
+    highlight lab_a @- {"start":"cue:c_A","end":"cue_end:c_A","role":"given"}
+DIT (coherent) : Donc le plus grand angle est en face du plus grand côté : b, treize virgule quarante-sept, est bien plus grand que a, dix. Ton sept virgule quarante-deux était plus petit que a : impossible.
+    highlight calc_bon @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"result"}
+    set_style lab_b @cue:c_face {"role":"result"}
+    highlight res_bon @- {"start":"cue:c_impossible","end":"cue_end:c_impossible","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Dans la loi des sinus, chaque côté est en face de son angle opposé" 
+  OBJET formule_fin [math] "\\frac{a}{\\sin A} = \\frac{b}{\\sin B}" parts=\frac{a}{\sin A} | = | \frac{b}{\sin B}
+DIT (final) : À retenir : dans la loi des sinus, chaque côté est en face de son angle opposé. Le plus grand angle est toujours en face du plus grand côté.
+    camera.focus  @cue:c_retenir {"targets":["loi","idee","formule_fin"],"bounds":"layout_bounds"}
+    show idee @cue:c_oppose 
+    show formule_fin @cue:c_grand 
+    highlight formule_fin @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"result"}
+    fade_out cote_a @cue:c_retenir 
+    fade_out cote_b @cue:c_retenir 
+    fade_out cote_c @cue:c_retenir 
+    fade_out pa @cue:c_retenir 
+    fade_out pb @cue:c_retenir 
+    fade_out pc @cue:c_retenir 
+    fade_out lab_a @cue:c_retenir 
+    fade_out lab_b @cue:c_retenir 
+    fade_out calc_bon @cue:c_retenir 
+    fade_out res_bon @cue:c_retenir 
+    fade_out calc_faux @cue:c_retenir 
+    fade_out note_err @cue:c_retenir 
+--- 4 tranches, 236 mots dits (≈ 1.6 min d'oral)

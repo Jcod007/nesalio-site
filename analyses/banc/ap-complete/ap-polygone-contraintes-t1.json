@@ -1,0 +1,732 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "inequations_polygones_contraintes",
+  "title": "Comprendre les inéquations et les polygones de contraintes",
+  "language": "fr",
+  "learning_goal": "Savoir écrire, résoudre et interpréter une inéquation, puis l'utiliser comme contrainte d'un polygone de contraintes dans une situation concrète."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Une inéquation, c'est une inégalité à respecter",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Les inéquations, ce n'est pas si sorcier : c'est une inégalité qu'on doit respecter, comme un budget.",
+     "cues": [
+      {
+       "id": "c_ineq",
+       "text": "inéquations"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_ineq",
+       "target": "titre"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_inequation",
+   "introduces": [
+    {
+     "id": "ineq",
+     "content": "x + 3 \\le 7",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "x + 3"
+      },
+      {
+       "id": "operateur",
+       "text": "\\le"
+      },
+      {
+       "id": "droite",
+       "text": "7"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ineq2",
+     "content": "x \\le 4",
+     "type": "math"
+    },
+    {
+     "id": "droite_num",
+     "params": {
+      "domain": [
+       0,
+       8
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "p4",
+     "style": {
+      "role": "result"
+     },
+     "frame": "droite_num",
+     "params": {
+      "at": [
+       4,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l4",
+     "attachment": {
+      "parent": "p4",
+      "anchor": "bottom"
+     },
+     "content": "4",
+     "type": "label"
+    },
+    {
+     "id": "p7",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "droite_num",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l7",
+     "attachment": {
+      "parent": "p7",
+      "anchor": "bottom"
+     },
+     "content": "7",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Prenons une contrainte simple : x plus trois est plus petit ou égal à sept.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "x plus trois"
+      },
+      {
+       "id": "c_sept",
+       "text": "sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "ineq",
+       "part": "gauche"
+      },
+      {
+       "id": "w_operateur",
+       "verb": "write",
+       "at": "cue_end:c_x",
+       "target": "ineq",
+       "part": "operateur"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_sept",
+       "target": "ineq",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "resous",
+     "say": "On enlève trois des deux côtés, pour garder l'inégalité vraie : il reste x plus petit ou égal à quatre.",
+     "cues": [
+      {
+       "id": "c_enleve",
+       "text": "enlève trois"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_ineq",
+       "verb": "transform",
+       "at": "cue:c_enleve",
+       "source": "ineq",
+       "target": "ineq2"
+      },
+      {
+       "id": "h_ineq2",
+       "verb": "highlight",
+       "at": "cue:c_quatre",
+       "target": "ineq2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "dessine",
+     "say": "Sur la droite numérique, quatre est la limite, et sept vérifie aussi cette contrainte.",
+     "cues": [
+      {
+       "id": "c_droite",
+       "text": "droite numérique"
+      },
+      {
+       "id": "c_limite",
+       "text": "la limite"
+      },
+      {
+       "id": "c_sept2",
+       "text": "sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_droite",
+       "verb": "draw",
+       "at": "cue:c_droite",
+       "target": "droite_num"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "cue:c_limite",
+       "target": "p4"
+      },
+      {
+       "id": "s_l4",
+       "verb": "show",
+       "at": "cue_end:c_limite",
+       "target": "l4"
+      },
+      {
+       "id": "s_p7",
+       "verb": "show",
+       "at": "cue:c_sept2",
+       "target": "p7"
+      },
+      {
+       "id": "s_l7",
+       "verb": "show",
+       "at": "cue_end:c_sept2",
+       "target": "l7"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_systeme",
+   "introduces": [
+    {
+     "id": "ineq_x",
+     "content": "x \\ge 0",
+     "type": "math"
+    },
+    {
+     "id": "ineq_y",
+     "content": "y \\ge 0",
+     "type": "math"
+    },
+    {
+     "id": "ineq_total",
+     "content": "x + y \\le 6",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "contexte",
+     "say": "Imagine un atelier qui fabrique des tables et des chaises : le nombre de tables x ne peut pas être négatif, ni le nombre de chaises y.",
+     "cues": [
+      {
+       "id": "c_tables",
+       "text": "tables"
+      },
+      {
+       "id": "c_negatif",
+       "text": "pas être négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ineq_x",
+       "verb": "write",
+       "at": "cue:c_tables",
+       "target": "ineq_x"
+      },
+      {
+       "id": "w_ineq_y",
+       "verb": "write",
+       "at": "cue:c_negatif",
+       "target": "ineq_y"
+      }
+     ]
+    },
+    {
+     "id": "budget",
+     "say": "Et le total ne peut pas dépasser six objets avec le bois disponible : x plus y plus petit ou égal à six.",
+     "cues": [
+      {
+       "id": "c_depasse",
+       "text": "dépasser six"
+      },
+      {
+       "id": "c_plus",
+       "text": "x plus y"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ineq_total",
+       "verb": "write",
+       "at": "cue:c_depasse",
+       "target": "ineq_total"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_polygone",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -1,
+       7
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "d1",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       0,
+       6
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "d2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "d3",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       6,
+       0
+      ],
+      "to": [
+       0,
+       6
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "poly",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "sommetA",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sommetB",
+     "frame": "axes",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sommetC",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       6
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Ces trois inéquations, dessinées, donnent un triangle : c'est le polygone de contraintes.",
+     "cues": [
+      {
+       "id": "c_triangle",
+       "text": "triangle"
+      },
+      {
+       "id": "c_polygone",
+       "text": "polygone de contraintes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_d2",
+       "verb": "draw",
+       "start": "cue:c_triangle",
+       "end": "cue_end:c_triangle",
+       "target": "d2"
+      },
+      {
+       "id": "d_d1",
+       "verb": "draw",
+       "start": "cue:c_polygone",
+       "end": "cue_end:c_polygone",
+       "target": "d1"
+      },
+      {
+       "id": "d_d3",
+       "verb": "draw",
+       "start": "cue:c_polygone",
+       "end": "cue_end:c_polygone",
+       "target": "d3"
+      },
+      {
+       "id": "d_poly",
+       "verb": "draw",
+       "start": "cue:c_polygone",
+       "end": "cue_end:c_polygone",
+       "target": "poly"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sommets",
+     "say": "Ses sommets sont les points qu'on testera : zéro zéro, six zéro, et zéro six.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "zéro zéro"
+      },
+      {
+       "id": "c_six_zero",
+       "text": "six zéro"
+      },
+      {
+       "id": "c_zero_six",
+       "text": "zéro six"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sA",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "sommetA"
+      },
+      {
+       "id": "s_sB",
+       "verb": "show",
+       "at": "cue:c_six_zero",
+       "target": "sommetB"
+      },
+      {
+       "id": "s_sC",
+       "verb": "show",
+       "at": "cue:c_zero_six",
+       "target": "sommetC"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

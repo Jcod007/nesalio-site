@@ -1,0 +1,58 @@
+QUESTION (chimie-gaz-parfaits, chimie, sec 5, methode) : combien de moles de gaz il y a dans un ballon de 5,0 L à 25 °C pis 101,3 kPa?
+RÉPONSE DE RÉFÉRENCE : n = PV/RT = 101,3 × 5,0 / (8,314 × 298) ≈ 0,204 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. PV = nRT, donc n = PV / RT
+  2. température en kelvins : 25 + 273 = 298 K
+  3. R = 8,314 kPa·L/(mol·K), unités cohérentes avec kPa et L
+  4. n ≈ 0,204 mol écrit
+  5. contrôle : à TPAN une mole occupe ≈ 24,5 L, et 5,0 / 24,5 ≈ 0,20
+ERREURS GRAVES À CHERCHER : température laissée en °C ; R avec des unités incohérentes
+CONTRÔLE AUTOMATIQUE : réponse absente (0[,.]20\d*\s*mol) ; issue complète
+
+TITRE : Combien de moles dans 5,0 L de gaz à 25 °C et 101,3 kPa
+math_context : {"symbols":{},"expressions":{"moles":"101.3*5.0/(8.314*298.15)"}}
+=== Tranche s_question
+  OBJET donnees [matrix] {"rows":[[5],[25],[101.3]],"row_labels":["volume V (L)","température (°C)","pression p (kPa)"],"column_labels":["valeur"]} 
+DIT (pose) : Tu veux savoir combien de moles de gaz il y a dans un ballon. On a trois données : le volume, la température et la pression.
+    show donnees @cue:c_trois {"stagger":"normal"}
+DIT (unites) : En chimie des gaz, la température se travaille toujours en kelvins, et la pression en kilopascals. On garde le volume en litres.
+    highlight donnees @- {"start":"cue:c_kelvins","end":"cue_end:c_kelvins","role":"given","part":"r2c1"}
+    highlight donnees @- {"start":"cue:c_kpa","end":"cue_end:c_kpa","role":"given","part":"r3c1"}
+=== Tranche s_temperature
+  OBJET tk [math] "T = 25 + 273{,}15 = 298{,}15\\ \\text{K}" parts=T = 25 + 273{,}15 | = 298{,}15\ \text{K}
+DIT (convertir) : D'abord, convertissons les vingt-cinq degrés Celsius en kelvins. On ajoute deux cent soixante-treize virgule quinze.
+    write tk @cue:c_ajoute {"part":"somme"}
+    write tk @cue:c_cent {"part":"ks"}
+DIT (resultat) : Ça donne deux cent quatre-vingt-dix-huit virgule quinze kelvins. Note que je n'arrondis pas ici : on arrondira seulement à la fin.
+    highlight tk @- {"start":"cue:c_298","end":"cue_end:c_298","role":"accent"}
+=== Tranche s_formule
+  OBJET loi [math] "pV = nRT" parts=pV | = nRT
+  OBJET isole [math] "n = \\dfrac{pV}{RT}" 
+DIT (loi) : La relation qui relie tout ça, c'est la loi des gaz parfaits : pression fois volume égale nombre de moles fois la constante R fois la température.
+    write loi @cue:c_pv {"part":"pv"}
+    write loi @cue:c_nrt {"part":"nrt"}
+DIT (isoler) : Comme on cherche le nombre de moles n, on divise les deux côtés par R et par T. Le n se retrouve seul.
+    transform isole @cue:c_divise {"source":"loi"}
+    highlight isole @- {"start":"cue:c_seul","end":"cue_end:c_seul","role":"accent"}
+DIT (constante) : La constante R vaut huit virgule trois cent quatorze kilopascals fois litres par mole fois kelvin. Ses unités s'accordent avec les nôtres.
+    highlight isole @- {"start":"cue:c_r","end":"cue_end:c_r","role":"given"}
+=== Tranche s_calcul
+  OBJET calcul [math] "n = \\dfrac{101{,}3 \\times 5{,}0}{8{,}314 \\times 298{,}15}" 
+  OBJET resultat [math] {"kind":"computed","expression_ref":"moles","template":"n \\approx {value}\\ \\text{mol}","precision":3} 
+DIT (remplace) : Remplaçons chaque lettre par sa valeur : au numérateur, cent un virgule trois fois cinq virgule zéro ; au dénominateur, huit virgule trois cent quatorze fois deux cent quatre-vingt-dix-huit virgule quinze.
+    fade_out isole @beat:start 
+    write calcul @cue:c_haut 
+    highlight calcul @cue:c_bas {"role":"accent"}
+DIT (calcule) : En haut, ça donne cinq cent six virgule cinq. En bas, environ deux mille quatre cent soixante-dix-huit virgule huit. En divisant, on obtient environ zéro virgule deux cent quatre moles.
+    write resultat @cue:c_204 
+    highlight resultat @- {"start":"cue:c_204","end":"cue_end:c_204","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "n = pV ÷ (RT), avec T en kelvins" 
+DIT (reponse) : À retenir : pour trouver le nombre de moles d'un gaz, tu prends la pression fois le volume, et tu divises par R fois la température en kelvins.
+    camera.focus  @beat:start {"targets":["calcul","resultat","idee"],"bounds":"layout_bounds"}
+    fade_out donnees @beat:start 
+    fade_out tk @beat:start 
+    fade_out loi @beat:start 
+    write idee @cue:c_temp 
+    highlight resultat @- {"start":"cue:c_temp","end":"cue_end:c_temp","role":"result"}
+--- 5 tranches, 245 mots dits (≈ 1.6 min d'oral)

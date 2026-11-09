@@ -1,0 +1,958 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "inegalite_coefficient_negatif",
+  "title": "Pourquoi le sens de l’inégalité change",
+  "language": "fr",
+  "learning_goal": "Recalculer une inéquation et comprendre pourquoi la division par un nombre négatif inverse le sens de l’inégalité."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "ineg_depart",
+     "style": {
+      "role": "given"
+     },
+     "content": "-2x + 5 > 11",
+     "parts": [
+      {
+       "id": "membre_gauche",
+       "text": "-2x + 5"
+      },
+      {
+       "id": "signe_depart",
+       "text": ">"
+      },
+      {
+       "id": "membre_droit",
+       "text": "11"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "retrait",
+     "content": "-2x + 5 - 5 > 11 - 5",
+     "parts": [
+      {
+       "id": "gauche_retrait",
+       "text": "-2x + 5 - 5"
+      },
+      {
+       "id": "signe_retrait",
+       "text": ">"
+      },
+      {
+       "id": "droite_retrait",
+       "text": "11 - 5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "simplifie",
+     "content": "-2x > 6",
+     "parts": [
+      {
+       "id": "gauche_simplifie",
+       "text": "-2x"
+      },
+      {
+       "id": "signe_simplifie",
+       "text": ">"
+      },
+      {
+       "id": "droite_simplifie",
+       "text": "6"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "erreur_eleve",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "x > -3",
+     "type": "math"
+    },
+    {
+     "id": "test_erreur",
+     "content": "x = 0 : -2(0) + 5 = 5",
+     "parts": [
+      {
+       "id": "test_x",
+       "text": "x = 0 :"
+      },
+      {
+       "id": "test_calc",
+       "text": "-2(0) + 5"
+      },
+      {
+       "id": "test_egal",
+       "text": "= 5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "depart",
+     "say": "On part de ton inéquation, moins deux x plus cinq est plus grand que onze. Le point important, c’est que le coefficient de x est négatif.",
+     "cues": [
+      {
+       "id": "depart_mot",
+       "text": "On part"
+      },
+      {
+       "id": "coef_negatif",
+       "text": "coefficient de x est négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:depart_mot",
+       "target": "ineg_depart",
+       "part": "membre_gauche"
+      },
+      {
+       "id": "w_signe",
+       "verb": "write",
+       "at": "cue:depart_mot",
+       "target": "ineg_depart",
+       "part": "signe_depart"
+      },
+      {
+       "id": "w_droit",
+       "verb": "write",
+       "at": "cue:depart_mot",
+       "target": "ineg_depart",
+       "part": "membre_droit"
+      },
+      {
+       "id": "h_coef",
+       "verb": "highlight",
+       "start": "cue:coef_negatif",
+       "end": "cue_end:coef_negatif",
+       "target": "ineg_depart",
+       "role": "accent",
+       "part": "membre_gauche"
+      }
+     ]
+    },
+    {
+     "id": "soustraire",
+     "say": "On enlève cinq des deux côtés pour isoler le terme en x et garder une inégalité équivalente. Moins deux x est alors plus grand que six.",
+     "cues": [
+      {
+       "id": "enleve",
+       "text": "On enlève cinq"
+      },
+      {
+       "id": "isoler",
+       "text": "isoler le terme en x"
+      },
+      {
+       "id": "six",
+       "text": "plus grand que six"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_retrait",
+       "verb": "transform",
+       "at": "cue:enleve",
+       "source": "ineg_depart",
+       "target": "retrait"
+      },
+      {
+       "id": "t_simplifie",
+       "verb": "transform",
+       "at": "cue:six",
+       "source": "retrait",
+       "target": "simplifie"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "erreur",
+     "say": "Ton résultat, x plus grand que moins trois, vient de diviser moins deux x et six par moins deux sans inverser le signe. Il échoue : zéro le vérifie dans l’inéquation de départ.",
+     "cues": [
+      {
+       "id": "ton_resultat",
+       "text": "Ton résultat"
+      },
+      {
+       "id": "vient",
+       "text": "vient de diviser"
+      },
+      {
+       "id": "echoue",
+       "text": "Il échoue"
+      },
+      {
+       "id": "zero",
+       "text": "zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "show_erreur",
+       "verb": "write",
+       "at": "cue:ton_resultat",
+       "target": "erreur_eleve"
+      },
+      {
+       "id": "show_test",
+       "verb": "write",
+       "at": "cue:zero",
+       "target": "test_erreur",
+       "part": "test_x"
+      },
+      {
+       "id": "show_calc",
+       "verb": "write",
+       "at": "cue:zero",
+       "target": "test_erreur",
+       "part": "test_calc"
+      },
+      {
+       "id": "show_egal",
+       "verb": "write",
+       "at": "cue:zero",
+       "target": "test_erreur",
+       "part": "test_egal"
+      },
+      {
+       "id": "h_test",
+       "verb": "highlight",
+       "start": "cue:echoue",
+       "end": "cue_end:echoue",
+       "target": "test_erreur",
+       "role": "unknown",
+       "part": "test_egal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_correction",
+   "introduces": [
+    {
+     "id": "ineq_depart",
+     "style": {
+      "role": "given"
+     },
+     "content": "-2x + 5 > 11",
+     "parts": [
+      {
+       "id": "depart_gauche",
+       "text": "-2x + 5"
+      },
+      {
+       "id": "depart_signe",
+       "text": ">"
+      },
+      {
+       "id": "depart_droite",
+       "text": "11"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "retrait_cinq",
+     "content": "-2x + 5 - 5 > 11 - 5",
+     "parts": [
+      {
+       "id": "retrait_gauche",
+       "text": "-2x + 5 - 5"
+      },
+      {
+       "id": "retrait_signe",
+       "text": ">"
+      },
+      {
+       "id": "retrait_droite",
+       "text": "11 - 5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "simplifie_six",
+     "content": "-2x > 6",
+     "parts": [
+      {
+       "id": "simplifie_gauche",
+       "text": "-2x"
+      },
+      {
+       "id": "simplifie_signe",
+       "text": ">"
+      },
+      {
+       "id": "simplifie_droite",
+       "text": "6"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rep_eleve",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "x > -3",
+     "type": "math"
+    },
+    {
+     "id": "test_zero",
+     "content": "x = 0 : -2(0) + 5 = 5",
+     "parts": [
+      {
+       "id": "test_x",
+       "text": "x = 0 :"
+      },
+      {
+       "id": "test_operation",
+       "text": "-2(0) + 5"
+      },
+      {
+       "id": "test_resultat",
+       "text": "= 5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "poser",
+     "say": "On part de ton inéquation, moins deux x plus cinq est plus grand que onze. Le coefficient de x est négatif, et c’est ce qui compte pour la dernière étape.",
+     "cues": [
+      {
+       "id": "c_depart",
+       "text": "On part"
+      },
+      {
+       "id": "c_negatif",
+       "text": "coefficient de x est négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_gauche",
+       "verb": "write",
+       "at": "cue:c_depart",
+       "target": "ineq_depart",
+       "part": "depart_gauche"
+      },
+      {
+       "id": "ecrire_signe",
+       "verb": "write",
+       "at": "cue:c_depart",
+       "target": "ineq_depart",
+       "part": "depart_signe"
+      },
+      {
+       "id": "ecrire_droite",
+       "verb": "write",
+       "at": "cue:c_depart",
+       "target": "ineq_depart",
+       "part": "depart_droite"
+      },
+      {
+       "id": "surligner_coef",
+       "verb": "highlight",
+       "start": "cue:c_negatif",
+       "end": "cue_end:c_negatif",
+       "target": "ineq_depart",
+       "role": "accent",
+       "part": "depart_gauche"
+      }
+     ]
+    },
+    {
+     "id": "enlever_cinq",
+     "say": "On enlève cinq des deux côtés pour isoler le terme en x tout en gardant une inégalité équivalente. Il reste moins deux x est plus grand que six.",
+     "cues": [
+      {
+       "id": "c_enleve",
+       "text": "On enlève cinq"
+      },
+      {
+       "id": "c_reste",
+       "text": "Il reste"
+      }
+     ],
+     "do": [
+      {
+       "id": "transform_retrait",
+       "verb": "transform",
+       "at": "cue:c_enleve",
+       "source": "ineq_depart",
+       "target": "retrait_cinq"
+      },
+      {
+       "id": "transform_simplifie",
+       "verb": "transform",
+       "at": "cue:c_reste",
+       "source": "retrait_cinq",
+       "target": "simplifie_six"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "repere_erreur",
+     "say": "Tu as écrit x plus grand que moins trois. En divisant les deux côtés par moins deux, il fallait inverser le signe de l’inégalité.",
+     "cues": [
+      {
+       "id": "c_ecrit",
+       "text": "Tu as écrit"
+      },
+      {
+       "id": "c_divisant",
+       "text": "En divisant"
+      },
+      {
+       "id": "c_inverser",
+       "text": "inverser le signe"
+      }
+     ],
+     "do": [
+      {
+       "id": "montrer_erreur",
+       "verb": "write",
+       "at": "cue:c_ecrit",
+       "target": "rep_eleve"
+      },
+      {
+       "id": "mettre_en_retrait",
+       "verb": "dim",
+       "at": "cue:c_divisant",
+       "target": "rep_eleve"
+      },
+      {
+       "id": "surligner_signe",
+       "verb": "highlight",
+       "start": "cue:c_inverser",
+       "end": "cue_end:c_inverser",
+       "target": "simplifie_six",
+       "role": "accent",
+       "part": "simplifie_signe"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_division",
+   "introduces": [
+    {
+     "id": "division_negative",
+     "content": "\\frac{-2x}{-2} < \\frac{6}{-2}",
+     "parts": [
+      {
+       "id": "division_mem",
+       "text": "\\frac{-2x}{-2}"
+      },
+      {
+       "id": "division_signe",
+       "text": "<"
+      },
+      {
+       "id": "division_droite",
+       "text": "\\frac{6}{-2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "solution_intermediaire",
+     "content": "x < -3",
+     "parts": [
+      {
+       "id": "sol_x",
+       "text": "x"
+      },
+      {
+       "id": "sol_signe",
+       "text": "<"
+      },
+      {
+       "id": "sol_moins_trois",
+       "text": "-3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "exemple_solution",
+     "content": "x = -4 : -2(-4) + 5 = 13 > 11",
+     "parts": [
+      {
+       "id": "exemple_x",
+       "text": "x = -4 :"
+      },
+      {
+       "id": "exemple_calcul",
+       "text": "-2(-4) + 5"
+      },
+      {
+       "id": "exemple_inegalite",
+       "text": "= 13 > 11"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "diviser",
+     "say": "Pour isoler x, on divise les deux côtés par moins deux. Comme on divise par un nombre négatif, on inverse le sens : plus grand devient plus petit.",
+     "cues": [
+      {
+       "id": "c_diviser",
+       "text": "on divise les deux côtés"
+      },
+      {
+       "id": "c_negatif",
+       "text": "nombre négatif"
+      },
+      {
+       "id": "c_inverse",
+       "text": "on inverse le sens"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_division",
+       "verb": "write",
+       "at": "cue:c_diviser",
+       "target": "division_negative",
+       "part": "division_mem"
+      },
+      {
+       "id": "w_signe_division",
+       "verb": "write",
+       "at": "cue:c_diviser",
+       "target": "division_negative",
+       "part": "division_signe"
+      },
+      {
+       "id": "w_droite_division",
+       "verb": "write",
+       "at": "cue:c_diviser",
+       "target": "division_negative",
+       "part": "division_droite"
+      },
+      {
+       "id": "h_signe",
+       "verb": "highlight",
+       "start": "cue:c_negatif",
+       "end": "cue_end:c_inverse",
+       "target": "division_negative",
+       "role": "accent",
+       "part": "division_signe"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "resultat",
+     "say": "Moins deux x divisé par moins deux donne x, et six divisé par moins deux donne moins trois. La solution est donc x plus petit que moins trois.",
+     "cues": [
+      {
+       "id": "c_donne_x",
+       "text": "donne x"
+      },
+      {
+       "id": "c_donne_moins",
+       "text": "donne moins trois"
+      },
+      {
+       "id": "c_solution",
+       "text": "La solution"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_x",
+       "verb": "write",
+       "at": "cue:c_donne_x",
+       "target": "solution_intermediaire",
+       "part": "sol_x"
+      },
+      {
+       "id": "w_signe_sol",
+       "verb": "write",
+       "at": "cue:c_donne_moins",
+       "target": "solution_intermediaire",
+       "part": "sol_signe"
+      },
+      {
+       "id": "w_moins_trois",
+       "verb": "write",
+       "at": "cue:c_donne_moins",
+       "target": "solution_intermediaire",
+       "part": "sol_moins_trois"
+      },
+      {
+       "id": "h_sol",
+       "verb": "highlight",
+       "start": "cue:c_solution",
+       "end": "cue_end:c_solution",
+       "target": "solution_intermediaire",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verifier",
+     "say": "Vérifions avec x égal moins quatre, une valeur plus petite que moins trois : le côté gauche vaut treize, et treize est bien plus grand que onze.",
+     "cues": [
+      {
+       "id": "c_valeur",
+       "text": "x égal moins quatre"
+      },
+      {
+       "id": "c_gauche",
+       "text": "le côté gauche vaut treize"
+      },
+      {
+       "id": "c_comparaison",
+       "text": "plus grand que onze"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_exemple_x",
+       "verb": "write",
+       "at": "cue:c_valeur",
+       "target": "exemple_solution",
+       "part": "exemple_x"
+      },
+      {
+       "id": "w_exemple_calcul",
+       "verb": "write",
+       "at": "cue:c_gauche",
+       "target": "exemple_solution",
+       "part": "exemple_calcul"
+      },
+      {
+       "id": "w_exemple_inegalite",
+       "verb": "write",
+       "at": "cue:c_comparaison",
+       "target": "exemple_solution",
+       "part": "exemple_inegalite"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:c_comparaison",
+       "end": "cue_end:c_comparaison",
+       "target": "exemple_solution",
+       "role": "accent",
+       "part": "exemple_inegalite"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle_finale",
+     "content": "-2x + 5 > 11 \\iff x < -3",
+     "parts": [
+      {
+       "id": "regle_depart",
+       "text": "-2x + 5 > 11"
+      },
+      {
+       "id": "regle_equiv",
+       "text": "\\iff"
+      },
+      {
+       "id": "regle_solution",
+       "text": "x < -3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "idee_finale",
+     "layout": {
+      "next_to": "regle_finale",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Diviser par un nombre négatif inverse le sens de l’inégalité.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : on soustrait cinq des deux côtés, puis on divise par moins deux. Diviser par un nombre négatif inverse le sens de l’inégalité : la solution est x plus petit que moins trois.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_inverse",
+       "text": "inverse le sens de l’inégalité"
+      },
+      {
+       "id": "c_solution",
+       "text": "la solution"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_depart_final",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "regle_finale",
+       "part": "regle_depart"
+      },
+      {
+       "id": "w_equiv_final",
+       "verb": "write",
+       "at": "cue:c_inverse",
+       "target": "regle_finale",
+       "part": "regle_equiv"
+      },
+      {
+       "id": "w_solution_final",
+       "verb": "write",
+       "at": "cue:c_solution",
+       "target": "regle_finale",
+       "part": "regle_solution"
+      },
+      {
+       "id": "w_idee_finale",
+       "verb": "write",
+       "at": "cue:c_inverse",
+       "target": "idee_finale"
+      },
+      {
+       "id": "h_solution_finale",
+       "verb": "highlight",
+       "start": "cue:c_solution",
+       "end": "cue_end:c_solution",
+       "target": "regle_finale",
+       "role": "result",
+       "part": "regle_solution"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

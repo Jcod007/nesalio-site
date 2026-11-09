@@ -1,0 +1,1162 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "correlation_signe",
+  "title": "Pourquoi une corrélation qui descend est positive",
+  "language": "fr",
+  "learning_goal": "Comprendre que le signe de r donne le sens du lien : descendant quand x augmente et y diminue, donc r négatif, et montant quand les deux augmentent ensemble, donc r positif."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "lab_x",
+     "attachment": {
+      "parent": "rep",
+      "anchor": "right"
+     },
+     "content": "heures d'étude",
+     "type": "label"
+    },
+    {
+     "id": "lab_y",
+     "attachment": {
+      "parent": "rep",
+      "anchor": "top"
+     },
+     "content": "note sur 10",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Ta question touche exactement le piège du signe. Installe bien les deux axes d'abord, puis on regarde le nuage.",
+     "cues": [
+      {
+       "id": "c_axes",
+       "text": "deux axes"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_nuage"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "s_lx",
+       "verb": "show",
+       "at": "cue:c_axes",
+       "target": "lab_x"
+      },
+      {
+       "id": "s_ly",
+       "verb": "show",
+       "at": "after:s_lx",
+       "target": "lab_y"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_descend",
+   "introduces": [
+    {
+     "id": "p_desc",
+     "frame": "rep",
+     "params": {
+      "at": [
+       1,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_desc2",
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_desc3",
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_desc4",
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_desc5",
+     "frame": "rep",
+     "params": {
+      "at": [
+       5,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_desc6",
+     "frame": "rep",
+     "params": {
+      "at": [
+       6,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_desc7",
+     "frame": "rep",
+     "params": {
+      "at": [
+       7,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "droite_desc",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "expression": "-0.64*x+8.14",
+      "domain": [
+       1,
+       7
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "r_desc",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "r \\approx -0{,}81",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "descend",
+     "say": "Regarde ce premier nuage : x grandit vers la droite, et pourtant les points descendent vers le bas. La droite d'ajustement penche vers le bas.",
+     "cues": [
+      {
+       "id": "c_grandit",
+       "text": "x grandit vers la droite"
+      },
+      {
+       "id": "c_descendent",
+       "text": "points descendent vers le bas"
+      },
+      {
+       "id": "c_penche",
+       "text": "penche vers le bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "s1",
+       "verb": "show",
+       "at": "cue:c_grandit",
+       "target": "p_desc"
+      },
+      {
+       "id": "s2",
+       "verb": "show",
+       "at": "after:s1",
+       "target": "p_desc2"
+      },
+      {
+       "id": "s3",
+       "verb": "show",
+       "at": "after:s2",
+       "target": "p_desc3"
+      },
+      {
+       "id": "s4",
+       "verb": "show",
+       "at": "after:s3",
+       "target": "p_desc4"
+      },
+      {
+       "id": "s5",
+       "verb": "show",
+       "at": "after:s4",
+       "target": "p_desc5"
+      },
+      {
+       "id": "s6",
+       "verb": "show",
+       "at": "after:s5",
+       "target": "p_desc6"
+      },
+      {
+       "id": "s7",
+       "verb": "show",
+       "at": "after:s6",
+       "target": "p_desc7"
+      },
+      {
+       "id": "d_desc",
+       "verb": "draw",
+       "start": "cue:c_descendent",
+       "end": "cue_end:c_penche",
+       "target": "droite_desc"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi_neg",
+     "say": "Quand x augmente et que y a tendance à diminuer, le lien linéaire est négatif : la pente est négative, et r porte ce signe. Ici r vaut environ moins zéro virgule huit un.",
+     "cues": [
+      {
+       "id": "c_negatif",
+       "text": "le lien linéaire est négatif"
+      },
+      {
+       "id": "c_r",
+       "text": "r vaut environ"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rd",
+       "verb": "write",
+       "at": "cue:c_r",
+       "target": "r_desc"
+      },
+      {
+       "id": "h_rd",
+       "verb": "highlight",
+       "start": "cue:c_r",
+       "end": "cue_end:c_r",
+       "target": "r_desc",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_monte",
+   "introduces": [
+    {
+     "id": "p_mon",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_mon2",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_mon3",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_mon4",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_mon5",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       5,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_mon6",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       6,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_mon7",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       7,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "droite_mon",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "expression": "x",
+      "domain": [
+       1,
+       7
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "r_mon",
+     "layout": {
+      "next_to": "r_desc",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "r = 1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "monte",
+     "say": "Maintenant l'inverse : plus x grandit, plus y grandit aussi. Les points montent ensemble, dans le même sens.",
+     "cues": [
+      {
+       "id": "c_inverse",
+       "text": "l'inverse"
+      },
+      {
+       "id": "c_ensemble",
+       "text": "montent ensemble"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_desc",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "p_desc"
+      },
+      {
+       "id": "f_desc2",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "p_desc2"
+      },
+      {
+       "id": "f_desc3",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "p_desc3"
+      },
+      {
+       "id": "f_desc4",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "p_desc4"
+      },
+      {
+       "id": "f_desc5",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "p_desc5"
+      },
+      {
+       "id": "f_desc6",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "p_desc6"
+      },
+      {
+       "id": "f_desc7",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "p_desc7"
+      },
+      {
+       "id": "f_dd",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "droite_desc"
+      },
+      {
+       "id": "d_mon",
+       "verb": "draw",
+       "start": "cue:c_ensemble",
+       "end": "cue_end:c_ensemble",
+       "target": "droite_mon"
+      },
+      {
+       "id": "s_m1",
+       "verb": "show",
+       "at": "after:d_mon",
+       "target": "p_mon"
+      },
+      {
+       "id": "s_m2",
+       "verb": "show",
+       "at": "after:s_m1",
+       "target": "p_mon2"
+      },
+      {
+       "id": "s_m3",
+       "verb": "show",
+       "at": "after:s_m2",
+       "target": "p_mon3"
+      },
+      {
+       "id": "s_m4",
+       "verb": "show",
+       "at": "after:s_m3",
+       "target": "p_mon4"
+      },
+      {
+       "id": "s_m5",
+       "verb": "show",
+       "at": "after:s_m4",
+       "target": "p_mon5"
+      },
+      {
+       "id": "s_m6",
+       "verb": "show",
+       "at": "after:s_m5",
+       "target": "p_mon6"
+      },
+      {
+       "id": "s_m7",
+       "verb": "show",
+       "at": "after:s_m6",
+       "target": "p_mon7"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi_pos",
+     "say": "Les deux variables montent dans le même sens : le lien est positif. Si les points tombaient parfaitement sur une droite montante comme ici, r vaudrait exactement un.",
+     "cues": [
+      {
+       "id": "c_positif",
+       "text": "le lien est positif"
+      },
+      {
+       "id": "c_un",
+       "text": "exactement un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rm",
+       "verb": "write",
+       "at": "cue:c_un",
+       "target": "r_mon"
+      },
+      {
+       "id": "h_rm",
+       "verb": "highlight",
+       "start": "cue:c_un",
+       "end": "cue_end:c_un",
+       "target": "r_mon",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_zero",
+   "introduces": [
+    {
+     "id": "p_zero",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       1,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_zero2",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_zero3",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_zero4",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_zero5",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       5,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_zero6",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       6,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_zero7",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       7,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "r_zero",
+     "layout": {
+      "next_to": "r_mon",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "r \\approx 0",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "desordre",
+     "say": "Et si le nuage part dans tous les sens, sans direction claire, r s'approche de zéro : c'est le signe qu'il n'y a pas de lien linéaire, ni positif ni négatif.",
+     "cues": [
+      {
+       "id": "c_desordre",
+       "text": "dans tous les sens"
+      },
+      {
+       "id": "c_zero_mot",
+       "text": "s'approche de zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_mon",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "p_mon"
+      },
+      {
+       "id": "f_mon2",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "p_mon2"
+      },
+      {
+       "id": "f_mon3",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "p_mon3"
+      },
+      {
+       "id": "f_mon4",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "p_mon4"
+      },
+      {
+       "id": "f_mon5",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "p_mon5"
+      },
+      {
+       "id": "f_mon6",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "p_mon6"
+      },
+      {
+       "id": "f_mon7",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "p_mon7"
+      },
+      {
+       "id": "f_dm",
+       "verb": "fade_out",
+       "at": "cue:c_desordre",
+       "target": "droite_mon"
+      },
+      {
+       "id": "s_z1",
+       "verb": "show",
+       "at": "after:f_dm",
+       "target": "p_zero"
+      },
+      {
+       "id": "s_z2",
+       "verb": "show",
+       "at": "after:s_z1",
+       "target": "p_zero2"
+      },
+      {
+       "id": "s_z3",
+       "verb": "show",
+       "at": "after:s_z2",
+       "target": "p_zero3"
+      },
+      {
+       "id": "s_z4",
+       "verb": "show",
+       "at": "after:s_z3",
+       "target": "p_zero4"
+      },
+      {
+       "id": "s_z5",
+       "verb": "show",
+       "at": "after:s_z4",
+       "target": "p_zero5"
+      },
+      {
+       "id": "s_z6",
+       "verb": "show",
+       "at": "after:s_z5",
+       "target": "p_zero6"
+      },
+      {
+       "id": "s_z7",
+       "verb": "show",
+       "at": "after:s_z6",
+       "target": "p_zero7"
+      },
+      {
+       "id": "w_rz",
+       "verb": "write",
+       "at": "cue:c_zero_mot",
+       "target": "r_zero"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_note",
+   "introduces": [
+    {
+     "id": "memo",
+     "layout": {
+      "next_to": "rep",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Le signe de r = le sens de la pente : qui descend = négatif, qui monte = positif. La grosseur de r = la force du lien.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "truc",
+     "say": "Alors voici le truc pour ta feuille de note : le signe de r suit le sens de la pente de la droite d'ajustement.",
+     "cues": [
+      {
+       "id": "c_truc",
+       "text": "truc pour ta feuille de note"
+      },
+      {
+       "id": "c_signe",
+       "text": "signe de r"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_z",
+       "verb": "fade_out",
+       "at": "cue:c_truc",
+       "target": "p_zero"
+      },
+      {
+       "id": "f_z2",
+       "verb": "fade_out",
+       "at": "cue:c_truc",
+       "target": "p_zero2"
+      },
+      {
+       "id": "f_z3",
+       "verb": "fade_out",
+       "at": "cue:c_truc",
+       "target": "p_zero3"
+      },
+      {
+       "id": "f_z4",
+       "verb": "fade_out",
+       "at": "cue:c_truc",
+       "target": "p_zero4"
+      },
+      {
+       "id": "f_z5",
+       "verb": "fade_out",
+       "at": "cue:c_truc",
+       "target": "p_zero5"
+      },
+      {
+       "id": "f_z6",
+       "verb": "fade_out",
+       "at": "cue:c_truc",
+       "target": "p_zero6"
+      },
+      {
+       "id": "f_z7",
+       "verb": "fade_out",
+       "at": "cue:c_truc",
+       "target": "p_zero7"
+      },
+      {
+       "id": "w_memo",
+       "verb": "write",
+       "at": "cue:c_signe",
+       "target": "memo"
+      }
+     ]
+    },
+    {
+     "id": "force",
+     "say": "Et la grosseur de r, sans le signe, mesure la force : plus elle approche de un, plus les points collent à la droite. Sans oublier qu'une corrélation n'est pas une causalité, les deux variables peuvent bouger ensemble sans que l'une cause l'autre.",
+     "cues": [
+      {
+       "id": "c_force",
+       "text": "mesure la force"
+      },
+      {
+       "id": "c_pas_causalite",
+       "text": "pas une causalité"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rd",
+       "verb": "fade_out",
+       "at": "cue:c_force",
+       "target": "r_desc"
+      },
+      {
+       "id": "f_rm",
+       "verb": "fade_out",
+       "at": "cue:c_force",
+       "target": "r_mon"
+      },
+      {
+       "id": "f_rz",
+       "verb": "fade_out",
+       "at": "cue:c_force",
+       "target": "r_zero"
+      },
+      {
+       "id": "h_memo",
+       "verb": "highlight",
+       "start": "cue:c_pas_causalite",
+       "end": "cue_end:c_pas_causalite",
+       "target": "memo",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : r va de moins un à un. Le signe donne le sens, qui descend est négatif, qui monte est positif ; et la grosseur donne la force.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_sens",
+       "text": "Le signe donne le sens"
+      },
+      {
+       "id": "c_grosseur",
+       "text": "la grosseur donne la force"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "rep",
+        "memo"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_rep",
+       "verb": "highlight",
+       "start": "cue:c_grosseur",
+       "end": "cue_end:c_grosseur",
+       "target": "memo",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

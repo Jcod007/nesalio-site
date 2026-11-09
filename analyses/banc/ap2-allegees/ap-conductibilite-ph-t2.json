@@ -1,0 +1,959 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "conductibilite_ph",
+  "title": "Conductibilité, électrolytes et pH",
+  "language": "fr",
+  "learning_goal": "Distinguer la conductibilité électrique (ions libres en solution) de la mesure du pH (concentration en H⁺), et relier le pH à [H⁺]."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_distinguer",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Ions libres et pH : deux choses différentes",
+     "type": "text"
+    },
+    {
+     "id": "note",
+     "content": "Toute solution d'ions conduit le courant, peu importe son pH.",
+     "type": "callout"
+    },
+    {
+     "id": "line",
+     "params": {
+      "domain": [
+       0,
+       14
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "p_citron",
+     "frame": "line",
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_citron",
+     "attachment": {
+      "parent": "p_citron",
+      "anchor": "top"
+     },
+     "content": "jus de citron (acide)",
+     "type": "label"
+    },
+    {
+     "id": "p_eau",
+     "frame": "line",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_eau",
+     "attachment": {
+      "parent": "p_eau",
+      "anchor": "top"
+     },
+     "content": "eau pure (neutre)",
+     "type": "label"
+    },
+    {
+     "id": "p_javel",
+     "frame": "line",
+     "params": {
+      "at": [
+       12,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_javel",
+     "attachment": {
+      "parent": "p_javel",
+      "anchor": "top"
+     },
+     "content": "eau de Javel (basique)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "distingue",
+     "say": "Ta question porte sur une idée précise : la conductibilité électrique et le pH mesurent deux choses différentes.",
+     "cues": [
+      {
+       "id": "c_conduct",
+       "text": "conductibilité électrique"
+      },
+      {
+       "id": "c_ph",
+       "text": "le pH"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux choses"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "w_note",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "echelle",
+     "say": "Sur l'échelle de pH, qui va de zéro à quatorze, une solution acide est sous sept, neutre à sept, basique au-dessus.",
+     "cues": [
+      {
+       "id": "c_echelle",
+       "text": "échelle de pH"
+      },
+      {
+       "id": "c_acide",
+       "text": "sous sept"
+      },
+      {
+       "id": "c_basique",
+       "text": "au-dessus"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_line",
+       "verb": "show",
+       "at": "cue:c_echelle",
+       "target": "line"
+      },
+      {
+       "id": "s_citron",
+       "verb": "show",
+       "at": "cue:c_acide",
+       "target": "p_citron"
+      },
+      {
+       "id": "s_lcitron",
+       "verb": "show",
+       "at": "after:s_citron",
+       "target": "l_citron"
+      },
+      {
+       "id": "s_javel",
+       "verb": "show",
+       "at": "cue:c_basique",
+       "target": "p_javel"
+      },
+      {
+       "id": "s_ljavel",
+       "verb": "show",
+       "at": "after:s_javel",
+       "target": "l_javel"
+      }
+     ]
+    },
+    {
+     "id": "conduisent",
+     "say": "Or l'eau de Javel, basique, conduit très bien l'électricité, comme l'eau salée, qui est neutre. L'eau pure, elle, ne conduit presque pas.",
+     "cues": [
+      {
+       "id": "c_javel",
+       "text": "eau de Javel"
+      },
+      {
+       "id": "c_conduit",
+       "text": "conduit très bien"
+      },
+      {
+       "id": "c_salee",
+       "text": "eau salée"
+      },
+      {
+       "id": "c_neutre",
+       "text": "neutre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_eau",
+       "verb": "show",
+       "at": "cue:c_salee",
+       "target": "p_eau"
+      },
+      {
+       "id": "s_leau",
+       "verb": "show",
+       "at": "after:s_eau",
+       "target": "l_eau"
+      },
+      {
+       "id": "h_note",
+       "verb": "highlight",
+       "start": "cue:c_conduit",
+       "end": "cue_end:c_neutre",
+       "target": "note",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "conclusion",
+     "say": "Donc le pH n'est pas ce qui décide si une solution conduit. Ce sont les ions libres qui conduisent ; le pH ne regarde que les ions H⁺.",
+     "cues": [
+      {
+       "id": "c_donc",
+       "text": "Donc le pH n'est pas ce qui décide"
+      },
+      {
+       "id": "c_ions",
+       "text": "les ions libres"
+      },
+      {
+       "id": "c_hplus",
+       "text": "les ions H⁺"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_note2",
+       "verb": "highlight",
+       "at": "cue:c_ions",
+       "target": "note",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_electrolyte",
+   "introduces": [
+    {
+     "id": "eq",
+     "layout": {
+      "next_to": "titre",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\ce{NaCl(s) -> Na+(aq) + Cl-(aq)}",
+     "type": "math"
+    },
+    {
+     "id": "na_ion",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "center": [
+       -6,
+       -2
+      ],
+      "radius": 0.8
+     },
+     "type": "circle"
+    },
+    {
+     "id": "l_na",
+     "attachment": {
+      "parent": "na_ion",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "Na⁺",
+     "type": "label"
+    },
+    {
+     "id": "cl_ion",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "center": [
+       -4.8,
+       -2
+      ],
+      "radius": 0.8
+     },
+     "type": "circle"
+    },
+    {
+     "id": "l_cl",
+     "attachment": {
+      "parent": "cl_ion",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "Cl⁻",
+     "type": "label"
+    },
+    {
+     "id": "fort",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "électrolyte fort : se dissocie presque entièrement",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "dissociation",
+     "say": "Prenons le sel de table. Dans l'eau, le solide NaCl se dissocie : il se sépare en un ion sodium Na plus et un ion chlorure Cl moins.",
+     "cues": [
+      {
+       "id": "c_nacl",
+       "text": "NaCl"
+      },
+      {
+       "id": "c_dissocie",
+       "text": "se dissocie"
+      },
+      {
+       "id": "c_na",
+       "text": "ion sodium"
+      },
+      {
+       "id": "c_cl",
+       "text": "ion chlorure"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_react",
+       "verb": "write",
+       "at": "cue:c_nacl",
+       "target": "eq"
+      },
+      {
+       "id": "w_fleche",
+       "verb": "highlight",
+       "at": "cue:c_dissocie",
+       "target": "eq",
+       "role": "accent"
+      },
+      {
+       "id": "s_na",
+       "verb": "show",
+       "at": "cue:c_na",
+       "target": "na_ion"
+      },
+      {
+       "id": "s_lna",
+       "verb": "show",
+       "at": "after:s_na",
+       "target": "l_na"
+      },
+      {
+       "id": "s_cl",
+       "verb": "show",
+       "at": "cue:c_cl",
+       "target": "cl_ion"
+      },
+      {
+       "id": "s_lcl",
+       "verb": "show",
+       "at": "after:s_cl",
+       "target": "l_cl"
+      },
+      {
+       "id": "w_prod",
+       "verb": "highlight",
+       "at": "after:s_lcl",
+       "target": "eq",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "separent",
+     "say": "On dit de NaCl que c'est un électrolyte fort : presque toutes ses particules se séparent et libèrent ces ions, qui portent le courant.",
+     "cues": [
+      {
+       "id": "c_fort",
+       "text": "électrolyte fort"
+      },
+      {
+       "id": "c_separent",
+       "text": "se séparent"
+      },
+      {
+       "id": "c_courant",
+       "text": "portent le courant"
+      }
+     ],
+     "do": [
+      {
+       "id": "m_na",
+       "verb": "move",
+       "at": "cue:c_separent",
+       "target": "na_ion",
+       "to": {
+        "next_to": "cl_ion",
+        "direction": "left",
+        "gap": "lg"
+       }
+      },
+      {
+       "id": "s_fort",
+       "verb": "show",
+       "at": "cue:c_courant",
+       "target": "fort"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ph_h",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        1,
+        2,
+        3
+       ],
+       [
+        0.1,
+        0.01,
+        0.001
+       ]
+      ],
+      "row_labels": [
+       "pH",
+       "[H⁺] (mol/L)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "facteur",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "+1 sur le pH = [H⁺] divisée par 10",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "concentration",
+     "say": "Maintenant, pourquoi le pH change-t-il quand on dilue un acide ? Regarde cette correspondance. À pH un, la concentration en H⁺ est de zéro virgule un mole par litre.",
+     "cues": [
+      {
+       "id": "c_ph1",
+       "text": "pH un"
+      },
+      {
+       "id": "c_un",
+       "text": "zéro virgule un mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_na",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "na_ion"
+      },
+      {
+       "id": "f_lna",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "l_na"
+      },
+      {
+       "id": "f_cl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "cl_ion"
+      },
+      {
+       "id": "f_lcl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "l_cl"
+      },
+      {
+       "id": "f_fort",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "fort"
+      },
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_ph1",
+       "target": "tab"
+      },
+      {
+       "id": "h_r2",
+       "verb": "highlight",
+       "start": "cue:c_un",
+       "end": "cue_end:c_un",
+       "target": "tab",
+       "role": "accent",
+       "part": "r2"
+      }
+     ]
+    },
+    {
+     "id": "baisse",
+     "say": "À pH deux, c'est zéro virgule zéro un. À pH trois, zéro virgule zéro zéro un. La concentration baisse d'un facteur dix chaque fois que le pH monte d'une unité.",
+     "cues": [
+      {
+       "id": "c_ph2",
+       "text": "pH deux"
+      },
+      {
+       "id": "c_ph3",
+       "text": "pH trois"
+      },
+      {
+       "id": "c_baisse",
+       "text": "baisse d'un facteur dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "start": "cue:c_ph2",
+       "end": "cue_end:c_ph2",
+       "target": "tab",
+       "role": "neutral",
+       "part": "c2"
+      },
+      {
+       "id": "h_c3",
+       "verb": "highlight",
+       "start": "cue:c_ph3",
+       "end": "cue_end:c_ph3",
+       "target": "tab",
+       "role": "neutral",
+       "part": "c3"
+      },
+      {
+       "id": "s_facteur",
+       "verb": "show",
+       "at": "cue:c_baisse",
+       "target": "facteur"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_note",
+   "introduces": [
+    {
+     "id": "formule",
+     "layout": {
+      "next_to": "facteur",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{pH} = -\\log[\\ce{H+}]",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "lien",
+     "say": "Voilà le lien que tu cherchais : le pH n'est qu'une façon de lire la concentration en H⁺. Plus il y a de H⁺, plus le pH est bas, et plus la solution est acide.",
+     "cues": [
+      {
+       "id": "c_lien",
+       "text": "le lien"
+      },
+      {
+       "id": "c_lit",
+       "text": "lire la concentration"
+      },
+      {
+       "id": "c_bas",
+       "text": "plus le pH est bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:c_lit",
+       "target": "formule"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "start": "cue:c_bas",
+       "end": "cue_end:c_bas",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Conduire : les ions libres. pH : seulement les H⁺.",
+     "type": "text"
+    },
+    {
+     "id": "regle",
+     "content": "\\text{pH} = -\\log[\\ce{H+}]",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap",
+     "items": [
+      "idee",
+      "regle"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "center"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la conductibilité dépend de tous les ions libres en solution, acide, base ou sel. Le pH, lui, ne mesure que la concentration en H⁺.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_libres",
+       "text": "tous les ions libres"
+      },
+      {
+       "id": "c_que_h",
+       "text": "ne mesure que la concentration en H⁺"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "recap"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note"
+      },
+      {
+       "id": "f_line",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "line"
+      },
+      {
+       "id": "f_pcitron",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "p_citron"
+      },
+      {
+       "id": "f_lcitron",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "l_citron"
+      },
+      {
+       "id": "f_peau",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "p_eau"
+      },
+      {
+       "id": "f_leau",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "l_eau"
+      },
+      {
+       "id": "f_pjavel",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "p_javel"
+      },
+      {
+       "id": "f_ljavel",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "l_javel"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_libres",
+       "target": "tab"
+      },
+      {
+       "id": "f_facteur",
+       "verb": "fade_out",
+       "at": "cue:c_libres",
+       "target": "facteur"
+      },
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:c_que_h",
+       "target": "formule"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_libres",
+       "target": "idee"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_que_h",
+       "target": "regle"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

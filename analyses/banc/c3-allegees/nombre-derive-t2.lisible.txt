@@ -1,0 +1,91 @@
+QUESTION (nombre-derive, mathematiques, sec 5, sens) : C'est quoi le nombre dérivé, sur un graphique ?
+RÉPONSE DE RÉFÉRENCE : La pente de la tangente à la courbe au point d'abscisse a.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. sécante entre A et P, pente = taux de variation moyen
+  2. P se rapproche de A : la sécante tend vers la tangente
+  3. nombre dérivé = pente de la tangente en A
+  4. exemple chiffré (ex. y = x² en x = 1 : 2)
+  5. lecture de la pente sur le graphique
+ERREURS GRAVES À CHERCHER : sécante tracée qui ne passe pas par P ; pente dite ≠ pente tracée
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Le nombre dérivé, c'est la pente de la tangente
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{"pente_sec":"((q+1)-1)/(q-1)"}}
+=== Tranche s_secante
+  OBJET rep [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET parabole [function_graph] {"expression":"x^2","domain":[-0.8,3]} 
+  OBJET A [point] {"at":[1,1]} 
+  OBJET labA [label] "A(1 ; 1)" attaché à A
+  OBJET P [point] {"at":[3,9]} 
+  OBJET labP [label] "P(3 ; 9)" attaché à P
+  OBJET secante [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-0.8,3]} 
+  OBJET avancee [line] {"from":[1,1],"to":[3,1]} 
+  OBJET montee [line] {"from":[3,1],"to":[3,9]} 
+  OBJET labAv [label] "avancée = 2" attaché à avancee
+  OBJET labMon [label] "montée = 8" attaché à montee
+  OBJET pente [math] "\\dfrac{9-1}{3-1}=4" parts=\dfrac{9-1}{3-1} | =4
+DIT (courbe) : Voici la courbe de x au carré, avec le point A fixé en un, un.
+    show rep @beat:start 
+    draw parabole @- {"start":"cue:c_A","end":"cue_end:c_un_un"}
+    show A @cue:c_A 
+    show labA @cue:c_un_un 
+DIT (place) : Plaçons un deuxième point P sur la courbe, en trois, neuf.
+    show P @cue:c_P 
+    show labP @cue:c_trois_neuf 
+    draw secante @- {"start":"cue:c_trois_neuf","end":"cue_end:c_trois_neuf"}
+=== Tranche s_pente_secante
+  OBJET montee_txt [text] "montée = 9 − 1 = 8" 
+  OBJET avancee_txt [text] "avancée = 3 − 1 = 2" 
+DIT (mesure) : La pente de cette droite, c'est la montée divisée par l'avancée.
+    show avancee @cue:c_avancee 
+    show montee @cue:c_montee 
+    show labAv @after:s_av 
+    show labMon @after:s_mon 
+    show avancee_txt @cue:c_avancee 
+    show montee_txt @after:s_mon 
+    camera.focus  @cue:c_pente {"targets":["rep","A","P"],"bounds":"layout_bounds","save_as":"vue_secante"}
+DIT (calcul) : Huit divisé par deux égale quatre. La pente de la sécante AP vaut quatre.
+    write pente @cue:c_huit {"part":"frac"}
+    write pente @cue:c_quatre {"part":"quatre"}
+    highlight pente @after:w_quatre {"role":"result"}
+=== Tranche s_rapproche
+  OBJET P2 [point] {"at":[2,4]} 
+  OBJET labP2 [label] "P(2 ; 4)" attaché à P2
+  OBJET pente2 [math] "\\dfrac{4-1}{2-1}=3" 
+DIT (nouveau) : Rapprochons P de A : P se place maintenant en deux, quatre.
+    fade_out avancee @cue:c_rapprochons 
+    fade_out montee @cue:c_rapprochons 
+    fade_out labAv @cue:c_rapprochons 
+    fade_out labMon @cue:c_rapprochons 
+    fade_out avancee_txt @cue:c_rapprochons 
+    fade_out montee_txt @cue:c_rapprochons 
+    fade_out P @cue:c_rapprochons 
+    fade_out labP @cue:c_rapprochons 
+    show P2 @cue:c_deux_quatre 
+    show labP2 @cue:c_deux_quatre 
+DIT (nouvelle_pente) : La montée est trois, l'avancée est un : la pente descend à trois.
+    write pente2 @cue:c_descend 
+    highlight pente2 @- {"start":"cue:c_descend","end":"cue_end:c_descend","role":"accent"}
+=== Tranche s_tangente
+  OBJET tangente [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-0.8,3]} 
+  OBJET pente_fin [math] "\\dfrac{2-1}{1-1}\\ ?\\ \\to\\ 2" 
+DIT (pousse) : Pousse P tout près de A, vers un. La sécante pivote et sa pente diminue : de quatre, à trois, vers deux.
+    draw tangente @- {"start":"cue:c_pres","end":"cue_end:c_deux"}
+    animate_parameter  @- {"start":"cue:c_pres","end":"cue_end:c_deux","parameter":"q","from":3,"to":1}
+    fade_out P2 @cue:c_deux 
+    fade_out labP2 @cue:c_deux 
+DIT (tangente_nom) : Quand P atteint A, la sécante devient la tangente au point A. Sa pente, c'est le nombre dérivé de x au carré en un : deux.
+    highlight tangente @- {"start":"cue:c_tangente","end":"cue_end:c_deux_fin","role":"result"}
+    write pente_fin @cue:c_deux_fin 
+=== Tranche s_retenir
+  OBJET idee [math] "f'(1) = 2" parts=f'(1) | = 2
+  OBJET phrase [text] "Le nombre dérivé en A = la pente de la tangente en A" 
+DIT (retenir) : À retenir : le nombre dérivé en un point, c'est la pente de la tangente en ce point.
+    fade_out pente @cue:c_retenir 
+    fade_out pente2 @cue:c_retenir 
+    fade_out pente_fin @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["rep","tangente","idee","phrase"],"bounds":"layout_bounds"}
+    show idee @cue:c_pente_tang 
+    show phrase @after:s_idee 
+    highlight idee @- {"start":"cue:c_pente_tang","end":"cue_end:c_pente_tang","role":"result"}
+--- 5 tranches, 142 mots dits (≈ 0.9 min d'oral)

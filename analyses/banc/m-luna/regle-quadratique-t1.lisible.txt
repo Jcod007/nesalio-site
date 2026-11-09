@@ -1,0 +1,80 @@
+QUESTION (regle-quadratique, mathematiques, sec 4, methode) : comment je trouve la règle d'une parabole si le sommet c'est (2, -3) pis qu'elle passe par le point (4, 5)?
+RÉPONSE DE RÉFÉRENCE : y = 2(x − 2)² − 3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. forme canonique y = a(x − h)² + k avec le sommet (h, k) = (2, −3)
+  2. remplacer le point (4, 5) : 5 = a(4 − 2)² − 3
+  3. 4a = 8 donc a = 2
+  4. règle y = 2(x − 2)² − 3 écrite
+  5. vérification avec le point (4, 5), parabole tracée passant par le sommet et le point
+ERREURS GRAVES À CHERCHER : signe de h inversé (x + 2) ; parabole tracée qui ne passe pas par (4, 5)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver la règle d’une parabole avec son sommet et un point
+=== Tranche s_forme
+  OBJET forme [math] "f(x)=a(x-h)^2+k" parts=f(x)= | a | (x-h)^2 | +k
+  OBJET sommet [text] "Sommet : (h ; k)" 
+  GROUPE def_forme = forme, sommet
+DIT (idee) : La forme canonique est pratique ici : le sommet donne directement les nombres h et k.
+    write forme @cue:canonique {"part":"fonction"}
+    write forme @cue:canonique {"part":"parametre"}
+    write forme @cue:canonique {"part":"carre"}
+    write forme @cue:canonique {"part":"ord"}
+    show sommet @cue:sommet_mot 
+DIT (remplacement) : Ton sommet est deux, moins trois : on remplace h par deux et k par moins trois, sans encore connaître a.
+    highlight forme @- {"start":"cue:h_deux","end":"cue_end:h_deux","role":"accent","part":"carre"}
+    highlight sommet @- {"start":"cue:k_moins_trois","end":"cue_end:k_moins_trois","role":"given"}
+=== Tranche s_point
+  OBJET substitution [math] "f(x)=a(x-2)^2-3" parts=f(x)= | a | (x-2)^2 | -3
+  OBJET point_donne [text] "Point donné : (4 ; 5)" 
+  GROUPE donnees = substitution, point_donne
+DIT (substituer) : Avec ces coordonnées, la règle devient f de x égale a fois x moins deux au carré, moins trois.
+    transform substitution @cue:regle_devient {"source":"forme"}
+    show point_donne @cue:regle_devient 
+DIT (utiliser_point) : Le point quatre, cinq appartient à la parabole : sa coordonnée x vaut quatre et sa coordonnée y, donc f de quatre, vaut cinq.
+    highlight point_donne @- {"start":"cue:point_appartient","end":"cue_end:x_quatre","role":"given"}
+    highlight substitution @- {"start":"cue:y_cinq","end":"cue_end:y_cinq","role":"accent","part":"sub_f"}
+=== Tranche s_calcul
+  OBJET etape1 [math] "5=a(4-2)^2-3" parts=5= | a | (4-2)^2 | -3
+  OBJET etape2 [math] "5=4a-3" parts=5= | 4a | -3
+  OBJET etape3 [math] "8=4a" parts=8= | 4a
+  OBJET etape4 [math] "a=2" parts=a= | 2
+DIT (substituer) : On remplace x par quatre et f de quatre par cinq, puisque le point est sur la parabole : cinq égale a fois quatre moins deux au carré, moins trois.
+    write etape1 @cue:egalite {"part":"e1_gauche"}
+    write etape1 @cue:egalite {"part":"e1_a"}
+    write etape1 @cue:egalite {"part":"e1_parenthese"}
+    write etape1 @cue:egalite {"part":"e1_moins"}
+DIT (simplifier) : Quatre moins deux vaut deux, puis deux au carré vaut quatre : on obtient cinq égale quatre a moins trois.
+    transform etape2 @cue:obtient {"source":"etape1"}
+DIT (isoler) : On ajoute trois aux deux côtés pour garder l’égalité : huit égale quatre a.
+    transform etape3 @cue:huit {"source":"etape2"}
+DIT (diviser) : On divise les deux côtés par quatre pour isoler a : a égale deux.
+    transform etape4 @cue:a_deux {"source":"etape3"}
+    highlight etape4 @- {"start":"cue:a_deux","end":"cue_end:a_deux","role":"result"}
+=== Tranche s_regle
+  OBJET regle_finale [math] "f(x)=2(x-2)^2-3" parts=f(x)= | 2 | (x-2)^2 | -3
+  OBJET verif [math] "f(4)=2(4-2)^2-3=5" parts=f(4)= | 2(4-2)^2-3 | =5
+DIT (ecrire_regle) : On remet a égale deux dans la forme canonique : la règle est f de x égale deux fois x moins deux au carré, moins trois.
+    write regle_finale @cue:regle_est {"part":"rf"}
+    write regle_finale @cue:regle_est {"part":"ra"}
+    write regle_finale @cue:regle_est {"part":"rc"}
+    write regle_finale @cue:regle_est {"part":"rk"}
+    fade_out etape4 @cue:remet 
+DIT (verifier) : Vérifions avec x égal quatre : deux fois quatre moins deux au carré, moins trois, donne cinq. Le point donné est bien sur cette parabole.
+    write verif @cue:x_quatre {"part":"vf"}
+    write verif @cue:x_quatre {"part":"vcalc"}
+    write verif @cue:donne_cinq {"part":"vresultat"}
+    highlight verif @- {"start":"cue:point_bien","end":"cue_end:point_bien","role":"accent"}
+=== Tranche s_retenir
+  OBJET resume [text] "Sommet (h ; k) → f(x)=a(x-h)²+k" 
+  OBJET resume_regle [math] "f(x)=2(x-2)^2-3" parts=f(x)= | 2 | (x-2)^2 | -3
+  GROUPE resume_groupe = resume, resume_regle
+DIT (idee_centrale) : À retenir : le sommet fournit h et k dans la forme canonique; le point donné permet de calculer a. Ici, la règle est f de x égale deux fois x moins deux au carré, moins trois.
+    fade_out verif @cue:retenir 
+    fade_out regle_finale @cue:retenir 
+    show resume @cue:retenir 
+    write resume_regle @cue:regle_ici {"part":"srf"}
+    write resume_regle @cue:regle_ici {"part":"sra"}
+    write resume_regle @cue:regle_ici {"part":"src"}
+    write resume_regle @cue:regle_ici {"part":"srk"}
+    highlight resume_regle @- {"start":"cue:regle_ici","end":"cue_end:regle_ici","role":"result"}
+--- 5 tranches, 246 mots dits (≈ 1.6 min d'oral)

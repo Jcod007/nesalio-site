@@ -1,0 +1,56 @@
+QUESTION (ap-equilibrer, chimie, sec 4, alloprof) : comment on fais pour équilibrer des réactions chimiques.
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Comment équilibrer une réaction chimique
+=== Tranche s_principe
+  OBJET m_reactifs [matrix] {"rows":[[1,4]],"row_labels":["réactifs"],"column_labels":["C","H"]} 
+  OBJET m_produits [matrix] {"rows":[[1,4]],"row_labels":["produits"],"column_labels":["C","H"]} 
+  OBJET loi [text] "Les atomes ne se créent ni ne disparaissent : ils se réarrangent." 
+DIT (idee) : Équilibrer une réaction, c'est t'assurer qu'il y a le même nombre de chaque sorte d'atome avant et après la flèche.
+    show m_reactifs @beat:start 
+    show m_produits @cue:c_meme 
+    highlight m_reactifs @- {"start":"cue:c_equilibrer","end":"cue_end:c_equilibrer","role":"accent"}
+DIT (conservation) : C'est la loi de la conservation de la masse : un atome de carbone reste un atome de carbone, il change juste de partenaire.
+    show loi @cue:c_loi 
+    highlight m_produits @- {"start":"cue:c_rearrangent","end":"cue_end:c_rearrangent","role":"accent"}
+=== Tranche s_methode
+  OBJET propane [math] "\\ce{C3H8 + O2 -> CO2 + H2O}" 
+  OBJET etape1 [math] "\\ce{C3H8 + O2 -> 3CO2 + H2O}" 
+  OBJET etape2 [math] "\\ce{C3H8 + O2 -> 3CO2 + 4H2O}" 
+  OBJET finale [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+  OBJET tab [matrix] {"rows":[[3,8,2],[3,8,10]],"row_labels":["réactifs","produits"],"column_labels":["C","H","O"]} 
+DIT (pose) : Prenons la combustion du propane. C trois H huit, plus O deux, donne C O deux, plus H deux O.
+    fade_out m_reactifs @beat:start 
+    fade_out m_produits @beat:start 
+    fade_out loi @beat:start 
+    write propane @cue:c_trois 
+    highlight propane @cue:c_o2 {"role":"accent"}
+    highlight propane @cue:c_co2 {"role":"accent"}
+    highlight propane @cue:c_h2o {"role":"accent"}
+DIT (compter) : Compte d'abord le carbone : trois à gauche, un seul à droite. On met donc un trois devant C O deux.
+    transform etape1 @cue:c_devant {"source":"propane"}
+DIT (hydrogene) : L'hydrogène maintenant : huit à gauche, deux seulement à droite. Quatre fois deux fait huit, donc un quatre devant H deux O.
+    transform etape2 @cue:c_quatre {"source":"etape1"}
+DIT (oxygene) : Reste l'oxygène, à la fin, parce que O deux est tout seul : il ne touche que l'oxygène. À droite, six plus quatre font dix ; dix divisé par deux, cinq. On écrit cinq devant O deux.
+    transform finale @cue:c_cinq {"source":"etape2"}
+    highlight finale @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"result"}
+DIT (verifie) : Vérifions : carbone trois égale trois, hydrogène huit égale huit, oxygène cinq fois deux dix, et trois fois deux plus quatre dix. Tout est égal.
+    show tab @cue:c_verifions 
+    highlight tab @- {"start":"cue:c_dix","end":"cue_end:c_dix","role":"accent","part":"c3"}
+=== Tranche s_retenir
+  OBJET regle [text] "Balance : C puis H, O en dernier." 
+  OBJET cond [label] "On change les coefficients, jamais les indices." attaché à regle
+DIT (idee) : À retenir : de chaque côté, autant d'atomes de chaque élément. On ajuste seulement les coefficients devant les formules.
+    camera.focus  @cue:c_retenir {"targets":["finale","regle"],"bounds":"layout_bounds"}
+    fade_out etape1 @cue:c_retenir 
+    fade_out etape2 @cue:c_retenir 
+    fade_out propane @cue:c_retenir 
+    fade_out tab @cue:c_retenir 
+    write regle @cue:c_coefficients 
+    highlight finale @- {"start":"cue:c_coefficients","end":"cue_end:c_coefficients","role":"result"}
+DIT (condition) : Et on ne change jamais les indices : H deux O reste H deux O, sinon ce n'est plus la même substance.
+    show cond @cue:c_indices 
+--- 3 tranches, 210 mots dits (≈ 1.4 min d'oral)

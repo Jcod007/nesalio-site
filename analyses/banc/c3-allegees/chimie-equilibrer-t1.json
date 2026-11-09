@@ -1,0 +1,711 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "balancement_combustion",
+  "title": "Comment équilibrer C₃H₈ + O₂ → CO₂ + H₂O",
+  "language": "fr",
+  "learning_goal": "Équilibrer une combustion en comptant les atomes des deux côtés, en changeant seulement les coefficients."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_depart",
+   "introduces": [
+    {
+     "id": "eq0",
+     "content": "\\ce{C3H8 + O2 -> CO2 + H2O}",
+     "type": "math"
+    },
+    {
+     "id": "tab0",
+     "layout": {
+      "next_to": "eq0",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "params": {
+      "rows": [
+       [
+        "3",
+        "8",
+        "2"
+       ],
+       [
+        "1",
+        "2",
+        "3"
+       ]
+      ],
+      "row_labels": [
+       "réactifs",
+       "produits"
+      ],
+      "column_labels": [
+       "C",
+       "H",
+       "O"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Équilibrer une combustion, c'est respecter une seule loi : les atomes ne se créent pas et ne disparaissent pas, ils se réarrangent.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "les atomes ne se créent pas"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_prop",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "eq0"
+      },
+      {
+       "id": "w_plus",
+       "verb": "highlight",
+       "at": "beat:start",
+       "target": "eq0",
+       "role": "accent"
+      },
+      {
+       "id": "w_arrow",
+       "verb": "highlight",
+       "at": "beat:start",
+       "target": "eq0",
+       "role": "accent"
+      },
+      {
+       "id": "w_eau",
+       "verb": "highlight",
+       "at": "beat:start",
+       "target": "eq0",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "compte",
+     "say": "Comptons. À gauche : trois carbones, huit hydrogènes, deux oxygènes. À droite : un carbone, deux hydrogènes, trois oxygènes. Rien ne s'accorde.",
+     "cues": [
+      {
+       "id": "c_comptons",
+       "text": "Comptons"
+      },
+      {
+       "id": "c_gauche",
+       "text": "À gauche"
+      },
+      {
+       "id": "c_droite",
+       "text": "À droite"
+      },
+      {
+       "id": "c_accorde",
+       "text": "Rien ne s'accorde"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_comptons",
+       "target": "tab0"
+      },
+      {
+       "id": "h_g",
+       "verb": "highlight",
+       "start": "cue:c_gauche",
+       "end": "cue_end:c_gauche",
+       "target": "tab0",
+       "role": "given",
+       "part": "r1"
+      },
+      {
+       "id": "h_d",
+       "verb": "highlight",
+       "start": "cue:c_droite",
+       "end": "cue_end:c_droite",
+       "target": "tab0",
+       "role": "given",
+       "part": "r2"
+      },
+      {
+       "id": "h_o",
+       "verb": "highlight",
+       "start": "cue:c_accorde",
+       "end": "cue_end:c_accorde",
+       "target": "tab0",
+       "role": "unknown",
+       "part": "c3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_carbone",
+   "introduces": [
+    {
+     "id": "eq1",
+     "content": "\\ce{C3H8 + O2 -> 3CO2 + H2O}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "La règle d'or : on ajuste les coefficients devant les substances, jamais les petits indices dans une formule. Sinon ce n'est plus la même substance.",
+     "cues": [
+      {
+       "id": "c_regle",
+       "text": "règle d'or"
+      },
+      {
+       "id": "c_coef",
+       "text": "coefficients"
+      },
+      {
+       "id": "c_indices",
+       "text": "indices"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_p",
+       "verb": "highlight",
+       "start": "cue:c_coef",
+       "end": "cue_end:c_coef",
+       "target": "eq0",
+       "role": "accent"
+      },
+      {
+       "id": "h_i",
+       "verb": "highlight",
+       "start": "cue:c_indices",
+       "end": "cue_end:c_indices",
+       "target": "eq0",
+       "role": "unknown"
+      }
+     ]
+    },
+    {
+     "id": "carbone",
+     "say": "On commence par le carbone, il n'y a qu'un endroit où le changer : il manque deux carbones à droite, donc je mets un trois devant le C O deux.",
+     "cues": [
+      {
+       "id": "c_carbone",
+       "text": "le carbone"
+      },
+      {
+       "id": "c_trois",
+       "text": "un trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t1",
+       "verb": "transform",
+       "at": "cue:c_trois",
+       "source": "eq0",
+       "target": "eq1"
+      },
+      {
+       "id": "f_tab0",
+       "verb": "fade_out",
+       "at": "cue:c_carbone",
+       "target": "tab0"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_hydrogene",
+   "introduces": [
+    {
+     "id": "eq2",
+     "content": "\\ce{C3H8 + O2 -> 3CO2 + 4H2O}",
+     "type": "math"
+    },
+    {
+     "id": "tab2",
+     "layout": {
+      "next_to": "eq2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "params": {
+      "rows": [
+       [
+        "3",
+        "8",
+        "2"
+       ],
+       [
+        "3",
+        "8",
+        "10"
+       ]
+      ],
+      "row_labels": [
+       "réactifs",
+       "produits"
+      ],
+      "column_labels": [
+       "C",
+       "H",
+       "O"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "hydro",
+     "say": "Ensuite l'hydrogène : huit à gauche, mais deux seulement à droite. Il faut donc quatre fois deux, ça fait huit. Je place un quatre devant l'eau.",
+     "cues": [
+      {
+       "id": "c_hydro",
+       "text": "l'hydrogène"
+      },
+      {
+       "id": "c_quatre",
+       "text": "un quatre"
+      },
+      {
+       "id": "c_huit",
+       "text": "ça fait huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "t2",
+       "verb": "transform",
+       "at": "cue:c_quatre",
+       "source": "eq1",
+       "target": "eq2"
+      },
+      {
+       "id": "s_tab2",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "target": "tab2"
+      }
+     ]
+    },
+    {
+     "id": "oxy",
+     "say": "Reste l'oxygène. À droite : trois fois deux, six, plus les quatre de l'eau, dix. À gauche, il n'y a que deux. C'est ton fameux problème.",
+     "cues": [
+      {
+       "id": "c_oxy",
+       "text": "l'oxygène"
+      },
+      {
+       "id": "c_dix",
+       "text": "dix"
+      },
+      {
+       "id": "c_probleme",
+       "text": "ton fameux problème"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_o2",
+       "verb": "highlight",
+       "start": "cue:c_oxy",
+       "end": "cue_end:c_probleme",
+       "target": "tab2",
+       "role": "unknown",
+       "part": "c3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_oxygene",
+   "introduces": [
+    {
+     "id": "eq3",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}",
+     "type": "math"
+    },
+    {
+     "id": "tab3",
+     "layout": {
+      "next_to": "eq3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "params": {
+      "rows": [
+       [
+        "3",
+        "8",
+        "10"
+       ],
+       [
+        "3",
+        "8",
+        "10"
+       ]
+      ],
+      "row_labels": [
+       "réactifs",
+       "produits"
+      ],
+      "column_labels": [
+       "C",
+       "H",
+       "O"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cinq",
+     "say": "Le O deux est tout seul : son coefficient ne change que l'oxygène, rien d'autre. Il me faut dix oxygènes, donc cinq O deux, parce que cinq fois deux fait dix.",
+     "cues": [
+      {
+       "id": "c_seul",
+       "text": "tout seul"
+      },
+      {
+       "id": "c_cinq",
+       "text": "cinq O deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "cue:c_seul",
+       "target": "tab2"
+      },
+      {
+       "id": "t3",
+       "verb": "transform",
+       "at": "cue:c_cinq",
+       "source": "eq2",
+       "target": "eq3"
+      },
+      {
+       "id": "s_tab3",
+       "verb": "show",
+       "at": "after:t3",
+       "target": "tab3"
+      },
+      {
+       "id": "h_eq3",
+       "verb": "highlight",
+       "at": "after:t3",
+       "target": "eq3",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions ligne par ligne : trois et trois carbones, huit et huit hydrogènes, dix et dix oxygènes. C'est équilibré.",
+     "cues": [
+      {
+       "id": "c_verifions",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_equilibre",
+       "text": "C'est équilibré"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_t3",
+       "verb": "highlight",
+       "start": "cue:c_verifions",
+       "end": "cue_end:c_equilibre",
+       "target": "tab3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "eq3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Des deux côtés : mêmes atomes, en même nombre. On change les coefficients, jamais les indices.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "garde",
+     "say": "À retenir : compte d'abord le carbone et l'hydrogène, garde l'oxygène pour la fin.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_order",
+       "text": "carbone et l'hydrogène"
+      },
+      {
+       "id": "c_fin",
+       "text": "l'oxygène pour la fin"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab3",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tab3"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "eq3",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_fin",
+       "target": "idee"
+      },
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "start": "cue:c_fin",
+       "end": "cue_end:c_fin",
+       "target": "eq3",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

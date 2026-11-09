@@ -1,0 +1,530 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "proba_conditionnelle_division",
+  "title": "Pourquoi diviser par P(B)",
+  "language": "fr",
+  "learning_goal": "Comprendre que P(A | B) = P(A ∩ B) ÷ P(B) : B devient le nouveau tout."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "cases",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "titre_univers",
+     "content": "Univers : les six issues d'un dé",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "univers",
+     "say": "Imagine un dé à six faces : chaque issue a la même chance.",
+     "cues": [
+      {
+       "id": "c_des",
+       "text": "dé à six faces"
+      },
+      {
+       "id": "c_chance",
+       "text": "même chance"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_cases",
+       "verb": "draw",
+       "at": "cue:c_des",
+       "target": "cases"
+      },
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_chance",
+       "target": "titre_univers"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_condition",
+   "introduces": [
+    {
+     "id": "cond_b",
+     "content": "B : le résultat est plus grand que 3",
+     "type": "text"
+    },
+    {
+     "id": "zone_b",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    }
+   ],
+   "beats": [
+    {
+     "id": "savoir_b",
+     "say": "Savoir que B s'est produit réduit l'univers à la zone de B.",
+     "cues": [
+      {
+       "id": "c_reduit",
+       "text": "réduit l'univers"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_b",
+       "verb": "show",
+       "at": "cue:c_reduit",
+       "target": "cond_b"
+      },
+      {
+       "id": "h_zone",
+       "verb": "highlight",
+       "at": "cue:c_reduit",
+       "target": "zone_b",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "estompe",
+     "say": "Les cases hors de B sont estompées : B est le nouveau tout.",
+     "cues": [
+      {
+       "id": "c_estompe",
+       "text": "estompées"
+      }
+     ],
+     "do": [
+      {
+       "id": "e_hors",
+       "verb": "dim",
+       "at": "cue:c_estompe",
+       "target": "cases"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}",
+     "parts": [
+      {
+       "id": "lhs",
+       "text": "P(A \\mid B)"
+      },
+      {
+       "id": "eq",
+       "text": "="
+      },
+      {
+       "id": "rhs",
+       "text": "\\frac{P(A \\cap B)}{P(B)}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "cond_non_nul",
+     "content": "Condition : P(B) ≠ 0",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cond",
+     "say": "Il faut que P(B) ne soit pas nul, sinon on divise par zéro.",
+     "cues": [
+      {
+       "id": "c_nul",
+       "text": "ne soit pas nul"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "cue:c_nul",
+       "target": "cond_non_nul"
+      }
+     ]
+    },
+    {
+     "id": "ecrit",
+     "say": "Donc P de A sachant B égale P de A et B, divisé par P de B.",
+     "cues": [
+      {
+       "id": "c_gauche",
+       "text": "P de A sachant B"
+      },
+      {
+       "id": "c_droite",
+       "text": "divisé par P de B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_lhs",
+       "verb": "write",
+       "at": "cue:c_gauche",
+       "target": "formule",
+       "part": "lhs"
+      },
+      {
+       "id": "w_rhs",
+       "verb": "write",
+       "at": "cue:c_droite",
+       "target": "formule",
+       "part": "rhs"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "calc",
+     "content": "P(A \\mid B) = \\frac{2/6}{3/6} = \\frac{2}{3}",
+     "parts": [
+      {
+       "id": "c_lhs",
+       "text": "P(A \\mid B)"
+      },
+      {
+       "id": "c_mid",
+       "text": "= \\frac{2/6}{3/6}"
+      },
+      {
+       "id": "c_res",
+       "text": "= \\frac{2}{3}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Avec un dé : A, le résultat est pair, et B, plus grand que trois. Il reste quatre, six, donc deux sixièmes sur trois sixièmes, soit deux tiers.",
+     "cues": [
+      {
+       "id": "c_pair",
+       "text": "pair"
+      },
+      {
+       "id": "c_deux_tiers",
+       "text": "deux tiers"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_pair",
+       "target": "calc",
+       "part": "c_mid"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:c_deux_tiers",
+       "target": "calc",
+       "role": "result",
+       "part": "c_res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "B devient le nouveau tout : on divise par la part de B",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : on divise par P de B parce que B devient le nouveau tout, et on regarde la part de B où A est aussi vrai.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_tout",
+       "text": "nouveau tout"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "h_tout",
+       "verb": "highlight",
+       "at": "cue:c_tout",
+       "target": "idee",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
