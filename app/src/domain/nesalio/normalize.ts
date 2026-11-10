@@ -503,7 +503,50 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
     });
   }
   revealTargeted(slice, beats, fixes);
+  highlightResultOnly(slice, beats, fixes);
   return fixes.length ? { slice, fixes } : { slice: raw, fixes };
+}
+
+/** The last relation at the top level of a formula (outside braces): `=`, `≈` or `\approx`. */
+function lastRelation(content: string): number {
+  let depth = 0;
+  let last = -1;
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i]!;
+    if (char === "{") depth++;
+    else if (char === "}") depth--;
+    else if (depth === 0 && (char === "=" || char === "≈" || content.startsWith("\\approx", i))) {
+      // `\leq`, `\geq`, `\neq` contain no `=`; `==` does not occur in school formulas.
+      last = i;
+    }
+  }
+  return last;
+}
+
+/**
+ * A result highlighted on a formula without parts coloured the whole calculation (« p = (0,204 × 8,314 × 298,15)/5,0
+ * ≈ 101 kPa » all in green): seen by the user, 2026-11-09 ; 519 of the bench's highlights were on a long formula with
+ * « = ». A formula of this tranche highlighted with the role result is split at its last relation into two parts,
+ * and the highlight goes to the last one (« ≈ 101 kPa »). Parts the model wrote but that did not give back the
+ * formula were removed earlier (the formula is written whole): the result keeps its own colour this way too.
+ */
+function highlightResultOnly(slice: Json, beats: Json[], fixes: string[]): void {
+  const formulas = new Map(objects(slice.introduces).filter((item) => item.type === "math" && typeof item.content === "string" && item.parts === undefined)
+    .map((item) => [item.id, item]));
+  for (const action of beats.flatMap((beat) => objects(beat.do))) {
+    if (action.verb !== "highlight" || action.role !== "result" || action.part !== undefined) continue;
+    const formula = formulas.get(action.target);
+    if (!formula) continue;
+    const content = formula.content as string;
+    const at = lastRelation(content);
+    const left = content.slice(0, at).trim(), right = content.slice(at).trim();
+    if (at <= 0 || !left || right.length < 2 || normalFormula(left + right) !== normalFormula(content)) continue;
+    if (formula.parts === undefined) {
+      formula.parts = [{ id: "membre_calcul", text: left }, { id: "membre_resultat", text: right }];
+      fixes.push(`${String(formula.id)} : découpée au dernier « = » pour surligner le résultat seul`);
+    }
+    action.part = "membre_resultat";
+  }
 }
 
 /** Verbs that make an object appear on the board. */

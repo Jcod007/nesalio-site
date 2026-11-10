@@ -391,7 +391,22 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
       automatic.set(follow, { action: follow, start, end: Math.min(clipEnd, start + plan.duration) });
     }
   }
-  return { timeline: prefix(), deferred: scheduled.deferred, context: { ...ctx, moves, cameras } };
+  return { timeline: prefix().map((entry) => lastingHighlight(entry, clipEnd)), deferred: scheduled.deferred, context: { ...ctx, moves, cameras } };
+}
+
+/** Shortest time a highlight stays on, so the eye can find what it points at. */
+export const MIN_HIGHLIGHT_MS = 1_500;
+
+/**
+ * A highlight lasted exactly its timing: 0.22 s for one given by `at` alone (38 % of highlights in the
+ * bench lessons), the length of one or two words for an interval — the colour flashed and was gone
+ * (seen by the user, 2026-11-09). It now stays at least MIN_HIGHLIGHT_MS, and a result stays highlighted
+ * until the end of its passage. Never past the passage's end.
+ */
+export function lastingHighlight(entry: ScheduledAction, clipEnd: number): ScheduledAction {
+  if (entry.action.verb !== "highlight" || clipEnd <= entry.start) return entry;
+  const end = entry.action.role === "result" ? clipEnd : Math.min(clipEnd, Math.max(entry.end, entry.start + MIN_HIGHLIGHT_MS));
+  return end === entry.end ? entry : { ...entry, end };
 }
 
 /**

@@ -3,7 +3,7 @@ import shell from "./engineShell.json";
 import { Slice } from "./contract";
 import { clearTarget, createScene, introduceSlice, sceneBounds, setDimmed, setVisibility } from "./sceneState";
 import { validateLesson, validateModelOutput } from "./validate";
-import { DIM_OPACITY, clearWithFirstReveal, playNesalioLesson, type NesalioClip, type NesalioFrame } from "@/engine/nesalioPlayback";
+import { DIM_OPACITY, MIN_HIGHLIGHT_MS, clearWithFirstReveal, lastingHighlight, playNesalioLesson, type NesalioClip, type NesalioFrame } from "@/engine/nesalioPlayback";
 
 const viewport = { x0: -8, y0: -4.5, x1: 8, y1: 4.5 };
 const beat = (id: string, say: string, cues: unknown[], todo: unknown[]) => ({ id, say, cues, do: todo });
@@ -137,5 +137,22 @@ describe("effacement au début d'un passage", () => {
     expect(clearWithFirstReveal(atStart, cues)).toBe(atStart);
     const nothingNew = passage([{ id: "f_tab", verb: "fade_out", at: "beat:start", target: "tab" }]);
     expect(clearWithFirstReveal(nothingNew, cues)).toBe(nothingNew);
+  });
+});
+
+describe("durée d'un surlignage", () => {
+  const entry = (action: unknown, start: number, end: number) => ({ action: action as never, start, end });
+
+  it("reste au moins 1,5 s (vu : un flash de 0,22 s), jamais après la fin du passage", () => {
+    expect(lastingHighlight(entry({ id: "h", verb: "highlight", target: "a", at: "cue:c" }, 1_000, 1_220), 10_000).end).toBe(1_000 + MIN_HIGHLIGHT_MS);
+    expect(lastingHighlight(entry({ id: "h", verb: "highlight", target: "a", at: "cue:c" }, 9_500, 9_720), 10_000).end).toBe(10_000);
+    // Already long enough: unchanged.
+    expect(lastingHighlight(entry({ id: "h", verb: "highlight", target: "a", start: "cue:c", end: "cue_end:d" }, 1_000, 4_000), 10_000).end).toBe(4_000);
+  });
+
+  it("garde un résultat surligné jusqu'à la fin du passage, et ne touche pas les autres gestes", () => {
+    expect(lastingHighlight(entry({ id: "h", verb: "highlight", target: "a", role: "result", at: "cue:c" }, 2_000, 2_220), 8_000).end).toBe(8_000);
+    const write = entry({ id: "w", verb: "write", target: "a", at: "cue:c" }, 2_000, 2_320);
+    expect(lastingHighlight(write, 8_000)).toBe(write);
   });
 });

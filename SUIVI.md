@@ -84,6 +84,22 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-09 — Surlignage qui clignote, résultat surligné en entier (Claude Code, session « relecteur »)
+- Question de l'utilisateur : le surlignage « clignote », et un résultat surligné colore tout. Causes (1 496 surlignages
+  du banc) : un surlignage durait exactement son repère — 0,22 s pour `at` seul (38 %), un ou deux mots pour 281
+  intervalles ; 78 % visaient l'objet entier, dont 519 une longue formule avec « = » ; une réparation qui retire des
+  parties incohérentes faisait aussi surligner toute la formule (152 fois). Décision de l'utilisateur : « Oui, corrige ».
+- Fait (règles générales) : `nesalioPlayback.ts` `lastingHighlight` — un surlignage reste au moins 1,5 s
+  (`MIN_HIGHLIGHT_MS`), un surlignage de rôle « result » jusqu'à la fin de son passage, jamais au-delà ;
+  `normalize.ts` `highlightResultOnly` — une formule de la tranche surlignée « result » sans parties est découpée à sa
+  dernière relation (=, ≈, \approx, hors accolades) en `membre_calcul` / `membre_resultat`, et seul le résultat se
+  colore (couvre aussi les formules dont les parties ont été retirées). Tests `clearing.test.ts`, `normalize.test.ts`
+  (deux anciens tests mis à jour : le résultat d'une formule réparée est maintenant surligné seul).
+- Limites : pas de fondu (la couleur apparaît et part d'un coup, mais reste visible) ; une formule d'une tranche
+  précédente surlignée « result » reste colorée en entier ; un surlignage « accent » sur toute une formule reste entier.
+- Vérifié : `npx vitest run` 924 verts, `tsc` vert, audit caméra inchangé. Pas vu à l'écran (les leçons enregistrées
+  ont été réparées avec l'ancien code ; il faut une nouvelle génération). Rien commité.
+
 ### 2026-11-09 — Corrections caméra et contraste ; « dit mais pas écrit » (Claude Code, session « relecteur »)
 - Décision de l'utilisateur : « Oui, toutes » (les 5 propositions), corrections « généralistes » (règles du moteur, pas
   de cas particuliers). Remarque de l'utilisateur : Nesa dit encore des choses qui n'arrivent jamais à l'écran.

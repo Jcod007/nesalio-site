@@ -202,12 +202,14 @@ describe("normalisation des tranches avant validation", () => {
     const { slice: fixed } = normalizeSlice(raw);
     expect(valid(fixed)).toEqual([]);
     const typed = fixed as { introduces: { content: string; parts?: unknown }[]; beats: { do: unknown[] }[] };
-    // The formula shown is the declared one, whole.
-    expect(typed.introduces[0]).toEqual({ id: "eq", type: "math", content: "p = \\frac{9 - 1}{3 - 1} = \\frac{8}{2} = 4" });
+    // The formula shown is the declared one, written whole; since 2026-11-09 the result highlighted keeps its own
+    // colour: the formula is split at its last « = » and only « = 4 » is highlighted.
+    expect(typed.introduces[0]).toEqual({ id: "eq", type: "math", content: "p = \\frac{9 - 1}{3 - 1} = \\frac{8}{2} = 4",
+      parts: [{ id: "membre_calcul", text: "p = \\frac{9 - 1}{3 - 1} = \\frac{8}{2}" }, { id: "membre_resultat", text: "= 4" }] });
     expect(typed.beats[0]!.do).toEqual([
       { id: "w1", verb: "write", target: "eq", at: "cue:c_isoler" },
       { id: "w2", verb: "highlight", target: "eq", role: "accent", at: "cue:c_douze" },
-      { id: "h", verb: "highlight", target: "eq", role: "result", at: "after:w2" },
+      { id: "h", verb: "highlight", target: "eq", role: "result", at: "after:w2", part: "membre_resultat" },
     ]);
   });
 
@@ -271,9 +273,10 @@ describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
     expect(valid(fixed)).toEqual([]);
     expect((fixed as ReturnType<typeof slice>).beats[0]!.do.slice(1)).toEqual([
       { id: "h", verb: "highlight", target: "eq", role: "accent", at: "after:w" },
-      { id: "h2", verb: "highlight", target: "eq", role: "result", at: "after:h" },
+      { id: "h2", verb: "highlight", target: "eq", role: "result", at: "after:h", part: "membre_resultat" },
     ]);
-    expect(fixes).toHaveLength(2);
+    // The two after keys, then the result split at the last « = » of « 3x = 12 ».
+    expect(fixes).toHaveLength(3);
   });
 
   it("lit target_id comme target", () => {
@@ -391,6 +394,29 @@ describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
     // Shown before the camera turns to them.
     const order = last!.beats[0]!.do.map((action) => action.id);
     expect(order.indexOf("auto_show_idea")).toBeLessThan(order.indexOf("cadre"));
+  });
+
+  it("surligne seulement le résultat d'un calcul (dernier membre), pas toute la formule", () => {
+    // Vu par l'utilisateur (2026-11-09) : « quand il veut mettre en évidence un résultat, il met en évidence tout ».
+    const content = String.raw`p = \frac{0{,}204 \times 8{,}314 \times 298{,}15}{5{,}0} \approx 101\ \text{kPa}`;
+    const raw = slice({
+      introduces: [{ id: "calc", type: "math", content }],
+      say: "On veut isoler x, puis on trouve douze.",
+      do: [{ id: "w", verb: "write", target: "calc", at: "cue:c_isoler" },
+        { id: "h", verb: "highlight", target: "calc", role: "result", start: "cue:c_douze", end: "cue_end:c_douze" }],
+    });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    const formula = (fixed as { introduces: { parts: { id: string; text: string }[] }[] }).introduces[0]!;
+    expect(formula.parts.map((part) => part.text)).toEqual([
+      String.raw`p = \frac{0{,}204 \times 8{,}314 \times 298{,}15}{5{,}0}`, String.raw`\approx 101\ \text{kPa}`,
+    ]);
+    expect((fixed as { beats: { do: Record<string, unknown>[] }[] }).beats[0]!.do[1]).toMatchObject({ part: "membre_resultat" });
+    expect(fixes).toContain("calc : découpée au dernier « = » pour surligner le résultat seul");
+    // An accent highlight, or a formula without a relation, stays whole.
+    const accent = slice({ introduces: [{ id: "calc", type: "math", content }], say: "On veut isoler x, puis on trouve douze.",
+      do: [{ id: "w", verb: "write", target: "calc", at: "cue:c_isoler" }, { id: "h", verb: "highlight", target: "calc", role: "accent", at: "cue:c_douze" }] });
+    expect(normalizeSlice(accent).fixes).toEqual([]);
   });
 
   it("accepte un intitulé vide (case vide) et retire une liste d'intitulés vide", () => {
