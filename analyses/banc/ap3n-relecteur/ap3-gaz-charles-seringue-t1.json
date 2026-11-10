@@ -1,0 +1,812 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_charles_seringue",
+  "title": "Trouver le volume d'air dans l'eau bouillante (loi de Charles)",
+  "language": "fr",
+  "learning_goal": "Appliquer la loi de Charles V₁/T₁ = V₂/T₂ en convertissant les températures en kelvins pour trouver le volume final."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "T1": "20+273.15",
+    "T2": "100+273.15",
+    "V2": "30.0*(100+273.15)/(20+273.15)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        "20",
+        30
+       ],
+       [
+        "100",
+        "?"
+       ]
+      ],
+      "row_labels": [
+       "température (°C)",
+       "volume (mL)"
+      ],
+      "column_labels": [
+       "départ",
+       "eau bouillante"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "k_note",
+     "content": "T en kelvins : T = θ + 273,15",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Reprenons ton problème : au départ, trente millilitres d'air à vingt degrés, et tu plonges la seringue dans de l'eau bouillante.",
+     "cues": [
+      {
+       "id": "c_depart",
+       "text": "trente millilitres d'air"
+      },
+      {
+       "id": "c_vingt",
+       "text": "vingt degrés"
+      },
+      {
+       "id": "c_bouillante",
+       "text": "eau bouillante"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "h_c",
+       "verb": "highlight",
+       "at": "cue:c_vingt",
+       "target": "tab",
+       "role": "given",
+       "part": "r1c1"
+      },
+      {
+       "id": "h_v",
+       "verb": "highlight",
+       "at": "cue:c_depart",
+       "target": "tab",
+       "role": "given",
+       "part": "r1c2"
+      }
+     ]
+    },
+    {
+     "id": "inconnue",
+     "say": "On cherche le volume à cent degrés, parce que l'eau bouillante est à cent degrés au niveau de la mer.",
+     "cues": [
+      {
+       "id": "c_cent",
+       "text": "cent degrés"
+      },
+      {
+       "id": "c_volume",
+       "text": "le volume"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_q",
+       "verb": "highlight",
+       "at": "cue:c_volume",
+       "target": "tab",
+       "role": "unknown",
+       "part": "r2c2"
+      },
+      {
+       "id": "h_cent",
+       "verb": "highlight",
+       "at": "cue:c_cent",
+       "target": "tab",
+       "role": "given",
+       "part": "r2c1"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_kelvins",
+   "introduces": [
+    {
+     "id": "conv",
+     "content": "T_1 = 20 + 273{,}15 = 293{,}15\\ \\text{K}",
+     "parts": [
+      {
+       "id": "a",
+       "text": "T_1 = 20 + 273{,}15"
+      },
+      {
+       "id": "b",
+       "text": "= 293{,}15\\ \\text{K}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "conv2",
+     "layout": {
+      "next_to": "conv",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "T_2 = 100 + 273{,}15 = 373{,}15\\ \\text{K}",
+     "parts": [
+      {
+       "id": "c",
+       "text": "T_2 = 100 + 273{,}15"
+      },
+      {
+       "id": "d",
+       "text": "= 373{,}15\\ \\text{K}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pourquoi",
+     "say": "Avant tout calcul, on convertit les températures en kelvins : c'est la condition pour appliquer la loi de Charles.",
+     "cues": [
+      {
+       "id": "c_convertit",
+       "text": "convertit les températures"
+      },
+      {
+       "id": "c_kelvins",
+       "text": "kelvins"
+      },
+      {
+       "id": "c_charles",
+       "text": "loi de Charles"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_rowT",
+       "verb": "highlight",
+       "start": "cue:c_convertit",
+       "end": "cue_end:c_kelvins",
+       "target": "tab",
+       "role": "accent",
+       "part": "r1"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_kelvins",
+       "target": "k_note"
+      },
+      {
+       "id": "d_tab",
+       "verb": "dim",
+       "at": "cue:c_charles",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "calcul_k",
+     "say": "Vingt degrés Celsius, ça donne deux cent quatre-vingt-treize virgule un cinq kelvins. Puis cent degrés, ça donne trois cent soixante-treize virgule un cinq kelvins.",
+     "cues": [
+      {
+       "id": "c_293",
+       "text": "deux cent quatre-vingt-treize virgule un cinq"
+      },
+      {
+       "id": "c_373",
+       "text": "trois cent soixante-treize virgule un cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_conv",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "conv",
+       "part": "a"
+      },
+      {
+       "id": "w_convb",
+       "verb": "write",
+       "at": "cue:c_293",
+       "target": "conv",
+       "part": "b"
+      },
+      {
+       "id": "w_conv2",
+       "verb": "write",
+       "at": "after:w_convb",
+       "pace": "quick",
+       "target": "conv2",
+       "part": "c"
+      },
+      {
+       "id": "w_conv2d",
+       "verb": "write",
+       "at": "cue:c_373",
+       "target": "conv2",
+       "part": "d"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "\\frac{V_1}{T_1} = \\frac{V_2}{T_2}",
+     "parts": [
+      {
+       "id": "l1",
+       "text": "\\frac{V_1}{T_1}"
+      },
+      {
+       "id": "l2",
+       "text": "="
+      },
+      {
+       "id": "l3",
+       "text": "\\frac{V_2}{T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "sub",
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\frac{30{,}0}{293{,}15} = \\frac{V_2}{373{,}15}",
+     "parts": [
+      {
+       "id": "s1",
+       "text": "\\frac{30{,}0}{293{,}15}"
+      },
+      {
+       "id": "s2",
+       "text": "="
+      },
+      {
+       "id": "s3",
+       "text": "\\frac{V_2}{373{,}15}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso",
+     "layout": {
+      "next_to": "sub",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "V_2 = \\frac{30{,}0 \\times 373{,}15}{293{,}15} \\approx 38{,}2\\ \\text{mL}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "enonce",
+     "say": "Quand seule la température change et que le nombre de moles et la pression sont constants, la loi de Charles dit que volume sur température reste constant.",
+     "cues": [
+      {
+       "id": "c_charles2",
+       "text": "loi de Charles"
+      },
+      {
+       "id": "c_constant",
+       "text": "reste constant"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "k_note"
+      },
+      {
+       "id": "w_l1",
+       "verb": "write",
+       "at": "cue:c_charles2",
+       "target": "loi",
+       "part": "l1"
+      },
+      {
+       "id": "w_l2",
+       "verb": "write",
+       "at": "after:w_l1",
+       "pace": "quick",
+       "target": "loi",
+       "part": "l2"
+      },
+      {
+       "id": "w_l3",
+       "verb": "write",
+       "at": "cue:c_constant",
+       "target": "loi",
+       "part": "l3"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "On remplace par tes valeurs : trente sur deux cent quatre-vingt-treize virgule un cinq égale V deux sur trois cent soixante-treize virgule un cinq.",
+     "cues": [
+      {
+       "id": "c_trente",
+       "text": "trente sur deux cent quatre-vingt-treize virgule un cinq"
+      },
+      {
+       "id": "c_v2",
+       "text": "V deux sur trois cent soixante-treize virgule un cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_conv",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "conv"
+      },
+      {
+       "id": "d_conv2",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "conv2"
+      },
+      {
+       "id": "w_s1",
+       "verb": "write",
+       "at": "cue:c_trente",
+       "target": "sub",
+       "part": "s1"
+      },
+      {
+       "id": "w_s2",
+       "verb": "write",
+       "at": "after:w_s1",
+       "pace": "quick",
+       "target": "sub",
+       "part": "s2"
+      },
+      {
+       "id": "w_s3",
+       "verb": "write",
+       "at": "cue:c_v2",
+       "target": "sub",
+       "part": "s3"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "Pour isoler V deux, on multiplie les deux côtés par trois cent soixante-treize virgule un cinq.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "isoler V deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_iso",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "iso"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resultat",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "calcule",
+     "say": "On calcule : trente fois trois cent soixante-treize virgule un cinq divisé par deux cent quatre-vingt-treize virgule un cinq donne environ trente-huit virgule deux millilitres.",
+     "cues": [
+      {
+       "id": "c_environ",
+       "text": "environ trente-huit virgule deux millilitres"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_iso",
+       "verb": "highlight",
+       "at": "cue:c_environ",
+       "target": "iso",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions le sens : la température passe de deux cent quatre-vingt-treize à trois cent soixante-treize kelvins, une hausse d'environ vingt-sept pour cent, et le volume passe de trente à trente-huit virgule deux millilitres, la même hausse.",
+     "cues": [
+      {
+       "id": "c_sens",
+       "text": "le sens"
+      },
+      {
+       "id": "c_meme",
+       "text": "la même hausse"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_l1",
+       "verb": "highlight",
+       "start": "cue:c_sens",
+       "end": "cue_end:c_sens",
+       "target": "loi",
+       "role": "accent",
+       "part": "l1"
+      },
+      {
+       "id": "h_l3",
+       "verb": "highlight",
+       "start": "cue:c_meme",
+       "end": "cue_end:c_meme",
+       "target": "loi",
+       "role": "accent",
+       "part": "l3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "\\frac{V_1}{T_1} = \\frac{V_2}{T_2}\\quad (n,\\ p\\ \\text{constants})",
+     "parts": [
+      {
+       "id": "r1",
+       "text": "\\frac{V_1}{T_1} = \\frac{V_2}{T_2}"
+      },
+      {
+       "id": "r2",
+       "text": "\\ (n,\\ p\\ \\text{constants})"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rep",
+     "content": "Températures toujours en kelvins : T = θ + 273,15",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : avec la pression et le nombre de moles constants, chauffer un gaz le fait dilater, et le rapport volume sur température reste le même.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_rapport",
+       "text": "le rapport volume sur température"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_focus",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "rep"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "loi"
+      },
+      {
+       "id": "f_sub",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sub"
+      },
+      {
+       "id": "f_iso",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "iso"
+      },
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "f_conv3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "conv"
+      },
+      {
+       "id": "f_conv4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "conv2"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_rapport",
+       "target": "regle",
+       "part": "r1"
+      },
+      {
+       "id": "w_cond",
+       "verb": "write",
+       "at": "after:w_regle",
+       "pace": "quick",
+       "target": "regle",
+       "part": "r2"
+      }
+     ]
+    },
+    {
+     "id": "unite",
+     "say": "Et n'oublie jamais l'unité : les températures se calculent en kelvins, jamais en degrés Celsius.",
+     "cues": [
+      {
+       "id": "c_kelvins2",
+       "text": "en kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "cue:c_kelvins2",
+       "target": "rep"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "start": "cue:c_kelvins2",
+       "end": "cue_end:c_kelvins2",
+       "target": "regle",
+       "role": "result",
+       "part": "r1"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

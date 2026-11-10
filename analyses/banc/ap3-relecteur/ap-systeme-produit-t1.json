@@ -1,0 +1,712 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "systeme_produit_somme",
+  "title": "Trouver x et y dans deux équations",
+  "language": "fr",
+  "learning_goal": "Résoudre un système de deux équations en isolant une même expression, puis en remplaçant pour trouver le couple (x ; y)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "u": {
+     "kind": "parameter",
+     "initial": 15.3,
+     "min": 0,
+     "max": 40
+    },
+    "v": {
+     "kind": "parameter",
+     "initial": 2.144,
+     "min": 0,
+     "max": 10
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_reformule",
+   "introduces": [
+    {
+     "id": "u_def",
+     "content": "u = y + 3",
+     "parts": [
+      {
+       "id": "u_l",
+       "text": "u"
+      },
+      {
+       "id": "u_r",
+       "text": "= y + 3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "v_def",
+     "content": "v = 7 - x",
+     "parts": [
+      {
+       "id": "v_l",
+       "text": "v"
+      },
+      {
+       "id": "v_r",
+       "text": "= 7 - x"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq1",
+     "content": "u \\cdot v = 32{,}8",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "2u + 2v = 26{,}9",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu as deux équations et deux inconnues : un produit, et une somme de deux mêmes paquets.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "un produit"
+      },
+      {
+       "id": "c_somme",
+       "text": "une somme de deux mêmes paquets"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq1",
+       "verb": "write",
+       "at": "cue:c_produit",
+       "target": "eq1"
+      },
+      {
+       "id": "w_eq2",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "eq2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "paquets",
+     "say": "Ces paquets, on les nomme : u, c'est y plus trois ; et v, c'est sept moins x.",
+     "cues": [
+      {
+       "id": "c_nomme",
+       "text": "on les nomme"
+      },
+      {
+       "id": "c_y3",
+       "text": "y plus trois"
+      },
+      {
+       "id": "c_7x",
+       "text": "sept moins x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ul",
+       "verb": "write",
+       "at": "cue:c_nomme",
+       "target": "u_def",
+       "part": "u_l"
+      },
+      {
+       "id": "w_ur",
+       "verb": "write",
+       "at": "cue:c_y3",
+       "target": "u_def",
+       "part": "u_r"
+      },
+      {
+       "id": "w_vr",
+       "verb": "write",
+       "at": "cue:c_7x",
+       "target": "v_def",
+       "part": "v_r"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_somme",
+   "introduces": [
+    {
+     "id": "division",
+     "content": "2u + 2v = 26{,}9",
+     "parts": [
+      {
+       "id": "deux_u",
+       "text": "2u + 2v"
+      },
+      {
+       "id": "res_somme",
+       "text": "= 26{,}9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "isole",
+     "content": "u + v = 13{,}45",
+     "type": "math"
+    },
+    {
+     "id": "trouve_v",
+     "content": "v = 13{,}45 - u",
+     "parts": [
+      {
+       "id": "treize",
+       "text": "v = 13{,}45"
+      },
+      {
+       "id": "moins_u",
+       "text": "- u"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "divise",
+     "say": "L'équation deux u plus deux v égale vingt-six virgule neuf, je divise par deux des deux côtés.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "je divise par deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_eq1",
+       "verb": "dim",
+       "at": "cue:c_divise",
+       "target": "eq1"
+      },
+      {
+       "id": "t_d",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "eq2",
+       "target": "division"
+      }
+     ]
+    },
+    {
+     "id": "simplifie",
+     "say": "Ça donne u plus v égale treize virgule quarante-cinq.",
+     "cues": [
+      {
+       "id": "c_1345",
+       "text": "treize virgule quarante-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_i",
+       "verb": "transform",
+       "at": "cue:c_1345",
+       "source": "division",
+       "target": "isole"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "isole_v",
+     "say": "J'isole v : je retire u des deux côtés, alors v vaut treize virgule quarante-cinq moins u.",
+     "cues": [
+      {
+       "id": "c_retire",
+       "text": "je retire u des deux côtés"
+      },
+      {
+       "id": "c_v",
+       "text": "v vaut"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_tv",
+       "verb": "transform",
+       "at": "cue:c_v",
+       "source": "isole",
+       "target": "trouve_v"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_produit",
+   "introduces": [
+    {
+     "id": "subst",
+     "content": "u \\cdot (13{,}45 - u) = 32{,}8",
+     "parts": [
+      {
+       "id": "prem_u",
+       "text": "u"
+      },
+      {
+       "id": "parent",
+       "text": "\\cdot (13{,}45 - u)"
+      },
+      {
+       "id": "reste",
+       "text": "= 32{,}8"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "content": "13{,}45u - u^2 = 32{,}8",
+     "type": "math"
+    },
+    {
+     "id": "eq4",
+     "content": "u^2 - 13{,}45u + 32{,}8 = 0",
+     "type": "math"
+    },
+    {
+     "id": "disc",
+     "content": "\\Delta = 13{,}45^2 - 4(32{,}8) = 49{,}7025",
+     "type": "math"
+    },
+    {
+     "id": "racines",
+     "content": "u = \\frac{13{,}45 \\pm \\sqrt{49{,}7025}}{2}",
+     "type": "math"
+    },
+    {
+     "id": "u_vals",
+     "content": "u = 10{,}25 \\text{ ou } u = 3{,}2",
+     "type": "math"
+    },
+    {
+     "id": "v_vals",
+     "content": "v = 3{,}2 \\text{ ou } v = 10{,}25",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "remplace",
+     "say": "Maintenant je remplace v dans le produit : u fois, entre parenthèses, treize virgule quarante-cinq moins u, égale trente-deux virgule huit.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "je remplace v"
+      },
+      {
+       "id": "c_prod2",
+       "text": "fois, entre parenthèses"
+      },
+      {
+       "id": "c_328",
+       "text": "trente-deux virgule huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_vd",
+       "verb": "fade_out",
+       "at": "cue:c_remplace",
+       "target": "v_def"
+      },
+      {
+       "id": "f_vs",
+       "verb": "fade_out",
+       "at": "cue:c_remplace",
+       "target": "trouve_v"
+      },
+      {
+       "id": "w_subst",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "subst",
+       "part": "prem_u"
+      },
+      {
+       "id": "w_parent",
+       "verb": "write",
+       "at": "cue:c_prod2",
+       "target": "subst",
+       "part": "parent"
+      },
+      {
+       "id": "w_reste",
+       "verb": "write",
+       "at": "cue:c_328",
+       "target": "subst",
+       "part": "reste"
+      }
+     ]
+    },
+    {
+     "id": "developpe",
+     "say": "Je distribue le u, et je passe tout du même côté pour obtenir une équation du second degré en u.",
+     "cues": [
+      {
+       "id": "c_distribue",
+       "text": "Je distribue"
+      },
+      {
+       "id": "c_second",
+       "text": "second degré en u"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_3",
+       "verb": "transform",
+       "at": "cue:c_distribue",
+       "source": "subst",
+       "target": "eq3"
+      },
+      {
+       "id": "t_4",
+       "verb": "transform",
+       "at": "cue:c_second",
+       "source": "eq3",
+       "target": "eq4"
+      }
+     ]
+    },
+    {
+     "id": "delta",
+     "say": "Le discriminant : treize virgule quarante-cinq au carré moins quatre fois trente-deux virgule huit, ça donne quarante-neuf virgule sept zéro deux cinq.",
+     "cues": [
+      {
+       "id": "c_disc",
+       "text": "Le discriminant"
+      },
+      {
+       "id": "c_moins",
+       "text": "quarante-neuf virgule sept zéro deux cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_disc",
+       "verb": "write",
+       "at": "cue:c_disc",
+       "target": "disc"
+      },
+      {
+       "id": "h_disc",
+       "verb": "highlight",
+       "at": "cue:c_moins",
+       "target": "disc",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "racines",
+     "say": "Sa racine carrée vaut exactement sept virgule zéro cinq, donc j'affiche la formule des racines.",
+     "cues": [
+      {
+       "id": "c_racine",
+       "text": "sept virgule zéro cinq"
+      },
+      {
+       "id": "c_racines",
+       "text": "formule des racines"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rac",
+       "verb": "write",
+       "at": "cue:c_racines",
+       "target": "racines"
+      },
+      {
+       "id": "h_rac_d",
+       "verb": "highlight",
+       "start": "cue:c_racine",
+       "end": "cue_end:c_racine",
+       "target": "racines",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "valeurs_u",
+     "say": "Les deux valeurs de u sont dix virgule vingt-cinq et trois virgule deux.",
+     "cues": [
+      {
+       "id": "c_grand",
+       "text": "dix virgule vingt-cinq"
+      },
+      {
+       "id": "c_petit",
+       "text": "trois virgule deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_uv",
+       "verb": "transform",
+       "at": "cue:c_grand",
+       "source": "racines",
+       "target": "u_vals"
+      },
+      {
+       "id": "h_ug",
+       "verb": "highlight",
+       "start": "cue:c_grand",
+       "end": "cue_end:c_petit",
+       "target": "u_vals",
+       "role": "accent"
+      },
+      {
+       "id": "h_up",
+       "verb": "highlight",
+       "start": "cue:c_petit",
+       "end": "cue_end:c_petit",
+       "target": "u_vals",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "valeurs_v",
+     "say": "Et comme u plus v fait treize virgule quarante-cinq, les v correspondants sont trois virgule deux et dix virgule vingt-cinq.",
+     "cues": [
+      {
+       "id": "c_v3",
+       "text": "trois virgule deux"
+      },
+      {
+       "id": "c_v10",
+       "text": "dix virgule vingt-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_vv",
+       "verb": "write",
+       "at": "cue:c_v3",
+       "target": "v_vals"
+      },
+      {
+       "id": "h_vs2",
+       "verb": "highlight",
+       "at": "cue:c_v10",
+       "target": "v_vals",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

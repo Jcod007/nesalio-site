@@ -1,0 +1,699 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "reactif_limitant",
+  "title": "Trouver le réactif limitant : de la masse aux moles",
+  "language": "fr",
+  "learning_goal": "Comparer les quantités de matière divisées par leur coefficient pour identifier le réactif limitant et calculer la masse du composé en excès."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "n_NH3": "1.063",
+    "n_CuO": "1.137",
+    "ratio_NH3": "1.063/2",
+    "ratio_CuO": "1.137/3",
+    "m_exces": "0.608*79.55",
+    "verif": "0.304*2*17.04+0.608*79.55"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_analyser",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{2NH3 + 3CuO -> N2 + 3Cu + 3H2O}",
+     "type": "math"
+    },
+    {
+     "id": "donnees",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "18,1 g de NH₃ ; 90,4 g de CuO",
+     "type": "text"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "donnees",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "La question est posée en grammes, mais l'équation se lit en moles.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Ton problème, c'est que tout est donné en grammes : dix-huit virgule un gramme d'ammoniac et quatre-vingt-dix virgule quatre grammes d'oxyde de cuivre deux.",
+     "cues": [
+      {
+       "id": "c_dix",
+       "text": "dix-huit virgule un gramme"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre-vingt-dix virgule quatre grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "eq"
+      },
+      {
+       "id": "w_don",
+       "verb": "write",
+       "at": "cue:c_dix",
+       "target": "donnees"
+      },
+      {
+       "id": "h_cuo",
+       "verb": "highlight",
+       "start": "cue:c_quatre",
+       "end": "cue_end:c_quatre",
+       "target": "donnees",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "piege",
+     "say": "Or, comparer des grammes directement, c'est le piège qui mélange tout : les coefficients comptent des moles, jamais des grammes.",
+     "cues": [
+      {
+       "id": "c_coeff",
+       "text": "coefficients"
+      },
+      {
+       "id": "c_jamais",
+       "text": "jamais des grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "start": "cue:c_coeff",
+       "end": "cue_end:c_jamais",
+       "target": "eq",
+       "role": "accent"
+      },
+      {
+       "id": "h_note",
+       "verb": "highlight",
+       "start": "cue:c_jamais",
+       "end": "cue_end:c_jamais",
+       "target": "note",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "M_nh3",
+     "content": "M(\\ce{NH3}) = 14{,}01 + 3 \\times 1{,}01 = 17{,}04 \\text{ g/mol}",
+     "type": "math"
+    },
+    {
+     "id": "M_cuo",
+     "layout": {
+      "next_to": "M_nh3",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "M(\\ce{CuO}) = 63{,}55 + 16{,}00 = 79{,}55 \\text{ g/mol}",
+     "type": "math"
+    },
+    {
+     "id": "n_nh3",
+     "layout": {
+      "next_to": "M_cuo",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "n_NH3",
+      "template": "n(\\ce{NH3}) = \\frac{18{,}1}{17{,}04} \\approx {value} \\text{ mol}",
+      "precision": 3
+     },
+     "type": "math"
+    },
+    {
+     "id": "n_cuo",
+     "layout": {
+      "next_to": "n_nh3",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "n_CuO",
+      "template": "n(\\ce{CuO}) = \\frac{90{,}4}{79{,}55} \\approx {value} \\text{ mol}",
+      "precision": 3
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "masse_molaire",
+     "say": "Première étape : convertir les grammes en moles. Pour l'ammoniac, la masse molaire est dix-sept virgule zéro quatre grammes par mole.",
+     "cues": [
+      {
+       "id": "c_grammes",
+       "text": "convertir les grammes en moles"
+      },
+      {
+       "id": "c_dixsept",
+       "text": "dix-sept virgule zéro quatre grammes par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_M_nh3",
+       "verb": "write",
+       "at": "cue:c_dixsept",
+       "target": "M_nh3"
+      }
+     ]
+    },
+    {
+     "id": "diviser",
+     "say": "On divise la masse par sa masse molaire : dix-huit virgule un divisé par dix-sept virgule zéro quatre donne environ un virgule zéro six moles d'ammoniac.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "divise la masse"
+      },
+      {
+       "id": "c_un06",
+       "text": "un virgule zéro six moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n_nh3",
+       "verb": "write",
+       "at": "cue:c_un06",
+       "target": "n_nh3"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "cuo",
+     "say": "Même chose pour l'oxyde de cuivre : sa masse molaire est soixante-dix-neuf virgule cinquante-cinq, donc quatre-vingt-dix virgule quatre divisé par soixante-dix-neuf virgule cinquante-cinq donne environ un virgule un quatre moles.",
+     "cues": [
+      {
+       "id": "c_soixante",
+       "text": "soixante-dix-neuf virgule cinquante-cinq"
+      },
+      {
+       "id": "c_un14",
+       "text": "un virgule un quatre moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_M_cuo",
+       "verb": "write",
+       "at": "cue:c_soixante",
+       "target": "M_cuo"
+      },
+      {
+       "id": "w_n_cuo",
+       "verb": "write",
+       "at": "cue:c_un14",
+       "target": "n_cuo"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_comparer",
+   "introduces": [
+    {
+     "id": "comp",
+     "params": {
+      "rows": [
+       [
+        "2",
+        "3"
+       ],
+       [
+        "1,063",
+        "1,137"
+       ],
+       [
+        "0,532",
+        "0,379"
+       ]
+      ],
+      "row_labels": [
+       "coefficient",
+       "quantité (mol)",
+       "quantité ÷ coefficient"
+      ],
+      "column_labels": [
+       "NH3",
+       "CuO"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "concl",
+     "layout": {
+      "next_to": "comp",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "0{,}379 < 0{,}532 \\Rightarrow \\text{CuO est le limitant}",
+     "type": "math"
+    },
+    {
+     "id": "nh3reste",
+     "layout": {
+      "next_to": "concl",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n(\\ce{NH3})_{\\text{restant}} = 1{,}063 - 2 \\times 0{,}379 = 0{,}305 \\text{ mol}",
+     "type": "math"
+    },
+    {
+     "id": "m_exces",
+     "layout": {
+      "next_to": "nh3reste",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "m_exces",
+      "template": "m(\\ce{NH3})_{\\text{exces}} = 0{,}305 \\times 17{,}04 \\approx {value} \\text{ g}",
+      "precision": 1
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "comparer",
+     "say": "Pour trouver le limitant, on divise chaque quantité par son coefficient dans l'équation : un virgule zéro six trois divisé par deux, et un virgule un trois sept divisé par trois.",
+     "cues": [
+      {
+       "id": "c_parcoef",
+       "text": "par son coefficient"
+      },
+      {
+       "id": "c_deux",
+       "text": "divisé par deux"
+      },
+      {
+       "id": "c_trois",
+       "text": "divisé par trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_comp",
+       "verb": "show",
+       "at": "cue:c_parcoef",
+       "target": "comp"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_trois",
+       "target": "comp",
+       "role": "given",
+       "part": "r1"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Zéro virgule trois sept neuf pour l'oxyde de cuivre, contre zéro virgule cinq trois deux pour l'ammoniac : le plus petit taux désigne le limitant, c'est donc l'oxyde de cuivre qui s'épuise en premier.",
+     "cues": [
+      {
+       "id": "c_limitant",
+       "text": "limitant"
+      },
+      {
+       "id": "c_oxyde",
+       "text": "oxyde de cuivre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_concl",
+       "verb": "write",
+       "at": "cue:c_limitant",
+       "target": "concl"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "start": "cue:c_oxyde",
+       "end": "cue_end:c_oxyde",
+       "target": "comp",
+       "role": "result",
+       "part": "c2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "exces",
+     "say": "L'ammoniac est donc en excès. On calcule combien il en reste : deux fois zéro virgule trois sept neuf moles ont réagi, ce qui laisse environ zéro virgule trois zéro cinq moles, soit à peu près cinq virgule deux grammes d'ammoniac en excès.",
+     "cues": [
+      {
+       "id": "c_exces",
+       "text": "en excès"
+      },
+      {
+       "id": "c_reste",
+       "text": "combien il en reste"
+      },
+      {
+       "id": "c_cinq",
+       "text": "cinq virgule deux grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rest",
+       "verb": "write",
+       "at": "cue:c_reste",
+       "target": "nh3reste"
+      },
+      {
+       "id": "w_m",
+       "verb": "write",
+       "at": "cue:c_cinq",
+       "target": "m_exces"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "chemin",
+     "content": "\\text{masse} \\xrightarrow{\\div M} \\text{mol} \\xrightarrow{\\div \\text{coefficient}} \\text{comparer}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : on convertit toujours les grammes en moles en divisant par la masse molaire, puis on divise chaque quantité par son coefficient. Le plus petit résultat est le réactif limitant, l'autre est en excès.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_pluspetit",
+       "text": "plus petit résultat"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_chemin",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "chemin"
+      },
+      {
+       "id": "h_chemin",
+       "verb": "highlight",
+       "start": "cue:c_pluspetit",
+       "end": "cue_end:c_pluspetit",
+       "target": "chemin",
+       "role": "result"
+      },
+      {
+       "id": "f_donnees",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "donnees"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note"
+      },
+      {
+       "id": "f_M_nh3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "M_nh3"
+      },
+      {
+       "id": "f_M_cuo",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "M_cuo"
+      },
+      {
+       "id": "f_n_nh3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "n_nh3"
+      },
+      {
+       "id": "f_n_cuo",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "n_cuo"
+      },
+      {
+       "id": "f_nh3reste",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "nh3reste"
+      },
+      {
+       "id": "f_m_exces",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "m_exces"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,642 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "stoechiometrie_masse_moles",
+  "title": "Pourquoi la masse se conserve mais pas le nombre de moles",
+  "language": "fr",
+  "learning_goal": "Comprendre que les coefficients d'une équation balancée sont un rapport de moles, que la masse se conserve parce que les mêmes atomes restent là, alors que le nombre de molécules peut changer."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "consigne",
+     "content": "2 H₂ + O₂ → 2 H₂O",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Ta question est excellente, et la réponse tient dans un mot qu'on oublie souvent : les atomes. Regardons la réaction de l'eau.",
+     "cues": [
+      {
+       "id": "c_atomes",
+       "text": "les atomes"
+      },
+      {
+       "id": "c_eau",
+       "text": "réaction de l'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_consigne",
+       "verb": "show",
+       "at": "cue:c_eau",
+       "target": "consigne"
+      }
+     ]
+    },
+    {
+     "id": "atomes",
+     "say": "Dans deux H deux plus O deux donne deux H deux O, il y a exactement les mêmes atomes avant et après : quatre hydrogènes et deux oxygènes.",
+     "cues": [
+      {
+       "id": "c_memes",
+       "text": "mêmes atomes"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre hydrogènes"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_consigne",
+       "verb": "highlight",
+       "start": "cue:c_memes",
+       "end": "cue_end:c_quatre",
+       "target": "consigne",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tableau",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        2,
+        1,
+        2
+       ],
+       [
+        1.98,
+        "?",
+        "?"
+       ],
+       [
+        4,
+        "?",
+        "?"
+       ]
+      ],
+      "row_labels": [
+       "coefficient",
+       "quantité (mol)",
+       "masse (g)"
+      ],
+      "column_labels": [
+       "substance",
+       "H₂",
+       "O₂",
+       "H₂O"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "lire",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "les coefficients : un rapport de moles",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "coeff",
+     "say": "La ligne des coefficients, deux, un, deux, ne parle pas de grammes. Elle compte des molécules, donc des moles.",
+     "cues": [
+      {
+       "id": "c_coeff",
+       "text": "coefficients"
+      },
+      {
+       "id": "c_moles",
+       "text": "des moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_coeff",
+       "target": "tab"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "start": "cue:c_coeff",
+       "end": "cue_end:c_moles",
+       "target": "tab",
+       "role": "accent",
+       "part": "r1"
+      }
+     ]
+    },
+    {
+     "id": "trois_deux",
+     "say": "C'est un rapport : deux moles d'hydrogène réagissent avec une mole d'oxygène pour donner deux moles d'eau. Trois molécules de départ deviennent deux.",
+     "cues": [
+      {
+       "id": "c_deux_un_deux",
+       "text": "deux moles d'hydrogène"
+      },
+      {
+       "id": "c_trois",
+       "text": "Trois molécules de départ"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c12",
+       "verb": "highlight",
+       "start": "cue:c_deux_un_deux",
+       "end": "cue_end:c_deux_un_deux",
+       "target": "tab",
+       "role": "given",
+       "part": "c2"
+      },
+      {
+       "id": "h_c3",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_trois",
+       "target": "tab",
+       "role": "given",
+       "part": "c3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse",
+   "introduces": [
+    {
+     "id": "div",
+     "attachment": {
+      "parent": "tab",
+      "anchor": "right"
+     },
+     "content": "÷ 2,02",
+     "type": "label"
+    },
+    {
+     "id": "lire2",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "masse → moles → rapport → moles → masse",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "passage",
+     "say": "Pour entrer dans ce rapport, on part de la masse et on divise par la masse molaire. Quatre grammes d'hydrogène divisés par deux virgule zéro deux grammes par mole donne environ un virgule quatre-vingt-dix-huit mole.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "divise par la masse molaire"
+      },
+      {
+       "id": "c_quatre",
+       "text": "Quatre grammes d'hydrogène"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_41",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "tab"
+      },
+      {
+       "id": "s_div",
+       "verb": "show",
+       "at": "cue:c_divise",
+       "target": "div"
+      },
+      {
+       "id": "s_lire2",
+       "verb": "show",
+       "at": "cue:c_divise",
+       "target": "lire2"
+      }
+     ]
+    },
+    {
+     "id": "rapport",
+     "say": "Le rapport deux pour deux est un pour un : on retrouve environ un virgule quatre-vingt-dix-huit mole d'eau. Pour l'oxygène, le un pour deux donne zéro virgule quatre-vingt-dix-neuf mole.",
+     "cues": [
+      {
+       "id": "c_un_pour_un",
+       "text": "un pour un"
+      },
+      {
+       "id": "c_oxygene",
+       "text": "Pour l'oxygène"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_12",
+       "verb": "write",
+       "at": "cue:c_un_pour_un",
+       "target": "tab"
+      },
+      {
+       "id": "w_13",
+       "verb": "write",
+       "at": "cue:c_un_pour_un",
+       "target": "tab"
+      },
+      {
+       "id": "w_22",
+       "verb": "write",
+       "at": "cue:c_oxygene",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "retour_masse",
+     "say": "On revient aux grammes en multipliant par la masse molaire : un virgule quatre-vingt-dix-huit fois dix-huit virgule zéro deux donne environ trente-cinq virgule soixante-huit grammes d'eau, et zéro virgule quatre-vingt-dix-neuf fois trente-deux donne trente-et-un virgule soixante-huit grammes d'oxygène.",
+     "cues": [
+      {
+       "id": "c_masse",
+       "text": "multipliant par la masse molaire"
+      },
+      {
+       "id": "c_eau",
+       "text": "trente-cinq virgule soixante-huit grammes d'eau"
+      },
+      {
+       "id": "c_oxy",
+       "text": "trente-et-un virgule soixante-huit grammes d'oxygène"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_33",
+       "verb": "write",
+       "at": "cue:c_eau",
+       "target": "tab"
+      },
+      {
+       "id": "w_32",
+       "verb": "write",
+       "at": "cue:c_oxy",
+       "target": "tab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_bilan",
+   "introduces": [
+    {
+     "id": "bilan",
+     "content": "m_{réactifs} = m_{produits}",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "bilan",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "4 + 31,68 = 35,68 g",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conservation",
+     "say": "Vérifions la masse : quatre grammes d'hydrogène plus trente-et-un virgule soixante-huit grammes d'oxygène donnent trente-cinq virgule soixante-huit grammes d'eau. La masse totale n'a pas bougé.",
+     "cues": [
+      {
+       "id": "c_plus",
+       "text": "quatre grammes d'hydrogène plus trente-et-un virgule soixante-huit grammes"
+      },
+      {
+       "id": "c_pas_bouge",
+       "text": "masse totale n'a pas bougé"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_lire",
+       "verb": "fade_out",
+       "at": "cue:c_plus",
+       "target": "lire"
+      },
+      {
+       "id": "f_lire2",
+       "verb": "fade_out",
+       "at": "cue:c_plus",
+       "target": "lire2"
+      },
+      {
+       "id": "w_bilan",
+       "verb": "write",
+       "at": "cue:c_pas_bouge",
+       "target": "bilan"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_pas_bouge",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "pourquoi",
+     "say": "Voilà la clé : aucun atome n'apparaît ni ne disparaît, donc la masse reste la même. Mais les atomes se regroupent autrement : trois molécules au départ en forment deux à l'arrivée.",
+     "cues": [
+      {
+       "id": "c_atome",
+       "text": "aucun atome"
+      },
+      {
+       "id": "c_regroupent",
+       "text": "se regroupent autrement"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_atome",
+       "end": "cue_end:c_regroupent",
+       "target": "tab",
+       "role": "accent",
+       "part": "c3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : les coefficients comptent des moles de molécules, pas des grammes. La masse se conserve parce que les atomes restent tous là, mais le nombre de molécules peut changer.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_coeff",
+       "text": "coefficients comptent des moles de molécules"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_div",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "div"
+      },
+      {
+       "id": "c_cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "tab",
+        "bilan",
+        "note"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_bilan",
+       "verb": "highlight",
+       "at": "cue:c_coeff",
+       "target": "bilan",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

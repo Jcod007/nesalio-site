@@ -1,0 +1,591 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "volume_molaire_gaz",
+  "title": "Le volume molaire : une propriété de tous les gaz, pas d'un gaz en particulier",
+  "language": "fr",
+  "learning_goal": "Comprendre que le volume molaire gazeux (22,4 L/mol à TPN, 24,5 L/mol à TAPN) est le même pour tous les gaz, car il dépend seulement de la température et de la pression."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "n_tpn": "101.3*22.4/(8.314*273.15)",
+    "n_tapn": "101.3*24.5/(8.314*298.15)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_repondre",
+   "introduces": [
+    {
+     "id": "q",
+     "content": "Le volume molaire est-il propre à chaque gaz ?",
+     "type": "text"
+    },
+    {
+     "id": "rep",
+     "content": "V_m = \\frac{V}{n}",
+     "parts": [
+      {
+       "id": "vm",
+       "text": "V_m"
+      },
+      {
+       "id": "frac",
+       "text": "= \\frac{V}{n}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "court",
+     "say": "Bonne question, et la réponse est non : le volume molaire n'est pas une propriété de chaque gaz. C'est le même pour tous.",
+     "cues": [
+      {
+       "id": "c_non",
+       "text": "la réponse est non"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_q",
+       "verb": "show",
+       "at": "cue:c_non",
+       "target": "q"
+      }
+     ]
+    },
+    {
+     "id": "def",
+     "say": "Le volume molaire, c'est simplement le volume occupé par une mole de gaz. On le note V indice m, et il se calcule en divisant le volume par le nombre de moles.",
+     "cues": [
+      {
+       "id": "c_vm",
+       "text": "V indice m"
+      },
+      {
+       "id": "c_divise",
+       "text": "divisant le volume par le nombre de moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_vm",
+       "verb": "write",
+       "at": "cue:c_vm",
+       "target": "rep",
+       "part": "vm"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "rep",
+       "part": "frac"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_preuve",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        22.4,
+        22.4,
+        22.4
+       ]
+      ],
+      "row_labels": [
+       "Volume molaire (L/mol)"
+      ],
+      "column_labels": [
+       "H₂",
+       "O₂",
+       "CO₂"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "loi",
+     "content": "V = \\frac{nRT}{p}",
+     "parts": [
+      {
+       "id": "vn",
+       "text": "V"
+      },
+      {
+       "id": "nrt",
+       "text": "= \\frac{nRT}{p}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tableau",
+     "say": "Regarde trois gaz très différents : l'hydrogène, l'oxygène et le dioxyde de carbone. Dans les mêmes conditions, une mole de chacun occupe vingt-deux virgule quatre litres.",
+     "cues": [
+      {
+       "id": "c_gaz",
+       "text": "trois gaz"
+      },
+      {
+       "id": "c_vingtdeux",
+       "text": "vingt-deux virgule quatre litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_gaz",
+       "target": "tab"
+      },
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_vingtdeux",
+       "end": "cue_end:c_vingtdeux",
+       "target": "tab",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "Pourquoi la même valeur ? Parce que la loi des gaz parfaits dit que le volume dépend des moles, de la température et de la pression, mais pas de la nature du gaz.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "la loi des gaz parfaits"
+      },
+      {
+       "id": "c_pas",
+       "text": "pas de la nature du gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tab",
+       "verb": "dim",
+       "at": "cue:c_loi",
+       "target": "tab"
+      },
+      {
+       "id": "w_vn",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi",
+       "part": "vn"
+      },
+      {
+       "id": "w_nrt",
+       "verb": "write",
+       "at": "cue:c_pas",
+       "target": "loi",
+       "part": "nrt"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_conditions",
+   "introduces": [
+    {
+     "id": "tpn",
+     "content": "V_m = 22{,}4\\ \\text{L/mol}\\ \\text{à TPN}",
+     "parts": [
+      {
+       "id": "tpn_v",
+       "text": "V_m = 22{,}4\\ \\text{L/mol}"
+      },
+      {
+       "id": "tpn_c",
+       "text": "\\text{à TPN}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "tapn",
+     "layout": {
+      "next_to": "tpn",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "V_m = 24{,}5\\ \\text{L/mol}\\ \\text{à TAPN}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "valeurs",
+     "say": "La valeur qu'on connaît change avec la température et la pression. À TPN, zéro degré Celsius et cent un virgule trois kilo pascals, c'est vingt-deux virgule quatre litres par mole.",
+     "cues": [
+      {
+       "id": "c_tpn",
+       "text": "À TPN"
+      },
+      {
+       "id": "c_valeur1",
+       "text": "vingt-deux virgule quatre litres par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "cue:c_tpn",
+       "target": "loi"
+      },
+      {
+       "id": "w_tpnv",
+       "verb": "write",
+       "at": "cue:c_valeur1",
+       "target": "tpn",
+       "part": "tpn_v"
+      },
+      {
+       "id": "w_tpnc",
+       "verb": "write",
+       "at": "cue:c_tpn",
+       "target": "tpn",
+       "part": "tpn_c"
+      }
+     ]
+    },
+    {
+     "id": "tapn2",
+     "say": "À TAPN, vingt-cinq degrés et la même pression, c'est vingt-quatre virgule cinq litres par mole. C'est plus grand parce que le gaz est plus chaud.",
+     "cues": [
+      {
+       "id": "c_tapn",
+       "text": "À TAPN"
+      },
+      {
+       "id": "c_valeur2",
+       "text": "vingt-quatre virgule cinq litres par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_tapn",
+       "verb": "write",
+       "at": "cue:c_valeur2",
+       "target": "tapn"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_distinct",
+   "introduces": [
+    {
+     "id": "non",
+     "content": "Masse molaire : propre à chaque gaz",
+     "type": "text"
+    },
+    {
+     "id": "oui",
+     "content": "Volume molaire : le même pour tous à même T et p",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "duo",
+     "items": [
+      "non",
+      "oui"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "nuance",
+     "say": "Attention à ne pas confondre avec une vraie propriété caractéristique comme la masse molaire : un litre d'oxygène ne pèse pas la même chose qu'un litre d'hydrogène.",
+     "cues": [
+      {
+       "id": "c_masse",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_ne",
+       "text": "ne pèse pas la même chose"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "cue:c_masse",
+       "target": "rep"
+      },
+      {
+       "id": "f_tpn",
+       "verb": "fade_out",
+       "at": "cue:c_masse",
+       "target": "tpn"
+      },
+      {
+       "id": "f_tapn",
+       "verb": "fade_out",
+       "at": "cue:c_masse",
+       "target": "tapn"
+      },
+      {
+       "id": "s_non",
+       "verb": "show",
+       "at": "cue:c_masse",
+       "target": "non"
+      },
+      {
+       "id": "s_oui",
+       "verb": "show",
+       "at": "cue:c_ne",
+       "target": "oui"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : le volume molaire est le même pour tous les gaz dans les mêmes conditions, parce que c'est la température et la pression qui le fixent, pas la nature du gaz.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_meme",
+       "text": "le même pour tous les gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_oui",
+       "verb": "highlight",
+       "start": "cue:c_meme",
+       "end": "cue_end:c_meme",
+       "target": "oui",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

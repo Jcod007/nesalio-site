@@ -1,0 +1,817 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "point_partage_vs_milieu",
+  "title": "Point de partage ou point milieu d'un segment ?",
+  "language": "fr",
+  "learning_goal": "Distinguer le point milieu (le milieu du segment) du point de partage (un point situé à un rapport donné à partir d'un sommet)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_milieu",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       5
+      ],
+      "y": [
+       -1,
+       5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "A",
+     "params": {
+      "at": [
+       0,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "A_lab",
+     "attachment": {
+      "parent": "A",
+      "anchor": "left"
+     },
+     "content": "A(0 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "B",
+     "params": {
+      "at": [
+       4,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "B_lab",
+     "attachment": {
+      "parent": "B",
+      "anchor": "right"
+     },
+     "content": "B(4 ; 3)",
+     "type": "label"
+    },
+    {
+     "id": "segAB",
+     "params": {
+      "from": [
+       0,
+       1
+      ],
+      "to": [
+       4,
+       3
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "M",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       2,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "M_lab",
+     "attachment": {
+      "parent": "M",
+      "anchor": "bottom"
+     },
+     "content": "M(2 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "formuleM",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "M\\left(\\frac{x_A + x_B}{2} ; \\frac{y_A + y_B}{2}\\right)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Prenons un segment qui va de A, zéro un, à B, quatre trois.",
+     "cues": [
+      {
+       "id": "c_A",
+       "text": "A, zéro un"
+      },
+      {
+       "id": "c_B",
+       "text": "B, quatre trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_A",
+       "target": "A"
+      },
+      {
+       "id": "s_Alab",
+       "verb": "show",
+       "at": "after:s_A",
+       "target": "A_lab"
+      },
+      {
+       "id": "d_seg",
+       "verb": "draw",
+       "start": "cue:c_A",
+       "end": "cue_end:c_B",
+       "target": "segAB"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "cue:c_B",
+       "target": "B"
+      },
+      {
+       "id": "s_Blab",
+       "verb": "show",
+       "at": "after:s_B",
+       "target": "B_lab"
+      }
+     ]
+    },
+    {
+     "id": "milieu",
+     "say": "Le point milieu, c'est exactement le milieu du segment : la moyenne des x et la moyenne des y.",
+     "cues": [
+      {
+       "id": "c_milieu",
+       "text": "point milieu"
+      },
+      {
+       "id": "c_moyx",
+       "text": "moyenne des x"
+      },
+      {
+       "id": "c_moyy",
+       "text": "moyenne des y"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_xpart",
+       "verb": "write",
+       "at": "cue:c_moyx",
+       "target": "formuleM"
+      },
+      {
+       "id": "w_ypart",
+       "verb": "highlight",
+       "at": "cue:c_moyy",
+       "target": "formuleM",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul",
+     "say": "Ici : zéro plus quatre sur deux donne deux, et un plus trois sur deux donne deux. Le milieu est M deux deux, il est collé au centre.",
+     "cues": [
+      {
+       "id": "c_deuxdeux",
+       "text": "milieu est M deux deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_M",
+       "verb": "show",
+       "at": "cue:c_deuxdeux",
+       "target": "M"
+      },
+      {
+       "id": "s_Mlab",
+       "verb": "show",
+       "at": "after:s_M",
+       "target": "M_lab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_partage",
+   "introduces": [
+    {
+     "id": "P",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       2.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "P_lab",
+     "attachment": {
+      "parent": "P",
+      "anchor": "right"
+     },
+     "content": "P(3 ; 2,5)",
+     "type": "label"
+    },
+    {
+     "id": "MP_lab",
+     "attachment": {
+      "parent": "P",
+      "anchor": "top"
+     },
+     "content": "1/4",
+     "type": "label"
+    },
+    {
+     "id": "AP_lab",
+     "attachment": {
+      "parent": "P",
+      "anchor": "left"
+     },
+     "content": "3/4",
+     "type": "label"
+    },
+    {
+     "id": "formuleP",
+     "layout": {
+      "next_to": "formuleM",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "P = A + \\frac{3}{4}(B - A)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "autre",
+     "say": "Le point de partage, c'est un tout autre point : il coupe le segment dans un rapport donné, par exemple trois quarts à partir de A.",
+     "cues": [
+      {
+       "id": "c_partage",
+       "text": "point de partage"
+      },
+      {
+       "id": "c_rapport",
+       "text": "rapport donné"
+      },
+      {
+       "id": "c_troisquarts",
+       "text": "trois quarts à partir de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_M",
+       "verb": "dim",
+       "at": "cue:c_partage",
+       "target": "M"
+      },
+      {
+       "id": "dim_Mlab",
+       "verb": "dim",
+       "at": "cue:c_partage",
+       "target": "M_lab"
+      },
+      {
+       "id": "w_k",
+       "verb": "write",
+       "at": "cue:c_troisquarts",
+       "target": "formuleP"
+      }
+     ]
+    },
+    {
+     "id": "placer",
+     "say": "Sur notre segment, ça donne P : zéro plus trois quarts de quatre, ça fait trois pour le x, et un plus trois quarts de deux donne deux virgule cinq pour le y. Il est plus près de B que de A.",
+     "cues": [
+      {
+       "id": "c_P",
+       "text": "donne P"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_P",
+       "verb": "show",
+       "at": "cue:c_P",
+       "target": "P"
+      },
+      {
+       "id": "s_Plab",
+       "verb": "show",
+       "at": "after:s_P",
+       "target": "P_lab"
+      },
+      {
+       "id": "s_Aplab",
+       "verb": "show",
+       "at": "after:s_P",
+       "target": "AP_lab"
+      },
+      {
+       "id": "s_MPlab",
+       "verb": "show",
+       "at": "after:s_P",
+       "target": "MP_lab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "verifM",
+     "layout": {
+      "next_to": "formuleP",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "0 + \\frac{3}{4}(4 - 0) = 3",
+     "type": "math"
+    },
+    {
+     "id": "verifY",
+     "layout": {
+      "next_to": "verifM",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "1 + \\frac{3}{4}(3 - 1) = 2{,}5",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "verifY",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Le rapport t est la fraction du chemin à partir de A.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "meme",
+     "say": "Vérifions que P est bien sur le segment. On remplace t par trois quarts dans la formule, coordonnée par coordonnée.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "coordonnée par coordonnée"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_vM",
+       "verb": "show",
+       "at": "cue:c_verif",
+       "target": "verifM"
+      },
+      {
+       "id": "s_vY",
+       "verb": "show",
+       "at": "after:s_vM",
+       "target": "verifY"
+      }
+     ]
+    },
+    {
+     "id": "t",
+     "say": "Le rapport t, lui, est une fraction du chemin à partir de A. Si t vaut un demi, on retombe sur le milieu, et à t égale un, on arrive à B.",
+     "cues": [
+      {
+       "id": "c_demi",
+       "text": "t vaut un demi"
+      },
+      {
+       "id": "c_milieu",
+       "text": "sur le milieu"
+      },
+      {
+       "id": "c_un",
+       "text": "t égale un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_note",
+       "verb": "write",
+       "at": "cue:c_demi",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "resume",
+     "say": "Donc milieu et point de partage sont deux façons de nommer un point du segment : le milieu quand t vaut un demi, le partage dès que t est un autre rapport.",
+     "cues": [
+      {
+       "id": "c_milieu2",
+       "text": "le milieu quand t vaut un demi"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_formuleM",
+       "verb": "highlight",
+       "at": "cue:c_milieu2",
+       "target": "formuleM",
+       "role": "accent"
+      },
+      {
+       "id": "h_formuleP",
+       "verb": "highlight",
+       "at": "after:h_formuleM",
+       "target": "formuleP",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "titre_recap",
+     "layout": {
+      "to_corner": "top_left"
+     },
+     "content": "Milieu = la moitié du segment",
+     "type": "text"
+    },
+    {
+     "id": "formule_recap",
+     "layout": {
+      "next_to": "titre_recap",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "M\\left(\\frac{x_A + x_B}{2} ; \\frac{y_A + y_B}{2}\\right)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "nettoyage",
+     "say": "Voyons maintenant la récapitulation.",
+     "cues": [
+      {
+       "id": "c_nettoyage",
+       "text": "récapitulation"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_A",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "A_lab"
+      },
+      {
+       "id": "f_B",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "B_lab"
+      },
+      {
+       "id": "f_P",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "P_lab"
+      },
+      {
+       "id": "f_MP",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "MP_lab"
+      },
+      {
+       "id": "f_AP",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "AP_lab"
+      },
+      {
+       "id": "f_v",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "verifM"
+      },
+      {
+       "id": "f_vY",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "verifY"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_nettoyage",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "idee",
+     "say": "À retenir : le milieu divise le segment en deux parties égales, sa formule fait la moyenne des coordonnées.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "milieu divise le segment"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "cue:c_idee",
+       "targets": [
+        "titre_recap",
+        "formule_recap"
+       ]
+      },
+      {
+       "id": "s_t",
+       "verb": "show",
+       "at": "cue:c_idee",
+       "target": "titre_recap"
+      },
+      {
+       "id": "s_f",
+       "verb": "write",
+       "at": "after:s_t",
+       "target": "formule_recap"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "partage",
+     "say": "Le point de partage, lui, suit un rapport : P égale A plus t fois B moins A. t entre zéro et un donne un point entre A et B.",
+     "cues": [
+      {
+       "id": "c_partage",
+       "text": "point de partage"
+      },
+      {
+       "id": "c_P",
+       "text": "P égale A plus"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p",
+       "verb": "show",
+       "at": "cue:c_partage",
+       "target": "P"
+      },
+      {
+       "id": "h_P",
+       "verb": "highlight",
+       "at": "cue:c_P",
+       "target": "formuleP",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

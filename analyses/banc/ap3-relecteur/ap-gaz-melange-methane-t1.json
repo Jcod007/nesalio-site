@@ -1,0 +1,801 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "gaz_melange_pression_totale",
+  "title": "Pression totale d'un mélange N₂ et CH₄ : pourquoi on multiplie",
+  "language": "fr",
+  "learning_goal": "Comprendre que le pourcentage en poids donne une multiplication pour trouver la masse de CH₄, puis calculer la pression totale par la loi des gaz parfaits."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "m_CH4": "0.2255*110.0",
+    "m_N2": "110.0-0.2255*110.0",
+    "n_CH4": "(0.2255*110.0)/16.04",
+    "n_N2": "(110.0-0.2255*110.0)/28.02",
+    "n_tot": "(0.2255*110.0)/16.04+(110.0-0.2255*110.0)/28.02",
+    "p_tot": "((0.2255*110.0)/16.04+(110.0-0.2255*110.0)/28.02)*8.314*523.15/70.00",
+    "T_K": "250.0+273.15"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "recap",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "N₂ + CH₄ : 110,0 g, 70,00 L, 250,0 °C, 22,55 % en poids de CH₄",
+     "type": "text"
+    },
+    {
+     "id": "pct",
+     "layout": {
+      "next_to": "recap",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "22{,}55\\,\\%\\ \\text{en poids}",
+     "type": "math"
+    },
+    {
+     "id": "eq_pct",
+     "layout": {
+      "next_to": "pct",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\frac{m(\\ce{CH4})}{m_{\\text{totale}}}\\times 100 = 22{,}55\\,\\%",
+     "parts": [
+      {
+       "id": "rapport",
+       "text": "\\frac{m(\\ce{CH4})}{m_{\\text{totale}}}"
+      },
+      {
+       "id": "cent",
+       "text": "\\times 100"
+      },
+      {
+       "id": "val",
+       "text": "= 22{,}55\\,\\%"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu as un mélange de diazote et de méthane : cent dix virgule zéro grammes au total, soixante-dix litres, à deux cent cinquante degrés Celsius, et vingt-deux virgule cinquante-cinq pour cent en poids de méthane.",
+     "cues": [
+      {
+       "id": "c_tot",
+       "text": "cent dix virgule zéro grammes"
+      },
+      {
+       "id": "c_pct",
+       "text": "vingt-deux virgule cinquante-cinq pour cent en poids"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "recap"
+      },
+      {
+       "id": "s_pct",
+       "verb": "show",
+       "at": "cue:c_pct",
+       "target": "pct"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "Ta question, c'est pourquoi on multiplie. Parce qu'un pourcentage en poids, c'est le rapport de la masse de méthane sur la masse totale, fois cent.",
+     "cues": [
+      {
+       "id": "c_pourcentage",
+       "text": "un pourcentage en poids"
+      },
+      {
+       "id": "c_rapport",
+       "text": "le rapport"
+      },
+      {
+       "id": "c_foi",
+       "text": "fois cent"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rapport",
+       "verb": "write",
+       "at": "cue:c_rapport",
+       "target": "eq_pct",
+       "part": "rapport"
+      },
+      {
+       "id": "w_cent",
+       "verb": "write",
+       "at": "cue:c_foi",
+       "target": "eq_pct",
+       "part": "cent"
+      },
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue_end:c_foi",
+       "target": "eq_pct",
+       "part": "val"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isoler",
+   "introduces": [
+    {
+     "id": "etape",
+     "content": "m(\\ce{CH4}) = 0{,}2255 \\times 110{,}0\\ \\text{g}",
+     "type": "math"
+    },
+    {
+     "id": "masse",
+     "layout": {
+      "next_to": "etape",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "m(\\ce{CH4}) = 24{,}81\\ \\text{g}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isole",
+     "say": "On isole la masse de méthane : on divise par cent, puis on multiplie par la masse totale. Vingt-deux virgule cinquante-cinq divisé par cent, ça donne zéro virgule deux deux cinq cinq, le pourcentage devenu décimal.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "On isole la masse de méthane"
+      },
+      {
+       "id": "c_decimal",
+       "text": "devenu décimal"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_recap",
+       "verb": "dim",
+       "at": "cue:c_isole",
+       "target": "recap"
+      },
+      {
+       "id": "d_pct",
+       "verb": "dim",
+       "at": "cue:c_isole",
+       "target": "pct"
+      },
+      {
+       "id": "d_eq",
+       "verb": "dim",
+       "at": "cue:c_isole",
+       "target": "eq_pct"
+      },
+      {
+       "id": "w_etape",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "etape"
+      }
+     ]
+    },
+    {
+     "id": "multiplie",
+     "say": "Donc on multiplie la masse totale par ce décimal : zéro virgule deux deux cinq cinq fois cent dix grammes, ça fait environ vingt-quatre virgule quatre-vingt-un grammes de méthane.",
+     "cues": [
+      {
+       "id": "c_mult",
+       "text": "on multiplie"
+      },
+      {
+       "id": "c_res",
+       "text": "vingt-quatre virgule quatre-vingt-un grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_masse",
+       "verb": "write",
+       "at": "cue:c_res",
+       "target": "masse"
+      },
+      {
+       "id": "h_etape",
+       "verb": "highlight",
+       "start": "cue:c_mult",
+       "end": "cue_end:c_mult",
+       "target": "etape",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        24.81,
+        85.19
+       ],
+       [
+        16.04,
+        28.02
+       ],
+       [
+        1.547,
+        3.04
+       ]
+      ],
+      "row_labels": [
+       "masse (g)",
+       "masse molaire (g/mol)",
+       "moles (mol)"
+      ],
+      "column_labels": [
+       "CH₄",
+       "N₂"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "m_N2",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "m(\\ce{N2}) = 110{,}0 - 24{,}81 = 85{,}19\\ \\text{g}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "complement",
+     "say": "Par différence, le diazote pèse cent dix moins vingt-quatre virgule quatre-vingt-un, donc quatre-vingt-cinq virgule dix-neuf grammes.",
+     "cues": [
+      {
+       "id": "c_diff",
+       "text": "Par différence"
+      },
+      {
+       "id": "c_n2",
+       "text": "quatre-vingt-cinq virgule dix-neuf grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "w_n2",
+       "verb": "write",
+       "at": "cue:c_n2",
+       "target": "m_N2"
+      }
+     ]
+    },
+    {
+     "id": "moles",
+     "say": "Je convertis en moles en divisant par la masse molaire : vingt-quatre virgule quatre-vingt-un sur seize virgule zéro quatre donne environ un virgule cinq cinq moles de méthane, et quatre-vingt-cinq virgule dix-neuf sur vingt-huit virgule zéro deux donne environ trois virgule zéro quatre moles de diazote.",
+     "cues": [
+      {
+       "id": "c_conv",
+       "text": "en moles"
+      },
+      {
+       "id": "c_ch4",
+       "text": "un virgule cinq cinq moles de méthane"
+      },
+      {
+       "id": "c_n2mol",
+       "text": "trois virgule zéro quatre moles de diazote"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_ch4",
+       "verb": "highlight",
+       "start": "cue:c_ch4",
+       "end": "cue_end:c_ch4",
+       "target": "tab",
+       "role": "accent",
+       "part": "r3c1"
+      },
+      {
+       "id": "h_n2",
+       "verb": "highlight",
+       "start": "cue:c_n2mol",
+       "end": "cue_end:c_n2mol",
+       "target": "tab",
+       "role": "accent",
+       "part": "r3c2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pression",
+   "introduces": [
+    {
+     "id": "temp",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "T = 250{,}0 + 273{,}15 = 523{,}15\\ \\text{K}",
+     "type": "math"
+    },
+    {
+     "id": "n_tot",
+     "layout": {
+      "next_to": "temp",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n_{\\text{totale}} = 1{,}547 + 3{,}040 = 4{,}587\\ \\text{mol}",
+     "type": "math"
+    },
+    {
+     "id": "loi",
+     "layout": {
+      "next_to": "n_tot",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pT = \\frac{nRT}{V}",
+     "type": "math"
+    },
+    {
+     "id": "calc",
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pT = \\frac{4{,}587 \\times 8{,}314 \\times 523{,}15}{70{,}00} \\approx 285{,}0\\ \\text{kPa}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "kelvin",
+     "say": "Avant la loi des gaz, la température doit être en kelvins : deux cent cinquante plus deux cent soixante-treize virgule quinze donne cinq cent vingt-trois virgule quinze kelvins.",
+     "cues": [
+      {
+       "id": "c_temp",
+       "text": "en kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "f_n2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "m_N2"
+      },
+      {
+       "id": "f_masse",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "masse"
+      },
+      {
+       "id": "f_etape",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "etape"
+      },
+      {
+       "id": "w_temp",
+       "verb": "write",
+       "at": "cue:c_temp",
+       "target": "temp"
+      }
+     ]
+    },
+    {
+     "id": "total",
+     "say": "Le nombre total de moles, c'est un virgule cinq cinq plus trois virgule zéro quatre, environ quatre virgule cinq neuf moles.",
+     "cues": [
+      {
+       "id": "c_ntot",
+       "text": "nombre total de moles"
+      },
+      {
+       "id": "c_val",
+       "text": "quatre virgule cinq neuf moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ntot",
+       "verb": "write",
+       "at": "cue:c_val",
+       "target": "n_tot"
+      }
+     ]
+    },
+    {
+     "id": "loi",
+     "say": "La loi des gaz parfaits relie tout : pression fois volume égale n R T, donc la pression totale, c'est n R T sur le volume.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "pression fois volume égale"
+      },
+      {
+       "id": "c_n",
+       "text": "n R T"
+      },
+      {
+       "id": "c_sur",
+       "text": "sur le volume"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_temp",
+       "verb": "dim",
+       "at": "cue:c_loi",
+       "target": "temp"
+      },
+      {
+       "id": "w_n",
+       "verb": "write",
+       "at": "cue:c_n",
+       "target": "loi"
+      },
+      {
+       "id": "w_rt",
+       "verb": "highlight",
+       "at": "cue_end:c_n",
+       "target": "loi",
+       "role": "accent"
+      },
+      {
+       "id": "w_v",
+       "verb": "highlight",
+       "at": "cue:c_sur",
+       "target": "loi",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "Je remplace : quatre virgule cinq neuf fois huit virgule trois cent quatorze fois cinq cent vingt-trois virgule quinze, divisé par soixante-dix virgule zéro zéro. La pression totale vaut environ deux cent quatre-vingt-cinq kilopascals.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "Je remplace"
+      },
+      {
+       "id": "c_resultat",
+       "text": "deux cent quatre-vingt-cinq kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "calc"
+      },
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "calc",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "% en poids = fraction massique × 100 : on multiplie la masse totale par le décimal",
+     "type": "text"
+    },
+    {
+     "id": "formule",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pT = \\frac{n_{\\text{totale}}RT}{V}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : le pourcentage en poids donne la fraction massique de méthane. On la transforme en décimal en divisant par cent, puis on multiplie par la masse totale.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_multiplie",
+       "text": "on multiplie par la masse totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc"
+      },
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "loi"
+      },
+      {
+       "id": "f_ntot",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "n_tot"
+      },
+      {
+       "id": "c_idee",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "idee",
+        "formule"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_multiplie",
+       "target": "idee"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue_end:c_multiplie",
+       "target": "formule"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

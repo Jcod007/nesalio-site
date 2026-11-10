@@ -1,0 +1,44 @@
+QUESTION (ap-isoler-temperature, chimie, sec 5, alloprof) : Comment isoler la variable temperature dans la formule p1v1/n1t1=p2v2/n2t2 avec la quantiter de gaz qui est constante
+RÉPONSE DE RÉFÉRENCE : T2 = P2·V2·T1 / (P1·V1)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Isoler T₂ dans la loi générale des gaz (n constant)
+=== Tranche s_depart
+  OBJET loi_gen [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" parts=\frac{p_1 V_1}{n_1 T_1} | = | \frac{p_2 V_2}{n_2 T_2}
+  OBJET const [label] "n est constant" 
+DIT (reformule) : Tu veux isoler la température finale dans la loi générale des gaz, en sachant que la quantité de gaz ne change pas.
+    write loi_gen @cue:c_temperature 
+DIT (note) : Cette formule compare deux états d'un même gaz : pression, volume, moles et température au début, puis à la fin.
+    show const @cue:c_deux 
+=== Tranche s_simplifie
+  OBJET loi_simpl [math] "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}" 
+DIT (raye) : Puisque n ne change pas, n un égale n deux. Ces deux facteurs sont identiques en haut et en bas : on peut les rayer.
+    highlight loi_gen @- {"start":"cue:c_identiques","end":"cue_end:c_identiques","role":"secondary","part":"gauche"}
+    highlight loi_gen @- {"start":"cue:c_identiques","end":"cue_end:c_identiques","role":"secondary","part":"droite"}
+    transform loi_simpl @cue:c_rayer {"source":"loi_gen"}
+DIT (pourquoi) : Ce qui reste est plus simple : la pression fois le volume, divisé par la température, donne la même valeur aux deux états.
+    highlight loi_simpl @- {"start":"cue:c_reste","end":"cue_end:c_reste","role":"accent"}
+=== Tranche s_isole
+  OBJET etape2 [math] "p_1 V_1 T_2 = p_2 V_2 T_1" parts=p_1 V_1 | T_2 | = | p_2 V_2 | T_1
+  OBJET resultat [math] "T_2 = \\frac{p_2 V_2 T_1}{p_1 V_1}" parts=T_2 | = | \frac{p_2 V_2 T_1}{p_1 V_1}
+DIT (produit) : On multiplie les deux côtés par T deux, puis par T un, pour chasser les dénominateurs. On obtient p un V un T deux égale p deux V deux T un.
+    transform etape2 @cue:c_multiplie {"source":"loi_simpl"}
+    highlight etape2 @- {"start":"cue:c_obtient","end":"cue_end:c_obtient","role":"accent","part":"gauche2"}
+DIT (final) : Il ne reste qu'à diviser les deux côtés par p un V un, et la température finale est seule : T deux égale p deux V deux T un, divisé par p un V un.
+    transform resultat @cue:c_divise {"source":"etape2"}
+    highlight resultat @- {"start":"cue:c_formule","end":"cue_end:c_formule","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" parts=\frac{p_1 V_1}{n_1 T_1} | = | \frac{p_2 V_2}{n_2 T_2}
+  OBJET formule_fin [math] "T_2 = \\frac{p_2 V_2 T_1}{p_1 V_1}" 
+  OBJET note [text] "n constant : on l'élimine" 
+DIT (mets) : Si tu oublies la formule finale, repars toujours de la loi générale : tu rayes n, tu multiplies par T deux et T un, puis tu divises par p un V un.
+    write regle @cue:c_repars {"part":"r_g"}
+    highlight regle @- {"start":"cue:c_raye","end":"cue_end:c_raye","role":"secondary","part":"r_g"}
+    highlight regle @- {"start":"cue:c_raye","end":"cue_end:c_raye","role":"secondary","part":"r_d"}
+    write formule_fin @cue:c_divises 
+    highlight formule_fin @- {"start":"cue:c_divises","end":"cue_end:c_divises","role":"result"}
+DIT (garder) : La température T un doit être en kelvins dans cette formule. Si elle est en degrés Celsius, ajoute deux cent soixante-treize virgule quinze.
+    show note @cue:c_kelvins 
+--- 4 tranches, 211 mots dits (≈ 1.4 min d'oral)

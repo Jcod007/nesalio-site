@@ -1,0 +1,694 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "trigo_triangles_rectangles",
+  "title": "La trigonométrie a-t-elle besoin d'un triangle rectangle ?",
+  "language": "fr",
+  "learning_goal": "Comprendre que sin, cos et tan se définissent d'abord dans un triangle rectangle, et comment on ramène un triangle quelconque à des triangles rectangles."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_rep",
+   "introduces": [
+    {
+     "id": "rep_trigo",
+     "params": {
+      "leg_a": 3,
+      "leg_b": 4
+     },
+     "type": "triangle_right"
+    },
+    {
+     "id": "hyp",
+     "attachment": {
+      "parent": "rep_trigo",
+      "anchor": "hypotenuse"
+     },
+     "content": "hypoténuse",
+     "type": "label"
+    },
+    {
+     "id": "adj",
+     "attachment": {
+      "parent": "rep_trigo",
+      "anchor": "side_a"
+     },
+     "content": "adjacent",
+     "type": "label"
+    },
+    {
+     "id": "opp",
+     "attachment": {
+      "parent": "rep_trigo",
+      "anchor": "side_b"
+     },
+     "content": "opposé",
+     "type": "label"
+    },
+    {
+     "id": "angle",
+     "attachment": {
+      "parent": "rep_trigo",
+      "anchor": "side_a"
+     },
+     "content": "angle choisi",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "oui",
+     "say": "Bonne question ! Pour le sinus, le cosinus et la tangente, oui : ces rapports se définissent dans un triangle rectangle.",
+     "cues": [
+      {
+       "id": "c_oui",
+       "text": "oui"
+      },
+      {
+       "id": "c_definissent",
+       "text": "se définissent"
+      },
+      {
+       "id": "c_rectangle",
+       "text": "triangle rectangle"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_trigo",
+       "verb": "draw",
+       "at": "cue:c_oui",
+       "target": "rep_trigo"
+      },
+      {
+       "id": "s_hyp",
+       "verb": "show",
+       "at": "cue:c_rectangle",
+       "target": "hyp"
+      },
+      {
+       "id": "h_hyp",
+       "verb": "highlight",
+       "start": "cue:c_rectangle",
+       "end": "cue_end:c_rectangle",
+       "target": "rep_trigo",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "roles",
+     "say": "Par rapport à l'angle, l'hypoténuse est le côté le plus long, en face de l'angle droit. L'opposé fait face à l'angle ; l'adjacent le touche.",
+     "cues": [
+      {
+       "id": "c_hyp",
+       "text": "l'hypoténuse",
+       "occurrence": 1
+      },
+      {
+       "id": "c_opp",
+       "text": "L'opposé"
+      },
+      {
+       "id": "c_adj",
+       "text": "l'adjacent"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_opp",
+       "verb": "show",
+       "at": "cue:c_opp",
+       "target": "opp"
+      },
+      {
+       "id": "s_adj",
+       "verb": "show",
+       "at": "cue:c_adj",
+       "target": "adj"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sinus",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "\\sin(\\angle) = \\frac{\\text{opposé}}{\\text{hypoténuse}} = \\frac{3}{5} = 0{,}6",
+     "parts": [
+      {
+       "id": "sinp",
+       "text": "\\sin(\\angle) ="
+      },
+      {
+       "id": "rapport",
+       "text": "\\frac{\\text{opposé}}{\\text{hypoténuse}}"
+      },
+      {
+       "id": "valeurs",
+       "text": "= \\frac{3}{5}"
+      },
+      {
+       "id": "valeur",
+       "text": "= 0{,}6"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "retour",
+     "layout": {
+      "next_to": "formule",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\angle = \\sin^{-1}(0{,}6) \\approx 36{,}9^\\circ",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "rapport",
+     "say": "Prenons un triangle trois, quatre, cinq : le côté opposé mesure trois et l'hypoténuse mesure cinq.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois"
+      },
+      {
+       "id": "c_cinq",
+       "text": "cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sinp",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "formule",
+       "part": "sinp"
+      },
+      {
+       "id": "w_rapport",
+       "verb": "write",
+       "at": "after:w_sinp",
+       "target": "formule",
+       "part": "rapport"
+      },
+      {
+       "id": "w_valeurs",
+       "verb": "write",
+       "at": "cue:c_cinq",
+       "target": "formule",
+       "part": "valeurs"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Trois divisé par cinq donne zéro virgule six : c'est le sinus de l'angle.",
+     "cues": [
+      {
+       "id": "c_div",
+       "text": "divisé par cinq"
+      },
+      {
+       "id": "c_six",
+       "text": "zéro virgule six"
+      },
+      {
+       "id": "c_sinus",
+       "text": "le sinus de l'angle"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_valeur",
+       "verb": "write",
+       "at": "cue:c_six",
+       "target": "formule",
+       "part": "valeur"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "start": "cue:c_sinus",
+       "end": "cue_end:c_sinus",
+       "target": "formule",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "angle",
+     "say": "Pour retrouver l'angle, on prend sinus moins un de zéro virgule six : environ trente-six virgule neuf degrés.",
+     "cues": [
+      {
+       "id": "c_moinsun",
+       "text": "sinus moins un"
+      },
+      {
+       "id": "c_degres",
+       "text": "trente-six virgule neuf degrés"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_retour",
+       "verb": "write",
+       "at": "cue:c_degres",
+       "target": "retour"
+      },
+      {
+       "id": "h_retour",
+       "verb": "highlight",
+       "at": "after:w_retour",
+       "target": "retour",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_quelconque",
+   "introduces": [
+    {
+     "id": "tri_qu",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        -4,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        1,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "hauteur",
+     "params": {
+      "from": [
+       1,
+       0
+      ],
+      "to": [
+       1,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "marque",
+     "layout": {
+      "next_to": "tri_qu",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "On trace la hauteur : deux triangles rectangles",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "quelconque",
+     "say": "Mais un triangle n'a pas besoin d'être rectangle pour qu'on trouve ses angles.",
+     "cues": [
+      {
+       "id": "c_mais",
+       "text": "Mais"
+      },
+      {
+       "id": "c_pasbesoin",
+       "text": "pas besoin"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_trigo",
+       "verb": "fade_out",
+       "at": "cue:c_mais",
+       "target": "rep_trigo"
+      },
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:c_mais",
+       "target": "formule"
+      },
+      {
+       "id": "f_retour",
+       "verb": "fade_out",
+       "at": "cue:c_mais",
+       "target": "retour"
+      },
+      {
+       "id": "d_qu",
+       "verb": "draw",
+       "at": "cue:c_pasbesoin",
+       "target": "tri_qu"
+      }
+     ]
+    },
+    {
+     "id": "decoupe",
+     "say": "On trace la hauteur du sommet jusqu'au côté opposé : elle crée deux triangles rectangles dans le grand.",
+     "cues": [
+      {
+       "id": "c_hauteur",
+       "text": "la hauteur"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux triangles rectangles"
+      },
+      {
+       "id": "c_grand",
+       "text": "dans le grand"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_h",
+       "verb": "draw",
+       "start": "cue:c_hauteur",
+       "end": "cue_end:c_grand",
+       "target": "hauteur"
+      },
+      {
+       "id": "h_tri",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_grand",
+       "target": "tri_qu",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "meme",
+     "say": "Dans chacun de ces triangles, le sinus et le cosinus s'appliquent comme avant. C'est pour ça qu'on peut travailler avec n'importe quel triangle.",
+     "cues": [
+      {
+       "id": "c_chacun",
+       "text": "chacun"
+      },
+      {
+       "id": "c_commeavant",
+       "text": "comme avant"
+      },
+      {
+       "id": "c_nimporte",
+       "text": "n'importe quel triangle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_marque",
+       "verb": "show",
+       "at": "cue:c_nimporte",
+       "target": "marque"
+      },
+      {
+       "id": "h_h",
+       "verb": "highlight",
+       "start": "cue:c_chacun",
+       "end": "cue_end:c_commeavant",
+       "target": "hauteur",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee_forte",
+     "content": "Sin, cos et tan : d'abord dans un triangle rectangle",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : la trigonométrie sin, cos et tan se définit toujours dans un triangle rectangle.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_definit",
+       "text": "se définit toujours"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_marque",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "marque"
+      },
+      {
+       "id": "f_qu",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tri_qu"
+      },
+      {
+       "id": "f_h",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "hauteur"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee_forte"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_definit",
+       "end": "cue_end:c_definit",
+       "target": "idee_forte",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

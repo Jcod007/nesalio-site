@@ -1,0 +1,1157 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "polygone_contraintes",
+  "title": "Le polygone de contraintes : la région qui obéit à toutes les inéquations",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une inéquation à deux variables garde un demi-plan, que le polygone de contraintes est la partie commune à toutes, et que son sommet donne l'optimum."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_demande",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -1,
+       8
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "frontA",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "6 - x",
+      "domain": [
+       0,
+       6
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "frontB",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2*x",
+      "domain": [
+       0,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "regY",
+     "layout": {
+      "next_to": "axes",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "y = 2x",
+     "parts": [
+      {
+       "id": "lhsB",
+       "text": "y"
+      },
+      {
+       "id": "rhsB",
+       "text": "= 2x"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "regA",
+     "layout": {
+      "next_to": "regY",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "y = 6 - x",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "regA",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "je te le montre pas à pas, sans cauchemar",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Les polygones de contraintes t'ont donné du fil à retordre : on va le refaire ensemble, doucement, sur un seul exemple. Une inéquation à deux variables, c'est juste une droite frontière qui garde un demi-plan.",
+     "cues": [
+      {
+       "id": "c_variables",
+       "text": "inéquation à deux variables"
+      },
+      {
+       "id": "c_demiplan",
+       "text": "demi-plan"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_frontA",
+       "verb": "draw",
+       "start": "cue:c_variables",
+       "end": "cue_end:c_variables",
+       "target": "frontA"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_demiplan",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_contraintes",
+   "introduces": [
+    {
+     "id": "c1",
+     "layout": {
+      "to_corner": "top_left",
+      "gap": "md"
+     },
+     "content": "x \\ge 0",
+     "type": "math"
+    },
+    {
+     "id": "c2",
+     "layout": {
+      "next_to": "c1",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "y \\ge 0",
+     "type": "math"
+    },
+    {
+     "id": "c3",
+     "layout": {
+      "next_to": "c2",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "x + y \\le 6",
+     "type": "math"
+    },
+    {
+     "id": "c4",
+     "layout": {
+      "next_to": "c3",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "y \\le 2x",
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "c4",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "une contrainte = une inéquation à respecter",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Voici nos quatre contraintes. Le x plus grand ou égal à zéro et le y plus grand ou égal à zéro disent qu'on reste dans le premier quadrant. Et la droite qu'on vient de voir vient du x plus y plus petit ou égal à six, écrite y égale six moins x.",
+     "cues": [
+      {
+       "id": "c_carres",
+       "text": "x plus grand ou égal à zéro"
+      },
+      {
+       "id": "c_premier",
+       "text": "premier quadrant"
+      },
+      {
+       "id": "c_six",
+       "text": "six moins x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c1",
+       "verb": "write",
+       "at": "cue:c_carres",
+       "target": "c1"
+      },
+      {
+       "id": "w_c2",
+       "verb": "write",
+       "at": "cue:c_premier",
+       "target": "c2"
+      },
+      {
+       "id": "w_c3",
+       "verb": "write",
+       "at": "cue:c_six",
+       "target": "c3"
+      },
+      {
+       "id": "d_frontA",
+       "verb": "draw",
+       "start": "cue:c_six",
+       "end": "cue_end:c_six",
+       "target": "frontA"
+      },
+      {
+       "id": "d_regA",
+       "verb": "write",
+       "at": "cue:c_six",
+       "target": "regA"
+      }
+     ]
+    },
+    {
+     "id": "deuxieme",
+     "say": "La dernière, y plus petit ou égal à deux x, c'est la droite y égale deux x : dans le quadrant positif, elle monte du point zéro zéro vers la droite.",
+     "cues": [
+      {
+       "id": "c_deuxx",
+       "text": "y égale deux x"
+      },
+      {
+       "id": "c_monte",
+       "text": "monte"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c4",
+       "verb": "write",
+       "at": "cue:c_deuxx",
+       "target": "c4"
+      },
+      {
+       "id": "d_frontB",
+       "verb": "draw",
+       "start": "cue:c_monte",
+       "end": "cue_end:c_monte",
+       "target": "frontB"
+      },
+      {
+       "id": "w_rhsB",
+       "verb": "write",
+       "at": "after:d_frontB",
+       "target": "regY",
+       "part": "rhsB"
+      },
+      {
+       "id": "h_c4",
+       "verb": "highlight",
+       "start": "cue:c_deuxx",
+       "end": "cue_end:c_deuxx",
+       "target": "c4",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_demiplan",
+   "introduces": [
+    {
+     "id": "ptTest",
+     "style": {
+      "role": "given"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "ptTestLabel",
+     "attachment": {
+      "parent": "ptTest",
+      "anchor": "right"
+     },
+     "content": "(1 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "test",
+     "layout": {
+      "next_to": "regY",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "1 + 1 = 2 \\le 6",
+     "parts": [
+      {
+       "id": "somme",
+       "text": "1 + 1 = 2"
+      },
+      {
+       "id": "vrai",
+       "text": "\\le 6"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "testpoint",
+     "say": "Pour savoir de quel côté on garde, prenons un point qui n'est pas sur la droite, le point un, un. On remplace : un plus un font deux, et deux est plus petit ou égal à six. Alors le bon demi-plan, c'est celui du point test.",
+     "cues": [
+      {
+       "id": "c_unun",
+       "text": "point un, un"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux est plus petit"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_unun",
+       "target": "ptTest"
+      },
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "cue:c_unun",
+       "target": "ptTestLabel"
+      },
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "test",
+       "part": "somme"
+      },
+      {
+       "id": "w_vrai",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "test",
+       "part": "vrai"
+      }
+     ]
+    },
+    {
+     "id": "sommets",
+     "say": "Ces deux droites se coupent en le point deux, quatre ; et les autres croisements nous donnent le point zéro zéro et le point six zéro. Ces trois sommets forment le triangle de tous les points qui respectent les quatre contraintes.",
+     "cues": [
+      {
+       "id": "c_intersection",
+       "text": "deux, quatre"
+      },
+      {
+       "id": "c_autres",
+       "text": "zéro zéro"
+      },
+      {
+       "id": "c_sixzero",
+       "text": "six zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_pt",
+       "verb": "fade_out",
+       "at": "cue:c_intersection",
+       "target": "ptTest"
+      },
+      {
+       "id": "f_lab",
+       "verb": "fade_out",
+       "at": "cue:c_intersection",
+       "target": "ptTestLabel"
+      },
+      {
+       "id": "f_test",
+       "verb": "fade_out",
+       "at": "cue:c_intersection",
+       "target": "test"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_polygone",
+   "introduces": [
+    {
+     "id": "poly",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        2,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "p00",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab00",
+     "attachment": {
+      "parent": "p00",
+      "anchor": "bottom"
+     },
+     "content": "(0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "p60",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab60",
+     "attachment": {
+      "parent": "p60",
+      "anchor": "bottom"
+     },
+     "content": "(6 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "p24",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab24",
+     "attachment": {
+      "parent": "p24",
+      "anchor": "top"
+     },
+     "content": "(2 ; 4)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "region",
+     "say": "On colorie la partie commune : c'est le polygone de contraintes. Ses sommets, je les ai calculés en résolvant les systèmes, jamais devinés à l'œil.",
+     "cues": [
+      {
+       "id": "c_polygone",
+       "text": "polygone de contraintes"
+      },
+      {
+       "id": "c_sommets",
+       "text": "sommets"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_poly",
+       "verb": "show",
+       "at": "cue:c_polygone",
+       "target": "poly"
+      },
+      {
+       "id": "s_p00",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "p00"
+      },
+      {
+       "id": "s_lab00",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lab00"
+      },
+      {
+       "id": "s_p60",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "p60"
+      },
+      {
+       "id": "s_lab60",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lab60"
+      },
+      {
+       "id": "s_p24",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "p24"
+      },
+      {
+       "id": "s_lab24",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lab24"
+      }
+     ]
+    },
+    {
+     "id": "verif",
+     "say": "Vérifions le sommet deux, quatre : deux plus quatre font six, ça passe ; et quatre est plus petit ou égal à deux fois deux, soit quatre. Il respecte donc toutes les contraintes.",
+     "cues": [
+      {
+       "id": "c_deuxplus",
+       "text": "deux plus quatre"
+      },
+      {
+       "id": "c_quatre",
+       "text": "deux fois deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_p24",
+       "verb": "highlight",
+       "start": "cue:c_deuxplus",
+       "end": "cue_end:c_quatre",
+       "target": "p24",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "pause",
+     "say": "Résumons : chaque inéquation garde son demi-plan, et le polygone de contraintes, c'est l'intersection de tous ces demi-plans.",
+     "cues": [],
+     "do": [],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_optimum",
+   "introduces": [
+    {
+     "id": "obj",
+     "layout": {
+      "next_to": "c4",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "z = 3x + 2y",
+     "type": "math"
+    },
+    {
+     "id": "vals",
+     "layout": {
+      "next_to": "obj",
+      "direction": "down",
+      "gap": "md"
+     },
+     "params": {
+      "rows": [
+       [
+        "(0 ; 0)",
+        0
+       ],
+       [
+        "(6 ; 0)",
+        18
+       ],
+       [
+        "(2 ; 4)",
+        14
+       ]
+      ],
+      "column_labels": [
+       "sommet",
+       "z"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "max",
+     "layout": {
+      "next_to": "vals",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{maximum } z = 18",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fonction",
+     "say": "Imaginons qu'on veuille maximiser z égale trois x plus deux y. Sur un polygone fermé comme le nôtre, le maximum et le minimum sont toujours à un sommet : on n'a donc que trois candidats à tester.",
+     "cues": [
+      {
+       "id": "c_z",
+       "text": "z égale trois x"
+      },
+      {
+       "id": "c_sommet",
+       "text": "toujours à un sommet"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_obj",
+       "verb": "write",
+       "at": "cue:c_z",
+       "target": "obj"
+      },
+      {
+       "id": "s_vals",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "vals"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "Au point zéro zéro, z vaut zéro. Au point six zéro, trois fois six plus deux fois zéro donnent dix-huit. Au point deux, quatre, trois fois deux plus deux fois quatre donnent quatorze.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "z vaut zéro"
+      },
+      {
+       "id": "c_dixhuit",
+       "text": "dix-huit"
+      },
+      {
+       "id": "c_quatorze",
+       "text": "quatorze"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "start": "cue:c_zero",
+       "end": "cue_end:c_zero",
+       "target": "vals",
+       "role": "accent",
+       "part": "r1c2"
+      },
+      {
+       "id": "h_r2",
+       "verb": "highlight",
+       "start": "cue:c_dixhuit",
+       "end": "cue_end:c_dixhuit",
+       "target": "vals",
+       "role": "accent",
+       "part": "r2c2"
+      },
+      {
+       "id": "h_r3",
+       "verb": "highlight",
+       "start": "cue:c_quatorze",
+       "end": "cue_end:c_quatorze",
+       "target": "vals",
+       "role": "accent",
+       "part": "r3c2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "maximum",
+     "say": "On compare : zéro, dix-huit, quatorze. Le maximum est dix-huit, atteint au sommet six, zéro.",
+     "cues": [
+      {
+       "id": "c_max",
+       "text": "maximum est dix-huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_max",
+       "verb": "show",
+       "at": "cue:c_max",
+       "target": "max"
+      },
+      {
+       "id": "h_max",
+       "verb": "highlight",
+       "at": "after:s_max",
+       "target": "max",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "to_corner": "top_left",
+      "gap": "lg"
+     },
+     "content": "une inéquation = un demi-plan ; le polygone = la partie commune ; l'optimum est à un sommet",
+     "type": "text"
+    },
+    {
+     "id": "recap",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "z = 3x + 2y \\Rightarrow \\text{max en } (6 ; 0)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "clear",
+     "say": "Enlève tout ce qui encombre, il ne nous reste que l'essentiel à retenir.",
+     "cues": [],
+     "do": [
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "f_frontA",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "frontA"
+      },
+      {
+       "id": "f_frontB",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "frontB"
+      },
+      {
+       "id": "f_poly",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "poly"
+      },
+      {
+       "id": "f_p00",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p00"
+      },
+      {
+       "id": "f_lab00",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab00"
+      },
+      {
+       "id": "f_p60",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p60"
+      },
+      {
+       "id": "f_lab60",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab60"
+      },
+      {
+       "id": "f_p24",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p24"
+      },
+      {
+       "id": "f_lab24",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab24"
+      },
+      {
+       "id": "f_c1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c1"
+      },
+      {
+       "id": "f_c2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c2"
+      },
+      {
+       "id": "f_c3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c3"
+      },
+      {
+       "id": "f_c4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c4"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regle"
+      },
+      {
+       "id": "f_obj",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "obj"
+      },
+      {
+       "id": "f_vals",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "vals"
+      },
+      {
+       "id": "f_max",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "max"
+      },
+      {
+       "id": "f_regA",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regA"
+      },
+      {
+       "id": "f_regY",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regY"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "retenir",
+     "say": "Chaque inéquation garde un demi-plan : on la trace comme une frontière, puis on choisit le bon côté avec un point test. Le polygone de contraintes, c'est la partie commune à tous ces demi-plans.",
+     "cues": [
+      {
+       "id": "c_chaque",
+       "text": "Chaque inéquation garde un demi-plan"
+      },
+      {
+       "id": "c_test",
+       "text": "point test"
+      },
+      {
+       "id": "c_commune",
+       "text": "partie commune"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_chaque",
+       "target": "idee"
+      },
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "cue:c_commune",
+       "target": "recap"
+      },
+      {
+       "id": "h_recap",
+       "verb": "highlight",
+       "at": "after:s_recap",
+       "target": "recap",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

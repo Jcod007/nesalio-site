@@ -84,6 +84,69 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-09 — Relecteur activé par défaut ; compute-engine rejoué (Claude Code, session « relecteur »)
+- **Décision de l'utilisateur** (« Oui, l'activer ») : le relecteur est actif par défaut ; `NESALIO_RELECTEUR=0` le
+  coupe (`config.ts`, `readReviewer` ; commentaires de la route, du générateur, de `review.ts` et du banc). Le banc
+  l'utilise aussi par défaut : `NESALIO_RELECTEUR=0` pour mesurer sans. `npx vitest run src/server/` 240 verts, `tsc` vert.
+- Question de l'utilisateur « compute-engine aide vraiment ? » : rejeu gratuit hors dépôt sur 350 leçons du banc
+  (résoudre l'équation affichée, comparer la solution annoncée) : 25 solutions confrontées, 2 vraies erreurs (la même
+  question exponentielle de l'ancien banc), 1 fausse alerte. **Fonctionne mais aide très peu** ; pas ajouté.
+  Détails : `evaluation-compute-engine.md` des notes.
+- Rien commité. Re-mesure des corrections du relecteur : à faire avec une nouvelle clé (la clé d'essai est presque au plafond).
+
+### 2026-11-09 — Relecteur : notation à l'aveugle, corrections du code, bilan (Claude Code, session « relecteur »)
+- **54 questions** (avant `ap2-allegees` t1 contre `ap3-relecteur`, 3 correcteurs, notes et clé dans
+  `notation-relecteur/` des notes ; `analyses/relecture/depouiller.mjs`) : **61,4 → 70,6** ; < 50 : **17 → 6** ;
+  maths 57,9 → 68,4, chimie 63,8 → 72,2 ; après meilleur 29, avant 19, égalités 6. Part due au relecteur : les 20 leçons
+  corrigées gagnent +13,2, les 34 autres +7,0 (bruit du tirage, 1 seul tirage) → effet propre ≈ +6 sur les corrigées.
+- **Nouveau lot 24 questions** (`ap3n-sans` contre `ap3n-relecteur`, `notation-nouvelles/`) : 56,2 = 56,2, mais 2 leçons
+  vides après (en-tête refusé : rien à voir avec le relecteur) et 1 avant. Sur les 21 où les deux existent : 56,3 → 61,1,
+  < 50 : 10 → 6 ; corrigées +3,4, non corrigées +5,3 : effet du relecteur non visible sur ce lot. Ratés : valeurs
+  `computed` invisibles pour le relecteur (nh3 « 48,4 g », fes2 « 1,10 »), erreurs de concept sur les gaz non vues,
+  corrections partielles (loi des cosinus, racine : 30 → 50).
+- Coût réel : sans relecteur 0,005 $/leçon (lot neuf), avec 0,024-0,025 $/leçon. Dépensé dans cette session ≈ 2,1 $.
+- **Rapport du relecteur de code** (`relecteur-code.md` des notes), corrigé APRÈS les bancs (donc non mesuré) :
+  LaTeX à une barre oblique dans la réponse (`escapeLatex`/`restoreLatex`, ce dernier exporté de `normalize.ts`) ;
+  valeur calculée montrée au relecteur comme l'élève la voit (`sceneText`, `math_context` toujours pas envoyé) ; dédit
+  reconnu seulement en début de correction et sans « mais » ; guillemets et `{,}` ignorés ; citation ≥ 4 caractères
+  cherchée dans le texte relu seulement ; arrêt si l'élève part pendant une relecture ; gestes `move`/`set_style` retirés.
+  `npx vitest run` 902 verts, `tsc` vert.
+- `@cortex-js/compute-engine` évalué hors dépôt : résout les systèmes (même non linéaires), lit mal `2{,}17` (= 217),
+  29 Mo, versions quotidiennes. Utile plus tard, pas urgent. Détails : `evaluation-compute-engine.md` des notes.
+- **Prochaine étape (décision utilisateur)** : activer le relecteur par défaut ; re-mesurer avec les corrections
+  (2 tirages) quand le budget le permet ; essayer Claude Haiku 5.5 (20 fois moins cher). Rien commité.
+
+### 2026-11-09 — Banc des 54 questions Alloprof avec relecteur (Claude Code, session « relecteur »)
+- `analyses/banc/ap3-relecteur/` (1 tirage, consignes allégées, `NESALIO_RELECTEUR=1`) ; mesures avec
+  `node analyses/relecture/mesurer.mjs <dossier> [--tirage=1]` (attente de l'élève estimée à 127 mots/min).
+- Intactes 50/54 (avant, `ap2-allegees` tirage 1 : 51/54). 1 des 4 coupures vient d'une correction (DeepSeek affiche
+  un calcul `computed` non déclaré dans l'en-tête), les 3 autres sont des refus de forme habituels.
+- Délais : 1re tranche médiane 3,1 s (avant 3,0), p90 4,1 s ; total médian 17,9 s (avant 11,9). Attente estimée de
+  l'élève : 0 leçon sur 54 (les tranches arrivent bien avant la fin de la précédente).
+- Relecteur : 177 relectures, 2,2 s médian, 7,7 s max, 0 échec ; 36 alertes, 24 tranches renvoyées dans 20 leçons.
+  Coût réel (différence du total dépensé du Gateway) : 1,33 $ les 54 leçons, soit ≈ 0,025 $/leçon (≈ 0,009 sans).
+- Nouveau lot de 24 questions (8 stœchio, 8 gaz, 8 maths ; `app/tools/eval/corpus-alloprof-nouvelles.json`, trouvé
+  par un agent ; détails `chercheur-questions.md` des notes) : banc sans puis avec relecteur en cours.
+- Notation à l'aveugle en cours (3 correcteurs) : `notation-relecteur/` des notes, dossiers faits par
+  `analyses/relecture/aveugle.mjs` (référence affichée par `reponse.texte`) ; clé hors des notes (scratchpad).
+
+### 2026-11-09 — Relecteur hybride branché (Claude Code, session « relecteur »)
+- Demande de l'utilisateur : brancher la « version hybride » (DeepSeek écrit sans réflexion, Sonnet 5.5 relit), la
+  mesurer. **Désactivé par défaut** : `NESALIO_RELECTEUR=1` l'active ; `NESALIO_RELECTEUR_MODELE` (défaut
+  `anthropic/claude-sonnet-5.5`), `NESALIO_RELECTEUR_EFFORT` (aucun par défaut). AI Gateway seulement, donc ZDR +
+  interdiction d'entraînement comme le reste (`gatewayPrivacy`). JSON Nesalio inchangé.
+- Nouveau `server/nesalio/review.ts` (texte relu, consigne, lecture du DERNIER JSON, garde-fous : citation retrouvée mot
+  pour mot dans la tranche, correction qui se dédit écartée, 4 alertes max, `math_context` jamais envoyé) ;
+  `config.ts` (`readReviewer`) ; `prompt.ts` (`reviewFixMessage`) ; route `/api/nesalio`.
+- `generator.ts` : une tranche validée (sauf la 1re) est retenue le temps de la relecture, pendant que la précédente se
+  joue. Alerte → l'appel est coupé, la tranche (jamais montrée) est renvoyée à DeepSeek avec les alertes, il la recopie
+  corrigée et réécrit la suite. Budget à part (`MAX_REVIEW_FIXES` = 2 par leçon, ne consomme pas `MAX_REPAIRS`) ; une
+  tranche corrigée n'est pas relue ; relecteur en panne ou > 12 s (`REVIEW_TIMEOUT_MS`) → tranche montrée sans relecture.
+- Vérifié : `npx vitest run` 898 verts (16 nouveaux : `review.test.ts`, `generator-review.test.ts`, modèles simulés) ;
+  `npx tsc --noEmit` vert. Pas encore essayé en réel.
+- Demande de l'utilisateur en cours de route : garder les 54 questions Alloprof (comparaison) et ajouter un nouveau lot
+  de questions variées (stœchiométrie, gaz, maths). Prochaine étape : ce lot, puis le banc avec relecteur.
+
 ### 2026-11-09 — Bilan avant changement de conversation (Claude Code)
 **Mesure après les corrections de justesse** (contrôles `valueChecks.ts`, consignes, fiches, FACTS ; consignes
 allégées), 54 questions Alloprof × 2 (`analyses/banc/ap2-allegees/`) : 101/108 intactes (93,5 %), 1re tranche

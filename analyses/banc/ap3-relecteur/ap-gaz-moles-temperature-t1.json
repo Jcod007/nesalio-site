@@ -1,0 +1,545 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "lois_gaz_moles_temperature",
+  "title": "Une loi simple des gaz qui relie les moles et la température",
+  "language": "fr",
+  "learning_goal": "Comprendre que la loi d'Avogadro relie le volume et les moles à pression et température constantes, et que la loi générale des gaz relie p, V, n et T en une seule équation."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "loi_avogadro",
+     "content": "\\frac{V_1}{n_1} = \\frac{V_2}{n_2}",
+     "parts": [
+      {
+       "id": "p1",
+       "text": "\\frac{V_1}{n_1}"
+      },
+      {
+       "id": "p2",
+       "text": "= \\frac{V_2}{n_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "cond_avogadro",
+     "content": "à p et T constants",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Oui, il en existe une : la loi d'Avogadro. Elle relie le nombre de moles au volume, mais seulement si la pression et la température ne bougent pas.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "loi d'Avogadro"
+      },
+      {
+       "id": "c_pression",
+       "text": "pression et la température"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p1",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi_avogadro",
+       "part": "p1"
+      },
+      {
+       "id": "w_p2",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi_avogadro",
+       "part": "p2"
+      },
+      {
+       "id": "s_cond",
+       "verb": "show",
+       "at": "cue:c_pression",
+       "target": "cond_avogadro"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "Le volume divisé par les moles reste le même : si tu doubles les moles à pression constante, le volume double aussi.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "doubles les moles"
+      },
+      {
+       "id": "c_volume",
+       "text": "volume double"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "start": "cue:c_double",
+       "end": "cue_end:c_volume",
+       "target": "loi_avogadro",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "ex_avogadro",
+     "content": "\\frac{2{,}0\\ \\text{L}}{0{,}10\\ \\text{mol}} = \\frac{V_2}{0{,}25\\ \\text{mol}}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{2{,}0\\ \\text{L}}{0{,}10\\ \\text{mol}}"
+      },
+      {
+       "id": "droite",
+       "text": "= \\frac{V_2}{0{,}25\\ \\text{mol}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calcul",
+     "layout": {
+      "next_to": "ex_avogadro",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "V_2 = 5{,}0\\ \\text{L}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Prenons deux litres d'un gaz pour zéro virgule dix mole. On porte les moles à zéro virgule vingt-cinq ; quel volume obtient-on ?",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux litres"
+      },
+      {
+       "id": "c_dix",
+       "text": "zéro virgule dix mole"
+      },
+      {
+       "id": "c_vingt",
+       "text": "zéro virgule vingt-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "ex_avogadro",
+       "part": "gauche"
+      },
+      {
+       "id": "w_d",
+       "verb": "write",
+       "at": "cue:c_vingt",
+       "target": "ex_avogadro",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "resous",
+     "say": "Avec la loi d'Avogadro, on fait le produit croisé : deux fois zéro virgule vingt-cinq divisé par zéro virgule dix donne cinq litres.",
+     "cues": [
+      {
+       "id": "c_cinq",
+       "text": "cinq litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_cinq",
+       "target": "calcul"
+      },
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "at": "after:w_calc",
+       "target": "calcul",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_generale",
+   "introduces": [
+    {
+     "id": "generale",
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "parts": [
+      {
+       "id": "g1",
+       "text": "\\frac{p_1 V_1}{n_1 T_1}"
+      },
+      {
+       "id": "g2",
+       "text": "= \\frac{p_2 V_2}{n_2 T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "nT",
+     "layout": {
+      "next_to": "generale",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n_1 T_1 = n_2 T_2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regroupe",
+     "say": "Toutes ces lois sortent d'une seule : la loi générale des gaz, où pression, volume, moles et température apparaissent ensemble.",
+     "cues": [
+      {
+       "id": "c_generale",
+       "text": "loi générale des gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_avogadro",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "loi_avogadro"
+      },
+      {
+       "id": "f_cond",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "cond_avogadro"
+      },
+      {
+       "id": "f_ex",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ex_avogadro"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calcul"
+      },
+      {
+       "id": "w_g1",
+       "verb": "write",
+       "at": "cue:c_generale",
+       "target": "generale",
+       "part": "g1"
+      },
+      {
+       "id": "w_g2",
+       "verb": "write",
+       "at": "cue:c_generale",
+       "target": "generale",
+       "part": "g2"
+      }
+     ]
+    },
+    {
+     "id": "raye",
+     "say": "Quand pression et volume restent constants, ces facteurs s'annulent et il reste les moles et la température : elles varient en sens inverse.",
+     "cues": [
+      {
+       "id": "c_sens",
+       "text": "sens inverse"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_gen",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "generale"
+      },
+      {
+       "id": "w_nT",
+       "verb": "write",
+       "at": "cue:c_sens",
+       "target": "nT"
+      },
+      {
+       "id": "h_nT",
+       "verb": "highlight",
+       "at": "after:w_nT",
+       "target": "nT",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Une seule loi : pV = nRT ou p₁V₁/(n₁T₁) = p₂V₂/(n₂T₂)",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : la loi d'Avogadro relie volume et moles à pression et température constantes, et la loi générale des gaz les relie tous ensemble dans une seule équation.",
+     "cues": [
+      {
+       "id": "c_avogadro",
+       "text": "loi d'Avogadro"
+      },
+      {
+       "id": "c_tous",
+       "text": "tous ensemble"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_nT",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "nT"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_tous",
+       "target": "idee"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_avogadro",
+       "targets": [
+        "generale",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

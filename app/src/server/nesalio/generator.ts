@@ -15,7 +15,8 @@ import type { ChatProvider } from "@/server/config";
 import { UpstreamError, type CompletionStream } from "@/server/tutor/chatCompletions";
 import { jsonrepair } from "jsonrepair";
 import type { ChatMessage } from "@/server/tutor/prompt";
-import { buildNesalioMessages, continueMessage, repairHeaderMessage, repairMessage } from "./prompt";
+import { buildNesalioMessages, continueMessage, repairHeaderMessage, repairMessage, reviewFixMessage } from "./prompt";
+import type { ReviewAlert, SliceReviewer } from "./review";
 import { buildTeacherMessages, layoutRequest } from "./script";
 
 export type NesalioEvent =
@@ -35,6 +36,14 @@ export interface GeneratorConfig {
   idleTimeoutMs?: number;
   /** Wait for a call's first byte (FIRST_BYTE_TIMEOUT_MS); defaults to idleTimeoutMs when only that one is given (tests). */
   firstByteTimeoutMs?: number;
+  /**
+   * Reviewer of substance (review.ts): each tranche but the first is read before it is
+   * shown, while the previous one plays; an error it is sure of sends the tranche back to
+   * the model once. Off when absent (route: on unless NESALIO_RELECTEUR=0).
+   */
+  review?: SliceReviewer;
+  /** Longest wait for one review (REVIEW_TIMEOUT_MS); past it the tranche is shown unreviewed. */
+  reviewTimeoutMs?: number;
 }
 
 /** Above this, a lesson exceeds the 1 to 2 minute target by far: the rest is dropped. */
@@ -71,6 +80,16 @@ export const IDLE_TIMEOUT_MS = 20_000;
  * to 24.9 s, 4 lessons above 20 s; at 20 s they would have been cut and restarted.
  */
 export const FIRST_BYTE_TIMEOUT_MS = 45_000;
+/**
+ * Longest wait for the reviewer on one tranche. Measured offline: 2.5 s median, 7.7 s at
+ * most for a whole lesson; the previous tranche plays 20 s or more meanwhile.
+ */
+export const REVIEW_TIMEOUT_MS = 12_000;
+/**
+ * Tranches of one lesson sent back after a review. Each correction is a new call (the
+ * 37 000-character prompt read again): two keeps the student's wait bounded.
+ */
+export const MAX_REVIEW_FIXES = 2;
 /** Longest received value quoted back in a refusal. */
 const RECEIVED_LENGTH = 80;
 const HEADER = "en-tête";
@@ -79,6 +98,15 @@ const STALLED = "flux interrompu";
 const MAX_TOKENS = 16_000;
 
 type Lesson = ReturnType<typeof LessonMetadata.parse>;
+/** A tranche the contract accepted, before it is shown (held while the reviewer reads it). */
+interface Candidate {
+  id: string;
+  line: string;
+  lenient: boolean;
+  normalized: unknown;
+  fixes: readonly string[];
+  result: Extract<ReturnType<typeof check>, { ok: true }>;
+}
 type MathSpec = ReturnType<typeof MathContext.parse>;
 
 /** Slices also have to be playable by this player, not only valid for the contract. */
@@ -366,6 +394,39 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
   let retried = false;
   /** Each refused tranche as last refused (repaired form, or the raw line if unreadable): shown back to the model. */
   const refusedLines = new Map<string, string>();
+  /** Tranches already read by the reviewer: a corrected tranche is not read again. */
+  const reviewed = new Set<string>();
+  let reviewFixes = 0;
+  /** Tranches shown, as played: the context the reviewer reads before the new one. */
+  const shown: Slice[] = [];
+  const reviewTimeoutMs = config.reviewTimeoutMs ?? REVIEW_TIMEOUT_MS;
+
+  /** The reviewer's alerts on a tranche; none when it fails or is too slow (the tranche is then shown unreviewed). */
+  const reviewOf = async (candidate: Candidate): Promise<ReviewAlert[]> => {
+    const timer = new AbortController();
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        timer.abort();
+        reject(new Error(`pas de réponse après ${Math.round(reviewTimeoutMs / 1000)} s`));
+      }, reviewTimeoutMs);
+    });
+    try {
+      const review = await Promise.race([config.review!({
+        question, previous: [...shown], slice: candidate.result.value.slices[0]!, math: header?.math_context,
+        signal: signal ? AbortSignal.any([signal, timer.signal]) : timer.signal,
+      }), late]);
+      for (const { alert, reason } of review.dropped) log?.("nesalio: alerte du relecteur écartée", `${candidate.id} — ${reason} : « ${alert.citation} » → ${alert.correction}`);
+      log?.("nesalio: relecture", `${candidate.id} — ${review.alerts.length} alerte(s) gardée(s), ${review.dropped.length} écartée(s), ${review.ms} ms`);
+      for (const { citation, correction } of review.alerts) log?.("nesalio: alerte du relecteur", `${candidate.id} — « ${citation} » → ${correction}`);
+      return review.alerts;
+    } catch (error) {
+      if (!signal?.aborted) log?.("nesalio: relecture impossible, tranche montrée sans relecture", `${candidate.id} — ${error instanceof Error ? error.message : String(error)}`);
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
   /** A lesson stopped with a tranche missing: what was played stays, the student is told the rest is missing. */
   const stopped = (): NesalioEvent => slices
     ? { kind: "error", code: "incomplete", message: "L'explication s'est arrêtée en route : Nesa n'a pas réussi à écrire la suite. Tu peux réessayer ou poser une autre question." }
@@ -375,7 +436,10 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
     const call = new AbortController();
     const callSignal = signal ? AbortSignal.any([signal, call.signal]) : call.signal;
     const splitter = new LineSplitter();
-    let refused: { id: string; issues: ContractIssue[]; header?: "invalid" | "missing" } | undefined;
+    let refused: { id: string; issues: ContractIssue[]; header?: "invalid" | "missing"; review?: ReviewAlert[] } | undefined;
+    /** A tranche held for the reviewer, and what followed it on the same line. */
+    let pending: Candidate | undefined;
+    const afterReview: string[] = [];
     let finished = false;
     /** Whether this call sent anything: before that, a failed call is tried once more. */
     let receivedAny = false;
@@ -430,9 +494,13 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       // and none after a refusal (it would be played before the refused one).
       const objects = topLevelObjects(line);
       if (objects.length > 1) {
-        for (const object of objects) {
+        for (const [index, object] of objects.entries()) {
           yield* handle(object);
           if (refused || finished) return;
+          if (pending) {
+            afterReview.push(...objects.slice(index + 1));
+            return;
+          }
         }
         return;
       }
@@ -486,26 +554,70 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
         missing.add(refused.id);
         return;
       }
-      if ("lenient" in parsed) log?.("nesalio: ligne JSON réparée par jsonrepair", sliceId(value.slice));
-      missing.delete(sliceId(value.slice));
+      const candidate: Candidate = { id: sliceId(value.slice), line, lenient: "lenient" in parsed, normalized, fixes, result };
+      // The first tranche (the hook) is shown at once: the student is waiting for it.
+      if (config.review && slices > 0 && !reviewed.has(candidate.id) && reviewFixes < MAX_REVIEW_FIXES
+        && header.lesson.id !== OUT_OF_SCOPE_LESSON) {
+        pending = candidate;
+        return;
+      }
+      yield* accept(candidate);
+    };
+
+    /** Shows a tranche: from here on it is played and replayed to the model as accepted. */
+    const accept = function* ({ id, line, lenient, normalized, fixes, result }: Candidate): Generator<NesalioEvent> {
+      if (lenient) log?.("nesalio: ligne JSON réparée par jsonrepair", id);
+      missing.delete(id);
       // Known limit: an unreadable tranche whose id could not be read; the next accepted tranche is taken as its correction.
-      if (missing.delete(UNKNOWN_ID)) log?.("nesalio: tranche illisible sans identifiant tenue pour corrigée", sliceId(value.slice));
-      if (fixes.length) log?.("nesalio: tranche réparée sans appel", `${sliceId(value.slice)} — ${fixes.join(" | ")}`);
+      if (missing.delete(UNKNOWN_ID)) log?.("nesalio: tranche illisible sans identifiant tenue pour corrigée", id);
+      if (fixes.length) log?.("nesalio: tranche réparée sans appel", `${id} — ${fixes.join(" | ")}`);
       // Correctness checks (validate.ts, coherence.ts): corrections are already in the validated tranche;
       // notes never block, they are kept in the server log.
       const corrected = result.alerts.filter((alert) => alert.outcome === "corrected");
       for (const { outcome, rule, message } of result.alerts) {
-        if (outcome === "corrected") log?.("nesalio: tranche corrigée par la justesse", `${sliceId(value.slice)} — ${rule} : ${message}`);
-        else if (outcome === "noted") log?.("nesalio: alerte de justesse notée", `${sliceId(value.slice)} — ${rule} : ${message}`);
+        if (outcome === "corrected") log?.("nesalio: tranche corrigée par la justesse", `${id} — ${rule} : ${message}`);
+        else if (outcome === "noted") log?.("nesalio: alerte de justesse notée", `${id} — ${rule} : ${message}`);
       }
       state = result.state;
       // The repaired and corrected form, the one played, is what the model sees again if a later tranche has to be corrected.
       accepted.push(corrected.length ? JSON.stringify({ slice: result.value.slices[0] })
-        : fixes.length || "lenient" in parsed ? JSON.stringify({ slice: normalized }) : line);
-      acceptedIds.add(sliceId(value.slice));
+        : fixes.length || lenient ? JSON.stringify({ slice: normalized }) : line);
+      acceptedIds.add(id);
       slices++;
+      shown.push(result.value.slices[0]!);
       yield { kind: "slice", slice: result.value.slices[0]! };
       if (slices >= MAX_SLICES) finished = true;
+    };
+
+    /**
+     * A line, then the tranche it held if the reviewer has to read it first. The reviewer
+     * reads while the previous tranche plays; an alert sends the tranche back to the model
+     * (the call is stopped: what it wrote after the tranche followed from the error).
+     */
+    const processLine = async function* (line: string): AsyncGenerator<NesalioEvent> {
+      // The student left during a review: nothing more is read or shown.
+      if (signal?.aborted) return;
+      yield* handle(line);
+      const candidate = pending as Candidate | undefined;
+      if (!candidate) return;
+      pending = undefined;
+      const rest = afterReview.splice(0);
+      reviewed.add(candidate.id);
+      const alerts = await reviewOf(candidate);
+      if (signal?.aborted) return;
+      if (alerts.length) {
+        reviewFixes++;
+        refused = { id: candidate.id, review: alerts, issues: alerts.map(({ citation, correction, type }) =>
+          ({ path: ["relecteur", type || "fond"], message: `« ${citation} » → ${correction}` })) };
+        refusedLines.set(candidate.id, JSON.stringify({ slice: candidate.result.value.slices[0] }));
+        missing.add(candidate.id);
+        return;
+      }
+      yield* accept(candidate);
+      for (const object of rest) {
+        if (refused || finished) return;
+        yield* processLine(object);
+      }
     };
 
     try {
@@ -518,11 +630,14 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       outer: for await (const chunk of untilIdle(stream, idleMs, firstByteMs)) {
         if (chunk) receivedAny = true;
         for (const line of splitter.push(chunk)) {
-          yield* handle(line);
+          yield* processLine(line);
           if (refused || finished) break outer;
         }
       }
-      if (!refused && !finished) for (const line of splitter.flush()) yield* handle(line);
+      if (!refused && !finished) for (const line of splitter.flush()) {
+        yield* processLine(line);
+        if (refused || finished) break;
+      }
     } catch (error) {
       if (signal?.aborted) return;
       log?.("nesalio: échec de l'appel au modèle", error);
@@ -553,20 +668,24 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       // As text: the server log drops object contents, and the reasons are what a refusal is diagnosed from.
       log?.("nesalio: tranche refusée", `${refused.id} — ${refused.issues.slice(0, 8)
         .map(({ path, message }) => `${path.map(String).join(".")} : ${message}`).join(" | ")}`);
-      if ((repaired.get(refused.id) ?? 0) >= MAX_ATTEMPTS || repairs >= MAX_REPAIRS) {
+      // A review correction has its own budget (MAX_REVIEW_FIXES): it never stops the lesson.
+      if (!refused.review && ((repaired.get(refused.id) ?? 0) >= MAX_ATTEMPTS || repairs >= MAX_REPAIRS)) {
         // A refused tranche is never played; what was already valid stays playable.
         log?.("nesalio: leçon arrêtée sur un refus", `${refused.id} — ${slices} tranche(s) jouable(s), ${repairs} correction(s) demandée(s)`);
         yield stopped();
         return;
       }
-      repairs++;
-      repaired.set(refused.id, (repaired.get(refused.id) ?? 0) + 1);
+      if (!refused.review) {
+        repairs++;
+        repaired.set(refused.id, (repaired.get(refused.id) ?? 0) + 1);
+      }
       // The refused line goes after the accepted ones, in its repaired form: the model edits that line instead of
       // rewriting the tranche from memory, which brought a new fault 11 times out of 15 on the bench.
       const refusedLine = refused.header ? undefined : refusedLines.get(refused.id);
       messages.push({ role: "assistant", content: [...accepted, ...(refusedLine ? [refusedLine] : [])].join("\n") || "(rien)" }, {
         role: "user",
-        content: refused.header ? repairHeaderMessage(refused.header, refused.issues)
+        content: refused.review ? reviewFixMessage(refused.id, refused.review)
+          : refused.header ? repairHeaderMessage(refused.header, refused.issues)
           : refused.id === STALLED ? resumeMessage([...acceptedIds], Math.round(idleMs / 1000))
           : repairMessage(refused.id, refused.issues, refusedLine !== undefined),
       });
@@ -578,7 +697,7 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       yield stopped();
       return;
     }
-    if (repairs && slices && slices < MIN_SLICES && !finished && !continued && header?.lesson.id !== OUT_OF_SCOPE_LESSON) {
+    if ((repairs || reviewFixes) && slices && slices < MIN_SLICES && !finished && !continued && header?.lesson.id !== OUT_OF_SCOPE_LESSON) {
       continued = true;
       messages.push({ role: "assistant", content: accepted.join("\n") }, { role: "user", content: continueMessage([...acceptedIds]) });
       continue;

@@ -1,0 +1,551 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "pression_partielle_eau",
+  "title": "Trouver la pression partielle du NO₂ recueilli sur l'eau",
+  "language": "fr",
+  "learning_goal": "Comprendre que la pression totale d'un gaz recueilli par déplacement d'eau inclut la vapeur d'eau, et retrancher la pression partielle de l'eau pour isoler celle du NO₂."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "p_eau": {
+     "kind": "constant",
+     "value": 2.64
+    },
+    "p_tot": {
+     "kind": "constant",
+     "value": 99.3
+    }
+   },
+   "expressions": {
+    "p_no2": "99.3 - 2.64"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "p_tot",
+     "content": "p_{totale} = 99{,}3 \\ \\text{kPa}",
+     "parts": [
+      {
+       "id": "sym",
+       "text": "p_{totale}"
+      },
+      {
+       "id": "val",
+       "text": "= 99{,}3 \\ \\text{kPa}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "p_eau",
+     "layout": {
+      "next_to": "p_tot",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "p_{eau} = 2{,}64 \\ \\text{kPa}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reform",
+     "say": "Tu as un mélange de NO deux et de NO recueilli par déplacement d'eau. La pression totale vaut quatre-vingt-dix-neuf virgule trois kilopascals, à vingt-deux degrés. Ton corrigé donne deux virgule soixante-quatre kilopascals pour l'eau.",
+     "cues": [
+      {
+       "id": "c_tot",
+       "text": "pression totale"
+      },
+      {
+       "id": "c_val",
+       "text": "quatre-vingt-dix-neuf virgule trois kilopascals"
+      },
+      {
+       "id": "c_eau",
+       "text": "deux virgule soixante-quatre kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sym",
+       "verb": "write",
+       "at": "cue:c_tot",
+       "target": "p_tot",
+       "part": "sym"
+      },
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue:c_val",
+       "target": "p_tot",
+       "part": "val"
+      },
+      {
+       "id": "w_eau",
+       "verb": "write",
+       "at": "cue:c_eau",
+       "target": "p_eau"
+      }
+     ]
+    },
+    {
+     "id": "inconnue",
+     "say": "Ce qu'on cherche, c'est uniquement la pression partielle du NO deux.",
+     "cues": [
+      {
+       "id": "c_cherche",
+       "text": "pression partielle du NO deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tot",
+       "verb": "highlight",
+       "start": "cue:c_cherche",
+       "end": "cue_end:c_cherche",
+       "target": "p_tot",
+       "role": "given"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_dalton",
+   "introduces": [
+    {
+     "id": "dalton",
+     "content": "p_{totale} = p_{NO_2} + p_{NO} + p_{eau}",
+     "parts": [
+      {
+       "id": "tot",
+       "text": "p_{totale}"
+      },
+      {
+       "id": "somme",
+       "text": "= p_{NO_2} + p_{NO} + p_{eau}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "retranche",
+     "layout": {
+      "next_to": "dalton",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "p_{NO_2} = 99{,}3 - 2{,}64",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "loi",
+     "say": "Quand un gaz est recueilli sur l'eau, la vapeur d'eau s'ajoute au mélange. La loi de Dalton dit que la pression totale est la somme des pressions partielles : celle du NO deux, celle du NO, et celle de l'eau.",
+     "cues": [
+      {
+       "id": "c_dalton",
+       "text": "loi de Dalton"
+      },
+      {
+       "id": "c_somme",
+       "text": "somme des pressions partielles"
+      },
+      {
+       "id": "c_eau2",
+       "text": "celle de l'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_tot",
+       "verb": "write",
+       "at": "cue:c_dalton",
+       "target": "dalton",
+       "part": "tot"
+      },
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "dalton",
+       "part": "somme"
+      },
+      {
+       "id": "h_eau",
+       "verb": "highlight",
+       "start": "cue:c_eau2",
+       "end": "cue_end:c_eau2",
+       "target": "dalton",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "Pour isoler la pression du NO deux, on retranche la pression de l'eau de la pression totale. C'est exactement l'opération qui donne le deux virgule soixante-quatre de ton corrigé.",
+     "cues": [
+      {
+       "id": "c_retranche",
+       "text": "retranche la pression de l'eau"
+      },
+      {
+       "id": "c_op",
+       "text": "pression totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tot",
+       "verb": "dim",
+       "at": "cue:c_retranche",
+       "target": "p_tot"
+      },
+      {
+       "id": "d_eau",
+       "verb": "dim",
+       "at": "cue:c_retranche",
+       "target": "p_eau"
+      },
+      {
+       "id": "w_ret",
+       "verb": "write",
+       "at": "cue:c_retranche",
+       "target": "retranche"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "p_no2",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "p_no2",
+      "template": "p_{NO_2} = {value} \\ \\text{kPa}",
+      "precision": 2
+     },
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "layout": {
+      "next_to": "p_no2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "96{,}74 + 2{,}64 = 99{,}38",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcule",
+     "say": "On remplace : quatre-vingt-dix-neuf virgule trois moins deux virgule soixante-quatre. Quatre-vingt-dix-neuf virgule trois moins deux virgule six, ça fait quatre-vingt-seize virgule sept, plus zéro virgule zéro quatre, quatre-vingt-seize virgule soixante-quatorze.",
+     "cues": [
+      {
+       "id": "c_moins",
+       "text": "moins deux virgule soixante-quatre"
+      },
+      {
+       "id": "c_fin",
+       "text": "quatre-vingt-seize virgule soixante-quatorze"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_fin",
+       "target": "p_no2"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : la pression du NO deux, quatre-vingt-seize virgule soixante-quatorze, plus celle de l'eau, deux virgule soixante-quatre, redonne bien quatre-vingt-dix-neuf virgule trois, la pression totale.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "redonne bien"
+      },
+      {
+       "id": "c_total2",
+       "text": "pression totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_verif",
+       "verb": "write",
+       "at": "cue:c_verif",
+       "target": "verif"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "retranche",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Gaz recueilli sur l'eau : p(gaz) = p(totale) − p(eau)",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : un gaz recueilli sur l'eau, la pression totale cache toujours un invité, la vapeur d'eau. Pour avoir la pression partielle de ton gaz, tu retranches celle de l'eau.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_retranches",
+       "text": "tu retranches celle de l'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_dalton",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "dalton"
+      },
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "retranche",
+        "p_no2",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_retranches",
+       "target": "idee"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_retranches",
+       "end": "cue_end:c_retranches",
+       "target": "p_no2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

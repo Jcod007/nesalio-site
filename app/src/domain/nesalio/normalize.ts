@@ -112,7 +112,7 @@ const CONTROLS: Record<string, string> = { "\f": "f", "\b": "b", "\t": "t", "\r"
  * restored only before the rest of a command that starts with n (`\neq` read
  * as a line break then « eq »).
  */
-function restoreLatex(text: unknown): string | undefined {
+export function restoreLatex(text: unknown): string | undefined {
   if (typeof text !== "string") return;
   const fixed = text.replace(/[\f\b\t\r](?=[a-zA-Z])|\n(?=(?:eq?|abla|otin|ot|u|i|eg|ewline)(?![a-zA-Z]))/g,
     (char) => `\\${CONTROLS[char]}`);

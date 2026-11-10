@@ -1,0 +1,86 @@
+QUESTION (ap3-gaz-boyle-pression-diminue, chimie, sec 5, alloprof) : Bonjour, c'est une question sur les lois simples des gaz:
+Je comprend la loi de Boyle: si le volume diminue, il y aura plus de collisions donc, plus de pression, et vice versa.
+Mais si c'est la PRESSION qui diminue, pourquoi est-ce que le volume augmenterait? Par exemple, si la pression intérieur d'un contenant solide diminue de 101.3kpa jusqu'à 50 kpa et la pression à l'extérieur ( atmostphérique) est aussi de 101.3Kpa, le volume devrait diminuer non? puisque la pression qui s'applique sur la surface extérieure est plus forte que celle qui s'applique à l'intérieur?
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi une baisse de pression fait augmenter le volume
+math_context : {"symbols":{"p1":{"kind":"constant","value":100},"V1":{"kind":"constant","value":2},"p2":{"kind":"constant","value":50}},"expressions":{"V2":"p1*V1/p2"}}
+=== Tranche s_boyle_sens
+  OBJET regle [math] "p_1 V_1 = p_2 V_2" parts=p_1 | V_1 | = | p_2 | V_2
+  OBJET axes [axes] {"x":[0,3.5],"y":[0,5]} 
+  OBJET courbe [function_graph] {"expression":"2/x","domain":[0.4,3.5]} 
+  OBJET axe_x [label] "pression (centaines de kPa)" attaché à axes
+  OBJET axe_y [label] "volume (L)" attaché à axes
+  OBJET pt1 [point] {"at":[1,2]} 
+  OBJET pt1_lab [label] "(1 ; 2)" attaché à pt1
+  OBJET pt2 [point] {"at":[2.5,0.8]} 
+  OBJET pt2_lab [label] "(2,5 ; 0,8)" attaché à pt2
+  GROUPE regle_grp = regle
+DIT (rappel) : Tu comprends bien pourquoi plus de collisions donne plus de pression. Regardons maintenant le sens inverse.
+    show regle @cue:c_inverse 
+    show axes @beat:start 
+    show axe_x @beat:start 
+    show axe_y @beat:start 
+DIT (courbe_mot) : Dans un gaz libre, la courbe de Boyle relie pression et volume. Quand la pression baisse, le volume monte.
+    draw courbe @- {"start":"cue:c_courbe","end":"cue_end:c_monte"}
+DIT (pts) : Deux points sur la même courbe : à une certaine pression, un certain volume. p un V un égale p deux V deux.
+    show pt1 @cue:c_deux 
+    show pt1_lab @cue:c_deux 
+    write regle @cue:c_formule {"part":"p1"}
+    write regle @after:write_p1 {"part":"V1"}
+    write regle @after:write_V1 {"part":"egal"}
+    write regle @after:write_egal {"part":"p2"}
+    write regle @after:write_p2 {"part":"V2"}
+=== Tranche s_calcul
+  OBJET enonce [text] "p₁ = 100 kPa, V₁ = 2,0 L ; p₂ = 50 kPa" 
+  OBJET calc [math] "V_2 = \\frac{p_1 V_1}{p_2} = \\frac{100 \\times 2{,}0}{50} = 4{,}0\\ \\text{L}" parts=V_2 | = \frac{p_1 V_1}{p_2} | = \frac{100 \times 2{,}0}{50} | = 4{,}0\ \text{L}
+  OBJET verif [math] "100 \\times 2{,}0 = 50 \\times 4{,}0"   <<JAMAIS MONTRÉ>>
+DIT (donnees) : Prenons un gaz qu'on comprime : cent kilopascals sur deux litres. On relâche à cinquante kilopascals. Quel volume ?
+    show enonce @cue:c_cent 
+    show pt2 @cue:c_cinquante 
+    show pt2_lab @cue:c_cinquante 
+DIT (solve) : On isole V deux : cent fois deux divisé par cinquante, ça donne quatre litres.
+    write calc @cue:c_isole {"part":"gauche"}
+    write calc @after:write_gauche {"part":"frac"}
+    write calc @after:write_frac {"part":"nombres"}
+    write calc @cue:c_quatre {"part":"res"}
+    set_style calc @after:write_res {"role":"result"}
+DIT (regarde) : Quand la pression dégringole de cent à cinquante, le volume gonfle de deux à quatre litres. C'est cette bulle de gaz qui prend plus de place.
+    dim axes @cue:c_deux 
+    dim courbe @cue:c_deux 
+    camera.focus  @cue:c_bulle {"targets":["calc","verif"],"bounds":"layout_bounds"}
+=== Tranche s_contenant_rigide
+  OBJET cas [math] "V = \\text{constant} \\Rightarrow \\frac{p_1}{T_1} = \\frac{p_2}{T_2}" parts=V = \text{constant} | \Rightarrow | \frac{p_1}{T_1} = \frac{p_2}{T_2}
+  OBJET note [text] "Dans un contenant rigide, le volume ne peut pas changer : ce n'est pas Boyle." 
+DIT (ton_cas) : Ton exemple du contenant solide est un autre problème : le volume est fixé par les parois, il ne peut pas bouger.
+    write cas @cue:c_rigide {"part":"vconst"}
+    write cas @cue:c_fixe {"part":"fl"}
+    write cas @after:write_fl {"part":"ratio"}
+DIT (inverse) : Ta question est fine, mais elle inverse les variables : tu regardes la pression du dehors contre celle du dedans.
+    show note @cue:c_inverse 
+DIT (conclusion) : Dans un contenant rigide, si la pression intérieure chute, c'est la différence avec l'extérieur qui pousse la paroi vers l'intérieur. Ce n'est pas le volume du gaz qui change, c'est la forme du contenant qui est en jeu.
+    camera.focus  @cue:c_paroi {"targets":["cas","note"],"bounds":"layout_bounds"}
+=== Tranche s_retenir
+  OBJET regle_f [math] "p_1 V_1 = p_2 V_2" parts=p_1 | V_1 | = | p_2 | V_2
+  OBJET phrase [text] "Pression et volume varient en sens inverse" 
+  OBJET cond [label] "si T et n restent constants" attaché à regle_f
+DIT (fin) : À retenir : dans une même quantité de gaz et à même température, pression fois volume reste constant. Si la pression baisse de moitié, le volume double.
+    fade_out axes @cue:c_retenir 
+    fade_out courbe @cue:c_retenir 
+    fade_out calc @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    fade_out enonce @cue:c_retenir 
+    fade_out pt1 @cue:c_retenir 
+    fade_out pt2 @cue:c_retenir 
+    fade_out regle @cue:c_retenir 
+    camera.focus  @cue:c_const {"targets":["regle_f","phrase","cond"],"bounds":"layout_bounds"}
+    show regle_f @cue:c_const 
+    show phrase @cue:c_const 
+    show cond @cue:c_const 
+DIT (sens) : Et cette réserve compte : si le volume est bloqué par un contenant rigide, Boyle ne s'applique plus, on passe à la relation entre pression et température.
+    highlight regle_f @cue:c_bloque {"role":"result"}
+    highlight cond @cue:c_temp {"role":"accent"}
+--- 4 tranches, 252 mots dits (≈ 1.7 min d'oral)

@@ -1,0 +1,61 @@
+QUESTION (ap3-interet-compose-taux, mathematiques, sec 5, alloprof) : Quelle serait la démarche pour ceci: félicia a emprunté 20000$ à un taux d’intérêt composé mensuellement et elle a réglé cette dette 3,75 ans plus tard par un versement de 25032,42$
+RÉPONSE DE RÉFÉRENCE : 20000(1 + i)^45 = 25032,42 (45 mois) ; (1 + i) = 1,251621^(1/45) = 1,005 ; taux de 0,5 % par mois, soit 6 % par année composé mensuellement.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver le taux d'un intérêt composé
+math_context : {"symbols":{"C0":{"kind":"constant","value":20000},"Cn":{"kind":"constant","value":25032.42},"n":{"kind":"constant","value":45}},"expressions":{"rapport":"25032.42/20000","taux_mensuel":"((25032.42/20000)^(1/45) - 1)*100"}}
+=== Tranche s_donnees
+  OBJET tab_donnees [matrix] {"rows":[[20000,25032.42,45]],"row_labels":["valeur ($)"],"column_labels":["capital de départ","versement final","nombre de mois"]} 
+  OBJET formule [math] "C_n = C_0(1 + i)^n" parts=C_n | = C_0 | (1 + i)^n
+  OBJET note_i [label] "i = taux par mois" attaché à formule   <<JAMAIS MONTRÉ>>
+DIT (reformule) : Félicia emprunte vingt mille dollars, et elle rembourse vingt-cinq mille trente-deux dollars et quarante-deux cents, trois ans et neuf mois plus tard. Ce qu'on cherche, c'est le taux d'intérêt composé chaque mois. Trois ans et neuf mois, ça fait quarante-cinq mois.
+    show tab_donnees @cue:c_emprunte 
+DIT (formule_intro) : La formule de l'intérêt composé, c'est : montant final égale capital de départ multiplié par un plus le taux, exposant le nombre de périodes. Chaque mois, l'intérêt s'ajoute au capital, donc on multiplie par un plus i quarante-cinq fois de suite.
+    write formule @cue:c_formule {"part":"p1"}
+    write formule @cue:c_un_plus {"part":"p3"}
+    write formule @cue:c_exposant {"part":"p2"}
+=== Tranche s_isole
+  OBJET etape1 [math] "\\frac{25032{,}42}{20000} = (1 + i)^{45}" parts=\frac{25032{,}42}{20000} | = (1 + i)^{45}
+  OBJET etape2 [math] "1{,}251621 = (1 + i)^{45}" 
+  OBJET etape3 [math] "(1{,}251621)^{\\frac{1}{45}} = 1 + i" 
+DIT (divise) : On divise les deux côtés par vingt mille pour isoler la parenthèse. Vingt-cinq mille trente-deux virgule quarante-deux divisé par vingt mille, ça donne environ un virgule deux cinq un six.
+    dim tab_donnees @cue:c_divise 
+    dim formule @cue:c_divise 
+    write etape1 @cue:c_divise 
+    highlight etape1 @after:w_e1 {"role":"accent","part":"v1"}
+DIT (racine) : Maintenant, on doit défaire l'exposant quarante-cinq. L'opération inverse d'une puissance quarante-cinq, c'est la racine quarante-cinquième, donc exposant un sur quarante-cinq. Ça, ça se calcule avec les logarithmes, ou directement avec la touche exposant de ta calculatrice.
+    transform etape2 @cue:c_defaire {"source":"etape1"}
+    write etape3 @cue:c_racine 
+    highlight etape3 @after:w_e3 {"role":"accent"}
+DIT (calcule) : Un virgule deux cinq un six exposant un sur quarante-cinq, ça donne environ un virgule zéro zéro cinq. Un plus i égale un virgule zéro zéro cinq, donc i égale zéro virgule zéro zéro cinq. Le taux mensuel est d'environ zéro virgule cinq pour cent.
+    highlight etape3 @- {"start":"cue:c_resultat","end":"cue_end:c_taux","role":"result"}
+=== Tranche s_annuel
+  OBJET lien_annuel [math] "0{,}005 \\times 12 = 0{,}06" parts=0{,}005 \times 12 | = 0{,}06
+  OBJET texte_annuel [text] "Taux annuel ≈ 6 %" 
+  OBJET verif [math] "20000 \\times 1{,}005^{45} \\approx 25032{,}42" 
+DIT (convertit) : Si on veut le taux annuel, on multiplie par douze mois : zéro virgule zéro zéro cinq fois douze égale zéro virgule zéro six, donc environ six pour cent par année.
+    fade_out etape1 @beat:start 
+    fade_out etape2 @beat:start 
+    fade_out etape3 @beat:start 
+    fade_out tab_donnees @beat:start 
+    fade_out formule @beat:start 
+    write lien_annuel @cue:c_multiplie {"part":"m1"}
+    write lien_annuel @cue:c_six {"part":"m2"}
+    show texte_annuel @after:w_m2 
+DIT (verifie) : Vérifions : vingt mille fois un virgule zéro zéro cinq exposant quarante-cinq, ça redonne bien vingt-cinq mille trente-deux dollars et quarante-deux cents. Notre taux est bon.
+    write verif @cue:c_verif 
+    set_style verif @cue:c_bon {"role":"result"}
+=== Tranche s_recap
+  OBJET recap_nombre [math] "i = \\left(\\frac{C_n}{C_0}\\right)^{\\frac{1}{n}} - 1" parts=i | = \left(\frac{C_n}{C_0}\right)^{\frac{1}{n}} - 1
+  OBJET recap_idee [text] "Défaire la puissance par l'exposant inverse" 
+DIT (retenir) : À retenir : pour trouver un taux dans une situation d'intérêt composé, on isole la parenthèse en divisant, puis on défait la puissance avec l'exposant un sur n. Ici, ça donne un taux mensuel d'environ zéro virgule cinq pour cent, soit environ six pour cent par année.
+    fade_out lien_annuel @beat:start 
+    fade_out texte_annuel @beat:start 
+    fade_out verif @beat:start 
+    write recap_nombre @cue:c_isole {"part":"r1"}
+    write recap_nombre @cue:c_defait {"part":"r2"}
+    show recap_idee @after:w_r2 
+    highlight recap_nombre @after:s_idee {"role":"result"}
+--- 4 tranches, 297 mots dits (≈ 2.0 min d'oral)

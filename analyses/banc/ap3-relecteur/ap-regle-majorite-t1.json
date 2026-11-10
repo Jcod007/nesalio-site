@@ -1,0 +1,828 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "regle_majorite_seuil",
+  "title": "La règle de la majorité : moitié, ou moitié plus un ?",
+  "language": "fr",
+  "learning_goal": "Trouver le seuil de votes pour avoir la majorité absolue selon le nombre de votes exprimés."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "n": {
+     "kind": "parameter",
+     "initial": 10,
+     "min": 8,
+     "max": 11
+    }
+   },
+   "expressions": {
+    "moitie": "n/2",
+    "seuil_pair": "n/2+1",
+    "seuil_impair": "(n+1)/2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "demande",
+     "content": "Le seuil de la majorité absolue",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu veux savoir si, pour avoir la majorité, il suffit de diviser les votes par deux, ou s'il faut ajouter un.",
+     "cues": [
+      {
+       "id": "c_diviser",
+       "text": "diviser les votes par deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_demande",
+       "verb": "show",
+       "at": "cue:c_diviser",
+       "target": "demande"
+      }
+     ]
+    },
+    {
+     "id": "idee",
+     "say": "La réponse dépend d'une chose : la majorité, c'est plus de la moitié. Regardons ce que ça donne sur un vote.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "plus de la moitié"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_demande",
+       "verb": "highlight",
+       "start": "cue:c_moitie",
+       "end": "cue_end:c_moitie",
+       "target": "demande",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pair",
+   "introduces": [
+    {
+     "id": "droite",
+     "params": {
+      "domain": [
+       0,
+       10
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "moitie_p",
+     "style": {
+      "role": "given"
+     },
+     "frame": "droite",
+     "params": {
+      "at": [
+       5,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_moitie_p",
+     "attachment": {
+      "parent": "moitie_p",
+      "anchor": "top"
+     },
+     "content": "moitié : 5",
+     "type": "label"
+    },
+    {
+     "id": "seuil_p",
+     "style": {
+      "role": "result"
+     },
+     "frame": "droite",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_seuil_p",
+     "attachment": {
+      "parent": "seuil_p",
+      "anchor": "bottom"
+     },
+     "content": "majorité : 6",
+     "type": "label"
+    },
+    {
+     "id": "calc_pair",
+     "content": "\\frac{10}{2} + 1 = 5 + 1 = 6",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "dix",
+     "say": "Dix personnes votent. La moitié, c'est dix divisé par deux, cinq.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "dix divisé par deux"
+      },
+      {
+       "id": "c_cinq",
+       "text": "cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_droite",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "droite"
+      },
+      {
+       "id": "s_mp",
+       "verb": "show",
+       "at": "cue:c_cinq",
+       "target": "moitie_p"
+      },
+      {
+       "id": "s_lmp",
+       "verb": "show",
+       "at": "after:s_mp",
+       "target": "lab_moitie_p"
+      }
+     ]
+    },
+    {
+     "id": "pasassez",
+     "say": "Mais cinq, c'est exactement la moitié, pas plus que la moitié. Cinq votes sur dix ne donnent donc pas la majorité.",
+     "cues": [
+      {
+       "id": "c_pasplus",
+       "text": "pas plus que la moitié"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_mp",
+       "verb": "highlight",
+       "start": "cue:c_pasplus",
+       "end": "cue_end:c_pasplus",
+       "target": "moitie_p",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "six",
+     "say": "Il faut le vote suivant : six. Et on le trouve en ajoutant un à la moitié : dix divisé par deux plus un donne six.",
+     "cues": [
+      {
+       "id": "c_six",
+       "text": "six"
+      },
+      {
+       "id": "c_plusun",
+       "text": "dix divisé par deux plus un"
+      },
+      {
+       "id": "c_donnesix",
+       "text": "donne six"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sp",
+       "verb": "show",
+       "at": "cue:c_six",
+       "target": "seuil_p"
+      },
+      {
+       "id": "s_lsp",
+       "verb": "show",
+       "at": "after:s_sp",
+       "target": "lab_seuil_p"
+      },
+      {
+       "id": "w_dix",
+       "verb": "write",
+       "at": "cue:c_plusun",
+       "target": "calc_pair"
+      },
+      {
+       "id": "w_plusun",
+       "verb": "highlight",
+       "at": "cue:c_plusun",
+       "target": "calc_pair",
+       "role": "accent"
+      },
+      {
+       "id": "w_six",
+       "verb": "highlight",
+       "at": "cue:c_donnesix",
+       "target": "calc_pair",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_impair",
+   "introduces": [
+    {
+     "id": "droite2",
+     "params": {
+      "domain": [
+       0,
+       9
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "moitie_i",
+     "style": {
+      "role": "given"
+     },
+     "frame": "droite2",
+     "params": {
+      "at": [
+       4.5,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_moitie_i",
+     "attachment": {
+      "parent": "moitie_i",
+      "anchor": "top"
+     },
+     "content": "moitié : 4,5",
+     "type": "label"
+    },
+    {
+     "id": "seuil_i",
+     "style": {
+      "role": "result"
+     },
+     "frame": "droite2",
+     "params": {
+      "at": [
+       5,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_seuil_i",
+     "attachment": {
+      "parent": "seuil_i",
+      "anchor": "bottom"
+     },
+     "content": "majorité : 5",
+     "type": "label"
+    },
+    {
+     "id": "calc_impair",
+     "content": "\\frac{9 + 1}{2} = \\frac{10}{2} = 5",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "neuf",
+     "say": "Si neuf personnes votent, la moitié vaut quatre et demie. Un vote, ça ne se coupe pas en deux.",
+     "cues": [
+      {
+       "id": "c_neuf",
+       "text": "neuf"
+      },
+      {
+       "id": "c_quatredemi",
+       "text": "quatre et demie"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_d2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "droite2"
+      },
+      {
+       "id": "f_calc_pair",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calc_pair"
+      },
+      {
+       "id": "d_droite1",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "droite"
+      },
+      {
+       "id": "s_mi",
+       "verb": "show",
+       "at": "cue:c_quatredemi",
+       "target": "moitie_i"
+      },
+      {
+       "id": "s_lmi",
+       "verb": "show",
+       "at": "after:s_mi",
+       "target": "lab_moitie_i"
+      }
+     ]
+    },
+    {
+     "id": "cinqimpair",
+     "say": "Le premier nombre entier au-dessus de quatre et demie, c'est cinq. Avec neuf votes, la majorité est donc cinq.",
+     "cues": [
+      {
+       "id": "c_premier",
+       "text": "premier nombre entier au-dessus"
+      },
+      {
+       "id": "c_cinq2",
+       "text": "c'est cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_si",
+       "verb": "show",
+       "at": "cue:c_cinq2",
+       "target": "seuil_i"
+      },
+      {
+       "id": "s_lsi",
+       "verb": "show",
+       "at": "after:s_si",
+       "target": "lab_seuil_i"
+      },
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_cinq2",
+       "target": "calc_impair"
+      },
+      {
+       "id": "w_cinq",
+       "verb": "highlight",
+       "at": "after:w_somme",
+       "target": "calc_impair",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "pourquoiimpair",
+     "say": "D'où le neuf plus un : en ajoutant un, neuf devient dix, un nombre pair, et dix divisé par deux donne cinq, sans décimale.",
+     "cues": [
+      {
+       "id": "c_neufplusun",
+       "text": "neuf plus un"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_somme",
+       "verb": "highlight",
+       "start": "cue:c_neufplusun",
+       "end": "cue_end:c_neufplusun",
+       "target": "calc_impair",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "regle_pair",
+     "content": "\\text{si } n \\text{ pair : } \\frac{n}{2} + 1",
+     "type": "math"
+    },
+    {
+     "id": "regle_impair",
+     "layout": {
+      "next_to": "regle_pair",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{si } n \\text{ impair : } \\frac{n + 1}{2}",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "content": "plus de la moitié des votes exprimés",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "generale",
+     "say": "Retenons la règle générale : le seuil de la majorité, c'est le plus petit nombre entier strictement plus grand que la moitié. Pour n pair, la moitié tombe juste, alors on ajoute un.",
+     "cues": [
+      {
+       "id": "c_pluspetit",
+       "text": "plus petit nombre entier strictement plus grand que la moitié"
+      },
+      {
+       "id": "c_pair",
+       "text": "Pour n pair"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_d1",
+       "verb": "fade_out",
+       "at": "cue:c_pluspetit",
+       "target": "droite"
+      },
+      {
+       "id": "f_d2",
+       "verb": "fade_out",
+       "at": "cue:c_pluspetit",
+       "target": "droite2"
+      },
+      {
+       "id": "f_mi",
+       "verb": "fade_out",
+       "at": "cue:c_pluspetit",
+       "target": "moitie_i"
+      },
+      {
+       "id": "f_lmi",
+       "verb": "fade_out",
+       "at": "cue:c_pluspetit",
+       "target": "lab_moitie_i"
+      },
+      {
+       "id": "w_pair",
+       "verb": "write",
+       "at": "cue:c_pair",
+       "target": "regle_pair"
+      },
+      {
+       "id": "h_pair",
+       "verb": "highlight",
+       "at": "after:w_pair",
+       "target": "regle_pair",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "impair",
+     "say": "Pour n impair, la moitié n'est pas entière : on ajoute un à n avant de diviser. Neuf votes donnent dix divisé par deux, cinq.",
+     "cues": [
+      {
+       "id": "c_impair",
+       "text": "Pour n impair"
+      },
+      {
+       "id": "c_neuf2",
+       "text": "Neuf votes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_impair",
+       "verb": "write",
+       "at": "cue:c_impair",
+       "target": "regle_impair"
+      },
+      {
+       "id": "h_impair",
+       "verb": "highlight",
+       "at": "cue:c_neuf2",
+       "target": "regle_impair",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "condition",
+     "say": "Attention : ce seuil, c'est pour la majorité absolue, plus de la moitié des votes exprimés. Ce n'est pas la même chose que la pluralité, où le plus fort nombre de votes suffit.",
+     "cues": [
+      {
+       "id": "c_absolue",
+       "text": "majorité absolue"
+      },
+      {
+       "id": "c_pluralite",
+       "text": "pluralité"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_rp",
+       "verb": "dim",
+       "at": "cue:c_pluralite",
+       "target": "regle_pair"
+      },
+      {
+       "id": "d_ri",
+       "verb": "dim",
+       "at": "cue:c_pluralite",
+       "target": "regle_impair"
+      },
+      {
+       "id": "f_seuil",
+       "verb": "fade_out",
+       "at": "cue:c_pluralite",
+       "target": "seuil_i"
+      },
+      {
+       "id": "f_lseuil",
+       "verb": "fade_out",
+       "at": "cue:c_pluralite",
+       "target": "lab_seuil_i"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_pluralite",
+       "target": "note"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Majorité absolue : le premier entier au-dessus de la moitié",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la majorité, ce n'est pas la moitié, c'est le premier entier au-dessus. Pense à ajouter un seulement quand la moitié tombe juste.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_premier",
+       "text": "premier entier au-dessus"
+      },
+      {
+       "id": "c_ajouter",
+       "text": "ajouter un seulement quand la moitié tombe juste"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "h_pair",
+       "verb": "highlight",
+       "at": "cue:c_premier",
+       "target": "regle_pair",
+       "role": "result"
+      },
+      {
+       "id": "h_impair",
+       "verb": "highlight",
+       "at": "cue:c_ajouter",
+       "target": "regle_impair",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

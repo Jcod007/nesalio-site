@@ -1,0 +1,88 @@
+QUESTION (ap3-nh3-cuo-limitant, chimie, sec 5, alloprof) : Est-ce que quelqu’un peut m’expliquer comment trouver le réactif limitant et le réactif en excès en démarche plus détaillée, car j’ai de la difficulté par rapport aux calculs de proportions stœchiométriques pour les trouver, il y a trop de moles, ce qui me mélange.
+Voici le problème: « Si on fait réagir 18,1g de NH3 avec 90,4g de CuO, quel est le réactif limitant? Quelle est la masse du composé en excès? »
+RÉPONSE DE RÉFÉRENCE : Avec 2 NH3 + 3 CuO → 3 Cu + N2 + 3 H2O : 1,063 mol NH3 et 1,136 mol CuO ; CuO est limitant (il ne consomme que 0,758 mol NH3) ; il reste 0,305 mol de NH3, soit environ 5,20 g en excès.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver le réactif limitant : les moles, pas les grammes
+=== Tranche s_idee
+  OBJET idee [text] "Les coefficients se lisent en moles, jamais en grammes" 
+DIT (ouverture) : Ton problème mêle deux unités : des grammes au départ, un rapport en moles au milieu. C'est exactement là que ça se complique.
+    show idee @cue:c_moles 
+DIT (chemin) : La solution : tout convertir en moles d'abord, comparer ensuite, puis revenir en grammes à la fin.
+    highlight idee @- {"start":"cue:c_convertir","end":"cue_end:c_convertir","role":"accent"}
+=== Tranche s_equation
+  OBJET eq [math] "\\ce{2NH3 + 3CuO -> N2 + 3H2O + 3Cu}" 
+  OBJET rapport [callout] "2 moles de NH₃ pour 3 moles de CuO" 
+DIT (balance) : D'abord l'équation balancée : deux NH trois plus trois CuO donnent N deux, trois H deux O et trois Cu.
+    write eq @cue:c_nh3 
+    highlight eq @cue:c_cuo {"role":"accent"}
+    highlight eq @cue:c_fleche {"role":"accent"}
+DIT (lire) : Ces coefficients disent le rapport : deux moles d'ammoniac réagissent avec trois moles d'oxyde de cuivre. En moles, jamais en grammes.
+    show rapport @cue:c_rapport 
+    highlight eq @- {"start":"cue:c_rapport","end":"cue_end:c_rapport","role":"given"}
+    highlight eq @- {"start":"cue:c_jamais","end":"cue_end:c_jamais","role":"given"}
+=== Tranche s_moles
+  OBJET tab [matrix] {"rows":[[18.1,17.03],[90.4,79.55]],"row_labels":["NH₃","CuO"],"column_labels":["masse (g)","M (g/mol)"]} 
+  OBJET calc_nh3 [math] "n(\\ce{NH3}) = \\frac{18{,}1}{17{,}03} \\approx 1{,}063\\ \\text{mol}" 
+  OBJET calc_cuo [math] "n(\\ce{CuO}) = \\frac{90{,}4}{79{,}55} \\approx 1{,}136\\ \\text{mol}" 
+  OBJET d1 [label] "÷ 17,03" attaché à calc_nh3
+  OBJET d2 [label] "÷ 79,55" attaché à calc_cuo
+DIT (masses) : Tes masses molaires : dix-sept virgule zéro trois grammes par mole pour NH trois, et soixante-dix-neuf virgule cinquante-cinq pour CuO.
+    show tab @beat:start 
+    highlight tab @- {"start":"cue:c_nh3","end":"cue_end:c_nh3","role":"given","part":"r1"}
+    highlight tab @- {"start":"cue:c_cuo","end":"cue_end:c_cuo","role":"given","part":"r2"}
+DIT (diviser) : On divise chaque masse par sa masse molaire : dix-huit virgule un sur dix-sept virgule zéro trois donne environ un virgule zéro six trois mole.
+    show d1 @beat:start 
+    write calc_nh3 @cue:c_nh3b 
+DIT (cuo) : Même chose pour CuO : quatre-vingt-dix virgule quatre sur soixante-dix-neuf virgule cinquante-cinq donne environ un virgule un trois six mole.
+    show d2 @beat:start 
+    write calc_cuo @cue:c_cuob 
+=== Tranche s_comparer
+  OBJET div_nh3 [math] "\\frac{n(\\ce{NH3})}{2} = \\frac{1{,}063}{2} \\approx 0{,}532" 
+  OBJET div_cuo [math] "\\frac{n(\\ce{CuO})}{3} = \\frac{1{,}136}{3} \\approx 0{,}379" 
+  OBJET verdict [callout] "CuO est le réactif limitant ; NH₃ est en excès" 
+  OBJET tab2 [matrix] {"rows":[[1.063,2,0.532],[1.136,3,0.379]],"row_labels":["NH₃","CuO"],"column_labels":["n (mol)","coef.","n ÷ coef."]} 
+DIT (regle) : Pour trouver le limitant, on divise chaque quantité de matière par son coefficient. Celui qui donne le plus petit résultat s'épuise en premier.
+    show tab2 @beat:start 
+    highlight tab2 @- {"start":"cue:c_divise","end":"cue_end:c_divise","role":"given","part":"r1"}
+    highlight tab2 @- {"start":"cue:c_coefficient","end":"cue_end:c_coefficient","role":"accent","part":"r2"}
+DIT (calc) : Pour NH trois : un virgule zéro six trois divisé par deux donne environ zéro virgule cinq trois deux. Pour CuO : un virgule un trois six divisé par trois donne environ zéro virgule trois sept neuf.
+    fade_out tab @cue:c_nh3 
+    write div_nh3 @cue:c_nh3 
+    write div_cuo @cue:c_cuo 
+    show verdict @cue:c_resultat 
+    highlight verdict @after:s_verdict {"role":"result"}
+    fade_out tab2 @cue:c_resultat 
+=== Tranche s_exces
+  OBJET consomme [math] "n(\\ce{NH3})_{consomme} = 1{,}136 \\times \\frac{2}{3} \\approx 0{,}757\\ \\text{mol}" 
+  OBJET reste [math] "n_{reste} = 1{,}063 - 0{,}757 = 0{,}306\\ \\text{mol}" 
+  OBJET masse [math] "m_{excès} = 0{,}306 \\times 17{,}03 \\approx 5{,}2\\ \\text{g de NH₃}" 
+  OBJET note [callout] "On part du LIMITANT (CuO) pour calculer ce qui est consommé" 
+DIT (consom) : Maintenant la masse en excès. On part du limitant : un virgule un trois six mole de CuO consomme deux tiers de mole de NH trois par mole de CuO, soit zéro virgule sept cinq sept mole.
+    show note @cue:c_limitant 
+    write consomme @cue:c_consomme 
+DIT (reste) : NH trois de départ moins ce qui a réagi : un virgule zéro six trois moins zéro virgule sept cinq sept égale zéro virgule trois zéro six mole.
+    write reste @cue:c_reste 
+DIT (grammes) : Puis en grammes : zéro virgule trois zéro six mole fois dix-sept virgule zéro trois grammes par mole donne environ cinq virgule deux grammes de NH trois en excès.
+    write masse @cue:c_cinq 
+    dim consomme @cue:c_grammes 
+    dim reste @cue:c_grammes 
+=== Tranche s_retenir
+  OBJET chemin [text] "masse → moles → rapport des coefficients → moles → masse" 
+  OBJET regle [math] "\\text{limitant : plus petit } \\frac{n}{\\text{coef.}}" 
+DIT (retenir) : À retenir : divise chaque mole par son coefficient, et le plus petit résultat te donne le réactif limitant — ici CuO.
+    camera.focus  @beat:start {"targets":["verdict","chemin","regle"],"bounds":"layout_bounds"}
+    fade_out div_nh3 @beat:start 
+    fade_out div_cuo @beat:start 
+    show chemin @cue:c_retenir 
+    show regle @cue:c_petit 
+    highlight verdict @- {"start":"cue:c_cuo","end":"cue_end:c_cuo","role":"result"}
+    fade_out note @beat:start 
+    fade_out masse @beat:start 
+    fade_out reste @beat:start 
+DIT (masse_exces) : Et la masse de l'excès, cinq virgule deux grammes, se calcule toujours à partir du limitant, jamais de l'excès.
+    highlight chemin @- {"start":"cue:c_exces","end":"cue_end:c_exces","role":"accent"}
+    highlight regle @- {"start":"cue:c_limitant","end":"cue_end:c_limitant","role":"result"}
+--- 6 tranches, 341 mots dits (≈ 2.3 min d'oral)

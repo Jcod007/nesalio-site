@@ -364,6 +364,21 @@ export function repairMessage(sliceId: string, issues: readonly { path: readonly
   ].join("\n");
 }
 
+/**
+ * Message sent when the reviewer (review.ts) found errors of substance in a tranche: the
+ * tranche, shown above, is corrected on those points only, then the lesson goes on.
+ */
+export function reviewFixMessage(sliceId: string, alerts: readonly { citation: string; correction: string }[]): string {
+  return [
+    `Un relecteur a trouvé des erreurs de fond dans la tranche « ${sliceId} » (pas encore montrée à l'élève) :`,
+    ...alerts.map(({ citation, correction }) => `- « ${citation} » → ${correction}`),
+    "Refais d'abord toi-même chaque calcul cité. Ta tranche est ci-dessus : recopie-la sur une ligne {\"slice\": …}, même slice_id,",
+    "en corrigeant ces erreurs partout où elles apparaissent (voix, formules, tableaux, figures, étiquettes) et rien d'autre.",
+    "Puis écris TOUTES les tranches qui devaient la suivre, jusqu'à la fin de la leçon, cohérentes avec la correction ;",
+    "ne t'arrête après elle que si c'était la dernière.",
+  ].join("\n");
+}
+
 /** Message sent once when the model stopped before the lesson had its fewest tranches. */
 export function continueMessage(accepted: readonly string[]): string {
   if (accepted.includes(REFUSAL_SLICE)) return "La leçon de refus n'a qu'une seule tranche : elle est complète, n'écris rien de plus.";

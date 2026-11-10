@@ -70,6 +70,27 @@ export function followUpEffortFor(model: string): ReasoningEffort {
   return /(^|\/)(anthropic|claude)/i.test(model) ? "none" : "low";
 }
 
+/** Relecteur de fond par défaut (server/nesalio/review.ts) : le plus rapide des deux essayés hors ligne. */
+export const DEFAULT_REVIEWER_MODEL = "anthropic/claude-sonnet-5.5";
+
+/**
+ * Le relecteur des tranches Nesalio, sur AI Gateway seulement (protection des données
+ * de chatCompletions.ts). Activé par défaut depuis le 2026-11-09 (choix de l'utilisateur après le banc
+ * Alloprof : leçons < 50 de 17 à 6 sur 54) ; NESALIO_RELECTEUR=0 le coupe ;
+ * NESALIO_RELECTEUR_MODELE choisit un autre modèle (ex. deepseek/deepseek-v4.1-flash).
+ */
+export function readReviewer(headers: Headers, env: NodeJS.ProcessEnv = process.env): ChatProvider | null {
+  if (env.NESALIO_RELECTEUR?.trim() === "0" || env.DISABLE_AI === "1") return null;
+  const gatewayToken = env.AI_GATEWAY_API_KEY?.trim() || headers.get("x-vercel-oidc-token") || env.VERCEL_OIDC_TOKEN?.trim();
+  if (!gatewayToken) return null;
+  const model = env.NESALIO_RELECTEUR_MODELE?.trim() || DEFAULT_REVIEWER_MODEL;
+  return {
+    name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: gatewayToken, model,
+    // Claude relit sans réflexion (2,5 s par leçon) ; un autre modèle prend NESALIO_RELECTEUR_EFFORT (ex. low).
+    ...(parseEffort(env.NESALIO_RELECTEUR_EFFORT) ? { reasoningEffort: parseEffort(env.NESALIO_RELECTEUR_EFFORT) } : {}),
+  };
+}
+
 export function parseEffort(value: string | null | undefined): ReasoningEffort | undefined {
   const effort = value?.trim() as ReasoningEffort | undefined;
   return effort && REASONING_EFFORTS.includes(effort) ? effort : undefined;

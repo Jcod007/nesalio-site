@@ -5,11 +5,12 @@
  */
 import { z } from "zod";
 import { encodeLine } from "@/domain/tutor/ndjson";
-import { readAiConfig } from "@/server/config";
+import { readAiConfig, readReviewer } from "@/server/config";
 import { readBoundedText } from "@/server/http";
 import { requireAccount } from "@/server/account";
 import { createSessionLimits } from "@/server/rateLimit";
 import { generateNesalio, type NesalioEvent } from "@/server/nesalio/generator";
+import { createSliceReviewer } from "@/server/nesalio/review";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 
 export const runtime = "nodejs";
@@ -48,6 +49,8 @@ export async function POST(request: Request): Promise<Response> {
   const config = readAiConfig(request.headers);
   if (!config.chat) return single({ kind: "error", code: "upstream", message: "Le modèle n'est pas configuré." }, 503);
 
+  // Reviewer of substance (review.ts): on by default, NESALIO_RELECTEUR=0 turns it off.
+  const reviewer = readReviewer(request.headers);
   const events = generateNesalio(parsed.data.question, {
     provider: config.chat,
     completion: streamChatCompletion,
@@ -55,6 +58,7 @@ export async function POST(request: Request): Promise<Response> {
     log: (message, detail) => console.warn(message, detail),
     // Teacher then layout writer (script.ts): off until measured better than one call.
     twoStage: process.env.NESALIO_DEUX_ETAPES === "1",
+    ...(reviewer ? { review: createSliceReviewer({ provider: reviewer, completion: streamChatCompletion }) } : {}),
   });
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({

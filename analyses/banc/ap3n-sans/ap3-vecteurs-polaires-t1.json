@@ -1,0 +1,732 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "vecteurs_polaires_cartesiennes",
+  "title": "Additionner des vecteurs : polaire puis cartésien",
+  "language": "fr",
+  "learning_goal": "Comprendre que pour additionner des vecteurs par composantes, on doit passer par les coordonnées cartésiennes, mais que les coordonnées polaires servent d'abord à les trouver."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_deux_vecteurs",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       7
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "v1",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "v2",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6,
+       2
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "lab1",
+     "attachment": {
+      "parent": "v1",
+      "anchor": "top"
+     },
+     "content": "\\vec{u}",
+     "type": "label"
+    },
+    {
+     "id": "lab2",
+     "attachment": {
+      "parent": "v2",
+      "anchor": "top"
+     },
+     "content": "\\vec{v}",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Bonne question : les vecteurs ont deux écritures, et c'est justement là que ça devient intéressant.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux écritures"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_v1",
+       "verb": "draw",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "v1"
+      },
+      {
+       "id": "s_lab1",
+       "verb": "show",
+       "at": "after:d_v1",
+       "target": "lab1"
+      }
+     ]
+    },
+    {
+     "id": "polaire",
+     "say": "En coordonnées polaires, on décrit un vecteur par sa longueur et son angle, comme la flèche u : longueur cinq, angle cinquante-trois degrés.",
+     "cues": [
+      {
+       "id": "c_pol",
+       "text": "coordonnées polaires"
+      },
+      {
+       "id": "c_long",
+       "text": "longueur cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_v1",
+       "verb": "highlight",
+       "start": "cue:c_pol",
+       "end": "cue_end:c_long",
+       "target": "v1",
+       "role": "accent"
+      },
+      {
+       "id": "d_v2",
+       "verb": "draw",
+       "at": "cue:c_long",
+       "target": "v2"
+      },
+      {
+       "id": "s_lab2",
+       "verb": "show",
+       "at": "after:d_v2",
+       "target": "lab2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_passer_cartesien",
+   "introduces": [
+    {
+     "id": "p1",
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "frame": "rep",
+     "params": {
+      "at": [
+       6,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "coord1",
+     "content": "\\vec{u} = (3 ; 4)",
+     "type": "math"
+    },
+    {
+     "id": "coord2",
+     "layout": {
+      "next_to": "coord1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\vec{v} = (6 ; 2)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "proj",
+     "say": "Pour obtenir ces coordonnées cartésiennes, on projette la flèche sur les axes : trois vers la droite, quatre vers le haut.",
+     "cues": [
+      {
+       "id": "c_axes",
+       "text": "sur les axes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "at": "cue:c_axes",
+       "target": "p1"
+      },
+      {
+       "id": "w_x1",
+       "verb": "write",
+       "at": "cue:c_axes",
+       "target": "coord1"
+      },
+      {
+       "id": "w_y1",
+       "verb": "highlight",
+       "at": "cue:c_axes",
+       "target": "coord1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "resume",
+     "say": "Donc u vaut trois et quatre, et v vaut six et deux. C'est en cartésien qu'on additionne ensuite.",
+     "cues": [
+      {
+       "id": "c_additionne",
+       "text": "qu'on additionne"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p2",
+       "verb": "show",
+       "at": "cue:c_additionne",
+       "target": "p2"
+      },
+      {
+       "id": "w_coord2",
+       "verb": "write",
+       "at": "cue:c_additionne",
+       "target": "coord2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_addition",
+   "introduces": [
+    {
+     "id": "somme",
+     "content": "\\vec{u} + \\vec{v} = (3 + 6 ; 4 + 2) = (9 ; 6)",
+     "parts": [
+      {
+       "id": "dep",
+       "text": "\\vec{u} + \\vec{v}"
+      },
+      {
+       "id": "calc",
+       "text": "= (3 + 6 ; 4 + 2)"
+      },
+      {
+       "id": "res",
+       "text": "= (9 ; 6)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rep2",
+     "params": {
+      "x": [
+       -1,
+       11
+      ],
+      "y": [
+       -1,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "resultat",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep2",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       9,
+       6
+      ]
+     },
+     "type": "vector"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul",
+     "say": "On additionne les x ensemble, puis les y ensemble : trois plus six, quatre plus deux.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "trois plus six"
+      },
+      {
+       "id": "c_y",
+       "text": "quatre plus deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_dep",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "somme",
+       "part": "dep"
+      },
+      {
+       "id": "s_rep2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep2"
+      },
+      {
+       "id": "d_resultat",
+       "verb": "draw",
+       "start": "cue:c_x",
+       "end": "cue_end:c_y",
+       "target": "resultat"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "somme",
+       "part": "calc"
+      }
+     ]
+    },
+    {
+     "id": "fin",
+     "say": "La résultante vaut donc neuf et six. On a passé des polaires aux cartésiennes une seule fois, puis on a additionné.",
+     "cues": [
+      {
+       "id": "c_neuf",
+       "text": "neuf et six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "somme",
+       "part": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verification",
+   "introduces": [
+    {
+     "id": "verif",
+     "content": "\\sqrt{9^2 + 6^2} = \\sqrt{117} \\approx 10{,}8",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "verif",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Les polaires servent d'entrée, pas de calcul intermédiaire.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "module",
+     "say": "Et si tu veux vérifier, on peut repasser en polaire à la fin : la longueur de la résultante se calcule avec Pythagore, racine de neuf au carré plus six au carré.",
+     "cues": [
+      {
+       "id": "c_racine",
+       "text": "racine de neuf au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_verif",
+       "verb": "write",
+       "at": "cue:c_racine",
+       "target": "verif"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:c_racine",
+       "end": "cue_end:c_racine",
+       "target": "verif",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "reponse",
+     "say": "Donc oui, on peut passer par les polaires, mais seulement au début et à la toute fin. Entre les deux, pour additionner ou soustraire, il faut les coordonnées cartésiennes.",
+     "cues": [
+      {
+       "id": "c_entre",
+       "text": "il faut les coordonnées cartésiennes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_entre",
+       "target": "note"
+      },
+      {
+       "id": "h_note",
+       "verb": "highlight",
+       "start": "cue:c_entre",
+       "end": "cue_end:c_entre",
+       "target": "note",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Polaire → cartésien : une seule conversion, avant d'additionner.",
+     "type": "text"
+    },
+    {
+     "id": "regle",
+     "content": "\\vec{u} + \\vec{v} = (x_u + x_v ;\\ y_u + y_v)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : polaires pour décrire une flèche, cartésiennes pour combiner des flèches. On ne peut pas additionner directement deux longueurs et deux angles.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "f_rep2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "rep2"
+      },
+      {
+       "id": "f_somme",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "somme"
+      },
+      {
+       "id": "f_coord1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "coord1"
+      },
+      {
+       "id": "f_coord2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "coord2"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "after:s_idee",
+       "target": "regle"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

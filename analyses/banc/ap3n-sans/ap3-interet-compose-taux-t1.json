@@ -1,0 +1,736 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "interet_compose_taux",
+  "title": "Trouver le taux d'un intérêt composé",
+  "language": "fr",
+  "learning_goal": "Retrouver le taux d'intérêt composé mensuel à partir du capital, du montant remboursé et de la durée, en posant une équation exponentielle."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "C0": {
+     "kind": "constant",
+     "value": 20000
+    },
+    "Cn": {
+     "kind": "constant",
+     "value": 25032.42
+    },
+    "n": {
+     "kind": "constant",
+     "value": 45
+    }
+   },
+   "expressions": {
+    "rapport": "25032.42/20000",
+    "taux_mensuel": "((25032.42/20000)^(1/45) - 1)*100"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "tab_donnees",
+     "params": {
+      "rows": [
+       [
+        20000,
+        25032.42,
+        45
+       ]
+      ],
+      "row_labels": [
+       "valeur ($)"
+      ],
+      "column_labels": [
+       "capital de départ",
+       "versement final",
+       "nombre de mois"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "formule",
+     "content": "C_n = C_0(1 + i)^n",
+     "parts": [
+      {
+       "id": "p1",
+       "text": "C_n"
+      },
+      {
+       "id": "p2",
+       "text": "= C_0"
+      },
+      {
+       "id": "p3",
+       "text": "(1 + i)^n"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_i",
+     "attachment": {
+      "parent": "formule",
+      "anchor": "right"
+     },
+     "content": "i = taux par mois",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Félicia emprunte vingt mille dollars, et elle rembourse vingt-cinq mille trente-deux dollars et quarante-deux cents, trois ans et neuf mois plus tard. Ce qu'on cherche, c'est le taux d'intérêt composé chaque mois. Trois ans et neuf mois, ça fait quarante-cinq mois.",
+     "cues": [
+      {
+       "id": "c_emprunte",
+       "text": "vingt mille dollars"
+      },
+      {
+       "id": "c_rembourse",
+       "text": "vingt-cinq mille trente-deux dollars"
+      },
+      {
+       "id": "c_cherche",
+       "text": "on cherche"
+      },
+      {
+       "id": "c_mois",
+       "text": "quarante-cinq mois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_emprunte",
+       "target": "tab_donnees"
+      }
+     ]
+    },
+    {
+     "id": "formule_intro",
+     "say": "La formule de l'intérêt composé, c'est : montant final égale capital de départ multiplié par un plus le taux, exposant le nombre de périodes. Chaque mois, l'intérêt s'ajoute au capital, donc on multiplie par un plus i quarante-cinq fois de suite.",
+     "cues": [
+      {
+       "id": "c_formule",
+       "text": "La formule"
+      },
+      {
+       "id": "c_un_plus",
+       "text": "un plus le taux"
+      },
+      {
+       "id": "c_exposant",
+       "text": "exposant le nombre de périodes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p1",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "formule",
+       "part": "p1"
+      },
+      {
+       "id": "w_p3",
+       "verb": "write",
+       "at": "cue:c_un_plus",
+       "target": "formule",
+       "part": "p3"
+      },
+      {
+       "id": "w_p2",
+       "verb": "write",
+       "at": "cue:c_exposant",
+       "target": "formule",
+       "part": "p2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isole",
+   "introduces": [
+    {
+     "id": "etape1",
+     "content": "\\frac{25032{,}42}{20000} = (1 + i)^{45}",
+     "parts": [
+      {
+       "id": "v1",
+       "text": "\\frac{25032{,}42}{20000}"
+      },
+      {
+       "id": "v2",
+       "text": "= (1 + i)^{45}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape2",
+     "layout": {
+      "next_to": "etape1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "1{,}251621 = (1 + i)^{45}",
+     "type": "math"
+    },
+    {
+     "id": "etape3",
+     "layout": {
+      "next_to": "etape2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "(1{,}251621)^{\\frac{1}{45}} = 1 + i",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "divise",
+     "say": "On divise les deux côtés par vingt mille pour isoler la parenthèse. Vingt-cinq mille trente-deux virgule quarante-deux divisé par vingt mille, ça donne environ un virgule deux cinq un six.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "On divise les deux côtés"
+      },
+      {
+       "id": "c_donne",
+       "text": "un virgule deux cinq un six"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tab",
+       "verb": "dim",
+       "at": "cue:c_divise",
+       "target": "tab_donnees"
+      },
+      {
+       "id": "d_formule",
+       "verb": "dim",
+       "at": "cue:c_divise",
+       "target": "formule"
+      },
+      {
+       "id": "w_e1",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "etape1"
+      },
+      {
+       "id": "h_e1",
+       "verb": "highlight",
+       "at": "after:w_e1",
+       "target": "etape1",
+       "role": "accent",
+       "part": "v1"
+      }
+     ]
+    },
+    {
+     "id": "racine",
+     "say": "Maintenant, on doit défaire l'exposant quarante-cinq. L'opération inverse d'une puissance quarante-cinq, c'est la racine quarante-cinquième, donc exposant un sur quarante-cinq. Ça, ça se calcule avec les logarithmes, ou directement avec la touche exposant de ta calculatrice.",
+     "cues": [
+      {
+       "id": "c_defaire",
+       "text": "défaire l'exposant"
+      },
+      {
+       "id": "c_racine",
+       "text": "racine quarante-cinquième"
+      },
+      {
+       "id": "c_log",
+       "text": "logarithmes"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e2",
+       "verb": "transform",
+       "at": "cue:c_defaire",
+       "source": "etape1",
+       "target": "etape2"
+      },
+      {
+       "id": "w_e3",
+       "verb": "write",
+       "at": "cue:c_racine",
+       "target": "etape3"
+      },
+      {
+       "id": "h_e3",
+       "verb": "highlight",
+       "at": "after:w_e3",
+       "target": "etape3",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "Un virgule deux cinq un six exposant un sur quarante-cinq, ça donne environ un virgule zéro zéro cinq. Un plus i égale un virgule zéro zéro cinq, donc i égale zéro virgule zéro zéro cinq. Le taux mensuel est d'environ zéro virgule cinq pour cent.",
+     "cues": [
+      {
+       "id": "c_resultat",
+       "text": "un virgule zéro zéro cinq"
+      },
+      {
+       "id": "c_taux",
+       "text": "zéro virgule cinq pour cent"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_e3b",
+       "verb": "highlight",
+       "start": "cue:c_resultat",
+       "end": "cue_end:c_taux",
+       "target": "etape3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_annuel",
+   "introduces": [
+    {
+     "id": "lien_annuel",
+     "content": "0{,}005 \\times 12 = 0{,}06",
+     "parts": [
+      {
+       "id": "m1",
+       "text": "0{,}005 \\times 12"
+      },
+      {
+       "id": "m2",
+       "text": "= 0{,}06"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "texte_annuel",
+     "layout": {
+      "next_to": "lien_annuel",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Taux annuel ≈ 6 %",
+     "type": "text"
+    },
+    {
+     "id": "verif",
+     "layout": {
+      "next_to": "texte_annuel",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "20000 \\times 1{,}005^{45} \\approx 25032{,}42",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "convertit",
+     "say": "Si on veut le taux annuel, on multiplie par douze mois : zéro virgule zéro zéro cinq fois douze égale zéro virgule zéro six, donc environ six pour cent par année.",
+     "cues": [
+      {
+       "id": "c_multiplie",
+       "text": "on multiplie par douze"
+      },
+      {
+       "id": "c_six",
+       "text": "six pour cent par année"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_e1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "etape1"
+      },
+      {
+       "id": "f_e2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "etape2"
+      },
+      {
+       "id": "f_e3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "etape3"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab_donnees"
+      },
+      {
+       "id": "f_form",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "formule"
+      },
+      {
+       "id": "w_m1",
+       "verb": "write",
+       "at": "cue:c_multiplie",
+       "target": "lien_annuel",
+       "part": "m1"
+      },
+      {
+       "id": "w_m2",
+       "verb": "write",
+       "at": "cue:c_six",
+       "target": "lien_annuel",
+       "part": "m2"
+      },
+      {
+       "id": "s_txt",
+       "verb": "show",
+       "at": "after:w_m2",
+       "target": "texte_annuel"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : vingt mille fois un virgule zéro zéro cinq exposant quarante-cinq, ça redonne bien vingt-cinq mille trente-deux dollars et quarante-deux cents. Notre taux est bon.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_redonne",
+       "text": "redonne bien"
+      },
+      {
+       "id": "c_bon",
+       "text": "Notre taux est bon"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_verif",
+       "verb": "write",
+       "at": "cue:c_verif",
+       "target": "verif"
+      },
+      {
+       "id": "s_result",
+       "verb": "set_style",
+       "at": "cue:c_bon",
+       "target": "verif",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "recap_nombre",
+     "content": "i = \\left(\\frac{C_n}{C_0}\\right)^{\\frac{1}{n}} - 1",
+     "parts": [
+      {
+       "id": "r1",
+       "text": "i"
+      },
+      {
+       "id": "r2",
+       "text": "= \\left(\\frac{C_n}{C_0}\\right)^{\\frac{1}{n}} - 1"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "recap_idee",
+     "layout": {
+      "next_to": "recap_nombre",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Défaire la puissance par l'exposant inverse",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : pour trouver un taux dans une situation d'intérêt composé, on isole la parenthèse en divisant, puis on défait la puissance avec l'exposant un sur n. Ici, ça donne un taux mensuel d'environ zéro virgule cinq pour cent, soit environ six pour cent par année.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_isole",
+       "text": "on isole la parenthèse"
+      },
+      {
+       "id": "c_defait",
+       "text": "défait la puissance"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_lien",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lien_annuel"
+      },
+      {
+       "id": "f_txt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "texte_annuel"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif"
+      },
+      {
+       "id": "w_r1",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "recap_nombre",
+       "part": "r1"
+      },
+      {
+       "id": "w_r2",
+       "verb": "write",
+       "at": "cue:c_defait",
+       "target": "recap_nombre",
+       "part": "r2"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "after:w_r2",
+       "target": "recap_idee"
+      },
+      {
+       "id": "h_recap",
+       "verb": "highlight",
+       "at": "after:s_idee",
+       "target": "recap_nombre",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

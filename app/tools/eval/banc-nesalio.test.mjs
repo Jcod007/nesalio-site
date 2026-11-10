@@ -19,6 +19,7 @@
  *   CORPUS            autre fichier de corpus, relatif à app/ (défaut : corpus-nesalio.json)
  *   PRIX_ENTREE, PRIX_SORTIE  prix en $ par million de jetons, pour le coût approximatif
  *   NESALIO_DEUX_ETAPES=1     comme la route : enseignant puis metteur en page
+ *   NESALIO_RELECTEUR=0       sans le relecteur de fond (actif par défaut, comme la route)
  * Écrit analyses/banc/<SORTIE>/ : rapport.md, rapport.json, et par leçon
  * <id>-t<n>.json (jouable), .journal.txt (refus, réparations) et .lisible.txt (dit / montré).
  */
@@ -29,8 +30,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import shell from "@/domain/nesalio/engineShell.json";
 import { validateLesson } from "@/domain/nesalio/validate";
-import { readAiConfig } from "@/server/config";
+import { readAiConfig, readReviewer } from "@/server/config";
 import { generateNesalio } from "@/server/nesalio/generator";
+import { createSliceReviewer } from "@/server/nesalio/review";
 import { guidesFor } from "@/server/nesalio/pedagogy";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { checkAnswer, isIntact, lessonText, lostSlices, outcomeOf, readCorpus, reportMarkdown, summarize } from "./banc-outils.mjs";
@@ -50,6 +52,8 @@ function provider() {
   }
   const chat = readAiConfig(new Headers(), env).chat;
   if (!chat) throw new Error("Aucun modèle configuré (AI_GATEWAY_API_KEY, VERCEL_OIDC_TOKEN, OPENROUTER_API_KEY ou ANTHROPIC_API_KEY).");
+  // The route's reviewer (review.ts), same settings: on unless NESALIO_RELECTEUR=0.
+  chat.reviewer = readReviewer(new Headers(), env);
   return chat;
 }
 
@@ -76,6 +80,16 @@ async function generate(question, round, chat) {
       for await (const chunk of streamChatCompletion(options)) { counters.outputChars += chunk.length; yield chunk; }
     })();
   };
+  const reviewCounters = { calls: 0, inputChars: 0, outputChars: 0 };
+  const review = chat.reviewer ? createSliceReviewer({ provider: chat.reviewer, completion: (options) => {
+    reviewCounters.calls++;
+    reviewCounters.inputChars += chars(options.messages);
+    return (async function* () {
+      for await (const chunk of streamChatCompletion(options)) { reviewCounters.outputChars += chunk.length; yield chunk; }
+    })();
+  } }) : undefined;
+  /** When each tranche reached the student, and its spoken words: the student's wait is estimated from them. */
+  const sliceTimes = [];
   const started = Date.now();
   let firstSliceMs = null;
   let headerMs = null;
@@ -84,11 +98,15 @@ async function generate(question, round, chat) {
   let thrown;
   try {
     for await (const event of generateNesalio(question.question, {
-      provider: chat, completion, twoStage: process.env.NESALIO_DEUX_ETAPES === "1",
+      provider: chat, completion, twoStage: process.env.NESALIO_DEUX_ETAPES === "1", ...(review ? { review } : {}),
       log: (message, detail) => logs.push(`${message} ${typeof detail === "string" ? detail : detail instanceof Error ? `${detail.name}: ${detail.message}` : JSON.stringify(detail)}`),
     })) {
       if (event.kind === "lesson") { header = event; headerMs ??= Date.now() - started; events.push({ kind: "lesson" }); }
-      else if (event.kind === "slice") { slices.push(event.slice); firstSliceMs ??= Date.now() - started; events.push({ kind: "slice", id: event.slice.slice_id }); }
+      else if (event.kind === "slice") {
+        slices.push(event.slice); firstSliceMs ??= Date.now() - started; events.push({ kind: "slice", id: event.slice.slice_id });
+        sliceTimes.push({ id: event.slice.slice_id, ms: Date.now() - started,
+          words: event.slice.beats.map((b) => b.say).join(" ").split(/\s+/).filter(Boolean).length });
+      }
       else events.push(event);
     }
   } catch (error) { thrown = String(error); }
@@ -108,6 +126,15 @@ async function generate(question, round, chat) {
     repairs: logs.filter((l) => / réparée? sans appel/.test(l)),
     headerMs, firstSliceMs, ms: Date.now() - started,
     ...counters,
+    sliceTimes,
+    review: review ? {
+      ...reviewCounters,
+      alerts: logs.filter((l) => l.startsWith("nesalio: alerte du relecteur ") && !l.startsWith("nesalio: alerte du relecteur écartée")).length,
+      dropped: logs.filter((l) => l.startsWith("nesalio: alerte du relecteur écartée")).length,
+      fixes: logs.filter((l) => l.startsWith("nesalio: tranche refusée") && l.includes("relecteur.")).length,
+      failed: logs.filter((l) => l.startsWith("nesalio: relecture impossible")).length,
+      ms: logs.filter((l) => l.startsWith("nesalio: relecture ")).map((l) => Number(/, (\d+) ms$/.exec(l)?.[1])).filter(Number.isFinite),
+    } : null,
     answer: slices.length ? checkAnswer(question, lesson) : null,
     neverShown: text.neverShown,
     words: text.words,

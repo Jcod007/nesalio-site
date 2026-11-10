@@ -1,0 +1,644 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "equilibre_kc_concentrations",
+  "title": "Trouver [C] à partir de Kc et de la relation entre [B] et [A]",
+  "language": "fr",
+  "learning_goal": "Écrire l'expression de Kc avec les coefficients comme exposants, poser x pour [A], utiliser [B] = 2[A], puis résoudre pour trouver [C]."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_expression",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{2 A(g) <=> B(g) + 2 C(g)}",
+     "type": "math"
+    },
+    {
+     "id": "kc",
+     "layout": {
+      "next_to": "eq",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "K_c = 64",
+     "type": "math"
+    },
+    {
+     "id": "expr",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "K_c = \\frac{[\\ce{B}]\\,[\\ce{C}]^2}{[\\ce{A}]^2}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu as l'équilibre entre deux moles de gaz A, une mole de B et deux moles de C, avec une constante de soixante-quatre. Ta question : trouver la concentration de C, en sachant que B est deux fois plus concentré que A.",
+     "cues": [
+      {
+       "id": "c_equilibre",
+       "text": "l'équilibre"
+      },
+      {
+       "id": "c_soixante",
+       "text": "soixante-quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_equilibre",
+       "target": "eq"
+      },
+      {
+       "id": "w_kc",
+       "verb": "write",
+       "at": "cue:c_soixante",
+       "target": "kc"
+      }
+     ]
+    },
+    {
+     "id": "expression",
+     "say": "La constante d'équilibre, c'est le produit des concentrations des produits, chacune élevée à son coefficient, divisé par le produit des concentrations des réactifs, chacune à son coefficient.",
+     "cues": [
+      {
+       "id": "c_produits",
+       "text": "des produits"
+      },
+      {
+       "id": "c_coefficient",
+       "text": "élevée à son coefficient"
+      },
+      {
+       "id": "c_reactifs",
+       "text": "des réactifs"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_num",
+       "verb": "write",
+       "at": "cue:c_produits",
+       "target": "expr"
+      },
+      {
+       "id": "w_denom",
+       "verb": "highlight",
+       "at": "cue:c_reactifs",
+       "target": "expr",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pose",
+   "introduces": [
+    {
+     "id": "posA",
+     "content": "[\\ce{A}] = x",
+     "type": "math"
+    },
+    {
+     "id": "posB",
+     "layout": {
+      "next_to": "posA",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[\\ce{B}] = 2x",
+     "type": "math"
+    },
+    {
+     "id": "sub",
+     "layout": {
+      "next_to": "posB",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "64 = \\frac{(2x)\\,[\\ce{C}]^2}{x^2}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "inconnues",
+     "say": "On a trois inconnues : la concentration de A, celle de B et celle de C. Mais l'énoncé relie A et B : B vaut deux fois A.",
+     "cues": [
+      {
+       "id": "c_deux_fois",
+       "text": "B vaut deux fois A"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_kc",
+       "verb": "dim",
+       "at": "cue:c_deux_fois",
+       "target": "kc"
+      },
+      {
+       "id": "d_eq",
+       "verb": "dim",
+       "at": "cue:c_deux_fois",
+       "target": "eq"
+      }
+     ]
+    },
+    {
+     "id": "nomme",
+     "say": "Nommons x la concentration de A. Alors celle de B vaut deux x. Il ne reste plus que deux inconnues : x et la concentration de C.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "x la concentration de A"
+      },
+      {
+       "id": "c_deuxx",
+       "text": "deux x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_posA",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "posA"
+      },
+      {
+       "id": "w_posB",
+       "verb": "write",
+       "at": "cue:c_deuxx",
+       "target": "posB"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "Remplaçons dans l'expression : soixante-quatre égale deux x fois la concentration de C au carré, le tout divisé par x au carré.",
+     "cues": [
+      {
+       "id": "c_remplacons",
+       "text": "Remplaçons"
+      },
+      {
+       "id": "c_soixantequatre",
+       "text": "soixante-quatre"
+      },
+      {
+       "id": "c_divise",
+       "text": "divisé par x au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sub",
+       "verb": "write",
+       "at": "cue:c_remplacons",
+       "target": "sub"
+      },
+      {
+       "id": "h_sub",
+       "verb": "highlight",
+       "at": "after:w_sub",
+       "target": "sub",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_simplifie",
+   "introduces": [
+    {
+     "id": "simpA",
+     "content": "64 = \\frac{2\\,[\\ce{C}]^2}{x}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "simplifie",
+     "say": "On simplifie les x : au numérateur deux x fois C au carré, au dénominateur x au carré. Il reste deux C au carré divisé par x.",
+     "cues": [
+      {
+       "id": "c_simplifie",
+       "text": "On simplifie"
+      },
+      {
+       "id": "c_il_reste",
+       "text": "Il reste deux C au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_simp",
+       "verb": "transform",
+       "at": "cue:c_il_reste",
+       "source": "sub",
+       "target": "simpA"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "On multiplie les deux côtés par x : soixante-quatre x égale deux fois la concentration de C au carré.",
+     "cues": [
+      {
+       "id": "c_multiplie",
+       "text": "On multiplie les deux côtés par x"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_simp",
+       "verb": "highlight",
+       "at": "cue:c_multiplie",
+       "target": "simpA",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resout",
+   "introduces": [
+    {
+     "id": "res1",
+     "content": "64x = 2\\,[\\ce{C}]^2",
+     "type": "math"
+    },
+    {
+     "id": "res2",
+     "layout": {
+      "next_to": "res1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[\\ce{C}]^2 = 32x",
+     "type": "math"
+    },
+    {
+     "id": "res3",
+     "layout": {
+      "next_to": "res2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[\\ce{C}] = \\sqrt{32x}",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "res3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Il manque la concentration de A pour donner un nombre : c'est x, la donnée qu'il faut fournir.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "garde",
+     "say": "Mettons C au carré seul : on divise soixante-quatre x par deux, ce qui donne trente-deux x. Donc la concentration de C au carré vaut trente-deux x.",
+     "cues": [
+      {
+       "id": "c_carreseul",
+       "text": "C au carré seul"
+      },
+      {
+       "id": "c_trentedeuxx",
+       "text": "trente-deux x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res1",
+       "verb": "write",
+       "at": "cue:c_carreseul",
+       "target": "res1"
+      },
+      {
+       "id": "w_res2",
+       "verb": "write",
+       "at": "cue:c_trentedeuxx",
+       "target": "res2"
+      }
+     ]
+    },
+    {
+     "id": "racine",
+     "say": "On prend la racine carrée, parce qu'une concentration est positive : la concentration de C vaut la racine carrée de trente-deux x.",
+     "cues": [
+      {
+       "id": "c_racine",
+       "text": "racine carrée"
+      },
+      {
+       "id": "c_positif",
+       "text": "positive"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res3",
+       "verb": "write",
+       "at": "cue:c_racine",
+       "target": "res3"
+      },
+      {
+       "id": "h_res3",
+       "verb": "highlight",
+       "at": "after:w_res3",
+       "target": "res3",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "manque",
+     "say": "Mais attention : sans la concentration de A en moles par litre, on ne peut pas donner un nombre. Dès que tu connais cette valeur, tu la remplaces dans x et tu obtiens la concentration de C.",
+     "cues": [
+      {
+       "id": "c_moles",
+       "text": "moles par litre"
+      },
+      {
+       "id": "c_remplaces",
+       "text": "tu la remplaces"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_moles",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la constante d'équilibre se bâtit sur les coefficients, et on pose x pour la concentration inconnue qu'on peut relier aux autres.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_coefficients",
+       "text": "coefficients"
+      },
+      {
+       "id": "c_x_inconnue",
+       "text": "x pour la concentration inconnue"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "expr",
+        "posA",
+        "res3"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_expr",
+       "verb": "highlight",
+       "start": "cue:c_coefficients",
+       "end": "cue_end:c_coefficients",
+       "target": "expr",
+       "role": "accent"
+      },
+      {
+       "id": "s_posA",
+       "verb": "show",
+       "at": "cue:c_x_inconnue",
+       "target": "posA"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

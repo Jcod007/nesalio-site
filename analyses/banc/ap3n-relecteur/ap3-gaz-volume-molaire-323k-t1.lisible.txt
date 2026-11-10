@@ -1,0 +1,47 @@
+QUESTION (ap3-gaz-volume-molaire-323k, chimie, sec 5, alloprof) : Je ne sais pas comment calculer ça: Quel sera le volume molaire d’un gaz à 323K et à la pression de 202kPa?
+RÉPONSE DE RÉFÉRENCE : Vm = RT/P = 8,314 × 323 / 202 ≈ 13,3 L/mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Le volume molaire d'un gaz par la loi des gaz parfaits
+math_context : {"symbols":{"T":{"kind":"constant","value":323},"P":{"kind":"constant","value":202},"R":{"kind":"constant","value":8.314},"n":{"kind":"constant","value":1}},"expressions":{"vm":"n*R*T/P"}}
+=== Tranche s_donnees
+  OBJET liste [matrix] {"rows":[["202 kPa"],["323 K"],["?"]],"row_labels":["pression p","température T","volume molaire V/n"]} 
+  OBJET lire [text] "volume molaire = le volume occupé par 1 mole de gaz" 
+DIT (reformule) : Tu cherches le volume molaire d'un gaz, c'est-à-dire le volume qu'occupe une seule mole de ce gaz.
+    show liste @cue:c_vm 
+    show lire @cue:c_une 
+DIT (deux) : On te donne deux nombres : une pression de deux cent deux kilo pascals et une température de trois cent vingt-trois kelvins.
+    highlight liste @cue:c_202 {"role":"given","part":"r1"}
+    highlight liste @cue:c_323 {"role":"given","part":"r2"}
+=== Tranche s_loi
+  OBJET loi [math] "pV = nRT" parts=pV | = nRT
+  OBJET isole [math] "\\frac{V}{n} = \\frac{RT}{p}" parts=\frac{V}{n} | = \frac{RT}{p}
+  OBJET Rnote [label] "R = 8,314 kPa·L/(mol·K)" 
+DIT (loi) : Le bon outil, c'est la loi des gaz parfaits : p V égale n R T.
+    write loi @cue:c_pv {"part":"pv"}
+    write loi @cue:c_nrt {"part":"nrt"}
+    highlight loi @after:w_nrt {"role":"accent"}
+DIT (isoler) : On ne veut pas le volume total, on veut le volume par mole : on divise les deux côtés par n, puis par p. Il reste V sur n égale R T sur p.
+    transform isole @cue:c_reste {"source":"loi"}
+    highlight isole @after:t_isole {"role":"accent","part":"vn"}
+    show Rnote @cue:c_parp 
+=== Tranche s_calcul
+  OBJET calc [math] {"kind":"computed","expression_ref":"vm","template":"\\frac{V}{n} = \\frac{8{,}314 \\times 323}{202} \\approx {value}\\ \\text{L/mol}","precision":2} 
+DIT (remplace) : On remplace R par huit virgule trois cent quatorze, T par trois cent vingt-trois et p par deux cent deux.
+    dim liste @cue:c_R 
+    fade_out lire @cue:c_R 
+    fade_out Rnote @cue:c_R 
+    fade_out loi @cue:c_R 
+    fade_out isole @cue:c_R 
+    write calc @cue:c_p 
+DIT (resultat) : On multiplie huit virgule trois cent quatorze par trois cent vingt-trois, on divise par deux cent deux, et on obtient environ treize virgule vingt-neuf litres par mole.
+    highlight calc @cue:c_environ {"role":"result"}
+=== Tranche s_retenir
+DIT (idee) : Compare avec les conditions normales : à zéro degré et cent un kilo pascals, une mole occupe vingt-deux virgule quatre litres.
+    camera.focus  @cue:c_compare {"targets":["calc"]}
+    highlight calc @cue:c_224 {"role":"accent"}
+DIT (pourquoi) : Ici, moins de place : plus de pression, donc un plus petit volume ; à retenir, une mole de gaz n'a pas un volume fixe, il tombe de la loi p V égale n R T.
+    highlight calc @cue:c_retenir {"role":"result"}
+--- 4 tranches, 193 mots dits (≈ 1.3 min d'oral)

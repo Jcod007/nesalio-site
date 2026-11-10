@@ -1,0 +1,1020 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "vecteurs_polaires",
+  "title": "Additionner des vecteurs : faut-il passer par les coordonnées cartésiennes ?",
+  "language": "fr",
+  "learning_goal": "Comprendre que l'addition de vecteurs se fait par les composantes cartésiennes ; les coordonnées polaires servent à décrire un vecteur ou à donner la réponse, mais on revient toujours aux composantes pour additionner."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "compx": "5*cos(53.13)+3*cos(0)",
+    "compy": "5*sin(53.13)+3*sin(0)",
+    "norme": "sqrt((5*cos(53.13)+3*cos(0))^2+(5*sin(53.13)+3*sin(0))^2)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       10
+      ],
+      "y": [
+       -1,
+       6
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "v1",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "v1lab",
+     "attachment": {
+      "parent": "v1",
+      "anchor": "center",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "content": "A (5 ; 53,13°)",
+     "type": "label"
+    },
+    {
+     "id": "v2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       0
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "v2lab",
+     "attachment": {
+      "parent": "v2",
+      "anchor": "right",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "content": "B (3 ; 0°)",
+     "type": "label"
+    },
+    {
+     "id": "enonce",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "A = 5 à 53,13° ; B = 3 à 0° ; trouver A + B",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu veux additionner deux vecteurs donnés en coordonnées polaires, donc par une longueur et un angle, et tu te demandes s'il faut vraiment repasser par les coordonnées cartésiennes.",
+     "cues": [
+      {
+       "id": "c_polaires",
+       "text": "coordonnées polaires"
+      },
+      {
+       "id": "c_cart",
+       "text": "coordonnées cartésiennes"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep",
+        "enonce"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "s_enum",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "enonce"
+      },
+      {
+       "id": "d_v1",
+       "verb": "draw",
+       "at": "cue:c_polaires",
+       "target": "v1"
+      },
+      {
+       "id": "d_v2",
+       "verb": "draw",
+       "at": "cue:c_cart",
+       "target": "v2"
+      }
+     ]
+    },
+    {
+     "id": "pose",
+     "say": "Prenons le vecteur A, longueur cinq, angle cinquante-trois virgule treize degrés, et le vecteur B, longueur trois, angle zéro.",
+     "cues": [
+      {
+       "id": "c_A",
+       "text": "vecteur A"
+      },
+      {
+       "id": "c_B",
+       "text": "vecteur B"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_v1lab",
+       "verb": "show",
+       "at": "cue:c_A",
+       "target": "v1lab"
+      },
+      {
+       "id": "s_v2lab",
+       "verb": "show",
+       "at": "cue:c_B",
+       "target": "v2lab"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pourquoi_cart",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "\\vec{A} + \\vec{B} = (A_x + B_x\\, ;\\, A_y + B_y)",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\vec{A} + \\vec{B}"
+      },
+      {
+       "id": "droite",
+       "text": "= (A_x + B_x\\, ;\\, A_y + B_y)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "L'addition se lit composante par composante",
+     "type": "text"
+    },
+    {
+     "id": "proj",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "xl"
+     },
+     "content": "A_x = A\\cos\\theta \\quad A_y = A\\sin\\theta",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reponse",
+     "say": "La réponse courte : oui, il faut passer par les coordonnées cartésiennes. L'addition de vecteurs se fait composante par composante : les x ensemble, les y ensemble.",
+     "cues": [
+      {
+       "id": "c_oui",
+       "text": "il faut passer"
+      },
+      {
+       "id": "c_x",
+       "text": "les x ensemble"
+      },
+      {
+       "id": "c_y",
+       "text": "les y ensemble"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_v1b",
+       "verb": "dim",
+       "at": "cue:c_oui",
+       "target": "v1"
+      },
+      {
+       "id": "d_v2b",
+       "verb": "dim",
+       "at": "cue:c_oui",
+       "target": "v2"
+      },
+      {
+       "id": "f_v1lab",
+       "verb": "fade_out",
+       "at": "cue:c_oui",
+       "target": "v1lab"
+      },
+      {
+       "id": "f_v2lab",
+       "verb": "fade_out",
+       "at": "cue:c_oui",
+       "target": "v2lab"
+      },
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "regle",
+       "part": "gauche"
+      },
+      {
+       "id": "w_d",
+       "verb": "write",
+       "at": "cue:c_y",
+       "target": "regle",
+       "part": "droite"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "after:w_d",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "En polaire, on connaît la longueur et l'angle. Pour retrouver les composantes, on projette : x vaut longueur fois cosinus, y vaut longueur fois sinus.",
+     "cues": [
+      {
+       "id": "c_projette",
+       "text": "on projette"
+      },
+      {
+       "id": "c_cos",
+       "text": "cosinus"
+      },
+      {
+       "id": "c_sin",
+       "text": "sinus"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_proj",
+       "verb": "write",
+       "at": "cue:c_projette",
+       "target": "proj"
+      },
+      {
+       "id": "h_cos",
+       "verb": "highlight",
+       "start": "cue:c_cos",
+       "end": "cue_end:c_cos",
+       "target": "proj",
+       "role": "accent"
+      },
+      {
+       "id": "h_sin",
+       "verb": "highlight",
+       "start": "cue:c_sin",
+       "end": "cue_end:c_sin",
+       "target": "proj",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "v1c",
+     "content": "A = (5\\cos 53{,}13^\\circ\\, ;\\, 5\\sin 53{,}13^\\circ) = (3\\, ;\\, 4)",
+     "parts": [
+      {
+       "id": "a1",
+       "text": "A = (5\\cos 53{,}13^\\circ\\, ;\\, 5\\sin 53{,}13^\\circ)"
+      },
+      {
+       "id": "a2",
+       "text": "= (3\\, ;\\, 4)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "v2c",
+     "content": "B = (3\\cos 0^\\circ\\, ;\\, 3\\sin 0^\\circ) = (3\\, ;\\, 0)",
+     "parts": [
+      {
+       "id": "b1",
+       "text": "B = (3\\cos 0^\\circ\\, ;\\, 3\\sin 0^\\circ)"
+      },
+      {
+       "id": "b2",
+       "text": "= (3\\, ;\\, 0)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "somme",
+     "content": "\\vec{A} + \\vec{B} = (3 + 3\\, ;\\, 4 + 0) = (6\\, ;\\, 4)",
+     "parts": [
+      {
+       "id": "s1",
+       "text": "\\vec{A} + \\vec{B} = (3 + 3\\, ;\\, 4 + 0)"
+      },
+      {
+       "id": "s2",
+       "text": "= (6\\, ;\\, 4)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pA",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pB",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "vres",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6,
+       4
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "vreslab",
+     "attachment": {
+      "parent": "vres",
+      "anchor": "center",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "content": "(6 ; 4)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calA",
+     "say": "Pour A : cinq cosinus de cinquante-trois virgule treize degrés donne trois, et cinq sinus donne quatre. Donc A vaut trois, quatre.",
+     "cues": [
+      {
+       "id": "c_cosA",
+       "text": "cinq cosinus"
+      },
+      {
+       "id": "c_sinA",
+       "text": "cinq sinus"
+      },
+      {
+       "id": "c_A34",
+       "text": "trois, quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a1",
+       "verb": "write",
+       "at": "cue:c_sinA",
+       "target": "v1c",
+       "part": "a1"
+      },
+      {
+       "id": "s_pA",
+       "verb": "show",
+       "at": "cue:c_A34",
+       "target": "pA"
+      },
+      {
+       "id": "w_a2",
+       "verb": "write",
+       "at": "cue:c_A34",
+       "target": "v1c",
+       "part": "a2"
+      }
+     ]
+    },
+    {
+     "id": "calB",
+     "say": "Pour B, l'angle est zéro : cosinus vaut un, sinus vaut zéro. B vaut trois, zéro.",
+     "cues": [
+      {
+       "id": "c_angle0",
+       "text": "angle est zéro"
+      },
+      {
+       "id": "c_B30",
+       "text": "trois, zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_b1",
+       "verb": "write",
+       "at": "cue:c_angle0",
+       "target": "v2c",
+       "part": "b1"
+      },
+      {
+       "id": "s_pB",
+       "verb": "show",
+       "at": "cue:c_B30",
+       "target": "pB"
+      },
+      {
+       "id": "w_b2",
+       "verb": "write",
+       "at": "cue:c_B30",
+       "target": "v2c",
+       "part": "b2"
+      }
+     ]
+    },
+    {
+     "id": "add",
+     "say": "J'additionne les x : trois plus trois, six. Les y : quatre plus zéro, quatre. La résultante vaut six, quatre.",
+     "cues": [
+      {
+       "id": "c_addx",
+       "text": "J'additionne les x"
+      },
+      {
+       "id": "c_addy",
+       "text": "Les y"
+      },
+      {
+       "id": "c_res",
+       "text": "six, quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_v1c",
+       "verb": "highlight",
+       "start": "cue:c_addx",
+       "end": "cue_end:c_addx",
+       "target": "v1c",
+       "role": "secondary"
+      },
+      {
+       "id": "h_v2c",
+       "verb": "highlight",
+       "start": "cue:c_addy",
+       "end": "cue_end:c_addy",
+       "target": "v2c",
+       "role": "secondary"
+      },
+      {
+       "id": "w_s1",
+       "verb": "write",
+       "at": "cue:c_res",
+       "target": "somme",
+       "part": "s1"
+      },
+      {
+       "id": "w_s2",
+       "verb": "write",
+       "at": "after:w_s1",
+       "target": "somme",
+       "part": "s2"
+      },
+      {
+       "id": "d_vres",
+       "verb": "draw",
+       "at": "after:w_s2",
+       "target": "vres"
+      },
+      {
+       "id": "s_vreslab",
+       "verb": "show",
+       "at": "after:d_vres",
+       "target": "vreslab"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_polaire_retour",
+   "introduces": [
+    {
+     "id": "retour",
+     "content": "\\|\\vec{A} + \\vec{B}\\| = \\sqrt{6^2 + 4^2} = \\sqrt{52} \\approx 7{,}21",
+     "parts": [
+      {
+       "id": "r1",
+       "text": "\\|\\vec{A} + \\vec{B}\\| = \\sqrt{6^2 + 4^2}"
+      },
+      {
+       "id": "r2",
+       "text": "= \\sqrt{52} \\approx 7{,}21"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "angle",
+     "layout": {
+      "next_to": "retour",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\theta = \\cos^{-1}\\!\\left(\\frac{6}{\\sqrt{52}}\\right) \\approx 33{,}69^\\circ",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verif",
+     "say": "Vérifions ce résultat sur le dessin : le point six, quatre est bien au bout de la flèche rouge.",
+     "cues": [
+      {
+       "id": "c_point",
+       "text": "point six, quatre"
+      },
+      {
+       "id": "c_fleche",
+       "text": "flèche rouge"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre2",
+       "verb": "camera.focus",
+       "at": "cue:c_point",
+       "targets": [
+        "somme",
+        "vres"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_vres",
+       "verb": "highlight",
+       "start": "cue:c_fleche",
+       "end": "cue_end:c_fleche",
+       "target": "vres",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "repol",
+     "say": "Si tu veux la réponse en polaire, c'est possible : la longueur vaut racine de six au carré plus quatre au carré, environ sept virgule vingt et un.",
+     "cues": [
+      {
+       "id": "c_repol",
+       "text": "réponse en polaire"
+      },
+      {
+       "id": "c_racine",
+       "text": "racine de six au carré"
+      },
+      {
+       "id": "c_sept",
+       "text": "sept virgule vingt et un"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_enonce",
+       "verb": "fade_out",
+       "at": "cue:c_repol",
+       "target": "enonce"
+      },
+      {
+       "id": "w_r1",
+       "verb": "write",
+       "at": "cue:c_racine",
+       "target": "retour",
+       "part": "r1"
+      },
+      {
+       "id": "w_r2",
+       "verb": "write",
+       "at": "cue:c_sept",
+       "target": "retour",
+       "part": "r2"
+      }
+     ]
+    },
+    {
+     "id": "angle_mot",
+     "say": "Et l'angle, avec la touche cosinus inverse : six sur racine de cinquante-deux, environ trente-trois virgule soixante-neuf degrés.",
+     "cues": [
+      {
+       "id": "c_inv",
+       "text": "cosinus inverse"
+      },
+      {
+       "id": "c_angle",
+       "text": "trente-trois virgule soixante-neuf degrés"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_angle",
+       "verb": "write",
+       "at": "cue:c_inv",
+       "target": "angle"
+      },
+      {
+       "id": "h_angle",
+       "verb": "highlight",
+       "start": "cue:c_angle",
+       "end": "cue_end:c_angle",
+       "target": "angle",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "regle",
+      "direction": "up",
+      "gap": "lg"
+     },
+     "content": "On additionne toujours par les composantes (x ; y) ; le polaire sert seulement à décrire ou à donner la réponse.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : il n'existe pas d'addition directe de longueurs et d'angles. On projette en composantes, on additionne les x et les y, puis on peut reconvertir en polaire si on veut.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_pas",
+       "text": "pas d'addition directe"
+      },
+      {
+       "id": "c_composantes",
+       "text": "On projette en composantes"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_v1c",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "v1c"
+      },
+      {
+       "id": "f_v2c",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "v2c"
+      },
+      {
+       "id": "f_retour",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "retour"
+      },
+      {
+       "id": "f_angle",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "angle"
+      },
+      {
+       "id": "f_proj",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "proj"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "note"
+      },
+      {
+       "id": "f_pA",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "pA"
+      },
+      {
+       "id": "f_pB",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "pB"
+      },
+      {
+       "id": "f_vreslab",
+       "verb": "fade_out",
+       "at": "cue:c_pas",
+       "target": "vreslab"
+      },
+      {
+       "id": "r_note",
+       "verb": "remove",
+       "at": "cue:c_pas",
+       "target": "note"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_composantes",
+       "target": "idee"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_composantes",
+       "end": "cue_end:c_composantes",
+       "target": "idee",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
