@@ -62,12 +62,4 @@ describe("GET /api/status", () => {
     expect((await (await GET(request("secret-de-test"))).json()).check.transcription).toMatch(/pas de son/);
     expect(transcribeAudio).not.toHaveBeenCalled();
   });
-
-  it("vérifie la voix de l'ancien tuteur quand c'est lui qui explique", async () => {
-    vi.stubEnv("NESALIO_EXPLICATION", "0");
-    const body = await (await GET(request("secret-de-test"))).json();
-    expect(body.voice).toMatchObject({ system: "tuteur", model: DEFAULTS.voiceModel });
-    expect(synthesizeSpeech.mock.calls[0]![0]).toMatchObject({ model: DEFAULTS.voiceModel, voice: DEFAULTS.voiceName });
-    expect(synthesizeSpeech.mock.calls[0]![0]).not.toHaveProperty("withTimestamps");
-  });
 });

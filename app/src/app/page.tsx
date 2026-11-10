@@ -1,28 +1,21 @@
-import { TutorApp } from "@/ui/TutorApp";
 import { NesalioApp } from "@/ui/NesalioApp";
-import { explainerFor } from "@/server/explainer";
+import { nesalioAvailable } from "@/server/explainer";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { accountAuthConfigured, localAccountDemo } from "@/server/authConfig";
-import { AccountUnavailable } from "@/ui/AccountPage";
-import { localInspectionAvailable } from "@/server/tutor/inspection";
+import { AccountUnavailable, NesaUnavailable } from "@/ui/AccountPage";
 
 export const dynamic = "force-dynamic";
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ inspect?: string | string[] }> }) {
+export default async function Page() {
   const requestHeaders = await headers();
-  const inspectionAvailable = localInspectionAvailable(requestHeaders.get("host"));
-  const inspection = inspectionAvailable && (await searchParams).inspect === "1";
-  // Nesalio explains by default; NESALIO_EXPLICATION=0, no model or JSON inspection keep the old tutor.
-  const app = explainerFor({ headers: requestHeaders, inspection }) === "nesalio"
-    ? <NesalioApp />
-    : <TutorApp inspection={inspection} inspectionAvailable={inspectionAvailable} />;
+  const app = nesalioAvailable({ headers: requestHeaders }) ? <NesalioApp /> : <NesaUnavailable />;
   if (localAccountDemo()) return app;
   if (!accountAuthConfigured()) return <AccountUnavailable />;
   let userId: string | null;
   try { userId = (await auth({ acceptsToken: "session_token" })).userId; }
   catch { return <AccountUnavailable />; }
-  if (!userId) redirect(inspection ? "/connexion?inspect=1" : "/connexion");
+  if (!userId) redirect("/connexion");
   return app;
 }

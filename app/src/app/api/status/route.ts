@@ -3,14 +3,13 @@
  *
  * Avec Authorization: Bearer <SELFTEST_TOKEN>, fait aussi un petit appel réel à chaque
  * service, pour vérifier un déploiement. Sans le bon jeton, aucun appel payant.
- * La voix vérifiée est celle de la page élève : ElevenLabs (avec horodatage des mots)
- * quand Nesalio explique, la voix de l'ancien tuteur sinon. Un seul appel, phrase courte.
+ * La voix vérifiée est celle de la page élève : ElevenLabs, avec horodatage des mots.
+ * Un seul appel, phrase courte.
  * La transcription est essayée sur ce même son (pas de synthèse de plus), avec les options
  * de vie privée qu'elle envoie vraiment : un refus de la non-conservation s'y voit.
  */
 import { synthesizeSpeech, transcribeAudio, transcriptionPrivacy } from "@/server/ai/audio";
 import { DEFAULTS, GATEWAY_BASE, readAiConfig } from "@/server/config";
-import { explainerFor } from "@/server/explainer";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 import { hasSelfTestAccess } from "@/server/adminAccess";
 
@@ -20,11 +19,8 @@ export const maxDuration = 30;
 
 export async function GET(request: Request): Promise<Response> {
   const config = readAiConfig(request.headers);
-  // Same choice as the student page, and same voice settings as /api/voice for each system.
-  const nesalio = explainerFor({ headers: request.headers, inspection: false }) === "nesalio";
-  const voice = nesalio
-    ? { system: "nesalio", model: DEFAULTS.nesalioVoiceModel, speed: DEFAULTS.nesalioVoiceSpeed }
-    : { system: "tuteur", model: config.voice.model, voice: config.voice.voice };
+  // Same voice settings as /api/voice.
+  const voice = { system: "nesalio", model: DEFAULTS.nesalioVoiceModel, speed: DEFAULTS.nesalioVoiceSpeed };
   const status = {
     tutor: config.chat ? { provider: config.chat.name, model: config.chat.model } : { provider: "demo" },
     voice: config.gatewayToken ? voice : null,
@@ -84,11 +80,10 @@ export async function GET(request: Request): Promise<Response> {
   if (config.gatewayToken) {
     let sample: { audio: Uint8Array; mediaType: string } | null = null;
     try {
-      const { audio, mediaType, alignment } = await synthesizeSpeech(nesalio
-        ? { token: config.gatewayToken, model: voice.model, speed: DEFAULTS.nesalioVoiceSpeed, withTimestamps: true, text: "Bonjour, je suis Nesa." }
-        : { token: config.gatewayToken, model: voice.model, voice: config.voice.voice, instructions: config.voice.instructions, text: "Bonjour, je suis Nesa." });
+      const { audio, mediaType, alignment } = await synthesizeSpeech(
+        { token: config.gatewayToken, model: voice.model, speed: DEFAULTS.nesalioVoiceSpeed, withTimestamps: true, text: "Bonjour, je suis Nesa." });
       // Nesalio times its gestures on the word timings: a voice without them plays, but late.
-      results.voice = `ok : ${audio.byteLength} octets (${mediaType})${nesalio ? `, horodatage : ${alignment ? "oui" : "non"}` : ""}`;
+      results.voice = `ok : ${audio.byteLength} octets (${mediaType}), horodatage : ${alignment ? "oui" : "non"}`;
       sample = { audio, mediaType };
     } catch (error) {
       results.voice = `erreur : ${(error as Error).message.slice(0, 300)}`;

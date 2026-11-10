@@ -100,6 +100,26 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
   demander à l'utilisateur avant un changement visible pour l'élève. Rien de ce document avant la présentation de chimie.
 - Aucun fichier de code touché, rien vérifié par des tests (lecture des notes et de deux fichiers seulement).
 
+### 2026-11-10 — Retrait de l'ancien tuteur, lot 1 : plus d'entrée élève (Claude Code, session « relecteur »)
+- **Décision de l'utilisateur** : retirer l'ancien système (« le nouveau système est déjà top »), le brancher seul,
+  puis intégrer l'interaction (questions pour vérifier que l'élève a compris). Fait avant : commit 5476180 de tout
+  le travail du jour, comme point de retour. Le lot 1 est un commit à part, facile à annuler.
+- Retirés (21 fichiers, inventaire de `app/docs/audit-retrait-tuteur-2026-11-09.md`) : `/api/tutor`, `TutorApp`,
+  `Dock`, `Caption`, `InspectionReplay`, `ManimBoard`, `DiagnosticTag`, `useTutor`, `useFrameClock`,
+  `playbackClock`, `httpSource`, `browserSpeaker`, `cloudSpeaker`, `recording`, les deux `inspection` et leurs
+  tests. `/` et `/dev` : Nesalio, ou « Nesa revient bientôt » (`NesaUnavailable`) sans modèle ; plus de
+  `?inspect=1` (connexion, inscription) ; `server/explainer.ts` → `nesalioAvailable` ; `/api/status` ne vérifie
+  plus que la voix Nesalio. `NESALIO_EXPLICATION=0` ne fait plus rien.
+- Gardés pour le lot 2 et pour l'interaction : `Player`, `domain/tutor` (dialogue, `Check`, `assessment`), le
+  diagnostic, les modules partagés (`ManimRenderer`, `board/*`, voix `/api/voice`, transcription, micro).
+- Vérifié : `tsc` passe ; 921 tests verts (tests retirés avec leurs modules : 4 de `reproductions.test.ts`,
+  1 de `status`, le cas `tutor` d'`accountRoutes`) ; `/`, `/connexion`, `/inscription`, `/dev/nesalio`,
+  `/api/status` répondent 200 ; `/api/tutor` 404 ; accueil vu dans la vraie fenêtre.
+- Pas fait : `test:e2e` (attend encore l'ancienne démo de projectile) ; outils qui appellent `/api/tutor`
+  (`tools/rejeu`, `tools/eval/tuteur-reel.test.mjs`, scénarios Playwright) ; lot 2 (séparer les modules mixtes).
+- Prochaine étape : brancher les questions dans Nesalio (format `Check` déjà dans `ExecutionEvent`, lecteur à
+  faire), puis le lot 2.
+
 ### 2026-11-10 — Étiquette attachée à une partie de formule (Claude Code, session « relecteur »)
 - Demande : corriger le format (« aucun format ne permet d'attacher une étiquette à un morceau d'équation »).
   **Non commité.** 943 tests verts.

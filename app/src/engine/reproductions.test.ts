@@ -2,11 +2,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Player } from '@/engine/player';
 import type { Clock, Speaker, TutorSource } from '@/engine/ports';
-import { createHttpSource } from '@/services/tutor/httpSource';
 import { createModelOutputParser } from '@/domain/tutor/modelOutput';
 import { createVoiceInput } from '@/services/voice/voiceInput';
-import { createCloudSpeaker } from '@/services/voice/cloudSpeaker';
-import { withRecording } from '@/server/tutor/recording';
 import { emptyBoard } from '@/domain/board/state';
 import { applyAction } from '@/domain/scene/commands';
 
@@ -17,32 +14,6 @@ const speaker: Speaker = { estimate: () => 1, speak: () => ({ done: Promise.reso
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('Audit — behaviors to repair', () => {
-  it('records an emitted error event as an error outcome', async () => {
-    const finish = vi.fn();
-    async function* events() { yield { kind: 'error' as const, code: 'upstream' as const, message: 'Service interrompu' }; }
-    for await (const _event of withRecording(events(), { event() {}, finish })) { /* consume */ }
-    expect(finish).toHaveBeenCalledWith('error');
-  });
-  it('reports a non-NDJSON HTTP failure instead of completing an empty lesson', async () => {
-    vi.stubGlobal('fetch', async () => new Response('<html>Unavailable</html>', { status: 502, headers: { 'Content-Type': 'text/html' } }));
-    const player = new Player({ source: createHttpSource(), speaker, clock });
-    try {
-      player.ask('Explique les fractions.');
-      await flush();
-      expect(player.getSnapshot().status).toBe('error');
-    } finally { player.dispose(); }
-  });
-
-  it('does not mark a stream without a terminal event as a completed lesson', async () => {
-    vi.stubGlobal('fetch', async () => new Response(JSON.stringify({ kind: 'step', segments: [{ say: 'Voici la première étape.', do: [] }] }) + '\n', { headers: { 'Content-Type': 'application/x-ndjson' } }));
-    const player = new Player({ source: createHttpSource(), speaker, clock });
-    try {
-      player.ask('Explique les fractions.');
-      await flush();
-      expect(player.getSnapshot().status).toBe('error');
-    } finally { player.dispose(); }
-  });
-
   it('keeps an answer submitted before the delayed await event', async () => {
     let release!: () => void;
     const waiting = new Promise<void>((resolve) => { release = resolve; });
@@ -108,24 +79,5 @@ describe('Audit — behaviors to repair', () => {
       await flush();
       expect(stopTrack).toHaveBeenCalled();
     } finally { input.cancel(); }
-  });
-
-  it('continues silently when the voice fetch never resolves', async () => {
-    vi.useFakeTimers();
-    vi.stubGlobal('fetch', () => new Promise(() => {}));
-    vi.stubGlobal('Audio', class {});
-    const fallback = { ...speaker, supported: true, setMuted() {} };
-    const cloud = createCloudSpeaker(fallback);
-    const source: TutorSource = { async *open() {
-      yield { kind: 'step', say: 'Voici le calcul.', do: [] };
-      yield { kind: 'end', summary: [] };
-    } };
-    const realClock: Clock = { now: () => performance.now(), sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)) };
-    const player = new Player({ source, speaker: cloud, clock: realClock });
-    try {
-      player.ask('Calcule.');
-      await vi.advanceTimersByTimeAsync(60_000);
-      expect(player.getSnapshot().status).toBe('done');
-    } finally { player.dispose(); }
   });
 });
