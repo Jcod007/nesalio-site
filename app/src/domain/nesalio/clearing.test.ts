@@ -3,7 +3,7 @@ import shell from "./engineShell.json";
 import { Slice } from "./contract";
 import { clearTarget, createScene, introduceSlice, sceneBounds, setDimmed, setVisibility } from "./sceneState";
 import { validateLesson, validateModelOutput } from "./validate";
-import { DIM_OPACITY, playNesalioLesson, type NesalioClip, type NesalioFrame } from "@/engine/nesalioPlayback";
+import { DIM_OPACITY, clearWithFirstReveal, playNesalioLesson, type NesalioClip, type NesalioFrame } from "@/engine/nesalioPlayback";
 
 const viewport = { x0: -8, y0: -4.5, x1: 8, y1: 4.5 };
 const beat = (id: string, say: string, cues: unknown[], todo: unknown[]) => ({ id, say, cues, do: todo });
@@ -110,5 +110,32 @@ describe("dégager le tableau : dim, fade_out, remove", () => {
     expect(fading.opacity.get("b")).toBeCloseTo(0.5, 5);
     expect(fading.scene.objects.get("b")!.visible).toBe(true);
     expect(end.scene.objects.get("b")).toMatchObject({ visible: false, removed: true });
+  });
+});
+
+describe("effacement au début d'un passage", () => {
+  const say = "Retenons l'essentiel : la formule n égale m sur M.";
+  const cues = new Map([["c_formule", { start: 1_200, end: 1_600 }]]);
+  const passage = (todo: unknown[]) => beat("b", say, [{ id: "c_formule", text: "formule" }], todo) as never;
+
+  it("attend le premier nouvel objet du passage (audit caméra : écran vide pendant que Nesa parle)", () => {
+    const timed = clearWithFirstReveal(passage([
+      { id: "f_tab", verb: "fade_out", at: "beat:start", target: "tab" },
+      { id: "r_old", verb: "remove", at: "beat:start", target: "old" },
+      { id: "s_form", verb: "show", at: "cue:c_formule", target: "form" },
+    ]), cues);
+    expect(timed.do.map((action) => [action.id, "at" in action ? action.at : undefined])).toEqual([
+      ["f_tab", "cue:c_formule"], ["r_old", "cue:c_formule"], ["s_form", "cue:c_formule"],
+    ]);
+  });
+
+  it("ne change rien quand le passage montre aussi quelque chose dès son début, ou rien de nouveau", () => {
+    const atStart = passage([
+      { id: "f_tab", verb: "fade_out", at: "beat:start", target: "tab" },
+      { id: "s_form", verb: "show", at: "beat:start", target: "form" },
+    ]);
+    expect(clearWithFirstReveal(atStart, cues)).toBe(atStart);
+    const nothingNew = passage([{ id: "f_tab", verb: "fade_out", at: "beat:start", target: "tab" }]);
+    expect(clearWithFirstReveal(nothingNew, cues)).toBe(nothingNew);
   });
 });

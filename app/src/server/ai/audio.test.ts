@@ -123,7 +123,9 @@ describe("vie privée de la voix de Nesa", () => {
   it("n'envoie pas ces options à la synthèse : ElevenLabs n'est sur aucune liste du Gateway, la voix tomberait", async () => {
     const { sent, fetchImpl } = capture({ audio: "AAAA" });
     await synthesizeSpeech({ token: "t", model: "elevenlabs/eleven-flash-v2.5", text: "Bonjour.", speed: 0.85, fetchImpl });
+    await synthesizeSpeech({ token: "t", model: "elevenlabs/eleven-flash-v2.5", text: "Bonjour.", speed: 0.75, stability: 0.7, style: 0, fetchImpl });
     expect(sent[0]!.providerOptions).toEqual({ elevenlabs: { voiceSettings: { speed: 0.85 } } });
+    expect(sent[1]!.providerOptions).toEqual({ elevenlabs: { voiceSettings: { speed: 0.75, stability: 0.7, style: 0 } } });
   });
 });
 

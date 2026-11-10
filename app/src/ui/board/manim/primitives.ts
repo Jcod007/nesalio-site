@@ -49,7 +49,8 @@ export function boardText(text: string, color: string, fontSize: number, font: "
   return new Text({
     text, color, fontSize,
     fontFamily: font === "hand" ? "Caveat" : "Atkinson Hyperlegible, sans-serif",
-    fontWeight: font === "hand" ? 600 : 400,
+    // 700 since 2026-11-09 (600 before): next to the thick ink of the formulas, the handwritten notes looked faint.
+    fontWeight: font === "hand" ? 700 : 400,
   });
 }
 

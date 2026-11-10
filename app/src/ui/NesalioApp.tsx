@@ -34,7 +34,7 @@ function createBoard(host: () => HTMLElement | null) {
   let loading: Promise<typeof import("./board/manim/ManimRenderer")> | null = null;
   const load = () => loading ??= (async () => {
     // Handwritten labels use Caveat: the fonts are waited for before anything is measured.
-    await Promise.allSettled([document.fonts.load('600 40px "Caveat"'), document.fonts.load('400 20px "Atkinson Hyperlegible"')]);
+    await Promise.allSettled([document.fonts.load('700 40px "Caveat"'), document.fonts.load('400 20px "Atkinson Hyperlegible"')]);
     return import("./board/manim/ManimRenderer");
   })();
   return {

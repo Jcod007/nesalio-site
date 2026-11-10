@@ -35,7 +35,7 @@ export function ManimBoard({ board, insets, clock = realClock, paused = false, r
     (async () => {
       try {
         // Les étiquettes manuscrites utilisent Caveat : on attend la police avant de dessiner.
-        await Promise.allSettled([document.fonts.load('600 40px "Caveat"'), document.fonts.load('400 20px "Atkinson Hyperlegible"')]);
+        await Promise.allSettled([document.fonts.load('700 40px "Caveat"'), document.fonts.load('400 20px "Atkinson Hyperlegible"')]);
         const { ManimRenderer } = await import("./manim/ManimRenderer");
         if (disposed || !containerRef.current) return;
         renderer = new ManimRenderer(containerRef.current, { onViewChange: (_view, userMoved) => setMoved(userMoved) }, clock);

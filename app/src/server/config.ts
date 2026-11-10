@@ -43,8 +43,12 @@ export const DEFAULTS = {
   openRouterModel: "anthropic/claude-sonnet-4.5",
   voiceModel: "google/gemini-3.8-flash-lite-tts",
   nesalioVoiceModel: "elevenlabs/eleven-flash-v2.5",
-  // Provisional, pending the user's choice by ear (clips in analyses/voix-vitesse): 1 sounded too fast.
-  nesalioVoiceSpeed: 0.85,
+  // The user, 2026-11-09, after a real trial: 0.85 still too fast for a student to follow, wants a smoother tone.
+  // 0.75 (ElevenLabs accepts 0.7 to 1.2; 1 sounded too fast in analyses/voix-vitesse).
+  nesalioVoiceSpeed: 0.75,
+  // Smoother delivery: steadier voice (stability 0.7, ElevenLabs' default about 0.5) and no exaggerated style.
+  nesalioVoiceStability: 0.7,
+  nesalioVoiceStyle: 0,
   voiceName: "Kore",
   voiceInstructions:
     "Tu es Nesa, une tutrice québécoise chaleureuse qui explique au tableau à un élève de secondaire. " +

@@ -831,6 +831,12 @@ export function withCameraState(state: SceneState, camera: RuntimeState["camera"
  * the camera never shows it smaller than `min` nor larger than `max` times that.
  */
 export const CAMERA_ZOOM = { min: 0.6, max: 1.5 } as const;
+/**
+ * How far back the camera may go to show a whole graph (axes with their curves and points) that does
+ * not fit at the readable zoom. Seen in the camera audit (2026-11-09): 39 lessons out of 238 had a graph
+ * cut by the frame for up to 100 s; a whole graph slightly smaller reads better than half of one.
+ */
+export const GRAPH_ZOOM_MIN = 0.45;
 
 export interface CameraFrame {
   state: RuntimeState["camera"]["state"];
@@ -889,16 +895,22 @@ export function fitSceneCamera(
   const width = viewport.x1 - viewport.x0;
   const height = viewport.y1 - viewport.y0;
   const fit = (target: Box) => padding * Math.min(width / Math.max(target.x1 - target.x0, 0.1), height / Math.max(target.y1 - target.y0, 0.1));
+  // A graph among the targets that does not fit at the readable zoom: the camera may step back to show it whole.
+  const graphs = withFrames(targets).filter((id) => state.objects.get(id)?.definition.type === "axes");
+  const graphBox = graphs.length ? sceneBounds(state, withFrames(graphs), mode) : null;
+  const minZoom = graphBox && fit(graphBox) < CAMERA_ZOOM.min ? GRAPH_ZOOM_MIN : CAMERA_ZOOM.min;
   let framed = box;
-  if (fit(box) < CAMERA_ZOOM.min && options.priority?.length) {
+  if (fit(box) < minZoom && options.priority?.length) {
     framed = sceneBounds(state, options.priority, "layout_bounds") ?? box;
+    // A graph keeps its whole frame when it is among the priorities.
+    if (graphBox && fit(graphBox) >= GRAPH_ZOOM_MIN && graphs.some((id) => withFrames(options.priority!).includes(id))) framed = union([framed, graphBox]) ?? framed;
   }
   for (const id of kept) {
     const candidate = union([framed, sceneBounds(state, withFrames([id]), mode)]);
     if (candidate && fit(candidate) >= CAMERA_ZOOM.min) framed = candidate;
   }
   const viewOf = (box: Box) => {
-    const zoom = Math.min(CAMERA_ZOOM.max, Math.max(CAMERA_ZOOM.min, fit(box)));
+    const zoom = Math.min(CAMERA_ZOOM.max, Math.max(minZoom, fit(box)));
     const [x, y] = center(box);
     return { zoom, x, y, view: { x0: x - width / (2 * zoom), x1: x + width / (2 * zoom), y0: y - height / (2 * zoom), y1: y + height / (2 * zoom) } };
   };

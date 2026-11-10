@@ -36,7 +36,10 @@ export async function POST(request: Request): Promise<Response> {
   if (!config.gatewayToken) return jsonError(503, "Voix non configurée.");
 
   const { text, cues } = parsed.data;
-  const voice = cues === undefined ? config.voice : { model: DEFAULTS.nesalioVoiceModel, speed: DEFAULTS.nesalioVoiceSpeed };
+  const voice = cues === undefined ? config.voice : {
+    model: DEFAULTS.nesalioVoiceModel, speed: DEFAULTS.nesalioVoiceSpeed,
+    stability: DEFAULTS.nesalioVoiceStability, style: DEFAULTS.nesalioVoiceStyle,
+  };
   const timeout = AbortSignal.timeout(13_000);
   const signal = AbortSignal.any([request.signal, timeout]);
   try {

@@ -84,6 +84,51 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-09 — Corrections caméra et contraste ; « dit mais pas écrit » (Claude Code, session « relecteur »)
+- Décision de l'utilisateur : « Oui, toutes » (les 5 propositions), corrections « généralistes » (règles du moteur, pas
+  de cas particuliers). Remarque de l'utilisateur : Nesa dit encore des choses qui n'arrivent jamais à l'écran.
+- Fait :
+  1. `nesalioPlayback.ts` `DIM_OPACITY` 0,3 → 0,5 (contraste d'un objet estompé 2,1 à 3,1 au lieu de 1,5 à 1,9).
+  2. `primitives.ts` Caveat 600 → 700 (et `document.fonts.load` en 700 dans `NesalioApp`, `ManimBoard`).
+  3. Écran vide : `clearWithFirstReveal` (lecteur) — fade_out/remove à `beat:start` attendent la 1re apparition du
+     passage quand elle vient sur un mot plus loin. Test `clearing.test.ts`.
+  4. Graphique coupé : `sceneState.ts` `GRAPH_ZOOM_MIN` 0,45 — un repère qui ne tient pas au zoom lisible peut être
+     cadré entier (les autres objets n'agrandissent le cadre que si tout reste à 0,6) ; trajet de caméra permis
+     jusque-là ; le suivi automatique d'un objet posé sur un graphique emmène son repère.
+  5. Geste hors champ : le suivi automatique de la caméra couvre aussi `highlight`, sauf s'il ferait sortir ce que le
+     passage vient de montrer (cas du récapitulatif des zéros, test `lessonReelle` gardé vert).
+- **Audit après** (238 leçons) : geste hors champ 22 → **6** ; écran vide 27 → **17** leçons (176 → 110 s) ; objet
+  coupé 39 → **37** (1035 → 966 s ; restent surtout des zooms demandés par le modèle sur un détail d'un graphique, où
+  le repère sort exprès, et des textes très larges) ; zoom < 0,6 : 1 leçon (le recul permis pour un graphique entier).
+- **« Dit mais pas écrit »** (`analyses/camera/dit-sans-ecrit.mjs`, rapport `dit-sans-ecrit.md`) : 1,5 % des passages
+  parlent sans que rien n'apparaisse ni ne s'éclaire. Les nombres dits mais jamais écrits : mesure NON fiable (ma
+  lecture des nombres en mots découpe mal « deux cent quatre-vingt-cinq »), à refaire avant de conclure.
+- Vérifié : `npx vitest run` 921 verts, `tsc` vert. Pas revu à l'écran après ces corrections (chaque rejeu coûte de la
+  voix ; la clé d'essai est au plafond ou presque). Rien commité.
+
+### 2026-11-09 — Voix ralentie ; audit de la caméra ; contraste (Claude Code, session « relecteur »)
+- Demande de l'utilisateur : voix encore trop rapide, ton plus « smooth » ; tester la caméra en jouant des leçons ;
+  contraste écrit / formules. (Remarque de l'utilisateur sur les essais hors de la vraie application : `/` boucle sur
+  la connexion Clerk en développement ; `/dev` est la même application élève ; `/dev/nesalio` sert à rejouer un JSON.)
+- **Voix** : `config.ts` vitesse 0,85 → **0,75** (ElevenLabs : 0,7 à 1,2), `nesalioVoiceStability` 0,7 et
+  `nesalioVoiceStyle` 0 envoyés par `/api/voice` (`audio.ts` : `voiceSettings` speed, stability, style). Test
+  `audio.test.ts`. Pas écouté par l'utilisateur.
+- **Audit de la caméra** (`tools/eval/camera-banc.test.mjs`, `CAMERA=1`, gratuit) : joue chaque leçon enregistrée avec
+  le vrai moteur et une voix simulée (115 mots/min), regarde chaque image (200 ms), caméra immobile seulement.
+  Rapport `analyses/camera/rapport.md`. Sur 238 leçons : **objet coupé** 39 (surtout des repères de graphique trop
+  grands, zoom bloqué à 0,6) ; **écran vide** 27, jusqu'à 20 s (le passage efface tout à `beat:start`, la caméra va
+  à la place libre, les nouveaux objets n'arrivent que sur un mot plus loin) ; **geste hors champ** 22 ; zoom sous 0,6
+  jamais. Vérifié à l'écran sur `ap-correlation-force-t1` : repère coupé en bas puis à gauche, formule coupée à
+  droite ; vu aussi : points du nuage absents, « heures de jeu » loin de l'axe des x.
+- **Contraste** (sur le papier #F6F8FC) : encre des formules 14,9 ; couleurs des notes 5,1 à 6,1 (au-dessus de 4,5) ;
+  **objets estompés (opacité 0,3) : 1,5 à 1,9**, presque illisibles (0,5 donnerait 2,1 à 3,1). L'écart ressenti vient
+  surtout de l'encre foncée et épaisse des formules face aux notes manuscrites colorées à trait fin (Caveat 600).
+- Propositions (non faites, à valider) : écran vide → retarder l'effacement jusqu'à la 1re apparition du passage, ou
+  garder la caméra sur l'ancien contenu jusque-là ; graphique coupé → cadrer le repère entier en priorité (quitte à
+  descendre sous 0,6 pour un graphique seul) ou borner ses axes ; geste hors champ → la caméra doit inclure la cible ;
+  estompage 0,3 → 0,5 ; notes manuscrites plus épaisses (Caveat 700) ou un peu plus grandes.
+- `npx vitest run` 919 verts. Rien commité.
+
 ### 2026-11-09 — Plantage « Dimensions de scène invalides » : la lettre p (Claude Code, session « relecteur »)
 - Demande de l'utilisateur (« Oui, cherche »). Reproduit sans génération : leçon gardée « PV = nRT » chargée dans
   `/dev/nesalio` (fichier injecté par le gestionnaire React de l'entrée ; l'événement `change` simulé ne suffisait pas),

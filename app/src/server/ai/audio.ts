@@ -37,14 +37,23 @@ export async function synthesizeSpeech(options: {
   withTimestamps?: boolean;
   /** Speaking rate, 1 = the voice's natural pace (ElevenLabs accepts 0.7 to 1.2). */
   speed?: number;
+  /** ElevenLabs only: 0 to 1, higher is a steadier, smoother delivery (fewer jumps in pitch and pace). */
+  stability?: number;
+  /** ElevenLabs only: 0 to 1, how much the voice's own style is exaggerated (0 = plain and calm). */
+  style?: number;
   signal?: AbortSignal;
   fetchImpl?: typeof fetch;
 }): Promise<SpeechResult> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const google = options.model.startsWith("google/");
+  const voiceSettings = {
+    ...(options.speed !== undefined ? { speed: options.speed } : {}),
+    ...(options.stability !== undefined ? { stability: options.stability } : {}),
+    ...(options.style !== undefined ? { style: options.style } : {}),
+  };
   const elevenlabs = {
     ...(options.withTimestamps ? { withTimestamps: true } : {}),
-    ...(options.speed !== undefined ? { voiceSettings: { speed: options.speed } } : {}),
+    ...(Object.keys(voiceSettings).length ? { voiceSettings } : {}),
   };
   const response = await fetchImpl(`${GATEWAY_BASE}/v4/ai/speech-model`, {
     method: "POST",

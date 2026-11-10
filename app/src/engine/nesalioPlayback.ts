@@ -36,7 +36,9 @@ export interface NesalioFrame {
 }
 
 /** How visible a dimmed object stays: readable when the lesson points back to it, but clearly in the background. */
-export const DIM_OPACITY = 0.3;
+// 0.3 until 2026-11-09: a dimmed label had a contrast of 1.5 to 1.9 on the paper, nearly unreadable (seen in a real
+// lesson). 0.5 gives 2.1 to 3.1: clearly in the background, still readable when the lesson points back to it.
+export const DIM_OPACITY = 0.5;
 
 export interface NesalioClip {
   readonly durationMs: number;
@@ -283,7 +285,8 @@ function planFocus(
   const path = (t: number): CameraState => {
     if (t === 0) return current;
     const [x, y, visibleWidth] = interpolate(t);
-    const zoom = Math.min(CAMERA_ZOOM.max, Math.max(CAMERA_ZOOM.min, width / visibleWidth));
+    // A whole graph may be framed further back than the readable zoom (GRAPH_ZOOM_MIN): the path may go there too.
+    const zoom = Math.min(CAMERA_ZOOM.max, Math.max(Math.min(CAMERA_ZOOM.min, current.zoom, target.state.zoom), width / visibleWidth));
     return { x, y, zoom };
   };
   const pace = timing.pace === "quick" ? 0.5 : timing.pace === "slow" ? 1.875 : 1;
@@ -341,19 +344,30 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
         scheduled = schedule();
         entries = new Map(scheduled.timeline.map((item) => [item.action, item]));
       }
-    } else if (action.verb === "show" || action.verb === "draw" || action.verb === "write" || action.verb === "transform") {
+    } else if (action.verb === "show" || action.verb === "draw" || action.verb === "write" || action.verb === "transform"
+      // A highlight the student cannot see is lost too (camera audit, 2026-11-09: 22 lessons out of 238).
+      || action.verb === "highlight") {
       const scene = frameAt(before, prefix(), start, quiet).scene;
       const target = currentId(scene, action.target);
       const box = sceneBounds(scene, [target], "layout_bounds");
       // An active movement that already takes the reveal into view is enough.
       if (!box || inside(cameraView(scene, scene.camera.target_state ?? scene.camera.state), box)) continue;
       const shown = sliceObjects.filter((id) => scene.objects.get(id)?.visible);
+      // Following an object drawn on a graph (a point, a rectangle, a label on a scatter plot): the whole graph comes
+      // along, axes included. Camera audit (2026-11-09): following a point alone left its axes cut for up to 100 s.
+      const highlight = action.verb === "highlight";
+      const frame = scene.objects.get(target)?.frame;
+      const graph = frame && !highlight
+        ? [...scene.objects].filter(([, item]) => item.frame === frame && item.definition.type === "axes" && item.visible && !item.removed).map(([id]) => id)
+        : [];
       const follow: Focus = {
         id: `suivi_${action.id}`, verb: "camera.focus", at: "beat:start",
-        targets: [...new Set([...shown, target])], bounds: "layout_bounds",
+        targets: [...new Set([...shown, ...graph, target])], bounds: "layout_bounds",
       };
       const plan = planFocus(scene, follow, follow, [target], ctx);
       if (!plan?.move) continue;
+      // A highlight never takes away what the passage has just shown (a summary pointing back at a graph's points).
+      if (highlight && plan.target.hidden.some((id) => shown.includes(id))) continue;
       cameras.set(follow, { move: plan.move });
       ordered.add(follow);
       automatic.set(follow, { action: follow, start, end: Math.min(clipEnd, start + plan.duration) });
@@ -379,6 +393,30 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
   }
   return { timeline: prefix(), deferred: scheduled.deferred, context: { ...ctx, moves, cameras } };
 }
+
+/**
+ * A passage that clears the board as it starts (fade_out, remove at `beat:start`) but shows its first
+ * new object only on a later word: the clearing waits for that object. Seen in the camera audit
+ * (2026-11-09): 27 lessons out of 238 left the student before an empty board for up to 20 s while Nesa
+ * spoke. The board now changes in one go, old content out as the new one comes in.
+ */
+export function clearWithFirstReveal(beat: Beat, cues: ReadonlyMap<string, CueTiming>): Beat {
+  const clearing = beat.do.filter((action) => (action.verb === "fade_out" || action.verb === "remove") && action.at === "beat:start");
+  if (!clearing.length) return beat;
+  const reveals = beat.do.flatMap((action) => {
+    if (action.verb !== "show" && action.verb !== "write" && action.verb !== "draw") return [];
+    const time = "at" in action ? action.at : "start" in action ? action.start : undefined;
+    const cue = typeof time === "string" ? /^cue:(.+)$/.exec(time)?.[1] : undefined;
+    const timing = cue === undefined ? undefined : cues.get(cue);
+    return timing ? [{ at: `cue:${cue}`, start: timing.start }] : [];
+  });
+  // A reveal at the start of the passage, or none timed by a word: nothing to wait for.
+  if (!reveals.length || beat.do.some((action) => REVEALS.has(action.verb) && "at" in action && action.at === "beat:start")) return beat;
+  const first = reveals.reduce((a, b) => (b.start < a.start ? b : a));
+  return { ...beat, do: beat.do.map((action) => clearing.includes(action) ? { ...action, at: first.at } as Action : action) };
+}
+
+const REVEALS = new Set(["show", "write", "draw"]);
 
 function immediateSchedule(actions: readonly Action[], at: number): MakeSchedule {
   return () => ({ timeline: actions.map((action) => ({ action, start: at, end: at })), deferred: [] });
@@ -549,7 +587,8 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
       const { clip } = prepared;
       try {
         signal.throwIfAborted();
-        const schedule: MakeSchedule = (duration) => scheduleBeat(beat, clip.cues, clip.durationMs, duration);
+        const timed = clearWithFirstReveal(beat, clip.cues);
+        const schedule: MakeSchedule = (duration) => scheduleBeat(timed, clip.cues, clip.durationMs, duration);
         const { timeline, deferred, context } = planPassage(before, schedule, sliceObjects, clip.durationMs, ctx);
         for (const { action, reason } of deferred) options.onWarning?.({ beat: beat.id, kind: "deferred", action: action.id, reason });
         next = following();
