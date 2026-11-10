@@ -243,8 +243,9 @@ describe("pédagogie du générateur Nesalio", () => {
 
   it("annonce les écritures chimiques, les tableaux à en-têtes et le surlignage d'une case, que le moteur accepte", () => {
     // Delivered by dev-rendu and dev-justesse (2026-11-09): \ce{} and \pu{}, matrix column_labels with short text or
-    // empty cells, highlight part r2c3 / r2 / c3.
-    const prompt = buildNesalioSystemPrompt();
+    // empty cells, highlight part r2c3 / r2 / c3. « jamais coupé entre deux parts » : version complète seulement (la
+    // version allégée, défaut depuis le 2026-11-09, laisse ce cas au code).
+    const prompt = buildNesalioSystemPrompt("completes");
     for (const rule of ["\\ce{", "\\pu{", "column_labels", "« r2c3 »", "jamais coupé entre deux parts"]) expect(prompt, rule).toContain(rule);
     expect(guideSection("c'est quoi la stœchiométrie ?")).toContain("column_labels");
     const result = validateModelOutput({ slices: [{

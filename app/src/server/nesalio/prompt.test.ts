@@ -43,7 +43,8 @@ describe("prompt système Nesalio", () => {
   });
 
   it("porte les règles apprises sur la synchronisation et les mathématiques", () => {
-    const prompt = buildNesalioSystemPrompt();
+    // « n'ont JAMAIS de coordonnées » : version complète seulement (la version allégée, défaut, laisse ce cas au code).
+    const prompt = buildNesalioSystemPrompt("completes");
     for (const rule of ["MOTS ENTIERS", "NOMME ce qu'il montre", "parts", "cue_end", "log est le logarithme en base 10"]) {
       expect(prompt).toContain(rule);
     }
@@ -71,7 +72,8 @@ describe("prompt système Nesalio", () => {
 
   it("interdit de découper une fraction en numérateur et dénominateur", () => {
     // Seen in real generations: « C'est quoi une fraction ? » failed three times on parts 3 | 4 for \frac{3}{4}.
-    expect(buildNesalioSystemPrompt()).toContain("Une fraction ne se découpe JAMAIS en numérateur et dénominateur");
+    // Version complète seulement : la version allégée (défaut) laisse ce cas à normalize.ts, qui écrit la fraction d'un coup.
+    expect(buildNesalioSystemPrompt("completes")).toContain("Une fraction ne se découpe JAMAIS en numérateur et dénominateur");
   });
 
   it("demande un tableau de valeurs avec ses intitulés de lignes, pas des étiquettes séparées", () => {

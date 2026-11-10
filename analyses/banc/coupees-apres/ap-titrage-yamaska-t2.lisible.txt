@@ -1,0 +1,61 @@
+QUESTION (ap-titrage-yamaska, chimie, sec 4, alloprof) : Suite à un déversement de NaOH, vous devez déterminer le pH d’un échantillon d’eau de la rivière Yamaska. Votre premier test montre que cette eau vire bleu le papier tournesol rouge. Vous titrez 20 ml de cette solution et le bleu de bromothymol vire vert après l’ajout de 50 ml d’une solution de H3PO4 à 0,003 mol/l. Calculez le pH de cette eau de la Yamaska.
+RÉPONSE DE RÉFÉRENCE : H3PO4 libère 3 H+ : 4,5×10⁻⁴ mol ; [NaOH] = 0,0225 mol/L ; pOH ≈ 1,65 ; pH ≈ 12,35.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Le pH de l'eau de la Yamaska après un déversement de NaOH
+math_context : {"symbols":{},"expressions":{"n_h3po4":"0.003*0.050","n_oh":"3*0.003*0.050","c_oh":"(3*0.003*0.050)/0.020","h":"1.0*10^(-14)/((3*0.003*0.050)/0.020)","ph":"-log(1.0*10^(-14)/((3*0.003*0.050)/0.020))"}}
+=== Tranche s_donnees
+  OBJET donnees [matrix] {"rows":[["NaOH","?"],["H_3PO_4","0,003"],["20",""],["50",""]],"row_labels":["substance","concentration (mol/L)","volume (mL)","volume (mL)"]} 
+  OBJET titre [text] "Trouver le pH de l'eau de la Yamaska"   <<JAMAIS MONTRÉ>>
+DIT (reformule) : Tu as une eau de rivière basique à cause d'un déversement de soude, et tu la titres avec de l'acide phosphorique à zéro virgule zéro zéro trois mole par litre. Vingt millilitres d'eau, cinquante millilitres d'acide à l'équivalence.
+    show donnees @cue:c_soude 
+DIT (inconnue) : Ce qu'on cherche, c'est la concentration de l'eau en hydroxyde, puis son pH.
+    highlight donnees @- {"start":"cue:c_pH","end":"cue_end:c_pH","role":"unknown"}
+=== Tranche s_equation
+  OBJET eq [math] "\\ce{H3PO4 + 3NaOH -> Na3PO4 + 3H2O}" 
+  OBJET p3 [label] "3 H⁺" attaché à eq
+DIT (ecris) : D'abord, on écrit la neutralisation balancée. L'acide phosphorique donne trois H plus, la soude apporte un OH moins par molécule.
+    dim donnees @beat:start 
+    write eq @cue:c_acide 
+    highlight eq @cue:c_trois {"role":"accent"}
+DIT (coefficients) : Il faut donc trois NaOH par molécule d'acide pour tout neutraliser : trois OH moins rencontrent trois H plus.
+    highlight eq @cue:c_coef {"role":"accent"}
+    show p3 @cue:c_neutre 
+    highlight eq @- {"start":"cue:c_neutre","end":"cue_end:c_neutre","role":"result"}
+=== Tranche s_moles
+  OBJET n_acide [math] {"kind":"computed","expression_ref":"n_h3po4","template":"n(\\ce{H3PO4}) = {value}","precision":5} 
+  OBJET n_oh [math] {"kind":"computed","expression_ref":"n_oh","template":"n(\\ce{OH-}) = {value}","precision":5} 
+DIT (moles_acide) : On compte les moles d'acide : zéro virgule zéro zéro trois fois zéro virgule zéro cinq zéro litre, ça donne zéro virgule zéro zéro zéro un cinq mole.
+    write n_acide @beat:start 
+    highlight n_acide @cue:c_quinze {"role":"accent"}
+DIT (moles_oh) : Comme il faut trois OH moins par molécule d'acide, on multiplie par trois : on a zéro virgule zéro zéro zéro quatre cinq mole de OH moins.
+    highlight n_acide @cue:c_x3 {"role":"accent"}
+    write n_oh @cue:c_oh 
+=== Tranche s_concentration
+  OBJET c_oh [math] {"kind":"computed","expression_ref":"c_oh","template":"[\\ce{OH-}] = {value} \\text{ mol/L}","precision":3} 
+  OBJET h_plus [math] "[\\ce{H+}] = \\frac{1{,}0 \\times 10^{-14}}{0{,}0225} \\approx 4{,}4 \\times 10^{-13} \\text{ mol/L}" 
+DIT (concentration) : Ces moles de OH moins étaient dans vingt millilitres d'eau, soit zéro virgule zéro vingt litre. On divise : quatre cinq zéro divisé par vingt, ça donne zéro virgule zéro deux deux cinq mole par litre.
+    dim eq @beat:start 
+    write c_oh @cue:c_concentration 
+DIT (Hplus) : Pour obtenir les H plus, on utilise le produit ionique de l'eau : un virgule zéro fois dix exposant moins quatorze divisé par zéro virgule zéro deux deux cinq nous donne quatre virgule quatre fois dix exposant moins treize mole par litre.
+    write h_plus @cue:c_hplus 
+=== Tranche s_ph
+  OBJET ph [math] {"kind":"computed","expression_ref":"ph","template":"\\text{pH} = -\\log(4{,}4 \\times 10^{-13}) = {value}","precision":2} 
+  OBJET verif [math] "\\text{pH} + \\text{pOH} = 1{,}7 + 12{,}3 = 14"   <<JAMAIS MONTRÉ>>
+DIT (calcul) : Le pH, c'est l'exposant négatif de la concentration des H plus : moins logarithme de quatre virgule quatre fois dix exposant moins treize donne un pH d'environ un virgule quatre.
+    fade_out n_oh @beat:start 
+    fade_out n_acide @beat:start 
+    write ph @cue:c_un 
+DIT (sens) : Ce pH est sous sept, donc l'eau est acide : ça contredit le fait qu'une eau à la soude devrait être basique.
+    highlight ph @- {"start":"cue:c_sous","end":"cue_end:c_acide","role":"secondary"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\text{pH} = -\\log[\\ce{H+}] \\qquad \\ce{H3PO4 + 3NaOH -> Na3PO4 + 3H2O}" 
+  OBJET idee [text] "Le titrage donne la quantité de OH⁻ ; pH et Kw finissent le calcul." 
+DIT (retenir) : À retenir : on part de l'équation balancée, on compte les moles d'acide, puis celles de OH moins. On convertit en concentration, et le produit ionique de l'eau nous donne les H plus, dont on tire le pH par moins logarithme.
+    dim ph @beat:start 
+    dim h_plus @beat:start 
+    write regle @cue:c_produit 
+    show idee @cue:c_log 
+--- 6 tranches, 316 mots dits (≈ 2.1 min d'oral)

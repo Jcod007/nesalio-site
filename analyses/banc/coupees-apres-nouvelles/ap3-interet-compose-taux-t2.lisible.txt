@@ -1,0 +1,77 @@
+QUESTION (ap3-interet-compose-taux, mathematiques, sec 5, alloprof) : Quelle serait la démarche pour ceci: félicia a emprunté 20000$ à un taux d’intérêt composé mensuellement et elle a réglé cette dette 3,75 ans plus tard par un versement de 25032,42$
+RÉPONSE DE RÉFÉRENCE : 20000(1 + i)^45 = 25032,42 (45 mois) ; (1 + i) = 1,251621^(1/45) = 1,005 ; taux de 0,5 % par mois, soit 6 % par année composé mensuellement.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver le taux d'un intérêt composé mensuellement
+math_context : {"symbols":{"C0":{"kind":"constant","value":20000},"Cn":{"kind":"constant","value":25032.42},"n":{"kind":"constant","value":45}},"expressions":{"rapport":"25032.42/20000","i":"(25032.42/20000)^(1/45)-1","verif":"20000*(1037/1000)^45"}}
+=== Tranche s_donnees
+  OBJET donnees [matrix] {"rows":[["20 000 $"],["25 032,42 $"],["45 mois"]],"row_labels":["capital emprunté","montant remboursé","durée (3,75 ans)"]} 
+  OBJET titre [text] "Intérêt composé mensuellement" 
+DIT (reformule) : Félicia a emprunté vingt mille dollars, et elle rembourse vingt-cinq mille trente-deux dollars et quarante-deux cents, trois virgule soixante-quinze ans plus tard.
+    show donnees @cue:c_vingt 
+    highlight donnees @after:s_d {"role":"given"}
+DIT (inconnue) : Ce qu'on cherche, c'est le taux d'intérêt composé mensuellement. La durée de trois virgule soixante-quinze ans fait quarante-cinq mois.
+    show titre @cue:c_taux 
+    highlight donnees @cue:c_mois {"role":"accent","part":"r3"}
+=== Tranche s_modele
+  OBJET formule [math] "C_n = C_0(1+i)^n" parts=C_n | = C_0 | (1+i)^n
+  OBJET note_i [label] "i = taux par mois" attaché à formule
+  OBJET note_n [label] "n = 45 mois" attaché à formule
+DIT (modele) : La formule de l'intérêt composé dit que le montant final égale le capital de départ multiplié par un plus le taux, le tout exposant le nombre de périodes.
+    write formule @cue:c_final {"part":"m1"}
+    write formule @cue:c_capital {"part":"m2"}
+    write formule @cue:c_exposant {"part":"m3"}
+DIT (justifie) : Chaque mois, l'intérêt s'ajoute au capital et rapporte à son tour : c'est pour ça qu'on multiplie quarante-cinq fois de suite par un plus i, donc qu'on met l'exposant quarante-cinq.
+    show note_i @cue:c_chaque 
+    show note_n @cue:c_exposant2 
+=== Tranche s_resolution
+  OBJET eq1 [math] "25032{,}42 = 20000(1+i)^{45}" parts=25032{,}42 | = 20000 | (1+i)^{45}
+  OBJET eq2 [math] "\\frac{25032{,}42}{20000} = (1+i)^{45}" 
+  OBJET eq3 [math] "1{,}251621 = (1+i)^{45}" 
+  OBJET eq4 [math] "1{,}251621^{1/45} = 1+i" 
+  OBJET eq5 [math] {"kind":"computed","expression_ref":"i","template":"i = {value}","precision":4} 
+  OBJET eq6 [math] "i \\approx 0{,}5\\,\\% \\text{ par mois}" 
+DIT (remplace) : Remplaçons les données : vingt-cinq mille trente-deux virgule quarante-deux égale vingt mille multiplié par un plus i exposant quarante-cinq.
+    dim formule @beat:start 
+    fade_out donnees @beat:start 
+    fade_out titre @beat:start 
+    fade_out note_i @beat:start 
+    fade_out note_n @beat:start 
+    write eq1 @cue:c_25 {"part":"a1"}
+    write eq1 @cue:c_20000 {"part":"a2"}
+    write eq1 @cue:c_exposant {"part":"a3"}
+DIT (isole) : On isole ce qui contient le taux : on divise les deux côtés par vingt mille. Vingt-cinq mille trente-deux virgule quarante-deux divisé par vingt mille donne un virgule deux cinq un six deux un.
+    transform eq2 @cue:c_div {"source":"eq1"}
+    transform eq3 @cue:c_res {"source":"eq2"}
+DIT (exposant) : Pour faire tomber l'exposant quarante-cinq, on prend la racine quarante-cinquième des deux côtés, c'est-à-dire exposant un sur quarante-cinq.
+    transform eq4 @cue:c_racine {"source":"eq3"}
+    transform eq5 @cue:c_un {"source":"eq4"}
+    highlight eq5 @after:t_4 {"role":"result"}
+DIT (conclusion) : Donc i vaut environ zéro virgule cinq pour cent par mois : presque zéro virgule cinq pour cent d'intérêt chaque mois.
+    show eq6 @cue:c_donc 
+    highlight eq6 @after:s_6 {"role":"result"}
+=== Tranche s_verification
+  OBJET verif [math] {"kind":"computed","expression_ref":"verif","template":"20000(1{,}005)^{45} = {value}","precision":2} 
+  OBJET phrase [text] "On retrouve bien le montant de Félicia." 
+DIT (verifie) : Vérifions : avec un taux mensuel de zéro virgule cinq pour cent, vingt mille multiplié par un virgule zéro zéro cinq exposant quarante-cinq donne environ vingt-cinq mille trente-deux dollars quarante-deux.
+    show verif @cue:c_zero 
+    fade_out eq6 @cue:c_verif 
+    show phrase @cue:c_verif 
+=== Tranche s_retenir
+  OBJET regle [math] "i = \\left(\\dfrac{C_n}{C_0}\\right)^{1/n} - 1" parts=i | = \left(\dfrac{C_n}{C_0}\right)^{1/n} | - 1
+  OBJET idee [text] "Chaque mois : ajouter i, c'est multiplier par 1 + i." 
+  OBJET rep [math] "i \\approx 0{,}5\\,\\% \\text{ par mois}" 
+DIT (retenir) : À retenir : pour trouver le taux d'un intérêt composé, on divise le montant final par le capital de départ, on prend la racine du nombre de périodes, puis on enlève un.
+    fade_out verif @beat:start 
+    fade_out phrase @beat:start 
+    write regle @cue:c_retenir {"part":"p1"}
+    write regle @cue:c_divise {"part":"p2"}
+    write regle @cue:c_enleve {"part":"p3"}
+DIT (compose) : Félicia a emprunté vingt mille dollars et rembourse vingt-cinq mille trente-deux dollars quarante-deux après quarante-cinq mois : son taux mensuel est d'environ zéro virgule cinq pour cent.
+    camera.focus  @cue:c_vingt {"targets":["regle","idee","rep"],"bounds":"layout_bounds"}
+    show idee @cue:c_mois 
+    show rep @cue:c_cinq 
+    highlight rep @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"result"}
+--- 5 tranches, 280 mots dits (≈ 1.9 min d'oral)

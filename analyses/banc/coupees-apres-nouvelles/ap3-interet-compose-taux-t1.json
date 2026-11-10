@@ -1,0 +1,659 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "interet_compose",
+  "title": "Trouver le taux d'un prêt à intérêt composé",
+  "language": "fr",
+  "learning_goal": "Comprendre que chaque période multiplie le capital par (1 + i), puis isoler le taux mensuel avec la formule C = C₀(1 + i)ⁿ."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "i": {
+     "kind": "parameter",
+     "initial": 0.02,
+     "min": 0,
+     "max": 0.05
+    }
+   },
+   "expressions": {
+    "capital_final": "20000*(1+0.006)^45",
+    "capital_final_alt": "20000*(1+i)^45",
+    "mensualite_approx": "25032.42/20000"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1e+30,
+    "max_abs_exponent": 400,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_poser",
+   "introduces": [
+    {
+     "id": "donnees",
+     "params": {
+      "rows": [
+       [
+        "20000 $",
+        "?",
+        "3,75 ans",
+        "25032,42 $"
+       ]
+      ],
+      "column_labels": [
+       "capital emprunté",
+       "taux mensuel",
+       "durée",
+       "montant remboursé"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Félicia emprunte vingt mille dollars à intérêt composé mensuellement, et rembourse vingt-cinq mille trente-deux dollars quarante-deux après trois ans et neuf mois.",
+     "cues": [
+      {
+       "id": "c_vingt",
+       "text": "vingt mille dollars"
+      },
+      {
+       "id": "c_compose",
+       "text": "intérêt composé"
+      },
+      {
+       "id": "c_duree",
+       "text": "trois ans et neuf mois"
+      }
+     ],
+     "do": [
+      {
+       "id": "sh_donnees",
+       "verb": "show",
+       "at": "cue:c_vingt",
+       "target": "donnees"
+      }
+     ]
+    },
+    {
+     "id": "inconnue",
+     "say": "Ce n'est pas le montant final qu'on cherche : on cherche le taux mensuel, le fameux i, celui qui multiplie le capital à chaque mois.",
+     "cues": [
+      {
+       "id": "c_taux",
+       "text": "le taux mensuel"
+      },
+      {
+       "id": "c_i",
+       "text": "i"
+      },
+      {
+       "id": "c_chaque",
+       "text": "chaque mois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_col",
+       "verb": "highlight",
+       "start": "cue:c_taux",
+       "end": "cue_end:c_i",
+       "target": "donnees",
+       "role": "unknown",
+       "part": "c2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_multiplication",
+   "introduces": [
+    {
+     "id": "principe",
+     "content": "C = C_0(1 + i)^n",
+     "type": "math"
+    },
+    {
+     "id": "nb_mois",
+     "layout": {
+      "next_to": "principe",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "3{,}75 \\times 12 = 45",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Voici l'idée de l'intérêt composé : chaque mois, le nouveau capital égale l'ancien multiplié par un plus i.",
+     "cues": [
+      {
+       "id": "c_capital",
+       "text": "nouveau capital"
+      },
+      {
+       "id": "c_ancien",
+       "text": "l'ancien"
+      },
+      {
+       "id": "c_unplusi",
+       "text": "un plus i"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_principe",
+       "verb": "write",
+       "at": "cue:c_capital",
+       "target": "principe"
+      },
+      {
+       "id": "w_facteur",
+       "verb": "highlight",
+       "at": "cue:c_unplusi",
+       "target": "principe",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "nb",
+     "say": "Trois virgule sept cinq ans, c'est trois virgule sept cinq fois douze, donc quarante-cinq mois : voilà n.",
+     "cues": [
+      {
+       "id": "c_fois",
+       "text": "fois douze"
+      },
+      {
+       "id": "c_n",
+       "text": "quarante-cinq mois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_nb",
+       "verb": "write",
+       "at": "cue:c_fois",
+       "target": "nb_mois"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isoler",
+   "introduces": [
+    {
+     "id": "eq1",
+     "content": "25032{,}42 = 20000(1 + i)^{45}",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "\\frac{25032{,}42}{20000} = 1{,}251621",
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "content": "(1 + i)^{45} = 1{,}251621",
+     "type": "math"
+    },
+    {
+     "id": "i_final",
+     "content": "i = (1{,}251621)^{1/45} - 1 \\approx 0{,}005",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "i ="
+      },
+      {
+       "id": "calc",
+       "text": "(1{,}251621)^{1/45} - 1"
+      },
+      {
+       "id": "valeur",
+       "text": "\\approx 0{,}005"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "remplace",
+     "say": "On remplace chaque lettre par ce qu'on connaît : vingt-cinq mille trente-deux virgule quarante-deux égale vingt mille multiplié par un plus i exposant quarante-cinq.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "vingt mille"
+      },
+      {
+       "id": "c_i45",
+       "text": "quarante-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq1",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "eq1"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "Pour isoler, on divise les deux côtés par vingt mille. Le rapport vaut un virgule deux cinq un six deux un.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "on divise"
+      },
+      {
+       "id": "c_rapport",
+       "text": "un virgule deux cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq2",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "eq1",
+       "target": "eq2"
+      },
+      {
+       "id": "w_eq2",
+       "verb": "write",
+       "at": "after:t_eq2",
+       "target": "eq2"
+      }
+     ]
+    },
+    {
+     "id": "racine",
+     "say": "Un plus i exposant quarante-cinq égale un virgule deux cinq un six deux un. On prend donc la racine quarante-cinquième, qui revient à l'exposant un sur quarante-cinq.",
+     "cues": [
+      {
+       "id": "c_racine",
+       "text": "racine quarante-cinquième"
+      },
+      {
+       "id": "c_exposant",
+       "text": "un sur quarante-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq3",
+       "verb": "transform",
+       "at": "cue:c_racine",
+       "source": "eq2",
+       "target": "eq3"
+      }
+     ]
+    },
+    {
+     "id": "isoler",
+     "say": "On enlève un des deux côtés : i environ zéro virgule zéro zéro cinq, soit un demi pour cent par mois.",
+     "cues": [
+      {
+       "id": "c_enleve",
+       "text": "enlève un"
+      },
+      {
+       "id": "c_valeur",
+       "text": "zéro virgule zéro zéro cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_i",
+       "verb": "transform",
+       "at": "cue:c_enleve",
+       "source": "eq3",
+       "target": "i_final"
+      },
+      {
+       "id": "h_i",
+       "verb": "highlight",
+       "start": "cue:c_valeur",
+       "end": "cue_end:c_valeur",
+       "target": "i_final",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "verif",
+     "content": "20000(1{,}005)^{45} \\approx 25032{,}42",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "20000(1{,}005)^{45}"
+      },
+      {
+       "id": "droite",
+       "text": "\\approx 25032{,}42"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verifie",
+     "say": "Vérifions : on rapplique la formule avec i égale zéro virgule zéro zéro cinq. Vingt mille multiplié par un virgule zéro zéro cinq exposant quarante-cinq donne environ vingt-cinq mille trente-deux virgule quarante-deux.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_donne",
+       "text": "vingt-cinq mille"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_verif",
+       "verb": "write",
+       "at": "cue:c_verif",
+       "target": "verif"
+      }
+     ]
+    },
+    {
+     "id": "retenir",
+     "say": "À retenir : l'intérêt composé se résout en divisant par le capital de départ, puis en prenant la racine n-ième. Ici, i vaut environ un demi pour cent par mois.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_demi",
+       "text": "un demi pour cent"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_donnees",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "donnees"
+      },
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "verif",
+        "i_final"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "start": "cue:c_demi",
+       "end": "cue_end:c_demi",
+       "target": "i_final",
+       "role": "result",
+       "part": "valeur"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "C = C_0(1 + i)^n",
+     "type": "math"
+    },
+    {
+     "id": "methode",
+     "content": "Diviser par C₀, puis racine n-ième.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "synthese",
+     "say": "L'idée centrale : chaque période multiplie le capital par un plus i, donc après n périodes on a C égale C zéro fois un plus i exposant n. Pour trouver i, on divise par le capital de départ et on prend la racine n-ième.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "L'idée centrale"
+      },
+      {
+       "id": "c_racine",
+       "text": "racine n-ième"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:c_idee",
+       "target": "verif"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_idee",
+       "target": "regle"
+      },
+      {
+       "id": "s_methode",
+       "verb": "show",
+       "at": "cue:c_racine",
+       "target": "methode"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

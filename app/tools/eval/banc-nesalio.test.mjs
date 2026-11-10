@@ -20,6 +20,7 @@
  *   PRIX_ENTREE, PRIX_SORTIE  prix en $ par million de jetons, pour le coût approximatif
  *   NESALIO_DEUX_ETAPES=1     comme la route : enseignant puis metteur en page
  *   NESALIO_RELECTEUR=0       sans le relecteur de fond (actif par défaut, comme la route)
+ *   NESALIO_CONSIGNES=completes  prompt avec toutes les règles (défaut : version allégée, comme la route)
  * Écrit analyses/banc/<SORTIE>/ : rapport.md, rapport.json, et par leçon
  * <id>-t<n>.json (jouable), .journal.txt (refus, réparations) et .lisible.txt (dit / montré).
  */

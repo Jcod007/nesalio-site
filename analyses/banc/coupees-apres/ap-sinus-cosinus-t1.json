@@ -1,0 +1,641 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "sinus_cosinus_decalage",
+  "title": "La différence entre sin x et cos x : un décalage d'un quart de cycle",
+  "language": "fr",
+  "learning_goal": "Comprendre que cos x est la même courbe que sin x, décalée d'un quart de période (π/2)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1e+30,
+    "max_abs_exponent": 400,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "fonction sinusoïdale et cosinus",
+     "type": "text"
+    },
+    {
+     "id": "objets",
+     "layout": {
+      "next_to": "titre",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "f(x) = a\\sin\\!\\big(b(x-h)\\big)+k",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reform",
+     "say": "Tu veux connaître la différence entre une fonction sinusoïdale et une fonction cosinus. La réponse tient en une phrase : ce sont les mêmes vagues, décalées d'un quart de période.",
+     "cues": [
+      {
+       "id": "c_diff",
+       "text": "la différence"
+      },
+      {
+       "id": "c_decal",
+       "text": "décalées"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "w_obj",
+       "verb": "show",
+       "at": "cue:c_diff",
+       "target": "objets"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_meme_vague",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       6.5
+      ],
+      "y": [
+       -1.5,
+       1.5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "csin",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "sin(x)",
+      "domain": [
+       0,
+       6.28
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "lab_sin",
+     "attachment": {
+      "parent": "csin",
+      "anchor": "center"
+     },
+     "content": "sin x",
+     "type": "label"
+    },
+    {
+     "id": "h_zero",
+     "params": {
+      "from": [
+       0,
+       -1.5
+      ],
+      "to": [
+       0,
+       1.5
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Je trace d'abord la vague de sinus sur un repère, de zéro à deux pi.",
+     "cues": [
+      {
+       "id": "c_sinus",
+       "text": "sinus"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_sin",
+       "verb": "draw",
+       "start": "cue:c_sinus",
+       "end": "cue_end:c_sinus",
+       "target": "csin"
+      },
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "after:d_sin",
+       "target": "lab_sin"
+      }
+     ]
+    },
+    {
+     "id": "regarde",
+     "say": "Regarde les points remarquables : le sommet est à x égale pi sur deux, et la vague repasse par zéro à pi, puis descend à moins un à trois pi sur deux.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "repasse par zéro"
+      },
+      {
+       "id": "c_moins",
+       "text": "moins un"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_h",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "h_zero"
+      },
+      {
+       "id": "h_sin",
+       "verb": "highlight",
+       "start": "cue:c_moins",
+       "end": "cue_end:c_moins",
+       "target": "csin",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cosinus",
+   "introduces": [
+    {
+     "id": "ccos",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "expression": "cos(x)",
+      "domain": [
+       0,
+       6.28
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "lab_cos",
+     "attachment": {
+      "parent": "ccos",
+      "anchor": "center"
+     },
+     "content": "cos x",
+     "type": "label"
+    },
+    {
+     "id": "fleche",
+     "params": {
+      "from": [
+       1.5708,
+       1
+      ],
+      "to": [
+       0,
+       1
+      ]
+     },
+     "type": "arrow"
+    }
+   ],
+   "beats": [
+    {
+     "id": "superpose",
+     "say": "Maintenant, superposons la vague de cosinus, en gris, sur la même figure.",
+     "cues": [
+      {
+       "id": "c_super",
+       "text": "superposons"
+      },
+      {
+       "id": "c_cos",
+       "text": "cosinus"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_cos",
+       "verb": "draw",
+       "start": "cue:c_super",
+       "end": "cue_end:c_cos",
+       "target": "ccos"
+      },
+      {
+       "id": "s_lcos",
+       "verb": "show",
+       "at": "after:d_cos",
+       "target": "lab_cos"
+      }
+     ]
+    },
+    {
+     "id": "meme",
+     "say": "Tu vois que c'est exactement la même forme : même hauteur, même longueur de cycle.",
+     "cues": [
+      {
+       "id": "c_meme",
+       "text": "même forme"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_both",
+       "verb": "highlight",
+       "start": "cue:c_meme",
+       "end": "cue_end:c_meme",
+       "target": "csin",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "decale",
+     "say": "La seule différence, c'est le départ : cosinus commence au sommet, un, alors que sinus commence à zéro.",
+     "cues": [
+      {
+       "id": "c_depart",
+       "text": "le départ"
+      },
+      {
+       "id": "c_sommet",
+       "text": "cosinus commence au sommet"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_fl",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "fleche"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_quart",
+   "introduces": [
+    {
+     "id": "rel",
+     "content": "\\cos x = \\sin\\!\\left(x + \\frac{\\pi}{2}\\right)",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\cos x"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "\\sin\\!\\left(x + \\frac{\\pi}{2}\\right)"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "demi",
+     "say": "Pour passer du sinus au cosinus, on décale de pi sur deux vers la gauche, c'est-à-dire d'un quart de période.",
+     "cues": [
+      {
+       "id": "c_pisur2",
+       "text": "pi sur deux"
+      },
+      {
+       "id": "c_quart",
+       "text": "un quart de période"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "rel",
+       "part": "gauche"
+      },
+      {
+       "id": "w_e",
+       "verb": "write",
+       "at": "cue:c_pisur2",
+       "target": "rel",
+       "part": "egal"
+      },
+      {
+       "id": "w_d",
+       "verb": "write",
+       "at": "cue:c_pisur2",
+       "target": "rel",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : à x égale zéro, cos vaut un, et sinus de zéro plus pi sur deux vaut aussi un.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_un",
+       "text": "aussi un"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_rel",
+       "verb": "highlight",
+       "start": "cue:c_verif",
+       "end": "cue_end:c_un",
+       "target": "rel",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "cos x = sin x, décalé d'un quart de cycle",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fin",
+     "say": "À retenir : la fonction cosinus, c'est la même vague que la fonction sinus, simplement décalée d'un quart de cycle. Amplitude, période et forme sont identiques.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_meme_vague",
+       "text": "même vague"
+      },
+      {
+       "id": "c_identique",
+       "text": "identiques"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axe",
+       "verb": "dim",
+       "at": "cue:c_retenir",
+       "target": "rep"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_meme_vague",
+       "target": "idee"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_identique",
+       "end": "cue_end:c_identique",
+       "target": "idee",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

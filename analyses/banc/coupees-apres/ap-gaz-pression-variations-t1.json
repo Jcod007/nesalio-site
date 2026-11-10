@@ -1,0 +1,966 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "lois_gaz",
+  "title": "Volume, température et pression d'un gaz",
+  "language": "fr",
+  "learning_goal": "Utiliser la loi générale des gaz pour prévoir l'effet de plusieurs changements à la fois, et la loi des gaz parfaits pour trouver un nombre de moles à TPN."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "p2a": "1*(1/0.5)*(2/1)",
+    "na": "101.3*20/(8.314*273.15)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1e+30,
+    "max_abs_exponent": 400,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_reformule",
+   "introduces": [
+    {
+     "id": "t1",
+     "content": "1) V divisé par 2, T doublée → p ?",
+     "type": "text"
+    },
+    {
+     "id": "t2",
+     "content": "2) n de O₂ dans 20 L à TPN ?",
+     "type": "text"
+    },
+    {
+     "id": "t3",
+     "content": "3) T doublée, V doublé → p ?",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cadre",
+     "say": "Tu me poses trois questions. Je les garde ensemble : toutes les trois parlent du même gaz qui change de conditions.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois questions"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_t1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "t1"
+      },
+      {
+       "id": "s_t2",
+       "verb": "show",
+       "at": "after:s_t1",
+       "target": "t2"
+      },
+      {
+       "id": "s_t3",
+       "verb": "show",
+       "at": "after:s_t2",
+       "target": "t3"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "La première : le volume est réduit de moitié, et la température absolue double. La troisième : la température double, mais le volume double aussi. On va voir que ces deux réponses ne se ressemblent pas.",
+     "cues": [
+      {
+       "id": "c_absolue",
+       "text": "température absolue"
+      },
+      {
+       "id": "c_volume",
+       "text": "volume double"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_t1",
+       "verb": "highlight",
+       "start": "cue:c_absolue",
+       "end": "cue_end:c_absolue",
+       "target": "t1",
+       "role": "accent"
+      },
+      {
+       "id": "h_t3",
+       "verb": "highlight",
+       "start": "cue:c_volume",
+       "end": "cue_end:c_volume",
+       "target": "t3",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "gen",
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{p_1 V_1}{n_1 T_1}"
+      },
+      {
+       "id": "eg",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "\\frac{p_2 V_2}{n_2 T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "kelvin",
+     "attachment": {
+      "parent": "gen",
+      "anchor": "bottom",
+      "placement": "outside",
+      "gap": "md"
+     },
+     "content": "T en kelvins : T = θ + 273,15",
+     "type": "label"
+    },
+    {
+     "id": "produit",
+     "content": "p_2 = p_1 \\times \\frac{V_1}{V_2} \\times \\frac{T_2}{T_1}",
+     "parts": [
+      {
+       "id": "pdeux",
+       "text": "p_2"
+      },
+      {
+       "id": "prod",
+       "text": "= p_1 \\times \\frac{V_1}{V_2} \\times \\frac{T_2}{T_1}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "loi",
+     "say": "D'abord la loi qui règle tous ces cas : pression fois volume divisé par moles fois température, c'est une constante. Donc p un V un sur n un T un égale p deux V deux sur n deux T deux.",
+     "cues": [
+      {
+       "id": "c_gauche",
+       "text": "p un V un sur n un T un"
+      },
+      {
+       "id": "c_droite",
+       "text": "p deux V deux sur n deux T deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_gauche",
+       "target": "gen",
+       "part": "gauche"
+      },
+      {
+       "id": "w_eg",
+       "verb": "write",
+       "at": "after:w_gauche",
+       "target": "gen",
+       "part": "eg"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_droite",
+       "target": "gen",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "kelvin",
+     "say": "Attention : la température doit toujours être en kelvins. Doubler la température absolue, c'est doubler le nombre de kelvins, et c'est ça qui compte.",
+     "cues": [
+      {
+       "id": "c_kelvins",
+       "text": "kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_kelvin",
+       "verb": "show",
+       "at": "cue:c_kelvins",
+       "target": "kelvin"
+      },
+      {
+       "id": "h_gen",
+       "verb": "highlight",
+       "start": "cue:c_kelvins",
+       "end": "cue_end:c_kelvins",
+       "target": "gen",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "isoler",
+     "say": "Quand les moles ne changent pas, la même équation donne la pression finale : p deux égale p un fois V un sur V deux fois T deux sur T un. La pression est directe en température, inverse en volume.",
+     "cues": [
+      {
+       "id": "c_pdeux",
+       "text": "p deux égale p un"
+      },
+      {
+       "id": "c_fin",
+       "text": "pression finale"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_gen",
+       "verb": "dim",
+       "at": "cue:c_pdeux",
+       "target": "gen"
+      },
+      {
+       "id": "d_kelvin",
+       "verb": "dim",
+       "at": "cue:c_pdeux",
+       "target": "kelvin"
+      },
+      {
+       "id": "w_pdeux",
+       "verb": "write",
+       "at": "cue:c_pdeux",
+       "target": "produit",
+       "part": "pdeux"
+      },
+      {
+       "id": "w_prod",
+       "verb": "write",
+       "at": "cue:c_fin",
+       "target": "produit",
+       "part": "prod"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cas",
+   "introduces": [
+    {
+     "id": "c1",
+     "content": "p_2 = p_1 \\times \\frac{1}{0{,}5} \\times \\frac{2}{1} = 4p_1",
+     "type": "math"
+    },
+    {
+     "id": "c3",
+     "layout": {
+      "next_to": "c1",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "p_2 = p_1 \\times \\frac{1}{2} \\times \\frac{2}{1} = p_1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "premier",
+     "say": "Première question : le volume est divisé par deux, donc V un sur V deux fait un sur zéro virgule cinq, c'est-à-dire deux. La température double, donc T deux sur T un vaut deux. Deux fois deux : la pression quadruple.",
+     "cues": [
+      {
+       "id": "c_vol1",
+       "text": "volume est divisé par deux"
+      },
+      {
+       "id": "c_temp1",
+       "text": "température double"
+      },
+      {
+       "id": "c_quad",
+       "text": "pression quadruple"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c1",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "c1"
+      },
+      {
+       "id": "h_vol",
+       "verb": "highlight",
+       "start": "cue:c_vol1",
+       "end": "cue_end:c_temp1",
+       "target": "c1",
+       "role": "accent"
+      },
+      {
+       "id": "h_temp",
+       "verb": "highlight",
+       "start": "cue:c_temp1",
+       "end": "cue_end:c_quad",
+       "target": "c1",
+       "role": "accent"
+      },
+      {
+       "id": "h_tot",
+       "verb": "highlight",
+       "start": "cue:c_quad",
+       "end": "cue_end:c_quad",
+       "target": "c1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "troisieme",
+     "say": "Troisième question : le volume double, donc V un sur V deux vaut un demi. La température double : deux sur un vaut deux. Un demi fois deux, ça fait un. La pression ne change pas.",
+     "cues": [
+      {
+       "id": "c_vol3",
+       "text": "volume double"
+      },
+      {
+       "id": "c_temp3",
+       "text": "température double"
+      },
+      {
+       "id": "c_pas",
+       "text": "pression ne change pas"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c3",
+       "verb": "write",
+       "at": "cue:c_vol3",
+       "target": "c3"
+      },
+      {
+       "id": "h_vol3",
+       "verb": "highlight",
+       "start": "cue:c_vol3",
+       "end": "cue_end:c_temp3",
+       "target": "c3",
+       "role": "accent"
+      },
+      {
+       "id": "h_temp3",
+       "verb": "highlight",
+       "start": "cue:c_temp3",
+       "end": "cue_end:c_pas",
+       "target": "c3",
+       "role": "accent"
+      },
+      {
+       "id": "h_tot3",
+       "verb": "highlight",
+       "start": "cue:c_pas",
+       "end": "cue_end:c_pas",
+       "target": "c3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "contre",
+     "say": "Les deux effets s'annulent : si on double volume et température en même temps, les chocs frappent deux fois plus fort, mais sur une paroi deux fois plus grande. C'est la vérification : deux sur un fois un sur deux, deux divisé par deux égale bien un.",
+     "cues": [
+      {
+       "id": "c_annulent",
+       "text": "s'annulent"
+      },
+      {
+       "id": "c_verif",
+       "text": "vérification"
+      }
+     ],
+     "do": [
+      {
+       "id": "reste",
+       "verb": "camera.focus",
+       "at": "cue:c_annulent",
+       "targets": [
+        "c1",
+        "c3"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_c3",
+       "verb": "highlight",
+       "start": "cue:c_verif",
+       "end": "cue_end:c_verif",
+       "target": "c3",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_mole",
+   "introduces": [
+    {
+     "id": "parfait",
+     "content": "n = \\frac{pV}{RT}",
+     "parts": [
+      {
+       "id": "ndeux",
+       "text": "n"
+      },
+      {
+       "id": "formule",
+       "text": "= \\frac{pV}{RT}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "tp",
+     "layout": {
+      "next_to": "parfait",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "TPN : 0 °C = 273,15 K et 101,3 kPa",
+     "type": "text"
+    },
+    {
+     "id": "calcul",
+     "layout": {
+      "next_to": "tp",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n = \\frac{101{,}3 \\times 20}{8{,}314 \\times 273{,}15} \\approx 0{,}892 \\text{ mol d'air}",
+     "type": "math"
+    },
+    {
+     "id": "pourcent",
+     "layout": {
+      "next_to": "calcul",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "O₂ ≈ 21 % de l'air",
+     "type": "text"
+    },
+    {
+     "id": "o2",
+     "layout": {
+      "next_to": "pourcent",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n_{\\text{O}_2} = 0{,}21 \\times 0{,}892 \\approx 0{,}19 \\text{ mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "loi",
+     "say": "Deuxième question : combien de moles de O deux dans vingt litres d'air à TPN. On passe à la loi des gaz parfaits : pression fois volume égale moles fois R fois température.",
+     "cues": [
+      {
+       "id": "c_parfaits",
+       "text": "gaz parfaits"
+      },
+      {
+       "id": "c_ega",
+       "text": "pression fois volume égale moles fois R fois température"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ndeux",
+       "verb": "write",
+       "at": "cue:c_parfaits",
+       "target": "parfait",
+       "part": "ndeux"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:c_ega",
+       "target": "parfait",
+       "part": "formule"
+      }
+     ]
+    },
+    {
+     "id": "conditions",
+     "say": "À TPN, la température est zéro degré Celsius, donc deux cent soixante-treize virgule quinze kelvins, et la pression vaut cent un virgule trois kilopascals. La constante R vaut huit virgule trois cent quatorze kilopascals litre par mole kelvin.",
+     "cues": [
+      {
+       "id": "c_tpn",
+       "text": "TPN"
+      },
+      {
+       "id": "c_r",
+       "text": "constante R"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tp",
+       "verb": "show",
+       "at": "cue:c_tpn",
+       "target": "tp"
+      },
+      {
+       "id": "h_tp",
+       "verb": "highlight",
+       "start": "cue:c_tpn",
+       "end": "cue_end:c_tpn",
+       "target": "tp",
+       "role": "given"
+      },
+      {
+       "id": "h_r",
+       "verb": "highlight",
+       "start": "cue:c_r",
+       "end": "cue_end:c_r",
+       "target": "parfait",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Je remplace : cent un virgule trois fois vingt, divisé par huit virgule trois cent quatorze fois deux cent soixante-treize virgule quinze. Ça donne environ zéro virgule huit neuf mole, mais attention : c'est l'air au complet, pas juste le O deux.",
+     "cues": [
+      {
+       "id": "c_environ",
+       "text": "environ"
+      },
+      {
+       "id": "c_air",
+       "text": "l'air au complet"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calcul",
+       "verb": "write",
+       "at": "cue:c_environ",
+       "target": "calcul"
+      },
+      {
+       "id": "h_calcul",
+       "verb": "highlight",
+       "start": "cue:c_air",
+       "end": "cue_end:c_air",
+       "target": "calcul",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "part",
+     "say": "Le O deux ne compte que pour environ vingt et un pour cent de l'air. Donc zéro virgule vingt et un fois zéro virgule huit neuf deux, ça donne environ zéro virgule dix-neuf mole de O deux.",
+     "cues": [
+      {
+       "id": "c_pourcent",
+       "text": "vingt et un pour cent"
+      },
+      {
+       "id": "c_resultat",
+       "text": "zéro virgule dix-neuf mole de O deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pourcent",
+       "verb": "show",
+       "at": "cue:c_pourcent",
+       "target": "pourcent"
+      },
+      {
+       "id": "w_o2",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "o2"
+      },
+      {
+       "id": "h_o2",
+       "verb": "highlight",
+       "start": "cue:c_resultat",
+       "end": "cue_end:c_resultat",
+       "target": "o2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regletot",
+     "content": "p_2 = p_1 \\times \\frac{V_1}{V_2} \\times \\frac{T_2}{T_1}",
+     "type": "math"
+    },
+    {
+     "id": "reglemol",
+     "layout": {
+      "next_to": "regletot",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n = \\frac{pV}{RT}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "avis",
+     "say": "Avant de conclure, je fais le ménage : tout ce qui n'est plus utile quitte le tableau.",
+     "cues": [
+      {
+       "id": "c_menage",
+       "text": "je fais le ménage"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_t1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "t1"
+      },
+      {
+       "id": "f_t2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "t2"
+      },
+      {
+       "id": "f_t3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "t3"
+      },
+      {
+       "id": "f_c1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c1"
+      },
+      {
+       "id": "f_c3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "c3"
+      },
+      {
+       "id": "f_parfait",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "parfait"
+      },
+      {
+       "id": "f_tp",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tp"
+      },
+      {
+       "id": "f_calcul",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calcul"
+      },
+      {
+       "id": "f_pourcent",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pourcent"
+      },
+      {
+       "id": "f_o2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "o2"
+      },
+      {
+       "id": "f_kelvin",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "kelvin"
+      }
+     ]
+    },
+    {
+     "id": "retenir",
+     "say": "La première réponse, c'est que la pression quadruple : le volume deux fois plus petit pèse deux fois plus, et la température deux fois plus haute pèse deux fois plus. La troisième, c'est que la pression ne bouge pas, parce que les deux effets s'annulent exactement.",
+     "cues": [
+      {
+       "id": "c_premier",
+       "text": "pression quadruple"
+      },
+      {
+       "id": "c_trois",
+       "text": "pression ne bouge pas"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rt",
+       "verb": "write",
+       "at": "cue:c_premier",
+       "target": "regletot"
+      },
+      {
+       "id": "h_rt",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_trois",
+       "target": "regletot",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "troisiemepartie",
+     "say": "Et pour les moles dans vingt litres d'air à TPN, c'est la loi des gaz parfaits qui travaille : tu obtiens environ zéro virgule huit neuf mole d'air, dont environ zéro virgule dix-neuf mole de O deux.",
+     "cues": [
+      {
+       "id": "c_parfait",
+       "text": "loi des gaz parfaits"
+      },
+      {
+       "id": "c_o2",
+       "text": "zéro virgule dix-neuf mole de O deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rm",
+       "verb": "write",
+       "at": "cue:c_parfait",
+       "target": "reglemol"
+      },
+      {
+       "id": "h_rm",
+       "verb": "highlight",
+       "start": "cue:c_o2",
+       "end": "cue_end:c_o2",
+       "target": "reglemol",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

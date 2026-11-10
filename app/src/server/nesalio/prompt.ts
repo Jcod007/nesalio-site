@@ -271,16 +271,16 @@ AVANT D'ÉCRIRE CHAQUE LIGNE, VÉRIFIE :
 - chaque calcul est juste, écrit avec son résultat dans la même formule, et la réponse finale est vérifiée au tableau.`.trim();
 
 /**
- * Version du prompt système. « completes » (défaut) : le prompt tel qu'il est.
- * « allegees » (NESALIO_CONSIGNES=allegees) : sans les règles de pure forme que
- * le code répare (normalize.ts) ou refuse avec un message précis (validate.ts,
- * contract.ts, coherence.ts, sayShow.ts). Sert à mesurer au banc si moins de
- * règles fait mieux respecter celles qui restent.
+ * Version du prompt système. « allegees » (défaut depuis le 2026-11-09, choix de l'utilisateur) :
+ * sans les règles de pure forme que le code répare (normalize.ts) ou refuse avec un message précis
+ * (validate.ts, contract.ts, coherence.ts, sayShow.ts) ; elle a fait mieux partout où on l'a mesurée
+ * au banc (leçons intactes, note à l'aveugle), et le relecteur a été mesuré avec elle.
+ * « completes » (NESALIO_CONSIGNES=completes) : le prompt avec toutes les règles, gardé pour comparer.
  */
 export type Consignes = "completes" | "allegees";
 
 export function consignesFromEnv(env: Readonly<Record<string, string | undefined>> = process.env): Consignes {
-  return env.NESALIO_CONSIGNES?.trim() === "allegees" ? "allegees" : "completes";
+  return env.NESALIO_CONSIGNES?.trim() === "completes" ? "completes" : "allegees";
 }
 
 /**

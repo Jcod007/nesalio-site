@@ -1,0 +1,954 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "probabilite_conditions_univers",
+  "title": "Pourquoi des fractions comme 2/8 et 6/8",
+  "language": "fr",
+  "learning_goal": "Comprendre que le dénominateur d'une probabilité est le nombre de cas possibles, pas le nombre de pièces, et que l'univers change quand on ajoute une condition."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1e+30,
+    "max_abs_exponent": 400,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_reformule",
+   "introduces": [
+    {
+     "id": "univers",
+     "content": "L'univers : toutes les issues et leurs chances",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Ta question, c'est : avec seulement trois pièces, d'où sortent des fractions comme deux huitièmes et six huitièmes ? La réponse : le huit du bas n'est pas le nombre de pièces. C'est le nombre de résultats possibles de l'expérience.",
+     "cues": [
+      {
+       "id": "c_pieces",
+       "text": "trois pièces"
+      },
+      {
+       "id": "c_huit",
+       "text": "le huit du bas"
+      },
+      {
+       "id": "c_possibles",
+       "text": "résultats possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_univers",
+       "verb": "show",
+       "at": "cue:c_possibles",
+       "target": "univers"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cas",
+   "introduces": [
+    {
+     "id": "abc",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "abc_lab",
+     "attachment": {
+      "parent": "abc",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "ABC",
+     "type": "label"
+    },
+    {
+     "id": "acb",
+     "params": {
+      "vertices": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        1,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "acb_lab",
+     "attachment": {
+      "parent": "acb",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "ACB",
+     "type": "label"
+    },
+    {
+     "id": "bac",
+     "params": {
+      "vertices": [
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        2,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "bac_lab",
+     "attachment": {
+      "parent": "bac",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "BAC",
+     "type": "label"
+    },
+    {
+     "id": "bca",
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "bca_lab",
+     "attachment": {
+      "parent": "bca",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "BCA",
+     "type": "label"
+    },
+    {
+     "id": "cab",
+     "params": {
+      "vertices": [
+       [
+        4,
+        0
+       ],
+       [
+        5,
+        0
+       ],
+       [
+        5,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "cab_lab",
+     "attachment": {
+      "parent": "cab",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "CAB",
+     "type": "label"
+    },
+    {
+     "id": "cba",
+     "params": {
+      "vertices": [
+       [
+        5,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        5,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "cba_lab",
+     "attachment": {
+      "parent": "cba",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "CBA",
+     "type": "label"
+    },
+    {
+     "id": "univers_fig",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "R",
+     "attachment": {
+      "parent": "univers_fig",
+      "anchor": "top"
+     },
+     "content": "R",
+     "type": "label"
+    },
+    {
+     "id": "note8",
+     "layout": {
+      "next_to": "univers_fig",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "six permutations des trois lettres",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "cases",
+     "items": [
+      "abc",
+      "abc_lab",
+      "acb",
+      "acb_lab",
+      "bac",
+      "bac_lab",
+      "bca",
+      "bca_lab",
+      "cab",
+      "cab_lab",
+      "cba",
+      "cba_lab"
+     ],
+     "arrange": {
+      "direction": "right",
+      "align": "center",
+      "gap": "xs"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "possibles",
+     "say": "Imagine une expérience à deux étapes : d'abord quatre choix, puis deux choix. Quatre fois deux, ça donne huit résultats possibles en tout. Ici, on ne dessine que six cases, parce que six, c'est le nombre de cas favorables, et huit, c'est le nombre de cas possibles.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux étapes"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre choix"
+      },
+      {
+       "id": "c_huit",
+       "text": "huit résultats"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_univers",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "univers_fig"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_univers_fig",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "univers_fig"
+      },
+      {
+       "id": "s_cases",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "target": "cases",
+       "stagger": "quick"
+      },
+      {
+       "id": "s_note8",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "target": "note8"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_condition",
+   "introduces": [
+    {
+     "id": "cond_regle",
+     "layout": {
+      "next_to": "univers_fig",
+      "direction": "left",
+      "gap": "lg"
+     },
+     "content": "P(B) \\ne 0",
+     "type": "math"
+    },
+    {
+     "id": "cond_ex",
+     "layout": {
+      "next_to": "cond_regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "condition",
+     "say": "Mais attention : une probabilité conditionnelle n'a de sens que si l'événement B peut encore arriver. Il faut donc écrire la condition avant la formule : P de B différent de zéro.",
+     "cues": [
+      {
+       "id": "c_cond",
+       "text": "P de B différent de zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cond",
+       "verb": "write",
+       "at": "cue:c_cond",
+       "target": "cond_regle"
+      }
+     ]
+    },
+    {
+     "id": "formule",
+     "say": "Ensuite seulement, on a la formule : P de A sachant B égale P de A et B, divisé par P de B.",
+     "cues": [
+      {
+       "id": "c_formule",
+       "text": "P de A sachant B"
+      },
+      {
+       "id": "c_div",
+       "text": "divisé par P de B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cond_ex",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "cond_ex"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retrecit",
+   "introduces": [
+    {
+     "id": "hors_b",
+     "layout": {
+      "next_to": "cond_ex",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{les issues hors de } B : B^c",
+     "type": "math"
+    },
+    {
+     "id": "sous",
+     "layout": {
+      "next_to": "cond_ex",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "\\frac{2}{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retrecit",
+     "say": "Le fait de savoir que B s'est produit réduit l'univers. Toutes les issues qui ne sont pas dans B, c'est-à-dire B exposant c en entier, sont maintenant impossibles : on les estompe.",
+     "cues": [
+      {
+       "id": "c_reduit",
+       "text": "réduit l'univers"
+      },
+      {
+       "id": "c_estompe",
+       "text": "on les estompe"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_cases",
+       "verb": "highlight",
+       "start": "cue:c_reduit",
+       "end": "cue_end:c_reduit",
+       "target": "cases",
+       "role": "accent"
+      },
+      {
+       "id": "w_hors_b",
+       "verb": "write",
+       "at": "cue:c_estompe",
+       "target": "hors_b"
+      }
+     ]
+    },
+    {
+     "id": "part",
+     "say": "Dans cet univers réduit, la probabilité devient la part de B où A est aussi vrai. Ici, ça donne deux tiers, et non deux huitièmes. Les deux huitièmes, c'est P de A et B dans l'univers entier ; deux tiers, c'est la part de B.",
+     "cues": [
+      {
+       "id": "c_part",
+       "text": "la part de B"
+      },
+      {
+       "id": "c_tiers",
+       "text": "deux tiers"
+      },
+      {
+       "id": "c_huitiemes",
+       "text": "deux huitièmes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sous",
+       "verb": "write",
+       "at": "cue:c_tiers",
+       "target": "sous"
+      },
+      {
+       "id": "h_sous",
+       "verb": "highlight",
+       "at": "after:w_sous",
+       "target": "sous",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_comparer",
+   "introduces": [
+    {
+     "id": "pa",
+     "content": "P(A \\mid B) = \\frac{2}{3}",
+     "type": "math"
+    },
+    {
+     "id": "pab",
+     "content": "P(A \\cap B) = \\frac{2}{8}",
+     "type": "math"
+    },
+    {
+     "id": "pba",
+     "content": "P(B \\mid A) = \\frac{2}{6}",
+     "type": "math"
+    },
+    {
+     "id": "noms",
+     "content": "Trois quantités différentes !",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "bloc",
+     "items": [
+      "pa",
+      "pab",
+      "pba"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "separes",
+     "say": "Ne confonds pas ces trois quantités. P de A sachant B, c'est deux tiers : une part de B. P de A et B, c'est deux huitièmes : une part de tout l'univers. Et P de B sachant A, c'est deux sixièmes : une part de A.",
+     "cues": [
+      {
+       "id": "c_pA",
+       "text": "P de A sachant B"
+      },
+      {
+       "id": "c_pAB",
+       "text": "P de A et B"
+      },
+      {
+       "id": "c_pBA",
+       "text": "P de B sachant A"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_univers",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "univers_fig"
+      },
+      {
+       "id": "f_cases",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "cases"
+      },
+      {
+       "id": "f_hors",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "hors_b"
+      },
+      {
+       "id": "f_sous",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sous"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note8"
+      },
+      {
+       "id": "f_cond",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "cond_regle"
+      },
+      {
+       "id": "f_univ",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "univers"
+      },
+      {
+       "id": "w_pa",
+       "verb": "write",
+       "at": "cue:c_pA",
+       "target": "pa"
+      },
+      {
+       "id": "w_pab",
+       "verb": "write",
+       "at": "cue:c_pAB",
+       "target": "pab"
+      },
+      {
+       "id": "w_pba",
+       "verb": "write",
+       "at": "cue:c_pBA",
+       "target": "pba"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "attention",
+     "say": "Remarque : ici, P de A sachant B et P de B sachant A tombent toutes les deux à deux tiers, par hasard. En général, elles ne sont pas égales : c'est ce qui les rend faciles à mélanger. Mais ni l'une ni l'autre n'est deux huitièmes.",
+     "cues": [
+      {
+       "id": "c_hasard",
+       "text": "par hasard"
+      },
+      {
+       "id": "c_general",
+       "text": "En général"
+      },
+      {
+       "id": "c_jamais",
+       "text": "n'est deux huitièmes"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_pab",
+       "verb": "highlight",
+       "start": "cue:c_jamais",
+       "end": "cue_end:c_jamais",
+       "target": "pab",
+       "role": "secondary"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "cle",
+     "content": "\\text{une probabilité} = \\frac{\\text{cas favorables}}{\\text{cas possibles}}",
+     "type": "math"
+    },
+    {
+     "id": "cle_cond",
+     "attachment": {
+      "parent": "cle",
+      "anchor": "bottom"
+     },
+     "content": "en tenant compte de l'univers courant",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : le bas d'une probabilité, c'est le nombre de cas possibles dans l'univers où tu te places, pas le nombre d'objets.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_univers",
+       "text": "l'univers où tu te places"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_bloc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "bloc"
+      },
+      {
+       "id": "f_noms",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "noms"
+      },
+      {
+       "id": "f_cond2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "cond_ex"
+      },
+      {
+       "id": "w_cle",
+       "verb": "write",
+       "at": "cue:c_univers",
+       "target": "cle"
+      },
+      {
+       "id": "h_cle",
+       "verb": "highlight",
+       "at": "after:w_cle",
+       "target": "cle",
+       "role": "result"
+      },
+      {
+       "id": "s_cle_cond",
+       "verb": "show",
+       "at": "after:h_cle",
+       "target": "cle_cond"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

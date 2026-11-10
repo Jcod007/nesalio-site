@@ -84,6 +84,31 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-09 — Consignes allégées par défaut (Claude Code, session « relecteur »)
+- Décision de l'utilisateur (« Consignes allégées ») : `consignesFromEnv` (`prompt.ts`) rend la version allégée par
+  défaut ; `NESALIO_CONSIGNES=completes` redonne le prompt complet (gardé pour comparer). Pourquoi : elle a fait mieux
+  partout où on l'a mesurée (leçons intactes, note à l'aveugle 63,7 contre 59,9), et le relecteur et les corrections
+  des leçons coupées ont été mesurés avec elle.
+- Tests : `prompt-consignes.test.ts` (défaut = allégée ; empreinte du prompt complet inchangée, demandée par
+  `completes`) ; 3 vérifications de règles de forme retirées de l'allégée (`prompt.test.ts`, `pedagogy.test.ts`)
+  portent maintenant sur la version complète. Doc du banc : `NESALIO_CONSIGNES=completes`.
+- Vérifié : `npx vitest run` 908 verts, `tsc` vert. Rien commité.
+
+### 2026-11-09 — Leçons coupées : mesure après corrections (Claude Code, session « relecteur »)
+- Demande de l'utilisateur : les 17 questions coupées seulement, 2 tirages, puis passer à un autre chantier.
+  `analyses/banc/coupees-apres` (11 questions Alloprof) et `coupees-apres-nouvelles` (6 du nouveau lot), consignes
+  allégées, relecteur actif (défaut), code de `d2103a3`.
+- **34 leçons intactes sur 34.** Avant, sur ces mêmes 17 questions : 17 coupées sur 45 tirages (38 %) dans
+  `ap2-allegees` et `ap3*`. Attention : questions choisies parce qu'elles avaient échoué (une partie du gain peut être
+  du hasard), mais 0 sur 34 reste net.
+- Ce qui a servi : la « dernière chance » 3 fois (3 leçons sauvées : tableaux sans intitulé par ligne, ligne JSON
+  « 70,00 »). Les autres réparations (repère accentué, intervalle inversé, JSON recollé, intitulé vide, % × 100,
+  grands nombres) n'ont pas eu à jouer sur ces tirages : le modèle n'a pas refait ces variantes.
+- Délais : 1re tranche médiane 3,8 à 4,8 s (p90 jusqu'à 13 s), total médian 24 s ; attente estimée de l'élève 0.
+  Relecteur : 123 relectures, 2,6 s médian, 0 échec ; 21 tranches corrigées dans 15 leçons.
+- Coût réel : 1,02 $ les 34 leçons (≈ 0,03 $/leçon). La clé d'essai doit être à son plafond ou presque.
+- Prochaine étape : autre chantier, au choix de l'utilisateur. Rien commité.
+
 ### 2026-11-09 — Leçons coupées : corrections 1 à 7 (Claude Code, session « relecteur »)
 - Diagnostic : 17 leçons non intactes sur 210 (bancs `ap2-allegees`, `ap3-*`) ; détail et causes dans
   `diagnostic-lecons-coupees.md` des notes. L'utilisateur a choisi « 1 à 7 » (la 8, cases > 24 caractères, reste ouverte).

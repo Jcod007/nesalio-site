@@ -25,28 +25,31 @@ const sha256 = (text: string) => createHash("sha256").update(text, "utf8").diges
 afterEach(() => { vi.unstubAllEnvs(); });
 
 describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
-  it("sans la variable, le prompt complet est inchangé à l'octet près", () => {
-    vi.stubEnv("NESALIO_CONSIGNES", undefined);
+  it("le prompt complet, demandé par NESALIO_CONSIGNES=completes, est inchangé à l'octet près", () => {
+    vi.stubEnv("NESALIO_CONSIGNES", "completes");
     const prompt = buildNesalioSystemPrompt();
     expect(prompt.length).toBe(FULL_PROMPT_LENGTH);
     expect(sha256(prompt)).toBe(FULL_PROMPT_SHA256);
     expect(buildNesalioSystemPrompt("completes")).toBe(prompt);
   });
 
-  it("seule la valeur allegees active la version allégée", () => {
-    expect(consignesFromEnv({})).toBe("completes");
-    expect(consignesFromEnv({ NESALIO_CONSIGNES: "" })).toBe("completes");
-    expect(consignesFromEnv({ NESALIO_CONSIGNES: "allégées" })).toBe("completes");
+  it("la version allégée est le défaut ; seule la valeur completes rend le prompt complet", () => {
+    // Choix de l'utilisateur le 2026-11-09, après les mesures au banc Alloprof.
+    expect(consignesFromEnv({})).toBe("allegees");
+    expect(consignesFromEnv({ NESALIO_CONSIGNES: "" })).toBe("allegees");
+    expect(consignesFromEnv({ NESALIO_CONSIGNES: "complètes" })).toBe("allegees");
     expect(consignesFromEnv({ NESALIO_CONSIGNES: "allegees" })).toBe("allegees");
-    vi.stubEnv("NESALIO_CONSIGNES", "autre");
-    expect(sha256(buildNesalioSystemPrompt())).toBe(FULL_PROMPT_SHA256);
+    expect(consignesFromEnv({ NESALIO_CONSIGNES: "completes" })).toBe("completes");
+    vi.stubEnv("NESALIO_CONSIGNES", undefined);
+    expect(buildNesalioSystemPrompt()).toBe(buildNesalioSystemPrompt("allegees"));
   });
 
   it("la variable passe jusqu'aux messages envoyés au modèle", () => {
-    vi.stubEnv("NESALIO_CONSIGNES", "allegees");
+    vi.stubEnv("NESALIO_CONSIGNES", "completes");
     const [system, user] = buildNesalioMessages("Comment je résous 3x + 5 = 17 ?");
-    expect(system!.content).toBe(buildNesalioSystemPrompt("allegees"));
+    expect(system!.content).toBe(buildNesalioSystemPrompt("completes"));
     vi.stubEnv("NESALIO_CONSIGNES", undefined);
+    expect(buildNesalioMessages("Comment je résous 3x + 5 = 17 ?")[0]!.content).toBe(buildNesalioSystemPrompt("allegees"));
     // Le guide de la notion (message utilisateur) ne dépend pas de la version.
     expect(buildNesalioMessages("Comment je résous 3x + 5 = 17 ?")[1]).toEqual(user);
   });

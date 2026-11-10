@@ -1,0 +1,59 @@
+QUESTION (ap-kc-donnee-manquante, chimie, sec 5, alloprof) : Soit l'équation : 2 A(g) <---> B(g) + 2 C(g). Ce système a une constante d'équilibre de 64. Sachant qu'à l'équilibre la concentration de B(g) est deux fois supérieure à celle de A(g), calcule la concentration de C(g).
+RÉPONSE DE RÉFÉRENCE : Kc = [B][C]²/[A]² = 2[C]²/[A] = 64, donc [C]² = 32[A] : il faut aussi [A] pour trouver un nombre.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver [C] avec la constante d'équilibre
+math_context : {"symbols":{"x":{"kind":"parameter","initial":2,"min":0.5,"max":3}},"expressions":{"Kc_expr":"64*x^4/x^2","B_val":"2*x","C_val":"sqrt(64/2)*x","Kc_verif":"2*(x^4)/(x^2)*(2*x)^2/(x^4)"}}
+=== Tranche s_donnees
+  OBJET eq [math] "\\ce{2A(g) <=> B(g) + 2C(g)}" 
+  OBJET Kc [math] "K_c = 64" 
+  OBJET rel [math] "[B] = 2\\,[A]" parts=[B] | = | 2\,[A]
+DIT (pose) : Tu as l'équation deux A gazeux en équilibre avec B gazeux plus deux C gazeux, et la constante d'équilibre vaut soixante-quatre.
+    write eq @cue:c_eq 
+    show Kc @- {"start":"cue:c_kc","end":"cue_end:c_64"}
+DIT (relation) : On te dit aussi qu'à l'équilibre, la concentration de B est deux fois celle de A. On écrit B égale deux A.
+    show rel @cue:c_B 
+    highlight rel @- {"start":"cue:c_B","end":"cue_end:c_B","role":"accent","part":"B"}
+    highlight rel @- {"start":"cue:c_deuxA","end":"cue_end:c_deuxA","role":"accent","part":"deuxA"}
+=== Tranche s_kc_ecrit
+  OBJET kcexpr [math] "K_c = \\dfrac{[B]\\,[C]^2}{[A]^2}" parts=K_c = | \dfrac{[B]\,[C]^2}{[A]^2}
+  OBJET kcexpr2 [math] "64 = \\dfrac{(2[A])\\,[C]^2}{[A]^2}" 
+  OBJET indice [callout] "L'exposant 2 de C vient du coefficient 2 devant C ; celui de A vient du coefficient 2 devant A." 
+DIT (definition) : La constante d'équilibre, c'est le produit des concentrations des produits sur celui des réactifs, chacune élevée à son coefficient.
+    write kcexpr @cue:c_exposant {"part":"kc"}
+    write kcexpr @cue:c_exposant {"part":"num"}
+    highlight kcexpr @- {"start":"cue:c_produits","end":"cue_end:c_produits","role":"accent"}
+    highlight kcexpr @- {"start":"cue:c_reactifs","end":"cue_end:c_reactifs","role":"accent"}
+DIT (remplace) : Donc soixante-quatre égale B fois C au carré, sur A au carré. On y remplace B par deux A.
+    transform kcexpr2 @cue:c_remplace {"source":"kcexpr"}
+    show indice @- {"start":"cue:c_remplace","end":"cue_end:c_remplace"}
+=== Tranche s_simplifie
+  OBJET etape2 [math] "64 = \\dfrac{2\\,\\cancel{[A]}\\,[C]^2}{\\cancel{[A]^2}}" 
+  OBJET etape3 [math] "64 = \\dfrac{2\\,[C]^2}{[A]}" 
+  OBJET etape4 [math] "[C]^2 = 32\\,[A]" 
+  OBJET etape5 [math] "[C] = \\sqrt{32\\,[A]}" 
+DIT (simplifie) : Un A en haut s'annule avec un A en bas : il reste un A au dénominateur, donc soixante-quatre égale deux C au carré sur A.
+    transform etape2 @cue:c_annule {"source":"kcexpr2"}
+    transform etape3 @after:t2 {"source":"etape2"}
+    highlight etape3 @- {"start":"cue:c_resteA","end":"cue_end:c_resteA","role":"accent"}
+DIT (isole) : On multiplie par A des deux côtés, puis on divise par deux : C au carré égale trente-deux fois A.
+    transform etape4 @cue:c_produit {"source":"etape3"}
+DIT (racine) : C égale la racine carrée de trente-deux fois A. On ne peut pas donner un nombre tant qu'on ignore la concentration de A.
+    transform etape5 @- {"start":"cue:c_racine","end":"cue_end:c_ignore","source":"etape4"}
+=== Tranche s_verif
+  OBJET exemple [text] "Si on savait [A] = 1 mol/L, alors [C] ≈ 5,66 mol/L." 
+DIT (cas) : Par exemple, si A valait un mole par litre, alors B vaudrait deux et C vaudrait environ cinq virgule soixante-six.
+    show exemple @- {"start":"cue:c_siA","end":"cue_end:c_un"}
+DIT (verif) : Vérifions : deux fois un au carré sur un au carré, multiplié par le carré de cinq virgule soixante-six, donne bien soixante-quatre.
+    highlight kcexpr @- {"start":"cue:c_verif","end":"cue_end:c_64","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "[C] = √(32[A]) : C dépend de A, il faut deux données pour conclure."   <<JAMAIS MONTRÉ>>
+  OBJET regle [math] "K_c = \\dfrac{[\\text{produits}]^{\\text{coeff}}}{[\\text{réactifs}]^{\\text{coeff}}}" parts=K_c = | \dfrac{[\text{produits}]^{\text{coeff}}}{[\text{réactifs}]^{\text{coeff}}}   <<JAMAIS MONTRÉ>>
+DIT (mepart) : Méfie-toi : quand tu simplifies les A, il en reste un au dénominateur. Le C ne s'obtient donc qu'en fonction de A.
+    fade_out exemple @cue:c_mefie 
+DIT (retenir) : À retenir : la constante d'équilibre relie entre elles toutes les concentrations. Ici, sans la valeur de A, on s'arrête à C égale racine de trente-deux fois A.
+    camera.focus  @cue:c_retenir {"targets":["regle","idee","etape5"],"bounds":"layout_bounds"}
+    highlight idee @- {"start":"cue:c_fin","end":"cue_end:c_fin","role":"result"}
+--- 5 tranches, 242 mots dits (≈ 1.6 min d'oral)

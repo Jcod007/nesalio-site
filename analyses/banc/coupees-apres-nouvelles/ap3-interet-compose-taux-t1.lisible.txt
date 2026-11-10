@@ -1,0 +1,53 @@
+QUESTION (ap3-interet-compose-taux, mathematiques, sec 5, alloprof) : Quelle serait la démarche pour ceci: félicia a emprunté 20000$ à un taux d’intérêt composé mensuellement et elle a réglé cette dette 3,75 ans plus tard par un versement de 25032,42$
+RÉPONSE DE RÉFÉRENCE : 20000(1 + i)^45 = 25032,42 (45 mois) ; (1 + i) = 1,251621^(1/45) = 1,005 ; taux de 0,5 % par mois, soit 6 % par année composé mensuellement.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver le taux d'un prêt à intérêt composé
+math_context : {"symbols":{"i":{"kind":"parameter","initial":0.02,"min":0,"max":0.05}},"expressions":{"capital_final":"20000*(1+0.006)^45","capital_final_alt":"20000*(1+i)^45","mensualite_approx":"25032.42/20000"}}
+=== Tranche s_poser
+  OBJET donnees [matrix] {"rows":[["20000 $","?","3,75 ans","25032,42 $"]],"column_labels":["capital emprunté","taux mensuel","durée","montant remboursé"]} 
+DIT (reformule) : Félicia emprunte vingt mille dollars à intérêt composé mensuellement, et rembourse vingt-cinq mille trente-deux dollars quarante-deux après trois ans et neuf mois.
+    show donnees @cue:c_vingt 
+DIT (inconnue) : Ce n'est pas le montant final qu'on cherche : on cherche le taux mensuel, le fameux i, celui qui multiplie le capital à chaque mois.
+    highlight donnees @- {"start":"cue:c_taux","end":"cue_end:c_i","role":"unknown","part":"c2"}
+=== Tranche s_multiplication
+  OBJET principe [math] "C = C_0(1 + i)^n" 
+  OBJET nb_mois [math] "3{,}75 \\times 12 = 45" 
+DIT (idee) : Voici l'idée de l'intérêt composé : chaque mois, le nouveau capital égale l'ancien multiplié par un plus i.
+    write principe @cue:c_capital 
+    highlight principe @cue:c_unplusi {"role":"accent"}
+DIT (nb) : Trois virgule sept cinq ans, c'est trois virgule sept cinq fois douze, donc quarante-cinq mois : voilà n.
+    write nb_mois @cue:c_fois 
+=== Tranche s_isoler
+  OBJET eq1 [math] "25032{,}42 = 20000(1 + i)^{45}" 
+  OBJET eq2 [math] "\\frac{25032{,}42}{20000} = 1{,}251621" 
+  OBJET eq3 [math] "(1 + i)^{45} = 1{,}251621" 
+  OBJET i_final [math] "i = (1{,}251621)^{1/45} - 1 \\approx 0{,}005" parts=i = | (1{,}251621)^{1/45} - 1 | \approx 0{,}005
+DIT (remplace) : On remplace chaque lettre par ce qu'on connaît : vingt-cinq mille trente-deux virgule quarante-deux égale vingt mille multiplié par un plus i exposant quarante-cinq.
+    write eq1 @cue:c_remplace 
+DIT (divise) : Pour isoler, on divise les deux côtés par vingt mille. Le rapport vaut un virgule deux cinq un six deux un.
+    transform eq2 @cue:c_divise {"source":"eq1"}
+    write eq2 @after:t_eq2 
+DIT (racine) : Un plus i exposant quarante-cinq égale un virgule deux cinq un six deux un. On prend donc la racine quarante-cinquième, qui revient à l'exposant un sur quarante-cinq.
+    transform eq3 @cue:c_racine {"source":"eq2"}
+DIT (isoler) : On enlève un des deux côtés : i environ zéro virgule zéro zéro cinq, soit un demi pour cent par mois.
+    transform i_final @cue:c_enleve {"source":"eq3"}
+    highlight i_final @- {"start":"cue:c_valeur","end":"cue_end:c_valeur","role":"result"}
+=== Tranche s_verif
+  OBJET verif [math] "20000(1{,}005)^{45} \\approx 25032{,}42" parts=20000(1{,}005)^{45} | \approx 25032{,}42
+DIT (verifie) : Vérifions : on rapplique la formule avec i égale zéro virgule zéro zéro cinq. Vingt mille multiplié par un virgule zéro zéro cinq exposant quarante-cinq donne environ vingt-cinq mille trente-deux virgule quarante-deux.
+    write verif @cue:c_verif 
+DIT (retenir) : À retenir : l'intérêt composé se résout en divisant par le capital de départ, puis en prenant la racine n-ième. Ici, i vaut environ un demi pour cent par mois.
+    fade_out donnees @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["verif","i_final"],"bounds":"layout_bounds"}
+    highlight i_final @- {"start":"cue:c_demi","end":"cue_end:c_demi","role":"result","part":"valeur"}
+=== Tranche s_recap
+  OBJET regle [math] "C = C_0(1 + i)^n" 
+  OBJET methode [text] "Diviser par C₀, puis racine n-ième." 
+DIT (synthese) : L'idée centrale : chaque période multiplie le capital par un plus i, donc après n périodes on a C égale C zéro fois un plus i exposant n. Pour trouver i, on divise par le capital de départ et on prend la racine n-ième.
+    fade_out verif @cue:c_idee 
+    show regle @cue:c_idee 
+    show methode @cue:c_racine 
+--- 5 tranches, 282 mots dits (≈ 1.9 min d'oral)
