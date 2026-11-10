@@ -365,6 +365,22 @@ export function repairMessage(sliceId: string, issues: readonly { path: readonly
 }
 
 /**
+ * Last chance for a tranche refused past its budget (generator.ts, once per lesson): the same
+ * fault had come back after each correction, so the model is asked to drop what it cannot get
+ * right instead of fixing it again.
+ */
+export function simplifyMessage(sliceId: string, issues: readonly { path: readonly PropertyKey[]; message: string }[]): string {
+  return [
+    `La tranche « ${sliceId} » est refusée, et les corrections permises pour cette leçon sont épuisées :`,
+    ...issues.slice(0, 6).map(({ path, message }) => `- ${path.map(String).join(".")} : ${message}`),
+    "Dernier essai : réécris-la PLUS SIMPLE, même slice_id, sur une ligne {\"slice\": …}. Garde ce que tu expliques,",
+    "mais retire ou remplace l'objet ou le geste fautif : un tableau devient une formule ou une phrase, un surlignage",
+    "difficile est retiré, une valeur calculée est écrite comme une formule ordinaire.",
+    "Puis écris toutes les tranches qui devaient la suivre, jusqu'à la fin de la leçon.",
+  ].join("\n");
+}
+
+/**
  * Message sent when the reviewer (review.ts) found errors of substance in a tranche: the
  * tranche, shown above, is corrected on those points only, then the lesson goes on.
  */

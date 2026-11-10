@@ -51,7 +51,8 @@ describe("tableau : en-têtes de colonnes, cases texte ou vides, parties surlign
   it("accepte un en-tête par colonne, ou un de plus pour la colonne des intitulés", () => {
     expect(valid({ rows: [[1, 16, 18]], column_labels: ["H", "O", "H₂O"] })).toBe(true);
     expect(valid({ rows: [[1, 16, 18]], row_labels: ["M (g/mol)"], column_labels: ["H", "O", "H₂O"] })).toBe(true);
-    expect(valid({ rows: [[1, 16, 18]], row_labels: ["M (g/mol)"], column_labels: ["", "H", "O", "H₂O"] })).toBe(false);
+    // An empty corner is a blank cell (accepted since 2026-11-09; normalize.ts usually removes it first).
+    expect(valid({ rows: [[1, 16, 18]], row_labels: ["M (g/mol)"], column_labels: ["", "H", "O", "H₂O"] })).toBe(true);
     expect(valid({ rows: [[1, 16, 18]], row_labels: ["M (g/mol)"], column_labels: ["espèce", "H", "O", "H₂O"] })).toBe(true);
     expect(valid({ rows: [[1, 16, 18]], column_labels: ["espèce", "H", "O", "H₂O"] })).toBe(false);
     expect(valid({ rows: [[1, 16, 18]], column_labels: ["H", "O"] })).toBe(false);

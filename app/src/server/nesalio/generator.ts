@@ -15,7 +15,7 @@ import type { ChatProvider } from "@/server/config";
 import { UpstreamError, type CompletionStream } from "@/server/tutor/chatCompletions";
 import { jsonrepair } from "jsonrepair";
 import type { ChatMessage } from "@/server/tutor/prompt";
-import { buildNesalioMessages, continueMessage, repairHeaderMessage, repairMessage, reviewFixMessage } from "./prompt";
+import { buildNesalioMessages, continueMessage, repairHeaderMessage, repairMessage, reviewFixMessage, simplifyMessage } from "./prompt";
 import type { ReviewAlert, SliceReviewer } from "./review";
 import { buildTeacherMessages, layoutRequest } from "./script";
 
@@ -90,6 +90,8 @@ export const REVIEW_TIMEOUT_MS = 12_000;
  * 37 000-character prompt read again): two keeps the student's wait bounded.
  */
 export const MAX_REVIEW_FIXES = 2;
+/** Longest refused line written in the server log. */
+const MAX_LOGGED_LINE = 4_000;
 /** Longest received value quoted back in a refusal. */
 const RECEIVED_LENGTH = 80;
 const HEADER = "en-tête";
@@ -275,6 +277,61 @@ function withReceived(issues: readonly ContractIssue[], slice: unknown): Contrac
   });
 }
 
+/** Depth of open braces and brackets at the end of a text, outside strings. */
+function jsonDepth(text: string): number {
+  let depth = 0;
+  let inString = false;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (inString) {
+      if (char === "\\") index++;
+      else if (char === "\"") inString = false;
+    } else if (char === "\"") inString = true;
+    else if (char === "{" || char === "[") depth++;
+    else if (char === "}" || char === "]") depth--;
+  }
+  return depth;
+}
+
+/** Most lines one object spread out is waited for: a pretty-printed tranche stays well under. */
+const MAX_SPREAD_LINES = 400;
+
+/**
+ * An object written over several lines, as pretty-printed JSON (« { » alone, then `"lesson": {`
+ * on the next line; seen on the Alloprof bench: header lost, then a tranche). The lines from a
+ * lone « { » are gathered until the braces close, then go on as one line, read with the usual
+ * repairs. If they never close (a new object starts, too long, end of the stream), they go on
+ * one by one, as before, and are refused with the « one line » advice.
+ */
+class SpreadObject {
+  private lines: string[] | undefined;
+  constructor(private readonly log?: GeneratorConfig["log"]) {}
+
+  push(line: string): string[] {
+    if (!this.lines) {
+      if (line !== "{") return [line];
+      this.lines = [line];
+      return [];
+    }
+    // A whole object on one line: the spread one was abandoned.
+    if (/^\{\s*"/.test(line) && jsonDepth(line) === 0) return [...this.flush(), line];
+    this.lines.push(line);
+    const text = this.lines.join(" ");
+    if (jsonDepth(text) > 0) return this.lines.length < MAX_SPREAD_LINES ? [] : this.flush();
+    // Closed: one line, read like any other (LaTeX escapes, jsonrepair) and refused as one if still unreadable.
+    this.log?.("nesalio: objet JSON sur plusieurs lignes recollé", `${this.lines.length} lignes`);
+    this.lines = undefined;
+    return [text];
+  }
+
+  /** The lines gathered so far, as they came. */
+  flush(): string[] {
+    const lines = this.lines ?? [];
+    this.lines = undefined;
+    return lines;
+  }
+}
+
 /** The call sent nothing for `idleTimeoutMs`. */
 class StreamIdle extends Error {}
 
@@ -394,6 +451,8 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
   let retried = false;
   /** Each refused tranche as last refused (repaired form, or the raw line if unreadable): shown back to the model. */
   const refusedLines = new Map<string, string>();
+  /** The one simplified rewrite asked when a tranche is refused past its budget. */
+  let lastChanceUsed = false;
   /** Tranches already read by the reviewer: a corrected tranche is not read again. */
   const reviewed = new Set<string>();
   let reviewFixes = 0;
@@ -436,6 +495,7 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
     const call = new AbortController();
     const callSignal = signal ? AbortSignal.any([signal, call.signal]) : call.signal;
     const splitter = new LineSplitter();
+    const spread = new SpreadObject(log);
     let refused: { id: string; issues: ContractIssue[]; header?: "invalid" | "missing"; review?: ReviewAlert[] } | undefined;
     /** A tranche held for the reviewer, and what followed it on the same line. */
     let pending: Candidate | undefined;
@@ -630,12 +690,14 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       outer: for await (const chunk of untilIdle(stream, idleMs, firstByteMs)) {
         if (chunk) receivedAny = true;
         for (const line of splitter.push(chunk)) {
-          yield* processLine(line);
-          if (refused || finished) break outer;
+          for (const whole of spread.push(line)) {
+            yield* processLine(whole);
+            if (refused || finished) break outer;
+          }
         }
       }
-      if (!refused && !finished) for (const line of splitter.flush()) {
-        yield* processLine(line);
+      if (!refused && !finished) for (const whole of [...splitter.flush().flatMap((line) => spread.push(line)), ...spread.flush()]) {
+        yield* processLine(whole);
         if (refused || finished) break;
       }
     } catch (error) {
@@ -668,12 +730,25 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       // As text: the server log drops object contents, and the reasons are what a refusal is diagnosed from.
       log?.("nesalio: tranche refusée", `${refused.id} — ${refused.issues.slice(0, 8)
         .map(({ path, message }) => `${path.map(String).join(".")} : ${message}`).join(" | ")}`);
+      // The refused tranche itself, as sent back: the reasons alone did not show why a refusal came back (diagnosis
+      // of the lessons stopped on the Alloprof bench).
+      const shownLine = refused.header ? undefined : refusedLines.get(refused.id);
+      if (shownLine) log?.("nesalio: ligne refusée", `${refused.id} — ${shownLine.length > MAX_LOGGED_LINE ? `${shownLine.slice(0, MAX_LOGGED_LINE)}…` : shownLine}`);
       // A review correction has its own budget (MAX_REVIEW_FIXES): it never stops the lesson.
+      let simplify = false;
       if (!refused.review && ((repaired.get(refused.id) ?? 0) >= MAX_ATTEMPTS || repairs >= MAX_REPAIRS)) {
-        // A refused tranche is never played; what was already valid stays playable.
-        log?.("nesalio: leçon arrêtée sur un refus", `${refused.id} — ${slices} tranche(s) jouable(s), ${repairs} correction(s) demandée(s)`);
-        yield stopped();
-        return;
+        // Once per lesson, a tranche refused past its budget is asked simpler (without the faulty object or gesture)
+        // instead of stopping the lesson: seen on the bench, the same fault repeated three times in a row.
+        if (!lastChanceUsed && !refused.header && refused.id !== STALLED && refused.id !== UNKNOWN_ID) {
+          lastChanceUsed = true;
+          simplify = true;
+          log?.("nesalio: dernière chance, tranche demandée simplifiée", refused.id);
+        } else {
+          // A refused tranche is never played; what was already valid stays playable.
+          log?.("nesalio: leçon arrêtée sur un refus", `${refused.id} — ${slices} tranche(s) jouable(s), ${repairs} correction(s) demandée(s)`);
+          yield stopped();
+          return;
+        }
       }
       if (!refused.review) {
         repairs++;
@@ -684,7 +759,8 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       const refusedLine = refused.header ? undefined : refusedLines.get(refused.id);
       messages.push({ role: "assistant", content: [...accepted, ...(refusedLine ? [refusedLine] : [])].join("\n") || "(rien)" }, {
         role: "user",
-        content: refused.review ? reviewFixMessage(refused.id, refused.review)
+        content: simplify ? simplifyMessage(refused.id, refused.issues)
+          : refused.review ? reviewFixMessage(refused.id, refused.review)
           : refused.header ? repairHeaderMessage(refused.header, refused.issues)
           : refused.id === STALLED ? resumeMessage([...acceptedIds], Math.round(idleMs / 1000))
           : repairMessage(refused.id, refused.issues, refusedLine !== undefined),

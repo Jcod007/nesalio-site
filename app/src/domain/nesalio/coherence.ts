@@ -515,6 +515,28 @@ function frameSpan(members: readonly SceneObject[], direction: "x" | "y" | "both
   return Math.max(1e-9, direction === "x" ? w : direction === "y" ? h || w : Math.max(w, h));
 }
 
+/** A member ending with « % » (`84{,}3 \%`). */
+const PERCENT_END = /\\%\s*\}*\s*$/;
+/** « × 100 » written in a member (`\times 100`, `\cdot 100`, `× 100`), the school way of turning a ratio into a percent. */
+const TIMES_HUNDRED = /(?:\\times|\\cdot|×|\*)\s*\{?\s*100(?![\d,.{])/;
+
+/**
+ * Both members read as numbers. When only one ends with « % », the school writing
+ * « \frac{35}{41,5} \times 100 ≈ 84,3 % » is also read with the percent as its number
+ * (84,3, not 0,843): seen on the Alloprof bench, a right rounding refused three times and the
+ * lesson stopped. The closer of the two readings is kept, so « 0,843 = 84,3 % » still passes.
+ */
+function percentReading(leftTex: string, rightTex: string): { a: LatexNumber; b: LatexNumber } | null {
+  const a = readLatexNumber(leftTex), b = readLatexNumber(rightTex);
+  if (!a || !b) return null;
+  const leftPercent = PERCENT_END.test(leftTex), rightPercent = PERCENT_END.test(rightTex);
+  // Only when the other member multiplies by 100 itself: « 25 = 25 % » or « 0,25 = 0,25 % » stay errors.
+  if (leftPercent === rightPercent || !TIMES_HUNDRED.test(leftPercent ? rightTex : leftTex)) return { a, b };
+  const hundred = (n: LatexNumber): LatexNumber => ({ ...n, value: n.value * 100, exact: null, halfUnit: n.halfUnit === null ? null : n.halfUnit * 100 });
+  const scaled = rightPercent ? { a, b: hundred(b) } : { a: hundred(a), b };
+  return Math.abs(scaled.a.value - scaled.b.value) < Math.abs(a.value - b.value) ? scaled : { a, b };
+}
+
 /** Checks the « = » and « ≈ » between numeric members; returns the formula, « = » turned into « ≈ » for a mere rounding. */
 function checkFormula(content: string, id: string, hasParts: boolean, path: readonly PropertyKey[], alerts: CoherenceAlert[]): string {
   const roundings: { start: number; end: number }[] = [];
@@ -528,8 +550,10 @@ function checkFormula(content: string, id: string, hasParts: boolean, path: read
         continue;
       }
       const leftTex = chain.members[i]!.tex.trim(), rightTex = chain.members[i + 1]!.tex.trim();
-      const a = readLatexNumber(leftTex), b = readLatexNumber(rightTex);
-      if (!a || !b || a.degrees !== b.degrees || refuting) continue;
+      const read = percentReading(leftTex, rightTex);
+      if (!read) continue;
+      const { a, b } = read;
+      if (a.degrees !== b.degrees || refuting) continue;
       // A conversion or a definition between units (« 1 mol = 6,02 × 10^23 », « 250 mL = 0,250 L »).
       if (a.unit !== b.unit && ((a.unit && b.unit) || (a.halfUnit !== null && b.halfUnit !== null))) continue;
       const half = Math.max(a.halfUnit ?? 0, b.halfUnit ?? 0);
@@ -569,8 +593,10 @@ function checkInequality(
 ): void {
   const order = orderOf(written);
   if (!order || refuting) return;
-  const a = readLatexNumber(leftTex), b = readLatexNumber(rightTex);
-  if (!a || !b || a.degrees !== b.degrees || a.unit !== b.unit) return;
+  const read = percentReading(leftTex, rightTex);
+  if (!read) return;
+  const { a, b } = read;
+  if (a.degrees !== b.degrees || a.unit !== b.unit) return;
   // Rounded members: only a gap larger than the rounding counts. Equal members only break a strict inequality.
   const slack = Math.max(a.halfUnit ?? 0, b.halfUnit ?? 0) * (1 + 1e-6) + 1e-9 * Math.max(1, Math.abs(a.value), Math.abs(b.value));
   const gap = order.direction * (a.value - b.value);

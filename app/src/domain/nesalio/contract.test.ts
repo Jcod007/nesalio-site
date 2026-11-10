@@ -198,7 +198,11 @@ describe("contrat Nesalio", () => {
     const evaluate = compileNamedExpression("1 / speed_now", new Set(["speed_now"]));
     expect(evaluate(new Map([["speed_now", 4]]))).toBe(0.25);
     expect(evaluate(new Map([["speed_now", 0]]))).toBeNull();
-    expect(() => compileNamedExpression("speed_now^33", new Set(["speed_now"]))).toThrow("Exposant");
+    expect(() => compileNamedExpression("speed_now^401", new Set(["speed_now"]))).toThrow("Exposant");
+    // Banc Alloprof (caco3, interet-compose) : nombre d'Avogadro et 120 mois d'intérêt composé, en-têtes refusés.
+    expect(compileNamedExpression("602200000000000000000000*2", new Set())(new Map())).toBeCloseTo(1.2044e24, -20);
+    expect(compileNamedExpression("1000*(1+0.005)^120", new Set())(new Map())).toBeCloseTo(1819.4, 1);
+    expect(() => compileNamedExpression("20000000000000000000000000000000", new Set())).toThrow("Constante hors limite");
     // floor and ceil: the integer part, announced by the prompt (P5); other names stay unknown.
     expect(compileNamedExpression("floor(speed_now)", new Set(["speed_now"]))(new Map([["speed_now", -1.5]]))).toBe(-2);
     expect(() => compileNamedExpression("round(speed_now)", new Set(["speed_now"]))).toThrow("Nom inconnu");

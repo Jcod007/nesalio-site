@@ -76,7 +76,23 @@ describe("générateur Nesalio", () => {
     expect(kinds(events)).toEqual(["lesson", "slice:s1", "error"]);
     // Seen by the user: a lesson cut short was announced as finished. It is now said to be incomplete.
     expect(events.at(-1)).toMatchObject({ kind: "error", code: "incomplete" });
-    expect(model.calls).toHaveLength(1 + MAX_ATTEMPTS);
+    // Plus the one simplified rewrite (last chance), refused too.
+    expect(model.calls).toHaveLength(2 + MAX_ATTEMPTS);
+    expect(model.calls.at(-1)!.messages.at(-1)!.content).toContain("PLUS SIMPLE");
+  });
+
+  it("demande une fois une tranche plus simple au lieu d'arrêter la leçon, et garde la ligne refusée au journal", async () => {
+    // Banc Alloprof : la même faute revenait trois fois, la leçon s'arrêtait (sinus-cosinus, co2-ionique…).
+    const bad = slice("s2", "o_s2", "trian");
+    const model = scripted([header, slice("s1"), bad].join("\n"), bad, bad, [slice("s2"), slice("s3")].join("\n"));
+    const logs: string[] = [];
+    const events: NesalioEvent[] = [];
+    for await (const event of generateNesalio("Explique-moi un point", { provider, completion: model.completion, log: (m, d) => logs.push(`${m} ${String(d)}`) })) events.push(event);
+    expect(kinds(events)).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
+    expect(model.calls).toHaveLength(2 + MAX_ATTEMPTS);
+    expect(model.calls.at(-1)!.messages.at(-1)!.content).toContain("Dernier essai : réécris-la PLUS SIMPLE");
+    expect(logs).toContainEqual(expect.stringMatching(/^nesalio: dernière chance, tranche demandée simplifiée s2/));
+    expect(logs).toContainEqual(expect.stringMatching(/^nesalio: ligne refusée s2 — \{"slice":\{"slice_id":"s2"/));
   });
 
   it("redonne une chance à une tranche dont la correction apporte une nouvelle erreur", async () => {
@@ -151,7 +167,7 @@ describe("générateur Nesalio", () => {
       ...Array.from({ length: MAX_REPAIRS + 2 }, (_, i) => [slice(`s${i + 1}`, `o${i + 1}`), slice(`s${i + 2}`, `o${i + 2}`, "trian")].join("\n"))];
     const model = scripted(...answers);
     const events = await run(model.completion);
-    expect(model.calls).toHaveLength(MAX_REPAIRS + 1);
+    expect(model.calls).toHaveLength(MAX_REPAIRS + 2);
     expect(events.at(-1)).toMatchObject({ kind: "error", code: "incomplete" });
   });
 
@@ -272,7 +288,7 @@ describe("générateur Nesalio", () => {
       const events = await run(model.completion);
       expect(kinds(events)).toEqual(["lesson", "slice:s1", "error"]);
       expect(events.at(-1)).toMatchObject({ kind: "error", code: "incomplete" });
-      expect(model.calls).toHaveLength(1 + MAX_ATTEMPTS);
+      expect(model.calls).toHaveLength(2 + MAX_ATTEMPTS);
     });
 
     it("ne joue pas la suite tant que la tranche refusée n’est pas rendue : il la redemande", async () => {
@@ -287,7 +303,7 @@ describe("générateur Nesalio", () => {
       const events = await run(stubborn.completion);
       expect(kinds(events)).toEqual(["lesson", "slice:s1", "error"]);
       expect(events.at(-1)).toMatchObject({ kind: "error", code: "incomplete" });
-      expect(stubborn.calls).toHaveLength(1 + MAX_ATTEMPTS);
+      expect(stubborn.calls).toHaveLength(2 + MAX_ATTEMPTS);
     });
 
     it("annonce une leçon incomplète quand une tranche lisible refusée n’est jamais rendue", async () => {
@@ -348,6 +364,21 @@ describe("générateur Nesalio", () => {
       const spread = scripted([header, slice("s1"), "{", '"slice": {"slice_id": "s2",', "}"].join("\n"), [slice("s2"), slice("s3")].join("\n"));
       expect(kinds(await run(spread.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
       expect(spread.calls[1]!.messages.at(-1)!.content).toContain("UNE seule ligne");
+    });
+
+    it("recolle un en-tête et une tranche écrits sur plusieurs lignes (JSON indenté)", async () => {
+      // Banc Alloprof (loi-hess, trois-pieces) : « { » seul puis "lesson": { … sur les lignes suivantes.
+      const pretty = (line: string) => JSON.stringify(JSON.parse(line), null, 2).split("\n");
+      const model = scripted([...pretty(header), ...pretty(slice("s1")), slice("s2")].join("\n"));
+      expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
+      expect(model.calls).toHaveLength(1);
+      // With LaTeX written with one backslash (`\sqrt`), read with the same repairs as a one-line tranche (relecture du code).
+      const latex = JSON.stringify({ slice: { slice_id: "s2", introduces: [{ id: "r", type: "math", content: "\\sqrt{2}" }],
+        beats: [{ id: "b", say: "Voici racine de deux.", cues: [{ id: "c", text: "racine" }], do: [{ id: "w", verb: "write", target: "r", at: "cue:c" }] }] } }, null, 2)
+        .replace("\\\\sqrt", "\\sqrt").split("\n");
+      const withLatex = scripted([header, slice("s1"), ...latex].join("\n"));
+      expect(kinds(await run(withLatex.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
+      expect(withLatex.calls).toHaveLength(1);
     });
 
     it("lit sans appel une ligne JSON terminée par une virgule ou un crochet (sortie en tableau)", async () => {

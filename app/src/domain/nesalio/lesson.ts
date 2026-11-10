@@ -68,8 +68,9 @@ const EngineScene = z.strictObject({
       on_non_finite: z.literal("render_gap_and_report_diagnostic"),
       max_ast_nodes: z.literal(64),
       max_ast_depth: z.literal(12),
-      max_abs_constant: z.literal(1e9),
-      max_abs_exponent: z.literal(32),
+      // 1e9 and 32 until 2026-11-09: lessons saved before still read.
+      max_abs_constant: z.union([z.literal(1e30), z.literal(1e9)]),
+      max_abs_exponent: z.union([z.literal(400), z.literal(32)]),
       max_expression_length: z.literal(256),
     }),
   }),

@@ -315,7 +315,6 @@ describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
     const rows = [[1, 2], [3, 4]];
     const raw = table({ rows, row_labels: null, column_labels: ["", " "] });
     expect(valid(raw)).toContainEqual(expect.stringContaining("row_labels : Invalid input"));
-    expect(valid(raw)).toContainEqual(expect.stringContaining("column_labels.0 : Too small"));
     const { slice: fixed, fixes } = normalizeSlice(raw);
     expect(valid(fixed)).toEqual([]);
     expect((fixed as { introduces: { params: unknown }[] }).introduces[0]!.params).toEqual({ rows });
@@ -325,15 +324,66 @@ describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
   it("retire l'en-tête vide du coin quand il y a un en-tête de plus pour les intitulés de lignes", () => {
     const rows = [[1, 2], [3, 4]];
     const raw = table({ rows, row_labels: ["P (kPa)", "V (L)"], column_labels: ["", "état 1", "état 2"] });
-    expect(valid(raw)).toContainEqual(expect.stringContaining("column_labels.0 : Too small"));
     const { slice: fixed } = normalizeSlice(raw);
     expect(valid(fixed)).toEqual([]);
     expect((fixed as { introduces: { params: { column_labels: string[] } }[] }).introduces[0]!.params.column_labels).toEqual(["état 1", "état 2"]);
-    // An empty header elsewhere, or with no row titles: which header is missing is not known, the refusal stays.
-    const middle = table({ rows, row_labels: ["P", "V"], column_labels: ["grandeur", "", "état 2"] });
-    expect(valid(normalizeSlice(middle).slice)).not.toEqual([]);
+    // One more header than columns with no row titles: which column it names is not known, the refusal stays.
     const noTitles = table({ rows, column_labels: ["", "état 1", "état 2"] });
     expect(valid(normalizeSlice(noTitles).slice)).not.toEqual([]);
+  });
+
+  it("renomme un repère accentué partout dans son passage", () => {
+    // Banc Alloprof (ph5-base) : « c_libère » refusé, leçon arrêtée.
+    const raw = slice({
+      say: "L'acide libère des ions, puis on trouve douze.",
+      cues: [{ id: "c_libère", text: "libère" }, { id: "c_douze", text: "douze" }],
+      do: [{ id: "w", verb: "write", target: "eq", at: "cue:c_libère" },
+        { id: "h", verb: "highlight", target: "eq", start: "cue:c_libère", end: "cue_end:c_douze" }],
+    });
+    expect(valid(raw)).not.toEqual([]);
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect(fixes).toContain("repère « c_libère » renommé « c_libere »");
+    expect(JSON.stringify(fixed)).not.toContain("libère\",\"text");
+    expect(JSON.stringify(fixed)).toContain("\"at\":\"cue:c_libere\"");
+    // Cited as an object, the accented name is found too (relecture du code).
+    const object = slice({
+      say: "L'acide libère des ions, puis on trouve douze.",
+      cues: [{ id: "c_libère", text: "libère" }],
+      do: [{ id: "w", verb: "write", target: "eq", at: { cue: "c_libère" } }],
+    });
+    expect(valid(normalizeSlice(object).slice)).toEqual([]);
+  });
+
+  it("remet dans l'ordre un intervalle dont la fin vient avant le début dans la phrase", () => {
+    // Banc Alloprof (sinus-cosinus, trois-pieces) : « La fin doit suivre le début » refusé trois fois.
+    const raw = slice({ do: [{ id: "h", verb: "highlight", target: "eq", start: "cue:c_douze", end: "cue_end:c_isoler" }] });
+    expect(valid(raw)).toContainEqual(expect.stringContaining("La fin doit suivre le début"));
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect(fixes).toContain("h : début et fin d'intervalle inversés, remis dans l'ordre de la phrase");
+    expect((fixed as { beats: { do: Record<string, unknown>[] }[] }).beats[0]!.do[0]).toMatchObject({ start: "cue:c_isoler", end: "cue_end:c_douze" });
+    // Already in order: untouched.
+    expect(normalizeSlice(slice({ do: [{ id: "h", verb: "highlight", target: "eq", start: "cue:c_isoler", end: "cue_end:c_douze" }] })).fixes).toEqual([]);
+  });
+
+  it("accepte un intitulé vide (case vide) et retire une liste d'intitulés vide", () => {
+    // Banc Alloprof : parabole-foyer, gaz-ballons-helium (« row_labels.0 » et « column_labels.0 » vides),
+    // sinus-domaine (« row_labels : [] »), grammes-reactif : leçons arrêtées.
+    const rows = [[1, 2], [3, 4]];
+    const both = table({ rows, row_labels: ["", "V (L)"], column_labels: ["", "état 1", "état 2"] });
+    expect(valid(normalizeSlice(both).slice)).toEqual([]);
+    const middle = table({ rows, row_labels: ["P", "V"], column_labels: ["grandeur", "", "état 2"] });
+    expect(valid(normalizeSlice(middle).slice)).toEqual([]);
+    // Row titles all blank with a blank corner: both go, the table stays valid (relecture du code).
+    const blankRows = normalizeSlice(table({ rows, row_labels: ["", ""], column_labels: ["", "H", "O"] })).slice;
+    expect(valid(blankRows)).toEqual([]);
+    expect((blankRows as { introduces: { params: unknown }[] }).introduces[0]!.params).toEqual({ rows, column_labels: ["H", "O"] });
+    const empty = table({ rows, row_labels: [], column_labels: [] });
+    const { slice: fixed, fixes } = normalizeSlice(empty);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { introduces: { params: unknown }[] }).introduces[0]!.params).toEqual({ rows });
+    expect(fixes).toEqual(["tab : row_labels vide retiré du tableau", "tab : column_labels vide retiré du tableau"]);
   });
 
   it("écrit un tableau en entier quand write vise une de ses parts", () => {

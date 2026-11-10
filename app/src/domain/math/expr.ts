@@ -236,6 +236,15 @@ export function parseExpression(source: string): ExprNode {
 // floor and ceil: the integer part [x] (partie entière), announced by the prompt.
 const restrictedFunctions: ReadonlySet<string> = new Set(["sqrt", "abs", "sin", "cos", "tan", "exp", "log", "floor", "ceil"]);
 
+/**
+ * Limits of a named expression (engineShell.json, `max_abs_constant` and `max_abs_exponent`).
+ * Raised on 2026-11-09 from 1e9 and 32: the Alloprof bench lost lessons on the Avogadro number
+ * (6,022 × 10^23) and on monthly compound interest over ten years (exponent 120). A result too
+ * large for a number still becomes « no value » (`null`), as before.
+ */
+export const MAX_ABS_CONSTANT = 1e30;
+export const MAX_ABS_EXPONENT = 400;
+
 /** Expressions v3.3, avec des symboles déclarés et des limites indépendantes du moteur de rendu. */
 export function compileNamedExpression(
   source: string, symbols: ReadonlySet<string>,
@@ -251,14 +260,14 @@ export function compileNamedExpression(
       case "-": return left - right;
       case "*": return left * right;
       case "/": return left / right;
-      case "^": return Math.abs(right) <= 32 ? Math.pow(left, right) : NaN;
+      case "^": return Math.abs(right) <= MAX_ABS_EXPONENT ? Math.pow(left, right) : NaN;
     }
   }
   function compile(node: ExprNode, depth: number): Evaluate {
     if (++count > 64 || depth > 12) throw new ExprError("Expression trop complexe", 0);
     switch (node.kind) {
       case "num":
-        if (Math.abs(node.value) > 1e9) throw new ExprError("Constante hors limite", 0);
+        if (Math.abs(node.value) > MAX_ABS_CONSTANT) throw new ExprError("Constante hors limite", 0);
         return () => node.value;
       case "symbol":
         return (values) => values.get(node.name) ?? NaN;
@@ -279,7 +288,7 @@ export function compileNamedExpression(
         const left = compile(node.left, depth + 1);
         const right = compile(node.right, depth + 1);
         const exponent = node.right.kind === "neg" ? node.right.arg : node.right;
-        if (node.op === "^" && exponent.kind === "num" && Math.abs(exponent.value) > 32) {
+        if (node.op === "^" && exponent.kind === "num" && Math.abs(exponent.value) > MAX_ABS_EXPONENT) {
           throw new ExprError("Exposant hors limite", 0);
         }
         return (values) => binary(node.op, left(values), right(values));

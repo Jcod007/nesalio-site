@@ -53,7 +53,9 @@ const endpoints = z.strictObject({ from: Coordinate, to: Coordinate });
 const MatrixCell = z.union([z.number(), z.string().trim().max(24), z.null()]);
 const matrixRows = z.array(z.array(MatrixCell).min(1).max(16)).min(1).max(16)
   .refine((rows) => rows.every((row) => row.length === rows[0]?.length), "La matrice doit être rectangulaire.");
-const HeaderText = z.string().trim().min(1).max(60);
+/** Table titles: a blank one is drawn as an empty cell. */
+const BlankableText = z.string().trim().max(400);
+const BlankableHeader = z.string().trim().max(60);
 export type MatrixParams = {
   rows: readonly (readonly (number | string | null)[])[];
   row_labels?: readonly string[];
@@ -109,9 +111,11 @@ export const SceneObject = z.discriminatedUnion("type", [
   object("polygon", { params: z.strictObject({ vertices: z.array(Coordinate).min(3).max(64) }) }),
   object("matrix", { params: z.strictObject({
     rows: matrixRows,
-    row_labels: z.array(Text).min(1).max(16).optional()
+    // An empty title is a blank cell (the corner, a row without a title): refused, it stopped lessons on the
+    // Alloprof bench in forms the repair of normalize.ts did not cover. A list all blank or empty is removed there.
+    row_labels: z.array(BlankableText).min(1).max(16).optional()
       .describe("intitulé de chaque ligne (ex. « durée (h) ») : la matrice devient un tableau de valeurs quadrillé, intitulés en première colonne"),
-    column_labels: z.array(HeaderText).min(1).max(17).optional()
+    column_labels: z.array(BlankableHeader).min(1).max(17).optional()
       .describe("en-tête de chaque colonne (ex. « H », « O », « H₂O ») ; avec row_labels, un de plus possible en tête pour la colonne des intitulés"),
   })
     .refine((params) => !params.row_labels || params.row_labels.length === params.rows.length, "Un intitulé par ligne du tableau.")

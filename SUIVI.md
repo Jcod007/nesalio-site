@@ -84,6 +84,52 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-09 — Leçons coupées : corrections 1 à 7 (Claude Code, session « relecteur »)
+- Diagnostic : 17 leçons non intactes sur 210 (bancs `ap2-allegees`, `ap3-*`) ; détail et causes dans
+  `diagnostic-lecons-coupees.md` des notes. L'utilisateur a choisi « 1 à 7 » (la 8, cases > 24 caractères, reste ouverte).
+- Fait :
+  1. `coherence.ts` (`percentReading`) : « … × 100 ≈ 84,3 % » accepté (le % lu aussi comme son nombre ; la lecture la
+     plus proche est gardée), un pourcentage faux reste refusé.
+  2. `expr.ts` : constantes jusqu'à 10³⁰ (Avogadro), exposants jusqu'à 400 (intérêt mensuel) ; `engineShell.json` et
+     `lesson.ts` mis à jour, anciennes valeurs (10⁹, 32) encore lues pour les leçons enregistrées.
+  3. `contract.ts` : intitulé de tableau vide accepté (case vide) ; `normalize.ts` : liste d'intitulés vide ou toute
+     blanche retirée sans appel. Question de l'utilisateur : « on l'avait réglé ? » → oui, pour une seule forme (case du
+     coin quand il y a un en-tête de trop) ; le modèle en écrit d'autres, d'où la règle générale.
+  4. `normalize.ts` : repère accentué renommé partout (`renameCueIds`) ; début et fin d'intervalle inversés remis dans
+     l'ordre de la phrase (`orderInterval`).
+  5. `generator.ts` (`SpreadObject`) : un objet JSON indenté sur plusieurs lignes, à partir d'un « { » seul, est recollé ;
+     sinon les lignes passent comme avant (même refus « une seule ligne »).
+  6. `generator.ts` + `prompt.ts` (`simplifyMessage`) : une fois par leçon, une tranche refusée au-delà de son budget est
+     redemandée « plus simple » au lieu d'arrêter la leçon (pas pour l'en-tête ni un flux muet).
+  7. `generator.ts` : la ligne refusée est écrite au journal (« nesalio: ligne refusée », 4 000 caractères au plus).
+- Vérifié : `npx vitest run` 908 verts (tests ajoutés ou ajustés dans `coherence`, `contract`, `table`, `normalize`,
+  `generator`) ; `tsc` vert ; rejeu des contrôles sur 570 leçons du banc : mêmes 21 refus de vraies erreurs, 1 leçon
+  invalide ancienne (`m-luna/radian-sens-t1`, « Partie déjà écrite »), sans lien.
+- Relecture du code par un agent (`relecteur-lecons-coupees.md` des notes) : rien de bloquant, 4 défauts corrigés :
+  pourcentage lu comme son nombre SEULEMENT si l'autre membre contient « × 100 » (sinon « 25 = 25 % » passait) ;
+  objet recollé passé comme une ligne normale (réparations LaTeX et jsonrepair ; avant, `\sqrt` le faisait refuser) ;
+  intitulés de ligne tout blancs + case de coin → les deux retirés ; repère accentué cité en objet (`{"cue": …}`)
+  retrouvé. Détails : inégalités avec « × 100 … % » lues pareil ; message de dernière chance juste quand c'est le
+  budget de la leçon qui est épuisé ; `orderInterval` ne touche plus un geste qui a `at`.
+- Revérifié : `npx vitest run` 908 verts, `tsc` vert, rejeu des contrôles inchangé (21 refus, 1 ancienne invalide).
+- Non vérifié : effet en vraie génération (banc Alloprof à relancer avec une nouvelle clé). Rien commité.
+
+### 2026-11-09 — Décision : chantier « rendu » mis de côté (utilisateur)
+- Mise à jour manim-web 0.41.0, transform, tailles de texte, molécules : reportés. Pas de changement de code.
+
+### 2026-11-09 — Évaluation de manim-web 0.41.0 (Claude Code, session « relecteur »)
+- Demande de l'utilisateur (« évalue-le »). Essai hors dépôt dans le navigateur intégré, 0.39.4 (la nôtre) contre
+  0.41.0, transform de la leçon « équilibrer » reproduit comme `drawMorphs`. Rien changé dans le projet, rien payé.
+  Rapport : `evaluation-manim-web.md` des notes.
+- **Lettres fantômes** : reproduites en 0.39.4 (fin du transform : formule doublée, O pleins) ; **disparues en 0.41.0**,
+  mais `TransformMatchingTex` n'y retrouve plus les lettres communes (fondu complet au lieu d'un morphing).
+- 0.41.0 change aussi : texte simple 33 % plus large (`Text` aux tailles ManimCE, formules inchangées) ; rendu suspendu
+  quand le tableau est caché. → **Pas de mise à jour telle quelle** ; à faire dans un chantier « rendu » (transform qui
+  ne fait apparaître que ce qui change, tailles de texte recalées, vidéos du juge rejouées).
+- **Molécules** : `BohrDiagram`, `MoleculeMobject`, SMILES existent déjà en 0.39.4 ; 0.41.0 corrige Bohr (K 2,8,8,1 au
+  lieu de 2,8,9) et la disposition (CO₂ droit). Pas de notation de Lewis. Les utiliser = nouveau type d'objet JSON :
+  décision de l'utilisateur.
+
 ### 2026-11-09 — Relecteur activé par défaut ; compute-engine rejoué (Claude Code, session « relecteur »)
 - **Décision de l'utilisateur** (« Oui, l'activer ») : le relecteur est actif par défaut ; `NESALIO_RELECTEUR=0` le
   coupe (`config.ts`, `readReviewer` ; commentaires de la route, du générateur, de `review.ts` et du banc). Le banc

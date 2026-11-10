@@ -7,6 +7,7 @@
  * qui refuse la tranche.
  */
 import { compileNamedExpression } from "@/domain/math/expr";
+import { cueOffset } from "./alignment";
 import type { MathContext } from "./contract";
 import { normalFormula, sameFormula, standaloneTex, type ValidationState } from "./validate";
 
@@ -23,13 +24,63 @@ const fold = (text: string) => Array.from(text, (char) => char.normalize("NFD")[
 const slug = (text: string) => text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
 
 /**
+ * A cue id with an accent or another character the contract refuses (« c_libère », seen on
+ * the Alloprof bench and refused until the lesson stopped): written without it, the same
+ * name in every reference of the passage. A name already taken gets a number.
+ */
+function renameCueIds(cues: Json[], actions: Json[], fixes: string[]): void {
+  const taken = new Set(cues.map(({ id }) => id));
+  for (const cue of cues) {
+    if (typeof cue.id !== "string" || ID.test(cue.id)) continue;
+    const base = slug(cue.id);
+    let id = /^[a-z]/.test(base) ? base : `c_${base || "repere"}`;
+    for (let n = 2; taken.has(id); n++) id = `${/^[a-z]/.test(base) ? base : `c_${base || "repere"}`}_${n}`;
+    if (!ID.test(id)) continue;
+    const old = cue.id;
+    taken.add(id);
+    cue.id = id;
+    for (const action of actions) for (const field of ["at", "start", "end"] as const) {
+      if (action[field] === `cue:${old}`) action[field] = `cue:${id}`;
+      if (action[field] === `cue_end:${old}`) action[field] = `cue_end:${id}`;
+    }
+    fixes.push(`repère « ${old} » renommé « ${id} »`);
+  }
+}
+
+/**
+ * An interval whose end comes before its start in the sentence (start on « cosinus », end after
+ * « sinus » said before it): its two words are swapped, so the gesture covers both. Seen on the
+ * Alloprof bench, refused three times in a row until the lesson stopped.
+ */
+function orderInterval(action: Json, say: string, cues: Json[], fixes: string[]): void {
+  const at = (time: unknown) => {
+    const match = typeof time === "string" ? /^(cue|cue_end):(.+)$/.exec(time) : null;
+    const cue = match && cues.find(({ id }) => id === match[2]);
+    if (!match || !cue || typeof cue.text !== "string") return;
+    const start = cueOffset(say, cue.text, typeof cue.occurrence === "number" ? cue.occurrence : 1);
+    return start < 0 ? undefined : { id: match[2]!, start, end: start + cue.text.length, kind: match[1]! };
+  };
+  // With `at`, the interval is not what times the gesture: nothing to put in order.
+  if (action.at !== undefined) return;
+  const start = at(action.start), end = at(action.end);
+  if (!start || !end) return;
+  const from = start.kind === "cue" ? start.start : start.end, to = end.kind === "cue" ? end.start : end.end;
+  // In order, or the same words named twice (`cue_end:x` to `cue:x`): left to the validation.
+  if (to > from || end.start >= start.start) return;
+  action.start = `cue:${end.id}`;
+  action.end = `cue_end:${start.id}`;
+  fixes.push(`${String(action.id)} : début et fin d'intervalle inversés, remis dans l'ordre de la phrase`);
+}
+
+/**
  * The cue a reference names without its exact id, when exactly one cue of the
  * passage fits: `cue:isoler` for the cue `c_isoler` (prefix left out) or for the
  * cue whose text is « isoler ».
  */
 function resolveCue(reference: string, cues: Json[]): string | undefined {
+  // `slug(id)`: a cue already renamed without its accent (renameCueIds), cited with it (`{"cue": "c_libère"}`).
   const matches = cues.filter(({ id, text }) => typeof id === "string"
-    && (id.endsWith(`_${reference}`) || (typeof text === "string" && slug(text) === slug(reference))));
+    && (id.endsWith(`_${reference}`) || id === slug(reference) || (typeof text === "string" && slug(text) === slug(reference))));
   return matches.length === 1 ? matches[0]!.id as string : undefined;
 }
 
@@ -265,13 +316,19 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
       fixes.push(`${String(item.id)} : ${key} à null retiré du tableau`);
     }
     const blank = (label: unknown) => typeof label === "string" && label.trim() === "";
+    // Row titles written, even all blank: one more column header may stand above them (the corner).
+    const titled = Array.isArray(params.row_labels);
+    // An empty list (`"row_labels": []`), or a list of blank titles only: the same table without it.
+    for (const key of ["row_labels", "column_labels"] as const) {
+      const list = params[key];
+      if (!Array.isArray(list) || (list.length > 0 && !list.every(blank))) continue;
+      delete params[key];
+      fixes.push(`${String(item.id)} : ${key} vide retiré du tableau`);
+    }
     const labels = params.column_labels;
     const columns = Array.isArray(params.rows) && Array.isArray(params.rows[0]) ? params.rows[0].length : undefined;
-    if (Array.isArray(labels) && labels.length > 0 && labels.every(blank)) {
-      delete params.column_labels;
-      fixes.push(`${String(item.id)} : en-têtes de colonnes tous vides retirés`);
-    } else if (Array.isArray(labels) && Array.isArray(params.row_labels) && columns !== undefined
-      && labels.length === columns + 1 && blank(labels[0]) && labels.slice(1).every((label) => typeof label === "string" && !blank(label))) {
+    if (Array.isArray(labels) && titled && columns !== undefined && labels.length === columns + 1 && blank(labels[0])
+      && (!Array.isArray(params.row_labels) || labels.slice(1).every((label) => typeof label === "string" && !blank(label)))) {
       // The empty corner above the row titles: the contract places the titles' column without a header.
       params.column_labels = labels.slice(1);
       fixes.push(`${String(item.id)} : en-tête vide du coin du tableau retiré`);
@@ -335,6 +392,7 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
   const earlier = new Set<unknown>();
   for (const beat of beats) {
     const cues = objects(beat.cues);
+    renameCueIds(cues, objects(beat.do), fixes);
     const cueIds = new Set(cues.map(({ id }) => id));
     const own = new Set(objects(beat.do).map(({ id }) => id));
     // A cue copied with another case, accent or apostrophe: the words of the sentence, exactly as said.
@@ -420,6 +478,7 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
           fixes.push(`${String(action.id)} : repère « ${match[2]} » lu comme « ${resolved} »`);
         }
       }
+      if (typeof beat.say === "string") orderInterval(action, beat.say, cues, fixes);
     }
     for (const id of own) earlier.add(id);
   }

@@ -110,6 +110,19 @@ describe("formules", () => {
     expect(rules(check([math("f", String.raw`1{,}04^{5} \approx 1{,}3`)]).alerts)).toEqual(["refused/false_equality"]);
   });
 
+  it("lit « × 100 ≈ 84,3 % » comme l'écrit l'école, et refuse encore un pourcentage faux", () => {
+    // Banc Alloprof (rendement-theorique) : refusé trois fois, la leçon s'arrêtait.
+    for (const content of [String.raw`\frac{35{,}0}{41{,}5} \times 100 \approx 84{,}3 \%`, String.raw`\frac{35{,}0}{41{,}5} \approx 84{,}3 \%`,
+      String.raw`0{,}843 = 84{,}3\%`]) expect(rules(check([math("f", content)]).alerts), content).toEqual([]);
+    expect(rules(check([math("f", String.raw`\frac{35}{41{,}5} \times 100 < 90 \%`)]).alerts)).toEqual([]);
+    expect(rules(check([math("f", String.raw`\frac{35}{41{,}5} \times 100 > 90 \%`)]).alerts)).toEqual(["refused/false_inequality"]);
+    // Without « × 100 », the percent keeps its value: these are still errors (relecture du code).
+    for (const content of [String.raw`\frac{35{,}0}{41{,}5} \times 100 \approx 80 \%`, String.raw`25 = 25\%`, String.raw`0{,}25 = 0{,}25\%`,
+      String.raw`\frac{1}{4} = 0{,}25 \%`, String.raw`\frac{35}{41{,}5} \approx 0{,}843 \%`]) {
+      expect(rules(check([math("f", content)]).alerts), content).toEqual(["refused/false_equality"]);
+    }
+  });
+
   it("remplace = par ≈ pour un simple arrondi", () => {
     const result = check([math("f", String.raw`\frac{1}{3} = 0{,}333`)]);
     expect(rules(result.alerts)).toEqual(["corrected/rounded_equality"]);
