@@ -506,6 +506,8 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
   revealTargeted(slice, beats, fixes);
   if (before) fixComputedResult(slice, beats, before.math, fixes);
   headerRowAsColumnLabels(slice, beats, fixes);
+  splitRelations(slice, beats, fixes);
+  textItemsAsBlock(slice, beats, fixes);
   writeForgottenParts(slice, beats, fixes);
   showForgotten(slice, beats, fixes);
   highlightResultOnly(slice, beats, fixes);
@@ -659,6 +661,86 @@ function headerRowAsColumnLabels(slice: Json, beats: Json[], fixes: string[]): v
     }
     fixes.push(`${String(item.id)} : première ligne « ${first.join(" | ")} » prise comme en-têtes de colonnes (en-tête écrit deux fois)`);
   }
+}
+
+/** Where a formula's separate relations meet at its top level: « et », a wide space, a semicolon. */
+const RELATION_SEPARATOR = /^(?:\\q?quad\s*(?:\\text\{\s*(?:et|puis|donc)\s*\}\s*\\q?quad)?|;\s*|\\text\{\s*(?:et|;)\s*\})/;
+
+/** A formula cut at its top-level separators: the pieces in order, separators kept as their own pieces. */
+function relationPieces(content: string): { text: string; relation: boolean }[] | null {
+  const pieces: { text: string; relation: boolean }[] = [];
+  let depth = 0, start = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    if (char === "{") depth++;
+    else if (char === "}") depth--;
+    if (depth !== 0) continue;
+    const match = RELATION_SEPARATOR.exec(content.slice(i));
+    if (!match || i === 0) continue;
+    pieces.push({ text: content.slice(start, i).trim(), relation: true }, { text: match[0].trim(), relation: false });
+    start = i + match[0].length;
+    i = start - 1;
+  }
+  pieces.push({ text: content.slice(start).trim(), relation: true });
+  const relations = pieces.filter(({ relation }) => relation);
+  // Two relations at least, each a relation of its own (« 2/1 = 2 », « 3/3 = 1 »).
+  if (relations.length < 2 || relations.some(({ text }) => !text || lastRelation(text) <= 0)) return null;
+  return pieces.filter(({ text }) => text);
+}
+
+/**
+ * The same principle for everything on the board: what the lesson points at separately is its own block.
+ * A formula holding several separate relations (« 2/1 = 2 et 3/3 = 1 ») and highlighted whole several times:
+ * cut into one part per relation, each highlight aimed at the next relation in order. Seen in the real app
+ * (2026-11-10, « réactif limitant »): both ratios lit together while the voice said « le plus petit, c'est un ».
+ * Left alone when the highlights do not match the relations one by one.
+ */
+function splitRelations(slice: Json, beats: Json[], fixes: string[]): void {
+  const actions = beats.flatMap((beat) => objects(beat.do));
+  for (const item of objects(slice.introduces)) {
+    if (item.type !== "math" || typeof item.content !== "string" || item.parts !== undefined) continue;
+    const highlights = actions.filter((action) => action.verb === "highlight" && action.target === item.id && action.part === undefined);
+    if (highlights.length < 2 || actions.some((action) => action.target === item.id && action.part !== undefined)) continue;
+    const pieces = relationPieces(item.content);
+    if (!pieces) continue;
+    const relations = pieces.filter(({ relation }) => relation);
+    if (highlights.length !== relations.length || normalFormula(pieces.map(({ text }) => text).join(" ")) !== normalFormula(item.content)) continue;
+    let r = 0, s = 0;
+    const parts = pieces.map(({ text, relation }) => ({ id: relation ? `relation${++r}` : `lien${++s}`, text }));
+    item.parts = parts;
+    highlights.forEach((action, i) => { action.part = `relation${i + 1}`; });
+    fixes.push(`${String(item.id)} : ${relations.length} relations dans une formule surlignée ${highlights.length} fois, une part chacune`);
+  }
+}
+
+/** Where items written on one line meet: two spaces or more, « ; », « | ». */
+const ITEM_SEPARATOR = /\s{2,}|\s*;\s+|\s+\|\s+/;
+
+/**
+ * A text listing several items on one line (« n = 0,204 mol    V = 5,0 L    T = 298,15 K ») becomes a block: one
+ * text per item in a group arranged in a column, under the same id, so that the layout and every action that named
+ * the text name the block. Seen in the real app (2026-11-10, « PV = nRT »): the three data on one small line, cut in
+ * the wrong place. Left alone when the text is attached to an object (a group cannot be attached).
+ */
+function textItemsAsBlock(slice: Json, beats: Json[], fixes: string[]): void {
+  const introduces = Array.isArray(slice.introduces) ? slice.introduces : [];
+  const groups = Array.isArray(slice.groups) ? slice.groups : (slice.groups = []);
+  const taken = new Set<unknown>([...objects(introduces), ...objects(groups)].map(({ id }) => id));
+  for (const item of objects(introduces).slice()) {
+    if (item.type !== "text" || typeof item.content !== "string" || item.attachment !== undefined || item.frame !== undefined) continue;
+    // Bullets written between the items (« • ») are the separator, not items.
+    const pieces = item.content.split(ITEM_SEPARATOR).map((piece) => piece.replace(/^[•·–-]\s*|\s*[•·]$/g, "").trim()).filter((piece) => /[\p{L}\p{N}]/u.test(piece));
+    if (pieces.length < 2 || pieces.length > 6 || pieces.some((piece) => piece.length > 60)) continue;
+    const id = String(item.id);
+    const ids = pieces.map((_, i) => { let next = `${id}_${i + 1}`; for (let n = 2; taken.has(next); n++) next = `${id}_${i + 1}_${n}`; taken.add(next); return next; });
+    const { id: _id, content: _content, layout, ...shared } = item;
+    introduces.splice(introduces.indexOf(item), 1, ...pieces.map((content, i) => ({ ...shared, id: ids[i], content })));
+    groups.push({ id, items: ids, arrange: { direction: "down", align: "left", gap: "sm" }, ...(layout !== undefined ? { layout } : {}) });
+    // A group is shown, not written.
+    for (const action of beats.flatMap((beat) => objects(beat.do))) if (action.target === id && action.verb === "write") action.verb = "show";
+    fixes.push(`${id} : ${pieces.length} éléments sur une ligne, rangés en bloc l'un sous l'autre`);
+  }
+  if (!groups.length) delete slice.groups;
 }
 
 /** The last relation at the top level of a formula (outside braces): `=`, `≈` or `\approx`. */

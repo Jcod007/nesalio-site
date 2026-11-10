@@ -126,8 +126,8 @@ SYNCHRONISATION VOIX ↔ TABLEAU (règles strictes)
    Un highlight avec at est un éclair bref : pour que l'élève voie la partie surlignée pendant que tu en parles, donne start et end.
    Dans un matrix, highlight avec part « r2c3 » (case ligne 2, colonne 3), « r2 » (ligne) ou « c3 » (colonne), comptées
    depuis 1 sans les intitulés (highlight seulement).
-   Pour désigner UN MORCEAU d'une formule (le x, un coefficient, un membre), découpe la formule en parts en prévoyant
-   ce que tu vas désigner, puis highlight avec part : seule cette partie est surlignée, pas toute la formule.
+   Pour désigner UN MORCEAU d'une formule (le x, un coefficient, un membre, UNE relation parmi plusieurs), découpe la
+   formule en parts en prévoyant ce que tu vas désigner, puis highlight avec part : seule cette partie est surlignée.
 6. beat:start seulement pour ce qui doit être là dès le début du passage (cadrage, titre).
 7. after:id enchaîne une action à la fin d'une autre (surligner une formule juste après l'avoir écrite).
 8. Le premier passage de la leçon est court (une phrase) : l'élève attend sa voix. Ensuite, une ou deux phrases par passage,

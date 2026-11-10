@@ -21,9 +21,11 @@ import { PROMPT_EXAMPLES, buildNesalioMessages, buildNesalioSystemPrompt, consig
  * deux objets) et la phrase « Le moteur recadre les cibles du cadrage telles qu'elles sont alors » partent. 36 994 → 36 978.
  * Mise à jour VOLONTAIRE le 2026-11-10 (questions à l'élève, demande de l'utilisateur) : le FORMAT DE SORTIE reçoit la
  * ligne {"question": …} (4 lignes) et TEACHING remplace « Tu ne poses aucune question… » par au plus deux questions de vérification ; la limite des deux versions passe de 37 000 à 37 500 caractères. 36 978 → 37 466.
+ * Mise à jour VOLONTAIRE le 2026-11-10 : « désigner UN MORCEAU » cite aussi « UNE relation parmi plusieurs » (formule
+ * « 2/1 = 2 et 3/3 = 1 » surlignée en entier) ; « pas toute la formule » part. 37 466 → 37 474.
  */
-const FULL_PROMPT_SHA256 = "9fa33dbc562e27fa2e358fcde4be7c65d5e9d1d0b30162ef19d366350bfee38d";
-const FULL_PROMPT_LENGTH = 37_466;
+const FULL_PROMPT_SHA256 = "579accc406f7d0d9702b3377d9cd519c40e56d29dd3647c107d3a5cb89291d00";
+const FULL_PROMPT_LENGTH = 37_474;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 

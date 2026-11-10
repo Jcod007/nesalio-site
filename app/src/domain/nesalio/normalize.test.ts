@@ -722,3 +722,58 @@ describe("valeur calculée mise en évidence comme résultat", () => {
     expect(fixes.some((fix) => fix.includes("valeur calculée écrite en clair"))).toBe(true);
   });
 });
+
+describe("un élément désigné à part est un bloc à part", () => {
+  // Vraie fenêtre, 2026-11-10 (« réactif limitant ») : « 2/1 = 2 et 3/3 = 1 » surligné en entier deux fois.
+  it("donne une part à chaque relation d'une formule surlignée une fois par relation", () => {
+    const raw = slice({
+      introduces: [{ id: "calc", type: "math", content: String.raw`\frac{2}{1} = 2 \quad \text{et} \quad \frac{3}{3} = 1` }],
+      do: [
+        { id: "w", verb: "write", target: "calc", at: "beat:start" },
+        { id: "h1", verb: "highlight", target: "calc", role: "accent", at: "cue:c_isoler" },
+        { id: "h2", verb: "highlight", target: "calc", role: "result", at: "cue:c_douze" },
+      ],
+    });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    const done = fixed as { introduces: { parts?: { id: string; text: string }[] }[]; beats: { do: { id: string; part?: string }[] }[] };
+    expect(done.introduces[0]!.parts).toEqual([
+      { id: "relation1", text: String.raw`\frac{2}{1} = 2` }, { id: "lien1", text: String.raw`\quad \text{et} \quad` }, { id: "relation2", text: String.raw`\frac{3}{3} = 1` },
+    ]);
+    expect(done.beats[0]!.do.find((action) => action.id === "h1")!.part).toBe("relation1");
+    expect(done.beats[0]!.do.find((action) => action.id === "h2")!.part).toBe("relation2");
+    expect(fixes.some((fix) => fix.includes("2 relations"))).toBe(true);
+    // Highlighted once: which relation is meant is not known, the formula stays whole.
+    const once = normalizeSlice(slice({ introduces: raw.introduces, do: [
+      { id: "w", verb: "write", target: "calc", at: "beat:start" }, { id: "h1", verb: "highlight", target: "calc", at: "cue:c_isoler" },
+    ] }));
+    expect(once.fixes.some((fix) => fix.includes("relations"))).toBe(false);
+  });
+
+  // Vraie fenêtre, 2026-11-10 (« PV = nRT ») : trois données sur une petite ligne, coupée au mauvais endroit.
+  it("range en colonne les éléments d'un texte écrits sur une ligne, sous le même nom", () => {
+    const raw = slice({
+      introduces: [
+        { id: "donnees", type: "text", content: "n = 0,204 mol    V = 5,0 L    T = 298,15 K (25 °C)" },
+        { id: "eq", type: "math", content: "x = 12", layout: { next_to: "donnees", direction: "down" } },
+      ],
+      do: [{ id: "s", verb: "show", target: "donnees", at: "beat:start" }, { id: "w", verb: "write", target: "eq", at: "cue:c_douze" }],
+    });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    const done = fixed as { introduces: { id: string; content: unknown }[]; groups: { id: string; items: string[]; arrange: unknown }[] };
+    expect(done.introduces.map(({ id, content }) => [id, content]).slice(0, 3)).toEqual([
+      ["donnees_1", "n = 0,204 mol"], ["donnees_2", "V = 5,0 L"], ["donnees_3", "T = 298,15 K (25 °C)"],
+    ]);
+    expect(done.groups[0]).toMatchObject({ id: "donnees", items: ["donnees_1", "donnees_2", "donnees_3"], arrange: { direction: "down" } });
+    expect(fixes).toContain("donnees : 3 éléments sur une ligne, rangés en bloc l'un sous l'autre");
+    // Bullets between the items are not items.
+    const bullets = normalizeSlice(slice({ introduces: [{ id: "f", type: "text", content: "liquide → gaz : endothermique   •   gaz → liquide : exothermique" }],
+      do: [{ id: "s", verb: "show", target: "f", at: "beat:start" }] }));
+    expect((bullets.slice as { introduces: { content: string }[] }).introduces.map(({ content }) => content))
+      .toEqual(["liquide → gaz : endothermique", "gaz → liquide : exothermique"]);
+    // An ordinary sentence: untouched.
+    expect(normalizeSlice(slice({ introduces: [{ id: "t", type: "text", content: "Une phrase ordinaire, avec une virgule." }],
+      do: [{ id: "s", verb: "show", target: "t", at: "beat:start" }] })).fixes).toEqual([]);
+  });
+});

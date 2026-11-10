@@ -100,6 +100,23 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
   demander à l'utilisateur avant un changement visible pour l'élève. Rien de ce document avant la présentation de chimie.
 - Aucun fichier de code touché, rien vérifié par des tests (lecture des notes et de deux fichiers seulement).
 
+### 2026-11-10 — Un élément désigné à part est un bloc à part (Claude Code, session « relecteur »)
+- Demande : le surlignage visait toute la ligne « 2/1 = 2 et 3/3 = 1 » ; l'utilisateur précise que le principe est
+  général (pas seulement les relations) : des éléments distincts se mettent en bloc, rangés. Approche convenue :
+  demander au modèle ET réparer ce qu'il oublie.
+- Prompt : « désigner UN MORCEAU » cite aussi « UNE relation parmi plusieurs » (37 466 → 37 474, empreinte à jour).
+- `splitRelations` (`normalize.ts`) : formule sans parts, surlignée en entier N fois, qui contient N relations
+  séparées au premier niveau (« \quad \text{et} \quad », « \quad », « ; ») → une part par relation (+ les liens),
+  chaque surlignage vise la relation suivante dans l'ordre ; rien si les nombres ne correspondent pas.
+- `textItemsAsBlock` : texte (non attaché, hors repère) qui aligne 2 à 6 éléments séparés par 2 espaces ou plus,
+  « ; » ou « | » (puces « • » ignorées) → un texte par élément dans un groupe du même nom, en colonne (direction
+  down, align left) ; un write sur ce nom devient show.
+- Rejoué sur 256 leçons / 1 170 tranches : 45 textes rangés en bloc (ex. « En mm Hg : ÷ 760   En kPa : ÷ 101,3 … »,
+  « acide donne des H⁺ ; base donne des OH⁻ ; … »), 2 formules découpées ; 1 tranche invalide, la même vraie erreur
+  de maths déjà connue (ap-exponentielle-bases-t1). 4 tests ajoutés ; 927 verts.
+- Vérifié dans le vrai rendu (leçon d'essai sur `/dev/nesalio`) : données en colonne, seul « 3/3 = 1 » en vert.
+  Vu au passage : le texte du bloc reste très petit à côté des formules (hiérarchie des tailles, non traitée).
+
 ### 2026-11-10 — Questions à l'élève pendant la leçon (Claude Code, session « relecteur »)
 - Demande : intégrer l'interaction (questions pour savoir si l'élève a compris). Choix par défaut annoncés à
   l'utilisateur et acceptés : au plus 2 questions à choix, deux essais puis la solution, pas encore de
