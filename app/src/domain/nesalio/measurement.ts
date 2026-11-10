@@ -5,6 +5,40 @@ import type { MathContext, MatrixParams, SceneObject } from "./contract";
 import { union, type Box, type Point } from "./placement";
 import type { MeasureObject, Measurement } from "./sceneState";
 
+/** World units per mathematical unit, on each axis of a frame. */
+export interface FrameScale {
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * The largest axes drawn at their natural size (one mathematical unit, one unit of the board): the default
+ * axes, x from -6 to 6 and y from -4 to 4, just fit. Larger ones are scaled down with everything drawn on them
+ * (camera audit 2026-11-09: y from 0 to 16 made a graph two screens tall, cut by the frame or read too small).
+ */
+export const AXES_MAX = { width: 12, height: 8 };
+/**
+ * Beyond this ratio between the two axes' scales, each axis keeps its own (0 to 2000 tickets, 0 to 50 000 $);
+ * below it, the same scale on both, so angles, circles and figures stay true (from the former board, layout.ts).
+ */
+export const UNIFORM_RATIO = 3;
+
+/** The scale of a frame whose axes have these ranges; undefined when they fit at their natural size. */
+export function axesScale(params: { x: readonly [number, number]; y: readonly [number, number] } | undefined): FrameScale | undefined {
+  const { x: [x0, x1], y: [y0, y1] } = params ?? { x: [-6, 6], y: [-4, 4] };
+  const x = Math.min(1, AXES_MAX.width / (x1 - x0));
+  const y = Math.min(1, AXES_MAX.height / (y1 - y0));
+  if (x === 1 && y === 1) return undefined;
+  if (Math.max(x, y) / Math.min(x, y) > UNIFORM_RATIO) return { x, y };
+  const u = Math.min(x, y);
+  return { x: u, y: u };
+}
+
+/** A point of a frame's mathematical coordinates, in the board's units around the frame's origin. */
+export function scaled([x, y]: readonly [number, number], scale?: FrameScale): Point {
+  return scale ? [x * scale.x, y * scale.y] : [x, y];
+}
+
 function centered(width: number, height: number): Box {
   return { x0: -width / 2, y0: -height / 2, x1: width / 2, y1: height / 2 };
 }
@@ -94,7 +128,7 @@ export function parametersOf(object: SceneObject, math: MathContext): string[] {
 /** Union of a curve's box over a grid of its parameters' values (current values included). */
 function parameterReserve(
   object: Extract<SceneObject, { type: "function_graph" | "parametric_curve" }>,
-  values: ReadonlyMap<string, number>, math: MathContext, window: Box | undefined, body: Box,
+  values: ReadonlyMap<string, number>, math: MathContext, window: Box | undefined, body: Box, scale?: FrameScale,
 ): Box | undefined {
   const parameters = parametersOf(object, math);
   if (!parameters.length) return undefined;
@@ -107,7 +141,7 @@ function parameterReserve(
       new Map(grid).set(name, symbol.min + (symbol.max - symbol.min) * (i / steps))));
   }
   const boxes = grids.map((grid) => {
-    const points = sampleSceneCurve(object, grid, window).flat();
+    const points = sampleSceneCurve(object, grid, window).flat().map((point) => scaled(point, scale));
     return points.length ? enclosing(points, 0.03) : null;
   });
   return union([body, ...boxes]) ?? undefined;
@@ -236,7 +270,9 @@ const NUMBER_ROOM = 0.6;
  * under the x axis, left of the y axis, zero left out (both axes cross there).
  * French writing: decimal comma, minus sign.
  */
-export function axisNumbers(params: { x: readonly [number, number]; y: readonly [number, number] } | undefined): { axis: "x" | "y"; text: string; at: Point }[] {
+export function axisNumbers(
+  params: { x: readonly [number, number]; y: readonly [number, number] } | undefined, scale?: FrameScale,
+): { axis: "x" | "y"; text: string; at: Point }[] {
   const { x, y } = params ?? { x: [-6, 6] as const, y: [-4, 4] as const };
   const write = (value: number) => String(Number(value.toFixed(6))).replace(".", ",").replace("-", "−");
   const ticks = ([a, b]: readonly [number, number]) => {
@@ -245,28 +281,34 @@ export function axisNumbers(params: { x: readonly [number, number]; y: readonly 
     for (let k = Math.ceil(a / step - 1e-9); k * step <= b + 1e-9; k++) if (k !== 0) values.push(Number((k * step).toFixed(9)));
     return values;
   };
-  const oy = Math.min(Math.max(0, y[0]), y[1]);
-  const ox = Math.min(Math.max(0, x[0]), x[1]);
+  const sx = scale?.x ?? 1, sy = scale?.y ?? 1;
+  const oy = Math.min(Math.max(0, y[0]), y[1]) * sy;
+  const ox = Math.min(Math.max(0, x[0]), x[1]) * sx;
   return [
-    ...ticks(x).map((value) => ({ axis: "x" as const, text: write(value), at: [value, oy - NUMBER_GAP] as Point })),
-    ...ticks(y).map((value) => ({ axis: "y" as const, text: write(value), at: [ox - NUMBER_GAP, value] as Point })),
+    ...ticks(x).map((value) => ({ axis: "x" as const, text: write(value), at: [value * sx, oy - NUMBER_GAP] as Point })),
+    ...ticks(y).map((value) => ({ axis: "y" as const, text: write(value), at: [ox - NUMBER_GAP, value * sy] as Point })),
   ];
 }
 
 /** Default world-space estimates. A renderer may supply its measured text and geometry instead. */
-export const measureSceneObject: MeasureObject = (object, values, math, window) => {
+export const measureSceneObject: MeasureObject = (object, values, math, window, scale) => {
+  const at = (point: readonly [number, number]) => scaled(point, scale);
   const fontSize = FONT_SIZE[object.size === "medium" || object.size === undefined ? "normal" : object.size];
   switch (object.type) {
-    case "point": return { body: enclosing([object.params.at], 0.08) };
+    case "point": return { body: enclosing([at(object.params.at)], 0.08) };
     case "line":
     case "arrow":
     case "vector": {
-      const ends = [object.params.from, object.params.to];
+      const ends = [at(object.params.from), at(object.params.to)];
       return { body: enclosing(ends, 0.04), collision: strokeBoxes(ends) };
     }
-    case "polygon": return { body: enclosing(object.params.vertices, 0.03), collision: strokeBoxes(object.params.vertices, true) };
+    case "polygon": {
+      const vertices = object.params.vertices.map(at);
+      return { body: enclosing(vertices, 0.03), collision: strokeBoxes(vertices, true) };
+    }
     case "circle": {
-      const { center: [x, y], radius } = object.params;
+      const [x, y] = at(object.params.center);
+      const radius = object.params.radius * Math.min(scale?.x ?? 1, scale?.y ?? 1);
       const ring = Array.from({ length: 33 }, (_, i): Point => [x + radius * Math.cos((i / 32) * 2 * Math.PI), y + radius * Math.sin((i / 32) * 2 * Math.PI)]);
       return { body: { x0: x - radius, y0: y - radius, x1: x + radius, y1: y + radius }, collision: strokeBoxes(ring) };
     }
@@ -275,7 +317,9 @@ export const measureSceneObject: MeasureObject = (object, values, math, window) 
       return { body: { x0, y0: -0.2, x1, y1: 0.2 }, allowOverlap: true, collision: [{ x0, y0: -0.2, x1, y1: 0.2 }] };
     }
     case "axes": {
-      const { x: [x0, x1], y: [y0, y1] } = object.params ?? { x: [-6, 6], y: [-4, 4] };
+      const ranges = object.params ?? { x: [-6, 6] as const, y: [-4, 4] as const };
+      const [x0, x1] = [ranges.x[0] * (scale?.x ?? 1), ranges.x[1] * (scale?.x ?? 1)];
+      const [y0, y1] = [ranges.y[0] * (scale?.y ?? 1), ranges.y[1] * (scale?.y ?? 1)];
       // The two axis lines and their ticks; the empty quadrants stay free for labels.
       // Each axis keeps the strip where its numbers are written (axisNumbers).
       const oy = Math.min(Math.max(0, y0), y1), ox = Math.min(Math.max(0, x0), x1);
@@ -287,11 +331,11 @@ export const measureSceneObject: MeasureObject = (object, values, math, window) 
     }
     case "function_graph":
     case "parametric_curve": {
-      const pieces = sampleSceneCurve(object, values, window);
+      const pieces = sampleSceneCurve(object, values, window).map((piece) => piece.map(at));
       const body = enclosing(pieces.flat(), 0.03);
       // A curve that follows a parameter reserves the area it covers over the parameter's whole range:
       // placement keeps that space free and the camera can frame it before the animation (spec §12).
-      const reserve = parameterReserve(object, values, math, window, body);
+      const reserve = parameterReserve(object, values, math, window, body, scale);
       return { body, ...(reserve ? { reserve } : {}), allowOverlap: true, collision: pieces.flatMap((piece) => strokeBoxes(piece)) };
     }
     case "triangle_right": return triangleMeasurement(object, values, math);

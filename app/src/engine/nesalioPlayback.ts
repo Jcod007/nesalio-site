@@ -78,6 +78,7 @@ interface FrameContext {
   framing?: Map<string, string>;
   moves?: ReadonlyMap<Action, { ids: string[]; shift: readonly [number, number] }>;
   cameras?: ReadonlyMap<Action, PlannedCamera>;
+  onCameraPlan?: (plan: Omit<CameraPlanReport, "beat">) => void;
 }
 
 function frameAt(before: NesalioFrame, timeline: readonly ScheduledAction[], playhead: number, ctx: FrameContext): NesalioFrame {
@@ -290,11 +291,86 @@ function planFocus(
     return { x, y, zoom };
   };
   const pace = timing.pace === "quick" ? 0.5 : timing.pace === "slow" ? 1.875 : 1;
-  const duration = Math.max(300, Math.min(1_200, Math.abs(interpolate.duration) * pace));
+  // Slower than before (0.3 to 1.2 s): 493 movements of the bench went faster than a screen a second, which is what
+  // makes a moving board tiring to watch. A short hop still takes 0.8 s, a long trip up to 2.2 s.
+  const duration = Math.max(CAMERA_MOVE_MS.min, Math.min(CAMERA_MOVE_MS.max, Math.abs(interpolate.duration) * pace * 1.6));
   return { target, move: { ...target, path }, duration };
 }
 
 type MakeSchedule = (duration: (action: Action) => number) => BeatSchedule;
+
+/**
+ * One gentle movement at the start of a passage that frames, ahead of time, everything the passage is about to
+ * show (with what stays on the board and the graphs it is drawn on), instead of one movement per object as each
+ * one appears out of frame. Measured on 238 lessons (2026-11-09): 890 of 1 036 camera movements were the engine
+ * following objects one by one, 493 of them faster than a screen a second. Skipped when the lesson moves the
+ * camera itself in this passage (camera.focus, camera.restore), and when what is coming cannot all be framed
+ * at a readable size (the following then frames each object as before).
+ */
+function anticipate(
+  before: NesalioFrame, timeline: readonly ScheduledAction[], sliceObjects: readonly string[], clipEnd: number,
+  ctx: FrameContext, quiet: FrameContext,
+  add: (follow: Focus, entry: ScheduledAction, plan: { move: CameraMove; duration: number }) => void,
+): void {
+  if (clipEnd <= 0 || timeline.some(({ action }) => action.verb === "camera.focus" || action.verb === "camera.restore")) return;
+  const scene = frameAt(before, [], 0, quiet).scene;
+  const coming = new Set<string>();
+  const leaving = new Set<string>();
+  for (const { action: written } of timeline) {
+    const action = redirect(written, scene);
+    if (action.verb === "show" || action.verb === "draw" || action.verb === "write" || action.verb === "transform") {
+      for (const id of targetObjects(scene, action.target)) if (scene.objects.has(id) && !scene.objects.get(id)!.removed) coming.add(id);
+    } else if (action.verb === "fade_out" || action.verb === "remove") {
+      for (const id of targetObjects(scene, action.target)) leaving.add(id);
+    }
+  }
+  const ids = [...coming].filter((id) => !scene.objects.get(id)!.visible);
+  if (!ids.length) return;
+  // The first object of the passage to appear: the camera arrives with it, not before (an empty spot framed early
+  // left the student before a blank board — camera audit, 37 lessons in a first try).
+  const firstReveal = Math.min(...timeline.filter(({ action }) => REVEAL_VERBS.has(action.verb)).map(({ start }) => start));
+  const graphsOf = (list: readonly string[]) => {
+    const frames = new Set(list.map((id) => scene.objects.get(id)?.frame).filter(Boolean));
+    return [...scene.objects].filter(([, item]) => item.definition.type === "axes" && !item.removed && item.frame && frames.has(item.frame)).map(([id]) => id);
+  };
+  const staying = sliceObjects.filter((id) => scene.objects.get(id)?.visible && !scene.objects.get(id)?.faded && !leaving.has(id));
+  // Still to come in the rest of the tranche: framed now too when everything fits, so the next passages need no movement.
+  const later = sliceObjects.filter((id) => !scene.objects.get(id)?.visible && !scene.objects.get(id)?.removed && !ids.includes(id));
+  const view = cameraView(scene, scene.camera.target_state ?? scene.camera.state);
+  const passage = [...new Set([...staying, ...graphsOf(ids), ...ids])];
+  const box = sceneBounds(scene, passage, "layout_bounds");
+  if (!box || inside(view, box)) return;
+  for (const targets of [[...new Set([...passage, ...later, ...graphsOf(later)])], passage]) {
+    const follow: Focus = { id: `anticipe_${before.scene.currentBeat ?? "passage"}`, verb: "camera.focus", at: "beat:start", targets, bounds: "layout_bounds" };
+    const plan = planFocus(scene, follow, follow, ids, ctx);
+    if (!plan?.move || plan.target.hidden.some((id) => targets.includes(id))) continue;
+    ctx.onCameraPlan?.({ action: follow.id, origin: "follow", durationMs: plan.duration, from: scene.camera.state, to: plan.target.state });
+    const start = Number.isFinite(firstReveal) ? Math.max(0, firstReveal - plan.duration) : 0;
+    add(follow, { action: follow, start, end: Math.min(clipEnd, start + plan.duration) }, { move: plan.move, duration: plan.duration });
+    return;
+  }
+}
+
+const REVEAL_VERBS = new Set(["show", "draw", "write", "transform"]);
+
+/**
+ * A camera.focus written in the lesson whose targets are already wholly in view, for a small reframing (under a
+ * quarter of a screen, zoom within ×0.8 to ×1.25): the board stays still. 58 of the 148 camera.focus of the bench
+ * were such small shifts, moving the picture for nothing. A wanted zoom or a real trip is kept.
+ */
+function smallReframing(scene: SceneState, intent: FramingIntent, target: CameraState): boolean {
+  const current = scene.camera.target_state ?? scene.camera.state;
+  const view = cameraView(scene, current);
+  const visible = intent.targets.every((id) => {
+    const box = sceneBounds(scene, [id], "render_bounds") ?? sceneBounds(scene, [id], "layout_bounds");
+    return box !== null && inside(view, box);
+  });
+  if (!visible) return false;
+  const width = (scene.initialViewport.x1 - scene.initialViewport.x0) / current.zoom;
+  const distance = Math.hypot(target.x - current.x, target.y - current.y) / width;
+  const ratio = target.zoom / current.zoom;
+  return distance < 0.25 && ratio > 0.8 && ratio < 1.25;
+}
 
 /** Plan from the audio anchors in start order. A camera action with `at` is first given
  * zero duration, so learning its real duration can only delay its dependants. */
@@ -310,6 +386,12 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
   let entries = new Map(scheduled.timeline.map((entry) => [entry.action, entry]));
   const prefix = () => Array.from(ordered, (action) => (entries.get(action) ?? automatic.get(action))!);
   const nextEntry = () => scheduled.timeline.find(({ action }) => !ordered.has(action));
+
+  anticipate(before, scheduled.timeline, sliceObjects, clipEnd, ctx, quiet, (follow, entry, plan) => {
+    cameras.set(follow, { move: plan.move });
+    ordered.add(follow);
+    automatic.set(follow, entry);
+  });
 
   for (let entry = nextEntry(); entry; entry = nextEntry()) {
     const { action, start } = entry;
@@ -334,11 +416,14 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
       } else {
         intent = { targets: action.targets.map((id) => currentId(current, id)), bounds: action.bounds };
       }
-      const plan = planFocus(scene, intent, action, focusPriority(scene, intent.targets, scheduled.timeline), ctx, fallback);
+      let plan = planFocus(scene, intent, action, focusPriority(scene, intent.targets, scheduled.timeline), ctx, fallback);
+      if (plan?.move && action.verb === "camera.focus" && action.save_as === undefined && action.transition !== "instant"
+        && smallReframing(scene, intent, plan.target.state)) plan = null;
       const memory = action.verb === "camera.focus" && action.save_as !== undefined
         ? { targets: action.targets, bounds: action.bounds, state: plan?.target.state ?? current.camera.state }
         : undefined;
       cameras.set(action, { move: plan?.move, saved: memory });
+      if (plan?.move) ctx.onCameraPlan?.({ action: action.id, origin: "lesson", durationMs: plan.duration, from: current.camera.state, to: plan.target.state });
       if (action.at && plan && plan.duration > 0) {
         durations.set(action, plan.duration);
         scheduled = schedule();
@@ -369,6 +454,7 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
       // A highlight never takes away what the passage has just shown (a summary pointing back at a graph's points).
       if (highlight && plan.target.hidden.some((id) => shown.includes(id))) continue;
       cameras.set(follow, { move: plan.move });
+      ctx.onCameraPlan?.({ action: action.id, origin: "follow", durationMs: plan.duration, from: scene.camera.state, to: plan.target.state });
       ordered.add(follow);
       automatic.set(follow, { action: follow, start, end: Math.min(clipEnd, start + plan.duration) });
     } else if (action.verb === "animate_parameter") {
@@ -387,12 +473,16 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
       const plan = planFocus(scene, follow, follow, dependents, ctx);
       if (!plan?.move) continue;
       cameras.set(follow, { move: plan.move });
+      ctx.onCameraPlan?.({ action: action.id, origin: "range", durationMs: plan.duration, from: scene.camera.state, to: plan.target.state });
       ordered.add(follow);
       automatic.set(follow, { action: follow, start, end: Math.min(clipEnd, start + plan.duration) });
     }
   }
   return { timeline: prefix().map((entry) => lastingHighlight(entry, clipEnd)), deferred: scheduled.deferred, context: { ...ctx, moves, cameras } };
 }
+
+/** Shortest and longest camera movement (ms). */
+export const CAMERA_MOVE_MS = { min: 800, max: 2_200 } as const;
 
 /** Shortest time a highlight stays on, so the eye can find what it points at. */
 export const MIN_HIGHLIGHT_MS = 1_500;
@@ -409,29 +499,69 @@ export function lastingHighlight(entry: ScheduledAction, clipEnd: number): Sched
   return end === entry.end ? entry : { ...entry, end };
 }
 
-/**
- * A passage that clears the board as it starts (fade_out, remove at `beat:start`) but shows its first
- * new object only on a later word: the clearing waits for that object. Seen in the camera audit
- * (2026-11-09): 27 lessons out of 238 left the student before an empty board for up to 20 s while Nesa
- * spoke. The board now changes in one go, old content out as the new one comes in.
- */
-export function clearWithFirstReveal(beat: Beat, cues: ReadonlyMap<string, CueTiming>): Beat {
-  const clearing = beat.do.filter((action) => (action.verb === "fade_out" || action.verb === "remove") && action.at === "beat:start");
-  if (!clearing.length) return beat;
-  const reveals = beat.do.flatMap((action) => {
-    if (action.verb !== "show" && action.verb !== "write" && action.verb !== "draw") return [];
-    const time = "at" in action ? action.at : "start" in action ? action.start : undefined;
-    const cue = typeof time === "string" ? /^cue:(.+)$/.exec(time)?.[1] : undefined;
-    const timing = cue === undefined ? undefined : cues.get(cue);
-    return timing ? [{ at: `cue:${cue}`, start: timing.start }] : [];
-  });
-  // A reveal at the start of the passage, or none timed by a word: nothing to wait for.
-  if (!reveals.length || beat.do.some((action) => REVEALS.has(action.verb) && "at" in action && action.at === "beat:start")) return beat;
-  const first = reveals.reduce((a, b) => (b.start < a.start ? b : a));
-  return { ...beat, do: beat.do.map((action) => clearing.includes(action) ? { ...action, at: first.at } as Action : action) };
+const CLEARINGS = new Set(["fade_out", "remove"]);
+const REVEALS = new Set(["show", "write", "draw"]);
+
+/** When an action starts, from the voice's word timings; undefined when it waits for another action. */
+function anchorTime(action: Action, cues: ReadonlyMap<string, CueTiming>): number | undefined {
+  const time = action.at ?? action.start;
+  if (time === "beat:start") return 0;
+  const match = typeof time === "string" ? /^cue(_end)?:(.+)$/.exec(time) : null;
+  const timing = match ? cues.get(match[2]!) : undefined;
+  return timing ? (match![1] ? timing.end : timing.start) : undefined;
 }
 
-const REVEALS = new Set(["show", "write", "draw"]);
+/**
+ * A clearing waits for the next thing written after it, so the board is never left empty while Nesa talks
+ * (camera audit: the model often fades everything out a few words before the new line appears).
+ */
+export function clearWithFirstReveal(beat: Beat, cues: ReadonlyMap<string, CueTiming>): Beat {
+  const referenced = new Set(beat.do.flatMap((action) => action.at?.startsWith("after:") ? [action.at.slice(6)] : []));
+  const reveals = beat.do.flatMap((action) => {
+    if (!REVEALS.has(action.verb)) return [];
+    const start = anchorTime(action, cues);
+    return start === undefined ? [] : [{ action, start }];
+  });
+  let changed = false;
+  const actions = beat.do.map((action) => {
+    if (!CLEARINGS.has(action.verb) || action.at === undefined || referenced.has(action.id)) return action;
+    const start = anchorTime(action, cues);
+    if (start === undefined) return action;
+    const target = "target" in action ? action.target : undefined;
+    const next = reveals
+      .filter((reveal) => reveal.start >= start && ("target" in reveal.action ? reveal.action.target : undefined) !== target)
+      .reduce<{ action: Action; start: number } | undefined>((a, b) => (!a || b.start < a.start ? b : a), undefined);
+    if (!next || next.start === start) return action;
+    changed = true;
+    return { ...action, at: next.action.at ?? next.action.start } as Action;
+  });
+  return changed ? { ...beat, do: actions } : beat;
+}
+
+/**
+ * A passage that only clears hands its clearings to the next passage of the tranche, where they wait for
+ * its first new object: otherwise the board stays empty for a whole sentence (camera audit, recap passages).
+ */
+export function holdClearingsForNextBeat(slice: Slice): Slice {
+  const referenced = new Set(slice.beats.flatMap((beat) => beat.do.flatMap((action) => action.at?.startsWith("after:") ? [action.at.slice(6)] : [])));
+  const beats = slice.beats.map((beat) => ({ ...beat, do: [...beat.do] }));
+  let changed = false;
+  for (let index = 0; index < beats.length - 1; index += 1) {
+    const beat = beats[index]!;
+    const next = beats[index + 1]!;
+    if (beat.do.some((action) => REVEALS.has(action.verb)) || !next.do.some((action) => REVEALS.has(action.verb))) continue;
+    const touched = new Set(next.do.flatMap((action) => [
+      ..."target" in action ? [action.target] : [], ..."source" in action ? [action.source] : [], ..."targets" in action ? action.targets : [],
+    ]));
+    const moved = beat.do.filter((action) => CLEARINGS.has(action.verb) && action.at !== undefined && !action.at.startsWith("after:")
+      && !referenced.has(action.id) && !touched.has((action as { target: string }).target));
+    if (!moved.length || next.do.length + moved.length > 64) continue;
+    beat.do = beat.do.filter((action) => !moved.includes(action));
+    next.do = [...moved.map((action) => ({ ...action, at: "beat:start" }) as Action), ...next.do];
+    changed = true;
+  }
+  return changed ? { ...slice, beats } : slice;
+}
 
 function immediateSchedule(actions: readonly Action[], at: number): MakeSchedule {
   return () => ({ timeline: actions.map((action) => ({ action, start: at, end: at })), deferred: [] });
@@ -461,6 +591,18 @@ export interface NesalioPlaybackOptions {
   wait?(ms: number, signal: AbortSignal): Promise<void>;
   /** Pause and mute from the page: silences stop elapsing, the next passage waits for the resume. */
   control?: PlaybackControl;
+  /** Each camera movement planned, with where it comes from (the lesson's own camera.focus or the engine's following). For audits. */
+  onCameraPlan?(plan: CameraPlanReport): void;
+}
+
+/** A planned camera movement: `lesson` = a camera.focus or camera.restore written in the lesson; `follow` = the engine following a gesture; `range` = framing an animated parameter's range. */
+export interface CameraPlanReport {
+  beat: string;
+  action: string;
+  origin: "lesson" | "follow" | "range";
+  durationMs: number;
+  from: CameraState;
+  to: CameraState;
 }
 
 /**
@@ -502,7 +644,8 @@ function beatQueue(source: AsyncIterable<Slice>, signal: AbortSignal) {
         if (signal.aborted) break;
         const unsupported = unsupportedIn(slice);
         if (unsupported) throw unsupported;
-        slice.beats.forEach((beat, index) => items.push({ slice, beat, first: index === 0 }));
+        const held = holdClearingsForNextBeat(slice);
+        held.beats.forEach((beat, index) => items.push({ slice: held, beat, first: index === 0 }));
         notify();
       }
     } catch (error) {
@@ -576,7 +719,8 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
       }
       const before = { ...frame, scene: beginBeat(frame.scene, slice.slice_id, beat.id) };
       const framing = new Map<string, string>();
-      const ctx: FrameContext = { measure: options.measure, layoutFallback, padding, framing };
+      const ctx: FrameContext = { measure: options.measure, layoutFallback, padding, framing,
+        onCameraPlan: options.onCameraPlan && ((plan) => options.onCameraPlan!({ ...plan, beat: beat.id })) };
       // Reported once per camera action, at the end of the passage, not on every frame.
       const reportFraming = () => {
         for (const [action, reason] of framing) {

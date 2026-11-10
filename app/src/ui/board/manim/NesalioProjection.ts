@@ -117,9 +117,9 @@ export class NesalioProjection {
     }));
   }
 
-  readonly measure: MeasureObject = (definition, values, math, window) => {
+  readonly measure: MeasureObject = (definition, values, math, window, scale) => {
     // A table of values is laid out cell by cell (tableLayout): the drawing follows the same layout.
-    if (!isText(definition) || (definition.type === "matrix" && isTable(definition.params))) return measureSceneObject(definition, values, math, window);
+    if (!isText(definition) || (definition.type === "matrix" && isTable(definition.params))) return measureSceneObject(definition, values, math, window, scale);
     const formula = this.formulas.get(definition.id);
     if (formula) return formula.measurement;
     const text = definition.type === "matrix" ? definition.params.rows.map((row) => row.join("   ")).join("\n")
@@ -325,8 +325,9 @@ export class NesalioProjection {
   }
 
   private build(object: PlacedObject, values: ReadonlyMap<string, number>, color: string, text?: string, table?: TableState): Mobject[] {
-    const { definition: def, position: [dx, dy], measurement, leader } = object;
-    const world = ([x, y]: Point): Vec3 => [x + dx, y + dy, 0];
+    const { definition: def, position: [dx, dy], measurement, leader, scale } = object;
+    // On axes too large for the board, the frame's units are scaled down (axesScale).
+    const world = ([x, y]: Point): Vec3 => [x * (scale?.x ?? 1) + dx, y * (scale?.y ?? 1) + dy, 0];
     const stroke = { color, strokeWidth: 3 };
     const items: Mobject[] = [];
     switch (def.type) {
@@ -334,7 +335,7 @@ export class NesalioProjection {
       case "line": items.push(segmentMark(world(def.params.from), world(def.params.to), color)); break;
       case "arrow":
       case "vector": items.push(arrowMark(world(def.params.from), world(def.params.to), color)); break;
-      case "circle": items.push(circleMark(world(def.params.center), def.params.radius, color)); break;
+      case "circle": items.push(circleMark(world(def.params.center), def.params.radius * Math.min(scale?.x ?? 1, scale?.y ?? 1), color)); break;
       case "polygon": items.push(polygonMark({ ...stroke, vertices: def.params.vertices.map(world) })); break;
       case "triangle_right": {
         const { x1, y1 } = measurement.body;
@@ -358,12 +359,15 @@ export class NesalioProjection {
       }
       case "axes": {
         const { x: [x0, x1], y: [y0, y1] } = def.params ?? { x: [-6, 6], y: [-4, 4] };
-        const axes = new Axes({ color, xRange: [x0, x1, niceStep(x1 - x0)], yRange: [y0, y1, niceStep(y1 - y0)], xLength: x1 - x0, yLength: y1 - y0 });
+        const axes = new Axes({
+          color, xRange: [x0, x1, niceStep(x1 - x0)], yRange: [y0, y1, niceStep(y1 - y0)],
+          xLength: (x1 - x0) * (scale?.x ?? 1), yLength: (y1 - y0) * (scale?.y ?? 1),
+        });
         const at = axes.coordsToPoint(0, 0);
         axes.shift([dx - at[0], dy - at[1], 0]);
         items.push(axes);
         // Numbered ticks: without them a point on a curve cannot be read (seen in real generations).
-        for (const number of axisNumbers(def.params)) {
+        for (const number of axisNumbers(def.params, scale)) {
           const label = boardText(number.text, BRAND.muted, TICK_FONT, "body");
           label.moveTo([dx + number.at[0], dy + number.at[1], 0]);
           items.push(label);

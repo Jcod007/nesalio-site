@@ -135,3 +135,26 @@ describe("état et placement Nesalio", () => {
     expect(runtimeState(before).parameters).toEqual({ width: 1 });
   });
 });
+
+describe("repère trop grand pour le tableau", () => {
+  // Audit caméra 2026-11-09 : y de 0 à 16 faisait un graphique de deux écrans, coupé ou lu trop petit.
+  it("réduit le repère et tout ce qui est dessiné dessus à la même échelle", () => {
+    const scene = introduceSlice(createScene(viewport), slice("grand", [
+      { id: "plan", type: "axes", params: { x: [0, 6], y: [0, 16] } },
+      { id: "droite", type: "function_graph", params: { expression: "2*x + 3", domain: [0, 6] } },
+      { id: "p", type: "point", params: { at: [5, 13] } },
+    ]));
+    const axes = sceneBounds(scene, ["plan"], "layout_bounds")!;
+    expect(axes.y1 - axes.y0).toBeLessThanOrEqual(9);
+    expect(scene.objects.get("p")!.scale).toEqual({ x: 0.5, y: 0.5 });
+    // The point stays on the line: (5, 13) is on y = 2x + 3 at the same scale.
+    const line = sceneBounds(scene, ["droite"], "layout_bounds")!;
+    const point = sceneBounds(scene, ["p"], "layout_bounds")!;
+    expect((point.y0 + point.y1) / 2).toBeCloseTo(line.y1 - 0.03 - (15 - 13) * 0.5, 1);
+  });
+
+  it("garde l'échelle naturelle d'un repère qui tient à l'écran", () => {
+    const scene = introduceSlice(createScene(viewport), slice("normal", [{ id: "plan", type: "axes", params: { x: [-6, 6], y: [-4, 4] } }]));
+    expect(scene.objects.get("plan")!.scale).toBeUndefined();
+  });
+});

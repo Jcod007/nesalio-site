@@ -3,7 +3,7 @@ import shell from "./engineShell.json";
 import { Slice } from "./contract";
 import { clearTarget, createScene, introduceSlice, sceneBounds, setDimmed, setVisibility } from "./sceneState";
 import { validateLesson, validateModelOutput } from "./validate";
-import { DIM_OPACITY, MIN_HIGHLIGHT_MS, clearWithFirstReveal, lastingHighlight, playNesalioLesson, type NesalioClip, type NesalioFrame } from "@/engine/nesalioPlayback";
+import { DIM_OPACITY, MIN_HIGHLIGHT_MS, clearWithFirstReveal, holdClearingsForNextBeat, lastingHighlight, playNesalioLesson, type NesalioClip, type NesalioFrame } from "@/engine/nesalioPlayback";
 
 const viewport = { x0: -8, y0: -4.5, x1: 8, y1: 4.5 };
 const beat = (id: string, say: string, cues: unknown[], todo: unknown[]) => ({ id, say, cues, do: todo });
@@ -137,6 +137,43 @@ describe("effacement au début d'un passage", () => {
     expect(clearWithFirstReveal(atStart, cues)).toBe(atStart);
     const nothingNew = passage([{ id: "f_tab", verb: "fade_out", at: "beat:start", target: "tab" }]);
     expect(clearWithFirstReveal(nothingNew, cues)).toBe(nothingNew);
+  });
+});
+
+describe("effacement en cours de passage ou au passage suivant", () => {
+  const cues = new Map([["c_kelvin", { start: 400, end: 700 }], ["c_reponse", { start: 2_000, end: 2_400 }]]);
+
+  it("un effacement à un mot attend le prochain objet écrit après lui (leçon ballons, passage réponse)", () => {
+    const timed = clearWithFirstReveal(beat("b", "En kelvins puis la réponse.", [], [
+      { id: "f_old", verb: "fade_out", at: "cue:c_kelvin", target: "old" },
+      { id: "w_rep", verb: "write", at: "cue:c_reponse", target: "rep" },
+    ]) as never, cues);
+    expect(timed.do.map((action) => "at" in action ? action.at : undefined)).toEqual(["cue:c_reponse", "cue:c_reponse"]);
+  });
+
+  it("un passage qui ne fait qu'effacer laisse ses effacements au passage suivant (leçon ballons, récapitulatif)", () => {
+    const slice = {
+      slice_id: "s", beats: [
+        beat("recap", "Retenons.", [], [{ id: "f_all", verb: "fade_out", at: "beat:start", target: "old" }]),
+        beat("rapport", "Le rapport.", [], [{ id: "w_r", verb: "write", at: "beat:start", target: "rapport" }]),
+      ],
+    } as never;
+    const held = holdClearingsForNextBeat(slice) as { beats: { do: { id: string; at?: string }[] }[] };
+    expect(held.beats[0]!.do).toEqual([]);
+    expect(held.beats[1]!.do.map((action) => [action.id, action.at])).toEqual([["f_all", "beat:start"], ["w_r", "beat:start"]]);
+  });
+
+  it("garde l'effacement en place s'il est attendu par une autre action ou si le passage suivant revise l'objet", () => {
+    const waited = { slice_id: "s", beats: [
+      beat("a", "x", [], [{ id: "f", verb: "fade_out", at: "beat:start", target: "old" }]),
+      beat("b", "y", [], [{ id: "w", verb: "write", at: "after:f", target: "neuf" }]),
+    ] } as never;
+    expect(holdClearingsForNextBeat(waited)).toBe(waited);
+    const revived = { slice_id: "s", beats: [
+      beat("a", "x", [], [{ id: "f", verb: "fade_out", at: "beat:start", target: "old" }]),
+      beat("b", "y", [], [{ id: "s", verb: "show", at: "beat:start", target: "old" }]),
+    ] } as never;
+    expect(holdClearingsForNextBeat(revived)).toBe(revived);
   });
 });
 

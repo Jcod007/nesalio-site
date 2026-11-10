@@ -1,5 +1,8 @@
 import { FIGURE_TYPES, type Group, type MathContext, type RuntimeState, type SceneObject, type Slice } from "./contract";
-import { measureSceneObject } from "./measurement";
+import { axesScale, measureSceneObject, type FrameScale } from "./measurement";
+
+/** Figures drawn in their frame's coordinates, which follow the frame's scale (axesScale). */
+const SCALED_TYPES = new Set(["point", "line", "arrow", "vector", "polygon", "circle", "axes", "function_graph", "parametric_curve"]);
 import { avoidOverlap, beside, center, gapSize, intersects, positionFor, translate, union, type Box, type Gap, type Layout, type Point } from "./placement";
 
 
@@ -19,7 +22,10 @@ export interface Measurement {
 }
 
 /** `window`: for a curve on axes, the axes' area in the frame's coordinates; the curve stops at its edges. */
-export type MeasureObject = (object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext, window?: Box) => Measurement;
+/** `scale`: for a figure on axes too large for the board, world units per unit of its frame (axesScale). */
+export type MeasureObject = (
+  object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext, window?: Box, scale?: FrameScale,
+) => Measurement;
 
 export interface PlacedObject {
   readonly definition: SceneObject;
@@ -39,6 +45,8 @@ export interface PlacedObject {
   readonly faded?: boolean;
   /** For a curve sharing a frame with axes: the axes' area, where it is drawn. */
   readonly window?: Box;
+  /** For a figure on axes too large for the board: world units per unit of the frame (axesScale). */
+  readonly scale?: FrameScale;
 }
 
 /** Whether a part of a visible object is on the board. */
@@ -245,8 +253,10 @@ function checkBox(box: Box): void {
   }
 }
 
-function measureValid(measure: MeasureObject, object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext, window?: Box): Measurement {
-  const measurement = measure(object, values, math, window);
+function measureValid(
+  measure: MeasureObject, object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext, window?: Box, scale?: FrameScale,
+): Measurement {
+  const measurement = measure(object, values, math, window, scale);
   checkBox(measurement.body);
   if (measurement.reserve) {
     checkBox(measurement.reserve);
@@ -403,13 +413,28 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     return `slice:${slice.slice_id}`;
   }
 
+  /** The axes of a figure's frame, if it has some. */
+  function axesOf(definition: SceneObject): Extract<SceneObject, { type: "axes" }> | undefined {
+    if (definition.type === "axes") return definition;
+    const key = frameOf(definition);
+    if (key === undefined) return undefined;
+    const axes = [...added.values()].find((item) => item.type === "axes" && frameOf(item) === key)
+      ?? [...objects.values()].find((item) => item.definition.type === "axes" && item.frame === key && !item.removed)?.definition;
+    return axes?.type === "axes" ? axes : undefined;
+  }
+
+  /** The scale of a figure drawn on axes too large for the board (same for everything in the frame). */
+  function scaleOf(definition: SceneObject): FrameScale | undefined {
+    if (!SCALED_TYPES.has(definition.type)) return undefined;
+    const axes = axesOf(definition);
+    return axes ? axesScale(axes.params) : undefined;
+  }
+
   /** The axes' area for a curve drawn on them (with a small margin), in the frame's coordinates. */
   function windowOf(definition: SceneObject): Box | undefined {
     if (definition.type !== "function_graph" && definition.type !== "parametric_curve") return undefined;
-    const key = frameOf(definition);
-    const axes = [...added.values()].find((item) => item.type === "axes" && frameOf(item) === key)
-      ?? [...objects.values()].find((item) => item.definition.type === "axes" && item.frame === key && !item.removed)?.definition;
-    if (axes?.type !== "axes") return undefined;
+    const axes = axesOf(definition);
+    if (!axes) return undefined;
     const { x: [x0, x1], y: [y0, y1] } = axes.params ?? { x: [-6, 6], y: [-4, 4] };
     const mx = (x1 - x0) * 0.03, my = (y1 - y0) * 0.03;
     return { x0: x0 - mx, x1: x1 + mx, y0: y0 - my, y1: y1 + my };
@@ -422,7 +447,7 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     if (added.has(key) || objects.has(key)) return placeObject(key).position;
     const members = [...added.values()].filter((definition) => frameOf(definition) === key);
     const box = union(members.map((definition) => {
-      const measured = measureValid(measure, definition, values, state.math, windowOf(definition));
+      const measured = measureValid(measure, definition, values, state.math, windowOf(definition), scaleOf(definition));
       return measured.reserve ?? measured.body;
     }));
     if (!box) return origin;
@@ -466,7 +491,8 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     if (!definition || positioning.has(id)) throw new Error(`Placement impossible pour « ${id} ».`);
     positioning.add(id);
     const window = windowOf(definition);
-    const measurement = measureValid(measure, definition, values, state.math, window);
+    const scale = scaleOf(definition);
+    const measurement = measureValid(measure, definition, values, state.math, window, scale);
     const local = measurement.reserve ?? measurement.body;
     const frame = frameOf(definition);
     let position = origin;
@@ -518,7 +544,7 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     }
     // A figure placed by a relation roots a frame that later figures may join.
     if (frame === id) frames.set(id, position);
-    const placed = { definition, position, measurement, visible: false, leader, ...(frame ? { frame } : {}), ...(window ? { window } : {}) };
+    const placed = { definition, position, measurement, visible: false, leader, ...(frame ? { frame } : {}), ...(window ? { window } : {}), ...(scale ? { scale } : {}) };
     checkBox(body(placed, "layout_bounds"));
     objects.set(id, placed);
     positioning.delete(id);
@@ -775,7 +801,7 @@ export function setParameter(state: SceneState, id: string, value: number, measu
       const previous = state.objects.get(target);
       if (!previous) throw new Error(`Objet absent « ${target} ».`);
       const { definition } = previous;
-      const measurement = measureValid(measure, definition, values, state.math, previous.window);
+      const measurement = measureValid(measure, definition, values, state.math, previous.window, previous.scale);
       let position = previous.position;
       let leader = previous.leader;
       if (definition.attachment) {
@@ -940,12 +966,49 @@ export function fitSceneCamera(
       }
     }
   }
-  const { zoom, x, y, view } = viewOf(framed);
+  let { zoom, x, y, view } = viewOf(framed);
+  if (options.avoidCutting) ({ x, y, view } = pushOutCut(state, framed, { x, y, view }, withFrames([...targets, ...kept])));
   const hidden = [...targets, ...kept].filter((id) => {
     const own = sceneBounds(state, [id], mode) ?? sceneBounds(state, [id], "layout_bounds");
     return own !== null && !inside(view, own);
   });
   return { state: { x, y, zoom }, hidden };
+}
+
+/**
+ * An object still on the board that the frame cuts and that could not join it (too big to keep everything readable):
+ * the view slides just enough to leave it wholly out, as long as what is framed stays in. Camera audit (2026-11-09):
+ * a new graph drawn beside the previous one left half of the old graph on the edge of the screen for up to 100 s.
+ */
+function pushOutCut(
+  state: SceneState, framed: Box, at: { x: number; y: number; view: Box }, shown: readonly string[],
+): { x: number; y: number; view: Box } {
+  let { x, y, view } = at;
+  const margin = 0.05;
+  for (let pass = 0; pass < 3; pass++) {
+    const cut = [...state.objects].filter(([id, item]) => item.visible && !item.removed && !item.faded && !shown.includes(id))
+      .map(([id]) => sceneBounds(state, [id], "render_bounds"))
+      .filter((box): box is Box => box !== null && box.x1 > view.x0 && box.x0 < view.x1 && box.y1 > view.y0 && box.y0 < view.y1 && !inside(view, box));
+    if (!cut.length) break;
+    let moved = false;
+    for (const box of cut) {
+      // The shift that takes the box out on each side, and the room the framed content leaves on that side.
+      const options: [number, number][] = [
+        [box.x1 - view.x0 + margin, 0], [-(view.x1 - box.x0 + margin), 0],
+        [0, box.y1 - view.y0 + margin], [0, -(view.y1 - box.y0 + margin)],
+      ];
+      const fits = ([dx, dy]: [number, number]) => framed.x0 >= view.x0 + dx - 1e-9 && framed.x1 <= view.x1 + dx + 1e-9
+        && framed.y0 >= view.y0 + dy - 1e-9 && framed.y1 <= view.y1 + dy + 1e-9;
+      const best = options.filter(fits).sort((a, b) => Math.hypot(...a) - Math.hypot(...b))[0];
+      if (!best) continue;
+      x += best[0];
+      y += best[1];
+      view = { x0: view.x0 + best[0], x1: view.x1 + best[0], y0: view.y0 + best[1], y1: view.y1 + best[1] };
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  return { x, y, view };
 }
 
 export function runtimeState(state: SceneState): RuntimeState {

@@ -206,18 +206,19 @@ describe("caméra Nesalio", () => {
     return (time: number) => frames.get(time)!;
   }
 
+  // Durations since 2026-11-09 (camera comfort): D3's length × pace × 1.6, between 0.8 and 2.2 s (CAMERA_MOVE_MS).
   it.each([
-    { x: 0, pace: undefined, duration: 300 },
-    { x: 6, pace: "quick", duration: 342 },
-    { x: 6, pace: undefined, duration: 684 },
-    { x: 6, pace: "slow", duration: 1_200 },
-    { x: 120, pace: undefined, duration: 1_200 },
+    { x: 0, pace: undefined, duration: 800 },
+    { x: 6, pace: "quick", duration: 800 },
+    { x: 6, pace: undefined, duration: 1_094.4 },
+    { x: 6, pace: "slow", duration: 2_052 },
+    { x: 120, pace: undefined, duration: 2_200 },
   ])("cale after: sur la durée du cadrage vers $x (allure $pace)", async ({ x, pace, duration }) => {
     const end = 100 + duration;
     const frame = await cameraPassage(x, [
       { id: "focus", verb: "camera.focus", targets: ["target"], at: "cue:c", pace },
       { id: "style", verb: "set_style", target: "target", role: "accent", at: "after:focus" },
-    ], [99, 100, end - 1, end]);
+    ], [99, 100, end - 1, end], 3_000);
     expect(frame(99).scene.camera.is_animating).toBe(false);
     expect(frame(100).scene.camera.is_animating).toBe(true);
     expect(frame(end - 1).styles.has("target")).toBe(false);
@@ -266,16 +267,18 @@ describe("caméra Nesalio", () => {
     expect(frame(500).scene.camera.is_animating).toBe(false);
   });
 
-  it("garde le trajet automatique quand la révélation suivante tient dans sa destination", async () => {
+  it("cadre d'avance, en un seul trajet dès le début du passage, ce que le passage va montrer", async () => {
+    // Since 2026-11-09 (camera comfort): one movement framing both points to come, instead of one per point.
     const frame = await cameraPassage(120, [
       { id: "first", verb: "show", target: "target", at: "cue:c" },
       { id: "second", verb: "show", target: "nearby", at: "cue_end:c" },
-    ], [100, 200, 700, 1_300]);
-    expect(frame(100).scene.camera.target_state?.x).toBe(120);
-    expect(frame(200).scene.camera.target_state).toEqual(frame(100).scene.camera.target_state);
-    expect(frame(700).scene.camera.state.x).toBeCloseTo(72);
-    expect(frame(1_300).scene.camera.state.x).toBe(120);
-    expect(frame(1_300).scene.camera.is_animating).toBe(false);
+    ], [50, 100, 200, 700, 2_000]);
+    const destination = frame(50).scene.camera.target_state!;
+    expect(frame(50).scene.camera.is_animating).toBe(true);
+    // Centred between the two points (120 and 122.5), the same destination all along.
+    expect(destination.x).toBeCloseTo(121.25);
+    for (const time of [100, 200, 700]) expect(frame(time).scene.camera.target_state).toEqual(destination);
+    expect(frame(2_000).scene.camera.state.x).toBeCloseTo(121.25);
   });
 
   it.each([
@@ -408,15 +411,18 @@ describe("retour à un cadrage mémorisé", () => {
         { id: "detail", verb: "camera.focus", targets: ["detail"], at: "beat:start", transition: "instant" }]),
       beat("back", [{ id: "back", verb: "camera.restore", frame: "vue", at: "cue:retour" },
         { id: "accent", verb: "set_style", target: "detail", role: "accent", at: "after:back" }]),
-    ] }], [199, 800, 1_399, 1_400, 1_600]);
+    ] }], [199, 800, 1_399, 1_600]);
     const saved = frame("save").scene.savedCamera.get("vue")!.state;
     expect(frame("detail").scene.objects.get("origin")?.position[0]).toBe(120);
     expect(frame("back", 199).scene.camera.state.x).toBe(120);
     expect(frame("back", 800).scene.camera.target_state).toEqual(saved);
-    expect(frame("back", 800).scene.camera.state.x).toBeCloseTo(60);
+    // Slower since 2026-11-09 (up to 2.2 s): still on its way at 0.8 s and 1.4 s.
+    expect(frame("back", 800).scene.camera.state.x).toBeGreaterThan(0);
+    expect(frame("back", 800).scene.camera.state.x).toBeLessThan(120);
     expect(frame("back", 1_399).styles.has("detail")).toBe(false);
-    expect(frame("back", 1_400).scene.camera.state).toEqual(saved);
-    expect(frame("back", 1_400).styles.get("detail")).toBe("accent");
+    // The trip is cut at the end of the clip: the camera is there and the waiting gesture fires.
+    expect(frame("back", 1_600).scene.camera.state).toEqual(saved);
+    expect(frame("back", 1_600).styles.get("detail")).toBe("accent");
   });
 });
 

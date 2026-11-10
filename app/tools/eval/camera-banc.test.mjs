@@ -23,7 +23,9 @@ import { playNesalioLesson } from "@/engine/nesalioPlayback";
 
 const ROOT = join(process.cwd(), "..", "analyses");
 const DEFAULT_DIRS = ["banc/ap2-allegees", "banc/ap3-relecteur", "banc/ap3n-sans", "banc/ap3n-relecteur", "banc/coupees-apres", "banc/coupees-apres-nouvelles", "lecons-jouees"];
-const STEP_MS = 200;
+const STEP_MS = 100;
+/** Screen width in world units at zoom 1 (viewport 16 × 9). */
+const SCREEN = 16;
 /** Voice at speed 0.75: about 115 words a minute. */
 const WORDS_PER_MINUTE = 115;
 const READABLE_ZOOM = 0.6;
@@ -65,7 +67,7 @@ const inside = (box, view) => box.x0 >= view.x0 - 1e-3 && box.x1 <= view.x1 + 1e
 const touches = (box, view) => box.x1 > view.x0 && box.x0 < view.x1 && box.y1 > view.y0 && box.y0 < view.y1;
 
 async function audit(lesson) {
-  const issues = { cutMs: 0, emptyMs: 0, smallMs: 0, offscreen: [], cut: new Set(), emptyAt: [], minZoom: Infinity, frames: 0, durationMs: 0 };
+  const issues = { cutMs: 0, emptyMs: 0, smallMs: 0, offscreen: [], cut: new Set(), emptyAt: [], minZoom: Infinity, frames: 0, durationMs: 0, moves: [] };
   /** Object id → time of its last gesture (show, write, draw, highlight, transform). */
   const recent = new Map();
   /** Gestures under way in the previous frame. */
@@ -109,9 +111,51 @@ async function audit(lesson) {
       issues.smallMs += scene.camera.state.zoom < READABLE_ZOOM - 1e-6 ? STEP_MS : 0;
     },
     onWarning: () => {},
+    onCameraPlan: (plan) => issues.moves.push({ ...plan, at: clock }),
   });
   issues.durationMs = issues.frames * STEP_MS;
   return issues;
+}
+
+/**
+ * Comfort of the camera (« ne pas donner la nausée »), per minute of lesson. Each movement costs 1, plus its
+ * travel (2 per screen width), its zoom change (2 per factor e), 3 if faster than one screen a second, 3 if it
+ * jumps in no time; a movement that comes back against the previous one within 4 s costs 3 more.
+ * Readability: 0.1 per second of a cut object, 0.3 per second of empty screen, 2 per gesture out of frame.
+ * Lower is better.
+ */
+export function comfort(r) {
+  const minutes = Math.max(0.25, r.durationMs / 60_000);
+  let motion = 0, back = 0, jumps = 0, fast = 0, travel = 0;
+  let previous;
+  const lessonMoves = [];
+  for (const m of r.moves) {
+    const width = SCREEN / m.from.zoom;
+    const dx = (m.to.x - m.from.x) / width, dy = (m.to.y - m.from.y) / width;
+    const distance = Math.hypot(dx, dy), zoom = Math.abs(Math.log(m.to.zoom / m.from.zoom));
+    if (distance < 0.02 && zoom < 0.03) continue;
+    const seconds = m.durationMs / 1000;
+    const isJump = seconds < 0.05;
+    const isFast = !isJump && (distance + zoom) / seconds > 1;
+    motion += 1 + 2 * distance + 2 * zoom + (isFast ? 3 : 0) + (isJump ? 3 : 0);
+    travel += distance;
+    jumps += isJump ? 1 : 0;
+    fast += isFast ? 1 : 0;
+    if (previous && m.at - previous.at < 4_000 && dx * previous.dx + dy * previous.dy < 0) { back++; motion += 3; }
+    previous = { dx, dy, at: m.at };
+    if (m.origin === "lesson") {
+      lessonMoves.push({ distance: +distance.toFixed(2), zoom: +(m.to.zoom / m.from.zoom).toFixed(2) });
+    }
+  }
+  const moves = r.moves.filter((m) => Math.hypot(m.to.x - m.from.x, m.to.y - m.from.y) / (SCREEN / m.from.zoom) >= 0.02 || Math.abs(Math.log(m.to.zoom / m.from.zoom)) >= 0.03);
+  const readability = 0.1 * r.cutMs / 1000 + 0.3 * r.emptyMs / 1000 + 2 * r.offscreen.length;
+  return {
+    score: +((motion + readability) / minutes).toFixed(2), motion: +(motion / minutes).toFixed(2), readability: +(readability / minutes).toFixed(2),
+    movesPerMin: +(moves.length / minutes).toFixed(2), travelPerMin: +(travel / minutes).toFixed(2), back, jumps, fast,
+    lessonMoves,
+    kinds: Object.fromEntries(["anticipe_", "suivi_", "plage_"].map((k) => [k, r.moves.filter((m) => m.origin !== "lesson" && (k === "suivi_" ? !m.action.startsWith("anticipe_") : m.action.startsWith(k))).length])),
+    byOrigin: Object.fromEntries(["lesson", "follow", "range"].map((o) => [o, moves.filter((m) => m.origin === o).length])),
+  };
 }
 
 describe.runIf(process.env.CAMERA === "1")("audit de la caméra sur les leçons enregistrées", () => {
@@ -126,13 +170,19 @@ describe.runIf(process.env.CAMERA === "1")("audit de la caméra sur les leçons 
       try {
         const r = await audit(valid.value);
         rows.push({ dir, file, seconds: Math.round(r.durationMs / 1000), cutS: r.cutMs / 1000, emptyS: r.emptyMs / 1000, smallS: r.smallMs / 1000,
-          minZoom: +r.minZoom.toFixed(2), cut: [...r.cut], offscreen: r.offscreen, emptyAt: r.emptyAt });
+          minZoom: +r.minZoom.toFixed(2), cut: [...r.cut], offscreen: r.offscreen, emptyAt: r.emptyAt, comfort: comfort(r) });
       } catch (error) { rows.push({ dir, file, error: String(error) }); }
     }
     const played = rows.filter((r) => r.seconds !== undefined);
     const share = (pred) => `${played.filter(pred).length}/${played.length}`;
+    const mean = (key) => played.reduce((s, r) => s + r.comfort[key], 0) / Math.max(1, played.length);
+    const sum = (key) => played.reduce((s, r) => s + r.comfort[key], 0);
+    const origins = ["lesson", "follow", "range"].map((o) => [o, played.reduce((s, r) => s + r.comfort.byOrigin[o], 0)]);
     const lines = [
       "# Audit de la caméra (leçons enregistrées, voix simulée)", "",
+      `**Score d'inconfort moyen : ${mean("score").toFixed(2)} par minute** (mouvement ${mean("motion").toFixed(2)}, lisibilité ${mean("readability").toFixed(2)}) — plus bas = mieux.`,
+      `Mouvements par minute : ${mean("movesPerMin").toFixed(2)} ; écrans parcourus par minute : ${mean("travelPerMin").toFixed(2)} ; aller-retours : ${sum("back")} ; sauts sans transition : ${sum("jumps")} ; mouvements rapides : ${sum("fast")}.`,
+      `Origine des mouvements : ${origins.map(([o, n]) => `${o === "lesson" ? "ordres du JSON (camera.focus/restore)" : o === "follow" ? "suivi automatique du moteur" : "plage d'un paramètre"} ${n}`).join(" ; ")}.`, "",
       `Leçons jouées : ${played.length} ; invalides ou en erreur : ${rows.length - played.length}.`, "",
       "| Défaut | Leçons touchées | Durée totale |", "| --- | --- | --- |",
       `| Objet coupé par le bord du cadre | ${share((r) => r.cutS > 0)} | ${played.reduce((s, r) => s + r.cutS, 0).toFixed(0)} s |`,

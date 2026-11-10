@@ -84,6 +84,57 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-09 — Mission caméra : +50 % de confort (Claude Code, session « relecteur »)
+- Mission de l'utilisateur : une seule tâche, la qualité de la caméra et de ce qui apparaît (référence 3Blue1Brown, ne
+  pas donner la nausée), en regardant les leçons en continu (pas des captures espacées), objectif +50 %. Remarque :
+  regarder aussi le JSON envoyé (ordres de caméra du modèle), pas seulement le moteur.
+- Outillage (gratuit) : `services/voice/simulatedClip.ts` (voix muette au rythme réel, 115 mots/min) ; `/dev/nesalio?voix=simulee`
+  pour filmer sans payer (`tools/eval/video-nesalio.mjs` avec `NESALIO_URL=…?voix=simulee`, capture continue de chaque
+  image de Chrome) ; `onCameraPlan` dans le lecteur (origine de chaque mouvement : ordre du JSON ou suivi du moteur) ;
+  score d'inconfort dans `tools/eval/camera-banc.test.mjs` (positions exactes toutes les 0,1 s, 238 leçons) :
+  par minute, 1 par mouvement + 2 par écran parcouru + 2 par facteur de zoom + 3 s'il dépasse un écran par seconde
+  + 3 si saut sans transition + 3 par aller-retour en moins de 4 s ; lisibilité : 0,1/s d'objet coupé, 0,3/s d'écran
+  vide, 2 par geste hors champ. Rapport de départ gardé : `analyses/camera/rapport-avant.md`.
+- **Départ : 7,67 par minute** ; 1 036 mouvements dont 890 du suivi du moteur (un par objet qui sort du cadre) et
+  146 des ordres du JSON ; 493 mouvements à plus d'un écran par seconde ; 35 aller-retours.
+- Corrections du moteur (`nesalioPlayback.ts`, `sceneState.ts`) :
+  1. `anticipate` : un seul mouvement par passage, qui cadre d'avance ce que le passage (et si possible toute la
+     tranche) va montrer, avec ce qui reste au tableau ; il finit au moment où le 1er objet apparaît (sinon écran vide).
+  2. Mouvements plus lents : 0,8 à 2,2 s (`CAMERA_MOVE_MS`, au lieu de 0,3 à 1,2 s).
+  3. `smallReframing` : un camera.focus du JSON qui ne ferait qu'un petit recadrage (< ¼ d'écran, zoom ×0,8 à ×1,25)
+     sur des cibles déjà visibles est ignoré (58 des 148 ordres du JSON) ; zooms voulus et `instant` gardés.
+  4. `pushOutCut` : un objet du contexte que le cadre couperait et qui ne peut pas entrer est sorti du cadre par un
+     petit décalage (le 1er graphique à moitié visible quand le 2e s'affiche à côté).
+- **Après : 3,68 par minute (−52 %)** ; mouvements 2,1 → 1,5 par minute ; rapides 493 → 28 ; aller-retours 35 → 21 ;
+  objets coupés 39 → 23 leçons (1 035 → 518 s) ; gestes hors champ 22 → 5 ; écrans vides 27 → 18 (176 → 99 s).
+  7 tests du lecteur mis à jour (durées des mouvements, anticipation au lieu du suivi un par un). 603 verts.
+- Côté JSON (proposition, non faite) : l'exemple du prompt apprend « vue d'ensemble → zoom sur un point → retour »
+  (un aller-retour) ; le changer demande des générations pour mesurer (clé).
+- Écrans vides venus du JSON (le modèle efface, puis n'écrit qu'au mot ou au passage suivant) :
+  `clearWithFirstReveal` généralisée (un effacement à n'importe quel moment attend le prochain objet écrit après lui,
+  sauf si une action `after:` l'attend) et `holdClearingsForNextBeat` (un passage qui ne fait qu'effacer passe ses
+  effacements au passage suivant de la tranche, sauf si celui-ci revise l'objet), appliquée à l'arrivée de chaque
+  tranche (`beatQueue`). 3 tests dans `clearing.test.ts`. **Score 3,60/min (−53 %)** ; écrans vides 18 → 4 leçons
+  (99 → 10 s). 606 tests verts.
+- Juge aveugle sur vidéo (correlation-force, avant/après, regardée toutes les 0,5 à 3 s) : **5/10 → 7/10** (confort
+  5 → 8). Rapport : notes de session `juge-camera-correlation.md`. Défauts restants surtout du JSON : 21 points du
+  nuage déclarés mais jamais montrés (le vérificateur devrait le refuser), rectangle aux mauvaises mesures, effacements
+  manquants ; côté moteur : étiquette d'axe ancrée `right` au milieu du côté au lieu du bout de l'axe.
+- Cause n°1 des objets coupés restants : **repères trop grands** (axes à 1 unité math = 1 unité d'écran ; y de 0 à 16
+  = deux écrans). 9 des 23 leçons coupées, 284 des 519 s. Correction proposée, non faite : mettre chaque repère à
+  l'échelle (taille d'écran plafonnée, comme `x_length`/`y_length` de Manim), dans la mesure, le placement et le rendu.
+- **Repères mis à l'échelle (fait, accord de l'utilisateur)** : `axesScale` (`measurement.ts`) — au-delà de 12 × 8
+  (taille des axes par défaut, qui ne changent donc pas), le repère est réduit ; même échelle sur les deux axes sauf
+  rapport > 3 (règle reprise de l'ancien tableau, `layout.ts`). Tout ce qui est dessiné dans le repère suit
+  (`scale` sur l'objet placé, passé à la mesure ; rendu `NesalioProjection.build` et graduations `axisNumbers`).
+  Pas encore mis à l'échelle : `triangle_right` et `number_line` dans un grand repère (rares). Les coordonnées du
+  JSON restent mathématiques : rien ne change pour le modèle. 2 tests dans `sceneState.test.ts` ; 917 verts.
+  Banc : **3,44/min (−55 %)** ; coupé 519 → 356 s (23 → 20 leçons) ; zoom illisible 1 → 0 leçon.
+  Vérifié en vrai (`/dev/nesalio?voix=simulee`, leçon y = 2x + 3, axe y de 0 à 16) : graphique entier, droite
+  juste sur ses graduations.
+- Fichiers temporaires retirés (`tools/eval/sonde-camera.test.mjs`, `app/public/__essai/`). Vidéos gardées :
+  `analyses/videos/camera/`. Rien n'est commité.
+
 ### 2026-11-09 — Surlignage qui clignote, résultat surligné en entier (Claude Code, session « relecteur »)
 - Question de l'utilisateur : le surlignage « clignote », et un résultat surligné colore tout. Causes (1 496 surlignages
   du banc) : un surlignage durait exactement son repère — 0,22 s pour `at` seul (38 %), un ou deux mots pour 281

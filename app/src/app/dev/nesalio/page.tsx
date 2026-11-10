@@ -7,6 +7,7 @@ import { validateLesson } from "@/domain/nesalio/validate";
 import { playNesalioStream, type NesalioWarning } from "@/engine/nesalioPlayback";
 import { openNesalioStream } from "@/services/nesalio/stream";
 import { openNesalioClip } from "@/services/voice/nesalioClip";
+import { openSimulatedClip } from "@/services/voice/simulatedClip";
 import type { ManimRenderer } from "@/ui/board/manim/ManimRenderer";
 
 export default function NesalioPlaybackPage() {
@@ -58,7 +59,8 @@ export default function NesalioPlaybackPage() {
       await playNesalioStream(lesson.header, lesson.slices, {
         viewport: { x0: -8, y0: -4.5, x1: 8, y1: 4.5 },
         signal: active.signal,
-        openClip: openNesalioClip,
+        // ?voix=simulee: a silent voice with the real pace, to film and judge the board without paying for speech.
+        openClip: new URLSearchParams(window.location.search).get("voix") === "simulee" ? openSimulatedClip : openNesalioClip,
         prepareSlice: (slice, signal) => projection.prepareSlice(slice, signal),
         measure: projection.measure,
         onWarning(warning) {
