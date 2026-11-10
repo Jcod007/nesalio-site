@@ -80,6 +80,7 @@ export function NesalioApp() {
           prepareSlice: (slice, signal, math, values) => projection.prepareSlice(slice, signal, math, values),
           measure: projection.measure,
           onFrame: (frame, beat) => options.onFrame(frame, beat),
+          afterSlice: options.afterSlice,
         });
       },
       board: { reset: () => board.reset(), draw: (frame) => board.current()?.drawNesalio(frame) },
@@ -110,6 +111,8 @@ export function NesalioApp() {
     replay: () => void session.replay(),
     retry: () => { const question = session.getSnapshot().question; if (question) ask(question); },
     setPaused: (paused) => session.setPaused(paused),
+    answer: (choice) => session.answer(choice),
+    continueLesson: () => session.continueLesson(),
     newTopic: () => { setListening(false); session.stop(); },
     setListening: (value) => {
       // Speaking during the explanation pauses Nesa's voice.

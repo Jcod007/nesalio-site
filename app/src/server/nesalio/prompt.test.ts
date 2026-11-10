@@ -35,10 +35,12 @@ describe("prompt système Nesalio", () => {
     expect(reference).toMatch(/- point \{ params: \{ at: \[nombre, nombre\] \} \}/);
   });
 
-  it("demande seulement l’explication, sans boucle pédagogique", () => {
+  it("demande l’explication et au plus deux questions de vérification, sans autre boucle pédagogique", () => {
+    // Questions à l'élève depuis le 2026-11-10 (demande de l'utilisateur) : une ligne {"question"} vérifiée sur place.
     const prompt = buildNesalioSystemPrompt();
-    expect(prompt).toContain("Tu ne poses aucune question à l’élève".replace("’", "'"));
-    for (const loop of ["ifRight", "ifWrong", "await", "diagnosis", "remédiation", "quiz avant"]) expect(prompt).not.toContain(loop);
+    expect(prompt).toContain("au plus deux questions à");
+    expect(prompt).toContain('{"question": {"id", "prompt"');
+    for (const loop of ["diagnosis", "remédiation", "quiz avant"]) expect(prompt).not.toContain(loop);
     expect(prompt).not.toMatch(/kairos/i);
   });
 

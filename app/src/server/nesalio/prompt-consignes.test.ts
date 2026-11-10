@@ -19,9 +19,11 @@ import { PROMPT_EXAMPLES, buildNesalioMessages, buildNesalioSystemPrompt, consig
  * Mise à jour VOLONTAIRE le 2026-11-10 (étiquette sur une partie de formule) : le format reçoit attachment.part et la
  * consigne des étiquettes l'annonce (« 2 mol » sous N₂) ; pour rester sous 37 000, le 2e exemple de move (rapprocher
  * deux objets) et la phrase « Le moteur recadre les cibles du cadrage telles qu'elles sont alors » partent. 36 994 → 36 978.
+ * Mise à jour VOLONTAIRE le 2026-11-10 (questions à l'élève, demande de l'utilisateur) : le FORMAT DE SORTIE reçoit la
+ * ligne {"question": …} (4 lignes) et TEACHING remplace « Tu ne poses aucune question… » par au plus deux questions de vérification ; la limite des deux versions passe de 37 000 à 37 500 caractères. 36 978 → 37 466.
  */
-const FULL_PROMPT_SHA256 = "9ff9b6764939a12c60a8a01a7abdec9f99f44f6866de11519fadfdbf722a5973";
-const FULL_PROMPT_LENGTH = 36_978;
+const FULL_PROMPT_SHA256 = "9fa33dbc562e27fa2e358fcde4be7c65d5e9d1d0b30162ef19d366350bfee38d";
+const FULL_PROMPT_LENGTH = 37_466;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 
@@ -89,7 +91,7 @@ describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
         "Contrôlé par le moteur : table « x » / « f(x) »", "lignes « réactifs » et « produits »", "id sommet1, creux1, zero1"]) {
         expect(prompt, `${version} : ${rule}`).toContain(rule);
       }
-      expect(prompt.length, version).toBeLessThan(37_000);
+      expect(prompt.length, version).toBeLessThan(37_500);
     }
   });
 

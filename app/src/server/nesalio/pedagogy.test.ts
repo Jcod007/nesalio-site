@@ -420,6 +420,7 @@ describe("pédagogie du générateur Nesalio", () => {
     // 26 837 characters before the lot « consignes et guides », 38 398 after it (2026-11-08): +2 300 rules, +2 400 for the
     // notion → image dictionary, +4 650 for the lesson whose figure moves, +850 for the refusal. Guides travel with the question.
     // Review of lot 1: the notion → image dictionary moved into the guides: 36 484 characters.
-    expect(buildNesalioSystemPrompt().length).toBeLessThan(37_000);
+    // Questions to the student (2026-11-10): +450 characters, limit raised to 37 500.
+    expect(buildNesalioSystemPrompt().length).toBeLessThan(37_500);
   });
 });

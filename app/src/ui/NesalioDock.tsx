@@ -12,12 +12,16 @@ export interface NesalioDockActions {
   replay(): void;
   retry(): void;
   setPaused(paused: boolean): void;
+  answer(choice: number): void;
+  continueLesson(): void;
   newTopic(): void;
   setListening(listening: boolean): void;
 }
 
-function nesaState({ status, paused, waiting }: SessionSnapshot, listening: boolean): NesaState {
+function nesaState({ status, paused, waiting, asking }: SessionSnapshot, listening: boolean): NesaState {
   if (listening) return "ecoute";
+  // A question on screen: Nesa waits for the answer, then is pleased with a right one.
+  if (asking) return asking.right ? "content" : "repos";
   if (status === "preparing" || waiting) return "reflechit";
   if (status === "playing") return paused ? "repos" : "parle";
   return status === "done" ? "content" : "repos";
@@ -29,7 +33,7 @@ function nesaState({ status, paused, waiting }: SessionSnapshot, listening: bool
  */
 export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; listening: boolean; actions: NesalioDockActions }>(
   function NesalioDock({ snapshot, listening, actions }, ref) {
-    const { status, caption, paused, waiting, error, question, canReplay } = snapshot;
+    const { status, caption, paused, waiting, error, question, canReplay, asking } = snapshot;
     return (
       <section ref={ref} className={styles.dock} aria-label="Nesa">
         {question ? (
@@ -43,7 +47,12 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
           <div className={styles.row}>
             <Nesa state={nesaState(snapshot, listening)} size={60} className={styles.nesa} />
             <div className={styles.text} aria-live="polite">
-              {status === "preparing" ? (
+              {asking ? (
+                <>
+                  <p className={styles.caption}>{asking.prompt}</p>
+                  {asking.feedback ? <p className={styles.notice} data-right={asking.right === true}>{asking.feedback}</p> : null}
+                </>
+              ) : status === "preparing" ? (
                 <p className={styles.caption}>Je prépare l&apos;explication<span className={styles.dots} aria-hidden="true" /></p>
               ) : status === "error" ? (
                 <p className={styles.caption}>{error}</p>
@@ -62,8 +71,25 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
             </div>
           </div>
 
+          {asking ? (
+            <div className={styles.choices} role="group" aria-label="Choisis ta réponse">
+              {asking.choices.map((choice, index) => {
+                const state = asking.solved === index ? "right" : asking.wrong.includes(index) ? "wrong" : asking.solved !== null ? "idle" : undefined;
+                return (
+                  <button key={index} type="button" className={styles.choice} data-state={state}
+                    disabled={asking.solved !== null || asking.wrong.includes(index)} onClick={() => actions.answer(index)}>
+                    {choice}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
           <div className={styles.controls}>
-            {status === "playing" ? (
+            {asking && asking.solved !== null ? (
+              <button type="button" className="cta" onClick={actions.continueLesson}>Continuer</button>
+            ) : null}
+            {status === "playing" && !asking ? (
               <button type="button" className="btn-line" onClick={() => actions.setPaused(!paused)}>
                 {paused ? <><PlayIcon /> Reprendre</> : <><PauseIcon /> Pause</>}
               </button>

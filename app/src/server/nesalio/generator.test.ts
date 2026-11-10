@@ -35,6 +35,18 @@ async function run(completion: ReturnType<typeof scripted>["completion"], option
 const kinds = (events: NesalioEvent[]) => events.map((event) => event.kind === "slice" ? `slice:${event.slice.slice_id}` : event.kind);
 
 describe("générateur Nesalio", () => {
+  it("transmet une question à l'élève après la tranche qui la précède, et écarte une question mal formée", async () => {
+    const question = (id: string, extra: Record<string, unknown> = {}) => JSON.stringify({ question: {
+      id, prompt: "Combien de points ?", choices: ["un", "deux"], answer: 0, ifRight: "Oui.", ifWrong: "Non.", ...extra } });
+    const model = scripted([header, slice("s1"), question("q1"), slice("s2"), question("q2", { answer: 5 }), slice("s3")].join("\n"));
+    const events = await run(model.completion);
+    expect(kinds(events)).toEqual(["lesson", "slice:s1", "question", "slice:s2", "slice:s3", "end"]);
+    expect(events[2]).toMatchObject({ kind: "question", id: "q1", after: "s1", check: { answer: 0, choices: ["un", "deux"] } });
+    // A wrong question never stops the lesson, nor asks the model again.
+    expect(model.calls).toHaveLength(1);
+  });
+
+
   it("transmet chaque tranche validée dès qu’elle est complète, sans réflexion avant la première", async () => {
     const model = scripted(["```json", header, slice("s1"), slice("s2"), "```"].join("\n"));
     expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);

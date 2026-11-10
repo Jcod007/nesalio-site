@@ -103,6 +103,10 @@ FORMAT DE SORTIE (format Nesalio ${NESALIO_FORMAT_VERSION}) : du JSON, une ligne
   pause_after laisse un silence après le passage pour que l'élève regarde le tableau : "normal" après une idée importante
   ou un résultat, "long" avant de changer de partie ; sans pause_after, un court souffle sépare déjà les passages.
 - Un repère : {"id", "text", "occurrence"?}. Un groupe : {"id", "items": [ids], "arrange"?: {"direction", "align"?, "gap"?}, "layout"?}.
+- QUESTION À L'ÉLÈVE : juste après la ligne de la tranche de l'idée principale (une seconde fois au plus, jamais après
+  le récapitulatif), une ligne {"question": {"id", "prompt", "choices": [2 à 4 choix courts], "answer": index du bon choix,
+  "ifRight", "ifWrong", "why": [pour chaque choix, l'erreur qu'il révèle, "" pour le bon]}}. Elle vérifie que l'élève a
+  compris (une prédiction, un calcul court), pas sa mémoire. La lecture attend sa réponse.
 - math_context.symbols : {"nom": {"kind": "constant", "value"}} ou {"nom": {"kind": "parameter", "initial", "min", "max"}}.
   math_context.expressions : {"id": "expression"} pour les formules à valeur calculée.`.trim();
 

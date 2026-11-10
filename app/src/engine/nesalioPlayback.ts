@@ -696,6 +696,11 @@ export interface NesalioPlaybackOptions {
   signal: AbortSignal;
   openClip(beat: Beat, signal: AbortSignal): Promise<NesalioClip>;
   prepareSlice?(slice: Slice, signal: AbortSignal, math: SceneState["math"], values: ReadonlyMap<string, number>): Promise<void>;
+  /**
+   * Called once a tranche has been played, before the next one starts (or the lesson ends), the board still showing
+   * it: a question to the student is asked here and playback waits until it resolves (question.ts).
+   */
+  afterSlice?(sliceId: string, signal: AbortSignal): Promise<void>;
   measure?: MeasureObject;
   onFrame(frame: NesalioFrame, beat: Beat, playhead: number): void;
   onWarning?(warning: NesalioWarning): void;
@@ -817,13 +822,21 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
   let next: Promise<Prepared | null> | undefined;
   try {
     let tranchePlan = new Map<string, PlannedFraming>();
+    let previousSlice: string | undefined;
     for (let index = 0; ; index++) {
       signal.throwIfAborted();
       await whenRunning(options.control, signal);
       if (!queue.settled(index)) options.onWaiting?.();
       const current = await queue.at(index);
+      // The tranche just played is over: its question, if it has one, is asked before anything else moves.
+      if (previousSlice !== undefined && (!current || current.first)) {
+        await options.afterSlice?.(previousSlice, signal);
+        signal.throwIfAborted();
+        await whenRunning(options.control, signal);
+      }
       if (!current) break;
       const { slice, beat, first } = current;
+      previousSlice = slice.slice_id;
       const sliceObjects = slice.introduces.map(({ id }) => id);
       // Prepares the following passage's voice as soon as its tranche has arrived.
       const following = () => queue.at(index + 1).then((item) => item ? prepare(item.beat) : null, () => null);

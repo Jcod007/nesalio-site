@@ -513,3 +513,20 @@ describe("la caméra suit ce qui apparaît", () => {
     expect(closest).toBeLessThanOrEqual(1 + 1e-9);
   });
 });
+
+describe("question à l'élève après une tranche", () => {
+  it("attend la fin de chaque tranche, tableau encore affiché, avant la suivante et avant la fin", async () => {
+    const tranche = (id: string) => ({ slice_id: id, introduces: [{ id: `t_${id}`, type: "text", content: `Texte ${id}` }],
+      beats: [1, 2].map((n) => ({ id: `${id}_b${n}`, say: "Voici.", cues: [], do: n === 1 ? [{ id: `s_${id}`, verb: "show", target: `t_${id}`, at: "beat:start" }] : [] })) });
+    const lesson = validateLesson({ ...shell, slices: [tranche("s1"), tranche("s2")] });
+    if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues));
+    const order: string[] = [];
+    await playNesalioLesson(lesson.value, {
+      viewport: { x0: -8, y0: -4.5, x1: 8, y1: 4.5 }, signal: new AbortController().signal, wait: async () => {},
+      openClip: async () => clip({}, 1_000, [1_000]),
+      onFrame: (frame, beat) => { if (order.at(-1) !== beat.id) order.push(beat.id); },
+      afterSlice: async (id) => { order.push(`question après ${id}`); },
+    });
+    expect(order).toEqual(["s1_b1", "s1_b2", "question après s1", "s2_b1", "s2_b2", "question après s2"]);
+  });
+});

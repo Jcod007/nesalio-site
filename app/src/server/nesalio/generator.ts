@@ -6,6 +6,7 @@
  * une tranche invalide n'est jamais transmise au lecteur.
  */
 import { LessonMetadata, MathContext, type Slice } from "@/domain/nesalio/contract";
+import { LessonQuestion, MAX_QUESTIONS } from "@/domain/nesalio/question";
 import { negotiateCapabilities } from "@/domain/nesalio/capabilities";
 import { escapeLatex, normalizeMathContext, normalizeSlice } from "@/domain/nesalio/normalize";
 import { validateMathContext, validateModelOutput, type ContractIssue, type ValidationState } from "@/domain/nesalio/validate";
@@ -22,6 +23,8 @@ import { buildTeacherMessages, layoutRequest } from "./script";
 export type NesalioEvent =
   | { kind: "lesson"; lesson: Lesson; math_context?: MathSpec }
   | { kind: "slice"; slice: Slice }
+  /** Asked to the student once the tranche `after` has been played (question.ts). */
+  | ({ kind: "question" } & LessonQuestion)
   | { kind: "error"; code: "upstream" | "empty" | "invalid" | "incomplete"; message: string }
   | { kind: "end" };
 
@@ -458,6 +461,8 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
   let reviewFixes = 0;
   /** Tranches shown, as played: the context the reviewer reads before the new one. */
   const shown: Slice[] = [];
+  /** Questions kept, and the tranches already followed by one. */
+  const asked = new Set<string>();
   const reviewTimeoutMs = config.reviewTimeoutMs ?? REVIEW_TIMEOUT_MS;
 
   /** The reviewer's alerts on a tranche; none when it fails or is too slow (the tranche is then shown unreviewed). */
@@ -543,7 +548,7 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
     const handle = function* (line: string): Generator<NesalioEvent> {
       // Models sometimes add fences or a sentence: only JSON objects count, a sentence before a tranche is dropped.
       if (!line.startsWith("{")) {
-        const start = line.search(/\{\s*"(?:slice|lesson)"\s*:/);
+        const start = line.search(/\{\s*"(?:slice|lesson|question)"\s*:/);
         if (start > 0) yield* handle(line.slice(start));
         // A tranche spread over several lines is refused; a sentence that merely quotes "slice": is not.
         else if (SPREAD.test(line)) refuseUnreadable(line, new Error("la ligne ne commence pas par {"));
@@ -571,7 +576,7 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       }
       const { value } = parsed;
       // Read by jsonrepair as neither a tranche nor an awaited header: the line stays unreadable.
-      if ("lenient" in parsed && value.slice === undefined && (header || value.lesson === undefined)) {
+      if ("lenient" in parsed && value.slice === undefined && value.question === undefined && (header || value.lesson === undefined)) {
         refuseUnreadable(line, parsed.lenient);
         return;
       }
@@ -591,6 +596,22 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
         // Replayed as accepted: braces may have been added, expressions removed.
         accepted.push(JSON.stringify({ ...value, ...(math ? { math_context: math.data } : {}) }));
         yield { kind: "lesson", ...header };
+        return;
+      }
+      if (value.question !== undefined && value.slice === undefined) {
+        // A question after the last tranche shown. A wrong one is left out, never refused: the lesson goes on.
+        const after = shown.at(-1)?.slice_id;
+        const raw = value.question as Record<string, unknown> | null;
+        const id = typeof raw?.id === "string" ? raw.id : `q${asked.size + 1}`;
+        const { id: _id, after: _after, ...check } = raw ?? {};
+        const question = LessonQuestion.safeParse({ id, after, check });
+        if (!after || asked.has(after) || asked.size >= MAX_QUESTIONS) log?.("nesalio: question ignorée", `${id} — ${!after ? "avant toute tranche" : asked.has(after) ? "deuxième question après la même tranche" : "trop de questions"}`);
+        else if (!question.success) log?.("nesalio: question refusée", `${id} — ${question.error.issues.map((issue) => `${issue.path.join(".")} : ${issue.message}`).join(" | ")}`);
+        else {
+          asked.add(after);
+          accepted.push(line);
+          yield { kind: "question", ...question.data };
+        }
         return;
       }
       if (value.slice === undefined) return;

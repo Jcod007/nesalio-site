@@ -100,6 +100,31 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
   demander à l'utilisateur avant un changement visible pour l'élève. Rien de ce document avant la présentation de chimie.
 - Aucun fichier de code touché, rien vérifié par des tests (lecture des notes et de deux fichiers seulement).
 
+### 2026-11-10 — Questions à l'élève pendant la leçon (Claude Code, session « relecteur »)
+- Demande : intégrer l'interaction (questions pour savoir si l'élève a compris). Choix par défaut annoncés à
+  l'utilisateur et acceptés : au plus 2 questions à choix, deux essais puis la solution, pas encore de
+  réexplication générée. **Commit à part**, après e1ca229.
+- Format et contrôle : `domain/nesalio/question.ts` (`LessonQuestion` = id, `after` = tranche, `check` au format
+  `Check` de l'ancien tuteur avec `answer` obligatoire ; `MAX_QUESTIONS` 2 ; `judge` : réaction juste, ou fausse +
+  l'erreur `why` du choix). Générateur : ligne `{"question": …}` après une tranche → événement
+  `{kind: "question", id, after, check}` ; une question mal formée, en trop ou avant toute tranche est écartée
+  (journal), jamais refusée (la leçon continue). Prompt : ligne QUESTION À L'ÉLÈVE dans FORMAT DE SORTIE ; TEACHING
+  n'interdit plus les questions ; limite de taille 37 000 → 37 500 (37 466 / 37 049), empreinte mise à jour.
+- Lecture : `openNesalioStream` remplit `questions` (par tranche) ; option `afterSlice` du lecteur, appelée quand
+  une tranche est finie (tableau encore affiché) et attendue avant la suivante ; `NesalioSession` montre la
+  question (`snapshot.asking`), `answer(i)`, `continueLesson()`, libère la lecture si l'élève quitte ; rejouer
+  repose la question. Bandeau : choix (styles `.choice` de l'ancien `Dock`), réaction, « Continuer ».
+- Tests : générateur (question transmise, question fausse écartée), lecteur (ordre tranche → question → tranche),
+  séance (juste, faux + seconde chance + solution, départ pendant la question). 927 tests verts.
+- **Vérifié dans la vraie fenêtre** (« réactif limitant », vraie voix) : la question « Avec 4 mol de N₂ et 3 mol de
+  H₂, quel est le réactif limitant ? » s'affiche avec 4 choix ; mauvais choix → explication précise (« N₂ donne
+  4 ÷ 1 = 4, H₂ donne 3 ÷ 3 = 1… ») ; bon choix en vert → « Continuer » → fin de leçon. Réaction juste mise en vert
+  ensuite (elle était orange). Vu : la question est venue après le récapitulatif (la consigne le déconseille) ; le
+  badge « N » de Next en mode dev cache le premier choix (dev seulement).
+- Question de l'utilisateur pendant l'essai : « 2/1 = 2 et 3/3 = 1 » surligné en entier. Cause : le modèle a écrit
+  les deux rapports dans une seule formule sans parts et a surligné la formule entière deux fois ; même chose pour
+  l'équation (pas de « = », donc pas de découpe du résultat). Non corrigé.
+
 ### 2026-11-10 — Retrait de l'ancien tuteur, lot 1 : plus d'entrée élève (Claude Code, session « relecteur »)
 - **Décision de l'utilisateur** : retirer l'ancien système (« le nouveau système est déjà top »), le brancher seul,
   puis intégrer l'interaction (questions pour vérifier que l'élève a compris). Fait avant : commit 5476180 de tout
