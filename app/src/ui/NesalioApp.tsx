@@ -16,6 +16,15 @@ import boardStyles from "./board/ManimBoard.module.css";
 const TOP_BAR = 60;
 /** Left on a finished lesson this long (no replay, no new question), the after-trial questions open. */
 const AFTER_TRIAL_DELAY = 60_000;
+/**
+ * Questions suggested on the start screen: within what Nesa explains (maths and chemistry, sec 4-5).
+ * The former tutor's list offered « la portée d'un projectile » (physics), seen in the real trial of 2026-11-09.
+ */
+const NESALIO_SUGGESTIONS = [
+  "Comment je trouve les zéros de f(x) = −(x − 2)² + 3 ?",
+  "C'est quoi le réactif limitant, avec un exemple ?",
+  "Comment on utilise PV = nRT pour trouver une pression ?",
+] as const;
 /** The lesson's design frame (16:9), as on /dev/nesalio: the engine's camera works in it. */
 const VIEWPORT = { x0: -8, y0: -4.5, x1: 8, y1: 4.5 };
 
@@ -133,7 +142,7 @@ export function NesalioApp() {
       <AfterTrialQuestions sessionDone={snapshot.status === "done"} atHome={idle && snapshot.lastFinished !== null}
         delayMs={AFTER_TRIAL_DELAY} question={snapshot.question ?? snapshot.lastFinished} />
       {idle ? (
-        <StartScreen onAsk={ask} listening={listening} onListeningChange={setListening}
+        <StartScreen onAsk={ask} listening={listening} onListeningChange={setListening} suggestions={NESALIO_SUGGESTIONS}
           lede="Pose ta question à voix haute ou écris-la. Nesa t'explique en dessinant au tableau." />
       ) : (
         <NesalioDock ref={dockRef} snapshot={snapshot} listening={listening} actions={actions} />

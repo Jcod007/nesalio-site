@@ -13,6 +13,7 @@ import { DIM_OPACITY, type NesalioFrame } from "@/engine/nesalioPlayback";
 import { BRAND } from "@/ui/theme";
 import { readableFormula } from "./formulaFallback";
 import { arrowMark, boardFormula, boardFormulaParts, boardText, circleMark, pointMark, polygonMark, segmentMark } from "./primitives";
+import { partsWithSpacing } from "./partSpacing";
 import { TableMarks } from "./tableMarks";
 
 const palette = { neutral: BRAND.ink, given: "#2563a6", unknown: "#a55316", accent: BRAND.violet, result: "#18724b", secondary: "#52617b" };
@@ -45,9 +46,21 @@ function fontSize(object: SceneObject): number {
   return FONT_SIZE[object.size === "small" || object.size === "large" ? object.size : "normal"];
 }
 
+/** Whether manim-web gives the item finite dimensions. */
+function measurable(item: Mobject): boolean {
+  try {
+    item.getThreeObject();
+    return Number.isFinite(item.getWidth()) && Number.isFinite(item.getHeight());
+  } catch {
+    return false;
+  }
+}
+
 function dimensions(item: Mobject): Measurement {
   item.getThreeObject();
-  const width = Math.max(0.01, item.getWidth()), height = Math.max(0.01, item.getHeight());
+  // Math.max(0.01, NaN) is NaN: a size manim-web cannot give is never passed on to the placement.
+  const finite = (value: number) => Number.isFinite(value) ? Math.max(0.01, value) : 0.01;
+  const width = finite(item.getWidth()), height = finite(item.getHeight());
   return { body: { x0: -width / 2, y0: -height / 2, x1: width / 2, y1: height / 2 } };
 }
 
@@ -89,11 +102,13 @@ export class NesalioProjection {
       const options = digit > 0 ? { fontSize: target / digit, color: palette.neutral } : { height: target, color: palette.neutral };
       // manim-web lays out the whole formula once, then splits its glyphs between the parts.
       const math = definition.parts
-        ? boardFormulaParts(definition.parts.map((part) => part.text), options)
+        ? boardFormulaParts(partsWithSpacing(definition.content, definition.parts.map((part) => part.text)), options)
         : boardFormula(`$${definition.content}$`, options);
       await math.waitForRender().catch(() => undefined);
       if (signal.aborted) { math.dispose(); return; }
-      const error = math.getRenderError();
+      // A formula manim-web draws with NaN dimensions (seen: the letter p) would stop the whole lesson
+      // (« Dimensions de scène invalides ») : it is handled like a formula that did not render.
+      const error = math.getRenderError() ?? (measurable(math) ? undefined : "dimensions invalides");
       // The student never sees raw LaTeX: an unrenderable formula is written as plain text, and logged.
       if (error) console.warn(`nesalio: formule non rendue « ${definition.id} » (${definition.content}) :`, error);
       const item = error ? boardText(readableFormula(definition.content), palette.neutral, fontSize(definition)) : math;

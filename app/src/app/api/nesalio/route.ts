@@ -11,6 +11,7 @@ import { requireAccount } from "@/server/account";
 import { createSessionLimits } from "@/server/rateLimit";
 import { generateNesalio, type NesalioEvent } from "@/server/nesalio/generator";
 import { createSliceReviewer } from "@/server/nesalio/review";
+import { createLessonKeeper, keptLessonsDir } from "@/server/nesalio/keepLesson";
 import { streamChatCompletion } from "@/server/tutor/chatCompletions";
 
 export const runtime = "nodejs";
@@ -51,11 +52,17 @@ export async function POST(request: Request): Promise<Response> {
 
   // Reviewer of substance (review.ts): on by default, NESALIO_RELECTEUR=0 turns it off.
   const reviewer = readReviewer(request.headers);
+  // Every lesson kept with its log for checking the board afterwards (keepLesson.ts): local only, NESALIO_GARDER_LECONS.
+  const keepDir = keptLessonsDir();
+  const keeper = keepDir ? createLessonKeeper(parsed.data.question, keepDir) : undefined;
   const events = generateNesalio(parsed.data.question, {
     provider: config.chat,
     completion: streamChatCompletion,
     signal: request.signal,
-    log: (message, detail) => console.warn(message, detail),
+    log: (message, detail) => {
+      console.warn(message, detail);
+      keeper?.log(message, detail);
+    },
     // Teacher then layout writer (script.ts): off until measured better than one call.
     twoStage: process.env.NESALIO_DEUX_ETAPES === "1",
     ...(reviewer ? { review: createSliceReviewer({ provider: reviewer, completion: streamChatCompletion }) } : {}),
@@ -65,15 +72,22 @@ export async function POST(request: Request): Promise<Response> {
     async pull(controller) {
       try {
         const { value, done } = await events.next();
-        if (done) controller.close();
-        else controller.enqueue(encoder.encode(encodeLine(value)));
+        if (done) {
+          await keeper?.finish();
+          controller.close();
+        } else {
+          keeper?.event(value);
+          controller.enqueue(encoder.encode(encodeLine(value)));
+        }
       } catch (error) {
         console.error("nesalio: flux interrompu", error);
+        await keeper?.finish(`flux interrompu : ${error instanceof Error ? error.message : String(error)}`);
         controller.close();
       }
     },
     async cancel() {
       await events.return(undefined);
+      await keeper?.finish("élève parti avant la fin");
     },
   });
   return new Response(stream, { status: 200, headers: NDJSON_HEADERS });

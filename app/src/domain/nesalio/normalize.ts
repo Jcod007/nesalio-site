@@ -502,5 +502,51 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
       return false;
     });
   }
+  revealTargeted(slice, beats, fixes);
   return fixes.length ? { slice, fixes } : { slice: raw, fixes };
+}
+
+/** Verbs that make an object appear on the board. */
+const REVEALING = new Set(["show", "write", "draw"]);
+
+/**
+ * An object this tranche introduces, then highlights or frames, but never shows: shown when it is
+ * first aimed at. Seen in a real lesson (2026-11-09, « zéros de f(x) = −(x − 2)² + 3 »): the final
+ * summary introduced its sentence and formula, highlighted them and turned the camera to them
+ * without a show; the student saw an empty board for the whole summary. An object introduced and
+ * aimed at nowhere is left alone (it may be shown in a later tranche).
+ */
+function revealTargeted(slice: Json, beats: Json[], fixes: string[]): void {
+  const introduced = new Map(objects(slice.introduces).filter(({ id }) => typeof id === "string").map((item) => [item.id as string, item]));
+  const members = new Map(objects(slice.groups).map(({ id, items }) => [id, Array.isArray(items) ? items : []]));
+  const revealed = new Set<unknown>();
+  const reveal = (id: unknown) => {
+    if (revealed.has(id)) return;
+    revealed.add(id);
+    for (const member of members.get(id) ?? []) reveal(member);
+  };
+  for (const action of beats.flatMap((beat) => objects(beat.do))) {
+    if (REVEALING.has(String(action.verb))) reveal(action.target);
+    // A transform makes its target appear in place of its source.
+    if (action.verb === "transform") reveal(action.target);
+  }
+  const taken = new Set(beats.flatMap((beat) => objects(beat.do).map(({ id }) => id)));
+  for (const [id, item] of introduced) {
+    // An attached label comes with its own reveal; an unrevealed one stays the model's choice.
+    if (revealed.has(id) || item.attachment !== undefined) continue;
+    for (const beat of beats) {
+      const list = Array.isArray(beat.do) ? beat.do : [];
+      const index = list.findIndex((action) => isObject(action) && (action.target === id || (Array.isArray(action.targets) && action.targets.includes(id))));
+      if (index < 0) continue;
+      const first = list[index] as Json;
+      let actionId = `auto_show_${id}`;
+      for (let n = 2; taken.has(actionId); n++) actionId = `auto_show_${id}_${n}`;
+      taken.add(actionId);
+      const at = typeof first.at === "string" ? first.at : typeof first.start === "string" ? first.start : "beat:start";
+      list.splice(index, 0, { id: actionId, verb: item.type === "math" && item.parts === undefined ? "write" : "show", target: id, at });
+      reveal(id);
+      fixes.push(`${id} : visé par ${String(first.verb)} mais jamais montré, montré à ce moment`);
+      break;
+    }
+  }
 }

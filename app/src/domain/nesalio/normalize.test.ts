@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { escapeLatex, normalizeMathContext, normalizeSlice } from "./normalize";
-import { validateMathContext, validateModelOutput } from "./validate";
+import { validateMathContext, validateModelOutput, type ValidationState } from "./validate";
+import zerosRecapVide from "./fixtures/zeros-recap-vide.json";
 
 const valid = (slice: unknown) => {
   const result = validateModelOutput({ slices: [slice] });
@@ -357,14 +358,39 @@ describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
 
   it("remet dans l'ordre un intervalle dont la fin vient avant le début dans la phrase", () => {
     // Banc Alloprof (sinus-cosinus, trois-pieces) : « La fin doit suivre le début » refusé trois fois.
-    const raw = slice({ do: [{ id: "h", verb: "highlight", target: "eq", start: "cue:c_douze", end: "cue_end:c_isoler" }] });
+    const write = { id: "w", verb: "write", target: "eq", at: "beat:start" };
+    const raw = slice({ do: [write, { id: "h", verb: "highlight", target: "eq", start: "cue:c_douze", end: "cue_end:c_isoler" }] });
     expect(valid(raw)).toContainEqual(expect.stringContaining("La fin doit suivre le début"));
     const { slice: fixed, fixes } = normalizeSlice(raw);
     expect(valid(fixed)).toEqual([]);
     expect(fixes).toContain("h : début et fin d'intervalle inversés, remis dans l'ordre de la phrase");
-    expect((fixed as { beats: { do: Record<string, unknown>[] }[] }).beats[0]!.do[0]).toMatchObject({ start: "cue:c_isoler", end: "cue_end:c_douze" });
+    expect((fixed as { beats: { do: Record<string, unknown>[] }[] }).beats[0]!.do[1]).toMatchObject({ start: "cue:c_isoler", end: "cue_end:c_douze" });
     // Already in order: untouched.
-    expect(normalizeSlice(slice({ do: [{ id: "h", verb: "highlight", target: "eq", start: "cue:c_isoler", end: "cue_end:c_douze" }] })).fixes).toEqual([]);
+    expect(normalizeSlice(slice({ do: [write, { id: "h", verb: "highlight", target: "eq", start: "cue:c_isoler", end: "cue_end:c_douze" }] })).fixes).toEqual([]);
+  });
+
+  it("montre un objet du récapitulatif surligné et cadré mais jamais montré (leçon réelle, tableau vide)", () => {
+    // Essai réel du 2026-11-09 : « idea » et « resume » déclarés, surlignés, cadrés, jamais montrés.
+    const lesson = zerosRecapVide as { math_context: unknown; slices: unknown[] };
+    let state: ValidationState | undefined;
+    let last: { beats: { do: Record<string, unknown>[] }[] } | undefined;
+    let lastFixes: string[] = [];
+    lesson.slices.forEach((raw, index) => {
+      const { slice, fixes } = normalizeSlice(raw, state);
+      const result = validateModelOutput({ ...(state ? {} : { math_context: lesson.math_context }), slices: [slice] }, state);
+      expect(result.ok, JSON.stringify(result.ok ? "" : result.issues.slice(0, 2))).toBe(true);
+      if (result.ok) state = result.state;
+      if (index === lesson.slices.length - 1) { last = slice as typeof last; lastFixes = fixes; }
+    });
+    const shown = last!.beats[0]!.do.filter((action) => String(action.id).startsWith("auto_show_"));
+    expect(shown).toEqual([
+      { id: "auto_show_idea", verb: "show", target: "idea", at: "cue:c_retenir" },
+      { id: "auto_show_resume", verb: "write", target: "resume", at: "cue:c_retenir" },
+    ]);
+    expect(lastFixes).toContain("idea : visé par camera.focus mais jamais montré, montré à ce moment");
+    // Shown before the camera turns to them.
+    const order = last!.beats[0]!.do.map((action) => action.id);
+    expect(order.indexOf("auto_show_idea")).toBeLessThan(order.indexOf("cadre"));
   });
 
   it("accepte un intitulé vide (case vide) et retire une liste d'intitulés vide", () => {
@@ -491,6 +517,7 @@ describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
     expect(fixes).toContainEqual(expect.stringContaining("vue_sommet"));
     // Saved in this tranche or before: kept.
     const kept = slice({ do: [
+      { id: "w", verb: "write", target: "eq", at: "cue:c_isoler" },
       { id: "c", verb: "camera.focus", targets: ["eq"], save_as: "vue", at: "cue:c_isoler" },
       { id: "r", verb: "camera.restore", frame: "vue", at: "cue:c_douze" },
     ] });

@@ -12,10 +12,12 @@ interface Props {
   inspection?: boolean;
   /** Text under the title; the default describes the tutor (it can be interrupted). */
   lede?: string;
+  /** Suggested questions; the default ones each open a demonstration lesson of the former tutor. */
+  suggestions?: readonly string[];
 }
 
 /** Écran d'accueil : une seule action, poser sa question. */
-export function StartScreen({ onAsk, listening, onListeningChange, inspection, lede }: Props) {
+export function StartScreen({ onAsk, listening, onListeningChange, inspection, lede, suggestions = SUGGESTED_QUESTIONS }: Props) {
   return (
     <section className={styles.start} aria-labelledby="start-title">
       <Nesa state={listening ? "ecoute" : "clin"} size={112} />
@@ -36,7 +38,7 @@ export function StartScreen({ onAsk, listening, onListeningChange, inspection, l
       ) : inspection === false ? <a className="btn-line" href="?inspect=1">Inspecter le JSON</a> : null}
       <div className={styles.suggestions}>
         <span>Pour essayer :</span>
-        {SUGGESTED_QUESTIONS.map((question) => (
+        {suggestions.map((question) => (
           <button key={question} type="button" onClick={() => onAsk(question)}>
             {question}
           </button>

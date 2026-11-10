@@ -203,6 +203,36 @@ function attachmentPosition(
   return { position: beside(local, { x0: x, y0: y, x1: x, y1: y }, resolved.outward, gapSize(gap ?? defaultGap)), axis, anchor: resolved.point };
 }
 
+/** Largest side of a parent whose label may move to another side of it (a point, a small mark). */
+const SMALL_PARENT = 0.6;
+
+/**
+ * A free place for a label next to a small parent, on another side than the one asked: the
+ * corners on the asked side first, then the other sides and corners. Undefined when the parent
+ * is large or every side is taken (the caller then slides the label away with a leader line).
+ */
+function besideSmallParent(local: Box, parent: Box, gap: number, anchor: string, obstacles: readonly Box[]): Point | undefined {
+  if (Math.max(parent.x1 - parent.x0, parent.y1 - parent.y0) > SMALL_PARENT) return;
+  const w = local.x1 - local.x0, h = local.y1 - local.y0;
+  const [cx, cy] = center(parent);
+  // Lower-left corner of the label for each side and corner.
+  const corners: Record<string, Point> = {
+    top: [cx - w / 2, parent.y1 + gap], bottom: [cx - w / 2, parent.y0 - gap - h],
+    left: [parent.x0 - gap - w, cy - h / 2], right: [parent.x1 + gap, cy - h / 2],
+    top_right: [parent.x1 + gap, parent.y1 + gap], top_left: [parent.x0 - gap - w, parent.y1 + gap],
+    bottom_right: [parent.x1 + gap, parent.y0 - gap - h], bottom_left: [parent.x0 - gap - w, parent.y0 - gap - h],
+  };
+  const order = anchor === "top" ? ["top_right", "top_left", "right", "left", "bottom_right", "bottom_left", "bottom"]
+    : anchor === "left" ? ["top_left", "bottom_left", "top", "bottom", "top_right", "bottom_right", "right"]
+    : anchor === "right" ? ["top_right", "bottom_right", "top", "bottom", "top_left", "bottom_left", "left"]
+    : ["bottom_right", "bottom_left", "right", "left", "top_right", "top_left", "top"];
+  for (const side of order) {
+    const [x, y] = corners[side]!;
+    const position: Point = [x - local.x0, y - local.y0];
+    if (!obstacles.some((other) => intersects(translate(local, position), other))) return position;
+  }
+}
+
 function leaderFor(anchor: Point, box: Box): PlacedObject["leader"] {
   const [x, y] = anchor;
   const to: Point = [Math.max(box.x0, Math.min(box.x1, x)), Math.max(box.y0, Math.min(box.y1, y))];
@@ -451,8 +481,19 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
       const anchored = attachmentPosition(definition, local, parent, parentBox, state.minGap);
       const excluded = new Set([id, parentId]);
       if (placement === "inside") for (const target of descendants(parentId, groups, new Map())) excluded.add(target);
-      position = avoidOverlap(local, anchored.position, obstacles(excluded), anchored.axis, gap);
+      const around = obstacles(excluded);
+      position = avoidOverlap(local, anchored.position, around, anchored.axis, gap);
+      // A label of a small mark (a point on a curve) pushed away: first the other sides of its point, close to it.
+      // Seen in a real lesson (2026-11-09): the zeros' labels slid along the x axis's numbers to its ends.
+      let nextToParent = false;
       if (placement !== "inside" && position !== anchored.position) {
+        const closer = besideSmallParent(local, parentBox, gapSize(definition.attachment.gap ?? state.minGap), definition.attachment.anchor, around);
+        if (closer) {
+          position = closer;
+          nextToParent = true;
+        }
+      }
+      if (placement !== "inside" && position !== anchored.position && !nextToParent) {
         leader = leaderFor(anchored.anchor, translate(measurement.body, position));
       }
     } else if (definition.layout) {

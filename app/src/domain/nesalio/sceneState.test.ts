@@ -41,7 +41,10 @@ describe("état et placement Nesalio", () => {
     expect(added.objects.get("base")).toBe(previous.objects.get("base"));
     expect(added.objects.get("obstacle")).toBe(previous.objects.get("obstacle"));
     expect(added.objects.get("late")!.position[1]).not.toBe(0);
-    expect(added.objects.get("late")!.leader?.from).toEqual([0.08, 0]);
+    // Since 2026-11-09 the label of a small mark first takes a free corner next to it, without a leader line.
+    expect(added.objects.get("late")!.leader).toBeUndefined();
+    const late = sceneBounds(added, ["late"], "layout_bounds")!;
+    expect(Math.max(late.x0, 0.08 - late.x1, late.y0 - 0.08, -0.08 - late.y1)).toBeLessThan(0.5);
     expect(intersects(sceneBounds(added, ["late"], "layout_bounds")!, sceneBounds(added, ["obstacle"], "layout_bounds")!)).toBe(false);
     expect(previous.objects.has("late")).toBe(false);
   });

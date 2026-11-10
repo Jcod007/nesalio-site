@@ -84,6 +84,76 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-09 — Plantage « Dimensions de scène invalides » : la lettre p (Claude Code, session « relecteur »)
+- Demande de l'utilisateur (« Oui, cherche »). Reproduit sans génération : leçon gardée « PV = nRT » chargée dans
+  `/dev/nesalio` (fichier injecté par le gestionnaire React de l'entrée ; l'événement `change` simulé ne suffisait pas),
+  puis réduite pas à pas : `x = 2`, `V`, `R`, `q`, `xV` se dessinent ; **`p` seul** donne des dimensions NaN.
+  Mesuré à part : même bug en manim-web 0.39.4 ET 0.41.0 ; `\mathit{p}`, `\mathrm{p}`, `\text{p}` se mesurent bien.
+  Toute formule avec la lettre p (pression, probabilité, périmètre…) arrêtait la leçon.
+- Corrigé : `ui/board/manim/mathLetters.ts` (`drawableMathLetters`, appelé par `boardFormula` et `boardFormulaParts`
+  de `primitives.ts`, donc aussi l'ancien tuteur) écrit chaque p isolé `\mathit{p}` (même italique), sans toucher les
+  noms de commandes (`\pi`, `\approx`) ni le texte (`\text{…}`, `\mathrm{…}`). Garde-fou dans `NesalioProjection.ts` :
+  une formule aux dimensions NaN est traitée comme non rendue (écrite en texte) et `dimensions()` ne renvoie plus
+  jamais NaN. Tests `mathLetters.test.ts`.
+- Vérifié à l'écran (`/dev/nesalio`, leçon gardée) : « pV = nRT », transform vers « p = nRT/V », calcul « ≈ 101 kPa »
+  et récapitulatif dessinés. Vu au passage : la fraction après le transform touche la ligne de données en dessous.
+  `npx vitest run` 919 verts, `tsc` vert. Rien commité.
+- Restes à traiter : contrôle d'arrondi trop strict (« 505 ≈ 505,679 », vérification avec données arrondies) ;
+  formule plus haute après un transform qui chevauche l'objet du dessous.
+
+### 2026-11-09 — Corrections après l'essai réel ; leçons jouées gardées (Claude Code, session « relecteur »)
+- Demande de l'utilisateur (« Oui, corrige-les » puis « conserve le JSON pour le vérifier après ; comment faire de la
+  qualité si on ne voit pas les JSON ? »).
+- **Leçons jouées gardées** : `server/nesalio/keepLesson.ts` + route `/api/nesalio` : chaque leçon générée est écrite
+  avec son journal (question, fin, refus, lignes refusées, relecteur) dans `analyses/lecons-jouees/` (même forme que le
+  banc, rejouable). Activé par `NESALIO_GARDER_LECONS=1` (ajouté à `.claude/launch.json`, local) ; coupé par défaut,
+  jamais en production sans réglage. Dossier ignoré par git (questions réelles). Test `keepLesson.test.ts`.
+- **Récapitulatif vide, cause trouvée** (leçon récupérée dans la mémoire de la page, gardée dans
+  `app/src/domain/nesalio/fixtures/zeros-recap-vide.json`) : la tranche finale déclarait sa phrase et sa formule, les
+  surlignait et cadrait la caméra dessus, sans jamais les montrer. Réparation sans appel (`normalize.ts`,
+  `revealTargeted`) : un objet introduit et visé (highlight, camera.focus…) mais jamais montré est montré à ce moment.
+  Test sur la leçon réelle rejouée (`lessonReelle.test.ts`) : récapitulatif visible et dans le cadre.
+- **« 3,73oux »** : la formule écrite par parties perdait le `\quad` placé ENTRE deux parties. `ui/board/manim/partSpacing.ts`
+  remet l'espacement écrit entre les parties (et un espace autour d'un `\text{…}`). Test `partSpacing.test.ts`.
+- **Étiquettes des zéros au bout de l'axe** : l'étiquette d'un petit objet (point) bloquée par les nombres de l'axe
+  glissait le long de l'axe jusqu'au bout. `sceneState.ts` (`besideSmallParent`) essaie d'abord les autres côtés et
+  coins du point, sans trait de rappel. Zéro de droite : collé à son point ; zéro à 0,27 (coincé entre l'axe des y, ses
+  nombres et la courbe) : ancien comportement. Test `sceneState.test.ts` mis à jour (annotation tardive).
+- **Suggestions** : `NesalioApp` a ses propres suggestions (zéros, réactif limitant, PV = nRT) ; celles de l'ancien
+  tuteur (avec la portée d'un projectile, démonstration hors ligne) ne changent pas.
+- **Pas changé (décision de l'utilisateur)** : la mention « Les échanges peuvent être conservés pour améliorer
+  Nesalio » (texte de confidentialité lié à une page publique). Remarqué aussi : la page de connexion dit
+  « Mathématiques · Secondaire 4 et 5 » / « ton espace de maths » (pas la chimie).
+- **Nouveau défaut trouvé grâce aux leçons gardées** : « Comment on utilise PV = nRT… » (leçon complète côté serveur,
+  `analyses/lecons-jouees/2026-11-10T02-04-56-loi_gaz_parfaits_pression.*`) plante dans le navigateur : « Dimensions de
+  scène invalides » + `THREE.LineSegmentsGeometry … radius is NaN`. Hors navigateur (vitest), elle se joue sans erreur :
+  la cause est dans la mesure réelle du rendu. Non trouvée. `/dev/nesalio` n'a pas lancé la lecture d'un fichier injecté.
+  Même leçon : « 101 × 5,0 = 505 ≈ 505,679 » refusé 3 fois (contrôle d'arrondi trop strict pour une vérification avec
+  des données arrondies) ; la dernière chance l'a sauvée.
+- Vérifié : `npx vitest run` 916 verts, `tsc` vert ; suggestions vues à l'écran. Pas revu à l'écran : récapitulatif et
+  étiquettes après correction (vérifiés par les tests sur la leçon réelle). Rien commité.
+
+### 2026-11-09 — Essai réel de la page élève (Claude Code, session « relecteur »)
+- Demande de l'utilisateur (« essai réel »). Le serveur `next dev` d'une autre conversation (PID 3132, port 3000)
+  bloquait le lancement : arrêté avec l'accord de l'utilisateur. Puis `.claude/launch.json` « app-voix-reelle »,
+  `/dev` (même application élève ; `/` boucle sur la connexion Clerk, clés de développement), témoin `nesalio_dev`.
+  Code de `4fd5ae9` : relecteur actif, consignes allégées. Navigateur intégré à 1280 × 800.
+- **Chimie** (« 5 mol de CO avec 6 mol de H₂… réactif limitant ») : juste du début à la fin (CO + 2 H₂ → CH₃OH,
+  5/1 et 6/2, H₂ limitant, 3 mol), voix et sous-titres synchronisés, ≈ 70 s. Relecteur 3 tranches, 0,9 à 1,3 s, 0 alerte.
+  Mise en page : la caméra a fait sortir l'équation du haut, « réactif limitant : H₂ » posé loin à droite dans le
+  vide ; la vérification et « À retenir » sont dits mais pas écrits.
+- **Maths** (« zéros de f(x) = −(x − 2)² + 3 ») : juste (2 ± √3 ≈ 3,73 et 0,27), courbe tracée pendant la voix,
+  transform sur place sans fantôme visible. Défauts : **récapitulatif final sur un tableau VIDE** (reproduit en
+  rejouant ; cause non trouvée : tout effacé sans rien écrire, ou caméra ailleurs ; la leçon JSON n'est pas gardée
+  par l'application) ; « 3,73oux = 2 − √3 » (`\text{ou}` collé, sans espaces) ; étiquettes des zéros minuscules aux
+  bouts de l'axe, loin des points ; étiquette du sommet « S(2 ; 3) » très pâle ; nombres des axes petits.
+- Accueil : une suggestion hors périmètre (« portée d'un projectile », physique) ; mention « Les échanges peuvent
+  être conservés pour améliorer Nesalio », à vérifier face à la non-conservation (ZDR) demandée au Gateway.
+- Console : aucune erreur (avertissements Clerk de développement seulement). Rien de modifié dans le code.
+- Prochaines étapes proposées : garder la leçon jouée (pour diagnostiquer) ; trouver la cause du récapitulatif vide ;
+  espaces autour de `\text{ou}` ; étiquettes de points près de leur point ; suggestion de physique ; mention de
+  conservation des données.
+
 ### 2026-11-09 — Consignes allégées par défaut (Claude Code, session « relecteur »)
 - Décision de l'utilisateur (« Consignes allégées ») : `consignesFromEnv` (`prompt.ts`) rend la version allégée par
   défaut ; `NESALIO_CONSIGNES=completes` redonne le prompt complet (gardé pour comparer). Pourquoi : elle a fait mieux
@@ -335,7 +405,8 @@ Rien commité. Rapport : `side-session-notes/…/relecteur-justesse.md`.
 
 ### 2026-11-09 — Évaluation de la voix et du rendu (en cours)
 - Accord de l’utilisateur pour rejouer les 18 premiers tirages du banc fond-forme sur ordinateur. 216 passages, 26 044 caractères, voix Eleven Flash v2.5. Avant essai, Vercel indique 0,34055 $ US consommé sur le plafond de 1 $. Prix publié de la synthèse seule : environ 0,52 $ US pour un passage complet du corpus, hors reprises.
-- Copie locale isolée de `/dev/nesalio` instrumentée pour associer les repères renvoyés par la voix aux images calculées par le moteur. Capture pilote en cours. Prochaine étape : vérifier la capture et lancer les 18 relectures avec les mêmes réglages.
+- Copie isolée de `/dev/nesalio`, sans modification du lecteur de production. Chrome a terminé 5 des 18 relectures dans les 270 s imparties. La route voix a rendu 131 réponses 200, 14 réponses 502 et 69 réponses 504. Les cinq vidéos et les clips reçus sont conservés. Les échecs de synthèse et les sessions incomplètes empêchent la comparaison du délai de lecture par variante.
+- La capture de l’urne montre un signe « + » absent avec deux appels et un signe « × » absent avec le prompt allégé. Les deux signes sont déclarés dans le JSON, mais aucune action ne les révèle. Voir [l’évaluation](app/docs/evaluation-voix-rendu-2026-11-09.md). Vérification visuelle des autres leçons sans appel vocal en cours. La prononciation et le naturel restent à écouter.
 
 ### 2026-11-09 — Essai « moins de consignes » (Claude Code)
 - Question de l'utilisateur : plus il y a de règles, moins le modèle les respecte ? Essai accepté (« Oui, essaie »).

@@ -2,6 +2,7 @@ import { Arrow, Circle, DashedLine, DashedVMobject, Dot, Line, MathTex, Polygon,
 import { toLatex } from "@/domain/board/tex";
 import { BRAND } from "@/ui/theme";
 import { CHEM_MACROS, expandChemistry } from "./chemistry";
+import { drawableMathLetters } from "./mathLetters";
 
 // Formulas use manim-web's bundled MathJax. If it fails to load, manim-web would fetch a full
 // MathJax from a public CDN: the formula falls back to plain text instead. Throws once loading started.
@@ -54,12 +55,12 @@ export function boardText(text: string, color: string, fontSize: number, font: "
 
 /** Chemistry (`\ce{…}`) is converted to base LaTeX first: manim-web's MathJax has no mhchem. */
 export function boardFormula(text: string, options: Omit<MathTexOptions, "latex">) {
-  return new MathTex({ latex: expandChemistry(toLatex(text)), ...options, macros: { ...CHEM_MACROS, ...options.macros } });
+  return new MathTex({ latex: drawableMathLetters(expandChemistry(toLatex(text))), ...options, macros: { ...CHEM_MACROS, ...options.macros } });
 }
 
 /** One layout for the whole formula, split into parts. A trailing space keeps `\alpha` + `b` from fusing. */
 export function boardFormulaParts(parts: readonly string[], options: Omit<MathTexOptions, "latex">) {
   return new MathTex({
-    latex: parts.map((part) => `${expandChemistry(toLatex(`$${part}$`))} `), ...options, macros: { ...CHEM_MACROS, ...options.macros },
+    latex: parts.map((part) => `${drawableMathLetters(expandChemistry(toLatex(`$${part}$`)))} `), ...options, macros: { ...CHEM_MACROS, ...options.macros },
   });
 }
