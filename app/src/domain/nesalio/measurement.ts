@@ -176,16 +176,78 @@ export function triangleMeasurement(
   };
 }
 
+/**
+ * A formula whose value is computed (`content.kind: "computed"`), as the LaTeX to draw — or null when it is not
+ * one, or when its value follows a parameter (it then changes while the lesson plays and stays plain text).
+ * Until 2026-11-10 every computed formula was drawn as plain text, its template shown raw
+ * (« n(Zn) = \frac{150}{65{,}4} = 2,294 \text{ mol} » on four real lessons out of twenty).
+ */
+export function computedFormula(object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext): string | null {
+  if (object.type !== "math" || typeof object.content === "string") return null;
+  const source = Object.hasOwn(math.expressions, object.content.expression_ref) ? math.expressions[object.content.expression_ref]! : "";
+  const follows = Object.entries(math.symbols).some(([name, symbol]) => symbol.kind === "parameter"
+    && new RegExp(`(^|[^A-Za-z0-9_])${name}($|[^A-Za-z0-9_])`).test(source));
+  if (follows) return null;
+  // In LaTeX the decimal comma is written {,} (no space after it) and the minus sign is the plain one.
+  return sceneText(object, values, math).replace(/(\d),(?=\d)/g, "$1{,}").replaceAll("−", "-");
+}
+
 export function sceneText(object: Extract<SceneObject, { type: "text" | "label" | "callout" | "math" }>, values: ReadonlyMap<string, number>, math: MathContext): string {
   if (typeof object.content === "string") return object.content;
   const { expression_ref: id, template, precision } = object.content;
   if (!Object.hasOwn(math.expressions, id)) throw new Error(`Expression indisponible « ${id} ».`);
   const value = compileNamedExpression(math.expressions[id]!, new Set(values.keys()))(values);
   if (value === null) return template.replaceAll("{value}", "—");
-  // French writing: decimal comma, minus sign, no "−0". The board draws a computed value as plain
-  // text (NesalioProjection prepares only fixed formulas), so no LaTeX such as {,} here.
+  // French writing: decimal comma, minus sign, no "−0". Plain text: computedFormula turns it into LaTeX.
   const fixed = value.toFixed(precision).replace(/^-(?=[0.]+$)/, "");
   return template.replaceAll("{value}", fixed.replace(".", ",").replace("-", "−"));
+}
+
+/**
+ * The longest line of prose written on the board, in characters (about 8 units of the board in the hand font).
+ * Camera audit 2026-11-10: 155 of 974 texts of the bench were longer than 55 characters, up to 164 on one line
+ * (23 units, a screen and a half): the camera stepped back until they read small, alone in a blank screen.
+ * A line as long as 3Blue1Brown writes them keeps the subject at its size and the picture composed.
+ */
+export const BOARD_LINE_CHARS = 48;
+
+/** Prose cut into lines at word boundaries, for the board only; formulas and inline LaTeX are left whole. */
+export function boardLines(text: string): string {
+  if (/[$\\]/.test(text)) return text;
+  return text.split("\n").map((paragraph) => {
+    if (Array.from(paragraph).length <= BOARD_LINE_CHARS) return paragraph;
+    // French punctuation never starts a line (« Dilution / : C₁V₁ » seen on 2026-11-10), an opening quote never ends one.
+    const words = paragraph.split(" ").reduce<string[]>((list, word) => {
+      const previous = list.at(-1);
+      // « T = 298,15 K »: a relation stays with what it relates (seen 2026-11-10: « T » alone at a line's end).
+      const relation = (text: string) => /^[=≈<>≤≥×+−]+$/.test(text);
+      const last = previous?.split(" ").at(-1);
+      if (previous !== undefined && (/^[:;?!»]/.test(word) || previous === "«" || relation(word) || (last !== undefined && relation(last)))) {
+        list[list.length - 1] = `${previous} ${word}`;
+      }
+      else list.push(word);
+      return list;
+    }, []);
+    const total = Array.from(paragraph).length;
+    // Lines of even length rather than one full line and a short end.
+    const width = Math.ceil(total / Math.ceil(total / BOARD_LINE_CHARS));
+    const lines: string[] = [];
+    let line = "";
+    for (const word of words) {
+      if (line && Array.from(`${line} ${word}`).length > width + 6) {
+        lines.push(line);
+        line = word;
+      } else line = line ? `${line} ${word}` : word;
+    }
+    if (line) lines.push(line);
+    return lines.join("\n");
+  }).join("\n");
+}
+
+/** What a text object writes on the board: its words, prose cut into lines (boardLines). */
+export function writtenText(object: Extract<SceneObject, { type: "text" | "label" | "callout" | "math" }>, values: ReadonlyMap<string, number>, math: MathContext): string {
+  const content = sceneText(object, values, math);
+  return object.type === "math" ? content : boardLines(content);
 }
 
 /** Thin boxes along a path: what a text must avoid, instead of the path's whole rectangle. */
@@ -351,9 +413,25 @@ export const measureSceneObject: MeasureObject = (object, values, math, window, 
     case "label":
     case "callout":
     case "math": {
-      const content = sceneText(object, values, math);
-      const size = textWorldExtent(object.type === "math" ? `$${content}$` : content, fontSize);
-      return { body: centered(size.w, size.h) };
+      const content = writtenText(object, values, math);
+      if (object.type === "math") {
+        const size = textWorldExtent(`$${content}$`, fontSize);
+        const body = centered(size.w, size.h);
+        if (!object.parts?.length) return { body };
+        // Parts side by side, each as wide as its own estimate, scaled to the whole formula's width.
+        const widths = object.parts.map((part) => Math.max(0.05, textWorldExtent(`$${part.text}$`, fontSize).w));
+        const total = widths.reduce((a, b) => a + b, 0);
+        let x = body.x0;
+        const parts: Record<string, Box> = {};
+        object.parts.forEach((part, i) => {
+          const w = (widths[i]! / total) * size.w;
+          parts[part.id] = { x0: x, y0: body.y0, x1: x + w, y1: body.y1 };
+          x += w;
+        });
+        return { body, parts };
+      }
+      const lines = content.split("\n").map((line) => textWorldExtent(line, fontSize));
+      return { body: centered(Math.max(...lines.map((line) => line.w)), lines.reduce((sum, line) => sum + line.h, 0)) };
     }
   }
 };

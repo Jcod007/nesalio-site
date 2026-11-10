@@ -77,7 +77,7 @@ export function NesalioApp() {
           ...options,
           viewport: VIEWPORT,
           openClip: openNesalioClip,
-          prepareSlice: (slice, signal) => projection.prepareSlice(slice, signal),
+          prepareSlice: (slice, signal, math, values) => projection.prepareSlice(slice, signal, math, values),
           measure: projection.measure,
           onFrame: (frame, beat) => options.onFrame(frame, beat),
         });

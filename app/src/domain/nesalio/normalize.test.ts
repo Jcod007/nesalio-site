@@ -244,7 +244,7 @@ describe("normalisation des tranches avant validation", () => {
     expect(lines("2x+y=5\nx-y=1")).toBe("2x+y=5\nx-y=1");
     expect(lines("a \neq b \nabla f")).toBe(String.raw`a \neq b \nabla f`);
     // Only formulas: a line break in a sentence stays a line break.
-    const text = slice({ introduces: [{ id: "t", type: "text", content: "Ligne un\nligne deux" }], do: [] });
+    const text = slice({ introduces: [{ id: "t", type: "text", content: "Ligne un\nligne deux" }], do: [{ id: "s", verb: "show", target: "t", at: "beat:start" }] });
     expect(normalizeSlice(text).fixes).toEqual([]);
   });
 });
@@ -370,6 +370,111 @@ describe("réparations sans appel du cycle 2 (refus du banc DeepSeek)", () => {
     expect((fixed as { beats: { do: Record<string, unknown>[] }[] }).beats[0]!.do[1]).toMatchObject({ start: "cue:c_isoler", end: "cue_end:c_douze" });
     // Already in order: untouched.
     expect(normalizeSlice(slice({ do: [write, { id: "h", verb: "highlight", target: "eq", start: "cue:c_isoler", end: "cue_end:c_douze" }] })).fixes).toEqual([]);
+  });
+
+  it("montre une étiquette déclarée mais jamais montrée, avec son objet (leçon réelle « stœchiométrie »)", () => {
+    // Essai réel du 2026-11-10 : l'étiquette « rapport des coefficients » de la règle finale n'apparaissait jamais.
+    const raw = slice({
+      introduces: [
+        { id: "eq", type: "math", content: "x = 12" },
+        { id: "cond", type: "label", content: "rapport des coefficients", attachment: { parent: "eq", anchor: "right" } },
+      ],
+      do: [{ id: "w", verb: "write", target: "eq", at: "beat:start" }],
+    });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { beats: { do: unknown[] }[] }).beats[0]!.do).toEqual([
+      { id: "w", verb: "write", target: "eq", at: "beat:start" },
+      { id: "auto_show_cond", verb: "show", target: "cond", at: "after:w" },
+    ]);
+    expect(fixes).toContain("cond : étiquette jamais montrée, montrée avec « eq »");
+    // Already shown by the lesson: untouched.
+    const shown = slice({ introduces: raw.introduces, do: [
+      { id: "w", verb: "write", target: "eq", at: "beat:start" }, { id: "s", verb: "show", target: "cond", at: "cue:c_douze" },
+    ] });
+    expect(normalizeSlice(shown).fixes).toEqual([]);
+  });
+
+  it("écrit avec sa voisine une partie de formule déclarée mais jamais écrite (leçon réelle « FeS₂ »)", () => {
+    // Essai du 2026-11-10 : « + » et flèche déclarés en parties, jamais écrits ; l'équation restait sans signes.
+    const raw = slice({
+      introduces: [{ id: "eq", type: "math", content: "a + b = c", parts: [
+        { id: "a", text: "a" }, { id: "plus", text: "+" }, { id: "b", text: "b" }, { id: "egal", text: "=" }, { id: "c", text: "c" },
+      ] }],
+      do: [
+        { id: "w_a", verb: "write", target: "eq", part: "a", at: "beat:start" },
+        { id: "w_b", verb: "write", target: "eq", part: "b", at: "cue:c_isoler" },
+        { id: "w_c", verb: "write", target: "eq", part: "c", at: "cue:c_douze" },
+      ],
+    });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { beats: { do: { id: string; part?: string; at?: string }[] }[] }).beats[0]!.do.map((action) => [action.part, action.at])).toEqual([
+      ["a", "beat:start"], ["plus", "cue:c_isoler"], ["b", "cue:c_isoler"], ["egal", "cue:c_douze"], ["c", "cue:c_douze"],
+    ]);
+    expect(fixes).toContain("eq : partie « plus » jamais écrite, écrite avec « b »");
+    // Written whole: nothing is missing.
+    expect(normalizeSlice(slice({ introduces: raw.introduces, do: [{ id: "w", verb: "write", target: "eq", at: "beat:start" }] })).fixes).toEqual([]);
+  });
+
+  it("montre au dernier passage une phrase déclarée que rien ne montre, pas une formule (leçon réelle « FeS₂ »)", () => {
+    // Essai du 2026-11-10 : la synthèse « idee » déclarée sans show ; tableau vide sur la dernière phrase.
+    const raw = slice({
+      introduces: [
+        { id: "eq", type: "math", content: "x = 12" }, { id: "idee", type: "text", content: "On garde l'essentiel." },
+        { id: "plus_tard", type: "math", content: "y = 3" },
+      ],
+      do: [{ id: "w", verb: "write", target: "eq", at: "beat:start" }],
+    });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { beats: { do: unknown[] }[] }).beats[0]!.do.at(-1)).toEqual({ id: "auto_show_idee", verb: "show", target: "idee", at: "beat:start" });
+    expect(fixes).toEqual(["idee : jamais montré, montré au dernier passage de la tranche"]);
+  });
+
+  it("écrit le résultat quand la leçon le met en évidence, pas avec le calcul (essais : 7 à 17 s d'avance)", () => {
+    // Essai du 2026-11-10 (gaz parfaits) : « n = … ≈ 0,204 mol » entier au tableau 10 s avant que la voix le dise.
+    const introduces = [{ id: "calc", type: "math", content: String.raw`n = \frac{36}{18} = 2\ \text{mol}` }];
+    const raw = slice({ introduces, do: [
+      { id: "w", verb: "write", target: "calc", at: "cue:c_isoler" },
+      { id: "h", verb: "highlight", target: "calc", role: "result", at: "cue:c_douze" },
+    ] });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { beats: { do: unknown[] }[] }).beats[0]!.do).toEqual([
+      { id: "w", verb: "write", target: "calc", part: "membre_calcul", at: "cue:c_isoler" },
+      { id: "auto_write_calc_resultat", verb: "write", target: "calc", part: "membre_resultat", at: "cue:c_douze" },
+      { id: "h", verb: "highlight", target: "calc", role: "result", part: "membre_resultat", at: "cue:c_douze" },
+    ]);
+    expect(fixes).toContain("calc : résultat écrit au moment où il est mis en évidence, pas avec le calcul");
+    // Highlighted at the word it is written at, or before it: written whole, as the lesson says.
+    for (const at of ["cue:c_isoler", "beat:start", "after:w"]) {
+      const same = normalizeSlice(slice({ introduces, do: [
+        { id: "w", verb: "write", target: "calc", at: "cue:c_isoler" },
+        { id: "h", verb: "highlight", target: "calc", role: "result", at },
+      ] }));
+      expect(same.fixes.some((fix) => fix.includes("résultat écrit"))).toBe(false);
+    }
+  });
+
+  it("prend comme en-têtes une première ligne d'en-têtes écrite deux fois (vraie fenêtre, « réactif limitant »)", () => {
+    // Essai du 2026-11-10 : « réactif | H₂ » au-dessus de « réactif | N₂ | H₂ ».
+    const table = (column_labels: string[]) => ({ id: "tab", type: "matrix", params: {
+      rows: [["N₂", "H₂"], ["1", "3"], ["2", "3"]], row_labels: ["réactif", "coefficient", "moles"], column_labels } });
+    const raw = slice({ introduces: [table(["réactif", "H₂"])], do: [{ id: "w", verb: "write", target: "tab", at: "beat:start" }] });
+    const { slice: fixed, fixes } = normalizeSlice(raw);
+    expect(valid(fixed)).toEqual([]);
+    expect((fixed as { introduces: { params: unknown }[] }).introduces[0]!.params).toEqual({
+      rows: [["1", "3"], ["2", "3"]], row_labels: ["coefficient", "moles"], column_labels: ["N₂", "H₂"] });
+    expect(fixes.some((fix) => fix.includes("en-têtes de colonnes"))).toBe(true);
+    // A cell aimed at keeps pointing at the same value once the header row is gone.
+    const aimed = normalizeSlice(slice({ introduces: [table(["réactif", "H₂"])], do: [
+      { id: "w", verb: "write", target: "tab", at: "beat:start" }, { id: "h", verb: "highlight", target: "tab", part: "r3c2", at: "cue:c_douze" },
+    ] }));
+    expect(valid(aimed.slice)).toEqual([]);
+    expect((aimed.slice as { beats: { do: { part?: string }[] }[] }).beats[0]!.do[1]!.part).toBe("r2c2");
+    // Real column titles: untouched.
+    expect(normalizeSlice(slice({ introduces: [table(["N₂", "H₂"])], do: [{ id: "w", verb: "write", target: "tab", at: "beat:start" }] })).fixes).toEqual([]);
   });
 
   it("montre un objet du récapitulatif surligné et cadré mais jamais montré (leçon réelle, tableau vide)", () => {
@@ -591,5 +696,29 @@ describe("barres obliques LaTeX non doublées dans une ligne JSON", () => {
     const valid = String.raw`{"a":"\\sqrt{2} \t A"}`;
     expect(escapeLatex(valid)).toBe(valid);
     expect(escapeLatex(String.raw`{"a":"\underline{x}"}`)).toBe(String.raw`{"a":"\\underline{x}"}`);
+  });
+});
+
+describe("valeur calculée mise en évidence comme résultat", () => {
+  // Vraie fenêtre, 2026-11-10 (« PV = nRT ») : « ≈ 101,1 » au tableau pendant « On remplace », dit au passage suivant.
+  it("écrit la valeur en clair, puis le résultat quand il est dit", () => {
+    const state = validateModelOutput({ math_context: { symbols: { n: { kind: "constant", value: 2 } }, expressions: { p: "n * 3" } }, slices: [
+      { slice_id: "s0", introduces: [{ id: "t", type: "text", content: "Départ" }], beats: [{ id: "b0", say: "On commence.", cues: [], do: [{ id: "s", verb: "show", target: "t", at: "beat:start" }] }] },
+    ] });
+    if (!state.ok) throw new Error(JSON.stringify(state.issues));
+    const raw = {
+      slice_id: "s1",
+      introduces: [{ id: "calc", type: "math", content: { kind: "computed", expression_ref: "p", template: String.raw`p = 2 \times 3 \approx {value}`, precision: 1 } }],
+      beats: [
+        { id: "b1", say: "On remplace les valeurs.", cues: [{ id: "c_rem", text: "remplace" }], do: [{ id: "w", verb: "write", target: "calc", at: "cue:c_rem" }] },
+        { id: "b2", say: "Ça donne six.", cues: [{ id: "c_six", text: "six" }], do: [{ id: "h", verb: "highlight", target: "calc", role: "result", at: "cue:c_six" }] },
+      ],
+    };
+    const { slice: fixed, fixes } = normalizeSlice(raw, state.state);
+    expect(validateModelOutput({ slices: [fixed] }, state.state).ok).toBe(true);
+    const beats = (fixed as { beats: { do: Record<string, unknown>[] }[] }).beats;
+    expect(beats[0]!.do[0]).toMatchObject({ id: "w", part: "membre_calcul" });
+    expect(beats[1]!.do[0]).toMatchObject({ verb: "write", part: "membre_resultat", at: "cue:c_six" });
+    expect(fixes.some((fix) => fix.includes("valeur calculée écrite en clair"))).toBe(true);
   });
 });

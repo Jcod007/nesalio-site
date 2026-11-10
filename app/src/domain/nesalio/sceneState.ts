@@ -1,6 +1,9 @@
 import { FIGURE_TYPES, type Group, type MathContext, type RuntimeState, type SceneObject, type Slice } from "./contract";
 import { axesScale, measureSceneObject, type FrameScale } from "./measurement";
 
+/** What is written on the board: another text must never be laid over it. */
+const WRITTEN_TYPES = new Set(["text", "math", "label", "callout", "matrix"]);
+
 /** Figures drawn in their frame's coordinates, which follow the frame's scale (axesScale). */
 const SCALED_TYPES = new Set(["point", "line", "arrow", "vector", "polygon", "circle", "axes", "function_graph", "parametric_curve"]);
 import { avoidOverlap, beside, center, gapSize, intersects, positionFor, translate, union, type Box, type Gap, type Layout, type Point } from "./placement";
@@ -9,6 +12,8 @@ import { avoidOverlap, beside, center, gapSize, intersects, positionFor, transla
 export interface Measurement {
   /** Geometry in local world units, with y increasing upwards. */
   body: Box;
+  /** For a formula written in parts: where each part stands, in the same local units. */
+  parts?: Readonly<Record<string, Box>>;
   /** Optional envelope covering the object over its declared parameter range. */
   reserve?: Box;
   anchors?: Readonly<Record<string, { point: Point; outward: "left" | "right" | "up" | "down" }>>;
@@ -195,7 +200,7 @@ function attachmentPosition(
   object: SceneObject, local: Box, parent: PlacedObject | undefined, parentBox: Box, defaultGap: Gap,
 ): { position: Point; axis: 0 | 1; anchor: Point } {
   const { anchor, placement, gap } = object.attachment!;
-  const measured = parent?.measurement.anchors;
+  const measured = object.attachment?.part === undefined ? parent?.measurement.anchors : undefined;
   const named = measured && Object.hasOwn(measured, anchor) ? measured[anchor] : undefined;
   const resolved = named && parent ? {
     point: [named.point[0] + parent.position[0], named.point[1] + parent.position[1]] as Point,
@@ -300,8 +305,12 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
   const frames = new Map(state.frames);
   // A formula produced by `transform` takes its source's place: a calculation stays where it is.
   const morphSource = new Map<string, string>();
+  const givesPlace = new Set<string>();
   for (const beat of slice.beats) for (const action of beat.do) {
     if (action.verb === "transform") morphSource.set(action.target, action.source);
+    // What this tranche erases or replaces: a new object may take its place.
+    if (action.verb === "fade_out" || action.verb === "remove") givesPlace.add(action.target);
+    if (action.verb === "transform") givesPlace.add(action.source);
   }
   // The latest composition placed without a relation: the next one goes below or beside it.
   let cursor: Box | null = state.lastComposition;
@@ -470,7 +479,15 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     const reference = "center_on" in layout && target === "initial_viewport" ? state.initialViewport : boundsOf(target);
     const position = positionFor(box, reference, layout, gap);
     if ("center_on" in layout) {
-      return layout.center_on === "initial_viewport" ? avoidOverlap(box, position, obstacles(excluded), 0, gap) : position;
+      if (layout.center_on === "initial_viewport") return avoidOverlap(box, position, obstacles(excluded), 0, gap);
+      // Centred on a figure: on it, as asked (a name in a rectangle). Centred on a text or a formula that stays on
+      // the board: just under it instead — two texts on each other are unreadable (seen on a real lesson,
+      // 2026-11-10: the conclusion written over the sentence before it). A text this tranche erases or
+      // replaces gives its place, as asked.
+      const reference = objects.get(target)?.definition ?? added.get(target);
+      const replaces = givesPlace.has(target) || [...excluded].some((id) => morphSource.has(id));
+      if (!reference || !WRITTEN_TYPES.has(reference.type) || replaces) return position;
+      return avoidOverlap(box, position, obstacles(excluded), 1, gap, -1);
     }
     if ("align_to" in layout) {
       const axis = layout.align === "top" || layout.align === "bottom" ? 0 : 1;
@@ -502,24 +519,34 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
       const { parent: parentId, placement } = definition.attachment;
       const group = groups.get(parentId);
       const parent = group ? undefined : placeObject(parentId);
-      const parentBox = parent ? body(parent, "render_bounds") : boundsFor(next, group!.items, "layout_bounds", children);
+      // Attached to one part of a formula (« 2 mol » under « N₂ »): that part is the parent's area.
+      const partId = definition.attachment.part;
+      const partBox = partId !== undefined && parent?.measurement.parts?.[partId] ? translate(parent.measurement.parts[partId]!, parent.position) : undefined;
+      const parentBox = partBox ?? (parent ? body(parent, "render_bounds") : boundsFor(next, group!.items, "layout_bounds", children));
       if (!parentBox) throw new Error(`Encombrement indisponible « ${parentId} ».`);
-      const anchored = attachmentPosition(definition, local, parent, parentBox, state.minGap);
+      // A label asked « inside » a text, a formula or a table would be written over it (seen 2026-11-10:
+      // « 4,40 mol » over the cells of a table): it goes beside it instead, under it when asked at its centre.
+      const overWritten = placement === "inside" && parent !== undefined && WRITTEN_TYPES.has(parent.definition.type);
+      const attached = overWritten ? {
+        ...definition,
+        attachment: { ...definition.attachment, placement: "outside" as const, anchor: definition.attachment.anchor === "center" ? "bottom" : definition.attachment.anchor },
+      } : definition;
+      const anchored = attachmentPosition(attached, local, parent, parentBox, state.minGap);
       const excluded = new Set([id, parentId]);
-      if (placement === "inside") for (const target of descendants(parentId, groups, new Map())) excluded.add(target);
+      if (placement === "inside" && !overWritten) for (const target of descendants(parentId, groups, new Map())) excluded.add(target);
       const around = obstacles(excluded);
       position = avoidOverlap(local, anchored.position, around, anchored.axis, gap);
       // A label of a small mark (a point on a curve) pushed away: first the other sides of its point, close to it.
       // Seen in a real lesson (2026-11-09): the zeros' labels slid along the x axis's numbers to its ends.
       let nextToParent = false;
-      if (placement !== "inside" && position !== anchored.position) {
+      if ((placement !== "inside" || overWritten) && position !== anchored.position) {
         const closer = besideSmallParent(local, parentBox, gapSize(definition.attachment.gap ?? state.minGap), definition.attachment.anchor, around);
         if (closer) {
           position = closer;
           nextToParent = true;
         }
       }
-      if (placement !== "inside" && position !== anchored.position && !nextToParent) {
+      if ((placement !== "inside" || overWritten) && position !== anchored.position && !nextToParent) {
         leader = leaderFor(anchored.anchor, translate(measurement.body, position));
       }
     } else if (definition.layout) {
@@ -890,7 +917,7 @@ export function cameraView(state: SceneState, camera: RuntimeState["camera"]["st
  */
 export function fitSceneCamera(
   state: SceneState, targets: readonly string[], mode: Bounds = "render_bounds",
-  options: { padding?: number; priority?: readonly string[]; kept?: readonly string[]; avoidCutting?: boolean } = {},
+  options: { padding?: number; priority?: readonly string[]; kept?: readonly string[]; avoidCutting?: boolean; leaving?: ReadonlySet<string>; maxZoom?: number } = {},
 ): CameraFrame | null {
   const padding = options.padding ?? 0.9;
   const kept = (options.kept ?? []).filter((id) => !targets.includes(id));
@@ -936,7 +963,7 @@ export function fitSceneCamera(
     if (candidate && fit(candidate) >= CAMERA_ZOOM.min) framed = candidate;
   }
   const viewOf = (box: Box) => {
-    const zoom = Math.min(CAMERA_ZOOM.max, Math.max(minZoom, fit(box)));
+    const zoom = Math.min(CAMERA_ZOOM.max, options.maxZoom ?? Infinity, Math.max(minZoom, fit(box)));
     const [x, y] = center(box);
     return { zoom, x, y, view: { x0: x - width / (2 * zoom), x1: x + width / (2 * zoom), y0: y - height / (2 * zoom), y1: y + height / (2 * zoom) } };
   };
@@ -946,7 +973,8 @@ export function fitSceneCamera(
     // Not the figure a detail is taken from: zooming on a curve's point leaves the rest of the curve out.
     const targetFrames = new Set(withFrames(targets).map((id) => state.objects.get(id)?.frame).filter(Boolean));
     const shown = withFrames([...targets, ...kept]);
-    const context = [...state.objects].filter(([id, item]) => item.visible && !item.removed && !shown.includes(id)
+    // What the passage erases is not worth keeping whole: it is about to leave.
+    const context = [...state.objects].filter(([id, item]) => item.visible && !item.removed && !shown.includes(id) && !options.leaving?.has(id)
       && !(item.frame && targetFrames.has(item.frame)));
     // What still speaks first, then what was dimmed.
     for (const group of [context.filter(([, item]) => !item.dimmed), context.filter(([, item]) => item.dimmed)]) {
@@ -967,7 +995,7 @@ export function fitSceneCamera(
     }
   }
   let { zoom, x, y, view } = viewOf(framed);
-  if (options.avoidCutting) ({ x, y, view } = pushOutCut(state, framed, { x, y, view }, withFrames([...targets, ...kept])));
+  if (options.avoidCutting) ({ x, y, view } = pushOutCut(state, framed, { x, y, view }, [...withFrames([...targets, ...kept]), ...(options.leaving ?? [])]));
   const hidden = [...targets, ...kept].filter((id) => {
     const own = sceneBounds(state, [id], mode) ?? sceneBounds(state, [id], "layout_bounds");
     return own !== null && !inside(view, own);
@@ -985,10 +1013,11 @@ function pushOutCut(
 ): { x: number; y: number; view: Box } {
   let { x, y, view } = at;
   const margin = 0.05;
+  const cutBy = (seen: Box) => [...state.objects].filter(([id, item]) => item.visible && !item.removed && !item.faded && !shown.includes(id))
+    .map(([id]) => sceneBounds(state, [id], "render_bounds"))
+    .filter((box): box is Box => box !== null && box.x1 > seen.x0 && box.x0 < seen.x1 && box.y1 > seen.y0 && box.y0 < seen.y1 && !inside(seen, box));
   for (let pass = 0; pass < 3; pass++) {
-    const cut = [...state.objects].filter(([id, item]) => item.visible && !item.removed && !item.faded && !shown.includes(id))
-      .map(([id]) => sceneBounds(state, [id], "render_bounds"))
-      .filter((box): box is Box => box !== null && box.x1 > view.x0 && box.x0 < view.x1 && box.y1 > view.y0 && box.y0 < view.y1 && !inside(view, box));
+    const cut = cutBy(view);
     if (!cut.length) break;
     let moved = false;
     for (const box of cut) {
@@ -999,7 +1028,10 @@ function pushOutCut(
       ];
       const fits = ([dx, dy]: [number, number]) => framed.x0 >= view.x0 + dx - 1e-9 && framed.x1 <= view.x1 + dx + 1e-9
         && framed.y0 >= view.y0 + dy - 1e-9 && framed.y1 <= view.y1 + dy + 1e-9;
-      const best = options.filter(fits).sort((a, b) => Math.hypot(...a) - Math.hypot(...b))[0];
+      // Never a slide that cuts another object in turn (seen 2026-11-10: sliding off a formula at the bottom cut
+      // the dimmed data at the top for 8 s).
+      const fewer = ([dx, dy]: [number, number]) => cutBy({ x0: view.x0 + dx, x1: view.x1 + dx, y0: view.y0 + dy, y1: view.y1 + dy }).length < cutBy(view).length;
+      const best = options.filter((option) => fits(option) && fewer(option)).sort((a, b) => Math.hypot(...a) - Math.hypot(...b))[0];
       if (!best) continue;
       x += best[0];
       y += best[1];

@@ -31,6 +31,13 @@ const WORDS_PER_MINUTE = 115;
 const READABLE_ZOOM = 0.6;
 /** A gesture is « on screen » when its object can be seen within this long after it. */
 const GESTURE_MS = 1_500;
+/**
+ * Composition (référence 3Blue1Brown : le sujet remplit l'image et en occupe le centre). Sur une image immobile,
+ * le contenu visible remplit l'écran quand il en occupe au moins SPARSE de la largeur ou de la hauteur ;
+ * il est décentré quand le centre de ce qui est montré s'écarte de plus de OFF_CENTER écran du centre.
+ */
+const SPARSE = 0.45;
+const OFF_CENTER = 0.2;
 
 function lessonFiles() {
   const dirs = process.env.DOSSIERS?.split(",").map((d) => d.trim()).filter(Boolean) ?? DEFAULT_DIRS;
@@ -67,12 +74,16 @@ const inside = (box, view) => box.x0 >= view.x0 - 1e-3 && box.x1 <= view.x1 + 1e
 const touches = (box, view) => box.x1 > view.x0 && box.x0 < view.x1 && box.y1 > view.y0 && box.y0 < view.y1;
 
 async function audit(lesson) {
-  const issues = { cutMs: 0, emptyMs: 0, smallMs: 0, offscreen: [], cut: new Set(), emptyAt: [], minZoom: Infinity, frames: 0, durationMs: 0, moves: [] };
+  const issues = { stillMs: 0, coverageSum: 0, sparseMs: 0, offCenterMs: 0, cutMs: 0, emptyMs: 0, smallMs: 0, offscreen: [], cut: new Set(), emptyAt: [], minZoom: Infinity, frames: 0, durationMs: 0, moves: [] };
   /** Object id → time of its last gesture (show, write, draw, highlight, transform). */
   const recent = new Map();
   /** Gestures under way in the previous frame. */
   const active = new Set();
   let clock = 0;
+  /** Origin of the last camera plan (who framed the picture now on screen): lesson, follow, start. */
+  let framedBy = "depart";
+  issues.sparseBy = {};
+  issues.offBy = {};
   await playNesalioLesson(lesson, {
     viewport: { x0: -8, y0: -4.5, x1: 8, y1: 4.5 }, signal: new AbortController().signal, wait: async () => {},
     openClip: async (beat) => clipFor(beat),
@@ -97,12 +108,28 @@ async function audit(lesson) {
         if (!box) continue;
         if (touches(box, view)) anyInView = true;
         if (moving) continue;
-        if (touches(box, view) && !inside(box, view)) { cut = true; issues.cut.add(id); }
+        // An object in the middle of a fade (leaving, or stepping back) may slip past the edge as the camera moves on.
+        const fading = frame.opacity.has(id) && !scene.objects.get(id)?.dimmed;
+        if (touches(box, view) && !inside(box, view) && !fading) { cut = true; issues.cut.add(id); }
         // Still out of frame GESTURE_MS after the gesture began: the student does not see it happen.
         const at = recent.get(id);
         if (at !== undefined && clock - at >= GESTURE_MS && clock - at < GESTURE_MS + STEP_MS && !touches(box, view) && !issues.offscreen.includes(id)) issues.offscreen.push(id);
       }
       issues.cutMs += cut && !moving ? STEP_MS : 0;
+      if (!moving && anyInView) {
+        const boxes = shown.map(([id]) => sceneBounds(scene, [id], "render_bounds")).filter((b) => b && touches(b, view))
+          .map((b) => ({ x0: Math.max(b.x0, view.x0), x1: Math.min(b.x1, view.x1), y0: Math.max(b.y0, view.y0), y1: Math.min(b.y1, view.y1) }));
+        const c = boxes.reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), x1: Math.max(a.x1, b.x1), y0: Math.min(a.y0, b.y0), y1: Math.max(a.y1, b.y1) }));
+        const W = view.x1 - view.x0, H = view.y1 - view.y0;
+        const coverage = Math.max((c.x1 - c.x0) / W, (c.y1 - c.y0) / H);
+        const offset = Math.max(Math.abs((c.x0 + c.x1) / 2 - (view.x0 + view.x1) / 2) / W, Math.abs((c.y0 + c.y1) / 2 - (view.y0 + view.y1) / 2) / H);
+        issues.stillMs += STEP_MS;
+        issues.coverageSum += coverage * STEP_MS;
+        // A small subject at the text's design size is fine (a short equation alone, as in 3Blue1Brown):
+        // too empty means the camera stepped back while there was little to show.
+        if (coverage < SPARSE && scene.camera.state.zoom < 1 - 1e-6) { issues.sparseMs += STEP_MS; issues.sparseBy[framedBy] = (issues.sparseBy[framedBy] ?? 0) + STEP_MS; }
+        if (offset > OFF_CENTER) { issues.offCenterMs += STEP_MS; issues.offBy[framedBy] = (issues.offBy[framedBy] ?? 0) + STEP_MS; }
+      }
       if (shown.length && !anyInView && !moving) {
         issues.emptyMs += STEP_MS;
         const where = `${scene.currentSlice}/${scene.currentBeat}`;
@@ -111,7 +138,7 @@ async function audit(lesson) {
       issues.smallMs += scene.camera.state.zoom < READABLE_ZOOM - 1e-6 ? STEP_MS : 0;
     },
     onWarning: () => {},
-    onCameraPlan: (plan) => issues.moves.push({ ...plan, at: clock }),
+    onCameraPlan: (plan) => { issues.moves.push({ ...plan, at: clock }); framedBy = plan.origin === "lesson" ? `json_${plan.action.startsWith("restore") ? "restore" : "focus"}` : plan.origin; },
   });
   issues.durationMs = issues.frames * STEP_MS;
   return issues;
@@ -170,7 +197,8 @@ describe.runIf(process.env.CAMERA === "1")("audit de la caméra sur les leçons 
       try {
         const r = await audit(valid.value);
         rows.push({ dir, file, seconds: Math.round(r.durationMs / 1000), cutS: r.cutMs / 1000, emptyS: r.emptyMs / 1000, smallS: r.smallMs / 1000,
-          minZoom: +r.minZoom.toFixed(2), cut: [...r.cut], offscreen: r.offscreen, emptyAt: r.emptyAt, comfort: comfort(r) });
+          minZoom: +r.minZoom.toFixed(2), cut: [...r.cut],
+          stillS: r.stillMs / 1000, coverage: +(r.coverageSum / Math.max(1, r.stillMs)).toFixed(3), sparseS: r.sparseMs / 1000, offCenterS: r.offCenterMs / 1000, sparseBy: r.sparseBy, offBy: r.offBy, offscreen: r.offscreen, emptyAt: r.emptyAt, comfort: comfort(r) });
       } catch (error) { rows.push({ dir, file, error: String(error) }); }
     }
     const played = rows.filter((r) => r.seconds !== undefined);
@@ -183,6 +211,11 @@ describe.runIf(process.env.CAMERA === "1")("audit de la caméra sur les leçons 
       `**Score d'inconfort moyen : ${mean("score").toFixed(2)} par minute** (mouvement ${mean("motion").toFixed(2)}, lisibilité ${mean("readability").toFixed(2)}) — plus bas = mieux.`,
       `Mouvements par minute : ${mean("movesPerMin").toFixed(2)} ; écrans parcourus par minute : ${mean("travelPerMin").toFixed(2)} ; aller-retours : ${sum("back")} ; sauts sans transition : ${sum("jumps")} ; mouvements rapides : ${sum("fast")}.`,
       `Origine des mouvements : ${origins.map(([o, n]) => `${o === "lesson" ? "ordres du JSON (camera.focus/restore)" : o === "follow" ? "suivi automatique du moteur" : "plage d'un paramètre"} ${n}`).join(" ; ")}.`, "",
+      `**Composition** (images immobiles) : remplissage moyen ${(played.reduce((s, r) => s + r.coverage * r.stillS, 0) / Math.max(1, played.reduce((s, r) => s + r.stillS, 0)) * 100).toFixed(0)} % ; `
+        + `écran trop vide (< ${SPARSE * 100} %, caméra reculée) ${(played.reduce((s, r) => s + r.sparseS, 0) / Math.max(1, played.reduce((s, r) => s + r.stillS, 0)) * 100).toFixed(1)} % du temps ; `
+        + `contenu décentré (> ${OFF_CENTER * 100} % d'écran) ${(played.reduce((s, r) => s + r.offCenterS, 0) / Math.max(1, played.reduce((s, r) => s + r.stillS, 0)) * 100).toFixed(1)} % du temps.`, "",
+      `Qui a cadré l'image trop vide : ${Object.entries(played.reduce((a, r) => { for (const [k, v] of Object.entries(r.sparseBy)) a[k] = (a[k] ?? 0) + v / 1000; return a; }, {})).map(([k, v]) => `${k} ${v.toFixed(0)} s`).join(" ; ")} ; `
+        + `décentrée : ${Object.entries(played.reduce((a, r) => { for (const [k, v] of Object.entries(r.offBy)) a[k] = (a[k] ?? 0) + v / 1000; return a; }, {})).map(([k, v]) => `${k} ${v.toFixed(0)} s`).join(" ; ")}.`, "",
       `Leçons jouées : ${played.length} ; invalides ou en erreur : ${rows.length - played.length}.`, "",
       "| Défaut | Leçons touchées | Durée totale |", "| --- | --- | --- |",
       `| Objet coupé par le bord du cadre | ${share((r) => r.cutS > 0)} | ${played.reduce((s, r) => s + r.cutS, 0).toFixed(0)} s |`,

@@ -8,6 +8,7 @@
  */
 import { compileNamedExpression } from "@/domain/math/expr";
 import { cueOffset } from "./alignment";
+import { computedFormula } from "./measurement";
 import type { MathContext } from "./contract";
 import { normalFormula, sameFormula, standaloneTex, type ValidationState } from "./validate";
 
@@ -503,8 +504,161 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
     });
   }
   revealTargeted(slice, beats, fixes);
+  if (before) fixComputedResult(slice, beats, before.math, fixes);
+  headerRowAsColumnLabels(slice, beats, fixes);
+  writeForgottenParts(slice, beats, fixes);
+  showForgotten(slice, beats, fixes);
   highlightResultOnly(slice, beats, fixes);
   return fixes.length ? { slice, fixes } : { slice: raw, fixes };
+}
+
+/**
+ * A formula written part by part, with a declared part that no action writes: the part is written with its
+ * neighbour. Seen on a real lesson (2026-11-10, « FeS₂ »): the « + » and the arrow of the equation were declared
+ * as parts and never written — « 4FeS₂  11O₂  2Fe₂O₃  8SO₂ » on the board while the voice said « la flèche dit
+ * qu'ils se transforment ». Measured on 251 lessons: 52 such parts in 34 lessons.
+ */
+function writeForgottenParts(slice: Json, beats: Json[], fixes: string[]): void {
+  const taken = new Set(beats.flatMap((beat) => objects(beat.do).map(({ id }) => id)));
+  const actions = () => beats.flatMap((beat) => objects(beat.do));
+  for (const item of objects(slice.introduces)) {
+    const parts = objects(item.parts).map((part) => part.id).filter((id): id is string => typeof id === "string");
+    if (item.type !== "math" || parts.length < 2) continue;
+    const writes = actions().filter((action) => action.verb === "write" && action.target === item.id);
+    // Written whole, replaced by a transform, or not written here at all: nothing is missing.
+    if (!writes.length || writes.some((action) => action.part === undefined)
+      || actions().some((action) => action.verb === "transform" && action.target === item.id)) continue;
+    const written = new Set(writes.map((action) => action.part));
+    const missing = parts.filter((part) => !written.has(part));
+    if (!missing.length) continue;
+    // From the last one, so that several forgotten parts in a row end up in their order before the same neighbour.
+    for (const part of [...missing].reverse()) {
+      const index = parts.indexOf(part);
+      const next = parts.slice(index + 1).find((other) => written.has(other));
+      const previous = parts.slice(0, index).reverse().find((other) => written.has(other));
+      const neighbour = next ?? previous;
+      if (neighbour === undefined) continue;
+      for (const beat of beats) {
+        const list = Array.isArray(beat.do) ? beat.do : [];
+        const at = list.findIndex((action) => isObject(action) && action.verb === "write" && action.target === item.id && action.part === neighbour);
+        if (at < 0) continue;
+        const model = list[at] as Json;
+        let id = `auto_write_${String(item.id)}_${part}`;
+        for (let n = 2; taken.has(id); n++) id = `auto_write_${String(item.id)}_${part}_${n}`;
+        taken.add(id);
+        // With the next part (same moment, just before it); after the previous one when it is the last part.
+        const timing = next !== undefined
+          ? (typeof model.at === "string" ? { at: model.at } : { start: model.start, end: model.end })
+          : { at: `after:${String(model.id)}` };
+        list.splice(next !== undefined ? at : at + 1, 0, { id, verb: "write", target: item.id, part, ...timing });
+        written.add(part);
+        fixes.push(`${String(item.id)} : partie « ${part} » jamais écrite, écrite avec « ${neighbour} »`);
+        break;
+      }
+    }
+  }
+}
+
+/** Objects that speak for themselves: once declared, the lesson means to show them. */
+const SHOWN_WHEN_FORGOTTEN = new Set(["text", "callout", "label", "point"]);
+
+/**
+ * A sentence, a note or a point this tranche introduces and never shows nor aims at: it appears as the last
+ * passage of the tranche starts (a point: with the first other point shown). Measured on 251 lessons
+ * (2026-11-10): 23 texts, 4 labels, 2 callouts and 36 points declared and never shown, against 8 shown only in
+ * a later tranche — a final summary declared and left out gave an empty board on the last sentence (« FeS₂ »),
+ * 3 points out of 5 of a drawing were missing (« concentration »). Formulas are left alone: one out of three
+ * is declared ahead for a later tranche (20 against 41).
+ */
+function showForgotten(slice: Json, beats: Json[], fixes: string[]): void {
+  const last = beats.at(-1);
+  if (!last) return;
+  const members = new Map(objects(slice.groups).map(({ id, items }) => [id, Array.isArray(items) ? items : []]));
+  const touched = new Set<unknown>();
+  const touch = (id: unknown) => {
+    if (touched.has(id)) return;
+    touched.add(id);
+    for (const member of members.get(id) ?? []) touch(member);
+  };
+  // Anything an action names is the lesson's business (shown, erased, framed, moved…): only the forgotten are shown.
+  for (const action of beats.flatMap((beat) => objects(beat.do))) {
+    touch(action.target);
+    touch(action.source);
+    if (Array.isArray(action.targets)) action.targets.forEach(touch);
+  }
+  const taken = new Set(beats.flatMap((beat) => objects(beat.do).map(({ id }) => id)));
+  for (const item of objects(slice.introduces)) {
+    if (typeof item.id !== "string" || touched.has(item.id) || !SHOWN_WHEN_FORGOTTEN.has(String(item.type))) continue;
+    // An attached label follows its object (revealTargeted); a member of a group follows its group.
+    if (item.attachment !== undefined || [...members.values()].some((items) => items.includes(item.id))) continue;
+    let id = `auto_show_${item.id}`;
+    for (let n = 2; taken.has(id); n++) id = `auto_show_${item.id}_${n}`;
+    taken.add(id);
+    const sibling = item.type === "point" ? beats.flatMap((beat) => (Array.isArray(beat.do) ? beat.do : []).map((action, index) => ({ beat, action, index })))
+      .find(({ action }) => isObject(action) && action.verb === "show"
+        && objects(slice.introduces).some((other) => other.id === action.target && other.type === "point")) : undefined;
+    if (sibling && isObject(sibling.action)) {
+      (sibling.beat.do as unknown[]).splice(sibling.index + 1, 0, { id, verb: "show", target: item.id, at: `after:${String(sibling.action.id)}` });
+      fixes.push(`${item.id} : point jamais montré, montré avec « ${String(sibling.action.target)} »`);
+    } else {
+      if (!Array.isArray(last.do)) last.do = [];
+      (last.do as unknown[]).push({ id, verb: "show", target: item.id, at: "beat:start" });
+      fixes.push(`${item.id} : jamais montré, montré au dernier passage de la tranche`);
+    }
+    touch(item.id);
+  }
+}
+
+/**
+ * A computed formula (its value from math_context) highlighted as a result: written with its value fixed, so that
+ * its result can be split off and written when it is said (highlightResultOnly, writeResultWhenSaid). Seen in the
+ * real app (2026-11-10, « PV = nRT »): « p = (0,204 × 8,314 × 298,15)/5,0 ≈ 101,1 » whole on the board while the
+ * voice was still saying « On remplace », the result given only in the next passage. A value that follows a
+ * parameter keeps being computed (computedFormula returns null for it).
+ */
+function fixComputedResult(slice: Json, beats: Json[], math: MathContext, fixes: string[]): void {
+  const values = new Map<string, number>();
+  for (const [name, symbol] of Object.entries(math.symbols)) if (symbol.kind === "constant") values.set(name, symbol.value);
+  const results = new Set(beats.flatMap((beat) => objects(beat.do)).filter((action) => action.verb === "highlight" && action.role === "result").map((action) => action.target));
+  for (const item of objects(slice.introduces)) {
+    if (item.type !== "math" || !isObject(item.content) || item.parts !== undefined || !results.has(item.id)) continue;
+    // Only a result given as approximate (≈): « = 25,32 » for 25,325 would be refused as false once written out.
+    if (typeof item.content.template !== "string" || !/(?:\\approx|≈)\s*\{value\}/.test(item.content.template)) continue;
+    let fixed: string | null = null;
+    try { fixed = computedFormula(item as never, values, math); } catch { fixed = null; }
+    if (fixed === null) continue;
+    item.content = fixed;
+    fixes.push(`${String(item.id)} : valeur calculée écrite en clair (${fixed.slice(-24)}) pour écrire son résultat quand il est dit`);
+  }
+}
+
+/**
+ * A table whose first row is its real header: the model wrote the column titles as the first row of values and
+ * repeated the first row label among the column labels (« réactif | H₂ » above « réactif | N₂ | H₂ »), seen in the
+ * real app on 2026-11-10 (« réactif limitant »). The first row becomes the column labels; rows and cells aimed at
+ * (r2c1…) are renumbered. Left alone when an action aims at that first row itself.
+ */
+function headerRowAsColumnLabels(slice: Json, beats: Json[], fixes: string[]): void {
+  const actions = beats.flatMap((beat) => objects(beat.do));
+  const row = (part: unknown) => typeof part === "string" ? /^r(\d+)(c\d+)?$/.exec(part) : null;
+  for (const item of objects(slice.introduces)) {
+    if (item.type !== "matrix" || !isObject(item.params)) continue;
+    const aiming = actions.filter((action) => action.target === item.id && row(action.part));
+    if (aiming.some((action) => row(action.part)![1] === "1")) continue;
+    const { rows, row_labels: rowLabels, column_labels: columnLabels } = item.params as Json;
+    if (!Array.isArray(rows) || rows.length < 2 || !Array.isArray(rowLabels) || rowLabels.length !== rows.length || !Array.isArray(columnLabels)) continue;
+    const first = rows[0];
+    if (!Array.isArray(first) || first.some((cell) => typeof cell !== "string" || !cell.trim())) continue;
+    const same = (a: unknown, b: unknown) => typeof a === "string" && typeof b === "string" && a.trim().toLowerCase() === b.trim().toLowerCase();
+    // The first row label stands among the column labels: that row is the header, written twice.
+    if (!columnLabels.some((label) => same(label, rowLabels[0]))) continue;
+    item.params = { ...(item.params as Json), rows: rows.slice(1), row_labels: rowLabels.slice(1), column_labels: [...first] };
+    for (const action of aiming) {
+      const [, n, cell] = row(action.part)!;
+      action.part = `r${Number(n) - 1}${cell ?? ""}`;
+    }
+    fixes.push(`${String(item.id)} : première ligne « ${first.join(" | ")} » prise comme en-têtes de colonnes (en-tête écrit deux fois)`);
+  }
 }
 
 /** The last relation at the top level of a formula (outside braces): `=`, `≈` or `\approx`. */
@@ -547,6 +701,52 @@ function highlightResultOnly(slice: Json, beats: Json[], fixes: string[]): void 
     }
     action.part = "membre_resultat";
   }
+  // Also a formula split this way on an earlier pass (a tranche sent back, a kept lesson played again).
+  for (const formula of objects(slice.introduces)) if (formula.type === "math") writeResultWhenSaid(formula, beats, fixes);
+}
+
+/** Where an anchor falls in the passage's sentence: -1 at its start, a character offset for a cue. */
+function anchorOffset(time: unknown, beat: Json): number | undefined {
+  if (time === "beat:start") return -1;
+  const match = typeof time === "string" ? /^(cue|cue_end):(.+)$/.exec(time) : null;
+  const cue = match && objects(beat.cues).find(({ id }) => id === match[2]);
+  if (!match || !cue || typeof cue.text !== "string" || typeof beat.say !== "string") return undefined;
+  const start = cueOffset(beat.say, cue.text, typeof cue.occurrence === "number" ? cue.occurrence : 1);
+  return start < 0 ? undefined : match[1] === "cue" ? start : start + cue.text.length;
+}
+
+/**
+ * A formula split for its result (highlightResultOnly) but written whole showed the result long before the voice
+ * said it: « n = (101,3 × 5,0)/(8,314 × 298,15) ≈ 0,204 mol » on the board at 70 s, the result said at 80 s —
+ * seen on 12 real lessons out of 20 (2026-11-10), 7 to 17 s early. The calculation is written where the lesson
+ * writes the formula; the result waits for the moment the lesson highlights it, which is when the voice gives it.
+ * Only when that moment is known to come later: a later passage, or a later word of the same sentence.
+ */
+function writeResultWhenSaid(formula: Json, beats: Json[], fixes: string[]): void {
+  const parts = objects(formula.parts);
+  if (parts.length !== 2 || parts[0]!.id !== "membre_calcul" || parts[1]!.id !== "membre_resultat") return;
+  const all = beats.flatMap((beat, index) => objects(beat.do).map((action) => ({ action, beat, index })));
+  const mine = all.filter(({ action }) => action.target === formula.id || action.source === formula.id);
+  const writes = mine.filter(({ action }) => action.verb === "write");
+  if (writes.length !== 1 || writes[0]!.action.part !== undefined || mine.some(({ action }) => action.verb === "transform")) return;
+  const write = writes[0]!;
+  const highlight = mine.find(({ action }) => action.verb === "highlight" && action.part === "membre_resultat");
+  if (!highlight) return;
+  const said = highlight.action.at ?? highlight.action.start;
+  const saidAt = anchorOffset(said, highlight.beat);
+  if (saidAt === undefined) return;
+  if (highlight.index < write.index) return;
+  if (highlight.index === write.index) {
+    const writtenAt = anchorOffset(write.action.at ?? write.action.start, write.beat);
+    if (writtenAt === undefined || saidAt <= writtenAt) return;
+  }
+  const taken = new Set(all.map(({ action }) => action.id));
+  let id = `auto_write_${String(formula.id)}_resultat`;
+  for (let n = 2; taken.has(id); n++) id = `auto_write_${String(formula.id)}_resultat_${n}`;
+  write.action.part = "membre_calcul";
+  const list = highlight.beat.do as unknown[];
+  list.splice(list.indexOf(highlight.action), 0, { id, verb: "write", target: formula.id, part: "membre_resultat", at: said });
+  fixes.push(`${String(formula.id)} : résultat écrit au moment où il est mis en évidence, pas avec le calcul`);
 }
 
 /** Verbs that make an object appear on the board. */
@@ -556,8 +756,10 @@ const REVEALING = new Set(["show", "write", "draw"]);
  * An object this tranche introduces, then highlights or frames, but never shows: shown when it is
  * first aimed at. Seen in a real lesson (2026-11-09, « zéros de f(x) = −(x − 2)² + 3 »): the final
  * summary introduced its sentence and formula, highlighted them and turned the camera to them
- * without a show; the student saw an empty board for the whole summary. An object introduced and
- * aimed at nowhere is left alone (it may be shown in a later tranche).
+ * without a show; the student saw an empty board for the whole summary. An attached label aimed at is shown
+ * the same way (2026-11-10, « stœchiométrie »: the camera framed a label that never appeared). An object
+ * introduced and aimed at nowhere is left alone (it may be shown in a later tranche), except a label of an
+ * object shown here (below).
  */
 function revealTargeted(slice: Json, beats: Json[], fixes: string[]): void {
   const introduced = new Map(objects(slice.introduces).filter(({ id }) => typeof id === "string").map((item) => [item.id as string, item]));
@@ -575,8 +777,10 @@ function revealTargeted(slice: Json, beats: Json[], fixes: string[]): void {
   }
   const taken = new Set(beats.flatMap((beat) => objects(beat.do).map(({ id }) => id)));
   for (const [id, item] of introduced) {
-    // An attached label comes with its own reveal; an unrevealed one stays the model's choice.
-    if (revealed.has(id) || item.attachment !== undefined) continue;
+    if (revealed.has(id)) continue;
+    // A label whose object this tranche shows comes with its object (below), not alone when it is first aimed at:
+    // seen 2026-11-10, a label shown at a camera.focus stood alone on an empty board for 8 s before its formula.
+    if (item.type === "label" && isObject(item.attachment) && revealed.has(item.attachment.parent)) continue;
     for (const beat of beats) {
       const list = Array.isArray(beat.do) ? beat.do : [];
       const index = list.findIndex((action) => isObject(action) && (action.target === id || (Array.isArray(action.targets) && action.targets.includes(id))));
@@ -589,6 +793,28 @@ function revealTargeted(slice: Json, beats: Json[], fixes: string[]): void {
       list.splice(index, 0, { id: actionId, verb: item.type === "math" && item.parts === undefined ? "write" : "show", target: id, at });
       reveal(id);
       fixes.push(`${id} : visé par ${String(first.verb)} mais jamais montré, montré à ce moment`);
+      break;
+    }
+  }
+  // A label attached to an object this tranche shows, and that nothing shows: it appears with its object.
+  // Measured on 244 lessons (2026-11-10): 68 labels declared and never shown, in one lesson out of three —
+  // their place stayed reserved and empty, and the word the voice says was missing from the board.
+  for (const [id, item] of introduced) {
+    if (revealed.has(id) || item.type !== "label" || !isObject(item.attachment)) continue;
+    const parent = item.attachment.parent;
+    for (const beat of beats) {
+      const list = Array.isArray(beat.do) ? beat.do : [];
+      const index = list.findIndex((action) => isObject(action) && (REVEALING.has(String(action.verb)) || action.verb === "transform")
+        && (action.target === parent || (members.get(action.target) ?? []).includes(parent)));
+      if (index < 0) continue;
+      const first = list[index] as Json;
+      let actionId = `auto_show_${id}`;
+      for (let n = 2; taken.has(actionId); n++) actionId = `auto_show_${id}_${n}`;
+      taken.add(actionId);
+      // After its object: the label never stands alone before what it names.
+      list.splice(index + 1, 0, { id: actionId, verb: "show", target: id, at: `after:${String(first.id)}` });
+      reveal(id);
+      fixes.push(`${id} : étiquette jamais montrée, montrée avec « ${String(parent)} »`);
       break;
     }
   }

@@ -16,9 +16,12 @@ import { PROMPT_EXAMPLES, buildNesalioMessages, buildNesalioSystemPrompt, consig
  * Mise à jour VOLONTAIRE le 2026-11-09 (relecteur) : MATH_RULES dit comment écrire table de valeurs, tableau d'atomes et
  * points nommés pour que le moteur les contrôle (phrases 1, 2, 4 de dev 1) ; « une formule fausse… pire erreur » (déjà
  * dans JUSTESSE) et l'exemple d'axes « x de -6 à 6… » retirés ; « répond » → « réponds ». 36 914 → 36 994.
+ * Mise à jour VOLONTAIRE le 2026-11-10 (étiquette sur une partie de formule) : le format reçoit attachment.part et la
+ * consigne des étiquettes l'annonce (« 2 mol » sous N₂) ; pour rester sous 37 000, le 2e exemple de move (rapprocher
+ * deux objets) et la phrase « Le moteur recadre les cibles du cadrage telles qu'elles sont alors » partent. 36 994 → 36 978.
  */
-const FULL_PROMPT_SHA256 = "8256771b1c465e22061e63fcc89a17be9c675c717716f03402a454f4f419b472";
-const FULL_PROMPT_LENGTH = 36_994;
+const FULL_PROMPT_SHA256 = "9ff9b6764939a12c60a8a01a7abdec9f99f44f6866de11519fadfdbf722a5973";
+const FULL_PROMPT_LENGTH = 36_978;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 

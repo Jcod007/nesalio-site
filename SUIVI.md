@@ -84,6 +84,201 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 
 ## Journal
 
+### 2026-11-10 — État du reste à faire (Codex)
+- Revue demandée par l’utilisateur. Seul `SUIVI.md` est modifié pour cette revue. Les corrections de rendu, de placement et d’objets oubliés du 10 novembre sont encore dans l’arbre de travail.
+- Vérifié localement dans `app/` : `npm run typecheck` passe, `npm test` donne 947 réussis et 13 ignorés. Le code accepte toujours la fermeture du flux sans `end`. Aucun nouvel essai navigateur, voix réelle ou production.
+- Prochaine étape proposée pour la présentation de chimie : rejouer des leçons sur la version corrigée, avec voix réelle, et vérifier la justesse du tableau, l’apparition des résultats et le cadrage final. Pour la suite, traiter les coupures du flux et décider du périmètre interactif avant le retrait du tuteur historique.
+
+### 2026-11-10 — Recherche : solutions venues d'autres domaines (Claude, conversation claude.ai, pas une session de code)
+- Demande de l'utilisateur : chercher comment d'autres domaines (jeu vidéo, cartographie, stabilisation vidéo, agents
+  vocaux, systèmes distribués) résolvent les problèmes ouverts décrits ici, et le transmettre à la session qui code.
+- Résultat : [`app/docs/recherche-solutions-2026-11-10.md`](app/docs/recherche-solutions-2026-11-10.md). Caméra
+  (trajectoire optimisée L1 sur la tranche), placement (empreinte sur toute la durée de vie, VPSC), quatre règles de
+  cohérence voix-tableau, fiabilité de la voix (coupure à 13 s dans `route.ts`, préchargement, requête de secours,
+  flux avec horodatage), interruptions (modèle Pipecat).
+- **Ce sont des propositions, à juger** par la session qui code au regard du code réel et des règles du dépôt ;
+  demander à l'utilisateur avant un changement visible pour l'élève. Rien de ce document avant la présentation de chimie.
+- Aucun fichier de code touché, rien vérifié par des tests (lecture des notes et de deux fichiers seulement).
+
+### 2026-11-10 — Étiquette attachée à une partie de formule (Claude Code, session « relecteur »)
+- Demande : corriger le format (« aucun format ne permet d'attacher une étiquette à un morceau d'équation »).
+  **Non commité.** 943 tests verts.
+- Format (`contract.ts`) : `attachment.part` (optionnel) = une part de la formule parente. Validation
+  (`validate.ts`) : refusée si la formule parente n'a pas cette part (« Partie absente … »).
+- Placement (`sceneState.ts`) : `Measurement.parts` (boîte de chaque part, coordonnées locales) ; une étiquette avec
+  `part` prend la boîte de cette part comme parent (ancres top/bottom/left/right/center). Mesure estimée
+  (`measurement.ts`, serveur et banc) : parts côte à côte au prorata de leur largeur estimée. Mesure réelle
+  (`NesalioProjection.prepareSlice`) : boîte de chaque `formula.getPart(i)` autour du centre de la formule.
+- Prompt : la consigne des étiquettes annonce `part` (« 2 mol » sous N₂) ; pour rester sous 37 000 caractères, le
+  2e exemple de `move` et une phrase sur `camera.restore` partent ; empreinte du prompt complet mise à jour
+  (36 994 → 36 978) dans `prompt-consignes.test.ts`.
+- Vérifié dans le vrai rendu (leçon d'essai sur `/dev/nesalio`) : « 2 mol » sous N₂, « 3 mol » sous 3H₂, « ? »
+  sous 2NH₃, sans trait de rappel. Pas encore vu sur une génération (le modèle doit choisir d'utiliser `part`).
+- Génération dans la vraie fenêtre juste après (« réactif limitant », `lecons-jouees/2026-11-10T19-55-46-…`) :
+  aucune étiquette attachée cette fois (le modèle a mis les quantités dans un tableau à en-tête unique, bien
+  formé) ; 0 tranche refusée ; chimie juste (2/1 = 2, 3/3 = 1, H₂ limitant, n(NH₃) = 3 × 2/3 = 2 mol). La
+  nouvelle attache n'a donc pas encore été utilisée par le modèle. Défauts vus : tableau montré entier avec
+  « 2 | 1 » avant que la voix divise ; la dernière image (« Réactif limitant = plus petit n ÷ coefficient ») est
+  une seule phrase en petit, à gauche, dans un écran vide.
+
+### 2026-11-10 — Trois défauts de la vraie fenêtre corrigés (Claude Code, session « relecteur »)
+- Demande : corriger seulement les défauts 2, 3 et 6 de la liste. **Non commité.** 941 tests verts ; banc caméra
+  inchangé (2,98/min, coupé 309 s).
+- Défaut 2, résultat montré trop tôt (« ≈ 101,1 » pendant « On remplace ») : `fixComputedResult` (`normalize.ts`)
+  — une formule `computed` mise en évidence comme résultat, au résultat approché (`\approx {value}`), est écrite
+  en clair avec sa valeur (`computedFormula`, sauf si elle suit un paramètre), puis découpée et son résultat écrit
+  quand il est dit (`highlightResultOnly`, `writeResultWhenSaid`). Vérifié sur la leçon jouée : calcul à « On
+  remplace », résultat à « Ça donne ». Les résultats écrits « = valeur » ne sont pas touchés (« = 25,32 » pour
+  25,325 serait refusé une fois écrit). Rejoué sur les 251 leçons : 8 réparations, 1 tranche rendue invalide
+  (ap-exponentielle-bases-t1, maths : la valeur affichée 0,71 contredit le calcul qui donne 2,56 — vraie erreur
+  du modèle, jusqu'ici affichée sans contrôle ; à la génération elle sera renvoyée en correction). L'unité absente
+  (kPa) n'est pas corrigée : c'est le contenu écrit par le modèle.
+- Défaut 3, données coupées (« T » seul, « = 298,15 K » dessous) : `boardLines` garde un signe de relation
+  (= ≈ < > × + −) avec le mot d'avant et celui d'après.
+- Défaut 6, tableau à double en-tête : `headerRowAsColumnLabels` (`normalize.ts`) — si le premier intitulé de
+  ligne figure parmi les intitulés de colonnes, la première ligne devient les en-têtes ; les cases visées (r4c2…)
+  sont renumérotées ; rien si une action vise la première ligne. Vérifié sur la leçon jouée (1 cas sur 251 leçons).
+- Pas rejoué dans la vraie fenêtre (les réparations agissent à la génération : il faut une nouvelle génération).
+- Nouvelle génération dans la vraie fenêtre (« réactif limitant », `lecons-jouees/2026-11-10T18-44-47-…`) : le
+  modèle n'a écrit ni tableau ni formule calculée cette fois, donc les corrections 2 et 6 n'ont pas pu être vues ;
+  rien de cassé. Chimie juste (2/1 = 2, 3/3 = 1, H₂ limitant ; 4 g → 1,98 mol → 35,7 g d'eau). Défauts vus :
+  « 2 mol » et « 3 mol » attachés tous deux sous toute l'équation (le modèle ne peut pas viser N₂ ou H₂), donc
+  empilés près de H₂ avec un trait ; « n(NH₃) = 2 mol » visible ~1,5 s seulement (la tranche suivante efface tout
+  à son début) ; « 3/3 = 1 » de la tranche d'avant reste dans un coin pendant tout l'exemple suivant (pas effacé
+  par le modèle) ; tranche « s_produit » refusée 4 fois (repère, calcul faux, relecteur) avant d'être acceptée.
+
+### 2026-11-10 — Caméra planifiée sur toute la tranche (Claude Code, session « relecteur »)
+- Demande : « On implémente l'idée avec la planification ». **Non commité.** 938 tests verts.
+- `src/engine/tranchePlan.ts` (`planTranche`, appelé dans `playNesalioStream` juste après `introduceSlice`) : à
+  l'arrivée d'une tranche, simule ce que chaque passage montre et efface ; candidats = vue de départ + cadrage de
+  ce que montrent les passages k à j (objets de la tranche, objets gardés, leurs axes) ; chemin choisi par
+  programmation dynamique (Viterbi). Coûts : nouvel objet hors champ 100, objet coupé 8, défaut de composition 12,
+  mouvement 1 + 2/écran + 2/facteur e de zoom, immobile 0. Le passage reçoit « hold » ou les cibles à cadrer
+  (`FrameContext.planned`, fonction `planned` dans le lecteur) ; le mouvement lui-même reste celui du moteur. Le
+  plan s'arrête au premier passage où la leçon bouge la caméra (camera.focus/restore). `composition` et
+  `COMPOSITION` ont déménagé dans `tranchePlan.ts` (réexportés). 3 tests dans `tranchePlan.test.ts`.
+- Banc (249 leçons), sans plan → avec : coupé 336 → **309 s** ; décentré 8,5 → **7,3 %** ; inconfort
+  2,91 → 2,99/min ; allers-retours 13 → 17 ; hors champ 6 → 7 leçons ; écran vide 4 → 5. Premier essai (cibler
+  aussi ce que les tranches d'avant ont laissé) bien pire (coupé 527 s) : corrigé. Poids essayés : composition 4,
+  12, 25 ; mouvement 1 et 3 : peu d'effet, le gain est limité par les candidats.
+- Essai dans la **vraie fenêtre** (application `/`, connectée, vraie voix), « PV = nRT pour trouver une pression » :
+  tableau correct et lisible, caméra calme. Défauts vus : (1) ~50 s avant la première image (relecteur lent :
+  « pas de réponse après 12 s ») ; (2) « ≈ 101,1 » visible pendant « On remplace », avant que la voix le dise, et
+  sans unité (formule sans surlignage « résultat » : `writeResultWhenSaid` ne s'applique pas) ; (3) ligne de
+  données coupée avant « = » (« T » seul en fin de ligne, « = 298,15 K » dessous : `boardLines`) et écrite très
+  petit à côté des formules ; (4) contenu en bande horizontale au milieu, haut et bas vides.
+  Essai précédent dans la vraie fenêtre (réactif limitant) : tableau à double en-tête écrit par le modèle,
+  équation collée au bord haut ~20 s.
+
+### 2026-11-10 — Résultat à l'heure, zoom du moteur plafonné, flèche de réaction (Claude Code, session « relecteur »)
+- **Non commité.** 935 tests verts. Banc 248 leçons : inconfort 3,75 → **2,90/min** ; rapides 22 → 3 ;
+  allers-retours 22 → 13 ; coupé 364 → 336 s ; décentré 9,3 → 8,5 %.
+- `writeResultWhenSaid` (`normalize.ts`) : formule découpée pour son résultat → calcul écrit à son heure, résultat
+  écrit au moment de sa mise en évidence (si celle-ci vient plus tard). 52 cas sur 250 leçons, 0 rendue invalide.
+  Ne couvre pas les tableaux montrés entiers (réponse visible 9 à 15 s avant la voix).
+- `ENGINE_ZOOM_MAX = 1` (`nesalioPlayback.ts`) : le moteur ne zoome plus au-delà de la taille du texte de lui-même
+  (seul un camera.focus de la leçon le peut) ; si le cadre plus large couperait un voisin, il garde le cadrage
+  serré (`planFocus`, option `maxZoom` de `fitSceneCamera`). Test : échoue à 1,5.
+- `smallReframing` : un camera.focus dont la cible visible est décentrée n'est plus ignoré.
+- `bareArrows` (`chemistry.ts`) : « -> » / « <=> » tapés hors `\ce{}` → vraies flèches (« − > » vu sur FeS₂).
+- `revealTargeted` : une étiquette dont l'objet est montré dans la tranche n'est plus montrée seule quand elle est
+  visée (étiquette orpheline 8 s dans « stœchiométrie »).
+- Essais écartés après mesure : ne plus agrandir le cadre pour les objets estompés (coupé 364 → 392 s) ; marge
+  minimale au bord dans `pushOutCut` (coupé 336 → 392 s).
+- Rejugé (même grille, 4 leçons, `rejuge-captures-lot-W1.md`) : gaz parfaits 6,5 → 7 ; réactif limitant 6 → 6,5 ;
+  ambulance 6,5 → 6,5 ; stœchiométrie 6,5 → 5,5 (étiquette orpheline, corrigée depuis ; équation à 3 px du bord
+  haut, non corrigée). Le 2e juge (concentration, masse molaire, 323 K, FeS₂) s'est arrêté sur la limite d'usage.
+- Tous ces essais ont été faits sur `/dev/nesalio?voix=simulee` (Chrome à part). **Demande de l'utilisateur : à
+  partir de maintenant, essais dans la vraie fenêtre** (l'application `/`, qui demande la connexion Clerk ; le
+  lecteur `NesalioApp` utilise le même moteur et le même rendu, `prepareSlice` y est branché).
+
+### 2026-11-10 — Corrections des défauts bloquants vus aux essais (Claude Code, session « relecteur »)
+- Accord de l'utilisateur (« Oui, corrige ») sur : rendu, oublis, chevauchements. **Non commité.** 932 tests verts.
+- Rendu (vérifié dans l'app en rejouant 7 leçons touchées + une leçon d'essai, `analyses/captures/v-*` : plus
+  aucune erreur MathJax, images regardées) :
+  1. `computedFormula` (`measurement.ts`) + `NesalioProjection.prepareSlice(slice, signal, math, values)` : une
+     formule à contenu `computed` est préparée comme une vraie formule (virgule `{,}`), sauf si son expression suit
+     un paramètre (elle reste alors en texte, passé par `readableFormula` : jamais de LaTeX brut).
+  2. `expandChemistry` : `\pu{58{,}44 g/mol}` → la virgule `{,}` est rendue à mhchem en `,` (sinon « 58 ,⁴⁴ »).
+  3. `mathAccents.ts` (`drawableAccents`, branché dans `boardFormula*`) : lettre accentuée d'une formule écrite
+     avec l'accent mathématique de la police de base (`\acute{\text{e}}`), et accents de texte `\'e` relus.
+     Essayé dans le vrai rendu avant de retenir cette écriture. Sans solution : ç, œ, « » (ni `\c`, ni `\oe` ne se
+     dessinent ; la formule retombe en texte, comme avant). Cause amont : manim-web 0.39.4 embarque MathJax 4.1.3
+     avec `asyncLoad: null` ; pas de signalement trouvé chez manim-web ; 0.41.0 non essayée.
+  4. `boardLines` : jamais de ligne qui commence par « : ; ? ! » ni qui finit par « « ».
+- Oublis du modèle (`normalize.ts`, rejoués sur 250 leçons / 1 145 tranches : 0 tranche rendue invalide) :
+  `writeForgottenParts` (partie de formule déclarée jamais écrite → écrite avec sa voisine ; 55 cas) ;
+  `showForgotten` (texte, note, étiquette libre ou point jamais montré ni visé → montré au dernier passage de la
+  tranche, un point avec le premier autre point montré ; 31 + 33 cas). Pas les formules : 20 sur 61 sont déclarées
+  d'avance pour une tranche suivante. Ne s'applique qu'à la génération, pas aux leçons gardées rejouées.
+- Chevauchements (`sceneState.ts`) : `center_on` un texte/formule/tableau qui reste au tableau → posé dessous
+  (sauf si la tranche l'efface ou le remplace, ou si la cible est une figure) ; étiquette `inside` un
+  texte/formule/tableau → posée à côté (dessous si ancre `center`). Vu corrigé sur FeS₂ et volume molaire.
+- Banc caméra inchangé (3,75/min ; coupé 364 s).
+- Non traité : ligne posée contre une fraction sans marge (cause non comprise) ; résultat affiché avant la voix ;
+  cadrage (zoom 1,5 trop fort, image finale) ; `camera.focus` du JSON sans effet (voir `smallReframing`) ; lignes
+  d'un texte coupé centrées (bord gauche en dents de scie) ; contenu faux écrit par le modèle ; lecture figée
+  quand le réseau saute. Propositions extérieures lues : `app/docs/recherche-solutions-2026-11-10.md` (section 3
+  recoupe les essais ; solveur de caméra jugé trop lourd pour une dizaine d'événements par tranche).
+
+### 2026-11-10 — Essais sur 20 vraies leçons de chimie, jugés sur captures (Claude Code, session « relecteur »)
+- Demande : jouer au moins 20 vraies leçons, capture toutes les 5 s, classer et juger ce qui ne va pas (caméra,
+  accord voix/tableau, contenu). Présentation de chimie le lendemain. Consigne nouvelle (en mémoire) : avant de
+  corriger, chercher si le problème a déjà une solution connue ou une méthode existante.
+- Outil : `app/tools/eval/captures-nesalio.mjs` (leçon gardée ou question → captures dans `analyses/captures/`,
+  ajouté au `.gitignore`). `PARALLELE=2` au plus : à 3, ou réseau coupé, des trous de 15 à 30 s.
+- Résultat complet et classement : **`analyses/camera/essais-chimie-2026-11-10.md`**. Moyenne 4,9/10 ; aucune
+  leçon à 7 ; 3 sans défaut bloquant. Les deux modèles sont bien actifs (journal : le relecteur refuse un tableau faux).
+- Bloquants corrigeables dans notre code, **non corrigés** (attente de l'accord de l'utilisateur) : `math` à
+  contenu `computed` affiché en LaTeX brut ; `\pu{…}` avec virgule ; lettre accentuée dans une formule (MathJax
+  4.1.3 de manim-web, `asyncLoad: null` — pas de signalement trouvé chez manim-web ; 0.41.0 à essayer, sinon
+  accents en commandes de base) ; objets jamais montrés autres qu'étiquettes ; chevauchements ; coupure de ligne
+  avant « : » (vient de `boardLines`).
+- Vu aussi : lecture figée sans message quand le réseau saute pendant une génération en direct ; génération en
+  échec quand `ai-gateway.vercel.sh` est injoignable (réseau de l'utilisateur instable ce jour-là, pas le plafond).
+- 9 générations réelles faites pour l'essai (voix simulée, pas de frais ElevenLabs).
+
+### 2026-11-10 — Composition de l'image, viser 3Blue1Brown (Claude Code, session « relecteur »)
+- Demande : atteindre la qualité de 3Blue1Brown par des corrections ciblées, sans régression. Puis, en cours de
+  route : **présentation de chimie le lendemain**, le tableau doit être irréprochable ; vérifier aussi que ce que la
+  voix dit est au tableau, et la qualité du contenu. **Non commité** (après dd888d4).
+- Nouvelle mesure dans `tools/eval/camera-banc.test.mjs` (images immobiles) : remplissage, écran trop vide (contenu
+  < 45 % de l'écran alors que la caméra a reculé), contenu décentré (> 20 % d'écran), et qui a cadré l'image
+  (départ, suivi du moteur, ordre du JSON). Un objet en plein fondu n'est plus compté « coupé ».
+  Référence dd888d4 mesurée avec ce même banc (copie de travail jetable, retirée) : décentré 13,1 % du temps,
+  trop vide 0,8 %, coupé 354 s, inconfort 3,43/min.
+- Corrections :
+  1. `boardLines` / `writtenText` (`measurement.ts`) : la prose de plus de 48 caractères est coupée en lignes
+     égales (mesure et rendu, pas les formules ni le texte avec LaTeX). 155 textes sur 974 dépassaient 55 caractères,
+     jusqu'à 164 sur une ligne (23 unités) : la caméra reculait jusqu'à tout rendre petit.
+  2. `anticipate` (`nesalioPlayback.ts`) : quatre cadrages candidats (tranche entière ou passage seul ; avec ou sans
+     ce que le passage efface) ; le premier (celui d'avant) ne cède qu'à un cadrage qui coupe moins d'objets, ou
+     autant et nettement mieux composé (`composition`, `COMPOSITION`). Recomposition d'une image déjà cadrée
+     seulement pour un gain net, sans grossir le texte au-delà de sa taille, sans couper d'objet (`smallShift`).
+  3. `fitSceneCamera` : option `leaving` (ce que le passage efface n'est plus gardé ni protégé de la coupure) ;
+     `pushOutCut` ne glisse plus si cela coupe un autre objet (vu : données estompées coupées 8 s).
+  4. `revealTargeted` (`normalize.ts`) : une étiquette visée mais jamais montrée est montrée ; une étiquette
+     jamais montrée dont l'objet est montré dans la tranche apparaît après lui (`after:`). Mesure sur 244 leçons :
+     180 objets déclarés jamais montrés (5,6 %), dans 78 leçons ; 68 sont des étiquettes. Vu dans l'essai réel
+     « stœchiométrie » du jour (étiquette « rapport des coefficients » absente du récapitulatif).
+- Résultat (241 leçons) : décentré 13,1 → **9,4 %** ; trop vide 0,8 → **0,2 %** ; coupé 354 → 364 s (chimie
+  69 → 51 s, maths 285 → 314 s) ; **inconfort 3,43 → 3,76/min** (mouvements 1,52 → 1,69/min, aller-retours 17 → 22).
+  Le recentrage coûte donc un peu de mouvement. 920 tests verts (1 test de marge adapté : la phrase longue de
+  l'exemple est maintenant coupée en lignes, remplacée par une formule longue).
+- Régressions restantes connues (objet coupé apparu) : correlation-force-t1 (30 → 69 s), regle-majorite-t1 (12 s),
+  conductibilite-ph-t2 (13 s, un ion déplacé après le cadrage), titrage-yamaska-t2 (8 s, formule estompée),
+  gaz-pressions-partielles-t2 (7 s), gaz-volume-so2-t1 (7 s). Cause commune probable : la mise en page change
+  avec les lignes coupées. **À traiter avant de commiter, ou revenir sur le point 1.**
+- Essai dans l'app (`/dev/nesalio?voix=simulee`, leçon jouée « stœchiométrie ») : équation centrée, phrase coupée
+  en deux lignes bien rendue, contenu chimique juste. Défauts vus, non corrigés : (a) le tableau de valeurs
+  apparaît en entier d'un coup, la ligne « après » est visible avant que la voix donne le résultat ; (b) dans
+  « contraste », la formule estompée de l'étape d'avant reste en très grand en haut, le nouveau tableau est en bas
+  à gauche, moitié droite vide ; (c) au début du récapitulatif, l'ancien tableau reste petit en haut avec 60 %
+  d'écran vide pendant quelques secondes ; (d) colonne H₂O du 2e tableau à « — » alors que de l'eau s'est formée.
+- Restent aussi : 112 objets non-étiquettes déclarés jamais montrés (formules 41, points 30, textes 23) — on ne
+  peut pas savoir à la tranche s'ils seront montrés plus tard (30 cas légitimes) ; exemple du prompt (caméra qui
+  raconte) ; ancre des étiquettes d'axes. Pas de vidéo jugée pour cette étape.
+
 ### 2026-11-09 — Mission caméra : +50 % de confort (Claude Code, session « relecteur »)
 - Mission de l'utilisateur : une seule tâche, la qualité de la caméra et de ce qui apparaît (référence 3Blue1Brown, ne
   pas donner la nausée), en regardant les leçons en continu (pas des captures espacées), objectif +50 %. Remarque :

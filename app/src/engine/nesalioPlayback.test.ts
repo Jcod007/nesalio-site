@@ -490,4 +490,26 @@ describe("la caméra suit ce qui apparaît", () => {
     expect(py + lastStep.measurement.body.y0).toBeGreaterThanOrEqual(view.y0 - 1e-6);
     expect(scene.camera.is_animating).toBe(false);
   });
+
+  // Essais du 2026-11-10 : le moteur cadrait une formule seule à ×1,5, lettres de 90 px (« zoom excessif »).
+  it("ne grossit pas le texte au-delà de sa taille quand il cadre de lui-même", async () => {
+    const lesson = validateLesson({ ...shell, slices: [
+      { slice_id: "s1", introduces: [{ id: "a", type: "math", content: "x = 2" }],
+        beats: [{ id: "b1", say: "Voici.", cues: [], do: [{ id: "w1", verb: "write", target: "a", at: "beat:start" }] }] },
+      { slice_id: "s2", introduces: [{ id: "b", type: "math", content: "y = 3", layout: { next_to: "a", direction: "down", gap: "xl" } },
+        { id: "c", type: "math", content: "z = 4", layout: { to_corner: "bottom_right" } }],
+        beats: [{ id: "b2", say: "Puis.", cues: [], do: [
+          { id: "f", verb: "fade_out", target: "a", at: "beat:start" },
+          { id: "w2", verb: "write", target: "b", at: "beat:start" }, { id: "w3", verb: "write", target: "c", at: "beat:start" },
+        ] }] },
+    ] });
+    if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues));
+    let closest = 0;
+    await playNesalioLesson(lesson.value, {
+      viewport, signal: new AbortController().signal, wait: async () => {},
+      openClip: async () => clip({}, 2_000, [0, 1_000, 2_000]),
+      onFrame: (frame) => { closest = Math.max(closest, frame.scene.camera.state.zoom); },
+    });
+    expect(closest).toBeLessThanOrEqual(1 + 1e-9);
+  });
 });

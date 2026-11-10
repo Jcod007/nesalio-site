@@ -61,7 +61,7 @@ export default function NesalioPlaybackPage() {
         signal: active.signal,
         // ?voix=simulee: a silent voice with the real pace, to film and judge the board without paying for speech.
         openClip: new URLSearchParams(window.location.search).get("voix") === "simulee" ? openSimulatedClip : openNesalioClip,
-        prepareSlice: (slice, signal) => projection.prepareSlice(slice, signal),
+        prepareSlice: (slice, signal, math, values) => projection.prepareSlice(slice, signal, math, values),
         measure: projection.measure,
         onWarning(warning) {
           setWarnings((previous) => [...previous, warning]);

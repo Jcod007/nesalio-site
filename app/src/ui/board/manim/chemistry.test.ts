@@ -41,6 +41,23 @@ describe("écritures chimiques au tableau", () => {
     expect(expandChemistry("\\pu{12 g/mol}")).not.toContain("\\pu");
   });
 
+  it("garde la virgule décimale d'une unité écrite avec {,} (leçon réelle : « 58 ,⁴⁴ g / mol »)", () => {
+    const tex = expandChemistry(String.raw`M = \pu{58{,}44 g/mol}`);
+    expect(tex).toContain("58{,}44");
+    expect(tex).not.toContain("^{44}");
+    expect(expandChemistry(String.raw`\pu{99{,}3 kPa}`)).toBe(expandChemistry(String.raw`\pu{99,3 kPa}`));
+  });
+
+  it("dessine une vraie flèche pour « -> » tapé entre deux \ce (leçon réelle : « − > » au tableau)", () => {
+    const tex = expandChemistry(String.raw`4\ce{FeS2} + 11\ce{O2} -> 2\ce{Fe2O3}`);
+    expect(tex).toContain(String.raw`\longrightarrow`);
+    expect(tex).not.toContain("->");
+    expect(expandChemistry("->")).toBe(String.raw`\longrightarrow `);
+    expect(expandChemistry(String.raw`A <=> B`)).toContain(String.raw`\rightleftharpoons`);
+    // In a text, the characters stay as typed.
+    expect(expandChemistry(String.raw`\text{a -> b}`)).toBe(String.raw`\text{a -> b}`);
+  });
+
   it("ne touche pas une écriture incomplète : le rendu signalera l'erreur", () => {
     expect(expandChemistry("\\ce{2H2")).toBe("\\ce{2H2");
     expect(expandChemistry("\\cev{x}")).toBe("\\cev{x}");

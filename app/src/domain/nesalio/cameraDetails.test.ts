@@ -29,7 +29,8 @@ const contained = (scene: SceneState, ids: string[]) => {
 describe("détails du cadrage", () => {
   it("prend la marge réglée dans la leçon (camera_policy.focus_padding)", async () => {
     const slices = [{
-      slice_id: "s", introduces: [{ id: "t", type: "text", content: "Une phrase assez longue pour remplir l'écran en largeur" }],
+      slice_id: "s", // A long formula (prose is cut into lines since 2026-11-10, see boardLines): it fills the screen in width.
+      introduces: [{ id: "t", type: "math", content: "a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + q + r" }],
       beats: [{ id: "b", say: "Voici.", cues: [], do: [
         { id: "w", verb: "write", target: "t", at: "beat:start" },
         { id: "c", verb: "camera.focus", targets: ["t"], transition: "instant", at: "beat:start" },

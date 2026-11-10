@@ -1,5 +1,6 @@
 import { interpolateZoom } from "d3-interpolate";
 import { pausableSleep, whenRunning, type PlaybackControl } from "./nesalioControl";
+import { COMPOSITION, composition, planTranche, type PlannedFraming } from "./tranchePlan";
 import { negotiateCapabilities, schemaCapabilities, type Capabilities } from "@/domain/nesalio/capabilities";
 import type { Action, Beat, Role, Slice } from "@/domain/nesalio/contract";
 import type { LessonDocument, LessonHeader } from "@/domain/nesalio/lesson";
@@ -7,7 +8,7 @@ import { parametersOf } from "@/domain/nesalio/measurement";
 import { sampleBeat, scheduleBeat, type BeatSchedule, type CueTiming, type ScheduledAction } from "@/domain/nesalio/scheduler";
 import {
   beginBeat, cameraView, clearTarget, clearedObjects, createScene, currentId, inside, keptInView, moveShift, shiftObjects, fitSceneCamera, introduceSlice, partVisible, revealPart, sceneBounds, setDimmed,
-  setParameter, setVisibility,
+  setParameter, setVisibility, symbolValues,
   CAMERA_ZOOM, targetObjects, withCameraState, withMathContext, type CameraFrame, type MeasureObject, type SavedCameraFrame, type SceneState,
 } from "@/domain/nesalio/sceneState";
 import type { Box } from "@/domain/nesalio/placement";
@@ -79,6 +80,8 @@ interface FrameContext {
   moves?: ReadonlyMap<Action, { ids: string[]; shift: readonly [number, number] }>;
   cameras?: ReadonlyMap<Action, PlannedCamera>;
   onCameraPlan?: (plan: Omit<CameraPlanReport, "beat">) => void;
+  /** This passage's framing, planned with the whole tranche (planTranche); absent: decided here, as before. */
+  planned?: PlannedFraming;
 }
 
 function frameAt(before: NesalioFrame, timeline: readonly ScheduledAction[], playhead: number, ctx: FrameContext): NesalioFrame {
@@ -251,6 +254,15 @@ function restoreGeometry(scene: SceneState, saved: SavedCameraFrame): { scene: S
 }
 
 /**
+ * The closest the camera goes on its own (anticipation, following): the text's design size. A zoom beyond it is the
+ * lesson's choice (camera.focus). Until 2026-11-10 the engine framed what appeared as tightly as CAMERA_ZOOM.max
+ * (1.5): a single formula filled the screen, letters 90 px tall (judged « zoom excessif » on real lessons), and
+ * every new object meant zooming out again. Measured on 248 lessons: discomfort 3.75 → 2.88 a minute, movements
+ * faster than a screen a second 22 → 3, back-and-forths 22 → 13, cut objects 364 → 336 s.
+ */
+export const ENGINE_ZOOM_MAX = 1;
+
+/**
  * camera_policy.focus_padding: how much room is left around what is framed.
  * "md" is the margin the engine always used (content fills 90 % of the screen).
  */
@@ -258,19 +270,37 @@ export const FOCUS_PADDING = { xs: 0.97, sm: 0.94, md: 0.9, lg: 0.85, xl: 0.8 } 
 
 function planFocus(
   scene: SceneState, intent: FramingIntent, timing: CameraTiming, priority: readonly string[],
-  { layoutFallback, padding }: Pick<FrameContext, "layoutFallback" | "padding">, fallback?: CameraState,
+  { layoutFallback, padding }: Pick<FrameContext, "layoutFallback" | "padding">, fallback?: CameraState, maxZoom = Infinity,
+  leaving: ReadonlySet<string> = new Set(),
 ) {
   // Nothing shown yet: frame the space reserved for what is about to appear.
   const bounds = intent.bounds
     ?? (layoutFallback && !sceneBounds(scene, intent.targets, "render_bounds") ? "layout_bounds" : "render_bounds");
-  const kept = keptInView(scene);
+  // What this passage erases is not kept in the frame: framing it would leave the rest small in a blank screen.
+  const kept = keptInView(scene).filter((id) => !leaving.has(id));
   const outside = (id: string, state: CameraState) => {
     const box = sceneBounds(scene, [id], bounds) ?? sceneBounds(scene, [id], "layout_bounds");
     return box !== null && !inside(cameraView(scene, state), box);
   };
-  const target = fitSceneCamera(scene, intent.targets, bounds, { priority, kept, padding, avoidCutting: true })
-    ?? (fallback && { state: fallback, hidden: kept.filter((id) => outside(id, fallback)) });
-  if (!target) return null;
+  const fit = (zoom: number) => fitSceneCamera(scene, intent.targets, bounds, { priority, kept, padding, avoidCutting: true, leaving, maxZoom: zoom });
+  /** Objects on the board that a view would cut (partly in it). */
+  const cutBy = (state: CameraState) => {
+    const view = cameraView(scene, state);
+    return [...scene.objects].filter(([id, item]) => {
+      if (!item.visible || item.removed || item.faded || leaving.has(id)) return false;
+      const box = sceneBounds(scene, [id], "render_bounds");
+      return box !== null && box.x1 > view.x0 && box.x0 < view.x1 && box.y1 > view.y0 && box.y0 < view.y1 && !inside(view, box);
+    }).length;
+  };
+  let fitted = fit(maxZoom);
+  // The wider view of a capped zoom may reach a neighbour it cannot hold whole: the closer framing is kept then.
+  if (fitted && Number.isFinite(maxZoom)) {
+    const closer = fit(Infinity);
+    if (closer && cutBy(closer.state) < cutBy(fitted.state)) fitted = closer;
+  }
+  fitted ??= fallback ? { state: fallback, hidden: kept.filter((id) => outside(id, fallback)) } : null;
+  if (!fitted) return null;
+  const target = fitted;
   if (timing.transition === "instant") return { target, move: target, duration: 0 };
 
   const current = scene.camera.state;
@@ -314,6 +344,10 @@ function anticipate(
 ): void {
   if (clipEnd <= 0 || timeline.some(({ action }) => action.verb === "camera.focus" || action.verb === "camera.restore")) return;
   const scene = frameAt(before, [], 0, quiet).scene;
+  if (ctx.planned) {
+    planned(before, scene, timeline, clipEnd, ctx, add);
+    return;
+  }
   const coming = new Set<string>();
   const leaving = new Set<string>();
   for (const { action: written } of timeline) {
@@ -336,14 +370,57 @@ function anticipate(
   const staying = sliceObjects.filter((id) => scene.objects.get(id)?.visible && !scene.objects.get(id)?.faded && !leaving.has(id));
   // Still to come in the rest of the tranche: framed now too when everything fits, so the next passages need no movement.
   const later = sliceObjects.filter((id) => !scene.objects.get(id)?.visible && !scene.objects.get(id)?.removed && !ids.includes(id));
-  const view = cameraView(scene, scene.camera.target_state ?? scene.camera.state);
+  const current = scene.camera.target_state ?? scene.camera.state;
+  const view = cameraView(scene, current);
   const passage = [...new Set([...staying, ...graphsOf(ids), ...ids])];
   const box = sceneBounds(scene, passage, "layout_bounds");
-  if (!box || inside(view, box)) return;
-  for (const targets of [[...new Set([...passage, ...later, ...graphsOf(later)])], passage]) {
-    const follow: Focus = { id: `anticipe_${before.scene.currentBeat ?? "passage"}`, verb: "camera.focus", at: "beat:start", targets, bounds: "layout_bounds" };
-    const plan = planFocus(scene, follow, follow, ids, ctx);
-    if (!plan?.move || plan.target.hidden.some((id) => targets.includes(id))) continue;
+  if (!box) return;
+  // What the student will see once the passage has shown its objects: everything still on the board in view.
+  const onBoard = [...scene.objects].filter(([id, item]) => item.visible && !item.faded && !item.removed && !leaving.has(id)).map(([id]) => id);
+  const shownBox = (state: CameraState) => {
+    const seen = cameraView(scene, state);
+    const boxes = [...onBoard, ...ids].map((id) => sceneBounds(scene, [id], "layout_bounds")).filter((b): b is Box => b !== null && overlaps(b, seen));
+    return boxes.length ? boxes.reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) })) : null;
+  };
+  /** How far the picture is from a good composition (0 when it is good). */
+  const flaw = (state: CameraState) => {
+    const seen = shownBox(state);
+    if (!seen) return 1;
+    const { fill, offset } = composition(cameraView(scene, state), seen);
+    // A small subject is fine at the text's design size; the screen is « too empty » only when the camera stepped back.
+    return (state.zoom < 1 - 1e-6 ? Math.max(0, COMPOSITION.fill - fill) : 0) + Math.max(0, offset - COMPOSITION.offCenter);
+  };
+  /** How many objects on the board the frame would cut (partly in it). */
+  const cutBy = (state: CameraState) => {
+    const seen = cameraView(scene, state);
+    return [...onBoard, ...ids].filter((id) => {
+      const b = sceneBounds(scene, [id], "layout_bounds");
+      return b !== null && overlaps(b, seen) && !inside(seen, b);
+    }).length;
+  };
+  const inFrame = inside(view, box);
+  // A picture already in frame is recomposed without enlarging its text beyond the design size (or the current one).
+  const maxZoom = inFrame ? Math.max(ENGINE_ZOOM_MAX, current.zoom) : ENGINE_ZOOM_MAX;
+  // Nothing to do when everything coming is in frame and the picture is already well composed.
+  if (inFrame && flaw(current) === 0) return;
+  const wholeTranche = [...new Set([...passage, ...later, ...graphsOf(later)])];
+  // In order of preference: the rest of the tranche framed ahead (it saves the next movements), then the passage
+  // alone; each first with what the passage erases still kept in frame (the framing before 2026-11-10), then without.
+  const plans = [[wholeTranche, false], [passage, false], [wholeTranche, true], [passage, true]].flatMap(([targets, dropLeaving]) => {
+    const follow: Focus = { id: `anticipe_${before.scene.currentBeat ?? "passage"}`, verb: "camera.focus", at: "beat:start", targets: targets as string[], bounds: "layout_bounds" };
+    const plan = planFocus(scene, follow, follow, ids, ctx, undefined, maxZoom, dropLeaving ? leaving : undefined);
+    return plan?.move && !plan.target.hidden.some((id) => follow.targets.includes(id))
+      ? [{ follow, plan, flaw: flaw(plan.target.state), cut: cutBy(plan.target.state) }] : [];
+  });
+  // The first choice gives way only to a framing that cuts fewer objects, or cuts no more and is clearly better
+  // composed (camera audit: off-centre 13.1 % → 7 % of the time). Never one that cuts more.
+  const chosen = plans.reduce<(typeof plans)[number] | undefined>((best, candidate) =>
+    !best || candidate.cut < best.cut || (candidate.cut === best.cut && candidate.flaw < best.flaw - 0.05) ? candidate : best, undefined);
+  for (const candidate of chosen ? [chosen] : []) {
+    const { follow, plan } = candidate;
+    // Recomposing a picture already in frame: only for a clear gain, never a small shift (smallReframing),
+    // and never by cutting something that was whole on screen.
+    if (inFrame && (smallShift(scene, current, plan.target.state) || candidate.flaw > flaw(current) - 0.08 || candidate.cut > cutBy(current))) return;
     ctx.onCameraPlan?.({ action: follow.id, origin: "follow", durationMs: plan.duration, from: scene.camera.state, to: plan.target.state });
     const start = Number.isFinite(firstReveal) ? Math.max(0, firstReveal - plan.duration) : 0;
     add(follow, { action: follow, start, end: Math.min(clipEnd, start + plan.duration) }, { move: plan.move, duration: plan.duration });
@@ -352,6 +429,39 @@ function anticipate(
 }
 
 const REVEAL_VERBS = new Set(["show", "draw", "write", "transform"]);
+
+/** The passage's part of the tranche's plan: hold the view, or one gentle movement that ends as the first object appears. */
+function planned(
+  before: NesalioFrame, scene: SceneState, timeline: readonly ScheduledAction[], clipEnd: number, ctx: FrameContext,
+  add: (follow: Focus, entry: ScheduledAction, plan: { move: CameraMove; duration: number }) => void,
+): void {
+  if (ctx.planned === "hold" || !ctx.planned) return;
+  const targets = ctx.planned.targets.filter((id) => scene.objects.has(id) && !scene.objects.get(id)!.removed);
+  if (!targets.length) return;
+  const leaving = new Set<string>();
+  for (const { action } of timeline) {
+    if ((action.verb === "fade_out" || action.verb === "remove") && "target" in action) for (const id of targetObjects(scene, action.target)) leaving.add(id);
+  }
+  const follow: Focus = { id: `plan_${before.scene.currentBeat ?? "passage"}`, verb: "camera.focus", at: "beat:start", targets, bounds: "layout_bounds" };
+  const coming = timeline.filter(({ action }) => REVEAL_VERBS.has(action.verb) && "target" in action).flatMap(({ action }) => targetObjects(scene, (action as { target: string }).target));
+  const plan = planFocus(scene, follow, follow, coming, ctx, undefined, ENGINE_ZOOM_MAX, leaving);
+  if (!plan?.move) return;
+  const firstReveal = Math.min(...timeline.filter(({ action }) => REVEAL_VERBS.has(action.verb)).map(({ start }) => start));
+  ctx.onCameraPlan?.({ action: follow.id, origin: "follow", durationMs: plan.duration, from: scene.camera.state, to: plan.target.state });
+  const start = Number.isFinite(firstReveal) ? Math.max(0, firstReveal - plan.duration) : 0;
+  add(follow, { action: follow, start, end: Math.min(clipEnd, start + plan.duration) }, { move: plan.move, duration: plan.duration });
+}
+
+export { COMPOSITION, composition } from "./tranchePlan";
+
+const overlaps = (a: Box, b: Box) => a.x1 > b.x0 && a.x0 < b.x1 && a.y1 > b.y0 && a.y0 < b.y1;
+
+/** A move of under a tenth of a screen with a zoom within ×0.9 to ×1.1: not worth moving the picture. */
+function smallShift(scene: SceneState, from: CameraState, to: CameraState): boolean {
+  const width = (scene.initialViewport.x1 - scene.initialViewport.x0) / from.zoom;
+  const ratio = to.zoom / from.zoom;
+  return Math.hypot(to.x - from.x, to.y - from.y) / width < 0.1 && ratio > 0.9 && ratio < 1.1;
+}
 
 /**
  * A camera.focus written in the lesson whose targets are already wholly in view, for a small reframing (under a
@@ -366,6 +476,10 @@ function smallReframing(scene: SceneState, intent: FramingIntent, target: Camera
     return box !== null && inside(view, box);
   });
   if (!visible) return false;
+  // Visible but away in a corner: the lesson's framing is what brings it to the centre (seen on real lessons,
+  // 2026-11-10: the final rule stayed bottom-left under the dimmed step, the camera.focus on it ignored).
+  const targets = sceneBounds(scene, intent.targets, "layout_bounds");
+  if (targets && composition(view, targets).offset > COMPOSITION.offCenter) return false;
   const width = (scene.initialViewport.x1 - scene.initialViewport.x0) / current.zoom;
   const distance = Math.hypot(target.x - current.x, target.y - current.y) / width;
   const ratio = target.zoom / current.zoom;
@@ -449,7 +563,7 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
         id: `suivi_${action.id}`, verb: "camera.focus", at: "beat:start",
         targets: [...new Set([...shown, ...graph, target])], bounds: "layout_bounds",
       };
-      const plan = planFocus(scene, follow, follow, [target], ctx);
+      const plan = planFocus(scene, follow, follow, [target], ctx, undefined, ENGINE_ZOOM_MAX);
       if (!plan?.move) continue;
       // A highlight never takes away what the passage has just shown (a summary pointing back at a graph's points).
       if (highlight && plan.target.hidden.some((id) => shown.includes(id))) continue;
@@ -470,7 +584,7 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
       const box = sceneBounds(scene, targets, "layout_bounds");
       if (!box || inside(cameraView(scene, scene.camera.target_state ?? scene.camera.state), box)) continue;
       const follow: Focus = { id: `plage_${action.id}`, verb: "camera.focus", at: "beat:start", targets, bounds: "layout_bounds" };
-      const plan = planFocus(scene, follow, follow, dependents, ctx);
+      const plan = planFocus(scene, follow, follow, dependents, ctx, undefined, ENGINE_ZOOM_MAX);
       if (!plan?.move) continue;
       cameras.set(follow, { move: plan.move });
       ctx.onCameraPlan?.({ action: action.id, origin: "range", durationMs: plan.duration, from: scene.camera.state, to: plan.target.state });
@@ -581,7 +695,7 @@ export interface NesalioPlaybackOptions {
   viewport: Box;
   signal: AbortSignal;
   openClip(beat: Beat, signal: AbortSignal): Promise<NesalioClip>;
-  prepareSlice?(slice: Slice, signal: AbortSignal): Promise<void>;
+  prepareSlice?(slice: Slice, signal: AbortSignal, math: SceneState["math"], values: ReadonlyMap<string, number>): Promise<void>;
   measure?: MeasureObject;
   onFrame(frame: NesalioFrame, beat: Beat, playhead: number): void;
   onWarning?(warning: NesalioWarning): void;
@@ -702,6 +816,7 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
   type Prepared = Awaited<ReturnType<typeof prepare>>;
   let next: Promise<Prepared | null> | undefined;
   try {
+    let tranchePlan = new Map<string, PlannedFraming>();
     for (let index = 0; ; index++) {
       signal.throwIfAborted();
       await whenRunning(options.control, signal);
@@ -713,13 +828,17 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
       // Prepares the following passage's voice as soon as its tranche has arrived.
       const following = () => queue.at(index + 1).then((item) => item ? prepare(item.beat) : null, () => null);
       if (first) {
-        await options.prepareSlice?.(slice, signal);
+        await options.prepareSlice?.(slice, signal, frame.scene.math, symbolValues(frame.scene));
         signal.throwIfAborted();
         frame = { ...frame, scene: introduceSlice(frame.scene, slice, options.measure) };
+        // The tranche's camera, planned at once now that its whole content is placed.
+        // Measured on 249 lessons against the passage-by-passage choice: cut objects 336 → 309 s, off-centre
+        // 8.5 → 7.3 % of the time, discomfort 2.91 → 2.99 a minute (2026-11-10).
+        tranchePlan = planTranche(frame.scene, slice, padding, ENGINE_ZOOM_MAX);
       }
       const before = { ...frame, scene: beginBeat(frame.scene, slice.slice_id, beat.id) };
       const framing = new Map<string, string>();
-      const ctx: FrameContext = { measure: options.measure, layoutFallback, padding, framing,
+      const ctx: FrameContext = { measure: options.measure, layoutFallback, padding, framing, planned: tranchePlan.get(beat.id),
         onCameraPlan: options.onCameraPlan && ((plan) => options.onCameraPlan!({ ...plan, beat: beat.id })) };
       // Reported once per camera action, at the end of the passage, not on every frame.
       const reportFraming = () => {

@@ -371,6 +371,14 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
       const parents = layoutTargets(item.layout, [...at, "layout"]);
       if (item.attachment) {
         parents.push(requireObject(item.attachment.parent, [...at, "attachment", "parent"]));
+        if (item.attachment.part !== undefined) {
+          const parent = item.attachment.parent;
+          const sibling = slice.introduces.find((other) => other.id === parent);
+          const declared = parts.get(parent) ?? new Set(sibling?.type === "math" ? sibling.parts?.map((part) => part.id) ?? [] : []);
+          if (!declared.has(item.attachment.part)) {
+            report([...at, "attachment", "part"], `Partie absente « ${item.attachment.part} » de la formule « ${parent} » : vise une de ses parts (${[...declared].join(", ") || "aucune déclarée"}).`);
+          }
+        }
         owned.set(item.attachment.parent, [...owned.get(item.attachment.parent) ?? [], item.id]);
       }
       // Joining a frame is a placement dependency too: frames cannot form a cycle.

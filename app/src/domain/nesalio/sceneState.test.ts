@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MathContext, RuntimeState, Slice } from "./contract";
 import { intersects } from "./placement";
+import { validateModelOutput } from "./validate";
 import {
   beginBeat, CAMERA_ZOOM, createScene, fitSceneCamera, introduceSlice, runtimeState, sceneBounds,
   setParameter, setVisibility, withCameraState, withMathContext, type MeasureObject,
@@ -156,5 +157,79 @@ describe("repère trop grand pour le tableau", () => {
   it("garde l'échelle naturelle d'un repère qui tient à l'écran", () => {
     const scene = introduceSlice(createScene(viewport), slice("normal", [{ id: "plan", type: "axes", params: { x: [-6, 6], y: [-4, 4] } }]));
     expect(scene.objects.get("plan")!.scale).toBeUndefined();
+  });
+});
+
+describe("textes l'un sur l'autre", () => {
+  const boxOf = (scene: ReturnType<typeof createScene>, id: string) => sceneBounds(scene, [id], "layout_bounds")!;
+
+  // Essai du 2026-11-10 (volume molaire) : la conclusion centrée sur une phrase encore au tableau, les deux illisibles.
+  it("pose sous un texte qui reste un texte demandé centré sur lui", () => {
+    const scene = introduceSlice(createScene(viewport), slice("s", [
+      { id: "idee", type: "text", content: "Le volume ne dépend pas du gaz" },
+      { id: "resume", type: "text", content: "Vm = 22,4 L/mol", layout: { center_on: "idee" } },
+    ]));
+    expect(intersects(boxOf(scene, "idee"), boxOf(scene, "resume"))).toBe(false);
+    expect(boxOf(scene, "resume").y1).toBeLessThan(boxOf(scene, "idee").y0);
+  });
+
+  it("garde la place demandée quand la tranche efface le texte visé, ou quand c'est une figure", () => {
+    const erased = introduceSlice(createScene(viewport), Slice.parse({
+      slice_id: "s",
+      introduces: [
+        { id: "idee", type: "text", content: "Le volume ne dépend pas du gaz" },
+        { id: "resume", type: "text", content: "Vm = 22,4 L/mol", layout: { center_on: "idee" } },
+      ],
+      beats: [{ id: "b", say: "Observons la scène.", cues: [], do: [
+        { id: "s1", verb: "show", target: "idee", at: "beat:start" },
+        { id: "f", verb: "fade_out", target: "idee", at: "after:s1" },
+        { id: "s2", verb: "show", target: "resume", at: "after:f" },
+      ] }],
+    }));
+    expect(intersects(boxOf(erased, "idee"), boxOf(erased, "resume"))).toBe(true);
+    const figure = introduceSlice(createScene(viewport), slice("s", [
+      { id: "rect", type: "polygon", params: { vertices: [[0, 0], [4, 0], [4, 2], [0, 2]] } },
+      { id: "nom", type: "text", content: "eau", layout: { center_on: "rect" } },
+    ]));
+    expect(intersects(boxOf(figure, "rect"), boxOf(figure, "nom"))).toBe(true);
+  });
+
+  // Essai du 2026-11-10 (FeS₂) : « 4,40 mol » posé sur les cases d'un tableau.
+  it("pose à côté d'un tableau une étiquette demandée « dedans »", () => {
+    const scene = introduceSlice(createScene(viewport), slice("s", [
+      { id: "tab", type: "matrix", params: { rows: [["4", "11"], ["2", "8"]], column_labels: ["FeS₂", "O₂"], row_labels: ["avant", "après"] } },
+      { id: "qte", type: "label", content: "4,40 mol", attachment: { parent: "tab", anchor: "center", placement: "inside" } },
+    ]));
+    // The table's own area (its bounds also count its labels): the label stands under it.
+    const table = scene.objects.get("tab")!;
+    expect(boxOf(scene, "qte").y1).toBeLessThanOrEqual(table.position[1] + table.measurement.body.y0);
+  });
+});
+
+describe("étiquette attachée à une partie de formule", () => {
+  // Vraie fenêtre, 2026-11-10 (« réactif limitant ») : « 2 mol » et « 3 mol » sous toute l'équation, empilés avec un trait.
+  const eq = { id: "eq", type: "math", content: "N_2 + 3H_2 = 2NH_3", parts: [
+    { id: "n2", text: "N_2" }, { id: "plus", text: "+" }, { id: "h2", text: "3H_2" }, { id: "egal", text: "=" }, { id: "nh3", text: "2NH_3" },
+  ] };
+  const label = (id: string, content: string, part?: string) => ({ id, type: "label", content, attachment: { parent: "eq", anchor: "bottom", ...(part ? { part } : {}) } });
+  const middle = (scene: ReturnType<typeof createScene>, id: string) => { const b = sceneBounds(scene, [id], "layout_bounds")!; return (b.x0 + b.x1) / 2; };
+
+  it("pose chaque quantité sous son réactif, sans trait de rappel", () => {
+    const scene = introduceSlice(createScene(viewport), slice("s", [eq, label("q1", "2 mol", "n2"), label("q2", "3 mol", "h2")]));
+    expect(middle(scene, "q1")).toBeLessThan(middle(scene, "q2"));
+    const formula = scene.objects.get("eq")!;
+    const n2 = formula.measurement.parts!.n2!;
+    expect(Math.abs(middle(scene, "q1") - (formula.position[0] + (n2.x0 + n2.x1) / 2))).toBeLessThan(0.3);
+    expect(scene.objects.get("q1")!.leader).toBeUndefined();
+    expect(scene.objects.get("q2")!.leader).toBeUndefined();
+  });
+
+  it("refuse une partie que la formule n'a pas", () => {
+    const result = validateModelOutput({ math_context: { symbols: {}, expressions: {} }, slices: [{
+      slice_id: "s", introduces: [eq, label("q1", "2 mol", "o2")],
+      beats: [{ id: "b", say: "Voici.", cues: [], do: [{ id: "w", verb: "write", target: "eq", at: "beat:start" }, { id: "s", verb: "show", target: "q1", at: "beat:start" }] }],
+    }] });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.issues[0]!.message).toContain("Partie absente « o2 »");
   });
 });

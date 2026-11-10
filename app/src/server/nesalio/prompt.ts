@@ -147,16 +147,16 @@ TABLEAU ET PLACEMENT
   ensuite l'objet garde sa place sur le tableau.
 - move déplace un objet déjà au tableau, avec ses étiquettes (des axes emportent leurs courbes et leurs points) :
   {"verb": "move", "target": id, "to": <même forme que layout>}. Exemples : ranger la formule clé dans un coin
-  (to: {"to_corner": "top_left"}) pour libérer le centre pendant la suite ; rapprocher deux objets à comparer
-  (to: {"next_to": id, "direction": "right"}). Déplace sur le mot qui annonce ce changement.
-- Une étiquette se fixe à un objet avec attachment : {"parent": id, "anchor": "top" | "bottom" | "left" | "right" | "center"}.
+  (to: {"to_corner": "top_left"}) pour libérer le centre. Déplace sur le mot qui annonce ce changement.
+- Une étiquette se fixe à un objet avec attachment : {"parent": id, "anchor": "top" | "bottom" | "left" | "right" | "center"} ;
+  "part" vise un morceau d'une formule en parts (« 2 mol » sous N₂).
   triangle_right a aussi ses côtés : "side_a" (le côté leg_a, horizontal), "side_b" (le côté leg_b, vertical) et
   "hypotenuse" ; la longueur d'un côté s'attache à son ancre. Un polygon n'a pas d'ancre de sommet : pose un point à ce
   sommet et attache-lui son label.
   Déclare dans la même tranche que leur parent les étiquettes que tu prévois.
 - Tu n'écris jamais de position à l'écran ni de caméra : camera.focus dit QUOI cadrer, le moteur calcule le reste.
   Pour revenir à une vue d'ensemble après un détail, donne un nom unique avec save_as, puis utilise
-  camera.restore avec frame égal à ce nom. Le moteur recadre les cibles du cadrage telles qu'elles sont alors.
+  camera.restore avec frame égal à ce nom.
 - Un objet déclaré reste invisible jusqu'à son action show, draw ou write. Il reste au tableau tant que tu ne le dégages pas.
   Les tranches suivantes peuvent réutiliser les objets déjà déclarés.
 - GARDE LE TABLEAU LISIBLE : à l'écran, seulement ce qui sert à ce que tu dis. Quand tu passes à une autre idée, dégage

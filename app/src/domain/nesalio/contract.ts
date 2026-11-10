@@ -36,6 +36,7 @@ const Layout = z.union([
 const Attachment = z.strictObject({
   parent: Id,
   anchor: Id.describe("top, bottom, left, right, center, ou une ancre nommée de la figure parente"),
+  part: Id.optional().describe("une part de la formule parente : l'étiquette va contre ce morceau"),
   placement: z.enum(["inside", "outside"]).optional().describe("outside (défaut) : à côté du parent ; inside : sur lui"),
   gap: Gap.optional().describe("écart avec le parent"),
 });
