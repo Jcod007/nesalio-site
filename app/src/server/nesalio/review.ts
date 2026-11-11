@@ -1,6 +1,6 @@
 /**
  * Relecteur de fond : un second modèle (par défaut Claude Sonnet 5.5 sur AI Gateway)
- * relit chaque tranche, sauf l'accroche, avant qu'elle soit montrée. Il cherche les
+ * relit chaque tranche avant qu'elle soit montrée, sauf une ouverture sans contenu (isPlainOpening). Il cherche les
  * seules erreurs de fond certaines (calcul, fait, tableau ou figure qui contredit,
  * énoncé mal lu, raisonnement qui se contredit). Une alerte ne compte que si sa
  * citation se retrouve mot pour mot dans la tranche ; la tranche est alors renvoyée
@@ -40,6 +40,26 @@ export interface ReviewResult {
 }
 
 export type SliceReviewer = (input: ReviewInput) => Promise<ReviewResult>;
+
+/** Objects that only carry words: an opening made of them has nothing a reviewer could find wrong. */
+const WORD_TYPES: ReadonlySet<string> = new Set(["text", "label", "callout"]);
+/** Digits (also sub/superscript, as in N₂) and spelled-out numbers: data a reviewer must check. "un" is left out (« un exemple »). */
+const DATA = /[0-9₀-₉⁰¹²³⁴-⁹=%]|(?<![\p{L}])(deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|quarante|cinquante|soixante|cent|cents|mille|million|milliard|moitié|demi|tiers|quart|double|triple)s?(?![\p{L}])/iu;
+
+/**
+ * The first tranche is shown at once only when it is a plain opening (2026-11-10, choice of the user):
+ * words that restate the question and announce what comes, with no number, formula, table or figure.
+ * Its voice gives the reviewer time to read the next tranche. Any first tranche carrying data is
+ * reviewed like the others: on 2026-11-10 an unreviewed first tranche showed wrong coefficients.
+ */
+export function isPlainOpening(slice: Slice): boolean {
+  const wordsOnly = slice.introduces.every((object) => {
+    const content = "content" in object ? object.content : undefined;
+    return WORD_TYPES.has(object.type) && typeof content === "string" && !DATA.test(content);
+  });
+  if (!wordsOnly) return false;
+  return slice.beats.every((beat) => !DATA.test(beat.say));
+}
 
 /** Au plus autant d'alertes renvoyées au modèle qui écrit. */
 export const MAX_ALERTS = 4;

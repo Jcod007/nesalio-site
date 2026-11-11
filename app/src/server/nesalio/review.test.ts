@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Slice } from "@/domain/nesalio/contract";
 import { DEFAULT_REVIEWER_MODEL, readReviewer, type ChatProvider } from "@/server/config";
 import type { CompletionOptions } from "@/server/tutor/chatCompletions";
-import { comparable, createSliceReviewer, parseReview, reviewMessages, screenAlerts, sliceText } from "./review";
+import { comparable, createSliceReviewer, isPlainOpening, parseReview, reviewMessages, screenAlerts, sliceText } from "./review";
 
 const slice = {
   slice_id: "s2",
@@ -128,5 +128,24 @@ describe("relecteur de fond", () => {
     });
     expect(readReviewer(headers, env({ NESALIO_RELECTEUR: "1", AI_GATEWAY_API_KEY: "k", NESALIO_RELECTEUR_MODELE: "deepseek/deepseek-v4.1-flash", NESALIO_RELECTEUR_EFFORT: "low" })))
       .toMatchObject({ model: "deepseek/deepseek-v4.1-flash", reasoningEffort: "low" });
+  });
+});
+
+describe("ouverture montrée sans relecture (isPlainOpening)", () => {
+  const opening = (say: string, introduces: unknown[] = [{ id: "t", type: "text", content: "Le réactif limitant" }]) =>
+    ({ slice_id: "s1", introduces, beats: [{ id: "b", say, cues: [], do: [] }] }) as unknown as Slice;
+
+  it("reconnaît une ouverture faite de mots : reformuler la question, annoncer la suite", () => {
+    expect(isPlainOpening(opening("Tu veux savoir ce qu'est le réactif limitant, avec un exemple. On va le voir sur une vraie réaction."))).toBe(true);
+    expect(isPlainOpening(opening("Bonne question : on regarde ensemble.", []))).toBe(true);
+  });
+
+  it("fait relire une première tranche qui porte des données : nombres, formule, tableau, figure", () => {
+    expect(isPlainOpening(opening("Les coefficients trois et un sont un rapport de moles."))).toBe(false);
+    expect(isPlainOpening(opening("On part de 2 moles."))).toBe(false);
+    expect(isPlainOpening(opening("Voici l'équation.", [{ id: "e", type: "text", content: "N₂ + H₂" }]))).toBe(false);
+    expect(isPlainOpening(opening("Voici l'équation.", [{ id: "e", type: "math", content: "pV = nRT" }]))).toBe(false);
+    expect(isPlainOpening(opening("Regarde ce tableau.", [{ id: "m", type: "matrix", params: { rows: [[1]] } }]))).toBe(false);
+    expect(isPlainOpening(opening("Regarde ce point.", [{ id: "p", type: "point", params: { at: [0, 0] } }]))).toBe(false);
   });
 });

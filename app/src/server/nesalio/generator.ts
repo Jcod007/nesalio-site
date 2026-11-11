@@ -17,7 +17,7 @@ import { UpstreamError, type CompletionStream } from "@/server/tutor/chatComplet
 import { jsonrepair } from "jsonrepair";
 import type { ChatMessage } from "@/server/tutor/chatCompletions";
 import { buildNesalioMessages, continueMessage, repairHeaderMessage, repairMessage, reviewFixMessage, simplifyMessage } from "./prompt";
-import type { ReviewAlert, SliceReviewer } from "./review";
+import { isPlainOpening, type ReviewAlert, type SliceReviewer } from "./review";
 import { buildTeacherMessages, layoutRequest } from "./script";
 
 export type NesalioEvent =
@@ -40,9 +40,9 @@ export interface GeneratorConfig {
   /** Wait for a call's first byte (FIRST_BYTE_TIMEOUT_MS); defaults to idleTimeoutMs when only that one is given (tests). */
   firstByteTimeoutMs?: number;
   /**
-   * Reviewer of substance (review.ts): each tranche but the first is read before it is
-   * shown, while the previous one plays; an error it is sure of sends the tranche back to
-   * the model once. Off when absent (route: on unless NESALIO_RELECTEUR=0).
+   * Reviewer of substance (review.ts): each tranche is read before it is shown, while the
+   * previous one plays (a plain opening, isPlainOpening, is shown at once); an error it is
+   * sure of sends the tranche back to the model once. Off when absent (route: on unless NESALIO_RELECTEUR=0).
    */
   review?: SliceReviewer;
   /** Longest wait for one review (REVIEW_TIMEOUT_MS); past it the tranche is shown unreviewed. */
@@ -636,8 +636,9 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
         return;
       }
       const candidate: Candidate = { id: sliceId(value.slice), line, lenient: "lenient" in parsed, normalized, fixes, result };
-      // The first tranche (the hook) is shown at once: the student is waiting for it.
-      if (config.review && slices > 0 && !reviewed.has(candidate.id) && reviewFixes < MAX_REVIEW_FIXES
+      // A plain opening is shown at once (the student is waiting); a first tranche with data is reviewed first.
+      const opening = slices === 0 && isPlainOpening(result.value.slices[0]!);
+      if (config.review && !opening && !reviewed.has(candidate.id) && reviewFixes < MAX_REVIEW_FIXES
         && header.lesson.id !== OUT_OF_SCOPE_LESSON) {
         pending = candidate;
         return;
