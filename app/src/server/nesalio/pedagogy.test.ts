@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildNesalioMessages, buildNesalioSystemPrompt } from "./prompt";
 import { LessonMetadata } from "@/domain/nesalio/contract";
 import { validateModelOutput } from "@/domain/nesalio/validate";
+import { isPlainOpening } from "./review";
 import { EXAMPLE_LESSON, MOVING_EXAMPLE_LESSON, REFUSAL_EXAMPLE, TEACHING, VISUAL_DICTIONARY, exampleLessonText, guideSection, guidesFor, lessonText, CHEMISTRY_GUIDES, FACTS, factsFor } from "./pedagogy";
 
 const ids = (question: string) => guidesFor(question).map((guide) => guide.id);
@@ -45,6 +46,14 @@ describe("pédagogie du générateur Nesalio", () => {
     expect(LessonMetadata.safeParse(EXAMPLE_LESSON.header.lesson).success).toBe(true);
     // A real lesson in the system prompt, not only fragments: it shows the thread and the justification.
     expect(buildNesalioSystemPrompt()).toContain(exampleLessonText());
+  });
+
+  // 2026-11-10, choice of the user: the first tranche is an opening shown without review, while the next one is read.
+  it("ouvre l'exemple de leçon par une tranche que le générateur montre sans relecture, et demande cette ouverture", () => {
+    const [first, second] = JSON.parse(JSON.stringify(EXAMPLE_LESSON.slices));
+    expect(isPlainOpening(first)).toBe(true);
+    expect(isPlainOpening(second)).toBe(false);
+    expect(TEACHING).toContain("La 1re tranche est une OUVERTURE");
   });
 
   it("donne pour la dérivée des nombres justes", () => {

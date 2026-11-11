@@ -23,9 +23,14 @@ import { PROMPT_EXAMPLES, buildNesalioMessages, buildNesalioSystemPrompt, consig
  * ligne {"question": …} (4 lignes) et TEACHING remplace « Tu ne poses aucune question… » par au plus deux questions de vérification ; la limite des deux versions passe de 37 000 à 37 500 caractères. 36 978 → 37 466.
  * Mise à jour VOLONTAIRE le 2026-11-10 : « désigner UN MORCEAU » cite aussi « UNE relation parmi plusieurs » (formule
  * « 2/1 = 2 et 3/3 = 1 » surlignée en entier) ; « pas toute la formule » part. 37 466 → 37 474.
+ * Mise à jour VOLONTAIRE le 2026-11-10 (ouverture, demande de l'utilisateur) : TEACHING demande une 1re tranche
+ * d'ouverture sans données (montrée sans relecture, review.ts isPlainOpening) et l'exemple de leçon complète en a une ;
+ * deux lignes de CHECKLIST qui répétaient SYNC_RULES 4 et RÉCAPITULATIF FINAL partent, celle des calculs est réduite
+ * (JUSTESSE la porte). 37 474 → 37 486. Puis « sans nombre, même à l'oral » (l'ouverture répétait « trois x plus
+ * cinq égale dix-sept » et était relue). 37 486 → 37 495.
  */
-const FULL_PROMPT_SHA256 = "579accc406f7d0d9702b3377d9cd519c40e56d29dd3647c107d3a5cb89291d00";
-const FULL_PROMPT_LENGTH = 37_474;
+const FULL_PROMPT_SHA256 = "c0f1984af13186eab50108ef0a83951bc678fd953f66657b15359f62343aef4b";
+const FULL_PROMPT_LENGTH = 37_495;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 
@@ -111,7 +116,7 @@ describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
       "RÉCAPITULATIF FINAL",
       "écris les maths EN MOTS",
       "occurrence dit lequel",
-      "chaque formule dite en plusieurs morceaux a ses parts",
+      "Une formule dite morceau par morceau se déclare avec parts",
       "ATTENTION : log est le logarithme en base 10",
       "au plus 24 unités de large",
       "sans $ autour",
