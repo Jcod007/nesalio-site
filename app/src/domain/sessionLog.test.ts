@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TutorRequest } from "@/domain/tutor/request";
-import { createTurnRecorder, isOlderThan, summarizeSessions, turnPath, type TurnRecord } from "./sessionLog";
+import { createLessonRecorder, createTurnRecorder, isLessonRecord, isOlderThan, summarizeSessions, turnPath, type TurnRecord } from "./sessionLog";
 
 const question: TutorRequest = { mode: "question", question: "C'est quoi une somme ?" };
 
@@ -144,5 +144,60 @@ describe("référence d'inscription et résumé par séance", () => {
       { session: "aaaa1111", ref: "k3x9a1b2c3d4", debut: "2026-10-18T14:00:00.000Z", tours: 3, questions: ["C'est quoi une dérivée ?", "Et pour x² ?"], verifications: { bonnes: 1, total: 1 }, interrompus: 1 },
       { session: "bbbb2222", ref: null, debut: "2026-10-18T14:00:00.000Z", tours: 1, questions: ["Un vecteur ?"], verifications: { bonnes: 0, total: 0 }, interrompus: 0 },
     ]);
+  });
+});
+
+describe("createLessonRecorder (leçons Nesalio)", () => {
+  function lesson() {
+    let t = 5_000;
+    const clock = { now: () => t, advance: (ms: number) => (t += ms) };
+    const rec = createLessonRecorder({
+      question: "C'est quoi le réactif limitant ?",
+      session: "3f9c2e1a-7b44-4c1d-9e0f-aa11bb22cc33",
+      ref: "abc123",
+      env: "production",
+      model: "deepseek/deepseek-v4.1-flash",
+      reviewer: "anthropic/claude-sonnet-5.5",
+      startedAt: new Date("2026-11-10T19:30:00.000Z"),
+      clock,
+    });
+    return { rec, clock };
+  }
+
+  it("garde le flux envoyé à l'élève dans l'ordre, l'attente avant la première tranche et le modèle", () => {
+    const { rec, clock } = lesson();
+    rec.event({ kind: "lesson" });
+    clock.advance(3_200);
+    rec.event({ kind: "slice" });
+    clock.advance(4_000);
+    rec.event({ kind: "slice" });
+    rec.event({ kind: "end" });
+    rec.finish("complete");
+    const record = rec.record();
+    expect(isLessonRecord(record)).toBe(true);
+    expect(record.events.map((e) => e.kind)).toEqual(["lesson", "slice", "slice", "end"]);
+    expect(record.latencyMs).toEqual({ firstSlice: 3_200, total: 7_200 });
+    expect(record).toMatchObject({ v: 2, kind: "nesalio", ref: "abc123", outcome: "complete", model: "deepseek/deepseek-v4.1-flash" });
+    expect(turnPath(record)).toBe("production/2026-11-10/3f9c2e1a/193000000-nesalio.json");
+  });
+
+  it("compte en échec une leçon dont le flux finit par une erreur, et en interrompue une leçon quittée", () => {
+    const failed = lesson().rec;
+    failed.event({ kind: "lesson" });
+    failed.event({ kind: "error" });
+    failed.finish("complete");
+    expect(failed.record().outcome).toBe("error");
+    const left = lesson().rec;
+    left.event({ kind: "lesson" });
+    expect(left.record().outcome).toBe("cancelled");
+  });
+
+  it("résume une séance qui mélange anciens tours et leçons", () => {
+    const { rec } = lesson();
+    rec.finish("complete");
+    const old: TurnRecord = { v: 1, env: "production", session: "3f9c2e1a-7b44-4c1d-9e0f-aa11bb22cc33", at: "2026-11-10T19:00:00.000Z",
+      mode: "question", question: "Une somme ?", source: "model", latencyMs: { total: 1 }, outcome: "complete", events: [] };
+    const [summary] = summarizeSessions([old, rec.record()]);
+    expect(summary).toMatchObject({ tours: 2, questions: ["Une somme ?", "C'est quoi le réactif limitant ?"], interrompus: 0, ref: "abc123" });
   });
 });

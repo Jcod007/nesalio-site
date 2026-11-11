@@ -8,7 +8,7 @@
  * RECORD_SESSIONS=0.
  */
 import { del, get, list, put } from "@vercel/blob";
-import { isOlderThan, RETENTION_DAYS, turnPath, type RecordEnv, type TurnRecord } from "@/domain/sessionLog";
+import { isOlderThan, RETENTION_DAYS, turnPath, type RecordEnv, type SessionRecord } from "@/domain/sessionLog";
 
 /** Ce dont on a besoin d'un magasin de fichiers (Vercel Blob, ou un faux en mémoire pour les tests). */
 export interface BlobPort {
@@ -52,8 +52,8 @@ export function recordEnv(env: NodeJS.ProcessEnv = process.env): RecordEnv {
   return env.VERCEL_ENV === "production" ? "production" : env.VERCEL_ENV === "preview" ? "preview" : "development";
 }
 
-/** Écrit un tour. Ne lève jamais : renvoie false si rien n'a été écrit. */
-export async function saveTurn(record: TurnRecord, blob: BlobPort | null = sessionBlob()): Promise<boolean> {
+/** Écrit une leçon (ou un ancien tour). Ne lève jamais : renvoie false si rien n'a été écrit. */
+export async function saveTurn(record: SessionRecord, blob: BlobPort | null = sessionBlob()): Promise<boolean> {
   if (!blob) return false;
   try {
     await blob.put(turnPath(record), JSON.stringify(record), { access: "private", contentType: "application/json" });
@@ -64,19 +64,19 @@ export async function saveTurn(record: TurnRecord, blob: BlobPort | null = sessi
   }
 }
 
-/** Tours enregistrés un jour donné (AAAA-MM-JJ), dans l'ordre ; `session` = forme courte (8 caractères). */
+/** Leçons et anciens tours enregistrés un jour donné (AAAA-MM-JJ), dans l'ordre ; `session` = forme courte (8 caractères). */
 export async function listTurns(
   filter: { env: RecordEnv; day: string; session?: string },
   blob: BlobPort | null = sessionBlob(),
   max = 300,
-): Promise<TurnRecord[]> {
+): Promise<SessionRecord[]> {
   if (!blob) return [];
   const prefix = `${filter.env}/${filter.day}/${filter.session ? `${filter.session}/` : ""}`;
   const files = (await blob.list(prefix)).sort((a, b) => fileTime(a.pathname).localeCompare(fileTime(b.pathname))).slice(0, max);
-  const turns: TurnRecord[] = [];
+  const turns: SessionRecord[] = [];
   for (const file of files) {
     const body = await blob.read(file.pathname);
-    if (body) turns.push(JSON.parse(body) as TurnRecord);
+    if (body) turns.push(JSON.parse(body) as SessionRecord);
   }
   return turns;
 }

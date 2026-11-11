@@ -2,8 +2,13 @@
  * POST /api/nesalio — { question } → l'explication au format Nesalio, en flux
  * NDJSON : une ligne « lesson », puis une ligne par tranche validée, puis
  * « end » ou « error ». Les identifiants du modèle ne quittent jamais le serveur.
+ * La leçon est enregistrée après la réponse, pour améliorer Nesalio (domain/sessionLog.ts).
  */
+import { after } from "next/server";
 import { z } from "zod";
+import { createLessonRecorder } from "@/domain/sessionLog";
+import { refFromHeaders } from "@/domain/session";
+import { recordEnv, saveTurn } from "@/server/sessionStore";
 import { encodeLine } from "@/domain/tutor/ndjson";
 import { readAiConfig, readReviewer } from "@/server/config";
 import { readBoundedText } from "@/server/http";
@@ -55,6 +60,18 @@ export async function POST(request: Request): Promise<Response> {
   // Every lesson kept with its log for checking the board afterwards (keepLesson.ts): local only, NESALIO_GARDER_LECONS.
   const keepDir = keptLessonsDir();
   const keeper = keepDir ? createLessonKeeper(parsed.data.question, keepDir) : undefined;
+  // Every lesson recorded in the private session store (sessionStore.ts), after the response: never in the student's way.
+  const recorder = createLessonRecorder({
+    question: parsed.data.question,
+    session: limit.session,
+    ref: refFromHeaders(request.headers),
+    env: recordEnv(),
+    model: config.chat.model,
+    ...(reviewer ? { reviewer: reviewer.model } : {}),
+    startedAt: new Date(),
+    clock: Date,
+  });
+  after(() => saveTurn(recorder.record()));
   const events = generateNesalio(parsed.data.question, {
     provider: config.chat,
     completion: streamChatCompletion,
@@ -73,19 +90,23 @@ export async function POST(request: Request): Promise<Response> {
       try {
         const { value, done } = await events.next();
         if (done) {
+          recorder.finish("complete");
           await keeper?.finish();
           controller.close();
         } else {
           keeper?.event(value);
+          recorder.event(value);
           controller.enqueue(encoder.encode(encodeLine(value)));
         }
       } catch (error) {
         console.error("nesalio: flux interrompu", error);
+        recorder.finish("error");
         await keeper?.finish(`flux interrompu : ${error instanceof Error ? error.message : String(error)}`);
         controller.close();
       }
     },
     async cancel() {
+      recorder.finish("cancelled");
       await events.return(undefined);
       await keeper?.finish("élève parti avant la fin");
     },

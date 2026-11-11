@@ -28,7 +28,7 @@ for (const env of ["production", "preview"]) {
       const turn = await response.json().catch(() => null);
       if (!turn || turn.mode === "continue" || typeof turn.question !== "string" || !turn.question.trim()) continue;
       const question = turn.question.trim().slice(0, 300);
-      if (!questions.has(question)) questions.set(question, { jour: blob.pathname.split("/")[1], mode: turn.mode, question });
+      if (!questions.has(question)) questions.set(question, { jour: blob.pathname.split("/")[1], mode: turn.mode ?? turn.kind, question });
     }
     cursor = page.hasMore ? page.cursor : undefined;
   } while (cursor);

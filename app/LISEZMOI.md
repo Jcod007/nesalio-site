@@ -16,7 +16,7 @@ L'élève peut mettre en pause, couper le son et revoir l'explication.
   pour le modèle.
 - **Sans service d'IA** : la page indique que Nesa est indisponible. Sans voix,
   la leçon se joue en sous-titres.
-- **Comptes préparés** : connexion et inscription Clerk par code courriel.
+- **Comptes préparés** : connexion et inscription Clerk par courriel et mot de passe.
   Activer l'instance Clerk et ses clés avant de déployer cette version ; voir
   [la configuration et les vérifications](docs/authentication.md). Sans configuration,
   les API privées refusent les requêtes. Aucun fournisseur n'est créé implicitement.
@@ -44,16 +44,19 @@ restent applicables. Sans secret configuré, l'accès reste fermé.
 
 ## Séances enregistrées
 
-**Depuis le 2026-11-10, plus rien n'écrit de séance** : l'enregistrement se faisait
-dans `/api/tutor` (ancien tuteur), retiré ce jour-là. Les séances déjà enregistrées
-restent dans le magasin Vercel Blob **privé** `nesalio-seances` (Montréal), lisibles
-et purgées comme avant. Format : la question ou la réponse de l'élève et les événements
-envoyés. Ni nom, ni courriel, ni IP, ni audio. Voir `src/domain/sessionLog.ts`.
+Chaque leçon (une requête à `/api/nesalio`) est enregistrée après la réponse dans
+le magasin Vercel Blob **privé** `nesalio-seances` (Montréal) : la question de l'élève,
+le modèle, l'attente avant la première tranche, l'issue (complète, interrompue, erreur)
+et exactement le flux envoyé (en-tête, tranches, questions), donc rejouable. Ni nom,
+ni courriel, ni IP, ni audio. Voir `src/domain/sessionLog.ts` (`LessonRecord`).
+Les fichiers d'avant le 2026-11-10 sont des tours de l'ancien tuteur, gardés jusqu'à
+leur purge. Pas encore enregistré : les réponses de l'élève aux questions posées
+pendant la leçon (elles restent dans le navigateur).
 Analyse : `tools/analyse/seances.ts` ; questions des élèves : `tools/eval/questions-seances.mjs`.
 En local seulement, `NESALIO_GARDER_LECONS=1` garde chaque leçon Nesalio jouée
 (`src/server/nesalio/keepLesson.ts`).
 
-- Chemin : `production/AAAA-MM-JJ/<session courte>/<heure>-<mode>.json`
+- Chemin : `production/AAAA-MM-JJ/<session courte>/<heure>-nesalio.json` (anciens tours : `<heure>-<mode>.json`)
   (la session courte est celle des retours « Signaler un problème »).
 - Consulter : `/api/seances?jour=AAAA-MM-JJ[&session=xxxxxxxx][&env=preview]`, avec
   l'en-tête `Authorization: Bearer <SELFTEST_TOKEN>` (jamais le jeton dans l'URL).
@@ -111,8 +114,9 @@ Détails : `docs/plan-bascule-nesalio.md`, `docs/nesalio-espace-camera.md`,
   phrase est transcrite par le serveur. Il faut autoriser le micro.
 - **Petits écrans** : un repère très large (par exemple 0 à 40 m) devient petit
   sur téléphone ; on peut zoomer avec deux doigts.
-- Comptes préparés dans cette version (activation Clerk requise). Les leçons
-  Nesalio ne sont pas encore enregistrées ; voir « Séances enregistrées ».
+- Comptes préparés dans cette version (activation Clerk requise). Les questions
+  sont conservées si l'enregistrement privé Vercel Blob est activé ; voir la
+  section « Séances enregistrées » et la politique de confidentialité.
 
 ## Vérifier un déploiement
 

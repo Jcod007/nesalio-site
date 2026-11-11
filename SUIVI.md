@@ -30,7 +30,7 @@ voir le journal) ; seuls restent les outils de lecture des séances déjà enreg
 | Tableau : dim / fade_out / remove, transform, move, to_edge / to_corner | Fait, vu en vraie génération (2026-11-08) |
 | Caméra | En cours : suivi automatique et objets gardés faits ; **reste détaillé dans [`app/docs/chantier-camera.md`](app/docs/chantier-camera.md)** (fiche de passation pour une autre IA) |
 | Orchestrateur de séance (interruptions) | Pas commencé |
-| Bascule du parcours élève sur Nesalio | Faite ; ancien tuteur retiré le 2026-11-10. Reste : enregistrer les leçons Nesalio comme l'étaient les séances. |
+| Bascule du parcours élève sur Nesalio | Faite ; ancien tuteur retiré le 2026-11-10 ; leçons Nesalio enregistrées (Blob privé) depuis le même jour. |
 
 ### Décisions prises
 
@@ -83,6 +83,23 @@ voir le journal) ; seuls restent les outils de lecture des séances déjà enreg
 ---
 
 ## Journal
+
+### 2026-11-10 — Les leçons Nesalio sont enregistrées comme l'étaient les séances (Claude Code, session « relecteur »)
+- Demande de l'utilisateur (« branche-le ») après le constat du ménage : depuis le retrait de `/api/tutor`, plus aucune
+  séance d'élève n'était enregistrée. Les cours des élèves sont des données précieuses.
+- Fait : `domain/sessionLog.ts` ajoute `LessonRecord` (v 2, `kind: "nesalio"` : question, session, référence
+  d'inscription, modèle et relecteur, attente avant la 1re tranche, issue, flux NDJSON tel qu'envoyé) et
+  `createLessonRecorder` ; une ligne `error` dans le flux compte comme échec. `app/api/nesalio/route.ts` enregistre
+  chaque leçon avec `after()` (après la réponse, jamais sur le chemin de l'élève) dans le même magasin Blob privé,
+  chemin `<env>/<jour>/<session>/<heure>-nesalio.json`. Même conservation (12 mois), même purge, même lecture
+  `/api/seances` (le résumé par séance compte les leçons). `tools/analyse/seances.ts` ignore les leçons (il ne sait
+  rejouer que l'ancien format) et le dit ; `questions-seances.mjs` les lit.
+- Vérifié : `tsc` ; `vitest run src` 77 fichiers, 695 tests (nouveaux tests de l'enregistreur et de la route : la leçon
+  est sauvée après la réponse, avec exactement les lignes reçues). Vraie fenêtre : leçon PV = nRT jouée avec la route
+  modifiée, sans erreur. **Pas vérifié : l'écriture réelle dans Vercel Blob** (pas de `BLOB_READ_WRITE_TOKEN` en local).
+  À vérifier après déploiement : jouer une leçon puis `/api/seances?jour=…&resume=1` avec le jeton.
+- Pas encore enregistré : les réponses de l'élève aux questions pendant la leçon (côté navigateur seulement). Le
+  test de la route a reçu une marge de 20 s (démarrage à froid du générateur, dépassé une fois à 5 s).
 
 ### 2026-11-10 — Ménage avant déploiement : code mort de l'ancien tuteur retiré (Claude Code, session « relecteur »)
 - Demande : enlever le code qui n'est plus appelé, garder tout ce que le nouveau système utilise, quelle que soit son

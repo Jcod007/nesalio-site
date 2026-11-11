@@ -14,9 +14,12 @@
  *   absentes, phrases trop longues, gestes ;
  * - commandes refusées par le validateur, et commandes qui échouent au rejeu.
  * Puis la transcription : ce que Nesa a dit et dessiné, tour par tour.
+ *
+ * Ne lit que les tours de l'ancien tuteur ; les leçons Nesalio (depuis le 2026-11-10) sont
+ * ignorées ici (leur nombre est donné) : elles se rejouent sur /dev/nesalio.
  */
 import { readFileSync } from "node:fs";
-import type { TurnRecord } from "@/domain/sessionLog";
+import { isLessonRecord, type SessionRecord, type TurnRecord } from "@/domain/sessionLog";
 import { emptyBoard, type BoardState } from "@/domain/board/state";
 import { collisions, covered, figureOutline, type CollisionKind } from "@/domain/board/collisions";
 import { applyAction } from "@/domain/scene/commands";
@@ -24,7 +27,7 @@ import type { Step } from "@/domain/scene/schema";
 import { stepActions, stepText } from "@/domain/scene/stepAccess";
 import { reviewTurn } from "@/domain/tutor/turnReview";
 
-type Input = { turns?: TurnRecord[] } | TurnRecord[];
+type Input = { turns?: SessionRecord[] } | SessionRecord[];
 
 /** Paires d'objets qui se gênent au tableau (voir domain/board/collisions). */
 export function overlaps(state: BoardState): Array<{ a: string; b: string; kind: CollisionKind; ratio: number }> {
@@ -239,6 +242,9 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
 
 if (process.argv[2]) {
   const raw = JSON.parse(readFileSync(process.argv[2], "utf8")) as Input;
-  const turns = Array.isArray(raw) ? raw : (raw.turns ?? []);
+  const records = Array.isArray(raw) ? raw : (raw.turns ?? []);
+  const turns = records.filter((r): r is TurnRecord => !isLessonRecord(r));
+  if (turns.length < records.length) process.stderr.write(`${records.length - turns.length} leçon(s) Nesalio ignorée(s) : à rejouer sur /dev/nesalio.
+`);
   process.stdout.write(report(analyse(turns), !process.argv.includes("--sans-transcription")) + "\n");
 }
