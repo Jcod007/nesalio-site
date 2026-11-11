@@ -22,7 +22,7 @@ async function preparePhoto(file: File): Promise<string> {
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
     const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
-    if (base64.length * 3 / 4 > PHOTO_MAX_BYTES) throw new Error("La photo est trop détaillée. Recadre uniquement l'exercice.");
+    if ((base64.length * 3) / 4 > PHOTO_MAX_BYTES) throw new Error("La photo est trop détaillée. Recadre uniquement l'exercice.");
     return base64;
   } finally {
     bitmap.close();
@@ -33,7 +33,8 @@ export async function readPhoto(file: File, signal: AbortSignal): Promise<PhotoR
   const image = await preparePhoto(file);
   signal.throwIfAborted();
   const response = await fetch("/api/photo", {
-    method: "POST", signal: AbortSignal.any([signal, AbortSignal.timeout(45_000)]),
+    method: "POST",
+    signal: AbortSignal.any([signal, AbortSignal.timeout(45_000)]),
     headers: { "Content-Type": "application/json", ...sessionHeaders() },
     body: JSON.stringify({ image }),
   });
@@ -41,8 +42,13 @@ export async function readPhoto(file: File, signal: AbortSignal): Promise<PhotoR
     throw new Error("La lecture de la photo est indisponible pour le moment.");
   });
   if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : "La lecture de la photo est indisponible.");
-  if (typeof data.text !== "string" || !data.text.trim() || data.text.length > PHOTO_MAX_TEXT ||
-      !Array.isArray(data.uncertainties) || !data.uncertainties.every((value: unknown) => typeof value === "string")) {
+  if (
+    typeof data.text !== "string" ||
+    !data.text.trim() ||
+    data.text.length > PHOTO_MAX_TEXT ||
+    !Array.isArray(data.uncertainties) ||
+    !data.uncertainties.every((value: unknown) => typeof value === "string")
+  ) {
     throw new Error("La lecture de la photo est incomplète. Réessaie.");
   }
   return { text: data.text, uncertainties: data.uncertainties };

@@ -49,7 +49,10 @@ describe.runIf(process.env.PHOTO_REELLE === "1")("photos scolaires synthétiques
         const start = Date.now();
         try {
           const reading = await readExercisePhoto({
-            token, model, image: bytes.toString("base64"), signal: AbortSignal.timeout(35_000),
+            token,
+            model,
+            image: bytes.toString("base64"),
+            signal: AbortSignal.timeout(35_000),
             fetchImpl: async (...args) => {
               const response = await fetch(...args);
               const payload = await response.clone().json();
@@ -67,7 +70,9 @@ describe.runIf(process.env.PHOTO_REELLE === "1")("photos scolaires synthétiques
         entry.ms = Date.now() - start;
         report.push(entry);
         writeFileSync(join(out, "rapport.json"), JSON.stringify(report, null, 2));
-        console.log(JSON.stringify({ sample: entry.sample, model, status: entry.status, ms: entry.ms, passed: entry.passed, error: entry.error, usage: entry.usage }));
+        console.log(
+          JSON.stringify({ sample: entry.sample, model, status: entry.status, ms: entry.ms, passed: entry.passed, error: entry.error, usage: entry.usage }),
+        );
         // Account refusal cannot be repaired by trying further images or models.
         if ([401, 402, 403].includes(entry.status)) throw new Error(`Accès Gateway refusé (${entry.status}).`);
       }

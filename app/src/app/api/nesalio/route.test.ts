@@ -74,7 +74,7 @@ it("refuse une question vide et signale un modèle non configuré", async () => 
 it("accepte un énoncé de photo de plus de 500 caractères sans le tronquer", async () => {
   vi.stubEnv("DISABLE_AI", "0");
   vi.stubEnv("AI_GATEWAY_API_KEY", "test");
-  const question = ("Énoncé de la photo : " + "Une donnée avec son unité. ".repeat(40)).trim();
+  const question = `Énoncé de la photo : ${"Une donnée avec son unité. ".repeat(40)}`.trim();
   answer.text = `${JSON.stringify(lesson)}\n${JSON.stringify(slice)}\n`;
   const response = await post({ question });
   expect(response.status).toBe(200);

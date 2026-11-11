@@ -70,16 +70,24 @@ export async function readExercisePhoto(options: {
       model: options.model,
       messages: [
         { role: "system", content: INSTRUCTIONS },
-        { role: "user", content: [
-          { type: "image_url", image_url: { url: `data:image/jpeg;base64,${options.image}` } },
-          { type: "text", text: "Recopie ce document et décris les informations utiles de ses schémas pour pouvoir l'expliquer." },
-        ] },
+        {
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${options.image}` } },
+            { type: "text", text: "Recopie ce document et décris les informations utiles de ses schémas pour pouvoir l'expliquer." },
+          ],
+        },
       ],
       max_tokens: 2200,
       reasoning: { effort: "low" },
-      response_format: { type: "json_schema", json_schema: {
-        name: "exercise_photo", strict: true, schema: z.toJSONSchema(Reading),
-      } },
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "exercise_photo",
+          strict: true,
+          schema: z.toJSONSchema(Reading),
+        },
+      },
       ...gatewayPrivacy(endpoint),
     }),
   });

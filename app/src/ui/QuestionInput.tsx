@@ -31,7 +31,12 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
 
   useEffect(() => () => photoRun.current?.abort(), []);
   const photoUrl = photo?.url;
-  useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
+  useEffect(
+    () => () => {
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+    },
+    [photoUrl],
+  );
 
   // Pendant la reconnaissance du navigateur, le texte apparaît au fur et à mesure.
   useEffect(() => {
@@ -66,9 +71,7 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
       if (!run.signal.aborted) {
         let message = "La lecture de la photo a échoué.";
         if (error instanceof TypeError) message = "Je n'arrive pas à lire la photo. Vérifie ta connexion.";
-        else if (error instanceof Error) message = error.name === "TimeoutError"
-          ? "La lecture de la photo a pris trop de temps. Réessaie."
-          : error.message;
+        else if (error instanceof Error) message = error.name === "TimeoutError" ? "La lecture de la photo a pris trop de temps. Réessaie." : error.message;
         setPhotoError(message);
       }
     } finally {
@@ -89,77 +92,98 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
 
   return (
     <>
-    <form
-      className={styles.form}
-      data-size={size}
-      data-photo={photo ? "true" : undefined}
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit(text);
-      }}
-    >
-      <label htmlFor={id} className="sr-only">
-        {placeholder}
-      </label>
-      <div className={styles.field} data-listening={voice.state !== "idle"}>
-        <input
-          id={id}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder={placeholderNow}
-          maxLength={MAX_QUESTION_LENGTH}
-          // biome-ignore lint/a11y/noAutofocus: le focus n'est donné que lorsque le parent le demande (écran d'accueil).
-          autoFocus={autoFocus}
-          autoComplete="off"
-          enterKeyHint="send"
-        />
-        <button type="button" className={styles.photoButton} onClick={() => {
-          if (fileInput.current) {
-            fileInput.current.value = "";
-            fileInput.current.click();
-          }
+      <form
+        className={styles.form}
+        data-size={size}
+        data-photo={photo ? "true" : undefined}
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit(text);
         }}
-          aria-label="Ajouter une photo" title="Ajouter une photo d'exercice ou de cours" disabled={voice.state !== "idle"}>
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M3 7h4l2-3h6l2 3h4v13H3z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-        </button>
-        {!readingPhoto ? <MicButton voice={voice} onResult={submit} /> : null}
-      </div>
-      <button type="submit" className="cta" disabled={!canSubmit}>
-        {submitLabel}
-      </button>
-      {voice.ready && !voice.supported ? <p className={styles.hint}>Écris ta question pour essayer.</p> : null}
-      {photo ? (
-        <div className={styles.photo} aria-busy={readingPhoto}>
-          <div className={styles.photoHeading}>
-            {/* Local preview, released when the photo is removed or replaced. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photo.url} alt="Photo à expliquer" className={styles.preview} />
-            <button type="button" className="btn-line" onClick={removePhoto} disabled={voice.state !== "idle"}>Retirer la photo</button>
-          </div>
-          {readingPhoto ? <p role="status">Je lis ta photo…</p> : null}
-          {!readingPhoto && !photoError ? (
-            <>
-              <label htmlFor={photoId}>Vérifie le texte reconnu avant de demander l'explication.</label>
-              <textarea id={photoId} value={photo.text} rows={5} maxLength={PHOTO_MAX_TEXT} readOnly={voice.state !== "idle"}
-                onChange={(event) => setPhoto({ ...photo, text: event.target.value })} />
-            </>
-          ) : null}
-          {photo.uncertainties.length ? (
-            <p role="status">À vérifier sur la photo : {photo.uncertainties.join(" · ")}</p>
-          ) : null}
+      >
+        <label htmlFor={id} className="sr-only">
+          {placeholder}
+        </label>
+        <div className={styles.field} data-listening={voice.state !== "idle"}>
+          <input
+            id={id}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder={placeholderNow}
+            maxLength={MAX_QUESTION_LENGTH}
+            // biome-ignore lint/a11y/noAutofocus: le focus n'est donné que lorsque le parent le demande (écran d'accueil).
+            autoFocus={autoFocus}
+            autoComplete="off"
+            enterKeyHint="send"
+          />
+          <button
+            type="button"
+            className={styles.photoButton}
+            onClick={() => {
+              if (fileInput.current) {
+                fileInput.current.value = "";
+                fileInput.current.click();
+              }
+            }}
+            aria-label="Ajouter une photo"
+            title="Ajouter une photo d'exercice ou de cours"
+            disabled={voice.state !== "idle"}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M3 7h4l2-3h6l2 3h4v13H3z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </button>
+          {!readingPhoto ? <MicButton voice={voice} onResult={submit} /> : null}
         </div>
-      ) : null}
-      {photoError ? <p className={styles.error} role="alert">{photoError}</p> : null}
-      {voice.error ? <p className={styles.error}>{voice.error}</p> : null}
-    </form>
-    <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" hidden aria-label="Photo à expliquer"
-      onChange={(event) => {
-        const file = event.target.files?.[0];
-        if (file) void choosePhoto(file);
-      }} />
+        <button type="submit" className="cta" disabled={!canSubmit}>
+          {submitLabel}
+        </button>
+        {voice.ready && !voice.supported ? <p className={styles.hint}>Écris ta question pour essayer.</p> : null}
+        {photo ? (
+          <div className={styles.photo} aria-busy={readingPhoto}>
+            <div className={styles.photoHeading}>
+              {/* biome-ignore lint/performance/noImgElement: local blob preview, released when the photo is removed or replaced. */}
+              <img src={photo.url} alt="Exercice ou cours à expliquer" className={styles.preview} />
+              <button type="button" className="btn-line" onClick={removePhoto} disabled={voice.state !== "idle"}>
+                Retirer la photo
+              </button>
+            </div>
+            {readingPhoto ? <p role="status">Je lis ta photo…</p> : null}
+            {!readingPhoto && !photoError ? (
+              <>
+                <label htmlFor={photoId}>Vérifie le texte reconnu avant de demander l'explication.</label>
+                <textarea
+                  id={photoId}
+                  value={photo.text}
+                  rows={5}
+                  maxLength={PHOTO_MAX_TEXT}
+                  readOnly={voice.state !== "idle"}
+                  onChange={(event) => setPhoto({ ...photo, text: event.target.value })}
+                />
+              </>
+            ) : null}
+            {photo.uncertainties.length ? <p role="status">À vérifier sur la photo : {photo.uncertainties.join(" · ")}</p> : null}
+          </div>
+        ) : null}
+        {photoError ? (
+          <p className={styles.error} role="alert">
+            {photoError}
+          </p>
+        ) : null}
+        {voice.error ? <p className={styles.error}>{voice.error}</p> : null}
+      </form>
+      <input
+        ref={fileInput}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        aria-label="Photo à expliquer"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void choosePhoto(file);
+        }}
+      />
     </>
   );
 }

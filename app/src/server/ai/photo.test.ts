@@ -29,14 +29,21 @@ describe("photo JPEG bornée", () => {
 
 describe("lecture visuelle", () => {
   const reading = { readable: true, text: "Résous 3x − 5 = 10.", uncertainties: [] };
-  const response = (data: unknown, finishReason = "stop") => Response.json({
-    choices: [{ finish_reason: finishReason, message: { content: JSON.stringify(data) } }],
-  });
+  const response = (data: unknown, finishReason = "stop") =>
+    Response.json({
+      choices: [{ finish_reason: finishReason, message: { content: JSON.stringify(data) } }],
+    });
 
   it("joint la photo, les protections existantes et valide la réponse", async () => {
     vi.stubEnv("NESALIO_ZDR", "1");
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response(reading));
-    const result = await readExercisePhoto({ token: "test", model: "anthropic/claude-haiku-5.5", image: jpegHeader(), signal: new AbortController().signal, fetchImpl });
+    const result = await readExercisePhoto({
+      token: "test",
+      model: "anthropic/claude-haiku-5.5",
+      image: jpegHeader(),
+      signal: new AbortController().signal,
+      fetchImpl,
+    });
     expect(result).toEqual({ text: reading.text, uncertainties: [] });
     const body = JSON.parse(fetchImpl.mock.calls[0]![1]!.body as string);
     expect(body.messages[1].content[0].image_url.url).toBe(`data:image/jpeg;base64,${jpegHeader()}`);
@@ -46,11 +53,15 @@ describe("lecture visuelle", () => {
 
   it("refuse un énoncé illisible au lieu d'inventer les données", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response({ ...reading, readable: false }));
-    await expect(readExercisePhoto({ token: "test", model: "test", image: jpegHeader(), signal: new AbortController().signal, fetchImpl })).rejects.toBeInstanceOf(UnreadablePhoto);
+    await expect(
+      readExercisePhoto({ token: "test", model: "test", image: jpegHeader(), signal: new AbortController().signal, fetchImpl }),
+    ).rejects.toBeInstanceOf(UnreadablePhoto);
   });
 
   it("refuse une extraction coupée par la limite de jetons", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response(reading, "length"));
-    await expect(readExercisePhoto({ token: "test", model: "test", image: jpegHeader(), signal: new AbortController().signal, fetchImpl })).rejects.toThrow("incomplète");
+    await expect(readExercisePhoto({ token: "test", model: "test", image: jpegHeader(), signal: new AbortController().signal, fetchImpl })).rejects.toThrow(
+      "incomplète",
+    );
   });
 });
