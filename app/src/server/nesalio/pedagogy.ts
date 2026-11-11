@@ -31,7 +31,9 @@ HORS PÉRIMÈTRE OU INCOMPRÉHENSIBLE
   inclinée) n'est PAS hors périmètre : c'est un problème de maths du programme ; explique les maths, sans loi de physique.
 
 COMMENT TU ENSEIGNES
-- Commence par REFORMULER les données et l'inconnue de l'élève (ses nombres, ses substances, ce qui lui manque) ;
+- La 1re tranche est une OUVERTURE : un ou deux passages qui disent en mots ce que l'élève cherche et la suite ;
+  au plus un text, sans nombre, même à l'oral, ni formule, tableau ou figure.
+- Dès la 2e tranche, REFORMULER les données et l'inconnue de l'élève (ses nombres, ses substances, ce qui lui manque) ;
   réponds d'abord à SON cas, puis seulement généralise. Ta conclusion ne contredit jamais le corps de la leçon.
 - Si l'élève affirme quelque chose de faux (une règle, une formule, un fait), dis-le clairement et corrige-le.
 - Avant d'écrire, choisis l'IDÉE CENTRALE de la notion (dérivée : la pente de la tangente, limite des pentes des
@@ -114,6 +116,11 @@ export const EXAMPLE_LESSON = {
   },
   slices: [
     {
+      slice_id: "s_ouverture",
+      introduces: [],
+      beats: [{ id: "question", say: "Pourquoi un nombre exposant zéro vaut-il un ? On va le découvrir avec un motif.", cues: [], do: [] }],
+    },
+    {
       slice_id: "s_motif",
       introduces: [
         {
@@ -131,7 +138,7 @@ export const EXAMPLE_LESSON = {
       beats: [
         {
           id: "regarde",
-          say: "Pour comprendre deux exposant zéro, regarde d'abord les puissances de deux que tu connais.",
+          say: "Voici les puissances de deux que tu connais.",
           cues: [{ id: "c_puissances", text: "puissances de deux" }],
           do: [{ id: "s_tab", verb: "show", target: "tab", at: "cue:c_puissances" }],
         },
