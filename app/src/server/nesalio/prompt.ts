@@ -360,10 +360,8 @@ const CHECKLIST = `
 AVANT D'ÉCRIRE CHAQUE LIGNE, VÉRIFIE :
 - ce passage dit POURQUOI (une justification, pas seulement une opération), et la leçon avance vers l'idée centrale ;
 - le tableau montre ce que dit ce passage ;
-- chaque formule dite en plusieurs morceaux a ses parts, et chaque part est écrite sur son mot ;
-- avant une nouvelle idée, ce dont tu ne parles plus est estompé (dim) ou dégagé (fade_out, remove). Si la prochaine
-  tranche est le récapitulatif, vérifie dès maintenant les fade_out ou remove dans le do de ce dernier passage ;
-- chaque calcul est juste, écrit avec son résultat dans la même formule, et la réponse finale est vérifiée au tableau.`.trim();
+- avant une nouvelle idée, ce dont tu ne parles plus est estompé (dim) ou dégagé (fade_out, remove) ;
+- chaque calcul est juste.`.trim();
 
 /**
  * Version du prompt système. « allegees » (défaut depuis le 2026-11-09, choix de l'utilisateur) :

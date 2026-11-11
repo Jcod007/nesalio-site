@@ -84,6 +84,50 @@ voir le journal) ; seuls restent les outils de lecture des séances déjà enreg
 
 ## Journal
 
+### 2026-11-10 soir — Latence en production : « un point sur une courbe » (Claude Code, constat seulement)
+- Source : journaux d'exécution Vercel (production, requête `v9zbh-1794363272152`, ≈ 02:14 UTC le 11). Le JSON
+  complet est dans le Blob privé, pas lu (pas de `BLOB_READ_WRITE_TOKEN` en local) ; seule la 1re tranche refusée
+  figure dans les journaux. Hobby : journaux gardés 1 h seulement.
+- Chronologie (t = 0 à l'arrivée de la requête) : en-tête reçu à **18,5 s** (réparé : expression « fy » retirée) ;
+  1re tranche `s_idee` à 20,6 s, **refusée par la validation** (tableau de f(x) = x² − 2x : f(1) écrit 1 au lieu
+  de −1, alors que la phrase dit bien « moins un ») ; nouvel appel de correction (prompt relu) ; tranche corrigée
+  relue (1,3 s) et montrée à **≈ 39,6 s**. Puis la voix. Leçon précédente (02:02) : ≈ 15 s.
+- Causes : (1) la consigne d'ouverture n'est pas dans `prompt.ts` (reste à faire noté le 2026-11-10) : la 1re
+  tranche porte un tableau, donc elle est contrôlée et ici corrigée sur le chemin de l'élève (≈ 19 s) ;
+  (2) premier en-tête très lent (18,5 s) ; (3) rien ne meuble l'attente.
+- Rien corrigé, propositions soumises à l'utilisateur. Prochaine étape : selon sa décision.
+
+### 2026-11-10 soir — Consigne d'ouverture écrite (Claude Code, suite du constat ci-dessus)
+- Décision de l'utilisateur : faire la cause n° 1 (ouverture). Taille de la consigne : il a demandé si ça
+  l'alourdissait ; réponse : +12 caractères net (37 474 → 37 486, limite 37 500), effet sur la latence négligeable.
+- `pedagogy.ts` TEACHING : « La 1re tranche est une OUVERTURE : un ou deux passages qui disent en mots ce que l'élève
+  cherche et la suite ; au plus un text, sans chiffre, nombre, formule, tableau ni figure. » puis « Dès la 2e tranche,
+  REFORMULER les données… ». `EXAMPLE_LESSON` commence par `s_ouverture` (un passage, tableau vide) ; la phrase
+  « regarde » de `s_motif` raccourcie. Sans exemple, le modèle imite des exemples qui commencent tous par des données.
+- Pour tenir la limite, `prompt.ts` CHECKLIST perd la ligne des `parts` (dite dans SYNC_RULES 4 et le contrat), la
+  phrase sur les fade_out avant le récapitulatif (dite dans RÉCAPITULATIF FINAL), et la ligne des calculs est réduite à
+  « chaque calcul est juste » (JUSTESSE porte le reste). Empreinte mise à jour dans `prompt-consignes.test.ts`.
+- Tests : nouveau test dans `pedagogy.test.ts` (la 1re tranche de l'exemple passe `isPlainOpening`, la 2e non).
+  `tsc` OK ; `vitest run src` 79 fichiers, 709 réussis avant ce test, 129 réussis dans `server/nesalio` après.
+- **Pas vérifié : génération réelle.** `VERCEL_OIDC_TOKEN` de `.env.local` expiré (401) ; le `vercel env pull` doit être
+  lancé par l'utilisateur. Puis : `LECONS_REELLES=1 LECONS="ouv-point=Comment trouver un point sur une courbe ?;…"
+  npx vitest run tools/eval/lecon-reelle.test.mjs`, et regarder si la 1re tranche passe `isPlainOpening` et le temps
+  avant elle. Rien commité, rien déployé.
+- Essai réel fait ensuite (l'utilisateur a autorisé le `vercel env pull`, dans `.env.oidc`, **supprimé après** :
+  ce fichier n'est pas ignoré par git). 3 leçons, `analyses/generations/ouv-*.json` : toutes ouvrent par
+  `s_ouverture` sans objet. Point sur une courbe et réactif limitant passent `isPlainOpening` ; l'équation non, car
+  la phrase répète « trois x plus cinq égale dix-sept » (relue comme avant, pas pire). 1re tranche après 1,5 à 2,8 s
+  en local, leçon entière 8,5 à 20 s (contre 18,5 s pour le seul en-tête en production : cause à chercher ailleurs).
+- Piste proposée, pas faite : préciser « sans nombre, même à l'oral » pour que l'équation passe aussi.
+- Faite à la demande de l'utilisateur : « au plus un text, sans nombre, même à l'oral, ni formule, tableau ou
+  figure » (37 486 → 37 495, empreinte à jour). `tsc` OK, `vitest run src` 79 fichiers, 710 réussis.
+- Rejoué en réel (`analyses/generations/ouv2-*`, jeton retéléchargé puis supprimé aussitôt) : point sur une courbe et
+  réactif limitant passent `isPlainOpening` ; **les deux équations (3x + 5 = 17, 2x − 4 = 10) répètent encore
+  l'équation à l'oral** → relues, comme avant. La précision n'a pas suffi : le modèle veut redire l'énoncé.
+  1re tranche entre 1,3 et 2,8 s. La leçon « point » a mis 46 s au total à cause de refus plus loin (`style` sur un
+  `show`, `attachment.part` sur une formule sans parts, 3 fois, puis « dernière chance ») : hors du démarrage.
+- Prochaine étape possible : exemple explicite (« dis "ton équation", pas ses nombres »), mais il faut trouver
+  environ 30 caractères à retirer ailleurs. À décider avec l'utilisateur. Rien commité.
 ### 2026-11-10 — Fusion de main dans Nesalio pour le déploiement (Claude Code, session « relecteur »)
 - Demande : déployer vite (une utilisatrice attend), en fusionnant proprement. `main` (production) avait 26 commits
   absents de la branche : comptes par code courriel, sécurisation, **essai sans compte (3 réponses)**, Biome + CI
