@@ -84,6 +84,37 @@ voir le journal) ; seuls restent les outils de lecture des séances déjà enreg
 
 ## Journal
 
+### 2026-11-10 — Photos d'exercices déplacées sur la branche `claude/photos-exercices` (Claude Code)
+- Demande de l'utilisateur : reprendre le travail photo de Codex sur une autre branche. Créé le worktree
+  `../nesalio-photos` (branche `claude/photos-exercices`, partie de `4e3bb02`) pour ne pas gêner la session qui
+  travaille sur `codex/kairos-json-contract` dans `nesalio-site`.
+- Copiés dans la branche : tous les fichiers photo (domaine, service, serveur, `/api/photo`, `QuestionInput*`,
+  `NesalioApp.tsx`, `StartScreen.module.css`, route `/api/nesalio` et son test, `.env.example`, doc, banc réel,
+  `tools/e2e/photo.mjs`, `analyses/photos-2026-11-10/`) et **seulement** le paragraphe photo de
+  `confidentialite.html`. Le passage au mot de passe (`AccountPage.tsx`, `authentication.md`, paragraphe connexion)
+  n'y est pas : il reste dans `nesalio-site`. Les copies photo non commitées restent aussi dans `nesalio-site`.
+- Vérifié dans le worktree : `tsc` passe ; `vitest run src --maxWorkers=4` 709 tests verts ; parcours navigateur
+  `tools/e2e/photo.mjs` **réussi** à 1 366 px et 390 px (conversion JPEG ≤ 1 600 px sans EXIF, correction du texte,
+  énoncé > 500 caractères, erreur de lecture, retrait). Lancé avec `CHROME_PATH` vers Chrome installé (le Chromium de
+  Playwright n'est pas installé) et un serveur `next dev -p 3100` (config `photos` dans `.claude/launch.json`).
+  Turbopack refuse un `node_modules` lié par jonction : `npm ci` fait dans le worktree. Captures regardées.
+- Pas vérifié : vraies photos de téléphone et écriture manuscrite avec le vrai modèle.
+- Remarque d'ergonomie (non corrigée, à proposer) : le bouton « Demander à Nesa » est au-dessus du bloc photo ;
+  après correction du texte, l'élève doit remonter pour envoyer.
+- Rien commité ni déployé. Prochaine étape : commit sur la branche, puis essai avec de vraies photos d'élèves.
+
+### 2026-11-10 — Photos d'exercices, recherche et intégration (Codex, en cours)
+- L'utilisateur demande recherche et intégration, avec priorité au rapport qualité-prix. Catalogue AI Gateway et sources officielles consultés. Haiku 5.5 lit les images, tous ses fournisseurs du catalogue annoncent ZDR et interdiction d'entraînement ; tarifs 0,10 $/M en entrée et 0,50 $/M en sortie pour notre taille de requête. Aucune nouvelle clé nécessaire avec le Gateway déjà utilisé. Qualité sur photos scolaires pas encore mesurée.
+- Première intégration dans `domain/photo.ts`, `services/photo.ts`, `server/ai/photo.ts`, `/api/photo` et `ui/QuestionInput*`. Une photo JPG/PNG/WebP est convertie en JPEG sans métadonnées, limitée à 1 600 px et 1,5 Mo. L'élève peut corriger le texte reconnu avant d'envoyer la question. Les images ne sont pas enregistrées par cette route ; l'énoncé est envoyé et enregistré avec la leçon existante.
+- `/api/nesalio` accepte désormais l'énoncé joint sans le couper à 500 caractères. Pas de modification du générateur, en cours de travail dans une autre session. `.env.example` documente `PHOTO_MODEL`.
+- Prochaine étape : tests du contrôle des images, des refus et de la lecture structurée, TypeScript, puis parcours réel dans le navigateur et mesure sur un petit corpus. Rien déployé.
+
+#### Vérifications intermédiaires des photos
+- Précision de l'utilisateur intégrée : accepter aussi un passage de cours ou une notion sans question écrite. `NesalioApp.tsx` annonce l'ajout de photos ; le formulaire long reste accessible avec `justify-content: safe center` dans `StartScreen.module.css`.
+- Banc réel `tools/eval/photo-reelle.test.mjs`, 5 images synthétiques par modèle : fraction, chimie, triangle, notion affine, page vide. 5/5 pour Haiku 5.5 et Gemini 3.1 Flash-Lite. Haiku : moyenne 1,94 s, coût total 0,001244 $ ; Gemini : 4,70 s, 0,00321875 $. Rapports et images dans `analyses/photos-2026-11-10/`, lecture humaine des sorties effectuée. Manuscrit et vraies photos pas évalués.
+- `npx vitest run src --maxWorkers=4` : 709 tests verts dans 79 fichiers. TypeScript passe. Lancement sans limite de workers interrompu après délais de terminaison des workers ; relance bornée réussie. Tests ciblés ajoutés pour les images, l'authentification, l'IA désactivée, l'image illisible et l'énoncé de plus de 500 caractères.
+- `confidentialite.html` décrit le traitement des photos et corrige l'ancienne mention d'une connexion exclusivement par code. Détail de la recherche et des coûts dans `app/docs/photos-exercices-2026-11-10.md`.
+- Test navigateur en cours dans `tools/e2e/photo.mjs`, avec API simulées, sur ordinateur et téléphone. Les premiers essais ont été bloqués par les interactions du navigateur ; le DOM confirme le bon libellé et le caractère modifiable du champ. Prochaine étape : terminer ce parcours avant livraison.
 ### 2026-11-10 soir — Latence en production : « un point sur une courbe » (Claude Code, constat seulement)
 - Source : journaux d'exécution Vercel (production, requête `v9zbh-1794363272152`, ≈ 02:14 UTC le 11). Le JSON
   complet est dans le Blob privé, pas lu (pas de `BLOB_READ_WRITE_TOKEN` en local) ; seule la 1re tranche refusée

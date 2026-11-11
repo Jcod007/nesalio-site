@@ -70,3 +70,16 @@ it("refuse une question vide et signale un modèle non configuré", async () => 
   expect(response.status).toBe(503);
   expect(JSON.parse(await response.text())).toMatchObject({ kind: "error", code: "upstream" });
 });
+
+it("accepte un énoncé de photo de plus de 500 caractères sans le tronquer", async () => {
+  vi.stubEnv("DISABLE_AI", "0");
+  vi.stubEnv("AI_GATEWAY_API_KEY", "test");
+  const question = ("Énoncé de la photo : " + "Une donnée avec son unité. ".repeat(40)).trim();
+  answer.text = `${JSON.stringify(lesson)}\n${JSON.stringify(slice)}\n`;
+  const response = await post({ question });
+  expect(response.status).toBe(200);
+  await response.text();
+  for (const task of afterTasks) await task();
+  expect(saved[0]).toMatchObject({ question });
+  expect((await post({ question: "a".repeat(4501) })).status).toBe(400);
+}, 20_000);

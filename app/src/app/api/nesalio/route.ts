@@ -6,6 +6,7 @@
  */
 import { after } from "next/server";
 import { z } from "zod";
+import { PHOTO_MAX_QUESTION } from "@/domain/photo";
 import { createLessonRecorder } from "@/domain/sessionLog";
 import { refFromHeaders } from "@/domain/session";
 import { recordEnv, saveTurn } from "@/server/sessionStore";
@@ -23,7 +24,7 @@ export const runtime = "nodejs";
 // A long explanation with one repair stays well under this.
 export const maxDuration = 180;
 
-const Body = z.object({ question: z.string().trim().min(1).max(500) });
+const Body = z.object({ question: z.string().trim().min(1).max(PHOTO_MAX_QUESTION) });
 // Same pace as the tutor: about eight explanations per ten minutes for one student.
 const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000, developerAccess: true });
 
@@ -47,7 +48,7 @@ export async function POST(request: Request): Promise<Response> {
       "Retry-After": String(limit.retryAfterSeconds),
     });
   }
-  const raw = await readBoundedText(request, 4_000);
+  const raw = await readBoundedText(request, 30_000);
   if (!raw.ok) return single({ kind: "error", code: "bad_request", message: "Question trop longue ou illisible." }, raw.status);
   let body: unknown;
   try {

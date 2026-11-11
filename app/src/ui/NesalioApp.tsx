@@ -210,7 +210,7 @@ function NesalioScreen() {
           listening={listening}
           onListeningChange={setListening}
           suggestions={NESALIO_SUGGESTIONS}
-          lede="Pose ta question à voix haute ou écris-la. Nesa t'explique en dessinant au tableau."
+          lede="Écris ta question, ajoute une photo d'exercice ou de cours, ou parle à Nesa."
         />
       ) : (
         <NesalioDock ref={dockRef} snapshot={snapshot} listening={listening} actions={actions} />
