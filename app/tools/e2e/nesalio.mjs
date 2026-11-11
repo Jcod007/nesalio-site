@@ -154,9 +154,10 @@ for (const screen of SCREENS) {
     await dock.getByText(LAST).waitFor({ timeout: 90_000 });
     await dock.getByText(/Voilà pour l'explication/).waitFor({ timeout: 60_000 });
     for (const v of await seriousViolations(page)) fail(screen.name, `fin de séance, accessibilité : ${describe(v)}`);
-    // The after-trial questions open 4 s after the first lesson ends (AfterTrial.tsx), over the dock: closed here.
+    // The after-trial questions open one minute after the lesson ends (AFTER_TRIAL_DELAY in NesalioApp.tsx: « Revoir
+    // l'explication » stays reachable first), over the dock: closed here.
     const survey = page.getByRole("dialog");
-    await survey.waitFor({ timeout: 10_000 });
+    await survey.waitFor({ timeout: 75_000 });
     for (const v of await seriousViolations(page)) fail(screen.name, `questionnaire après essai, accessibilité : ${describe(v)}`);
     await survey.getByRole("button", { name: "Fermer" }).click();
     await survey.waitFor({ state: "hidden", timeout: 5_000 });
