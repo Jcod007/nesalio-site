@@ -1,0 +1,84 @@
+QUESTION (chimie-dilution-erreur, chimie, sec 4, erreur) : j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?
+RÉPONSE DE RÉFÉRENCE : C₂ = C₁V₁/V₂ = 2 × 50 / 200 = 0,50 mol/L ; 8 mol/L vient du rapport inversé.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. en diluant, la quantité de soluté ne change pas : n = C₁V₁ = C₂V₂
+  2. diagnostic : 8 mol/L = 2 × 200 / 50, rapport des volumes inversé
+  3. C₂ = 2 × 50 / 200 = 0,50 mol/L écrit
+  4. contrôle de vraisemblance : ajouter de l'eau diminue la concentration (volume × 4, concentration ÷ 4)
+  5. unités cohérentes (les mL s'annulent)
+ERREURS GRAVES À CHERCHER : concentration qui augmente à la dilution ; diagnostic inventé
+CONTRÔLE AUTOMATIQUE : réponse absente (0[,.]5\d*\s*mol) ; issue complète
+
+TITRE : Calculer la concentration après une dilution
+=== Tranche s_sens
+  OBJET sol1 [polygon] {"vertices":[[0,0],[2,0],[2,1],[0,1]]} 
+  OBJET point1 [point] {"at":[0.4,0.5]} 
+  OBJET point2 [point] {"at":[0.8,0.5]} 
+  OBJET point3 [point] {"at":[1.2,0.5]} 
+  OBJET point4 [point] {"at":[1.6,0.5]} 
+  OBJET vol1 [label] "50 mL" attaché à sol1
+  OBJET sol2 [polygon] {"vertices":[[0,0],[2,0],[2,4],[0,4]]} 
+  OBJET point5 [point] {"at":[0.4,0.5]} 
+  OBJET point6 [point] {"at":[0.8,0.5]} 
+  OBJET point7 [point] {"at":[1.2,0.5]} 
+  OBJET point8 [point] {"at":[1.6,0.5]} 
+  OBJET vol2 [label] "200 mL" attaché à sol2
+  OBJET c1 [label] "2 mol/L" attaché à sol1
+  OBJET c2 [label] "? mol/L" attaché à sol2
+DIT (intuition) : Non, 8 mol/L n'est pas la bonne nouvelle concentration. Quand tu ajoutes de l'eau, la même quantité de soluté se retrouve dans un plus grand volume.
+    draw sol1 @cue:c_meme 
+    show point1 @cue:c_meme 
+    show point2 @cue:c_meme 
+    show point3 @cue:c_meme 
+    show point4 @cue:c_meme 
+    show c1 @cue:c_meme 
+    show vol1 @cue:c_meme 
+    draw sol2 @cue:c_grand 
+    show point5 @cue:c_grand 
+    show point6 @cue:c_grand 
+    show point7 @cue:c_grand 
+    show point8 @cue:c_grand 
+    show c2 @cue:c_grand 
+    show vol2 @cue:c_grand 
+DIT (sens) : Les petits points représentent le soluté : ils restent les mêmes, mais ils sont répartis dans quatre fois plus de solution. La concentration doit donc être divisée par quatre.
+    highlight point5 @- {"start":"cue:c_points","end":"cue_end:c_quatre","role":"accent"}
+    highlight sol2 @- {"start":"cue:c_quatre","end":"cue_end:c_divisee","role":"accent"}
+=== Tranche s_calcul
+  OBJET eq1 [math] "C_1V_1 = C_2V_2" parts=C_1V_1 | = C_2V_2
+  OBJET eq2 [math] "2\\times 50 = C_2\\times 200" 
+  OBJET eq3 [math] "C_2 = \\frac{2\\times 50}{200}" 
+  OBJET eq4 [math] "C_2 = 0{,}5\\ \\pu{mol/L}" parts=C_2 = | 0{,}5\ \pu{mol/L}
+DIT (conservation) : La dilution conserve la quantité de soluté : concentration initiale fois volume initial égale concentration finale fois volume final. Les deux volumes peuvent rester en millilitres ici, puisqu'ils sont dans le même rapport.
+    write eq1 @cue:c_formule {"part":"p1"}
+    write eq1 @cue:c_egale {"part":"p2"}
+DIT (substitution) : On remplace par tes données : deux mol/L fois cinquante mL égale la concentration finale fois deux cents mL. On divise ensuite les deux côtés par deux cents.
+    transform eq2 @cue:c_donnees {"source":"eq1"}
+    transform eq3 @cue:c_divise {"source":"eq2"}
+DIT (resultat) : Deux fois cinquante, c'est cent; cent divisé par deux cents donne un demi. La nouvelle concentration est donc zéro virgule cinq mol/L.
+    transform eq4 @cue:c_finale {"source":"eq3"}
+    highlight eq4 @- {"start":"cue:c_finale","end":"cue_end:c_finale","role":"result"}
+=== Tranche s_erreur
+  OBJET faux [math] "2\\times\\frac{200}{50} = 8\\ \\pu{mol/L}" 
+  OBJET verif [text] "La concentration diminue quand on ajoute de l'eau." 
+DIT (repere) : Ton huit vient de deux fois deux cents divisé par cinquante : tu as inversé le rapport des volumes. Comme le volume est multiplié par quatre, la concentration est divisée par quatre, pas multipliée.
+    show faux @cue:c_huit 
+    highlight faux @- {"start":"cue:c_inverse","end":"cue_end:c_divisee","role":"unknown"}
+    show verif @cue:c_divisee 
+DIT (nettoyage) : L'image et les calculs confirment le même résultat : la quantité de soluté reste constante, mais le volume augmente. Je garde seulement la règle et la concentration obtenue.
+    fade_out sol1 @cue:c_garde 
+    fade_out sol2 @cue:c_garde 
+    fade_out eq1 @cue:c_garde 
+    fade_out eq2 @cue:c_garde 
+    fade_out eq3 @cue:c_garde 
+    fade_out faux @cue:c_garde 
+    fade_out verif @cue:c_garde 
+=== Tranche s_retenir
+  OBJET regle [math] "C_1V_1 = C_2V_2" 
+  OBJET resume [math] "C_2 = 0{,}5\\ \\pu{mol/L}" 
+  OBJET mot [text] "Même quantité de soluté; volume plus grand, concentration plus faible." 
+  GROUPE retenue = regle, resume, mot
+DIT (idee) : À retenir : pendant une dilution, la quantité de soluté ne change pas, alors le volume augmente et la concentration diminue. La règle donne ici zéro virgule cinq mol/L, et non huit.
+    show regle @cue:c_retenir 
+    show resume @cue:c_zero 
+    show mot @cue:c_ne_change 
+--- 4 tranches, 232 mots dits (≈ 1.5 min d'oral)

@@ -1,0 +1,870 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "dilution_concentration",
+  "title": "Calculer la concentration après une dilution",
+  "language": "fr",
+  "learning_goal": "Comprendre que la quantité de soluté reste la même pendant une dilution et calculer la nouvelle concentration."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "sol1",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "point1",
+     "params": {
+      "at": [
+       0.4,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "point2",
+     "params": {
+      "at": [
+       0.8,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "point3",
+     "params": {
+      "at": [
+       1.2,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "point4",
+     "params": {
+      "at": [
+       1.6,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "vol1",
+     "attachment": {
+      "parent": "sol1",
+      "anchor": "bottom"
+     },
+     "content": "50 mL",
+     "type": "label"
+    },
+    {
+     "id": "sol2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "point5",
+     "frame": "sol2",
+     "params": {
+      "at": [
+       0.4,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "point6",
+     "frame": "sol2",
+     "params": {
+      "at": [
+       0.8,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "point7",
+     "frame": "sol2",
+     "params": {
+      "at": [
+       1.2,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "point8",
+     "frame": "sol2",
+     "params": {
+      "at": [
+       1.6,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "vol2",
+     "attachment": {
+      "parent": "sol2",
+      "anchor": "bottom"
+     },
+     "content": "200 mL",
+     "type": "label"
+    },
+    {
+     "id": "c1",
+     "attachment": {
+      "parent": "sol1",
+      "anchor": "top"
+     },
+     "content": "2 mol/L",
+     "type": "label"
+    },
+    {
+     "id": "c2",
+     "attachment": {
+      "parent": "sol2",
+      "anchor": "top"
+     },
+     "content": "? mol/L",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intuition",
+     "say": "Non, 8 mol/L n'est pas la bonne nouvelle concentration. Quand tu ajoutes de l'eau, la même quantité de soluté se retrouve dans un plus grand volume.",
+     "cues": [
+      {
+       "id": "c_non",
+       "text": "Non"
+      },
+      {
+       "id": "c_meme",
+       "text": "la même quantité de soluté"
+      },
+      {
+       "id": "c_grand",
+       "text": "un plus grand volume"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_sol1",
+       "verb": "draw",
+       "at": "cue:c_meme",
+       "target": "sol1"
+      },
+      {
+       "id": "s_pts1",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "point1"
+      },
+      {
+       "id": "s_pts2",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "point2"
+      },
+      {
+       "id": "s_pts3",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "point3"
+      },
+      {
+       "id": "s_pts4",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "point4"
+      },
+      {
+       "id": "w_c1",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "c1"
+      },
+      {
+       "id": "w_vol1",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "vol1"
+      },
+      {
+       "id": "d_sol2",
+       "verb": "draw",
+       "at": "cue:c_grand",
+       "target": "sol2"
+      },
+      {
+       "id": "s_pts5",
+       "verb": "show",
+       "at": "cue:c_grand",
+       "target": "point5"
+      },
+      {
+       "id": "s_pts6",
+       "verb": "show",
+       "at": "cue:c_grand",
+       "target": "point6"
+      },
+      {
+       "id": "s_pts7",
+       "verb": "show",
+       "at": "cue:c_grand",
+       "target": "point7"
+      },
+      {
+       "id": "s_pts8",
+       "verb": "show",
+       "at": "cue:c_grand",
+       "target": "point8"
+      },
+      {
+       "id": "w_c2",
+       "verb": "show",
+       "at": "cue:c_grand",
+       "target": "c2"
+      },
+      {
+       "id": "w_vol2",
+       "verb": "show",
+       "at": "cue:c_grand",
+       "target": "vol2"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "Les petits points représentent le soluté : ils restent les mêmes, mais ils sont répartis dans quatre fois plus de solution. La concentration doit donc être divisée par quatre.",
+     "cues": [
+      {
+       "id": "c_points",
+       "text": "Les petits points"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre fois plus"
+      },
+      {
+       "id": "c_divisee",
+       "text": "divisée par quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_pts",
+       "verb": "highlight",
+       "start": "cue:c_points",
+       "end": "cue_end:c_quatre",
+       "target": "point5",
+       "role": "accent"
+      },
+      {
+       "id": "h_sol",
+       "verb": "highlight",
+       "start": "cue:c_quatre",
+       "end": "cue_end:c_divisee",
+       "target": "sol2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "eq1",
+     "content": "C_1V_1 = C_2V_2",
+     "parts": [
+      {
+       "id": "p1",
+       "text": "C_1V_1"
+      },
+      {
+       "id": "p2",
+       "text": "= C_2V_2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "2\\times 50 = C_2\\times 200",
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "content": "C_2 = \\frac{2\\times 50}{200}",
+     "type": "math"
+    },
+    {
+     "id": "eq4",
+     "content": "C_2 = 0{,}5\\ \\pu{mol/L}",
+     "parts": [
+      {
+       "id": "p4a",
+       "text": "C_2 ="
+      },
+      {
+       "id": "p4b",
+       "text": "0{,}5\\ \\pu{mol/L}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conservation",
+     "say": "La dilution conserve la quantité de soluté : concentration initiale fois volume initial égale concentration finale fois volume final. Les deux volumes peuvent rester en millilitres ici, puisqu'ils sont dans le même rapport.",
+     "cues": [
+      {
+       "id": "c_dilution",
+       "text": "La dilution"
+      },
+      {
+       "id": "c_formule",
+       "text": "concentration initiale fois volume initial"
+      },
+      {
+       "id": "c_egale",
+       "text": "égale concentration finale fois volume final"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p1",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "eq1",
+       "part": "p1"
+      },
+      {
+       "id": "w_p2",
+       "verb": "write",
+       "at": "cue:c_egale",
+       "target": "eq1",
+       "part": "p2"
+      }
+     ]
+    },
+    {
+     "id": "substitution",
+     "say": "On remplace par tes données : deux mol/L fois cinquante mL égale la concentration finale fois deux cents mL. On divise ensuite les deux côtés par deux cents.",
+     "cues": [
+      {
+       "id": "c_donnees",
+       "text": "tes données"
+      },
+      {
+       "id": "c_divise",
+       "text": "On divise ensuite"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq2",
+       "verb": "transform",
+       "at": "cue:c_donnees",
+       "source": "eq1",
+       "target": "eq2"
+      },
+      {
+       "id": "t_eq3",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "eq2",
+       "target": "eq3"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Deux fois cinquante, c'est cent; cent divisé par deux cents donne un demi. La nouvelle concentration est donc zéro virgule cinq mol/L.",
+     "cues": [
+      {
+       "id": "c_cent",
+       "text": "cent"
+      },
+      {
+       "id": "c_demi",
+       "text": "un demi"
+      },
+      {
+       "id": "c_finale",
+       "text": "La nouvelle concentration"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq4",
+       "verb": "transform",
+       "at": "cue:c_finale",
+       "source": "eq3",
+       "target": "eq4"
+      },
+      {
+       "id": "h_result",
+       "verb": "highlight",
+       "start": "cue:c_finale",
+       "end": "cue_end:c_finale",
+       "target": "eq4",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "faux",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "2\\times\\frac{200}{50} = 8\\ \\pu{mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "content": "La concentration diminue quand on ajoute de l'eau.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "repere",
+     "say": "Ton huit vient de deux fois deux cents divisé par cinquante : tu as inversé le rapport des volumes. Comme le volume est multiplié par quatre, la concentration est divisée par quatre, pas multipliée.",
+     "cues": [
+      {
+       "id": "c_huit",
+       "text": "Ton huit"
+      },
+      {
+       "id": "c_inverse",
+       "text": "inversé le rapport des volumes"
+      },
+      {
+       "id": "c_divisee",
+       "text": "la concentration est divisée par quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_faux",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "target": "faux"
+      },
+      {
+       "id": "h_rapport",
+       "verb": "highlight",
+       "start": "cue:c_inverse",
+       "end": "cue_end:c_divisee",
+       "target": "faux",
+       "role": "unknown"
+      },
+      {
+       "id": "s_verif",
+       "verb": "show",
+       "at": "cue:c_divisee",
+       "target": "verif"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "nettoyage",
+     "say": "L'image et les calculs confirment le même résultat : la quantité de soluté reste constante, mais le volume augmente. Je garde seulement la règle et la concentration obtenue.",
+     "cues": [
+      {
+       "id": "c_image",
+       "text": "L'image"
+      },
+      {
+       "id": "c_garde",
+       "text": "Je garde seulement"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_sol1",
+       "verb": "fade_out",
+       "at": "cue:c_garde",
+       "target": "sol1"
+      },
+      {
+       "id": "f_sol2",
+       "verb": "fade_out",
+       "at": "cue:c_garde",
+       "target": "sol2"
+      },
+      {
+       "id": "f_eq1",
+       "verb": "fade_out",
+       "at": "cue:c_garde",
+       "target": "eq1"
+      },
+      {
+       "id": "f_eq2",
+       "verb": "fade_out",
+       "at": "cue:c_garde",
+       "target": "eq2"
+      },
+      {
+       "id": "f_eq3",
+       "verb": "fade_out",
+       "at": "cue:c_garde",
+       "target": "eq3"
+      },
+      {
+       "id": "f_faux",
+       "verb": "fade_out",
+       "at": "cue:c_garde",
+       "target": "faux"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:c_garde",
+       "target": "verif"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "C_1V_1 = C_2V_2",
+     "type": "math"
+    },
+    {
+     "id": "resume",
+     "style": {
+      "role": "result"
+     },
+     "content": "C_2 = 0{,}5\\ \\pu{mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "mot",
+     "content": "Même quantité de soluté; volume plus grand, concentration plus faible.",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "retenue",
+     "items": [
+      "regle",
+      "resume",
+      "mot"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : pendant une dilution, la quantité de soluté ne change pas, alors le volume augmente et la concentration diminue. La règle donne ici zéro virgule cinq mol/L, et non huit.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_ne_change",
+       "text": "la quantité de soluté ne change pas"
+      },
+      {
+       "id": "c_zero",
+       "text": "zéro virgule cinq mol/L"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_regle",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "regle"
+      },
+      {
+       "id": "w_resume",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "resume"
+      },
+      {
+       "id": "w_mot",
+       "verb": "show",
+       "at": "cue:c_ne_change",
+       "target": "mot"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

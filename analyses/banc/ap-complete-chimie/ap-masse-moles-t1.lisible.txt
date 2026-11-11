@@ -1,0 +1,71 @@
+QUESTION (ap-masse-moles, chimie, sec 4, alloprof) : En stoechiométrie, pourquoi la somme des masses des produits et des réactifs sont égaux, tandis que la somme des nombres de moles des réactifs et des produits ne le sont pas ? Ne devrait-il pas y avoir le même nombre de molécules avant et après ?
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi les masses se conservent mais pas les moles
+math_context : {"symbols":{},"expressions":{"nH2":"4/2.02","nH2O":"4/2.02","mH2O":"(4/2.02)*18.02","nO2":"(4/2.02)/2","mO2":"((4/2.02)/2)*32.00"}}
+=== Tranche s_comprendre
+  OBJET eq [math] "2\\,\\ce{H2} + \\ce{O2} -> 2\\,\\ce{H2O}" parts=2\,\ce{H2} | + \ce{O2} | -> 2\,\ce{H2O}
+DIT (accroche) : Bonne question : les atomes se comptent avant et après, mais les molécules, elles, changent de nombre.
+DIT (equation) : Prenons cette équation balancée : deux H deux plus un O deux donne deux H deux O.
+    write eq @cue:c_deux {"part":"p_h2"}
+    write eq @cue:c_o2 {"part":"p_o2"}
+    write eq @cue:c_eau {"part":"p_h2o"}
+=== Tranche s_atomes
+  OBJET bilan [matrix] {"rows":[[4,2],[2,1],[2,2]],"row_labels":["H à gauche | H à droite","O à gauche | O à droite","molécules à gauche | molécules à droite"]} 
+DIT (compte) : Comptons les atomes. À gauche : quatre H et deux O. À droite : quatre H et deux O aussi.
+    show bilan @cue:c_gauche 
+    highlight bilan @cue:c_gauche {"role":"given","part":"r1"}
+    highlight bilan @- {"start":"cue:c_droite","end":"cue_end:c_droite","role":"accent","part":"r2"}
+DIT (mol) : Mais regarde le nombre de molécules : trois à gauche, deux à droite. Rien d'étonnant, elles se réarrangent.
+    highlight bilan @- {"start":"cue:c_trois","end":"cue_end:c_deux","role":"accent","part":"r3"}
+=== Tranche s_moles
+  OBJET tab [matrix] {"rows":[[2,1,2],[1.98,"?","?"],[4,"?","?"]],"row_labels":["coefficient","quantité (mol)","masse (g)"],"column_labels":["substance","H2","O2","H2O"]} 
+  OBJET div [label] "÷ 2,02" attaché à tab
+DIT (lire) : Les coefficients deux, un, deux sont un rapport de moles, pas de grammes.
+    show tab @cue:c_coef 
+    highlight tab @- {"start":"cue:c_coef","end":"cue_end:c_coef","role":"accent","part":"r1"}
+DIT (depart) : Partons d'une masse donnée : quatre grammes de H deux.
+    highlight tab @cue:c_quatre {"role":"given","part":"r3c2"}
+DIT (convertir) : Pour entrer dans le rapport, on convertit en moles en divisant par la masse molaire : quatre divisé par deux virgule zéro deux, environ un virgule quatre-vingt-dix-huit mole.
+    show div @beat:start 
+    highlight tab @cue:c_mol {"role":"unknown","part":"r2c2"}
+    write tab @after:h_n1 
+=== Tranche s_rapport
+  OBJET rap [math] "n(\\ce{H2O}) = n(\\ce{H2}) \\times \\frac{2}{2}" parts=n(\ce{H2O}) = n(\ce{H2}) | \times \frac{2}{2}
+  OBJET rap2 [math] "n(\\ce{O2}) = n(\\ce{H2}) \\times \\frac{1}{2}" parts=n(\ce{O2}) = n(\ce{H2}) | \times \frac{1}{2}
+DIT (proportion) : Maintenant le rapport. Pour H deux O : deux sur deux, donc même quantité de moles.
+    write rap @cue:c_nd {"part":"r_nd"}
+    write rap @after:w_nd {"part":"r_frac"}
+DIT (o2) : Pour O deux : un sur deux, donc moitié moins de moles, soit environ zéro virgule quatre-vingt-dix-neuf mole.
+    write rap2 @cue:c_moitie {"part":"r2_nd"}
+    write rap2 @after:w_nd2 {"part":"r2_frac"}
+    highlight tab @cue:c_zero {"role":"accent","part":"r2c3"}
+    write tab @after:h_o2 
+=== Tranche s_masse
+  OBJET mult [label] "× 18,02 et × 32,00" 
+  OBJET res [math] "4 + 31{,}68 = 35{,}68\\ \\text{g}" parts=4 + 31{,}68 | = 35{,}68\ \text{g}
+DIT (retour) : On ressort des moles en multipliant par la masse molaire : l'eau donne environ trente-cinq virgule soixante-huit grammes.
+    show mult @cue:c_mult 
+    highlight tab @- {"start":"cue:c_eau","end":"cue_end:c_eau","role":"accent","part":"r3c3"}
+    write tab @after:h_eau 
+DIT (conservation) : Le O deux pèse environ trente et un virgule soixante-huit grammes. Ajoutés à quatre, on retrouve trente-cinq virgule soixante-huit grammes : la masse se conserve.
+    highlight tab @cue:c_o2m {"role":"given","part":"r3c2"}
+    write tab @after:h_o2m 
+    write res @cue:c_o2m {"part":"res_mo"}
+    write res @cue:c_seul {"part":"res_tot"}
+=== Tranche s_retenir
+  OBJET idee [text] "Les coefficients = un rapport de moles, pas de grammes" 
+DIT (bilan) : À retenir : les atomes se conservent, donc la masse totale aussi. Mais les molécules, elles, se réarrangent, donc leur nombre change.
+    dim bilan @cue:c_atomes 
+    fade_out rap @cue:c_rearrangent 
+    fade_out rap2 @cue:c_rearrangent 
+    fade_out mult @cue:c_rearrangent 
+DIT (coeur) : Et pour passer d'une substance à l'autre, c'est le rapport des moles, jamais celui des grammes.
+    camera.focus  @beat:start {"targets":["eq","tab","idee"],"bounds":"layout_bounds"}
+    highlight eq @- {"start":"cue:c_rapport","end":"cue_end:c_rapport","role":"result","part":"p_h2"}
+    highlight tab @cue:c_rapport {"role":"result","part":"r1"}
+    write idee @after:h_co2 
+--- 6 tranches, 238 mots dits (≈ 1.6 min d'oral)

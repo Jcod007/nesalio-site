@@ -1,0 +1,47 @@
+QUESTION (equation, mathematiques, sec 4, methode) : Comment je résous 3x + 5 = 17 ?
+RÉPONSE DE RÉFÉRENCE : x = 4.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. garder l'égalité : même opération des deux côtés
+  2. 3x = 12 en enlevant 5 des deux côtés
+  3. x = 4 en divisant par 3
+  4. réponse x = 4 écrite
+  5. vérification : 3 × 4 + 5 = 17
+ERREURS GRAVES À CHERCHER : « on passe de l'autre côté » sans justification (imprécision)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Résoudre 3x + 5 = 17
+=== Tranche s_isoler_x
+  OBJET eq_depart [math] "3x + 5 = 17" parts=3x + 5 | = 17
+  OBJET eq_soustraction [math] "3x + 5 - 5 = 17 - 5" parts=3x + 5 - 5 | = 17 - 5
+  OBJET eq_reduite [math] "3x = 12" 
+  OBJET eq_division [math] "\\frac{3x}{3} = \\frac{12}{3}" 
+  OBJET eq_solution [math] "x = 4" 
+DIT (poser) : Pour résoudre cette équation, on garde l’égalité en faisant la même opération des deux côtés.
+    write eq_depart @cue:egalite 
+DIT (enlever_cinq) : On enlève cinq des deux côtés pour isoler le terme avec x : trois x plus cinq moins cinq égale dix-sept moins cinq.
+    transform eq_soustraction @cue:c_enleve {"source":"eq_depart"}
+DIT (simplifier) : Cinq moins cinq fait zéro, et dix-sept moins cinq fait douze ; il reste donc trois x égale douze.
+    transform eq_reduite @cue:c_zero {"source":"eq_soustraction"}
+DIT (diviser) : On divise les deux côtés par trois, parce que trois multiplie x ; ainsi, x égale douze divisé par trois, donc x égale quatre.
+    transform eq_division @cue:c_divise {"source":"eq_reduite"}
+    transform eq_solution @cue:c_quatre {"source":"eq_division"}
+=== Tranche s_verification
+  OBJET verification [math] "3(4) + 5 = 17" 
+  OBJET calcul_verif [math] "12 + 5 = 17" 
+  OBJET egalite_verifiee [math] "17 = 17" 
+DIT (substituer) : Vérifions dans l’équation de départ en remplaçant x par quatre : trois fois quatre plus cinq égale dix-sept.
+    write verification @cue:remplacant 
+DIT (calculer) : Trois fois quatre donne douze, puis douze plus cinq donne dix-sept ; les deux côtés sont bien égaux.
+    transform calcul_verif @cue:douze {"source":"verification"}
+    transform egalite_verifiee @cue:egaux {"source":"calcul_verif"}
+=== Tranche s_recapitulatif
+  OBJET idee_cle [text] "Pour isoler x, fais la même opération des deux côtés." 
+  OBJET reponse_finale [math] "3x + 5 = 17 \\quad\\Longrightarrow\\quad x = 4" 
+  GROUPE resume = idee_cle, reponse_finale
+DIT (retenir) : À retenir : tu fais la même opération des deux côtés pour isoler x, puis tu vérifies dans l’équation de départ. Ici, la solution est x égale quatre.
+    fade_out verification @cue:meme_operation 
+    fade_out calcul_verif @cue:meme_operation 
+    fade_out egalite_verifiee @cue:meme_operation 
+    show idee_cle @cue:meme_operation 
+    show reponse_finale @cue:solution_quatre 
+--- 3 tranches, 145 mots dits (≈ 1.0 min d'oral)

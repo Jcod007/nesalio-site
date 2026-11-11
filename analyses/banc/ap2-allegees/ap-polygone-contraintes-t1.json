@@ -1,0 +1,953 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "polygone_contraintes",
+  "title": "Le polygone de contraintes : la partie commune à tous les demi-plans",
+  "language": "fr",
+  "learning_goal": "Comprendre que chaque inéquation à deux variables garde un demi-plan, que le polygone de contraintes est leur partie commune, et que le maximum de z = 3x + 2y se trouve à un sommet."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "z0": "3*0+2*0",
+    "z6": "3*6+2*0",
+    "z2": "3*2+2*4"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_demiplan",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -1,
+       7
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "front1",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "expression": "6-x",
+      "domain": [
+       -1,
+       7
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "d1",
+     "layout": {
+      "next_to": "axes",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "x + y \\leq 6",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu me dis que les polygones de contraintes te font peur depuis le début de l'année. On repart tout doucement, avec une seule idée : chaque inéquation garde une moitié du plan.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "chaque inéquation garde"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "w_d1",
+       "verb": "write",
+       "at": "cue:c_idee",
+       "target": "d1"
+      }
+     ]
+    },
+    {
+     "id": "droite",
+     "say": "Voici la droite frontière de x plus y plus petit ou égal à six, c'est-à-dire y égale six moins x. Elle sépare le plan en deux moitiés.",
+     "cues": [
+      {
+       "id": "c_front",
+       "text": "droite frontière"
+      },
+      {
+       "id": "c_six",
+       "text": "y égale six moins x"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_front",
+       "verb": "draw",
+       "start": "cue:c_front",
+       "end": "cue_end:c_six",
+       "target": "front1"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_choix",
+   "introduces": [
+    {
+     "id": "test",
+     "style": {
+      "role": "unknown"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "test_label",
+     "attachment": {
+      "parent": "test",
+      "anchor": "right"
+     },
+     "content": "(0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "calc_test",
+     "layout": {
+      "next_to": "d1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "0 + 0 = 0 \\leq 6 \\;\\checkmark",
+     "type": "math"
+    },
+    {
+     "id": "zone1",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    }
+   ],
+   "beats": [
+    {
+     "id": "point_test",
+     "say": "On prend un point qui n'est pas sur la droite, le plus simple : zéro, zéro.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "zéro, zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_test",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "test"
+      },
+      {
+       "id": "s_tl",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "test_label"
+      },
+      {
+       "id": "h_test",
+       "verb": "highlight",
+       "start": "cue:c_zero",
+       "end": "cue_end:c_zero",
+       "target": "test",
+       "role": "unknown"
+      }
+     ]
+    },
+    {
+     "id": "verifie",
+     "say": "Je remplace : zéro plus zéro égale zéro, et zéro est bien plus petit que six. Ce côté-là est le bon, je garde le demi-plan du dessous.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "zéro plus zéro"
+      },
+      {
+       "id": "c_garde",
+       "text": "je garde le demi-plan"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "calc_test"
+      },
+      {
+       "id": "s_zone",
+       "verb": "show",
+       "at": "cue:c_garde",
+       "target": "zone1"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_polygone",
+   "introduces": [
+    {
+     "id": "front2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "expression": "2*x",
+      "domain": [
+       -1,
+       3.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "d2",
+     "layout": {
+      "next_to": "d1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "y \\leq 2x",
+     "type": "math"
+    },
+    {
+     "id": "d3",
+     "layout": {
+      "next_to": "d2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "x \\geq 0 \\quad y \\geq 0",
+     "type": "math"
+    },
+    {
+     "id": "poly",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        2,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "s1",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "s2",
+     "frame": "axes",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "s3",
+     "frame": "axes",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "deuxieme",
+     "say": "Ajoutons y plus petit ou égal à deux x. La frontière est la droite qui monte deux fois plus vite.",
+     "cues": [
+      {
+       "id": "c_deuxx",
+       "text": "y plus petit ou égal à deux x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_d2",
+       "verb": "write",
+       "at": "cue:c_deuxx",
+       "target": "d2"
+      },
+      {
+       "id": "d_f2",
+       "verb": "draw",
+       "start": "cue:c_deuxx",
+       "end": "cue_end:c_deuxx",
+       "target": "front2"
+      }
+     ]
+    },
+    {
+     "id": "conditions",
+     "say": "N'oublie jamais les deux contraintes de base : x plus grand que zéro et y plus grand que zéro.",
+     "cues": [
+      {
+       "id": "c_base",
+       "text": "x plus grand que zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_d3",
+       "verb": "write",
+       "at": "cue:c_base",
+       "target": "d3"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_base",
+       "target": "calc_test"
+      },
+      {
+       "id": "f_zone",
+       "verb": "fade_out",
+       "at": "cue:c_base",
+       "target": "zone1"
+      },
+      {
+       "id": "f_front",
+       "verb": "fade_out",
+       "at": "cue:c_base",
+       "target": "front1"
+      },
+      {
+       "id": "f_test",
+       "verb": "fade_out",
+       "at": "cue:c_base",
+       "target": "test"
+      },
+      {
+       "id": "f_tl",
+       "verb": "fade_out",
+       "at": "cue:c_base",
+       "target": "test_label"
+      }
+     ]
+    },
+    {
+     "id": "commun",
+     "say": "Ce qui reste commun aux quatre contraintes, c'est ce triangle : le polygone de contraintes.",
+     "cues": [
+      {
+       "id": "c_triangle",
+       "text": "ce triangle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_poly",
+       "verb": "show",
+       "at": "cue:c_triangle",
+       "target": "poly"
+      },
+      {
+       "id": "s_s1",
+       "verb": "show",
+       "at": "cue:c_triangle",
+       "target": "s1"
+      },
+      {
+       "id": "s_s2",
+       "verb": "show",
+       "at": "cue:c_triangle",
+       "target": "s2"
+      },
+      {
+       "id": "s_s3",
+       "verb": "show",
+       "at": "cue:c_triangle",
+       "target": "s3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sommets",
+   "introduces": [
+    {
+     "id": "lab1",
+     "attachment": {
+      "parent": "s1",
+      "anchor": "bottom"
+     },
+     "content": "(0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "lab2",
+     "attachment": {
+      "parent": "s2",
+      "anchor": "right"
+     },
+     "content": "(6 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "lab3",
+     "attachment": {
+      "parent": "s3",
+      "anchor": "left"
+     },
+     "content": "(2 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "sys",
+     "layout": {
+      "next_to": "d3",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "y = 6 - x \\quad y = 2x \\Rightarrow 2x = 6 - x \\Rightarrow x = 2 \\;,\\; y = 4",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sommet_milieu",
+     "say": "Le sommet du haut n'est pas lu à l'œil : c'est le croisement des deux frontières. Je pose y égale six moins x et y égale deux x, ce qui donne x égale deux et y égale quatre.",
+     "cues": [
+      {
+       "id": "c_croisement",
+       "text": "croisement des deux frontières"
+      },
+      {
+       "id": "c_quatre",
+       "text": "y égale quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sys",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "sys"
+      }
+     ]
+    },
+    {
+     "id": "trois",
+     "say": "Les trois sommets du triangle sont donc zéro zéro, six zéro et deux quatre.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "zéro zéro"
+      },
+      {
+       "id": "c_six",
+       "text": "six zéro"
+      },
+      {
+       "id": "c_deuxq",
+       "text": "deux quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_l1",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "lab1"
+      },
+      {
+       "id": "s_l2",
+       "verb": "show",
+       "at": "cue:c_six",
+       "target": "lab2"
+      },
+      {
+       "id": "s_l3",
+       "verb": "show",
+       "at": "cue:c_deuxq",
+       "target": "lab3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_optim",
+   "introduces": [
+    {
+     "id": "obj",
+     "layout": {
+      "next_to": "d3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "z = 3x + 2y",
+     "type": "math"
+    },
+    {
+     "id": "tabz",
+     "params": {
+      "rows": [
+       [
+        "(0 ; 0)",
+        0
+       ],
+       [
+        "(6 ; 0)",
+        18
+       ],
+       [
+        "(2 ; 4)",
+        14
+       ]
+      ],
+      "column_labels": [
+       "sommet",
+       "z"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fonction",
+     "say": "Souvent, on te donne une fonction à optimiser, par exemple z égale trois x plus deux y.",
+     "cues": [
+      {
+       "id": "c_z",
+       "text": "z égale trois x plus deux y"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_sys",
+       "verb": "fade_out",
+       "at": "cue:c_z",
+       "target": "sys"
+      },
+      {
+       "id": "w_obj",
+       "verb": "write",
+       "at": "cue:c_z",
+       "target": "obj"
+      }
+     ]
+    },
+    {
+     "id": "evalue",
+     "say": "La règle est simple : le maximum et le minimum sont toujours à un sommet. Alors je calcule z partout.",
+     "cues": [
+      {
+       "id": "c_partout",
+       "text": "je calcule z partout"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_partout",
+       "target": "tabz"
+      }
+     ]
+    },
+    {
+     "id": "compare",
+     "say": "Zéro, dix-huit, quatorze : le plus grand est dix-huit, atteint au sommet six zéro.",
+     "cues": [
+      {
+       "id": "c_dixhuit",
+       "text": "dix-huit"
+      },
+      {
+       "id": "c_six",
+       "text": "six zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_dixhuit",
+       "end": "cue_end:c_six",
+       "target": "tabz",
+       "role": "result",
+       "part": "r2c2"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Polygone = partie commune à tous les demi-plans ; l'optimum est à un sommet",
+     "type": "text"
+    },
+    {
+     "id": "recap",
+     "content": "z_{\\max} = 18 \\text{ en } (6\\,;\\,0)",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "fin",
+     "items": [
+      "idee",
+      "recap"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : chaque inéquation garde un demi-plan, le polygone est la partie commune, et l'optimum se trouve à un sommet.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_d1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "d1"
+      },
+      {
+       "id": "f_d2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "d2"
+      },
+      {
+       "id": "f_d3",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "d3"
+      },
+      {
+       "id": "f_obj",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "obj"
+      },
+      {
+       "id": "f_front2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "front2"
+      },
+      {
+       "id": "f_front1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "front1"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tabz"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "poly",
+        "s3",
+        "idee",
+        "recap"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "recap"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

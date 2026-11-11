@@ -1,0 +1,935 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "interet_compose",
+  "title": "Comment calculer un placement de 2000 $ à 4 % composé pendant 5 ans",
+  "language": "fr",
+  "learning_goal": "Comprendre que l'intérêt composé ajoute l'intérêt au capital chaque année et calculer 2000 $ × 1,04⁵ = 2433,31 $."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "i": {
+     "kind": "constant",
+     "value": 0.04
+    }
+   },
+   "expressions": {
+    "montant": "2000*1.04^5"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_tableau",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+       ],
+       [
+        2000,
+        2080,
+        2163.2,
+        2249.73,
+        2339.72,
+        2433.31
+       ]
+      ],
+      "row_labels": [
+       "année",
+       "capital ($)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note",
+     "attachment": {
+      "parent": "tab",
+      "anchor": "bottom"
+     },
+     "content": "× 1,04 chaque année",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "depart",
+     "say": "Tu places deux mille dollars à quatre pour cent d'intérêt composé par année, pendant cinq ans.",
+     "cues": [
+      {
+       "id": "c_place",
+       "text": "deux mille dollars"
+      },
+      {
+       "id": "c_taux",
+       "text": "quatre pour cent"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "tab"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_tab"
+      },
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "annee1",
+     "say": "La première année, l'intérêt vaut quatre pour cent de deux mille, soit quatre-vingts dollars. Le capital devient deux mille quatre-vingts.",
+     "cues": [
+      {
+       "id": "c_interet",
+       "text": "l'intérêt vaut"
+      },
+      {
+       "id": "c_quatrevingts",
+       "text": "quatre-vingts dollars"
+      },
+      {
+       "id": "c_deuxmillequatrevingts",
+       "text": "deux mille quatre-vingts"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_a1",
+       "verb": "highlight",
+       "start": "cue:c_interet",
+       "end": "cue_end:c_quatrevingts",
+       "target": "tab",
+       "role": "accent",
+       "part": "c2"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "start": "cue:c_deuxmillequatrevingts",
+       "end": "cue_end:c_deuxmillequatrevingts",
+       "target": "tab",
+       "role": "accent",
+       "part": "c3"
+      }
+     ]
+    },
+    {
+     "id": "suite",
+     "say": "L'année suivante, l'intérêt se calcule sur deux mille quatre-vingts : l'intérêt sur l'intérêt s'ajoute. Chaque fois, on ajoute quatre pour cent au capital déjà grossi.",
+     "cues": [
+      {
+       "id": "c_suivante",
+       "text": "L'année suivante"
+      },
+      {
+       "id": "c_interet_interet",
+       "text": "l'intérêt sur l'intérêt"
+      },
+      {
+       "id": "c_chaque",
+       "text": "Chaque fois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c3",
+       "verb": "highlight",
+       "start": "cue:c_suivante",
+       "end": "cue_end:c_suivante",
+       "target": "tab",
+       "role": "accent",
+       "part": "c3"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_chaque",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_multiplicateur",
+   "introduces": [
+    {
+     "id": "mul",
+     "content": "2000 \\times 1{,}04 = 2080",
+     "parts": [
+      {
+       "id": "m1",
+       "text": "2000 \\times 1{,}04"
+      },
+      {
+       "id": "m2",
+       "text": "= 2080"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "pourcent",
+     "content": "Ajouter 4 %, c'est multiplier par 1,04 : le 1 garde le capital, le 0,04 ajoute l'intérêt.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Pour aller plus vite, remarque une chose : ajouter quatre pour cent, c'est multiplier par un virgule zéro quatre.",
+     "cues": [
+      {
+       "id": "c_ajouter",
+       "text": "ajouter quatre pour cent"
+      },
+      {
+       "id": "c_multiplier",
+       "text": "multiplier par un virgule zéro quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "dim",
+       "at": "cue:c_ajouter",
+       "target": "tab"
+      },
+      {
+       "id": "f_note",
+       "verb": "dim",
+       "at": "cue:c_ajouter",
+       "target": "note"
+      },
+      {
+       "id": "w_mul",
+       "verb": "write",
+       "at": "cue:c_multiplier",
+       "target": "mul"
+      }
+     ]
+    },
+    {
+     "id": "premiere",
+     "say": "Vérifions sur la première année : deux mille fois un virgule zéro quatre donne bien deux mille quatre-vingts.",
+     "cues": [
+      {
+       "id": "c_mille",
+       "text": "deux mille fois un virgule zéro quatre"
+      },
+      {
+       "id": "c_quatrevingts",
+       "text": "deux mille quatre-vingts"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_m1",
+       "verb": "highlight",
+       "start": "cue:c_mille",
+       "end": "cue_end:c_mille",
+       "target": "mul",
+       "role": "accent",
+       "part": "m1"
+      },
+      {
+       "id": "h_m2",
+       "verb": "highlight",
+       "start": "cue:c_quatrevingts",
+       "end": "cue_end:c_quatrevingts",
+       "target": "mul",
+       "role": "result",
+       "part": "m2"
+      }
+     ]
+    },
+    {
+     "id": "repete",
+     "say": "Comme on répète ce calcul cinq années de suite, la valeur finale s'écrit deux mille multiplié par un virgule zéro quatre exposant cinq.",
+     "cues": [
+      {
+       "id": "c_repete",
+       "text": "cinq années"
+      },
+      {
+       "id": "c_exposant",
+       "text": "exposant cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pourcent",
+       "verb": "show",
+       "at": "cue:c_repete",
+       "target": "pourcent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "C = C_0(1 + i)^n",
+     "parts": [
+      {
+       "id": "fc",
+       "text": "C = C_0"
+      },
+      {
+       "id": "fi",
+       "text": "(1 + i)^n"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calcul",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "montant",
+      "template": "2000 \\times 1{,}04^5 = {value}",
+      "precision": 2
+     },
+     "type": "math"
+    },
+    {
+     "id": "interet",
+     "layout": {
+      "next_to": "calcul",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "2433{,}31 - 2000 = 433{,}31",
+     "type": "math"
+    },
+    {
+     "id": "unite",
+     "attachment": {
+      "parent": "calcul",
+      "anchor": "right"
+     },
+     "content": "$",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "nommer",
+     "say": "Cette expression porte un nom : le montant final égale le capital de départ multiplié par un plus le taux, exposant le nombre de périodes.",
+     "cues": [
+      {
+       "id": "c_montant",
+       "text": "le montant final"
+      },
+      {
+       "id": "c_capital",
+       "text": "le capital de départ"
+      },
+      {
+       "id": "c_periodes",
+       "text": "le nombre de périodes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_fc",
+       "verb": "write",
+       "at": "cue:c_capital",
+       "target": "formule",
+       "part": "fc"
+      },
+      {
+       "id": "w_fi",
+       "verb": "write",
+       "at": "cue:c_periodes",
+       "target": "formule",
+       "part": "fi"
+      }
+     ]
+    },
+    {
+     "id": "appliquer",
+     "say": "Ici, le capital de départ vaut deux mille, le taux vaut zéro virgule zéro quatre et n vaut cinq.",
+     "cues": [
+      {
+       "id": "c_deuxmille",
+       "text": "deux mille"
+      },
+      {
+       "id": "c_taux",
+       "text": "le taux vaut zéro virgule zéro quatre"
+      },
+      {
+       "id": "c_cinq",
+       "text": "n vaut cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_fc",
+       "verb": "highlight",
+       "start": "cue:c_deuxmille",
+       "end": "cue_end:c_taux",
+       "target": "formule",
+       "role": "given",
+       "part": "fc"
+      },
+      {
+       "id": "h_fi",
+       "verb": "highlight",
+       "start": "cue:c_cinq",
+       "end": "cue_end:c_cinq",
+       "target": "formule",
+       "role": "given",
+       "part": "fi"
+      }
+     ]
+    },
+    {
+     "id": "calculer",
+     "say": "On calcule tout d'un bloc : deux mille fois un virgule zéro quatre exposant cinq donne deux mille quatre cent trente-trois dollars et trente et un cents.",
+     "cues": [
+      {
+       "id": "c_bloc",
+       "text": "d'un bloc"
+      },
+      {
+       "id": "c_resultat",
+       "text": "deux mille quatre cent trente-trois dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_bloc",
+       "target": "calcul"
+      },
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "start": "cue:c_resultat",
+       "end": "cue_end:c_resultat",
+       "target": "calcul",
+       "role": "result"
+      },
+      {
+       "id": "s_unite",
+       "verb": "show",
+       "at": "after:h_calc",
+       "target": "unite"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "gain",
+     "say": "Le gain, c'est ce montant moins les deux mille du départ : quatre cent trente-trois dollars et trente et un cents.",
+     "cues": [
+      {
+       "id": "c_gain",
+       "text": "Le gain"
+      },
+      {
+       "id": "c_resultat_gain",
+       "text": "quatre cent trente-trois dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_int",
+       "verb": "write",
+       "at": "cue:c_gain",
+       "target": "interet"
+      },
+      {
+       "id": "h_int",
+       "verb": "highlight",
+       "start": "cue:c_resultat_gain",
+       "end": "cue_end:c_resultat_gain",
+       "target": "interet",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_piege",
+   "introduces": [
+    {
+     "id": "faux",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "2000 \\times 1{,}2167 = 2433{,}40",
+     "parts": [
+      {
+       "id": "f1",
+       "text": "2000 \\times 1{,}2167"
+      },
+      {
+       "id": "f2",
+       "text": "= 2433{,}40"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "avis",
+     "attachment": {
+      "parent": "faux",
+      "anchor": "bottom"
+     },
+     "content": "arrondir avant de multiplier change le résultat",
+     "type": "label"
+    },
+    {
+     "id": "simple",
+     "layout": {
+      "next_to": "faux",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "2000 + 5 \\times 80 = 2400",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "erreur",
+     "say": "Attention à un piège : si tu arrondis un virgule zéro quatre exposant cinq à un virgule deux mille cent soixante-sept avant de multiplier, tu obtiens deux mille quatre cent trente-trois dollars et quarante cents.",
+     "cues": [
+      {
+       "id": "c_arrondis",
+       "text": "si tu arrondis"
+      },
+      {
+       "id": "c_faux",
+       "text": "quarante cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_calc",
+       "verb": "dim",
+       "at": "cue:c_arrondis",
+       "target": "calcul"
+      },
+      {
+       "id": "w_faux",
+       "verb": "write",
+       "at": "cue:c_faux",
+       "target": "faux"
+      },
+      {
+       "id": "s_avis",
+       "verb": "show",
+       "at": "after:w_faux",
+       "target": "avis"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "Ce n'est pas la bonne réponse : quatre-vingt-dix cents de trop, parce que l'arrondi a grossi le multiplicateur. Garde un virgule zéro quatre exposant cinq exact jusqu'à la fin.",
+     "cues": [
+      {
+       "id": "c_pasbonne",
+       "text": "pas la bonne réponse"
+      },
+      {
+       "id": "c_exact",
+       "text": "exact jusqu'à la fin"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_faux",
+       "verb": "highlight",
+       "start": "cue:c_pasbonne",
+       "end": "cue_end:c_pasbonne",
+       "target": "faux",
+       "role": "unknown",
+       "part": "f2"
+      },
+      {
+       "id": "h_f1",
+       "verb": "highlight",
+       "start": "cue:c_exact",
+       "end": "cue_end:c_exact",
+       "target": "faux",
+       "role": "unknown",
+       "part": "f1"
+      }
+     ]
+    },
+    {
+     "id": "compare",
+     "say": "À titre de comparaison, à intérêt simple, tu aurais deux mille plus cinq fois quatre-vingts, soit deux mille quatre cents dollars.",
+     "cues": [
+      {
+       "id": "c_simple",
+       "text": "à intérêt simple"
+      },
+      {
+       "id": "c_deuxmillequatre",
+       "text": "deux mille quatre cents dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_simple",
+       "verb": "write",
+       "at": "cue:c_simple",
+       "target": "simple"
+      },
+      {
+       "id": "h_simple",
+       "verb": "highlight",
+       "start": "cue:c_deuxmillequatre",
+       "end": "cue_end:c_deuxmillequatre",
+       "target": "simple",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "gen",
+     "content": "C = C_0(1 + i)^n",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "content": "Chaque période multiplie le capital par (1 + i) : l'intérêt rapporte à son tour.",
+     "type": "text"
+    },
+    {
+     "id": "exemple",
+     "content": "2000 $ à 4 % pendant 5 ans donne 2433,31 $",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_centrale",
+     "say": "À retenir : chaque période multiplie le capital par un plus le taux, donc l'intérêt rapporte à son tour.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_multiplie",
+       "text": "multiplie le capital"
+      }
+     ],
+     "do": [
+      {
+       "id": "nettoyer",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "formule"
+      },
+      {
+       "id": "nettoyer2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "faux"
+      },
+      {
+       "id": "nettoyer3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "avis"
+      },
+      {
+       "id": "nettoyer4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "simple"
+      },
+      {
+       "id": "nettoyer5",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pourcent"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "gen",
+        "idee",
+        "exemple"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_gen",
+       "verb": "write",
+       "at": "cue:c_multiplie",
+       "target": "gen"
+      },
+      {
+       "id": "h_gen",
+       "verb": "highlight",
+       "start": "cue:c_multiplie",
+       "end": "cue_end:c_multiplie",
+       "target": "gen",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "concret",
+     "say": "Pour ton placement de deux mille dollars à quatre pour cent pendant cinq ans, ça donne deux mille quatre cent trente-trois dollars et trente et un cents.",
+     "cues": [
+      {
+       "id": "c_ton",
+       "text": "ton placement"
+      },
+      {
+       "id": "c_donne",
+       "text": "deux mille quatre cent trente-trois dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_ton",
+       "target": "idee"
+      },
+      {
+       "id": "w_exemple",
+       "verb": "write",
+       "at": "cue:c_donne",
+       "target": "exemple"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

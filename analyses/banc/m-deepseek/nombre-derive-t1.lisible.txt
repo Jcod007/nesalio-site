@@ -1,0 +1,71 @@
+QUESTION (nombre-derive, mathematiques, sec 5, sens) : C'est quoi le nombre dérivé, sur un graphique ?
+RÉPONSE DE RÉFÉRENCE : La pente de la tangente à la courbe au point d'abscisse a.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. sécante entre A et P, pente = taux de variation moyen
+  2. P se rapproche de A : la sécante tend vers la tangente
+  3. nombre dérivé = pente de la tangente en A
+  4. exemple chiffré (ex. y = x² en x = 1 : 2)
+  5. lecture de la pente sur le graphique
+ERREURS GRAVES À CHERCHER : sécante tracée qui ne passe pas par P ; pente dite ≠ pente tracée
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi le nombre dérivé sur un graphique
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{"pente":"q+1"}}
+=== Tranche s_secante
+  OBJET rep [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-1,3]} 
+  OBJET A [point] {"at":[1,1]} 
+  OBJET A_lab [label] "A(1 ; 1)" attaché à A
+  OBJET P [point] {"at":[3,9]} 
+  OBJET P_lab [label] "P(3 ; 9)" attaché à P
+  OBJET secante [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-1,3]} 
+  OBJET pente [math] {"kind":"computed","expression_ref":"pente","template":"\\text{pente de } AP = {value}","precision":0} 
+DIT (intro) : Le nombre dérivé, c'est la pente de la tangente à la courbe en un point. Regarde comment on y arrive.
+    camera.focus  @beat:start {"targets":["rep"],"bounds":"layout_bounds","save_as":"vue"}
+    show rep @beat:start 
+    draw courbe @- {"start":"cue:c_pente","end":"cue_end:c_pente"}
+DIT (deux_points) : Voici la courbe de x au carré. Je place le point A en un, un, et le point P en trois, neuf.
+    show A @cue:c_A 
+    show A_lab @cue:c_A 
+    show P @cue:c_P 
+    show P_lab @cue:c_P 
+DIT (droitepente) : La droite qui passe par A et P s'appelle une sécante. Sa pente, c'est la montée divisée par l'avancée.
+    draw secante @- {"start":"cue:c_secante","end":"cue_end:c_secante"}
+    write pente @cue:c_montee 
+=== Tranche s_rapproche
+  OBJET p24 [math] "\\text{pente} = 3 \\text{ quand } P(2\\,;\\,4)" 
+  OBJET p15 [math] "\\text{pente} = 2{,}5 \\text{ quand } P(1{,}5\\,;\\,2{,}25)" 
+  OBJET tang [function_graph] {"expression":"2*x-1","domain":[-1,3]} 
+  OBJET tang_lab [math] "\\text{tangente : pente } = 2" 
+DIT (calcule) : De trois à un, l'avancée vaut deux, la montée vaut huit, la pente vaut quatre.
+    write pente @cue:c_quatre 
+    highlight pente @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"given"}
+DIT (p2) : Maintenant rapprochons P de A. En deux, quatre, la pente tombe à trois.
+    fade_out P @beat:start 
+    fade_out P_lab @beat:start 
+    show P @beat:start 
+    write p24 @cue:c_trois 
+DIT (p15) : Encore plus près : en un et demi, deux et quart, la pente descend à deux et demi.
+    fade_out p24 @beat:start 
+    write p15 @cue:c_deuxcinq 
+=== Tranche s_tangente
+  OBJET idee [text] "Le nombre dérivé en A est la pente limite des sécantes." 
+DIT (pivote) : Quand P glisse vers A, la sécante pivote et sa pente passe de quatre vers deux. Regarde-la tourner.
+    fade_out p15 @cue:c_pivote 
+    animate_parameter  @- {"start":"cue:c_pivote","end":"cue_end:c_versdeux","parameter":"q","from":3,"to":1}
+    write pente @cue:c_versdeux 
+DIT (limite) : À la limite, quand P atteint A, la sécante devient la tangente : sa pente vaut deux. C'est le nombre dérivé.
+    draw tang @- {"start":"cue:c_tangente","end":"cue_end:c_deux"}
+    show tang_lab @cue:c_deux 
+    highlight tang @- {"start":"cue:c_derive","end":"cue_end:c_derive","role":"result"}
+=== Tranche s_retenir
+DIT (retenir) : À retenir : sur un graphique, le nombre dérivé en un point, c'est la pente de la tangente. On l'obtient en rapprochant les sécantes jusqu'à la limite.
+    fade_out pente @beat:start 
+    fade_out p24 @beat:start 
+    fade_out p15 @beat:start 
+    fade_out secante @beat:start 
+    fade_out P @beat:start 
+    fade_out P_lab @beat:start 
+    show idee @cue:c_retenir 
+    highlight A @- {"start":"cue:c_pentefinal","end":"cue_end:c_pentefinal","role":"result"}
+--- 4 tranches, 173 mots dits (≈ 1.2 min d'oral)

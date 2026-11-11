@@ -1,0 +1,65 @@
+QUESTION (ap3-gaz-deplacement-eau, chimie, sec 5, alloprof) : Bonjour, dans le corrigé pour cette question, ils ont noté la pression partielle du l'eau comme étant 2,64 kPa mais je ne sais pas comment y arriver.
+Un mélange de NO2 et de NO est recueilli par déplacement d'eau, à une température de 22°C et une pression de 99,3 kPa, quelle est la pression partielle du NO2?
+RÉPONSE DE RÉFÉRENCE : 2,64 kPa est la pression de vapeur de l'eau à 22 °C, lue dans une table (elle ne se calcule pas). Les gaz recueillis exercent 99,3 − 2,64 ≈ 96,7 kPa ; il faut la composition du mélange pour isoler P(NO2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver la pression partielle du NO2 recueilli sur l'eau
+math_context : {"symbols":{"p_totale":{"kind":"constant","value":99.3},"p_eau":{"kind":"constant","value":2.64},"p_NO2":{"kind":"constant","value":96.66}},"expressions":{"calcul":"p_totale - p_eau"}}
+=== Tranche s_donnees
+  OBJET p_tot [math] "p_{totale} = \\pu{99{,}3 kPa}" parts=p_{totale} | = \pu{99{,}3 kPa}
+  OBJET p_vap [math] "p_{eau} = \\pu{2{,}64 kPa}" parts=p_{eau} | = \pu{2{,}64 kPa}
+  OBJET inconnue [math] "p_{NO_2} = \\text{?}" 
+DIT (resume) : Bonjour ! Ton mélange est recueilli par déplacement d'eau : il y a du NO deux, mais aussi de la vapeur d'eau, à vingt-deux degrés.
+    show p_tot @beat:start 
+DIT (trois) : On connaît la pression totale, quatre-vingt-dix-neuf virgule trois kilopascals. Pour l'eau à vingt-deux degrés, la table donne deux virgule soixante-quatre kilopascals.
+    highlight p_tot @cue:c_ptot {"role":"given","part":"ptot_r"}
+    show p_vap @cue:c_peau 
+    highlight p_vap @after:s_pvap {"role":"given","part":"pvap_r"}
+DIT (manque) : Et c'est là le piège : ce deux virgule soixante-quatre n'est pas la réponse, c'est la pression de la vapeur d'eau. Ce qui manque, c'est la pression partielle du NO deux.
+    show inconnue @cue:c_manque 
+    highlight p_vap @- {"start":"cue:c_pas","end":"cue_end:c_pas","role":"secondary","part":"pvap_l"}
+=== Tranche s_dalton
+  OBJET dalton [math] "p_{totale} = p_{NO_2} + p_{eau}" parts=p_{totale} | = p_{NO_2} | + p_{eau}
+  OBJET iso [math] "p_{NO_2} = p_{totale} - p_{eau}" 
+  OBJET part [text] "La pression partielle, c'est celle que ce gaz aurait seul." 
+DIT (loi) : Dans un mélange de gaz, chaque gaz appuie comme s'il était seul. La pression totale, c'est la somme des pressions partielles : loi de Dalton.
+    write dalton @cue:c_somme {"part":"d_tot"}
+    write dalton @after:w_tot {"part":"d_no"}
+    write dalton @after:w_no {"part":"d_eau"}
+    highlight dalton @cue:c_dalton {"role":"accent"}
+DIT (isole) : Ici, la pression totale est quatre-vingt-dix-neuf virgule trois ; elle se partage entre l'eau et le NO deux. On cherche le NO deux, alors on isole : pression du NO deux égale pression totale moins pression de l'eau.
+    transform iso @cue:c_isole {"source":"dalton"}
+DIT (sens) : En mots : la pression du mélange contient la vapeur d'eau. Pour avoir celle du NO deux, on retire la vapeur d'eau.
+    show part @cue:c_retire 
+    highlight iso @- {"start":"cue:c_retire","end":"cue_end:c_retire","role":"accent"}
+=== Tranche s_calcul
+  OBJET calc [math] "p_{NO_2} = 99{,}3 - 2{,}64" parts=p_{NO_2} = 99{,}3 | - 2{,}64
+  OBJET res [math] "p_{NO_2} = 96{,}66\\ \\text{kPa}" 
+  OBJET verif [math] "96{,}66 + 2{,}64 = 99{,}3" parts=96{,}66 | + 2{,}64 | = 99{,}3
+DIT (remplace) : On remplace par les nombres : quatre-vingt-dix-neuf virgule trois, moins deux virgule soixante-quatre.
+    write calc @cue:c_quatre {"part":"c_debut"}
+    write calc @cue:c_moins {"part":"c_retrait"}
+DIT (resultat) : Ça donne quatre-vingt-seize virgule soixante-six kilopascals. Voilà la pression partielle du NO deux.
+    show res @cue:c_res 
+    highlight res @after:s_res {"role":"result"}
+DIT (check) : Vérifions : quatre-vingt-seize virgule soixante-six plus deux virgule soixante-quatre donne bien quatre-vingt-dix-neuf virgule trois, la pression totale donnée.
+    show verif @cue:c_verifie 
+    highlight verif @- {"start":"cue:c_verifie","end":"cue_end:c_verifie","role":"accent","part":"v_no"}
+    highlight verif @- {"start":"cue:c_verifie","end":"cue_end:c_verifie","role":"accent","part":"v_tot"}
+=== Tranche s_retenir
+  OBJET regle [math] "p_{NO_2} = p_{totale} - p_{eau}" 
+  OBJET idee [text] "Le gaz recueilli sur l'eau est mouillé : la vapeur d'eau prend sa part." 
+DIT (recap) : À retenir : dès qu'un gaz est recueilli sur l'eau, il est mouillé, et la vapeur d'eau prend une part de la pression totale.
+    fade_out p_tot @cue:c_retenir 
+    fade_out p_vap @cue:c_retenir 
+    fade_out inconnue @cue:c_retenir 
+    fade_out part @cue:c_retenir 
+    fade_out calc @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["regle","res","idee"],"bounds":"layout_bounds"}
+    write regle @cue:c_retenir 
+    show idee @cue:c_part 
+    highlight res @after:s_idee {"role":"result"}
+--- 4 tranches, 230 mots dits (≈ 1.5 min d'oral)

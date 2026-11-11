@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@clerk/nextjs/server", () => ({ auth: async () => ({ userId: null }) }));
 vi.mock("next/server", () => ({ after: vi.fn() }));
 
-import { POST as tutor } from "@/app/api/tutor/route";
 import { POST as voice } from "@/app/api/voice/route";
 import { POST as transcribe } from "@/app/api/transcribe/route";
 import { POST as feedback } from "@/app/api/feedback/route";
@@ -11,7 +10,6 @@ import { POST as afterTrial } from "@/app/api/apres-essai/route";
 
 describe("protected API operations", () => {
   it.each([
-    ["tutor", tutor],
     ["voice", voice],
     ["transcribe", transcribe],
     ["feedback", feedback],

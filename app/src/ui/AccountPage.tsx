@@ -22,6 +22,16 @@ export function AccountPage({ title, children }: { title?: string; children: Rea
   );
 }
 
+/** No model configured (DISABLE_AI, no token): Nesa cannot explain. */
+export function NesaUnavailable() {
+  return (
+    <AccountPage title="Nesa revient bientôt">
+      <p>Nesa ne peut pas expliquer pour le moment. Réessaie un peu plus tard.</p>
+      <a href="https://nesalio.com">Retour au site Nesalio</a>
+    </AccountPage>
+  );
+}
+
 export function AccountUnavailable() {
   return (
     <AccountPage title="La connexion sera bientôt de retour">

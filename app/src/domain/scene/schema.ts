@@ -13,6 +13,22 @@
  */
 import { z } from "zod";
 import { Action } from "./commands";
+import { TeachingAnnotation } from "@/domain/tutor/learning";
+import { AwaitEvent, Check, DiagnosisEvent, EndEvent, ErrorEvent, PlanEvent, SourceEvent } from "@/domain/tutor/dialogue";
+export {
+  AwaitEvent,
+  Check,
+  Diagnosis,
+  DiagnosisEvent,
+  EndEvent,
+  ErrorEvent,
+  Gap,
+  GapStatus,
+  Noticed,
+  PlanEvent,
+  SourceEvent,
+  SourceKind,
+} from "@/domain/tutor/dialogue";
 
 export { ColorName } from "./primitives";
 export { Action, type ActionType } from "./commands";
@@ -22,47 +38,46 @@ export { Action, type ActionType } from "./commands";
 export const Mood = z.enum(["explique", "dessine", "question", "idee", "bravo"]);
 export type Mood = z.infer<typeof Mood>;
 
-/**
- * Question posée à l'élève. Deux sortes :
- * - avec `answer` : question de vérification (une bonne réponse, réaction immédiate ifRight / ifWrong) ;
- * - sans `answer` : question pour situer l'élève (ce qu'il sait, ce qu'il prédit) ; pas de bonne réponse.
- * Dans les deux cas, Nesa attend la réponse avant de continuer.
- */
-export const Check = z
-  .object({
-    prompt: z.string().trim().min(1).max(300),
-    // Les modèles formulent parfois des choix en phrase complète : on les accepte (la carte passe à la ligne).
-    choices: z.array(z.string().trim().min(1).max(140)).min(2).max(4),
-    answer: z.number().int().min(0).optional(),
-    ifRight: z.string().trim().min(1).max(300).optional(),
-    ifWrong: z.string().trim().min(1).max(300).optional(),
-    /**
-     * Pour chaque choix (même ordre), l'erreur de raisonnement qu'il révèle ("" pour la bonne réponse).
-     * Elle revient au modèle avec la réponse de l'élève : la remédiation vise la bonne erreur.
-     */
-    why: z.array(z.string().trim().max(160)).max(4).optional(),
-  })
-  .refine((check) => check.answer === undefined || check.answer < check.choices.length, {
-    message: "La bonne réponse doit désigner un des choix",
-    path: ["answer"],
-  })
-  .refine((check) => !check.why || check.why.length <= check.choices.length, {
-    message: "why : une explication par choix au plus",
-    path: ["why"],
-  });
-export type Check = z.infer<typeof Check>;
-
-export const Step = z.object({
+export const LegacyStep = z.object({
   say: z.string().trim().min(1).max(320),
   mood: Mood.optional(),
   do: z.array(Action).max(12).default([]),
   check: Check.optional(),
+  /** Rôle pédagogique déclaré ; sa lecture complète est suivie séparément des réponses. */
+  teaching: TeachingAnnotation.optional(),
   /**
    * Moment où chaque objet apparaît, en fraction de la phrase (0 = début).
    * Calculé à partir des repères {id} écrits dans « say » (voir tutor/cues.ts).
    */
   cues: z.record(z.string(), z.number().min(0).max(1)).optional(),
+  segments: z.never().optional(),
 });
+export type LegacyStep = z.infer<typeof LegacyStep>;
+
+const Segment = z.object({
+  say: z
+    .string()
+    .trim()
+    .min(1)
+    .max(320)
+    .refine((text) => !/\{[A-Za-z][\w-]{0,31}\}/.test(text), "Repère interdit dans un segment"),
+  do: z.array(Action).max(12).default([]),
+});
+
+export const SegmentedStep = z
+  .object({
+    segments: z.array(Segment).min(1).max(6),
+    say: z.never().optional(),
+    do: z.never().optional(),
+    cues: z.never().optional(),
+    mood: Mood.optional(),
+    check: Check.optional(),
+    teaching: TeachingAnnotation.optional(),
+  })
+  .refine((step) => step.segments.reduce((n, segment) => n + segment.do.length, 0) <= 12, "12 actions au maximum par étape");
+export type SegmentedStep = z.infer<typeof SegmentedStep>;
+
+export const Step = z.union([LegacyStep, SegmentedStep]);
 export type Step = z.infer<typeof Step>;
 
 /* -------------------------------- événements -------------------------------- */
@@ -75,104 +90,13 @@ export const LessonHeaderEvent = z.object({
   goals: z.array(z.string().trim().min(1).max(120)).max(4).optional(),
 });
 
-export const StepEvent = Step.extend({ kind: z.literal("step") });
-
-/**
- * Ce que Nesa a remarqué chez l'élève, dit à l'élève en fin de séance (« tu ») :
- * ses forces, et au plus deux choses concrètes à travailler.
- */
-/**
- * Textes de fin de séance et de diagnostic : un mot de trop ou une ligne de trop ne doit pas
- * faire perdre tout le bilan (séances du 19 octobre) ; on raccourcit au lieu de rejeter.
- */
-const clipped = (max: number) =>
-  z
-    .string()
-    .trim()
-    .transform((t) => t.slice(0, max));
-const clippedList = (max: number, count: number) =>
-  z
-    .array(clipped(max))
-    .transform((items) => items.filter((t) => t.length > 0).slice(0, count))
-    .default([]);
-
-export const Noticed = z.object({
-  strengths: clippedList(140, 3),
-  toWork: clippedList(140, 2),
-});
-export type Noticed = z.infer<typeof Noticed>;
-
-export const EndEvent = z.object({
-  kind: z.literal("end"),
-  summary: z.array(z.string().trim().min(1).max(120)).max(5).default([]),
-  noticed: Noticed.optional(),
-});
-
-/**
- * Fiche de diagnostic de Nesa, invisible pour l'élève : les lacunes d'avant
- * qu'elle envisage derrière ses erreurs, et où elle en est avec chacune.
- * Rendue au modèle à chaque tour (elle se met à jour) et gardée dans les
- * séances enregistrées.
- */
-export const GapStatus = z.enum(["suspected", "confirmed", "ruled_out", "repaired"]);
-export const Gap = z.object({
-  /** La notion d'avant (« fractions : dénominateur commun »). */
-  notion: z
-    .string()
-    .trim()
-    .min(1)
-    .transform((t) => t.slice(0, 120)),
-  /** Où elle s'apprend (« sec 1 »). */
-  level: clipped(30).optional(),
-  /** Ce qui, dans les réponses de l'élève, le fait penser. */
-  evidence: z
-    .string()
-    .trim()
-    .transform((t) => t.slice(0, 240))
-    .optional(),
-  status: GapStatus,
-});
-export const Diagnosis = z.object({
-  gaps: z
-    .array(Gap)
-    .transform((gaps) => gaps.slice(0, 4))
-    .default([]),
-  strengths: clippedList(120, 3),
-  /** Ce que Nesa fait au prochain tour (vérifier, réparer, revenir à la notion). */
-  next: z
-    .string()
-    .trim()
-    .transform((t) => t.slice(0, 200))
-    .optional(),
-});
-export type Diagnosis = z.infer<typeof Diagnosis>;
-export const DiagnosisEvent = Diagnosis.extend({ kind: z.literal("diagnosis") });
+export const StepEvent = z.union([LegacyStep.extend({ kind: z.literal("step") }), SegmentedStep.safeExtend({ kind: z.literal("step") })]);
 
 /** Ce que le modèle a le droit d'émettre. */
-export const ModelEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent]);
+export const ModelEvent = z.union([LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, PlanEvent]);
 export type ModelEvent = z.infer<typeof ModelEvent>;
 
-/** Ce que le serveur envoie au navigateur : les événements du modèle, plus l'origine et les erreurs. */
-export const ErrorEvent = z.object({
-  kind: z.literal("error"),
-  code: z.enum(["rate_limited", "bad_request", "upstream", "empty"]),
-  message: z.string(),
-});
-/**
- * Fin d'un tour : Nesa a posé une question et attend la réponse de l'élève.
- * La séance continue avec une requête « continue ». Émis par le serveur, jamais par le modèle.
- */
-export const AwaitEvent = z.object({
-  kind: z.literal("await"),
-  /** Commandes du tour refusées par le validateur (raison courte) : rendues au modèle au tour suivant. */
-  rejected: z.array(z.string().max(200)).max(6).optional(),
-});
-export const SourceEvent = z.object({
-  kind: z.literal("source"),
-  source: z.enum(["model", "demo"]),
-});
-
-export const StreamEvent = z.discriminatedUnion("kind", [LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, ErrorEvent, SourceEvent, AwaitEvent]);
+export const StreamEvent = z.union([LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, ErrorEvent, SourceEvent, PlanEvent, AwaitEvent]);
 export type StreamEvent = z.infer<typeof StreamEvent>;
 export type LessonHeader = z.infer<typeof LessonHeaderEvent>;
 export type StepEventT = z.infer<typeof StepEvent>;

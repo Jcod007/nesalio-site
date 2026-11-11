@@ -1,0 +1,658 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "solubilite_gl_vers_moll",
+  "title": "Passer d'une solubilité en g/L à une concentration en mol/L",
+  "language": "fr",
+  "learning_goal": "Convertir une concentration en g/L en mol/L en utilisant la masse molaire, et vérifier le résultat."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "mol_nacl": "40/58.44"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "donnees",
+     "content": "\\pu{40 g/L} \\quad \\text{NaCl}",
+     "parts": [
+      {
+       "id": "val",
+       "text": "\\pu{40 g/L}"
+      },
+      {
+       "id": "sel",
+       "text": "\\text{NaCl}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "question",
+     "content": "g/L → mol/L",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bon, tu as une concentration en grammes par litre, et tu la veux en moles par litre.",
+     "cues": [
+      {
+       "id": "c_gl",
+       "text": "grammes par litre"
+      },
+      {
+       "id": "c_moll",
+       "text": "moles par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_val",
+       "verb": "write",
+       "at": "cue:c_gl",
+       "target": "donnees",
+       "part": "val"
+      },
+      {
+       "id": "s_sel",
+       "verb": "write",
+       "at": "cue:c_gl",
+       "target": "donnees",
+       "part": "sel"
+      },
+      {
+       "id": "s_q",
+       "verb": "show",
+       "at": "cue:c_moll",
+       "target": "question"
+      }
+     ]
+    },
+    {
+     "id": "idee",
+     "say": "L'idée, c'est simple : le gramme mesure une masse, la mole compte des particules. Il faut un pont entre les deux, et ce pont, c'est la masse molaire.",
+     "cues": [
+      {
+       "id": "c_pont",
+       "text": "un pont"
+      },
+      {
+       "id": "c_masse",
+       "text": "la masse molaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_q",
+       "verb": "highlight",
+       "start": "cue:c_pont",
+       "end": "cue_end:c_masse",
+       "target": "question",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse_molaire",
+   "introduces": [
+    {
+     "id": "na",
+     "content": "M(\\text{Na}) = \\pu{22,99 g/mol}",
+     "type": "math"
+    },
+    {
+     "id": "cl",
+     "layout": {
+      "next_to": "na",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "M(\\text{Cl}) = \\pu{35,45 g/mol}",
+     "type": "math"
+    },
+    {
+     "id": "total",
+     "layout": {
+      "next_to": "cl",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "M(\\text{NaCl}) = 22{,}99 + 35{,}45 = \\pu{58,44 g/mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "table",
+     "say": "Prenons du chlorure de sodium, le sel de table. Dans le tableau périodique, le sodium pèse vingt-deux virgule quatre-vingt-dix-neuf grammes par mole, et le chlore, trente-cinq virgule quarante-cinq.",
+     "cues": [
+      {
+       "id": "c_sodium",
+       "text": "le sodium pèse"
+      },
+      {
+       "id": "c_chlore",
+       "text": "le chlore"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_na",
+       "verb": "write",
+       "at": "cue:c_sodium",
+       "target": "na"
+      },
+      {
+       "id": "d_cl",
+       "verb": "write",
+       "at": "cue:c_chlore",
+       "target": "cl"
+      }
+     ]
+    },
+    {
+     "id": "somme",
+     "say": "On additionne les deux : cinquante-huit virgule quarante-quatre grammes par mole. C'est la masse d'une mole de NaCl.",
+     "cues": [
+      {
+       "id": "c_add",
+       "text": "cinquante-huit virgule quarante-quatre"
+      },
+      {
+       "id": "c_mole",
+       "text": "une mole de NaCl"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_add",
+       "target": "total"
+      },
+      {
+       "id": "w_res",
+       "verb": "highlight",
+       "at": "cue:c_mole",
+       "target": "total",
+       "role": "accent"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_mole",
+       "end": "cue_end:c_mole",
+       "target": "total",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_conversion",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "C_{\\text{mol/L}} = \\frac{C_{\\text{g/L}}}{M}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "C_{\\text{mol/L}}"
+      },
+      {
+       "id": "division",
+       "text": "= \\frac{C_{\\text{g/L}}}{M}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calc",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "mol_nacl",
+      "template": "C = \\frac{40}{58{,}44} = {value}\\ \\text{mol/L}",
+      "precision": 2
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "Alors on divise la concentration en grammes par litre par la masse molaire. Quarante divisé par cinquante-huit virgule quarante-quatre.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "on divise"
+      },
+      {
+       "id": "c_quarante",
+       "text": "Quarante divisé par cinquante-huit virgule quarante-quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "regle",
+       "part": "gauche"
+      },
+      {
+       "id": "w_division",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "regle",
+       "part": "division"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_quarante",
+       "target": "calc"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Ça donne environ zéro virgule soixante-huit mole par litre.",
+     "cues": [
+      {
+       "id": "c_donne",
+       "text": "zéro virgule soixante-huit mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_valeur",
+       "verb": "highlight",
+       "at": "cue:c_donne",
+       "target": "calc",
+       "role": "accent"
+      },
+      {
+       "id": "h_valeur",
+       "verb": "highlight",
+       "start": "cue:c_donne",
+       "end": "cue_end:c_donne",
+       "target": "calc",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "verif",
+     "content": "0{,}68\\ \\text{mol/L} \\times 58{,}44\\ \\text{g/mol} \\approx \\pu{40 g/L}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "controle",
+     "say": "Vérifions : zéro virgule soixante-huit mole par litre fois cinquante-huit virgule quarante-quatre grammes par mole, on retombe sur quarante grammes par litre.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_retombe",
+       "text": "quarante grammes par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_verif",
+       "verb": "write",
+       "at": "cue:c_verif",
+       "target": "verif"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:c_retombe",
+       "end": "cue_end:c_retombe",
+       "target": "verif",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "diviser par la masse molaire : g/L → mol/L",
+     "type": "text"
+    },
+    {
+     "id": "formule",
+     "content": "C_{\\text{mol/L}} = \\frac{C_{\\text{g/L}}}{M}",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap",
+     "items": [
+      "idee",
+      "formule"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "center",
+      "gap": "sm"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : pour passer des grammes par litre aux moles par litre, divise la concentration par la masse molaire.",
+     "cues": [
+      {
+       "id": "c_gl",
+       "text": "des grammes par litre"
+      },
+      {
+       "id": "c_moll",
+       "text": "aux moles par litre"
+      },
+      {
+       "id": "c_masse",
+       "text": "la masse molaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_na",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "na"
+      },
+      {
+       "id": "f_cl",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "cl"
+      },
+      {
+       "id": "f_total",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "total"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "regle"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "calc"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "verif"
+      },
+      {
+       "id": "f_don",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "donnees"
+      },
+      {
+       "id": "f_q",
+       "verb": "fade_out",
+       "at": "cue:c_gl",
+       "target": "question"
+      },
+      {
+       "id": "w_idee",
+       "verb": "show",
+       "at": "cue:c_moll",
+       "target": "idee"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:c_masse",
+       "target": "formule"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "idee",
+        "formule"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

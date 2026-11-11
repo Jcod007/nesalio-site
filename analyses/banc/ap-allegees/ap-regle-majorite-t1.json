@@ -1,0 +1,793 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "majorite_absolue",
+  "title": "Majorité absolue : diviser par 2 puis ajouter 1",
+  "language": "fr",
+  "learning_goal": "Comprendre pourquoi, pour avoir la majorité absolue, on divise le total par 2 puis on ajoute 1, et ce que ça donne avec un nombre impair."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intuition",
+   "introduces": [
+    {
+     "id": "sieges",
+     "params": {
+      "rows": [
+       [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+       ],
+       [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+       ]
+      ],
+      "row_labels": [
+       "siège",
+       "camp"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "moitie",
+     "content": "\\frac{10}{2} = 5",
+     "parts": [
+      {
+       "id": "frac",
+       "text": "\\frac{10}{2}"
+      },
+      {
+       "id": "cinq",
+       "text": "= 5"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "depart",
+     "say": "Prenons une assemblée de dix sièges. On veut savoir combien de sièges il faut pour avoir la majorité.",
+     "cues": [
+      {
+       "id": "c_dix",
+       "text": "dix sièges"
+      },
+      {
+       "id": "c_majorite",
+       "text": "la majorité"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sieges",
+       "verb": "show",
+       "at": "cue:c_dix",
+       "target": "sieges"
+      },
+      {
+       "id": "h_sieges",
+       "verb": "highlight",
+       "start": "cue:c_majorite",
+       "end": "cue_end:c_majorite",
+       "target": "sieges",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "partage",
+     "say": "Coupons ces dix sièges en deux camps égaux : cinq d'un côté, cinq de l'autre.",
+     "cues": [
+      {
+       "id": "c_coupons",
+       "text": "deux camps égaux"
+      },
+      {
+       "id": "c_cinq",
+       "text": "cinq d'un côté"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_coupons",
+       "target": "moitie",
+       "part": "frac"
+      },
+      {
+       "id": "w_cinq",
+       "verb": "write",
+       "at": "cue:c_cinq",
+       "target": "moitie",
+       "part": "cinq"
+      }
+     ]
+    },
+    {
+     "id": "egalite",
+     "say": "Avec cinq contre cinq, personne n'a plus que l'autre : c'est une égalité, pas une majorité.",
+     "cues": [
+      {
+       "id": "c_egalite",
+       "text": "cinq contre cinq"
+      },
+      {
+       "id": "c_pas",
+       "text": "pas une majorité"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_moitie",
+       "verb": "highlight",
+       "start": "cue:c_egalite",
+       "end": "cue_end:c_egalite",
+       "target": "moitie",
+       "role": "unknown"
+      },
+      {
+       "id": "h_sieges2",
+       "verb": "highlight",
+       "start": "cue:c_pas",
+       "end": "cue_end:c_pas",
+       "target": "sieges",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_plus_un",
+   "introduces": [
+    {
+     "id": "gauche",
+     "layout": {
+      "next_to": "preuve",
+      "direction": "left",
+      "gap": "lg"
+     },
+     "content": "\\frac{10}{2} = 5",
+     "type": "math"
+    },
+    {
+     "id": "droite",
+     "layout": {
+      "next_to": "preuve",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\frac{10}{2} + 1 = 6",
+     "type": "math"
+    },
+    {
+     "id": "preuve",
+     "content": "6 > 4",
+     "parts": [
+      {
+       "id": "six",
+       "text": "6"
+      },
+      {
+       "id": "plusgrand",
+       "text": ">"
+      },
+      {
+       "id": "quatre",
+       "text": "4"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_paire",
+     "layout": {
+      "next_to": "preuve",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "total pair : (total ÷ 2) + 1",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "enleve",
+     "say": "Donc la moitié seule ne suffit pas. Prenons un siège de plus : six sièges.",
+     "cues": [
+      {
+       "id": "c_six",
+       "text": "un siège de plus"
+      },
+      {
+       "id": "c_sixsieges",
+       "text": "six sièges"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_moitie",
+       "verb": "fade_out",
+       "at": "cue:c_six",
+       "target": "moitie"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_sixsieges",
+       "target": "droite"
+      }
+     ]
+    },
+    {
+     "id": "reste",
+     "say": "Il ne reste que quatre sièges pour l'autre camp. Six contre quatre, cette fois c'est clair.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "quatre sièges"
+      },
+      {
+       "id": "c_clair",
+       "text": "cette fois c'est clair"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_gauche",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "gauche"
+      },
+      {
+       "id": "w_preuve",
+       "verb": "write",
+       "at": "cue:c_clair",
+       "target": "preuve"
+      },
+      {
+       "id": "h_preuve",
+       "verb": "highlight",
+       "at": "after:w_preuve",
+       "target": "preuve",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "regle",
+     "say": "Quand le total est pair, la règle est donc : diviser par deux, puis ajouter un.",
+     "cues": [
+      {
+       "id": "c_diviser",
+       "text": "diviser par deux"
+      },
+      {
+       "id": "c_ajouter",
+       "text": "ajouter un"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_diviser",
+       "target": "note_paire"
+      },
+      {
+       "id": "h_droite",
+       "verb": "highlight",
+       "start": "cue:c_ajouter",
+       "end": "cue_end:c_ajouter",
+       "target": "droite",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_impair",
+   "introduces": [
+    {
+     "id": "sieges9",
+     "params": {
+      "rows": [
+       [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+       ],
+       [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+       ]
+      ],
+      "row_labels": [
+       "siège",
+       "camp"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "calc9",
+     "content": "\\frac{9}{2} = 4{,}5",
+     "parts": [
+      {
+       "id": "frac9",
+       "text": "\\frac{9}{2}"
+      },
+      {
+       "id": "res9",
+       "text": "= 4{,}5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "entier",
+     "layout": {
+      "next_to": "calc9",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\lceil 4{,}5 \\rceil = 5",
+     "type": "math"
+    },
+    {
+     "id": "note_impair",
+     "layout": {
+      "next_to": "entier",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "le premier entier plus grand que la moitié",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "neuf",
+     "say": "Avec un total impair, par exemple neuf sièges, la moitié donne quatre et demi.",
+     "cues": [
+      {
+       "id": "c_neuf",
+       "text": "neuf sièges"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre et demi"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_sieges",
+       "verb": "fade_out",
+       "at": "cue:c_neuf",
+       "target": "sieges"
+      },
+      {
+       "id": "s_9",
+       "verb": "show",
+       "at": "cue:c_neuf",
+       "target": "sieges9"
+      },
+      {
+       "id": "w_frac9",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "calc9",
+       "part": "frac9"
+      },
+      {
+       "id": "w_res9",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "calc9",
+       "part": "res9"
+      }
+     ]
+    },
+    {
+     "id": "arrondi",
+     "say": "Un siège, ça ne se coupe pas en deux : il faut le premier entier plus grand, c'est-à-dire cinq.",
+     "cues": [
+      {
+       "id": "c_entier",
+       "text": "le premier entier plus grand"
+      },
+      {
+       "id": "c_cinq",
+       "text": "c'est-à-dire cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_entier",
+       "verb": "write",
+       "at": "cue:c_entier",
+       "target": "entier"
+      },
+      {
+       "id": "s_noteI",
+       "verb": "show",
+       "at": "cue:c_cinq",
+       "target": "note_impair"
+      },
+      {
+       "id": "h_sieges9",
+       "verb": "highlight",
+       "start": "cue:c_cinq",
+       "end": "cue_end:c_cinq",
+       "target": "sieges9",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle_finale",
+     "content": "\\frac{n}{2} + 1",
+     "parts": [
+      {
+       "id": "n_sur_deux",
+       "text": "\\frac{n}{2}"
+      },
+      {
+       "id": "plus_un",
+       "text": "+ 1"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "phrase",
+     "content": "majorité absolue : plus de la moitié des votes",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : la majorité absolue, c'est plus de la moitié. Alors on divise le total par deux, puis on ajoute un pour dépasser la moitié.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_plus",
+       "text": "plus de la moitié"
+      },
+      {
+       "id": "c_ajoute",
+       "text": "ajoute un"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tout",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "sieges9"
+      },
+      {
+       "id": "f_gauche",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "gauche"
+      },
+      {
+       "id": "f_droite",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "droite"
+      },
+      {
+       "id": "f_preuve",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "preuve"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note_paire"
+      },
+      {
+       "id": "f_calc9",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calc9"
+      },
+      {
+       "id": "f_entier",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "entier"
+      },
+      {
+       "id": "f_noteI",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note_impair"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_plus",
+       "targets": [
+        "regle_finale",
+        "phrase"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_n",
+       "verb": "write",
+       "at": "cue:c_plus",
+       "target": "regle_finale",
+       "part": "n_sur_deux"
+      },
+      {
+       "id": "w_plus",
+       "verb": "write",
+       "at": "cue:c_ajoute",
+       "target": "regle_finale",
+       "part": "plus_un"
+      },
+      {
+       "id": "s_phrase",
+       "verb": "show",
+       "at": "cue:c_ajoute",
+       "target": "phrase"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "at": "after:s_phrase",
+       "target": "regle_finale",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,77 @@
+QUESTION (completion, mathematiques, sec 4, methode) : C'est quoi la complétion du carré ? Par exemple avec x² + 6x − 7.
+RÉPONSE DE RÉFÉRENCE : x² + 6x − 7 = (x + 3)² − 16.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. on prend la moitié du coefficient de x (3) et on ajoute puis retire son carré (9)
+  2. modèle d'aire : la bande 6x coupée en deux 3x, coin 3 × 3 qui manque
+  3. x² + 6x − 7 = (x + 3)² − 9 − 7 = (x + 3)² − 16 écrit
+  4. lien avec la forme canonique et le sommet (−3, −16)
+  5. vérification par développement
+ERREURS GRAVES À CHERCHER : coin du modèle d'aire de mauvaise taille ; règle fausse (« on ajoute la moitié du coefficient »)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi la complétion du carré ?
+=== Tranche s_intro
+  OBJET ex [math] "x^2 + 6x - 7" parts=x^2 | + 6x | - 7
+DIT (question) : La complétion du carré, c'est une façon de réécrire une expression du second degré comme un carré parfait, plus un reste.
+    write ex @cue:c_completion 
+DIT (posons) : Prenons x au carré plus six x moins sept, et voyons ce que ce x au carré plus six x cache.
+    highlight ex @cue:c_expression {"part":"carre"}
+    highlight ex @- {"start":"cue:c_cache","end":"cue_end:c_cache","role":"accent","part":"bande"}
+=== Tranche s_aire
+  OBJET grand [polygon] {"vertices":[[0,6],[6,6],[6,0],[0,0]]} 
+  OBJET coin1 [polygon] {"vertices":[[0,3],[3,3],[3,0],[0,0]]} 
+  OBJET bande_h [polygon] {"vertices":[[3,3],[6,3],[6,0],[3,0]]} 
+  OBJET bande_v [polygon] {"vertices":[[0,6],[3,6],[3,3],[0,3]]} 
+  OBJET coin2 [polygon] {"vertices":[[3,6],[6,6],[6,3],[3,3]]} 
+  OBJET l_x2 [label] "x²" attaché à coin1
+  OBJET l_3x_h [label] "3x" attaché à bande_h
+  OBJET l_3x_v [label] "3x" attaché à bande_v
+  OBJET l_9 [label] "9" attaché à coin2
+DIT (modele) : Dessinons ce carré de côté x, avec une bande de six x qu'on coupe en deux bandes de trois x.
+    camera.focus  @beat:start {"targets":["grand"],"bounds":"layout_bounds","save_as":"vue_aire"}
+    show grand @beat:start 
+    show coin1 @cue:c_cote 
+    show l_x2 @cue:c_cote 
+    show bande_h @cue:c_bande 
+    show bande_v @cue:c_bande 
+    show l_3x_h @cue:c_bande 
+    show l_3x_v @cue:c_bande 
+DIT (manque) : Il manque le coin. C'est un petit carré de trois par trois, une aire de neuf.
+    show coin2 @cue:c_coin 
+    show l_9 @cue:c_neuf 
+=== Tranche s_ajoute
+  OBJET etape [math] "x^2 + 6x = (x + 3)^2 - 9" parts=x^2 + 6x | = (x + 3)^2 | - 9
+  OBJET demi [math] "3 = \\frac{6}{2}"   <<JAMAIS MONTRÉ>>
+DIT (completer) : Pour compléter le carré, on ajoute ce neuf, puis on le retire tout de suite : le carré parfait apparaît.
+    dim grand @beat:start 
+    dim coin1 @beat:start 
+    dim bande_h @beat:start 
+    dim bande_v @beat:start 
+    dim coin2 @beat:start 
+    dim l_x2 @beat:start 
+    dim l_3x_h @beat:start 
+    dim l_3x_v @beat:start 
+    dim l_9 @beat:start 
+    write etape @cue:c_ajoute {"part":"milieu"}
+DIT (verifie) : Vérifions : x plus trois au carré donne x au carré plus six x plus neuf. En enlevant neuf, on retrouve bien x au carré plus six x.
+    write etape @cue:c_retrouve {"part":"reste"}
+    highlight etape @- {"start":"cue:c_retrouve","end":"cue_end:c_retrouve","role":"accent","part":"reste"}
+=== Tranche s_finir
+  OBJET final [math] "x^2 + 6x - 7 = (x + 3)^2 - 16" parts=x^2 + 6x - 7 | = (x + 3)^2 | - 16
+DIT (applique) : Il ne reste qu'à reporter le moins sept : moins neuf moins sept, ça fait moins seize.
+    transform final @cue:c_report {"source":"etape"}
+    highlight final @- {"start":"cue:c_seize","end":"cue_end:c_seize","role":"result","part":"r"}
+DIT (retiens) : Retiens le geste : on prend la moitié du coefficient de x, soit trois, et on ajoute et retire son carré, neuf.
+    fade_out demi @cue:c_moitie 
+    highlight final @- {"start":"cue:c_carre","end":"cue_end:c_carre","role":"result","part":"m"}
+=== Tranche s_retenir
+  OBJET regle [text] "Compléter le carré : (x + a)² = x² + 2ax + a²" 
+  OBJET phrase [text] "On ajoute puis on retire a², le carré de la moitié du coefficient de x" 
+DIT (idee) : L'idée centrale : un carré parfait, c'est x au carré plus deux a x plus a au carré.
+    camera.focus  @cue:c_idee {"targets":["regle","phrase"],"bounds":"layout_bounds"}
+    show regle @beat:start 
+    show phrase @cue:c_carre 
+DIT (exemple) : Avec x au carré plus six x moins sept, six c'est deux fois trois, alors on ajoute et retire neuf : on obtient x plus trois au carré moins seize.
+    fade_out final @cue:c_six 
+    highlight phrase @- {"start":"cue:c_seize","end":"cue_end:c_seize","role":"result"}
+--- 5 tranches, 213 mots dits (≈ 1.4 min d'oral)

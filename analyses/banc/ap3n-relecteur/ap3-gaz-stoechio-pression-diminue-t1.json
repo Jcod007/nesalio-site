@@ -1,0 +1,794 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "gaz_pression_chocs",
+  "title": "Pourquoi la pression baisse quand les moles baissent",
+  "language": "fr",
+  "learning_goal": "Comprendre que la pression vient des chocs des particules sur la paroi, donc qu'elle dépend du nombre de moles et non de la masse des atomes."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "rapport": "1/2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intuition",
+   "introduces": [
+    {
+     "id": "boite",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "g1",
+     "params": {
+      "at": [
+       1.2,
+       1.1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "g2",
+     "params": {
+      "at": [
+       3.1,
+       2.6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "g3",
+     "params": {
+      "at": [
+       4.7,
+       3.2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "g4",
+     "params": {
+      "at": [
+       2.2,
+       3.4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "paroi",
+     "attachment": {
+      "parent": "boite",
+      "anchor": "right"
+     },
+     "content": "paroi",
+     "type": "label"
+    },
+    {
+     "id": "choc",
+     "layout": {
+      "next_to": "boite",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "la pression vient des CHOCS sur la paroi",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "image",
+     "say": "Ta question touche le cœur de la pression : regarde une paroi avec des particules de gaz qui la frappent.",
+     "cues": [
+      {
+       "id": "c_paroi",
+       "text": "paroi"
+      },
+      {
+       "id": "c_frappent",
+       "text": "frappent"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_boite",
+       "verb": "draw",
+       "at": "cue:c_paroi",
+       "target": "boite"
+      },
+      {
+       "id": "s_g1",
+       "verb": "show",
+       "at": "cue:c_paroi",
+       "target": "g1"
+      },
+      {
+       "id": "s_g2",
+       "verb": "show",
+       "at": "cue:c_paroi",
+       "target": "g2"
+      },
+      {
+       "id": "s_g3",
+       "verb": "show",
+       "at": "cue:c_frappent",
+       "target": "g3"
+      },
+      {
+       "id": "s_g4",
+       "verb": "show",
+       "at": "cue:c_frappent",
+       "target": "g4"
+      },
+      {
+       "id": "s_choc",
+       "verb": "show",
+       "at": "cue:c_frappent",
+       "target": "choc"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "idee_fausse",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "\\text{2 moles lourdes = même pression}",
+     "type": "math"
+    },
+    {
+     "id": "loi",
+     "layout": {
+      "next_to": "idee_fausse",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pV = nRT",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "attachment": {
+      "parent": "loi",
+      "anchor": "right"
+     },
+     "content": "V, R et T fixes",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "corrige",
+     "say": "Ton intuition contient une erreur qu'il faut nommer clairement : ce n'est pas la masse des atomes qui pousse sur la paroi, c'est le nombre de chocs par seconde.",
+     "cues": [
+      {
+       "id": "c_masse",
+       "text": "masse des atomes"
+      },
+      {
+       "id": "c_chocs",
+       "text": "nombre de chocs par seconde"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_fausse",
+       "verb": "show",
+       "at": "cue:c_masse",
+       "target": "idee_fausse"
+      },
+      {
+       "id": "h_choc",
+       "verb": "highlight",
+       "start": "cue:c_chocs",
+       "end": "cue_end:c_chocs",
+       "target": "choc",
+       "role": "secondary"
+      }
+     ]
+    },
+    {
+     "id": "loi",
+     "say": "La loi des gaz parfaits le confirme : à volume et température fixes, p est proportionnelle à n, le nombre de moles.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "loi des gaz parfaits"
+      },
+      {
+       "id": "c_prop",
+       "text": "proportionnelle à n"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_loi",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_prop",
+       "target": "note"
+      },
+      {
+       "id": "h_n",
+       "verb": "highlight",
+       "start": "cue:c_prop",
+       "end": "cue_end:c_prop",
+       "target": "loi",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_chocs",
+   "introduces": [
+    {
+     "id": "avant",
+     "params": {
+      "rows": [
+       [
+        4,
+        8,
+        12
+       ],
+       [
+        2,
+        4,
+        6
+       ]
+      ],
+      "row_labels": [
+       "nombre de moles",
+       "chocs par seconde"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "apres",
+     "layout": {
+      "next_to": "avant",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "params": {
+      "rows": [
+       [
+        2,
+        4,
+        6
+       ],
+       [
+        1,
+        2,
+        3
+       ]
+      ],
+      "row_labels": [
+       "nombre de moles",
+       "chocs par seconde"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "resultat",
+     "layout": {
+      "next_to": "apres",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "p_2 = \\frac{1}{2}\\,p_1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "deuxfois",
+     "say": "Regarde le tableau : si le nombre de moles passe de quatre à deux, tu divises le nombre de particules par deux.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "tableau"
+      },
+      {
+       "id": "c_quatre_a_deux",
+       "text": "quatre à deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_avant",
+       "verb": "show",
+       "at": "cue:c_tableau",
+       "target": "avant"
+      },
+      {
+       "id": "s_apres",
+       "verb": "show",
+       "at": "cue:c_quatre_a_deux",
+       "target": "apres"
+      }
+     ]
+    },
+    {
+     "id": "moins_chocs",
+     "say": "Moins de particules, c'est moins de chocs chaque seconde sur la même paroi : la pression baisse d'autant.",
+     "cues": [
+      {
+       "id": "c_moins",
+       "text": "moins de chocs"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_apres",
+       "verb": "highlight",
+       "start": "cue:c_moins",
+       "end": "cue_end:c_moins",
+       "target": "apres",
+       "role": "accent"
+      },
+      {
+       "id": "s_resultat",
+       "verb": "show",
+       "at": "cue:c_moins",
+       "target": "resultat"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_conservation",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       4
+      ],
+      "y": [
+       0,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "droite",
+     "params": {
+      "expression": "2*x",
+      "domain": [
+       0,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "pt",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab",
+     "attachment": {
+      "parent": "pt",
+      "anchor": "right"
+     },
+     "content": "n = 2 → p = 4",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conservation",
+     "say": "C'est là que ton raisonnement glisse : tu confonds conservation de la matière et conservation du nombre de particules.",
+     "cues": [
+      {
+       "id": "c_conserve_mat",
+       "text": "conservation de la matière"
+      },
+      {
+       "id": "c_nb_part",
+       "text": "nombre de particules"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_rep",
+       "verb": "show",
+       "at": "cue:c_conserve_mat",
+       "target": "rep"
+      },
+      {
+       "id": "d_droite",
+       "verb": "draw",
+       "start": "cue:c_conserve_mat",
+       "end": "cue_end:c_conserve_mat",
+       "target": "droite"
+      }
+     ]
+    },
+    {
+     "id": "proportion",
+     "say": "Les atomes se réarrangent, oui, mais le nombre total de molécules change : deux moles de produits au lieu de quatre, donc deux fois moins de chocs à la fin.",
+     "cues": [
+      {
+       "id": "c_molecules",
+       "text": "nombre total de molécules"
+      },
+      {
+       "id": "c_deux_fois",
+       "text": "deux fois moins de chocs"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_molecules",
+       "target": "pt"
+      },
+      {
+       "id": "s_lab",
+       "verb": "show",
+       "at": "cue:c_deux_fois",
+       "target": "lab"
+      },
+      {
+       "id": "h_lab",
+       "verb": "highlight",
+       "start": "cue:c_deux_fois",
+       "end": "cue_end:c_deux_fois",
+       "target": "lab",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "La pression dépend du NOMBRE de particules qui frappent la paroi, pas de leur masse.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la pression, c'est la fréquence des chocs sur la paroi. Moins de molécules, même si elles sont plus lourdes, veut dire moins de chocs et moins de pression.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_frequence",
+       "text": "fréquence des chocs"
+      },
+      {
+       "id": "c_moins_pression",
+       "text": "moins de pression"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_boite",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "boite"
+      },
+      {
+       "id": "f_choc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "choc"
+      },
+      {
+       "id": "f_fausse",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "idee_fausse"
+      },
+      {
+       "id": "f_avant",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "avant"
+      },
+      {
+       "id": "f_apres",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "apres"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_frequence",
+       "target": "idee"
+      }
+     ]
+    },
+    {
+     "id": "loi_finale",
+     "say": "Et la loi des gaz parfaits résume tout : à volume et température fixes, la pression est proportionnelle au nombre de moles.",
+     "cues": [
+      {
+       "id": "c_loi_finale",
+       "text": "loi des gaz parfaits"
+      },
+      {
+       "id": "c_prop_finale",
+       "text": "proportionnelle au nombre de moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_focus",
+       "verb": "camera.focus",
+       "at": "cue:c_loi_finale",
+       "targets": [
+        "idee",
+        "loi"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "start": "cue:c_prop_finale",
+       "end": "cue_end:c_prop_finale",
+       "target": "loi",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,46 @@
+QUESTION (ap3-gaz-ambulance-o2, chimie, sec 5, alloprof) : je comprend pas un problème.
+il s'agit de trouver la pression partielle du o2
+La grande majorité des ambulances ont à leur bord une bonbonne d'oxygène. Le gaz contenu dans ces bonbonnes est en fait du dioxygène pur mais le patient ne peut recevoir ce gaz dans les poumons que pour une très brève période de temps, le grand pouvoir oxydant du dioxygène étant en cause. C'est pourquoi ces dispositifs sont munis d'un mélangeur qui règle la pression partielle d'O2(g) à la sortie du masque en incorporant de l'air ambiant et de la vapeur d'eau au mélange. Si le mélangeur limite le débit de la bonbonne à 25 % d'O2 et 70 % d'air et 5% de H2O(g) à TAPN, quelle est la pression partielle du O2 dans le masque du patient?
+cela fait des heures que j'essaye mais je ne trouve pas
+RÉPONSE DE RÉFÉRENCE : Fraction d'O2 = 0,25 + 0,70 × 0,21 = 0,397 (air à 21 % d'O2) ; P(O2) = 0,397 × 101,3 kPa ≈ 40 kPa.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pression partielle du O₂ dans le masque
+math_context : {"symbols":{"p_tot":{"kind":"constant","value":101.3}},"expressions":{"p_o2":"0.25*101.3"}}
+=== Tranche s_comprendre
+  OBJET loi [math] "p_{\\text{totale}} = p_{\\mathrm{O_2}} + p_{\\text{air}} + p_{\\mathrm{H_2O}}" parts=p_{\text{totale}} | = p_{\mathrm{O_2}} + p_{\text{air}} + p_{\mathrm{H_2O}}
+  OBJET prop [math] "p_{\\mathrm{O_2}} = \\%\\mathrm{O_2} \\times p_{\\text{totale}}" 
+  OBJET note [text] "TAPN : 25 °C, 101,3 kPa" 
+DIT (reform) : Tu cherches la pression partielle du dioxygène dans le masque. Le mélangeur donne vingt-cinq pour cent de dioxygène, soixante-dix pour cent d'air et cinq pour cent de vapeur d'eau, à TAPN.
+    write prop @cue:c_cherche 
+    show note @cue:c_pourcent 
+DIT (dalton) : D'abord l'idée. La loi de Dalton dit que la pression totale d'un mélange est la somme des pressions partielles de chaque gaz.
+    write loi @cue:c_dalton {"part":"tot"}
+    write loi @cue:c_somme {"part":"somme"}
+=== Tranche s_calcul
+  OBJET calc [math] {"kind":"computed","expression_ref":"p_o2","template":"p_{\\mathrm{O_2}} = 0{,}25 \\times 101{,}3 = {value}\\ \\mathrm{kPa}","precision":2} 
+DIT (lien) : À TAPN, la pression totale vaut cent un virgule trois kilopascals. Comme chaque gaz occupe le même volume, sa pression partielle est proportionnelle à son pourcentage.
+    highlight prop @- {"start":"cue:c_prop","end":"cue_end:c_prop","role":"accent"}
+DIT (resultat) : Donc la pression partielle du dioxygène : zéro virgule vingt-cinq fois cent un virgule trois, ce qui donne vingt-cinq virgule trente-trois kilopascals.
+    dim note @cue:c_g 
+    write calc @cue:c_g 
+    highlight calc @cue:c_prod {"role":"accent"}
+    highlight calc @cue:c_res {"role":"accent"}
+    highlight calc @after:w_res {"role":"result"}
+=== Tranche s_verif
+  OBJET check [math] "p_{\\mathrm{O_2}} + p_{\\text{air}} + p_{\\mathrm{H_2O}} = 25{,}33 + 70{,}91 + 5{,}07 \\approx 101{,}3\\ \\mathrm{kPa}" 
+DIT (verif) : Vérifions par la loi de Dalton : vingt-cinq virgule trente-trois pour le dioxygène, soixante-dix virgule quatre-vingt-onze pour l'air, cinq virgule zéro sept pour la vapeur d'eau. La somme donne bien cent un virgule trois kilopascals, la pression totale.
+    write check @cue:c_verif 
+    highlight check @cue:c_somme {"role":"result"}
+DIT (erreur) : Ton blocage vient souvent de là : le pourcentage de chaque gaz porte sur sa pression partielle, pas sur le volume du masque. Ici, tout est à TAPN, alors la pression totale est déjà connue.
+    dim calc @cue:c_blocage 
+=== Tranche s_retenir
+  OBJET idee [text] "Pression partielle = % du gaz × pression totale" 
+DIT (retenir) : À retenir : la pression partielle d'un gaz dans un mélange, c'est son pourcentage multiplié par la pression totale. Ici, le dioxygène occupe vingt-cinq pour cent de la pression du masque, soit vingt-cinq virgule trente-trois kilopascals.
+    fade_out check @beat:start 
+    fade_out note @beat:start 
+    write idee @cue:c_idee 
+    highlight idee @- {"start":"cue:c_idee","end":"cue_end:c_idee","role":"result"}
+--- 4 tranches, 210 mots dits (≈ 1.4 min d'oral)

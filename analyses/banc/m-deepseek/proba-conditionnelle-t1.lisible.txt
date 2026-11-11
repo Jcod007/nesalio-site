@@ -1,0 +1,104 @@
+QUESTION (proba-conditionnelle, mathematiques, sec 5, sens) : pourquoi dans une probabilité conditionnelle on divise par P(B)? je comprends pas d'où ça sort
+RÉPONSE DE RÉFÉRENCE : P(A|B) = P(A∩B)/P(B), avec P(B) ≠ 0 ; exemple du dé (A pair, B > 3) : 2/3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. savoir que B s'est réalisé réduit l'univers à B, d'où la division par P(B)
+  2. P(A|B) = P(A∩B)/P(B) = part de B où A est aussi vrai, avec P(B) ≠ 0
+  3. exemple mené au résultat (dé : A pair, B > 3, P(A|B) = 2/3 = (2/6)/(3/6))
+  4. diagramme de Venn ou tableau à double entrée où l'univers rétrécit à B
+  5. P(A|B) distinguée de P(A∩B) et de P(B|A)
+ERREURS GRAVES À CHERCHER : figure dont les aires contredisent les probabilités dites ; confusion P(A|B) et P(A∩B)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi on divise par P(B) dans P(A | B)
+=== Tranche s_univers
+  OBJET uni [axes] {"x":[0,6],"y":[-0.5,1.5]} 
+  OBJET c1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET c2 [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET c3 [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET c4 [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET c5 [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET c6 [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET l1 [label] "1" attaché à c1
+  OBJET l2 [label] "2" attaché à c2
+  OBJET l3 [label] "3" attaché à c3
+  OBJET l4 [label] "4" attaché à c4
+  OBJET l5 [label] "5" attaché à c5
+  OBJET l6 [label] "6" attaché à c6
+  OBJET legende [text] "Lancer d'un dé : six issues équiprobables" 
+DIT (pose) : Imagine qu'on lance un dé. L'univers, ce sont les six faces possibles, toutes avec la même chance.
+    show uni @beat:start 
+    draw c1 @cue:c_univers 
+    show l1 @cue:c_univers 
+    draw c2 @after:d_c1 
+    show l2 @after:s_c1 
+    draw c3 @after:d_c2 
+    show l3 @after:s_c2 
+    draw c4 @after:d_c3 
+    show l4 @after:s_c3 
+    draw c5 @cue:c_six 
+    show l5 @cue:c_six 
+    draw c6 @after:d_c5 
+    show l6 @after:s_c5 
+DIT (evenement) : Chaque case vaut un sixième : la probabilité d'une face, c'est une chance sur six.
+    show legende @cue:c_un_sixieme 
+    highlight c3 @- {"start":"cue:c_une_chance","end":"cue_end:c_une_chance","role":"accent"}
+DIT (pair) : Prenons l'événement A : obtenir un nombre pair, donc deux, quatre ou six.
+    set_style c2 @cue:c_pair {"role":"given"}
+    set_style c4 @cue:c_pair {"role":"given"}
+    set_style c6 @cue:c_deux {"role":"given"}
+DIT (bplus) : Et l'événement B : obtenir plus grand que trois, donc quatre, cinq ou six.
+    set_style c4 @cue:c_plus_grand {"role":"unknown"}
+    set_style c5 @cue:c_quatre {"role":"unknown"}
+    set_style c6 @cue:c_quatre {"role":"unknown"}
+=== Tranche s_reduire
+  OBJET phrase [text] "Savoir que B est réalisé : l'univers se réduit à B" 
+DIT (reduit) : Maintenant, on te dit que B est réalisé : le dé est tombé sur un nombre plus grand que trois.
+    dim c1 @cue:c_realise 
+    dim c2 @cue:c_realise 
+    dim c3 @cue:c_realise 
+    dim l1 @after:dim_c1 
+    dim l2 @after:dim_c2 
+    dim l3 @after:dim_c3 
+    highlight c5 @- {"start":"cue:c_grand","end":"cue_end:c_grand","role":"accent"}
+DIT (nouveau_tout) : Les faces un, deux et trois sont impossibles. Ce qui reste, quatre, cinq et six, devient ton nouveau tout.
+    show phrase @cue:c_nouveau 
+    highlight c4 @- {"start":"cue:c_nouveau","end":"cue_end:c_nouveau","role":"accent"}
+=== Tranche s_part
+  OBJET calcA [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = | \frac{P(A \cap B)}{P(B)}
+  OBJET num [math] "2 \\text{ cases sur } 6" 
+DIT (part) : La question devient : parmi ces trois faces, quelle part est aussi dans A ?
+    dim c5 @beat:start 
+    highlight c4 @- {"start":"cue:c_part","end":"cue_end:c_part","role":"result"}
+    write calcA @cue:c_parmi {"part":"gauche"}
+DIT (formule) : Cette part, c'est la probabilité de A et B en même temps, divisée par la probabilité de B : P de A sachant B égale P de A inter B sur P de B.
+    write calcA @cue:c_divise {"part":"eg"}
+    write calcA @cue:c_formule {"part":"fraction"}
+DIT (chiffres) : Vérifions : A inter B, c'est quatre et six, deux cases sur six. P de B, c'est trois cases sur six.
+    show num @cue:c_deux_six 
+    highlight calcA @- {"start":"cue:c_trois_six","end":"cue_end:c_trois_six","role":"accent"}
+=== Tranche s_resultat
+  OBJET etape [math] "\\frac{2/6}{3/6} = \\frac{2}{3}" parts=\frac{2/6}{3/6} | = | \frac{2}{3}
+  OBJET verif [math] "P(A \\mid B) = \\frac{2}{3}" 
+  OBJET note [text] "2/3 : deux chances sur trois, quand on sait que B est réalisé" 
+DIT (calcul) : Deux sixièmes sur trois sixièmes, les sixièmes se simplifient, et on trouve deux tiers.
+    write etape @cue:c_simplifient {"part":"frac_comp"}
+    write etape @cue:c_deux_tiers {"part":"egal"}
+    write etape @after:w_eg {"part":"res"}
+DIT (sens) : Sur le dessin, deux cases sur les trois qui restent : c'est bien deux chances sur trois.
+    show verif @cue:c_deux_sur_trois 
+    show note @cue:c_deux_chances 
+    fade_out uni @cue:c_deux_sur_trois 
+    fade_out phrase @cue:c_deux_sur_trois 
+    fade_out num @cue:c_deux_sur_trois 
+=== Tranche s_retenir
+  OBJET regle [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = | \frac{P(A \cap B)}{P(B)}
+  OBJET cond [label] "si P(B) ≠ 0" attaché à regle
+DIT (retenir) : À retenir : savoir que B est réalisé réduit l'univers à B. On divise par P de B parce que B devient le nouveau tout.
+    camera.focus  @cue:c_retenir {"targets":["regle"]}
+    write regle @cue:c_reduit {"part":"g"}
+    write regle @cue:c_divise {"part":"e"}
+    write regle @after:w_e {"part":"f"}
+DIT (condition) : Une seule condition : P de B ne doit pas être zéro, sinon on diviserait par zéro.
+    show cond @cue:c_zero 
+    highlight regle @- {"start":"cue:c_zero","end":"cue_end:c_zero","role":"result","part":"f"}
+--- 5 tranches, 241 mots dits (≈ 1.6 min d'oral)

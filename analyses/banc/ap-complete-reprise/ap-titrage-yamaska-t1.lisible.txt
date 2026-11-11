@@ -1,0 +1,73 @@
+QUESTION (ap-titrage-yamaska, chimie, sec 4, alloprof) : Suite à un déversement de NaOH, vous devez déterminer le pH d’un échantillon d’eau de la rivière Yamaska. Votre premier test montre que cette eau vire bleu le papier tournesol rouge. Vous titrez 20 ml de cette solution et le bleu de bromothymol vire vert après l’ajout de 50 ml d’une solution de H3PO4 à 0,003 mol/l. Calculez le pH de cette eau de la Yamaska.
+RÉPONSE DE RÉFÉRENCE : H3PO4 libère 3 H+ : 4,5×10⁻⁴ mol ; [NaOH] = 0,0225 mol/L ; pOH ≈ 1,65 ; pH ≈ 12,35.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Calculer le pH de l'eau de la Yamaska titrée par H₃PO₄
+math_context : {"symbols":{},"expressions":{"n_acide":"0.003*0.050","n_base":"0.003*0.050"}}
+=== Tranche s_diagnostic
+  OBJET ligne [number_line] {"domain":[0,14]} 
+  OBJET p_acide [point] {"at":[2,0]} 
+  OBJET lab_acide [label] "acide" attaché à p_acide
+  OBJET p_neutre [point] {"at":[7,0]} 
+  OBJET lab_neutre [label] "neutre" attaché à p_neutre
+  OBJET p_base [point] {"at":[12,0]} 
+  OBJET lab_base [label] "basique" attaché à p_base
+  OBJET p_ech [point] {"at":[10,0]} 
+  OBJET lab_ech [label] "eau de la Yamaska" attaché à p_ech
+DIT (pos) : Ton test au tournesol nous dit déjà l'essentiel : l'eau de la rivière est basique, à cause du NaOH déversé.
+    show ligne @beat:start 
+    show p_acide @beat:start 
+    show lab_acide @beat:start 
+    show p_neutre @beat:start 
+    show lab_neutre @beat:start 
+    show p_base @beat:start 
+    show lab_base @beat:start 
+    show p_ech @cue:c_basique 
+    show lab_ech @cue:c_basique 
+DIT (titrage) : Le titrage va donc consister à neutraliser cette base. À l'équivalence, les moles d'acide ajoutées égalent exactement les moles de base présentes dans l'échantillon.
+    highlight p_ech @- {"start":"cue:c_neutraliser","end":"cue_end:c_equiv","role":"unknown"}
+=== Tranche s_reaction
+  OBJET eq [math] "\\ce{H3PO4 + 3 NaOH -> Na3PO4 + 3 H2O}" 
+  OBJET ratio [math] "n_{\\text{NaOH}} = 3 \\times n_{\\ce{H3PO4}}" parts=n_{\text{NaOH}} | = 3 \times n_{\ce{H3PO4}}
+DIT (reaction) : Écrivons la neutralisation : H trois P O quatre réagit avec trois NaOH et donne Na trois P O quatre, plus trois molécules d'eau.
+    write eq @cue:c_h3po4 
+DIT (ratio) : Le trois devant NaOH est la clé : chaque mole d'acide neutralise trois moles de base. Donc moles de base égalent trois fois moles d'acide.
+    write ratio @cue:c_fois {"part":"r2"}
+=== Tranche s_calcul
+  OBJET n_acide [math] "n = C \\times V = 0{,}003 \\times 0{,}050 = 1{,}5 \\times 10^{-4} \\text{ mol}" parts=n = C \times V | = 0{,}003 \times 0{,}050 | = 1{,}5 \times 10^{-4} \text{ mol}
+  OBJET n_base [math] "n_{\\text{NaOH}} = 3 \\times 1{,}5 \\times 10^{-4} = 4{,}5 \\times 10^{-4} \\text{ mol}" 
+  OBJET dilution [math] "[\\ce{NaOH}] = \\dfrac{4{,}5 \\times 10^{-4}}{0{,}020} = 2{,}25 \\times 10^{-2} \\text{ mol/L}" 
+DIT (moles) : Calculons les moles d'acide : concentration fois volume, donc zéro virgule zéro zéro trois fois zéro virgule zéro cinquante litre. On obtient un virgule cinq fois dix exposant moins quatre mole.
+    write n_acide @cue:c_nc {"part":"a1"}
+    write n_acide @cue:c_0050 {"part":"a2"}
+    write n_acide @after:w_a2 {"part":"a3"}
+DIT (fois3) : Avec le rapport trois, moles de NaOH égalent trois fois, soit quatre virgule cinq fois dix exposant moins quatre mole.
+    write n_base @cue:c_45 
+DIT (conc) : On divise par le volume d'eau titré, vingt millilitres, c'est-à-dire zéro virgule vingt litre. La concentration de NaOH est deux virgule vingt-cinq fois dix exposant moins deux moles par litre.
+    write dilution @cue:c_225 
+=== Tranche s_ph
+  OBJET poh [math] "\\text{pOH} = -\\log[\\ce{OH^-}] = -\\log(2{,}25 \\times 10^{-2}) \\approx 1{,}65" 
+  OBJET ph [math] "\\text{pH} = 14 - \\text{pOH} = 14 - 1{,}65 = 12{,}35" 
+DIT (poh_calc) : Puisque NaOH est une base forte, chaque NaOH donne un ion hydroxyde. Le pOH est le logarithme négatif de deux virgule vingt-cinq fois dix exposant moins deux : il vaut environ un virgule soixante-cinq.
+    write poh @cue:c_poh 
+    highlight poh @cue:c_165 {"role":"accent"}
+DIT (ph_calc) : Enfin, à vingt-cinq degrés, pH plus pOH font quatorze. Donc pH égalent quatorze moins un virgule soixante-cinq, soit environ douze virgule trente-cinq.
+    write ph @cue:c_quatorze 
+    highlight ph @cue:c_resultat {"role":"accent"}
+    highlight ph @after:w_q2 {"role":"result"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : on convertit le titrage en moles par le rapport de l'équation, puis en concentration, et enfin en pH. Ici, l'eau de la Yamaska a un pH d'environ douze virgule trente-cinq.
+    fade_out ligne @beat:start 
+    fade_out p_ech @beat:start 
+    fade_out lab_ech @beat:start 
+    fade_out eq @beat:start 
+    fade_out ratio @beat:start 
+    fade_out n_acide @beat:start 
+    fade_out n_base @beat:start 
+    fade_out dilution @beat:start 
+    fade_out poh @beat:start 
+    camera.focus  @beat:start {"targets":["ph"],"bounds":"layout_bounds"}
+    highlight ph @cue:c_pH {"role":"result"}
+--- 5 tranches, 263 mots dits (≈ 1.8 min d'oral)

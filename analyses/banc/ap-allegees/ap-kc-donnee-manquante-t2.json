@@ -1,0 +1,726 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "constante_equilibre_c",
+  "title": "Trouver [C] avec la constante d'équilibre",
+  "language": "fr",
+  "learning_goal": "Utiliser Kc d'une équation d'équilibre et la relation entre [B] et [A] pour calculer [C]."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "kB": {
+     "kind": "constant",
+     "value": 64
+    },
+    "ratio": {
+     "kind": "constant",
+     "value": 2
+    }
+   },
+   "expressions": {
+    "c_carree": "64/4",
+    "c_val": "sqrt(64/4)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_pose",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{2 A(g) <=> B(g) + 2 C(g)}",
+     "type": "math"
+    },
+    {
+     "id": "kc_def",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "K_c = \\frac{[B]\\,[C]^2}{[A]^2}",
+     "type": "math"
+    },
+    {
+     "id": "donnees",
+     "layout": {
+      "next_to": "kc_def",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "K_c = 64, \\quad [B] = 2\\,[A]",
+     "parts": [
+      {
+       "id": "kv",
+       "text": "K_c = 64"
+      },
+      {
+       "id": "rel",
+       "text": ", [B] = 2\\,[A]"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "On a l'équation d'équilibre, le système est connu : deux A gazeux donnent B et deux C, avec une constante de soixante-quatre.",
+     "cues": [
+      {
+       "id": "c_eq",
+       "text": "l'équation d'équilibre"
+      },
+      {
+       "id": "c_k",
+       "text": "soixante-quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "show",
+       "at": "cue:c_eq",
+       "target": "eq"
+      },
+      {
+       "id": "w_kv",
+       "verb": "write",
+       "at": "cue:c_k",
+       "target": "donnees",
+       "part": "kv"
+      }
+     ]
+    },
+    {
+     "id": "ecriture",
+     "say": "La constante s'écrit : les produits en haut, chaque concentration avec son coefficient en exposant, divisé par le réactif A au carré.",
+     "cues": [
+      {
+       "id": "c_prod",
+       "text": "les produits en haut"
+      },
+      {
+       "id": "c_coef",
+       "text": "son coefficient en exposant"
+      },
+      {
+       "id": "c_den",
+       "text": "A au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_numK",
+       "verb": "write",
+       "at": "cue:c_prod",
+       "target": "kc_def"
+      },
+      {
+       "id": "w_barre",
+       "verb": "highlight",
+       "at": "after:w_numK",
+       "target": "kc_def",
+       "role": "accent"
+      },
+      {
+       "id": "w_denK",
+       "verb": "highlight",
+       "at": "cue:c_den",
+       "target": "kc_def",
+       "role": "accent"
+      },
+      {
+       "id": "p_coef",
+       "verb": "highlight",
+       "start": "cue:c_coef",
+       "end": "cue_end:c_coef",
+       "target": "kc_def",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_relation",
+   "introduces": [
+    {
+     "id": "rapport",
+     "layout": {
+      "next_to": "donnees",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[B] = 2\\,[A]",
+     "parts": [
+      {
+       "id": "lB",
+       "text": "[B]"
+      },
+      {
+       "id": "lA",
+       "text": "= 2\\,[A]"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "lien",
+     "say": "L'énoncé nous dit une deuxième information : à l'équilibre, la concentration de B vaut le double de celle de A.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "vaut le double"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_lB",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "rapport",
+       "part": "lB"
+      },
+      {
+       "id": "w_lA",
+       "verb": "write",
+       "at": "cue:c_double",
+       "target": "rapport",
+       "part": "lA"
+      }
+     ]
+    },
+    {
+     "id": "substitue",
+     "say": "Alors remplaçons B par deux fois A dans la constante. En haut, deux A, c'est le carré de deux A multiplié par C au carré.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "remplaçons B par deux fois A"
+      },
+      {
+       "id": "c_en_haut",
+       "text": "c'est le carré de deux A"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_lA",
+       "verb": "highlight",
+       "start": "cue:c_remplace",
+       "end": "cue_end:c_en_haut",
+       "target": "rapport",
+       "role": "accent",
+       "part": "lA"
+      },
+      {
+       "id": "h_numK",
+       "verb": "highlight",
+       "start": "cue:c_remplace",
+       "end": "cue_end:c_en_haut",
+       "target": "kc_def",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "subst",
+     "layout": {
+      "next_to": "rapport",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "64 = \\frac{2\\,[A]\\,[C]^2}{[A]^2}",
+     "parts": [
+      {
+       "id": "g",
+       "text": "64"
+      },
+      {
+       "id": "frac",
+       "text": "= \\frac{2\\,[A]\\,[C]^2}{[A]^2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "simpl",
+     "layout": {
+      "next_to": "subst",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "64 = 2\\,[C]^2 / [A]",
+     "parts": [
+      {
+       "id": "gg",
+       "text": "64"
+      },
+      {
+       "id": "ff",
+       "text": "= 2\\,[C]^2 / [A]"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso",
+     "layout": {
+      "next_to": "simpl",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[C]^2 = \\frac{64}{2} \\cdot [A]",
+     "parts": [
+      {
+       "id": "isoL",
+       "text": "[C]^2"
+      },
+      {
+       "id": "isoR",
+       "text": "= \\frac{64}{2} \\cdot [A]"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "remplace",
+     "say": "Posons le calcul : on remplace B par deux A, et on écrit la constante en fonction de A et de C.",
+     "cues": [
+      {
+       "id": "c_rempla",
+       "text": "on remplace B par deux A"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_kc",
+       "verb": "dim",
+       "at": "cue:c_rempla",
+       "target": "kc_def"
+      },
+      {
+       "id": "f_rap",
+       "verb": "dim",
+       "at": "cue:c_rempla",
+       "target": "rapport"
+      },
+      {
+       "id": "w_subst",
+       "verb": "write",
+       "at": "cue:c_rempla",
+       "target": "subst",
+       "part": "frac"
+      },
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "after:w_subst",
+       "target": "subst",
+       "part": "g"
+      }
+     ]
+    },
+    {
+     "id": "coupe",
+     "say": "On peut diviser le deux en haut par un des deux A en bas : il reste la constante égale à deux C au carré divisé par la concentration de A.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "diviser le deux en haut"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_simpl",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "simpl",
+       "part": "ff"
+      },
+      {
+       "id": "w_gg",
+       "verb": "write",
+       "at": "after:w_simpl",
+       "target": "simpl",
+       "part": "gg"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "Mais la question porte sur C, on ne connaît pas A. Alors isolons C au carré : C au carré égale trente-deux fois A.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "isolons C au carré"
+      },
+      {
+       "id": "c_trente",
+       "text": "trente-deux fois A"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_iso",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "iso",
+       "part": "isoL"
+      },
+      {
+       "id": "w_isoR",
+       "verb": "write",
+       "at": "cue:c_trente",
+       "target": "iso",
+       "part": "isoR"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "piege",
+     "layout": {
+      "next_to": "iso",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Attention : on ne peut pas trouver [C] sans A, la donnée [B] = 2[A] ne suffit pas seule.",
+     "type": "text"
+    },
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "piege",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\sqrt{[C]^2} = \\sqrt{32\\,[A]}",
+     "parts": [
+      {
+       "id": "rac",
+       "text": "\\sqrt{[C]^2}"
+      },
+      {
+       "id": "res",
+       "text": "= \\sqrt{32\\,[A]}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verite",
+     "say": "Ici, un piège important : avec seulement la constante et la relation entre B et A, il manque la concentration de A pour obtenir un nombre exact pour C.",
+     "cues": [
+      {
+       "id": "c_piege",
+       "text": "piège important"
+      },
+      {
+       "id": "c_manque",
+       "text": "manque la concentration de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_subst",
+       "verb": "fade_out",
+       "at": "cue:c_piege",
+       "target": "subst"
+      },
+      {
+       "id": "f_simpl",
+       "verb": "fade_out",
+       "at": "cue:c_piege",
+       "target": "simpl"
+      },
+      {
+       "id": "s_piege",
+       "verb": "show",
+       "at": "cue:c_manque",
+       "target": "piege"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "final",
+     "say": "Tout ce qu'on peut écrire, c'est que C vaut la racine carrée de trente-deux fois la concentration de A.",
+     "cues": [
+      {
+       "id": "c_racine",
+       "text": "racine carrée de trente-deux"
+      },
+      {
+       "id": "c_fois",
+       "text": "fois la concentration de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rac",
+       "verb": "write",
+       "at": "cue:c_racine",
+       "target": "idee",
+       "part": "rac"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_fois",
+       "target": "idee",
+       "part": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_fois",
+       "end": "cue_end:c_fois",
+       "target": "idee",
+       "role": "result",
+       "part": "res"
+      }
+     ]
+    },
+    {
+     "id": "retenir",
+     "say": "À retenir : la constante, c'est produits sur réactifs, chacun avec son exposant ; avec la relation donnée, on exprime C en fonction de A.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_fonction",
+       "text": "en fonction de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqr",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "eq"
+      },
+      {
+       "id": "h_iso",
+       "verb": "highlight",
+       "start": "cue:c_fonction",
+       "end": "cue_end:c_fonction",
+       "target": "iso",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

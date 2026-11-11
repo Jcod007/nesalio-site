@@ -1,8 +1,11 @@
 "use client";
 
 /**
- * Questions d'après essai : proposées une fois, quand la première séance se
- * termine (la personne vient de vivre l'outil). Facultatives, en une fenêtre.
+ * Questions d'après essai : proposées une fois, après la première séance
+ * (la personne vient de vivre l'outil). Facultatives, en une fenêtre.
+ * Sur la page Nesalio, elles s'ouvrent au retour à l'accueil (`atHome`), ou après
+ * un long délai si l'élève reste sur la fin de la leçon : la fenêtre ne couvre
+ * plus la carte de Nesa ni « Revoir l'explication » juste après la leçon.
  */
 import { useEffect, useRef, useState } from "react";
 import { HELPED, SPENDING, URGENCY, USEFUL, refFromSearch, type AfterTrial } from "@/domain/afterTrial";
@@ -17,21 +20,34 @@ const SPENDING_LABELS: Record<(typeof SPENDING)[number], string> = {
   "Je ne sais pas": "Je ne sais pas",
 };
 
-export function AfterTrialQuestions({ sessionDone, question }: { sessionDone: boolean; question: string | null }) {
+export function AfterTrialQuestions({
+  sessionDone,
+  question,
+  atHome = false,
+  delayMs = 4000,
+}: {
+  sessionDone: boolean;
+  question: string | null;
+  /** Back on the start screen after a finished lesson: the questions open at once. */
+  atHome?: boolean;
+  /** Time spent on the finished lesson before the questions open. */
+  delayMs?: number;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [asked, setAsked] = useState(false);
   const [answers, setAnswers] = useState<Partial<AfterTrial>>({});
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  // Une seule fois par visite, un peu après la fin de la première séance (le temps de lire le résumé).
+  // Une seule fois par visite : au retour à l'accueil, ou après un délai sur la fin de la séance.
   useEffect(() => {
-    if (!sessionDone || asked) return;
-    const timer = setTimeout(() => {
+    if (asked || !(sessionDone || atHome)) return;
+    const open = () => {
       setAsked(true);
       dialog.current?.showModal();
-    }, 4000);
+    };
+    const timer = setTimeout(open, atHome ? 0 : delayMs);
     return () => clearTimeout(timer);
-  }, [sessionDone, asked]);
+  }, [sessionDone, atHome, delayMs, asked]);
 
   async function send(event: React.FormEvent) {
     event.preventDefault();

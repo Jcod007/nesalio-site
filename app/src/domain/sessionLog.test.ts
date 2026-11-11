@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TutorRequest } from "@/domain/tutor/request";
-import { createTurnRecorder, isOlderThan, summarizeSessions, turnPath, type TurnRecord } from "./sessionLog";
+import { createLessonRecorder, createTurnRecorder, isLessonRecord, isOlderThan, summarizeSessions, turnPath, type TurnRecord } from "./sessionLog";
 
 const question: TutorRequest = { mode: "question", question: "C'est quoi une somme ?" };
 
@@ -20,6 +20,36 @@ function recorder(request: TutorRequest = question) {
 }
 
 describe("createTurnRecorder", () => {
+  it("conserve une copie du plan dynamique utilisé pour le tour", () => {
+    const plan = { goal: "Comprendre", target: "nouveau", concepts: [{ id: "nouveau", label: "Objectif", prerequisites: [] }] };
+    const { rec } = recorder({ ...question, context: { spoken: [], board: [], plan } });
+    const recorded = rec.record();
+    expect(recorded.plan).toEqual(plan);
+    recorded.plan!.concepts[0]!.label = "Autre";
+    expect(plan.concepts[0]!.label).toBe("Objectif");
+    expect(recorder().rec.record()).not.toHaveProperty("plan");
+  });
+  it("enregistre la provenance réelle d'un repli, sans lui attribuer un modèle", () => {
+    const { rec } = recorder();
+    rec.event({ kind: "source", source: "demo" });
+    expect(rec.record().source).toBe("demo");
+    expect(rec.record()).not.toHaveProperty("model");
+  });
+  it("conserve les observations pédagogiques pour rejouer les décisions sans réécrire les anciens tours", () => {
+    const learning = { v: 1 as const, concepts: [{ id: "fractions.parts", presented: ["worked-example" as const], observations: [] }] };
+    const { rec } = recorder({
+      mode: "continue",
+      question: "Fractions",
+      context: { spoken: [], board: [], learning },
+      answer: { prompt: "Le 4 ?", choices: ["Partage", "Prises"], picked: "Je ne sais pas", correct: null, concept: "fractions.parts", support: "guided" },
+    });
+    const record = rec.record();
+    expect(record.learning).toEqual(learning);
+    expect(record.answer).toMatchObject({ correct: null, concept: "fractions.parts", support: "guided" });
+    record.learning!.concepts[0]!.presented.length = 0;
+    expect(learning.concepts[0]!.presented).toEqual(["worked-example"]);
+    expect(recorder().rec.record()).not.toHaveProperty("learning");
+  });
   it("garde exactement les événements envoyés à l'élève, dans l'ordre (format de rejeu)", () => {
     const { rec, clock } = recorder();
     rec.event({ kind: "source", source: "model" });
@@ -143,5 +173,70 @@ describe("référence d'inscription et résumé par séance", () => {
         interrompus: 0,
       },
     ]);
+  });
+});
+
+describe("createLessonRecorder (leçons Nesalio)", () => {
+  function lesson() {
+    let t = 5_000;
+    const clock = { now: () => t, advance: (ms: number) => (t += ms) };
+    const rec = createLessonRecorder({
+      question: "C'est quoi le réactif limitant ?",
+      session: "3f9c2e1a-7b44-4c1d-9e0f-aa11bb22cc33",
+      ref: "abc123",
+      env: "production",
+      model: "deepseek/deepseek-v4.1-flash",
+      reviewer: "anthropic/claude-sonnet-5.5",
+      startedAt: new Date("2026-11-10T19:30:00.000Z"),
+      clock,
+    });
+    return { rec, clock };
+  }
+
+  it("garde le flux envoyé à l'élève dans l'ordre, l'attente avant la première tranche et le modèle", () => {
+    const { rec, clock } = lesson();
+    rec.event({ kind: "lesson" });
+    clock.advance(3_200);
+    rec.event({ kind: "slice" });
+    clock.advance(4_000);
+    rec.event({ kind: "slice" });
+    rec.event({ kind: "end" });
+    rec.finish("complete");
+    const record = rec.record();
+    expect(isLessonRecord(record)).toBe(true);
+    expect(record.events.map((e) => e.kind)).toEqual(["lesson", "slice", "slice", "end"]);
+    expect(record.latencyMs).toEqual({ firstSlice: 3_200, total: 7_200 });
+    expect(record).toMatchObject({ v: 2, kind: "nesalio", ref: "abc123", outcome: "complete", model: "deepseek/deepseek-v4.1-flash" });
+    expect(turnPath(record)).toBe("production/2026-11-10/3f9c2e1a/193000000-nesalio.json");
+  });
+
+  it("compte en échec une leçon dont le flux finit par une erreur, et en interrompue une leçon quittée", () => {
+    const failed = lesson().rec;
+    failed.event({ kind: "lesson" });
+    failed.event({ kind: "error" });
+    failed.finish("complete");
+    expect(failed.record().outcome).toBe("error");
+    const left = lesson().rec;
+    left.event({ kind: "lesson" });
+    expect(left.record().outcome).toBe("cancelled");
+  });
+
+  it("résume une séance qui mélange anciens tours et leçons", () => {
+    const { rec } = lesson();
+    rec.finish("complete");
+    const old: TurnRecord = {
+      v: 1,
+      env: "production",
+      session: "3f9c2e1a-7b44-4c1d-9e0f-aa11bb22cc33",
+      at: "2026-11-10T19:00:00.000Z",
+      mode: "question",
+      question: "Une somme ?",
+      source: "model",
+      latencyMs: { total: 1 },
+      outcome: "complete",
+      events: [],
+    };
+    const [summary] = summarizeSessions([old, rec.record()]);
+    expect(summary).toMatchObject({ tours: 2, questions: ["Une somme ?", "C'est quoi le réactif limitant ?"], interrompus: 0, ref: "abc123" });
   });
 });

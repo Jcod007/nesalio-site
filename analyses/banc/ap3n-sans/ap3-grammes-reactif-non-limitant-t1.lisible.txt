@@ -1,0 +1,55 @@
+QUESTION (ap3-grammes-reactif-non-limitant, chimie, sec 5, alloprof) : Comment calcul-t-on le nombre de grammes produit du réactif non limitant?
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Calculer la masse de produit formée à partir du réactif non limitant
+math_context : {"symbols":{"n_H2":{"kind":"constant","value":3},"n_O2":{"kind":"constant","value":2}},"expressions":{"rapport_H2":"n_H2/2","rapport_O2":"n_O2/2"}}
+=== Tranche s_reformule
+  OBJET donnees [matrix] {"rows":[["3 mol","2 mol"]],"column_labels":["H₂","O₂"]} 
+  OBJET eq [math] "\\ce{2H2 + O2 -> 2H2O}" 
+DIT (reformule) : Tu as trois moles de H deux et deux moles de O deux, et tu demandes les grammes d'eau formés. Bonne nouvelle : la réponse viendra de celui qui est limité, pas de l'autre.
+    show donnees @beat:start 
+    draw eq @cue:c_donnees 
+=== Tranche s_avancement
+  OBJET lim_H2 [math] {"kind":"computed","expression_ref":"rapport_H2","template":"\\text{si H}_2\\text{ limite : }\\frac{3}{2} = {value}","precision":1} 
+  OBJET lim_O2 [math] {"kind":"computed","expression_ref":"rapport_O2","template":"\\text{si O}_2\\text{ limite : }\\frac{2}{2} = {value}","precision":1} 
+DIT (rapports) : On compare : trois moles de H deux, divisées par son coefficient deux, donne un virgule cinq. Deux moles de O deux, divisées par son coefficient un, donne deux. Le plus petit gagne : H deux est limitant, O deux est en excès.
+    write lim_H2 @cue:c_h2 
+    write lim_O2 @cue:c_o2 
+    highlight lim_H2 @- {"start":"cue:c_limit","end":"cue_end:c_limit","role":"result"}
+DIT (nonlim) : Le réactif non limitant, ici O deux, n'a presque aucun effet : les trois moles de H deux épuisées décident du maximum.
+    dim donnees @cue:c_nonlim 
+    fade_out lim_O2 @cue:c_nonlim 
+=== Tranche s_moles_eau
+  OBJET proportion [math] "\\frac{n_{H2O}}{2} = \\frac{n_{H2}}{2}" parts=\frac{n_{H2O}}{2} | = \frac{n_{H2}}{2}
+  OBJET n_eau [math] "n_{H2O} = 3 \\text{ mol}" 
+DIT (proportion) : Regarde le rapport deux à deux de l'équation : autant de H deux disparaît, autant d'eau se forme. Deux moles de H deux donnent deux moles d'eau, donc trois donnent trois.
+    write proportion @cue:c_rapport {"part":"gauche"}
+    write proportion @cue:c_eau {"part":"droite"}
+DIT (resultat) : Il se forme donc trois moles d'eau, parce que c'est le H deux qui s'épuise en premier.
+    write n_eau @cue:c_moles 
+    highlight n_eau @- {"start":"cue:c_moles","end":"cue_end:c_moles","role":"result"}
+=== Tranche s_grammes
+  OBJET molaire [math] "M_{H2O} = 18 \\text{ g/mol}" 
+  OBJET masse [math] "m = 3 \\text{ mol} \\times 18 \\text{ g/mol} = 54 \\text{ g}" 
+  OBJET verif [text] "3 mol × 18 g/mol = 54 g ✓" 
+DIT (masse) : Masse molaire de l'eau : H deux O, deux fois un plus seize, dix-huit grammes par mole.
+    write molaire @cue:c_molaire 
+    highlight molaire @- {"start":"cue:c_dixhuit","end":"cue_end:c_dixhuit","role":"given"}
+DIT (calcul) : Trois moles fois dix-huit grammes par mole : les moles s'annulent, il reste cinquante-quatre grammes.
+    write masse @cue:c_trois 
+    show verif @cue:c_cinquante 
+    highlight masse @- {"start":"cue:c_cinquante","end":"cue_end:c_cinquante","role":"result"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : la quantité de produit se calcule toujours à partir du réactif limitant. Le réactif non limitant n'ajoute rien : il reste un surplus qui n'a pas réagi.
+    fade_out lim_H2 @cue:c_retenir 
+    fade_out proportion @cue:c_retenir 
+    fade_out n_eau @cue:c_retenir 
+    fade_out molaire @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    dim eq @cue:c_limitant 
+    dim donnees @cue:c_nonlim 
+    highlight masse @- {"start":"cue:c_limitant","end":"cue_end:c_limitant","role":"result"}
+--- 5 tranches, 209 mots dits (≈ 1.4 min d'oral)

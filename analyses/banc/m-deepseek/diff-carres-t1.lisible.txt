@@ -1,0 +1,85 @@
+QUESTION (diff-carres, mathematiques, sec 4, methode) : Comment factoriser 9x² − 49 ?
+RÉPONSE DE RÉFÉRENCE : 9x² − 49 = (3x − 7)(3x + 7).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. reconnaître deux carrés : 9x² = (3x)² et 49 = 7²
+  2. règle a² − b² = (a − b)(a + b), justifiée
+  3. réponse (3x − 7)(3x + 7) écrite
+  4. vérification par développement
+  5. condition : une différence (pas une somme)
+ERREURS GRAVES À CHERCHER : réponse (9x − 49)… ou (3x − 7)²
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comment factoriser 9x² − 49
+=== Tranche s_reconnaitre
+  OBJET expr [math] "9x^2 - 49" parts=9x^2 | - | 49
+  OBJET question [text] "Y a-t-il une soustraction de deux carrés ?" 
+DIT (ouvre) : Pour factoriser neuf x au carré moins quarante-neuf, on regarde d'abord la forme de l'expression.
+    write expr @cue:c_expression 
+DIT (soustraire) : Il y a deux termes, et entre les deux, une soustraction. C'est le premier indice d'une différence de carrés.
+    highlight expr @- {"start":"cue:c_soustraction","end":"cue_end:c_soustraction","role":"accent","part":"moins"}
+DIT (cars) : Vérifions si chaque terme est un carré. Neuf, c'est trois au carré, et x au carré, c'est x au carré. Le premier terme est donc trois x, le tout au carré.
+    highlight expr @- {"start":"cue:c_neuf","end":"cue_end:c_premier","role":"given","part":"termea"}
+    show question @cue:c_premier 
+DIT (quarante_neuf) : Quarante-neuf, c'est sept au carré. On a bien une différence de deux carrés.
+    highlight expr @- {"start":"cue:c_sept","end":"cue_end:c_difference","role":"given","part":"termeb"}
+=== Tranche s_formule
+  OBJET formule [math] "a^2 - b^2 = (a - b)(a + b)" parts=a^2 - b^2 | = | (a - b)(a + b)
+  OBJET ident [text] "On utilise ce produit remarquable à l'envers." 
+DIT (recite) : La formule, c'est a au carré moins b au carré égale a moins b, multiplié par a plus b.
+    write formule @cue:c_a2 {"part":"gauche"}
+    write formule @after:w_gauche {"part":"eg"}
+    write formule @cue:c_facteurs {"part":"facteurs"}
+DIT (pourquoi) : Pourquoi ça marche ? Si tu développes a moins b fois a plus b, les termes du milieu s'annulent : moins a b plus a b, il reste a au carré moins b au carré.
+    show ident @cue:c_developpe 
+    highlight formule @- {"start":"cue:c_milieu","end":"cue_end:c_milieu","role":"accent","part":"facteurs"}
+=== Tranche s_appliquer
+  OBJET etape [math] "9x^2 - 49 = (3x - 7)(3x + 7)" parts=9x^2 - 49 | = | (3x - 7)(3x + 7)
+DIT (identifie) : On identifie a et b dans notre expression : a, c'est trois x, et b, c'est sept.
+    highlight expr @- {"start":"cue:c_a","end":"cue_end:c_a","role":"accent","part":"termea"}
+    highlight expr @- {"start":"cue:c_b","end":"cue_end:c_b","role":"accent","part":"termeb"}
+DIT (remplace) : On remplace dans la formule : a moins b devient trois x moins sept, et a plus b devient trois x plus sept.
+    highlight formule @- {"start":"cue:c_moins","end":"cue_end:c_plus","role":"secondary","part":"gauche"}
+DIT (ecris) : La factorisation est donc neuf x au carré moins quarante-neuf égale trois x moins sept, fois trois x plus sept.
+    write etape @cue:c_premier {"part":"carre"}
+    write etape @after:w_carre {"part":"egal"}
+    write etape @cue:c_produit {"part":"binomes"}
+=== Tranche s_verifier
+  OBJET dev [math] "(3x - 7)(3x + 7) = 9x^2 + 21x - 21x - 49" parts=(3x - 7)(3x + 7) | = 9x^2 + 21x - 21x | - 49
+  OBJET resultat [math] "9x^2 - 49" 
+  OBJET concl [text] "Factoriser et développer : les deux sens du même chemin."   <<JAMAIS MONTRÉ>>
+DIT (redev) : Vérifions en redéveloppant : trois x fois trois x donne neuf x au carré, et trois x fois plus sept donne vingt et un x.
+    write dev @cue:c_neufx {"part":"depart"}
+    write dev @cue:c_vingtun {"part":"milieu"}
+DIT (annulent) : Les deux termes du milieu, plus vingt et un x et moins vingt et un x, s'annulent.
+    highlight dev @- {"start":"cue:c_annulent","end":"cue_end:c_annulent","role":"accent","part":"milieu"}
+DIT (retour) : Il reste neuf x au carré moins quarante-neuf : on retombe bien sur l'expression de départ.
+    write dev @cue:c_retour {"part":"reste"}
+    show resultat @cue:c_retour 
+=== Tranche s_erreurs
+  OBJET faux [math] "9x^2 - 49 = (3x - 7)^2" 
+  OBJET rappel [text] "Toujours vérifier : c'est une différence, pas un carré parfait." 
+DIT (piege) : Attention à l'erreur fréquente : écrire trois x moins sept, le tout au carré. Ce serait neuf x au carré moins quarante-deux x plus quarante-neuf : il manque le terme en x.
+    show faux @cue:c_piege 
+    highlight faux @- {"start":"cue:c_piege","end":"cue_end:c_piege","role":"unknown"}
+DIT (carres) : La bonne réponse a deux binômes différents : un avec moins, un avec plus.
+    show rappel @cue:c_deux 
+    highlight etape @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "a^2 - b^2 = (a - b)(a + b)" parts=a^2 - b^2 | = (a - b)(a + b)
+  OBJET idee [text] "Une différence de deux carrés se factorise en deux binômes conjugués." 
+DIT (central) : À retenir : pour factoriser une différence de deux carrés, on écrit les deux binômes conjugués, a moins b et a plus b.
+    fade_out dev @cue:c_retenir 
+    fade_out resultat @cue:c_retenir 
+    fade_out faux @cue:c_retenir 
+    fade_out rappel @cue:c_retenir 
+    fade_out concl @cue:c_retenir 
+    fade_out ident @cue:c_retenir 
+    fade_out question @cue:c_retenir 
+    fade_out formule @cue:c_retenir 
+    fade_out expr @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["regle","idee"]}
+    write regle @cue:c_conjugues {"part":"g"}
+    write regle @after:w_g {"part":"f"}
+    write idee @after:w_f 
+    highlight regle @after:w_idee {"role":"result"}
+--- 6 tranches, 319 mots dits (≈ 2.1 min d'oral)

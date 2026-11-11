@@ -1,0 +1,161 @@
+
+> nesalio-app@0.1.0 test
+> vitest run --config ../analyses/revue-modules-2026-11-04/vitest.config.mjs --reporter=verbose
+
+
+ RUN  v5.0.5 C:/Users/compt2/Desktop/nesalio-site/analyses/revue-modules-2026-11-04
+
+ × reproductions.test.ts > Audit — behaviors to repair > records an emitted error event as an error outcome 15ms
+   → expected "vi.fn()" to be called with arguments: [ 'error' ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "error",
++   "complete",
+  ]
+
+
+Number of calls: 1
+
+ × reproductions.test.ts > Audit — behaviors to repair > reports a non-NDJSON HTTP failure instead of completing an empty lesson 65ms
+   → expected 'done' to be 'error' // Object.is equality
+ × reproductions.test.ts > Audit — behaviors to repair > does not mark a stream without a terminal event as a completed lesson 17ms
+   → expected 'done' to be 'error' // Object.is equality
+ × reproductions.test.ts > Audit — behaviors to repair > keeps an answer submitted before the delayed await event 3ms
+   → expected [ 'question' ] to deeply equal [ 'question', 'continue' ]
+ × reproductions.test.ts > Audit — behaviors to repair > assigns distinct fallback IDs across turns of the same board 15ms
+   → expected { type: 'point', id: 'point1', …(1) } to not have property "id" with value 'point1'
+ × reproductions.test.ts > Audit — behaviors to repair > cancels microphone acquisition even when permission is still pending 10ms
+   → expected "vi.fn()" to be called at least once
+ × reproductions.test.ts > Audit — behaviors to repair > continues silently when the voice fetch never resolves 7ms
+   → expected 'playing' to be 'done' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  reproductions.test.ts > Audit — behaviors to repair > records an emitted error event as an error outcome
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'error' ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "error",
++   "complete",
+  ]
+
+
+Number of calls: 1
+
+ ❯ reproductions.test.ts:22:20
+     20|     async function* events() { yield { kind: 'error' as const, code: '…
+     21|     for await (const _event of withRecording(events(), { event() {}, f…
+     22|     expect(finish).toHaveBeenCalledWith('error');
+       |                    ^
+     23|   });
+     24|   it('reports a non-NDJSON HTTP failure instead of completing an empty…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  reproductions.test.ts > Audit — behaviors to repair > reports a non-NDJSON HTTP failure instead of completing an empty lesson
+AssertionError: expected 'done' to be 'error' // Object.is equality
+
+Expected: "error"
+Received: "done"
+
+ ❯ reproductions.test.ts:30:43
+     28|       player.ask('Explique les fractions.');
+     29|       await flush();
+     30|       expect(player.getSnapshot().status).toBe('error');
+       |                                           ^
+     31|     } finally { player.dispose(); }
+     32|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  reproductions.test.ts > Audit — behaviors to repair > does not mark a stream without a terminal event as a completed lesson
+AssertionError: expected 'done' to be 'error' // Object.is equality
+
+Expected: "error"
+Received: "done"
+
+ ❯ reproductions.test.ts:40:43
+     38|       player.ask('Explique les fractions.');
+     39|       await flush();
+     40|       expect(player.getSnapshot().status).toBe('error');
+       |                                           ^
+     41|     } finally { player.dispose(); }
+     42|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  reproductions.test.ts > Audit — behaviors to repair > keeps an answer submitted before the delayed await event
+AssertionError: expected [ 'question' ] to deeply equal [ 'question', 'continue' ]
+
+- Expected
++ Received
+
+  [
+    "question",
+-   "continue",
+  ]
+
+ ❯ reproductions.test.ts:65:24
+     63|       release();
+     64|       await flush();
+     65|       expect(requests).toEqual(['question', 'continue']);
+       |                        ^
+     66|     } finally { release(); player.dispose(); }
+     67|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  reproductions.test.ts > Audit — behaviors to repair > assigns distinct fallback IDs across turns of the same board
+AssertionError: expected { type: 'point', id: 'point1', …(1) } to not have property "id" with value 'point1'
+ ❯ reproductions.test.ts:74:30
+     72|     const second = createModelOutputParser().parseLine(line);
+     73|     if (first?.kind !== 'step' || second?.kind !== 'step') throw new E…
+     74|     expect(second.do[0]).not.toHaveProperty('id', (first.do[0] as { id…
+       |                              ^
+     75|   });
+     76|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  reproductions.test.ts > Audit — behaviors to repair > cancels microphone acquisition even when permission is still pending
+AssertionError: expected "vi.fn()" to be called at least once
+ ❯ reproductions.test.ts:104:25
+    102|       grant({ getTracks: () => [{ stop: stopTrack }] });
+    103|       await flush();
+    104|       expect(stopTrack).toHaveBeenCalled();
+       |                         ^
+    105|     } finally { input.cancel(); }
+    106|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  reproductions.test.ts > Audit — behaviors to repair > continues silently when the voice fetch never resolves
+AssertionError: expected 'playing' to be 'done' // Object.is equality
+
+Expected: "done"
+Received: "playing"
+
+ ❯ reproductions.test.ts:123:43
+    121|       player.ask('Calcule.');
+    122|       await vi.advanceTimersByTimeAsync(60_000);
+    123|       expect(player.getSnapshot().status).toBe('done');
+       |                                           ^
+    124|     } finally { player.dispose(); }
+    125|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  21:15:12
+   Duration  1.28s (import 54%, transform 31%, tests 14%, worker 1%)
+

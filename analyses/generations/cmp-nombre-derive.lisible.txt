@@ -1,0 +1,66 @@
+TITRE : Le nombre dérivé sur un graphique — BUT : Comprendre que le nombre dérivé en un point est le coefficient directeur de la tangente à la courbe en ce point, et savoir le lire sur un graphique.
+math_context : {"symbols":{},"expressions":{}}
+=== Tranche s_intuition
+  OBJET axes [axes] {"params":{"x":[-1,5],"y":[-1,9]}}
+  OBJET courbe [function_graph] {"style":{"role":"accent"},"params":{"expression":"x^2","domain":[-0.8,2.8]}}
+DIT (b_intro) : Le nombre dérivé, c'est la pente de la courbe à un endroit précis.
+    geste camera.focus  beat:start {"targets":["axes","courbe"],"bounds":"layout_bounds","save_as":"vue_courbe"}
+    geste show axes beat:start {}
+    geste draw courbe  {"start":"cue:pente","end":"cue_end:pente"}
+DIT (b_pente) : Si la courbe monte raide, la pente est grande. Si elle monte doucement, la pente est petite.
+    geste highlight courbe cue:raide {"role":"accent"}
+    geste highlight courbe cue:doucement {"role":"accent"}
+=== Tranche s_tangente
+  OBJET p1 [point] {"frame":"axes","params":{"at":[2,4]}}
+  OBJET p1_label [label] {"attachment":{"parent":"p1","anchor":"left"},"content":"A(2 ; 4)"}
+  OBJET tangente [line] {"style":{"role":"accent"},"frame":"axes","params":{"from":[0.5,0],"to":[3.5,8]}}
+  OBJET tangente_label [label] {"attachment":{"parent":"tangente","anchor":"top"},"content":"tangente en A"}
+DIT (b_point) : Prenons un point sur la courbe, le point A, ici : deux en abscisse, quatre en ordonnée.
+    geste camera.focus  cue:point_mot {"targets":["p1","tangente"],"save_as":"vue_point"}
+    geste show p1 cue:point_mot {}
+    geste show p1_label cue:deux {}
+DIT (b_tangente) : En ce point, on trace la tangente : la droite qui touche la courbe et qui suit exactement sa direction à cet endroit.
+    geste draw tangente  {"start":"cue:tangente_mot","end":"cue_end:direction"}
+    geste show tangente_label after:d_tang {}
+=== Tranche s_mesure
+  OBJET pt2 [point] {"frame":"axes","params":{"at":[3,6]}}
+  OBJET deltax [line] {"style":{"role":"given"},"frame":"axes","params":{"from":[2,4],"to":[3,4]}}
+  OBJET deltay [line] {"style":{"role":"given"},"frame":"axes","params":{"from":[3,4],"to":[3,6]}}
+  OBJET lab_x [label] {"attachment":{"parent":"deltax","anchor":"bottom"},"content":"1"}
+  OBJET lab_y [label] {"attachment":{"parent":"deltay","anchor":"right"},"content":"2"}
+  OBJET calc [math] {"content":"\\frac{2}{1} = 2","parts":[{"id":"frac","text":"\\frac{2}{1}"},{"id":"res","text":"= 2"}]}
+DIT (b_lire) : Pour trouver ce nombre, on se sert de la tangente : on avance de un, et on monte de deux.
+    geste show deltax cue:un {}
+    geste show lab_x after:s_dx {}
+    geste show deltay cue:montee_deux {}
+    geste show lab_y after:s_dy {}
+DIT (b_calcul) : Le nombre dérivé, c'est le déplacement vertical divisé par le déplacement horizontal : deux divisé par un égale deux.
+    geste write calc.frac cue:deux_div {}
+    geste write calc.res cue:egale_deux {}
+    geste highlight calc after:w_res {"role":"result"}
+DIT (b_conclusion) : Donc pour cette courbe, le nombre dérivé en A vaut deux.
+    geste camera.restore  beat:start {"frame":"vue_point"}
+    geste highlight tangente cue:vaut_deux {"role":"result"}
+=== Tranche s_recap
+  OBJET regle [math] {"content":"f'(a) = \\text{coefficient directeur de la tangente en } A","parts":[{"id":"gauche","text":"f'(a)"},{"id":"droite","text":"= \\text{coefficient directeur de la tangente en } A"}]}
+  OBJET formule_pente [math] {"content":"\\text{dérivée} = \\frac{\\text{déplacement vertical}}{\\text{déplacement horizontal}}","parts":[{"id":"membre_g","text":"\\text{dérivée}"},{"id":"membre_d","text":"= \\frac{\\text{déplacement vertical}}{\\text{déplacement horizontal}}"}]}
+DIT (b_recap) : À retenir : le nombre dérivé en un point, c'est la pente de la courbe à cet endroit, la pente de sa tangente.
+    geste fade_out courbe beat:start {}
+    geste fade_out axes beat:start {}
+    geste fade_out p1 beat:start {}
+    geste fade_out p1_label beat:start {}
+    geste fade_out tangente beat:start {}
+    geste fade_out tangente_label beat:start {}
+    geste fade_out deltax beat:start {}
+    geste fade_out deltay beat:start {}
+    geste fade_out lab_x beat:start {}
+    geste fade_out lab_y beat:start {}
+    geste fade_out calc beat:start {}
+    geste fade_out pt2 beat:start {}
+    geste camera.focus  beat:start {"targets":["regle","formule_pente"],"bounds":"layout_bounds"}
+    geste write regle.gauche cue:a_retenir {}
+    geste write regle.droite cue:pente_finale {}
+DIT (b_final) : Et ça se calcule simplement : la montée divisée par l'avancée.
+    geste write formule_pente.membre_g beat:start {}
+    geste write formule_pente.membre_d cue:montee_div {}
+    geste highlight formule_pente cue:avancee {"role":"result"}

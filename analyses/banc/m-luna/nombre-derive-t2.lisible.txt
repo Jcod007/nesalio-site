@@ -1,0 +1,107 @@
+QUESTION (nombre-derive, mathematiques, sec 5, sens) : C'est quoi le nombre dérivé, sur un graphique ?
+RÉPONSE DE RÉFÉRENCE : La pente de la tangente à la courbe au point d'abscisse a.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. sécante entre A et P, pente = taux de variation moyen
+  2. P se rapproche de A : la sécante tend vers la tangente
+  3. nombre dérivé = pente de la tangente en A
+  4. exemple chiffré (ex. y = x² en x = 1 : 2)
+  5. lecture de la pente sur le graphique
+ERREURS GRAVES À CHERCHER : sécante tracée qui ne passe pas par P ; pente dite ≠ pente tracée
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Le nombre dérivé sur un graphique
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{"secan1":"(9-1)/(3-1)","secan2":"(4-1)/(2-1)","secan3":"(2.25-1)/(1.5-1)"}}
+=== Tranche s_pente
+  OBJET axes [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-1,3]} 
+  OBJET a [point] {"at":[1,1]} 
+  OBJET a_label [label] "A(1 ; 1)" attaché à a
+  OBJET p [point] {"at":[3,9]} 
+  OBJET p_label [label] "P(3 ; 9)" attaché à p
+  OBJET secante [line] {"from":[1,1],"to":[3,9]} 
+  OBJET base [line] {"from":[1,1],"to":[3,1]} 
+  OBJET hauteur [line] {"from":[3,1],"to":[3,9]} 
+  OBJET avance_label [label] "avancée : 2" attaché à base
+  OBJET montee_label [label] "montée : 8" attaché à hauteur
+  OBJET pente [math] "\\frac{\\text{montée}}{\\text{avancée}}=\\frac{8}{2}=4" parts=\frac{\text{montée}}{\text{avancée}} | =\frac{8}{2}=4   <<JAMAIS MONTRÉ>>
+DIT (intro) : Sur un graphique, le nombre dérivé décrit la pente de la tangente à la courbe en un point.
+DIT (secante) : Pour voir d’où elle vient, prenons la courbe x au carré et deux points : A(1 ; 1) et P(3 ; 9). La droite qui les relie est une sécante.
+    show axes @cue:courbe_mot 
+    draw courbe @- {"start":"cue:courbe_mot","end":"cue_end:courbe_mot"}
+    show a @cue:points 
+    show a_label @cue:points 
+    show p @cue:points 
+    show p_label @cue:points 
+    draw secante @cue:secante_mot 
+DIT (montee) : La pente, c’est la montée divisée par l’avancée : ici, on monte de huit pour avancer de deux.
+    draw base @cue:pente_mot 
+    draw hauteur @cue:pente_mot 
+    show avance_label @cue:avance_deux 
+    show montee_label @cue:monte_huit 
+=== Tranche s_taux
+  OBJET calc [math] "\\frac{9-1}{3-1}=\\frac{8}{2}=4" parts=\frac{9-1}{3-1} | =\frac{8}{2} | =4
+  OBJET p2 [point] {"at":[2,4]} 
+  OBJET p2label [label] "P(2 ; 4)" attaché à p2
+  OBJET sec2 [line] {"from":[1,1],"to":[2,4]} 
+  OBJET calc2 [math] "\\frac{4-1}{2-1}=3" parts=\frac{4-1}{2-1} | =3
+  OBJET p15 [point] {"at":[1.5,2.25]} 
+  OBJET p15label [label] "P(1,5 ; 2,25)" attaché à p15
+  OBJET sec15 [line] {"from":[1,1],"to":[1.5,2.25]} 
+  OBJET calc15 [math] "\\frac{2.25-1}{1.5-1}=2.5" parts=\frac{2.25-1}{1.5-1} | =2.5
+DIT (calcul) : Le taux de variation entre A et P est huit divisé par deux, donc quatre. C’est la pente de cette sécante.
+    write calc @cue:huitdeux {"part":"fraction"}
+    write calc @cue:quatre {"part":"simplifie"}
+    write calc @cue:quatre {"part":"res"}
+    highlight secante @- {"start":"cue:taux","end":"cue_end:quatre","role":"accent"}
+DIT (rapproche) : Quand P passe à deux, la sécante est moins pentue : son taux de variation devient trois, car on monte de trois et on avance de un.
+    fade_out p @cue:passe 
+    fade_out p_label @cue:passe 
+    show p2 @cue:passe 
+    show p2label @cue:passe 
+    draw sec2 @cue:passe 
+    fade_out secante @cue:moins 
+    write calc2 @cue:devient {"part":"frac"}
+    write calc2 @cue:devient {"part":"ans"}
+DIT (plus_proche) : En rapprochant encore P à un virgule cinq, la pente vaut deux virgule cinq ; elle continue à diminuer vers deux.
+    fade_out p2 @cue:rapprochant 
+    fade_out p2label @cue:rapprochant 
+    show p15 @cue:rapprochant 
+    show p15label @cue:rapprochant 
+    fade_out sec2 @cue:rapprochant 
+    draw sec15 @cue:rapprochant 
+    write calc15 @cue:deux_cinq {"part":"frac15"}
+    write calc15 @cue:deux_cinq {"part":"ans15"}
+=== Tranche s_tangente
+  OBJET qcurve [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[0,3]} 
+  OBJET tangente_graph [function_graph] {"expression":"2*x-1","domain":[0,3]} 
+  OBJET tlabel [label] "tangente : y = 2x − 1" attaché à tangente_graph
+  OBJET formule [math] "f'(1)=2" parts=f'(1) | =2
+  OBJET limite [math] "f'(1)=\\lim_{q\\to1}\\frac{q^2-1}{q-1}=2" parts=f'(1) | =\lim_{q\to1}\frac{q^2-1}{q-1} | =2   <<JAMAIS MONTRÉ>>
+DIT (pivot) : Pour x au carré, la pente de la sécante entre A et P vaut q plus un. Quand q se rapproche de un, cette pente descend de quatre vers deux.
+    fade_out sec15 @cue:q_plus_un 
+    fade_out p15 @cue:q_plus_un 
+    fade_out p15label @cue:q_plus_un 
+    draw qcurve @cue:q_plus_un 
+    animate_parameter  @- {"start":"cue:se_rapproche","end":"cue_end:vers_deux","parameter":"q","from":3,"to":1}
+DIT (tangente) : À la limite, la sécante devient la tangente en A, dont la pente est deux. On appelle ce nombre le nombre dérivé de f en un.
+    draw tangente_graph @cue:tangente_mot 
+    show tlabel @cue:tangente_mot 
+    write formule @cue:derive {"part":"nom"}
+    write formule @cue:deux_mot {"part":"egal"}
+=== Tranche s_retenir
+  OBJET idee [text] "Le nombre dérivé en un point = la pente de la tangente = la limite des pentes des sécantes" 
+  OBJET formule_finale [math] "f'(1)=\\lim_{q\\to1}\\frac{q^2-1}{q-1}=2" parts=f'(1) | =\lim_{q\to1}\frac{q^2-1}{q-1} | =2
+  GROUPE resume = idee, formule_finale
+DIT (conclusion) : À retenir : le nombre dérivé en un point est la pente de la tangente, obtenue comme la limite des pentes des sécantes ; ici, pour x au carré en un, il vaut deux.
+    fade_out calc @cue:retenir 
+    fade_out calc2 @cue:retenir 
+    fade_out calc15 @cue:retenir 
+    fade_out tangente_graph @cue:retenir 
+    fade_out tlabel @cue:retenir 
+    fade_out formule @cue:retenir 
+    fade_out limite @cue:retenir 
+    write idee @cue:idee_centrale 
+    write formule_finale @cue:limite_phrase {"part":"part1"}
+    write formule_finale @cue:limite_phrase {"part":"part2"}
+    write formule_finale @cue:deux {"part":"part3"}
+--- 4 tranches, 225 mots dits (≈ 1.5 min d'oral)

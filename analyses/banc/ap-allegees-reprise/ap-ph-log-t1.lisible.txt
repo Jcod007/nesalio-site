@@ -1,0 +1,74 @@
+QUESTION (ap-ph-log, chimie, sec 4, alloprof) : J’étudie présentement La concentration molaire des ions H+ et le pH et je n’y comprend absolument rien. Je ne comprend pas comment pH = -log[H+] devient [H+] = 10^-pH Ensuite, 0.01 mol de H+ est bien égal à un pH de 1 mais j’aimerais avoir une explication plus profonde à ce sujet.
+RÉPONSE DE RÉFÉRENCE : [H+] = 0,01 mol/L donne pH 2, pas 1 (l'élève se trompe).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi pH = −log[H⁺] donne [H⁺] = 10^(−pH)
+=== Tranche s_echelle
+  OBJET ligne [number_line] {"domain":[0,14]} 
+  OBJET p_citron [point] {"at":[2,0]} 
+  OBJET l_citron [label] "jus de citron (pH 2)" attaché à p_citron
+  OBJET p_eau [point] {"at":[7,0]} 
+  OBJET l_eau [label] "eau pure (pH 7)" attaché à p_eau
+  OBJET p_javel [point] {"at":[12,0]} 
+  OBJET l_javel [label] "eau de javel (pH 12)" attaché à p_javel
+DIT (intro) : Le pH, c'est juste un compteur qui mesure la concentration des ions H plus.
+    show ligne @cue:c_ph 
+DIT (poser) : Sur cette échelle de zéro à quatorze, on place les substances du quotidien.
+    show p_citron @cue:c_place 
+    show l_citron @cue:c_place 
+    show p_eau @cue:c_place 
+    show l_eau @cue:c_place 
+    show p_javel @cue:c_place 
+    show l_javel @cue:c_place 
+=== Tranche s_puissances
+  OBJET tab [matrix] {"rows":[[-4,-3,-2,-1,0,1,2,3,4],[0.0001,0.001,0.01,0.1,1,10,100,1000,10000]],"row_labels":["exposant","dix exposant ce nombre"]} 
+DIT (rappel) : Avant la formule, il faut voir un motif : les puissances de dix.
+    show tab @cue:c_puissances 
+DIT (lire) : Dix exposant moins quatre, c'est zéro virgule zéro zéro zéro un. Dix exposant moins deux, c'est zéro virgule zéro un. Dix exposant zéro, c'est un.
+    highlight tab @- {"start":"cue:c_moins4","end":"cue_end:c_moins2","role":"accent","part":"r1"}
+=== Tranche s_log
+  OBJET def_log [math] "\\log(10^n) = n" parts=\log(10^n) | = n
+  OBJET note_log [text] "log = « quel exposant sur 10 ? »"   <<JAMAIS MONTRÉ>>
+DIT (dire) : Le logarithme, c'est la question inverse : quel exposant faut-il mettre sur dix ?
+    fade_out tab @cue:c_log 
+    write def_log @cue:c_question {"part":"log_m"}
+DIT (reponse) : Log de dix exposant n donne donc simplement n : c'est le nombre qui était déjà en haut.
+    write def_log @cue:c_donne {"part":"eg_n"}
+DIT (exemple) : Par exemple, log de zéro virgule zéro un, c'est log de dix exposant moins deux, donc moins deux.
+    highlight def_log @- {"start":"cue:c_exemple","end":"cue_end:c_moins2b","role":"accent"}
+=== Tranche s_ph
+  OBJET ph_math [math] "pH = -\\log[H^+]" parts=pH = | -\log[H^+]
+  OBJET h_math [math] "[H^+] = 10^{-pH}" parts=[H^+] = | 10^{-pH}
+DIT (def) : Le pH est fait exactement pour ça : le pH d'une solution, c'est moins le logarithme de la concentration des ions H plus.
+    write ph_math @cue:c_ph {"part":"ph_g"}
+    write ph_math @cue:c_moinslog {"part":"ph_m"}
+DIT (inverser) : On veut parfois l'inverse : trouver la concentration à partir du pH. On isole H plus en mettant dix des deux côtés, et la règle du log transforme tout ça.
+    highlight ph_math @- {"start":"cue:c_isole","end":"cue_end:c_isole","role":"accent","part":"ph_m"}
+    write h_math @cue:c_regle {"part":"h_g"}
+    write h_math @cue:c_regle {"part":"h_m"}
+=== Tranche s_exemple
+  OBJET calc1 [math] "[H^+] = 0{,}01 = 10^{-2}\\ \\text{mol/L}" parts=[H^+] = | 0{,}01 = 10^{-2}\ \text{mol/L}
+  OBJET calc2 [math] "pH = -\\log(10^{-2}) = 2" parts=pH = | -\log(10^{-2}) = 2
+DIT (donne) : Vérifions ta donnée : zéro virgule zéro un mole par litre, c'est dix exposant moins deux.
+    dim ph_math @cue:c_zero 
+    write calc1 @cue:c_zero {"part":"c1_g"}
+    write calc1 @cue:c_expos {"part":"c1_v"}
+DIT (calcule) : On remplace dans la formule. Log de dix exposant moins deux donne moins deux. Avec le signe moins devant, il reste deux. Donc un pH de deux, pas de un.
+    write calc2 @cue:c_logm2 {"part":"c2_g"}
+    write calc2 @cue:c_restedeux {"part":"c2_m"}
+    highlight calc2 @- {"start":"cue:c_ph2","end":"cue_end:c_ph2","role":"result","part":"c2_m"}
+DIT (retour) : Pour obtenir un pH de un, il faudrait dix exposant moins un, c'est-à-dire zéro virgule un mole par litre. Une unité de pH, c'est donc un facteur dix sur la concentration.
+    highlight h_math @- {"start":"cue:c_un1","end":"cue_end:c_un1","role":"accent","part":"h_m"}
+    highlight calc1 @cue:c_facteur {"role":"secondary","part":"c1_v"}
+=== Tranche s_retenir
+  OBJET recap [math] "\\text{pH} \\longleftrightarrow [H^+] = 10^{-\\text{pH}}" 
+  OBJET recap_txt [text] "1 unité de pH = ×10 sur [H⁺]" 
+DIT (conclure) : À retenir : le pH est l'exposant de dix de la concentration, changé de signe. Sa formule et son inversion disent exactement la même chose.
+    fade_out calc1 @beat:start 
+    fade_out calc2 @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["recap","recap_txt"]}
+    show recap @cue:c_retenir 
+    show recap_txt @cue:c_exposant 
+--- 6 tranches, 270 mots dits (≈ 1.8 min d'oral)

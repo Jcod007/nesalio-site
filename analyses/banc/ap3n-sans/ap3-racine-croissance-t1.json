@@ -1,0 +1,759 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "racine_carree_variation",
+  "title": "Racine carrée : le sommet (h, k) et les variations",
+  "language": "fr",
+  "learning_goal": "Comprendre que (h, k) est le sommet et le point de départ de la racine carrée, et que la variation se lit selon le signe de a."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_cas",
+   "introduces": [
+    {
+     "id": "cas",
+     "content": "f(x) = -\\sqrt{-(x + 2)} - 8",
+     "type": "math"
+    },
+    {
+     "id": "h_label",
+     "attachment": {
+      "parent": "cas",
+      "anchor": "bottom"
+     },
+     "content": "h = -2",
+     "type": "label"
+    },
+    {
+     "id": "k_label",
+     "attachment": {
+      "parent": "cas",
+      "anchor": "right"
+     },
+     "content": "k = -8",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Ton examen : a négatif, b négatif, le point (h, k) à moins deux, moins huit, et la fonction est dans le quadrant trois. Tu hésitais entre croissante et décroissante.",
+     "cues": [
+      {
+       "id": "c_a",
+       "text": "a négatif"
+      },
+      {
+       "id": "c_b",
+       "text": "b négatif"
+      },
+      {
+       "id": "c_hk",
+       "text": "moins deux, moins huit"
+      },
+      {
+       "id": "c_q3",
+       "text": "quadrant trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cas",
+       "verb": "write",
+       "at": "cue:c_hk",
+       "target": "cas"
+      },
+      {
+       "id": "s_hl",
+       "verb": "show",
+       "at": "cue:c_hk",
+       "target": "h_label"
+      },
+      {
+       "id": "s_kl",
+       "verb": "show",
+       "at": "cue:c_hk",
+       "target": "k_label"
+      }
+     ]
+    },
+    {
+     "id": "point",
+     "say": "D'abord, ta réponse : oui, dans une racine carrée, le point (h, k) est le sommet. Et pour une racine carrée, le sommet est exactement le point de départ de la courbe.",
+     "cues": [
+      {
+       "id": "c_oui",
+       "text": "(h, k) est le sommet"
+      },
+      {
+       "id": "c_depart",
+       "text": "point de départ"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_h",
+       "verb": "highlight",
+       "start": "cue:c_oui",
+       "end": "cue_end:c_oui",
+       "target": "cas",
+       "role": "accent"
+      },
+      {
+       "id": "h_k",
+       "verb": "highlight",
+       "start": "cue:c_depart",
+       "end": "cue_end:c_depart",
+       "target": "cas",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_base",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -3,
+       7
+      ],
+      "y": [
+       -3,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "base",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "expression": "sqrt(x)",
+      "domain": [
+       0,
+       6
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "depart",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_base",
+     "attachment": {
+      "parent": "base",
+      "anchor": "top"
+     },
+     "content": "y = racine de x",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "courbe_base",
+     "say": "Regarde la racine carrée de base, y égale racine de x. Elle commence à zéro, zéro, et monte tranquillement vers la droite.",
+     "cues": [
+      {
+       "id": "c_base",
+       "text": "racine de x"
+      },
+      {
+       "id": "c_zero",
+       "text": "zéro, zéro"
+      },
+      {
+       "id": "c_droite",
+       "text": "vers la droite"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_base",
+       "verb": "draw",
+       "start": "cue:c_base",
+       "end": "cue_end:c_droite",
+       "target": "base"
+      },
+      {
+       "id": "s_dep",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "depart"
+      },
+      {
+       "id": "s_lb",
+       "verb": "show",
+       "at": "after:d_base",
+       "target": "lab_base"
+      }
+     ]
+    },
+    {
+     "id": "monte",
+     "say": "À partir de ce point de départ, la courbe monte : dans ce cas-là, elle est croissante.",
+     "cues": [
+      {
+       "id": "c_part",
+       "text": "point de départ"
+      },
+      {
+       "id": "c_monte",
+       "text": "elle est croissante"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_dep",
+       "verb": "highlight",
+       "at": "cue:c_part",
+       "target": "depart",
+       "role": "accent"
+      },
+      {
+       "id": "h_base",
+       "verb": "highlight",
+       "start": "cue:c_monte",
+       "end": "cue_end:c_monte",
+       "target": "base",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_toncas",
+   "introduces": [
+    {
+     "id": "curve_eleve",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "-sqrt(-(x+2))-8",
+      "domain": [
+       -8,
+       -2
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "sommet",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "at": [
+       -2,
+       -8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_sommet",
+     "attachment": {
+      "parent": "sommet",
+      "anchor": "right"
+     },
+     "content": "sommet (-2 ; -8)",
+     "type": "label"
+    },
+    {
+     "id": "fleche",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       -2,
+       -8
+      ],
+      "to": [
+       -7,
+       -8
+      ]
+     },
+     "type": "arrow"
+    }
+   ],
+   "beats": [
+    {
+     "id": "place",
+     "say": "Maintenant ton cas : place le sommet à moins deux, moins huit, dans le quadrant trois.",
+     "cues": [
+      {
+       "id": "c_place",
+       "text": "place le sommet"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_base",
+       "verb": "fade_out",
+       "at": "cue:c_place",
+       "target": "base"
+      },
+      {
+       "id": "f_dep",
+       "verb": "fade_out",
+       "at": "cue:c_place",
+       "target": "depart"
+      },
+      {
+       "id": "f_lb",
+       "verb": "fade_out",
+       "at": "cue:c_place",
+       "target": "lab_base"
+      },
+      {
+       "id": "s_som",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "sommet"
+      },
+      {
+       "id": "s_lsom",
+       "verb": "show",
+       "at": "after:s_som",
+       "target": "lab_sommet"
+      }
+     ]
+    },
+    {
+     "id": "trace",
+     "say": "À cause du a négatif, la racine part vers la gauche, pas vers la droite. Elle descend en s'éloignant du sommet.",
+     "cues": [
+      {
+       "id": "c_neg",
+       "text": "a négatif"
+      },
+      {
+       "id": "c_gauche",
+       "text": "vers la gauche"
+      },
+      {
+       "id": "c_descend",
+       "text": "Elle descend"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_curve",
+       "verb": "draw",
+       "start": "cue:c_neg",
+       "end": "cue_end:c_gauche",
+       "target": "curve_eleve"
+      },
+      {
+       "id": "h_desc",
+       "verb": "highlight",
+       "start": "cue:c_descend",
+       "end": "cue_end:c_descend",
+       "target": "curve_eleve",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_reponse",
+   "introduces": [
+    {
+     "id": "fleche_g",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "from": [
+       -4,
+       -8.5
+      ],
+      "to": [
+       -7,
+       -8.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "rep_text",
+     "content": "\\text{Sur le domaine, } f \\text{ est décroissante.}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sens",
+     "say": "En avançant vers la gauche sur l'axe des x, tu montes sur la courbe. Alors la fonction est décroissante, pas croissante. La bonne réponse était décroissante.",
+     "cues": [
+      {
+       "id": "c_gauche",
+       "text": "vers la gauche"
+      },
+      {
+       "id": "c_monte",
+       "text": "tu montes"
+      },
+      {
+       "id": "c_decrois",
+       "text": "décroissante"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_fleche",
+       "verb": "show",
+       "at": "cue:c_gauche",
+       "target": "fleche_g"
+      },
+      {
+       "id": "h_curve",
+       "verb": "highlight",
+       "start": "cue:c_monte",
+       "end": "cue_end:c_monte",
+       "target": "curve_eleve",
+       "role": "accent"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "cue:c_decrois",
+       "target": "rep_text"
+      }
+     ]
+    },
+    {
+     "id": "erreur",
+     "say": "L'erreur, c'est de penser que le sommet est un minimum. Ici, à cause du a négatif, le sommet est un maximum : tout part vers le bas.",
+     "cues": [
+      {
+       "id": "c_max",
+       "text": "sommet est un maximum"
+      },
+      {
+       "id": "c_bas",
+       "text": "vers le bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_som",
+       "verb": "highlight",
+       "start": "cue:c_max",
+       "end": "cue_end:c_max",
+       "target": "sommet",
+       "role": "accent"
+      },
+      {
+       "id": "h_curv2",
+       "verb": "highlight",
+       "start": "cue:c_bas",
+       "end": "cue_end:c_bas",
+       "target": "curve_eleve",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "a > 0 \\Rightarrow \\text{croissante} \\quad ; \\quad a < 0 \\Rightarrow \\text{décroissante}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle_fin",
+     "say": "À retenir : pour une racine carrée, le sommet (h, k) est le point de départ. Si a est positif, elle est croissante ; si a est négatif, elle est décroissante.",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "sommet (h, k) est le point de départ"
+      },
+      {
+       "id": "c_pos",
+       "text": "a est positif"
+      },
+      {
+       "id": "c_neg2",
+       "text": "a est négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_curve",
+       "verb": "fade_out",
+       "at": "cue:c_sommet",
+       "target": "curve_eleve"
+      },
+      {
+       "id": "f_som",
+       "verb": "fade_out",
+       "at": "cue:c_sommet",
+       "target": "sommet"
+      },
+      {
+       "id": "f_lsom",
+       "verb": "fade_out",
+       "at": "cue:c_sommet",
+       "target": "lab_sommet"
+      },
+      {
+       "id": "f_fleche",
+       "verb": "fade_out",
+       "at": "cue:c_sommet",
+       "target": "fleche_g"
+      },
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "cue:c_sommet",
+       "target": "rep_text"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_pos",
+       "target": "regle"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_pos",
+       "end": "cue_end:c_neg2",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

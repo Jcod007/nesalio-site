@@ -1,0 +1,1047 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "mediatrice_segment",
+  "title": "Trouver l'équation de la médiatrice de AB",
+  "language": "fr",
+  "learning_goal": "Trouver l'équation de la médiatrice d'un segment : milieu, pente opposée inverse, puis b avec le milieu."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_milieu",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -2,
+       8
+      ],
+      "y": [
+       -2,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "ptA",
+     "params": {
+      "at": [
+       1,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "ptA",
+      "anchor": "left"
+     },
+     "content": "A(1 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "ptB",
+     "params": {
+      "at": [
+       5,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labB",
+     "attachment": {
+      "parent": "ptB",
+      "anchor": "right"
+     },
+     "content": "B(5 ; 6)",
+     "type": "label"
+    },
+    {
+     "id": "segAB",
+     "params": {
+      "from": [
+       1,
+       2
+      ],
+      "to": [
+       5,
+       6
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "ptM",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labM",
+     "attachment": {
+      "parent": "ptM",
+      "anchor": "top"
+     },
+     "content": "M(3 ; 4)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "La médiatrice, c'est la droite perpendiculaire au segment qui passe par son milieu.",
+     "cues": [
+      {
+       "id": "c_med",
+       "text": "médiatrice"
+      },
+      {
+       "id": "c_perp",
+       "text": "perpendiculaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ptA"
+      },
+      {
+       "id": "s_labA",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labA"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ptB"
+      },
+      {
+       "id": "s_labB",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "labB"
+      },
+      {
+       "id": "d_seg",
+       "verb": "draw",
+       "at": "cue:c_med",
+       "target": "segAB"
+      },
+      {
+       "id": "h_perp",
+       "verb": "highlight",
+       "start": "cue:c_perp",
+       "end": "cue_end:c_perp",
+       "target": "segAB",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "milieu",
+     "say": "Première étape : le milieu. On fait la moyenne des x, puis la moyenne des y.",
+     "cues": [
+      {
+       "id": "c_etape",
+       "text": "Première étape"
+      },
+      {
+       "id": "c_moyen",
+       "text": "moyenne des x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_M",
+       "verb": "show",
+       "at": "cue:c_etape",
+       "target": "ptM"
+      },
+      {
+       "id": "s_labM",
+       "verb": "show",
+       "at": "after:s_M",
+       "target": "labM"
+      },
+      {
+       "id": "h_labM",
+       "verb": "highlight",
+       "start": "cue:c_moyen",
+       "end": "cue_end:c_moyen",
+       "target": "labM",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul_milieu",
+   "introduces": [
+    {
+     "id": "calcM",
+     "content": "M = \\left(\\dfrac{1+5}{2} ; \\dfrac{2+6}{2}\\right) = (3 ; 4)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul",
+     "say": "Pour les x : un plus cinq donne six, divisé par deux, trois. Pour les y : deux plus six donne huit, divisé par deux, quatre.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "Pour les x"
+      },
+      {
+       "id": "c_y",
+       "text": "Pour les y"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_mx",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "calcM"
+      },
+      {
+       "id": "w_my",
+       "verb": "highlight",
+       "at": "cue:c_y",
+       "target": "calcM",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "ecrit",
+     "say": "Le milieu M, c'est trois et quatre. Il est exactement à mi-chemin entre A et B.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois et quatre"
+      },
+      {
+       "id": "c_mi",
+       "text": "à mi-chemin"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "highlight",
+       "at": "cue:c_trois",
+       "target": "calcM",
+       "role": "accent"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "calcM",
+       "role": "result"
+      },
+      {
+       "id": "h_labM2",
+       "verb": "highlight",
+       "start": "cue:c_mi",
+       "end": "cue_end:c_mi",
+       "target": "labM",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pente",
+   "introduces": [
+    {
+     "id": "calcK",
+     "content": "m_{AB} = \\dfrac{6-2}{5-1} = \\dfrac{4}{4} = 1",
+     "type": "math"
+    },
+    {
+     "id": "droite",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "expression": "x",
+      "domain": [
+       -2,
+       8
+      ]
+     },
+     "type": "function_graph"
+    }
+   ],
+   "beats": [
+    {
+     "id": "penteAB",
+     "say": "Deuxième étape : la pente de A B. La montée, c'est six moins deux, quatre. L'avancée, cinq moins un, aussi quatre. Quatre sur quatre, ça fait un.",
+     "cues": [
+      {
+       "id": "c_penteAB",
+       "text": "pente de A B"
+      },
+      {
+       "id": "c_montee",
+       "text": "montée"
+      },
+      {
+       "id": "c_avancee",
+       "text": "avancée"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_haut",
+       "verb": "write",
+       "at": "cue:c_montee",
+       "target": "calcK"
+      },
+      {
+       "id": "w_bas",
+       "verb": "highlight",
+       "at": "cue:c_avancee",
+       "target": "calcK",
+       "role": "accent"
+      },
+      {
+       "id": "w_un",
+       "verb": "highlight",
+       "at": "after:w_bas",
+       "target": "calcK",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "perpendiculaire",
+     "say": "La médiatrice est perpendiculaire : sa pente est l'opposée inverse de un, donc moins un. Un quart de tour fait passer d'une unité en haut à une unité à droite.",
+     "cues": [
+      {
+       "id": "c_opp",
+       "text": "opposée inverse"
+      },
+      {
+       "id": "c_moins",
+       "text": "moins un"
+      },
+      {
+       "id": "c_quart",
+       "text": "quart de tour"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_ab",
+       "verb": "highlight",
+       "start": "cue:c_opp",
+       "end": "cue_end:c_opp",
+       "target": "calcK",
+       "role": "accent"
+      },
+      {
+       "id": "d_droite",
+       "verb": "draw",
+       "start": "cue:c_quart",
+       "end": "cue_end:c_quart",
+       "target": "droite"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_equation",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "y = -x + b",
+     "type": "math"
+    },
+    {
+     "id": "sol",
+     "content": "4 = -3 + b \\quad\\Rightarrow\\quad b = 7",
+     "type": "math"
+    },
+    {
+     "id": "finale",
+     "content": "y = -x + 7",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "forme",
+     "say": "La médiatrice a une pente de moins un, donc y égale moins x plus b. Reste à trouver b. Elle passe par M, donc trois et quatre doivent vérifier l'équation.",
+     "cues": [
+      {
+       "id": "c_forme",
+       "text": "y égale moins x plus b"
+      },
+      {
+       "id": "c_trouver",
+       "text": "trouver b"
+      },
+      {
+       "id": "c_passe",
+       "text": "passe par M"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_forme",
+       "target": "regle"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_trouver",
+       "end": "cue_end:c_trouver",
+       "target": "regle",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "Je remplace x par trois et y par quatre : quatre égale moins trois plus b. J'ajoute trois des deux côtés pour isoler b, et b vaut sept.",
+     "cues": [
+      {
+       "id": "c_rem",
+       "text": "Je remplace"
+      },
+      {
+       "id": "c_egale",
+       "text": "quatre égale moins trois plus b"
+      },
+      {
+       "id": "c_sept",
+       "text": "b vaut sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sol",
+       "verb": "write",
+       "at": "cue:c_egale",
+       "target": "sol"
+      },
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "start": "cue:c_sept",
+       "end": "cue_end:c_sept",
+       "target": "sol",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "ecrire",
+     "say": "L'équation de la médiatrice est donc y égale moins x plus sept.",
+     "cues": [
+      {
+       "id": "c_eq",
+       "text": "y égale moins x plus sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_fin",
+       "verb": "write",
+       "at": "cue:c_eq",
+       "target": "finale"
+      },
+      {
+       "id": "h_fin",
+       "verb": "highlight",
+       "at": "after:w_fin",
+       "target": "finale",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "labD",
+     "attachment": {
+      "parent": "droite",
+      "anchor": "bottom"
+     },
+     "content": "y = -x + 7",
+     "type": "label"
+    },
+    {
+     "id": "ptP",
+     "frame": "rep",
+     "params": {
+      "at": [
+       1,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labP",
+     "attachment": {
+      "parent": "ptP",
+      "anchor": "top"
+     },
+     "content": "P(1 ; 6)",
+     "type": "label"
+    },
+    {
+     "id": "segPA",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "rep",
+     "params": {
+      "from": [
+       1,
+       6
+      ],
+      "to": [
+       1,
+       2
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "segPB",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "rep",
+     "params": {
+      "from": [
+       1,
+       6
+      ],
+      "to": [
+       5,
+       6
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "admettre",
+     "say": "La médiatrice tracée ici est exactement la droite y égale moins x plus sept. Vérifions deux choses sur le dessin.",
+     "cues": [
+      {
+       "id": "c_tracee",
+       "text": "y égale moins x plus sept"
+      },
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_labD",
+       "verb": "show",
+       "at": "cue:c_tracee",
+       "target": "labD"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_verif",
+       "targets": [
+        "rep",
+        "droite",
+        "ptA",
+        "ptB",
+        "ptM"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_droite"
+      }
+     ]
+    },
+    {
+     "id": "passeM",
+     "say": "D'abord, M est bien sur la droite : moins trois plus sept donne quatre. Le point trois, quatre est dessus.",
+     "cues": [
+      {
+       "id": "c_M",
+       "text": "M est bien sur la droite"
+      },
+      {
+       "id": "c_quatre",
+       "text": "donne quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_M",
+       "verb": "highlight",
+       "start": "cue:c_M",
+       "end": "cue_end:c_quatre",
+       "target": "ptM",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "equidist",
+     "say": "Ensuite, tout point de la médiatrice est à la même distance de A et de B. Prenons P, un et six : le segment jusqu'à A mesure quatre, et jusqu'à B mesure aussi quatre.",
+     "cues": [
+      {
+       "id": "c_tout",
+       "text": "même distance de A et de B"
+      },
+      {
+       "id": "c_P",
+       "text": "P, un et six"
+      },
+      {
+       "id": "c_aussi",
+       "text": "mesure aussi quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_P",
+       "verb": "show",
+       "at": "cue:c_P",
+       "target": "ptP"
+      },
+      {
+       "id": "s_labP",
+       "verb": "show",
+       "at": "after:s_P",
+       "target": "labP"
+      },
+      {
+       "id": "d_PA",
+       "verb": "draw",
+       "at": "cue:c_aussi",
+       "target": "segPA"
+      },
+      {
+       "id": "d_PB",
+       "verb": "draw",
+       "at": "after:d_PA",
+       "target": "segPB"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "recap_m",
+     "content": "M = \\left(\\dfrac{1+5}{2} ; \\dfrac{2+6}{2}\\right) = (3 ; 4)",
+     "type": "math"
+    },
+    {
+     "id": "recap_k",
+     "content": "m_{AB} = 1 \\quad\\Rightarrow\\quad m_{\\perp} = -1",
+     "type": "math"
+    },
+    {
+     "id": "recap_eq",
+     "content": "y = -x + 7",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cacher",
+     "say": "Retirons la figure pour garder l'essentiel.",
+     "cues": [
+      {
+       "id": "c_retirer",
+       "text": "Retirons"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "rep"
+      },
+      {
+       "id": "f_droite",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "droite"
+      },
+      {
+       "id": "f_ptA",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "ptA"
+      },
+      {
+       "id": "f_ptB",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "ptB"
+      },
+      {
+       "id": "f_ptM",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "ptM"
+      },
+      {
+       "id": "f_ptP",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "ptP"
+      },
+      {
+       "id": "f_segPA",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "segPA"
+      },
+      {
+       "id": "f_segPB",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "segPB"
+      },
+      {
+       "id": "f_labD",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "labD"
+      },
+      {
+       "id": "f_labP",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "labP"
+      },
+      {
+       "id": "f_calcM",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "calcM"
+      },
+      {
+       "id": "f_calcK",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "calcK"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "regle"
+      },
+      {
+       "id": "f_sol",
+       "verb": "fade_out",
+       "at": "cue:c_retirer",
+       "target": "sol"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "idee",
+     "say": "À retenir : la médiatrice passe par le milieu et sa pente est l'opposée inverse de celle du segment.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_milieu",
+       "text": "passe par le milieu"
+      },
+      {
+       "id": "c_opp",
+       "text": "opposée inverse"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rm",
+       "verb": "show",
+       "at": "cue:c_milieu",
+       "target": "recap_m"
+      },
+      {
+       "id": "s_rk",
+       "verb": "show",
+       "at": "cue:c_opp",
+       "target": "recap_k"
+      }
+     ]
+    },
+    {
+     "id": "formule",
+     "say": "Ici, le milieu est trois et quatre, la pente du segment est un, celle de la médiatrice moins un, et l'équation est y égale moins x plus sept.",
+     "cues": [
+      {
+       "id": "c_sept",
+       "text": "y égale moins x plus sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_req",
+       "verb": "show",
+       "at": "cue:c_sept",
+       "target": "recap_eq"
+      },
+      {
+       "id": "h_req",
+       "verb": "highlight",
+       "at": "after:s_req",
+       "target": "recap_eq",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

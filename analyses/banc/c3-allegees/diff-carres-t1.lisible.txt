@@ -1,0 +1,66 @@
+QUESTION (diff-carres, mathematiques, sec 4, methode) : Comment factoriser 9x² − 49 ?
+RÉPONSE DE RÉFÉRENCE : 9x² − 49 = (3x − 7)(3x + 7).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. reconnaître deux carrés : 9x² = (3x)² et 49 = 7²
+  2. règle a² − b² = (a − b)(a + b), justifiée
+  3. réponse (3x − 7)(3x + 7) écrite
+  4. vérification par développement
+  5. condition : une différence (pas une somme)
+ERREURS GRAVES À CHERCHER : réponse (9x − 49)… ou (3x − 7)²
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comment factoriser 9x² − 49
+=== Tranche s_reconnaitre
+  OBJET expr [math] "9x^2 - 49" parts=9x^2 | - | 49
+  OBJET forme [math] "a^2 - b^2"   <<JAMAIS MONTRÉ>>
+DIT (salut) : On factorise neuf x au carré moins quarante-neuf.
+    write expr @cue:c_expr 
+DIT (reconnaitre) : La première chose à regarder : c'est une soustraction, et les deux termes sont des carrés. Neuf x au carré, c'est trois x le tout au carré. Quarante-neuf, c'est sept au carré.
+    highlight expr @- {"start":"cue:c_deux_carres","end":"cue_end:c_troisx","role":"given","part":"a_carre"}
+    highlight expr @- {"start":"cue:c_sept","end":"cue_end:c_sept","role":"given","part":"b_carre"}
+=== Tranche s_identite
+  OBJET identite [math] "a^2 - b^2 = (a - b)(a + b)" parts=a^2 - b^2 | = (a - b)(a + b)
+  OBJET developpement [math] "(a - b)(a + b) = a^2 + ab - ab - b^2 = a^2 - b^2" 
+DIT (nommer) : C'est donc une différence de deux carrés. Il y a une identité pour ça : a au carré moins b au carré donne a moins b, fois a plus b.
+    dim forme @cue:c_difference 
+    write identite @cue:c_identite {"part":"gauche"}
+    write identite @cue:c_produit {"part":"droite"}
+DIT (verifier) : Pourquoi ça marche ? Si on développe a moins b fois a plus b : a au carré, plus a b, moins a b, moins b au carré. Les deux termes du milieu s'annulent, il reste a au carré moins b au carré.
+    transform developpement @cue:c_developpe {"source":"identite"}
+    transform identite @cue:c_reste {"source":"developpement"}
+=== Tranche s_appliquer
+  OBJET etape1 [math] "9x^2 - 49 = (3x)^2 - 7^2" parts=9x^2 - 49 | = (3x)^2 - 7^2
+  OBJET etape2 [math] "(3x)^2 - 7^2 = (3x - 7)(3x + 7)" 
+  OBJET lien [text] "a = 3x et b = 7" 
+DIT (poser) : Revenons à notre expression. J'écris chaque terme comme un carré : trois x, le tout au carré, moins sept au carré.
+    transform etape1 @cue:c_ecris {"source":"expr"}
+    show lien @cue:c_moins 
+DIT (remplacer) : Dans l'identité, a c'est trois x et b c'est sept. J'applique : trois x moins sept, fois trois x plus sept.
+    transform etape2 @cue:c_applique {"source":"etape1"}
+    highlight etape2 @cue:c_resultat {"role":"result"}
+=== Tranche s_verifier
+  OBJET verif [math] "(3x - 7)(3x + 7) = 9x^2 + 21x - 21x - 49 = 9x^2 - 49" 
+DIT (developper) : Vérifions en redéveloppant. Trois x fois trois x donne neuf x au carré. Trois x fois sept donne vingt et un x, et moins sept fois trois x donne moins vingt et un x.
+    fade_out lien @cue:c_redeveloppant 
+    write verif @cue:c_vingtun 
+DIT (annuler) : Les deux termes du milieu s'annulent, et il reste moins sept fois sept, donc moins quarante-neuf. On retrouve bien neuf x au carré moins quarante-neuf : la factorisation est bonne.
+    highlight verif @- {"start":"cue:c_annulent","end":"cue_end:c_retrouve","role":"accent"}
+=== Tranche s_retenir
+  OBJET regle [math] "a^2 - b^2 = (a - b)(a + b)" 
+  OBJET exemple [math] "9x^2 - 49 = (3x - 7)(3x + 7)" 
+  OBJET note [text] "Différence de deux carrés" 
+  GROUPE resume = note, regle, exemple
+DIT (effacer) : On garde juste l'essentiel.
+    fade_out identite @beat:start 
+    fade_out developpement @beat:start 
+    fade_out expr @beat:start 
+    fade_out etape1 @beat:start 
+    fade_out etape2 @beat:start 
+    fade_out verif @beat:start 
+DIT (retenir) : À retenir : quand tu vois une soustraction de deux carrés, pense tout de suite à l'identité. a au carré moins b au carré donne a moins b, fois a plus b. Ici, ça donne trois x moins sept, fois trois x plus sept.
+    camera.focus  @cue:c_retenir {"targets":["resume"],"bounds":"layout_bounds"}
+    show note @cue:c_retenir 
+    show regle @cue:c_identite 
+    show exemple @cue:c_ici 
+    highlight exemple @after:s_exemple {"role":"result"}
+--- 5 tranches, 267 mots dits (≈ 1.8 min d'oral)

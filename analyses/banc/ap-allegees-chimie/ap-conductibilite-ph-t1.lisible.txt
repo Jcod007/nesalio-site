@@ -1,0 +1,84 @@
+QUESTION (ap-conductibilite-ph, chimie, sec 4, alloprof) : Pourriez vous m'expliquer le lien entre la conductibilité électrique/les électrolytes et le pH svp?
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Le lien entre électrolytes et pH
+=== Tranche s_intro
+  OBJET sel [circle] {"center":[0,0],"radius":0.9} 
+  OBJET ion_na [circle] {"center":[-0.45,0],"radius":0.35} 
+  OBJET ion_cl [circle] {"center":[0.45,0],"radius":0.35} 
+  OBJET lab_na [label] "Na⁺" attaché à ion_na
+  OBJET lab_cl [label] "Cl⁻" attaché à ion_cl
+DIT (presentation) : Le lien, c'est une seule chose qu'on retrouve partout : les ions libres dans la solution.
+    show sel @beat:start 
+    show ion_na @cue:c_ions 
+    show ion_cl @after:s_na 
+    show lab_na @after:s_cl 
+    show lab_cl @after:s_lna 
+DIT (dissociation) : Un électrolyte comme le sel de table se dissocie dans l'eau : il se sépare en ions sodium et en ions chlorure, libres de bouger.
+    move ion_na @- {"start":"cue:c_dissocie","end":"cue_end:c_bouger","to":{"to_edge":"left","gap":"xl"}}
+    move ion_cl @- {"start":"cue:c_dissocie","end":"cue_end:c_bouger","to":{"to_edge":"right","gap":"xl"}}
+=== Tranche s_conduction
+  OBJET note_cond [text] "Ions libres → conductibilité électrique" 
+DIT (conduction) : Ces ions libres portent la charge : c'est ce qui rend la solution conductrice. On dit alors que la substance est un électrolyte.
+    show note_cond @cue:c_charge 
+    highlight lab_na @- {"start":"cue:c_conductrice","end":"cue_end:c_conductrice","role":"accent"}
+DIT (ph_arrive) : Maintenant, le pH entre en jeu. Certains ions sont particuliers : l'ion hydrogène, H plus, et l'ion hydroxyde, O H moins.
+    fade_out note_cond @cue:c_hplus 
+    highlight lab_na @cue:c_hplus {"role":"secondary"}
+    highlight lab_cl @cue:c_ohmoins {"role":"secondary"}
+=== Tranche s_ph
+  OBJET ligne [number_line] {"domain":[0,14]} 
+  OBJET p_citron [point] {"at":[2,0]} 
+  OBJET l_citron [label] "jus de citron ≈ 2" attaché à p_citron
+  OBJET p_eau [point] {"at":[7,0]} 
+  OBJET l_eau [label] "eau pure 7" attaché à p_eau
+  OBJET p_javel [point] {"at":[12,0]} 
+  OBJET l_javel [label] "eau de javel ≈ 12" attaché à p_javel
+  OBJET fleche_plus [arrow] {"from":[2,-1.2],"to":[0,-1.2]} 
+  OBJET fleche_moins [arrow] {"from":[12,-1.2],"to":[14,-1.2]} 
+DIT (echelle) : Le pH se mesure sur une échelle de zéro à quatorze. Sous sept, c'est acide ; à sept, neutre ; au-dessus, basique.
+    draw ligne @beat:start 
+    show p_citron @cue:c_acide 
+    show l_citron @after:s_citron 
+    show p_eau @cue:c_basique 
+    show l_eau @after:s_eau 
+    show p_javel @cue:c_basique 
+    show l_javel @after:s_javel 
+DIT (lien) : Plus il y a d'ions hydrogène, plus le pH est bas. Plus il y a d'ions hydroxyde, plus le pH est haut.
+    draw fleche_plus @- {"start":"cue:c_bas","end":"cue_end:c_bas"}
+    draw fleche_moins @- {"start":"cue:c_haut","end":"cue_end:c_haut"}
+=== Tranche s_dissociation_acide
+  OBJET eq_hcl [math] "\\ce{HCl -> H+ + Cl-}" 
+  OBJET eq_naoh [math] "\\ce{NaOH -> Na+ + OH-}" 
+DIT (exemple_acide) : Prenons l'acide chlorhydrique : il se dissocie en ion hydrogène et en ion chlorure.
+    write eq_hcl @cue:c_hcl 
+    highlight eq_hcl @- {"start":"cue:c_hplus","end":"cue_end:c_hplus","role":"accent"}
+DIT (exemple_base) : Et la soude : elle se dissocie en ion sodium et en ion hydroxyde. Les deux libèrent des ions et conduisent le courant, mais leur pH est opposé.
+    write eq_naoh @cue:c_soude 
+    highlight eq_naoh @- {"start":"cue:c_ion_oh","end":"cue_end:c_ion_oh","role":"secondary"}
+    highlight eq_hcl @- {"start":"cue:c_oppose","end":"cue_end:c_oppose","role":"accent"}
+=== Tranche s_facteur10
+  OBJET fact [math] "\\text{pH} = -\\log[\\ce{H+}]" parts=\text{pH} | = -\log[\ce{H+}]
+  OBJET exemple [math] "[\\ce{H+}] = 1\\times10^{-3}\\ \\text{mol/L} \\Rightarrow \\text{pH} = 3" 
+DIT (puissance) : Le pH est en fait une échelle logarithmique : chaque unité correspond à un facteur dix sur la concentration des ions hydrogène.
+    dim ligne @cue:c_log 
+    write fact @cue:c_log {"part":"ph_part"}
+    write fact @cue:c_dix {"part":"log_part"}
+DIT (exemple_calc) : Par exemple, si la concentration en ions hydrogène vaut un fois dix exposant moins trois mole par litre, le pH vaut trois.
+    write exemple @cue:c_concent 
+    highlight exemple @- {"start":"cue:c_trois","end":"cue_end:c_trois","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [math] "\\text{ions libres} \\Rightarrow \\text{conductibilité} + \\text{pH}" 
+  OBJET note_finale [text] "Acide : plus de H⁺  •  Basique : plus de OH⁻" 
+DIT (recap) : À retenir : une solution qui libère des ions devient conductrice, et si ces ions sont des ions hydrogène ou hydroxyde, ils fixent aussi le pH.
+    fade_out sel @cue:c_retenir 
+    fade_out ion_na @cue:c_retenir 
+    fade_out ion_cl @cue:c_retenir 
+    write idee @cue:c_conductrice 
+    highlight idee @- {"start":"cue:c_fixent","end":"cue_end:c_fixent","role":"accent"}
+DIT (details) : Donc acide veut dire plus d'ions hydrogène, basique veut dire plus d'ions hydroxyde, et dans les deux cas la solution conduit le courant.
+    show note_finale @cue:c_acide 
+--- 6 tranches, 264 mots dits (≈ 1.8 min d'oral)

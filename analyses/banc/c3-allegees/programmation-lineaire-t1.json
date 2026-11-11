@@ -1,0 +1,805 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "polygone_contraintes",
+  "title": "Trouver le maximum de 3x + 2y sous contraintes",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'un optimum linéaire est atteint à un sommet du polygone de contraintes, et le trouver."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_zone",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       6
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "d1",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       6
+      ],
+      "to": [
+       6,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "d2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       4,
+       -0.5
+      ],
+      "to": [
+       4,
+       6.5
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lbl1",
+     "attachment": {
+      "parent": "d1",
+      "anchor": "right"
+     },
+     "content": "x + y = 6",
+     "type": "label"
+    },
+    {
+     "id": "lbl2",
+     "attachment": {
+      "parent": "d2",
+      "anchor": "top"
+     },
+     "content": "x = 4",
+     "type": "label"
+    },
+    {
+     "id": "poly",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "sA",
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sB",
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sC",
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sD",
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nA",
+     "attachment": {
+      "parent": "sA",
+      "anchor": "bottom_left"
+     },
+     "content": "A (0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "nB",
+     "attachment": {
+      "parent": "sB",
+      "anchor": "bottom"
+     },
+     "content": "B (4 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "nC",
+     "attachment": {
+      "parent": "sC",
+      "anchor": "right"
+     },
+     "content": "C (4 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "nD",
+     "attachment": {
+      "parent": "sD",
+      "anchor": "left"
+     },
+     "content": "D (0 ; 6)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "zone",
+     "say": "Chaque inégalité dessine un demi-plan, et leur rencontre forme un polygone : le polygone de contraintes.",
+     "cues": [
+      {
+       "id": "c_poly",
+       "text": "polygone de contraintes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_d1",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "d1"
+      },
+      {
+       "id": "d_d2",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "d2"
+      },
+      {
+       "id": "s_l1",
+       "verb": "show",
+       "at": "after:d_d1",
+       "target": "lbl1"
+      },
+      {
+       "id": "s_l2",
+       "verb": "show",
+       "at": "after:d_d2",
+       "target": "lbl2"
+      },
+      {
+       "id": "s_poly",
+       "verb": "show",
+       "at": "cue:c_poly",
+       "target": "poly"
+      },
+      {
+       "id": "h_poly",
+       "verb": "highlight",
+       "start": "cue:c_poly",
+       "end": "cue_end:c_poly",
+       "target": "poly",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sommets",
+     "say": "Ses sommets sont A zéro zéro, B quatre zéro, C quatre deux, et D zéro six.",
+     "cues": [
+      {
+       "id": "c_A",
+       "text": "A"
+      },
+      {
+       "id": "c_B",
+       "text": "B"
+      },
+      {
+       "id": "c_C",
+       "text": "C"
+      },
+      {
+       "id": "c_D",
+       "text": "D"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_A",
+       "target": "sA"
+      },
+      {
+       "id": "s_nA",
+       "verb": "show",
+       "at": "after:s_A",
+       "target": "nA"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "cue:c_B",
+       "target": "sB"
+      },
+      {
+       "id": "s_nB",
+       "verb": "show",
+       "at": "after:s_B",
+       "target": "nB"
+      },
+      {
+       "id": "s_C",
+       "verb": "show",
+       "at": "cue:c_C",
+       "target": "sC"
+      },
+      {
+       "id": "s_nC",
+       "verb": "show",
+       "at": "after:s_C",
+       "target": "nC"
+      },
+      {
+       "id": "s_D",
+       "verb": "show",
+       "at": "cue:c_D",
+       "target": "sD"
+      },
+      {
+       "id": "s_nD",
+       "verb": "show",
+       "at": "after:s_D",
+       "target": "nD"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_eval",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        0,
+        0,
+        0
+       ],
+       [
+        4,
+        0,
+        12
+       ],
+       [
+        4,
+        2,
+        16
+       ],
+       [
+        0,
+        6,
+        12
+       ]
+      ],
+      "column_labels": [
+       "x",
+       "y",
+       "3x + 2y"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "regle",
+     "content": "z = 3x + 2y",
+     "parts": [
+      {
+       "id": "z",
+       "text": "z"
+      },
+      {
+       "id": "expr",
+       "text": "= 3x + 2y"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pourquoi",
+     "say": "L'expression à maximiser est z égale trois x plus deux y. Pourquoi suffit-il de tester les sommets ?",
+     "cues": [
+      {
+       "id": "c_z",
+       "text": "z égale trois x plus deux y"
+      },
+      {
+       "id": "c_som",
+       "text": "tester les sommets"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_z",
+       "verb": "write",
+       "at": "cue:c_z",
+       "target": "regle",
+       "part": "z"
+      },
+      {
+       "id": "w_expr",
+       "verb": "write",
+       "at": "cue:c_z",
+       "target": "regle",
+       "part": "expr"
+      },
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_som",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "pente",
+     "say": "Le taux de variation de z est toujours moins trois demis : les droites z constant sont parallèles, alors le meilleur point touche le bord du polygone.",
+     "cues": [
+      {
+       "id": "c_pente",
+       "text": "taux de variation"
+      },
+      {
+       "id": "c_bord",
+       "text": "touche le bord"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_pente",
+       "end": "cue_end:c_bord",
+       "target": "tab",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calculs",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "calc_sommets",
+     "say": "Calculons en chaque sommet. En A, trois fois zéro plus deux fois zéro donne zéro.",
+     "cues": [
+      {
+       "id": "c_A",
+       "text": "En A"
+      },
+      {
+       "id": "c_0",
+       "text": "donne zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_A",
+       "verb": "highlight",
+       "start": "cue:c_A",
+       "end": "cue_end:c_0",
+       "target": "tab",
+       "part": "r1c3"
+      }
+     ],
+     "pause_after": "brief"
+    },
+    {
+     "id": "calc_B",
+     "say": "En B, trois fois quatre plus deux fois zéro donne douze.",
+     "cues": [
+      {
+       "id": "c_B",
+       "text": "En B"
+      },
+      {
+       "id": "c_12",
+       "text": "donne douze"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_B",
+       "verb": "highlight",
+       "start": "cue:c_B",
+       "end": "cue_end:c_12",
+       "target": "tab",
+       "part": "r2c3"
+      }
+     ],
+     "pause_after": "brief"
+    },
+    {
+     "id": "calc_C",
+     "say": "En C, trois fois quatre plus deux fois deux : douze plus quatre, seize.",
+     "cues": [
+      {
+       "id": "c_C",
+       "text": "En C"
+      },
+      {
+       "id": "c_16",
+       "text": "seize"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_C",
+       "verb": "highlight",
+       "start": "cue:c_C",
+       "end": "cue_end:c_16",
+       "target": "tab",
+       "part": "r3c3"
+      }
+     ],
+     "pause_after": "brief"
+    },
+    {
+     "id": "calc_D",
+     "say": "En D, trois fois zéro plus deux fois six donne douze. Le plus grand est seize, au sommet C.",
+     "cues": [
+      {
+       "id": "c_D",
+       "text": "En D"
+      },
+      {
+       "id": "c_plus_grand",
+       "text": "Le plus grand"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_D",
+       "verb": "highlight",
+       "start": "cue:c_D",
+       "end": "cue_end:c_D",
+       "target": "tab",
+       "part": "r4c3"
+      },
+      {
+       "id": "h_max",
+       "verb": "highlight",
+       "start": "cue:c_plus_grand",
+       "end": "cue_end:c_plus_grand",
+       "target": "tab",
+       "role": "result",
+       "part": "r3c3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Maximum atteint au sommet : x = 4, y = 2, z = 16",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "final",
+     "say": "On conclut : ce maximum vaut seize, atteint en x égale quatre et y égale deux.",
+     "cues": [
+      {
+       "id": "c_max",
+       "text": "maximum vaut seize"
+      },
+      {
+       "id": "c_point",
+       "text": "x égale quatre et y égale deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "poly",
+        "sC",
+        "sC"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "hC",
+       "verb": "highlight",
+       "start": "cue:c_point",
+       "end": "cue_end:c_point",
+       "target": "sC",
+       "role": "result"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_max",
+       "target": "idee"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

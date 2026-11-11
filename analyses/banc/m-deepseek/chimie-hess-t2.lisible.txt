@@ -1,0 +1,74 @@
+QUESTION (chimie-hess, chimie, sec 5, methode) : comment je trouve le ΔH de C + O2 → CO2 si j'ai C + ½ O2 → CO avec ΔH = -110,5 kJ pis CO + ½ O2 → CO2 avec ΔH = -283,0 kJ?
+RÉPONSE DE RÉFÉRENCE : Les deux étapes s'additionnent (CO s'annule) : ΔH = −110,5 + (−283,0) = −393,5 kJ.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. loi de Hess : la variation d'enthalpie ne dépend que de l'état initial et de l'état final
+  2. additionner les deux équations : CO apparaît des deux côtés et s'annule, ½ O₂ + ½ O₂ = O₂
+  3. additionner les ΔH : −110,5 + (−283,0)
+  4. ΔH = −393,5 kJ écrit, réaction exothermique
+  5. valorisé : diagramme énergétique en deux marches
+ERREURS GRAVES À CHERCHER : signe de ΔH faux ; réaction dite endothermique
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le ΔH de C + O₂ → CO₂ avec la loi de Hess
+=== Tranche s_probleme
+  OBJET glob [math] "\\ce{C + O2 -> CO2} \\quad \\Delta H = \\text{?}" parts=\ce{C + O2 -> CO2} | \quad \Delta H = \text{?}
+  OBJET et1 [math] "\\ce{C + \\frac{1}{2} O2 -> CO} \\quad \\Delta H_1 = -110{,}5 \\text{ kJ}" 
+  OBJET et2 [math] "\\ce{CO + \\frac{1}{2} O2 -> CO2} \\quad \\Delta H_2 = -283{,}0 \\text{ kJ}" 
+  GROUPE deux_etapes = et1, et2
+DIT (vois) : Tu veux la chaleur dégagée par la combustion du carbone en une seule étape, mais on te donne seulement deux étapes intermédiaires.
+    write glob @cue:c_une {"part":"eqg"}
+    write glob @after:w_eqg {"part":"dhg"}
+DIT (etapes) : La première fait du CO à partir du carbone, avec un delta H de moins cent dix virgule cinq kilojoules. La deuxième transforme ce CO en CO2, avec moins deux cent quatre-vingt-trois kilojoules.
+    show et1 @cue:c_premiere 
+    highlight et1 @cue:c_centdix {"role":"given"}
+    show et2 @cue:c_deuxieme 
+    highlight et2 @cue:c_deuxcent {"role":"given"}
+=== Tranche s_addition
+  OBJET somme [math] "\\ce{C + \\frac{1}{2} O2 + CO + \\frac{1}{2} O2 -> CO + CO2}" 
+  OBJET simplifie [math] "\\ce{C + O2 -> CO2}" 
+  OBJET calc [math] "\\Delta H = -110{,}5 + (-283{,}0) = -393{,}5 \\text{ kJ}" 
+DIT (additionner) : On additionne les deux équations comme des égalités : le CO apparaît d'un côté et de l'autre.
+    write somme @beat:start 
+    highlight somme @after:w_react {"role":"accent"}
+    highlight somme @after:w_fleche {"role":"accent"}
+DIT (annule) : Le CO à droite en produit et celui à gauche en réactif s'annulent, donc la somme des deux demi O2 donne un seul O2.
+    highlight somme @- {"start":"cue:c_annulent","end":"cue_end:c_annulent","role":"secondary"}
+    fade_out somme @cue:c_o2 
+    transform simplifie @cue:c_o2 {"source":"glob"}
+DIT (deltaH) : Puis on additionne les delta H des deux étapes : moins cent dix virgule cinq plus moins deux cent quatre-vingt-trois, ce qui donne moins trois cent quatre-vingt-treize virgule cinq kilojoules.
+    write calc @cue:c_dh1 
+    highlight calc @cue:c_dh2 {"role":"accent"}
+    highlight calc @cue:c_dhf {"role":"accent"}
+    highlight calc @after:w_dhf {"role":"result"}
+=== Tranche s_profil
+  OBJET axes_en [axes] {"x":[0,6],"y":[0,8]} 
+  OBJET ligne_react [line] {"from":[0,4],"to":[2,4]} 
+  OBJET ligne_mont [line] {"from":[2,4],"to":[3,7]} 
+  OBJET ligne_desc [line] {"from":[3,7],"to":[4,1]} 
+  OBJET ligne_prod [line] {"from":[4,1],"to":[6,1]} 
+  OBJET lbl_react [label] "réactifs" attaché à ligne_react
+  OBJET lbl_prod [label] "produits" attaché à ligne_prod
+  OBJET arr_dh [arrow] {"from":[5,4],"to":[5,1]} 
+  OBJET lbl_dh [label] "ΔH = −393,5 kJ" attaché à arr_dh
+DIT (profil) : Sur un diagramme d'énergie, les réactifs partent plus haut que les produits.
+    show axes_en @beat:start 
+    draw ligne_react @cue:c_reactifs 
+    draw ligne_mont @after:d_react 
+    draw ligne_desc @after:d_mont 
+    draw ligne_prod @cue:c_produits 
+    show lbl_react @after:d_react 
+    show lbl_prod @after:d_prod 
+DIT (fleche) : La flèche vers le bas montre que la réaction dégage de l'énergie : c'est pour ça que le delta H est négatif.
+    show arr_dh @cue:c_fleche 
+    show lbl_dh @cue:c_negatif 
+=== Tranche s_retenir
+  OBJET regle [math] "\\Delta H_{globale} = \\Delta H_1 + \\Delta H_2" 
+  OBJET idee [text] "On annule ce qui est commun, puis on additionne les ΔH." 
+  GROUPE reco = regle, idee
+DIT (retenir) : À retenir : quand deux équations s'enchaînent pour donner la réaction globale, ce qui est commun s'annule et les delta H s'additionnent.
+    fade_out axes_en @cue:c_retenir 
+    fade_out calc @cue:c_retenir 
+    draw regle @cue:c_commun 
+    highlight regle @- {"start":"cue:c_additionnent","end":"cue_end:c_additionnent","role":"result"}
+    show idee @after:h_regle 
+--- 4 tranches, 182 mots dits (≈ 1.2 min d'oral)

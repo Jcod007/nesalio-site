@@ -1,0 +1,60 @@
+QUESTION (radian-sens, mathematiques, sec 5, sens) : c'est quoi un radian pis pourquoi on l'utilise au lieu des degrés?
+RÉPONSE DE RÉFÉRENCE : Angle qui intercepte un arc de longueur égale au rayon ; π rad = 180°, 1 rad ≈ 57,3°.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. un radian est l'angle au centre qui intercepte un arc de longueur égale au rayon (figure)
+  2. un tour = 2π rad car la circonférence vaut 2πr ; π rad = 180° ; 1 rad ≈ 57,3°
+  3. conversion menée au résultat (ex. 90° = π/2 rad)
+  4. intérêt : lien direct avec la longueur d'arc (s = rθ) et unité naturelle du cercle trigonométrique
+  5. rappel du mode radians/degrés de la calculatrice
+ERREURS GRAVES À CHERCHER : arc de la figure qui n'a pas la longueur du rayon ; conversion fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (π\s*(rad)?\s*=\s*180) ; issue complète
+
+TITRE : C'est quoi un radian et pourquoi l'utiliser
+math_context : {"symbols":{"r":{"kind":"constant","value":3}},"expressions":{}}
+=== Tranche s_intro
+  OBJET cercle [circle] {"center":[0,0],"radius":3} 
+  OBJET rayon [line] {"from":[0,0],"to":[3,0]} 
+  OBJET lab_r [label] "r = 3" attaché à rayon
+DIT (ouvre) : Le radian, c'est une autre façon de mesurer un angle. Viens, je te montre avec un cercle de rayon trois.
+    camera.focus  @beat:start {"targets":["cercle"],"bounds":"layout_bounds","save_as":"vue_cercle"}
+    draw cercle @beat:start 
+    show rayon @cue:c_rayon 
+    show lab_r @after:s_rayon 
+=== Tranche s_arc
+  OBJET arc [parametric_curve] {"x":"3*cos(t)","y":"3*sin(t)","domain":[0,1]} 
+  OBJET def_rad [math] "1\\ \\text{rad} : \\text{arc} = r" parts=1\ \text{rad} | : \text{arc} = r
+DIT (arc_egal) : Un radian, c'est l'angle au centre qui découpe un arc de longueur égale au rayon. Ici, un arc de trois.
+    draw arc @- {"start":"cue:c_arc","end":"cue_end:c_trois"}
+    highlight rayon @- {"start":"cue:c_arc","end":"cue_end:c_trois","role":"accent"}
+DIT (pose) : C'est la définition : un radian, quand l'arc et le rayon ont la même longueur.
+    write def_rad @cue:c_def {"part":"un"}
+    write def_rad @cue:c_meme {"part":"egal"}
+=== Tranche s_tour
+  OBJET tour [math] "2\\pi\\ \\text{rad} = 360^\\circ" parts=2\pi\ \text{rad} | = 360^\circ
+  OBJET unrad [math] "1\\ \\text{rad} \\approx 57{,}3^\\circ" 
+DIT (combien) : Combien de rayons dans tout le tour ? La circonférence, c'est deux pi r, donc deux pi rayons. Deux pi rayons, ça fait deux pi radians.
+    fade_out arc @cue:c_deuxpi 
+    write tour @cue:c_deuxpirad {"part":"gauche"}
+    write tour @cue:c_deuxpirad {"part":"droite"}
+DIT (corresp) : Le tour complet, c'est aussi trois cent soixante degrés. Donc deux pi radians égale trois cent soixante degrés. Un radian, environ cinquante-sept virgule trois degrés.
+    highlight tour @- {"start":"cue:c_360","end":"cue_end:c_360","role":"accent"}
+    write unrad @cue:c_un 
+=== Tranche s_conversion
+  OBJET ex [math] "90^\\circ = \\frac{\\pi}{2}\\ \\text{rad}" parts=90^\circ | = \frac{\pi}{2}\ \text{rad}
+  OBJET note [text] "Calculatrice : vérifie le mode (DEG ou RAD)" 
+DIT (convertir) : Pour convertir, on part de la moitié du tour : quatre-vingt-dix degrés, c'est la moitié de cent quatre-vingts, donc pi sur deux radians.
+    dim tour @cue:c_90 
+    write ex @cue:c_90 {"part":"deg"}
+    write ex @cue:c_pi2 {"part":"rad"}
+DIT (pourquoi) : On préfère les radians parce que les formules deviennent simples : la longueur d'un arc, c'est r fois l'angle en radians. En degrés, il faudrait traîner un facteur pi sur cent quatre-vingts.
+    show note @cue:c_simples 
+    highlight ex @- {"start":"cue:c_arc","end":"cue_end:c_arc","role":"accent","part":"rad"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : un radian, c'est l'angle dont l'arc vaut le rayon. Le tour fait deux pi radians, et c'est pour ça qu'on l'utilise : les formules s'écrivent sans facteur de conversion.
+    camera.restore  @beat:start {"frame":"vue_cercle"}
+    fade_out def_rad @cue:c_retenir 
+    fade_out unrad @cue:c_retenir 
+    fade_out note @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["cercle","rayon","lab_r","tour","ex"],"bounds":"layout_bounds"}
+    highlight tour @- {"start":"cue:c_idee","end":"cue_end:c_idee","role":"result"}
+--- 5 tranches, 193 mots dits (≈ 1.3 min d'oral)

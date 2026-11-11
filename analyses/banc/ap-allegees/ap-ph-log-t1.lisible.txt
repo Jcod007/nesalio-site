@@ -1,0 +1,79 @@
+QUESTION (ap-ph-log, chimie, sec 4, alloprof) : J’étudie présentement La concentration molaire des ions H+ et le pH et je n’y comprend absolument rien. Je ne comprend pas comment pH = -log[H+] devient [H+] = 10^-pH Ensuite, 0.01 mol de H+ est bien égal à un pH de 1 mais j’aimerais avoir une explication plus profonde à ce sujet.
+RÉPONSE DE RÉFÉRENCE : [H+] = 0,01 mol/L donne pH 2, pas 1 (l'élève se trompe).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète, tranches perdues : (sans identifiant)
+
+TITRE : Pourquoi pH = −log[H⁺] donne [H⁺] = 10^−pH
+math_context : {"symbols":{"p":{"kind":"parameter","initial":1,"min":1,"max":4}},"expressions":{"h":"10^(-p)","h2":"10^(-2)","h3":"10^(-3)"}}
+=== Tranche s_echelle
+  OBJET ligne [number_line] {"domain":[0,14]} 
+  OBJET citron [point] {"at":[2,0]} 
+  OBJET citron_l [label] "jus de citron" attaché à citron
+  OBJET eau [point] {"at":[7,0]} 
+  OBJET eau_l [label] "eau pure" attaché à eau
+  OBJET javel [point] {"at":[12,0]} 
+  OBJET javel_l [label] "eau de javel" attaché à javel
+DIT (intro) : Le pH, c'est juste une façon de compter les ions H plus sans écrire de très petits nombres.
+    camera.focus  @beat:start {"targets":["ligne"],"bounds":"layout_bounds","save_as":"vue_echelle"}
+    draw ligne @beat:start 
+DIT (repere) : Regarde l'échelle : en dessous de sept, c'est acide ; à sept, c'est neutre ; au-dessus, c'est basique.
+    show citron @cue:c_acide 
+    show citron_l @cue:c_acide 
+    show eau @cue:c_neutre 
+    show eau_l @cue:c_neutre 
+    show javel @cue:c_basique 
+    show javel_l @cue:c_basique 
+=== Tranche s_puissances
+  OBJET tab [matrix] {"rows":[[1,2,3],[10,100,1000]],"row_labels":["pH","[H⁺] (mol/L)"]} 
+  OBJET mot [text] "pH 2 → [H⁺] = 10⁻² mol/L"   <<JAMAIS MONTRÉ>>
+DIT (montre) : Ce que cache cette échelle, c'est un facteur dix à chaque unité.
+    fade_out ligne @cue:c_facteur 
+    fade_out citron @cue:c_facteur 
+    fade_out citron_l @cue:c_facteur 
+    fade_out eau @cue:c_facteur 
+    fade_out eau_l @cue:c_facteur 
+    fade_out javel @cue:c_facteur 
+    fade_out javel_l @cue:c_facteur 
+    show tab @cue:c_facteur 
+DIT (lecture) : Un pH de deux, c'est dix exposant moins deux mole par litre : zéro virgule zéro un. Un pH de trois, dix exposant moins trois : dix fois moins.
+    highlight tab @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"accent","part":"c2"}
+    highlight tab @- {"start":"cue:c_trois","end":"cue_end:c_trois","role":"accent","part":"c3"}
+=== Tranche s_log
+  OBJET logdef [math] "\\log(10^{2}) = 2" parts=\log(10^{2}) | = | 2
+  OBJET phdef [math] "pH = -\\log[H^+]" parts=pH | = | -\log[H^+]
+  OBJET inv [math] "[H^+] = 10^{-pH}" parts=[H^+] | = | 10^{-pH}
+DIT (log) : Le log, c'est simplement l'exposant qu'il faut donner à dix pour retrouver le nombre.
+    fade_out tab @cue:c_log 
+    write logdef @cue:c_log {"part":"log"}
+    write logdef @cue:c_exposant {"part":"res"}
+DIT (ph) : Le pH, c'est moins ce logarithme : on prend l'exposant, puis on change le signe pour avoir un nombre positif.
+    write phdef @cue:c_phdef {"part":"ph"}
+    write phdef @cue:c_signe {"part":"neglog"}
+DIT (inverse) : Et pour revenir en arrière, on défait les deux opérations : on remet le signe moins, et on remet dix comme base.
+    dim logdef @cue:c_arriere 
+    write inv @cue:c_arriere {"part":"h"}
+    write inv @cue:c_base {"part":"dix"}
+=== Tranche s_zero_un
+  OBJET h001 [math] "[H^+] = 10^{-2} = 0{,}01\\ \\text{mol/L}" 
+  OBJET calcph [math] "pH = -\\log(0{,}01) = 2" 
+DIT (donnee) : Vérifions avec ta donnée : zéro virgule zéro un mole par litre, c'est dix exposant moins deux.
+    fade_out logdef @cue:c_donnee 
+    write h001 @cue:c_donnee 
+DIT (sens) : Dans l'autre sens, le logarithme de zéro virgule zéro un, c'est moins deux, donc le pH vaut deux.
+    write calcph @cue:c_logdeux 
+    highlight calcph @- {"start":"cue:c_phdeux","end":"cue_end:c_phdeux","role":"result"}
+DIT (proche) : Ton pH de un vient de dix exposant moins un : zéro virgule un mole par litre, soit dix fois plus concentré que zéro virgule zéro un.
+    fade_out inv @cue:c_un 
+    fade_out phdef @cue:c_un 
+=== Tranche s_retenir
+  OBJET regle [math] "[H^+] = 10^{-pH}" 
+  OBJET phrase [text] "Le pH est l'exposant de 10, changé de signe" 
+  GROUPE resume = regle, phrase
+DIT (retenir) : À retenir : le pH est l'exposant de dix, changé de signe. Alors la concentration en H plus, c'est dix exposant moins pH.
+    fade_out h001 @cue:c_retenir 
+    fade_out calcph @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["regle","phrase"]}
+    write regle @cue:c_concentration 
+    show phrase @after:w_regle 
+--- 5 tranches, 218 mots dits (≈ 1.5 min d'oral)

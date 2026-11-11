@@ -1,0 +1,813 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "periode_cycle_sinusoidale",
+  "title": "Reconnaître la période et le cycle d'une fonction périodique",
+  "language": "fr",
+  "learning_goal": "Lire la période et le cycle d'une fonction périodique (sinusoïdale) à partir de la forme canonique et du graphique."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "a": {
+     "kind": "parameter",
+     "initial": 1,
+     "min": 0.5,
+     "max": 2
+    },
+    "b": {
+     "kind": "parameter",
+     "initial": 1,
+     "min": 0.5,
+     "max": 2
+    }
+   },
+   "expressions": {
+    "periode": "2*pi/(abs(b))"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne question : on va voir comment repérer la période et le cycle directement, sans hésiter.",
+     "cues": [
+      {
+       "id": "c_periode",
+       "text": "la période"
+      },
+      {
+       "id": "c_cycle",
+       "text": "le cycle"
+      }
+     ],
+     "do": [],
+     "pause_after": "brief"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_courbe",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       8.5
+      ],
+      "y": [
+       -3,
+       3
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "sin(x)",
+      "domain": [
+       0,
+       8.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "sommet",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       1.5708,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sommet2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       7.854,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "fleche",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       1.5708,
+       1.35
+      ],
+      "to": [
+       7.854,
+       1.35
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "etiq",
+     "attachment": {
+      "parent": "fleche",
+      "anchor": "top"
+     },
+     "style": {
+      "role": "given"
+     },
+     "content": "un cycle = 2π",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Voici la courbe du sinus. Un cycle, c'est un motif qui se répète : d'un sommet au sommet suivant, la forme revient identique.",
+     "cues": [
+      {
+       "id": "c_cycle",
+       "text": "Un cycle"
+      },
+      {
+       "id": "c_sommet",
+       "text": "sommet au sommet suivant"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep"
+       ]
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_cycle",
+       "end": "cue_end:c_sommet",
+       "target": "courbe"
+      },
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "sommet"
+      }
+     ]
+    },
+    {
+     "id": "mesure",
+     "say": "La période, c'est la longueur horizontale d'un cycle : ici, entre x égale un virgule cinq sept et x égale sept virgule huit cinq, il y a deux pi.",
+     "cues": [
+      {
+       "id": "c_periode",
+       "text": "La période"
+      },
+      {
+       "id": "c_deuxpi",
+       "text": "deux pi"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sommet2",
+       "verb": "show",
+       "at": "cue:c_periode",
+       "target": "sommet2"
+      },
+      {
+       "id": "s_fleche",
+       "verb": "show",
+       "at": "after:s_sommet2",
+       "target": "fleche"
+      },
+      {
+       "id": "s_etiq",
+       "verb": "show",
+       "at": "cue:c_deuxpi",
+       "target": "etiq"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "gen",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "f(x) = a \\sin\\!\\big(b(x - h)\\big) + k",
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "gen",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "P = \\frac{2\\pi}{|b|}",
+     "parts": [
+      {
+       "id": "p",
+       "text": "P ="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{2\\pi}{|b|}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_b",
+     "attachment": {
+      "parent": "gen",
+      "anchor": "bottom",
+      "placement": "inside"
+     },
+     "style": {
+      "role": "given"
+     },
+     "content": "b = 1 ici",
+     "type": "label"
+    },
+    {
+     "id": "note_per",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "periode",
+      "template": "P = {value}",
+      "precision": 3
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "forme",
+     "say": "La forme canonique d'une sinusoïdale est f de x égale a sinus de b fois x moins h, plus k. C'est b le responsable de la période.",
+     "cues": [
+      {
+       "id": "c_fx",
+       "text": "f de x égale"
+      },
+      {
+       "id": "c_b",
+       "text": "b fois"
+      },
+      {
+       "id": "c_resp",
+       "text": "responsable de la période"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_courbe",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "courbe"
+      },
+      {
+       "id": "d_sommet",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "sommet"
+      },
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_fx",
+       "target": "gen"
+      },
+      {
+       "id": "w_sin",
+       "verb": "highlight",
+       "at": "cue:c_fx",
+       "target": "gen",
+       "role": "accent"
+      },
+      {
+       "id": "w_b",
+       "verb": "highlight",
+       "at": "cue:c_b",
+       "target": "gen",
+       "role": "accent"
+      },
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "start": "cue:c_b",
+       "end": "cue_end:c_resp",
+       "target": "gen",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "regle",
+     "say": "La règle est courte : la période vaut deux pi divisé par la valeur absolue de b. Ici b vaut un, alors la période vaut deux pi.",
+     "cues": [
+      {
+       "id": "c_regle",
+       "text": "deux pi divisé par"
+      },
+      {
+       "id": "c_un",
+       "text": "b vaut un"
+      },
+      {
+       "id": "c_deuxpi",
+       "text": "période vaut deux pi"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note_b",
+       "verb": "show",
+       "at": "cue:c_un",
+       "target": "note_b"
+      },
+      {
+       "id": "w_p",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "regle",
+       "part": "p"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_deuxpi",
+       "target": "regle",
+       "part": "frac"
+      },
+      {
+       "id": "s_note_per",
+       "verb": "show",
+       "at": "after:w_frac",
+       "target": "note_per"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resserre",
+   "introduces": [
+    {
+     "id": "haut",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       0.7854,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "fleche2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0.7854,
+       2
+      ],
+      "to": [
+       2.3562,
+       2
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "etiq2",
+     "attachment": {
+      "parent": "fleche2",
+      "anchor": "top"
+     },
+     "style": {
+      "role": "given"
+     },
+     "content": "P = π",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "doubleb",
+     "say": "Si b passe à deux, la règle donne deux pi divisé par deux : la période tombe à pi. La courbe se répète deux fois plus vite, donc elle se resserre.",
+     "cues": [
+      {
+       "id": "c_passe",
+       "text": "b passe à deux"
+      },
+      {
+       "id": "c_pi",
+       "text": "la période tombe à pi"
+      },
+      {
+       "id": "c_resserre",
+       "text": "se resserre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_le",
+       "verb": "fade_out",
+       "at": "cue:c_passe",
+       "target": "fleche"
+      },
+      {
+       "id": "f_et",
+       "verb": "fade_out",
+       "at": "cue:c_passe",
+       "target": "etiq"
+      },
+      {
+       "id": "f_so",
+       "verb": "fade_out",
+       "at": "cue:c_passe",
+       "target": "sommet2"
+      },
+      {
+       "id": "s_haut",
+       "verb": "show",
+       "at": "cue:c_pi",
+       "target": "haut"
+      },
+      {
+       "id": "s_fleche2",
+       "verb": "show",
+       "at": "after:s_haut",
+       "target": "fleche2"
+      },
+      {
+       "id": "s_etiq2",
+       "verb": "show",
+       "at": "cue:c_resserre",
+       "target": "etiq2"
+      }
+     ]
+    },
+    {
+     "id": "conseil",
+     "say": "Donc pour reconnaître la période : regarde le b dans la parenthèse, puis calcule deux pi sur b. Pour un cycle, compte la longueur entre deux sommets voisins sur le dessin.",
+     "cues": [
+      {
+       "id": "c_retiens",
+       "text": "regarde le b"
+      },
+      {
+       "id": "c_sommet",
+       "text": "deux sommets voisins"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_frac",
+       "verb": "highlight",
+       "start": "cue:c_retiens",
+       "end": "cue_end:c_sommet",
+       "target": "regle",
+       "role": "result",
+       "part": "frac"
+      },
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "start": "cue:c_retiens",
+       "end": "cue_end:c_sommet",
+       "target": "note_b",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "b contrôle la période ; a et k ne la changent pas",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "resume",
+     "say": "À retenir : c'est b qui fixe la période, P égale deux pi sur b. Le a et le k déplacent ou étirent la courbe, mais ne changent pas la longueur d'un cycle.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_b",
+       "text": "c'est b qui fixe la période"
+      },
+      {
+       "id": "c_pas",
+       "text": "ne changent pas la longueur d'un cycle"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "rep"
+      },
+      {
+       "id": "f_courbe",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "courbe"
+      },
+      {
+       "id": "f_gen",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "gen"
+      },
+      {
+       "id": "f_note_b",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note_b"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_b",
+       "target": "idee"
+      },
+      {
+       "id": "h_frac",
+       "verb": "highlight",
+       "start": "cue:c_b",
+       "end": "cue_end:c_pas",
+       "target": "regle",
+       "role": "result",
+       "part": "frac"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_pas",
+       "end": "cue_end:c_pas",
+       "target": "idee",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+QUESTION (interets-composes, mathematiques, sec 5, methode) : comment je calcule combien j'vais avoir si je place 2000 $ à 4 % d'intérêt composé par année pendant 5 ans?
+RÉPONSE DE RÉFÉRENCE : 2000 × 1,04⁵ = 2433,31 $ (intérêt gagné 433,31 $).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. intérêt composé = l'intérêt s'ajoute au capital et rapporte à son tour ; ajouter 4 % = multiplier par 1,04
+  2. tableau année par année : 2080 ; 2163,20 ; 2249,73 ; 2339,72 ; 2433,31 $
+  3. formule C = C0(1 + i)^n reliée au tableau : 2000 × 1,04^5
+  4. réponse 2433,31 $ écrite (intérêt gagné 433,31 $)
+  5. valorisé : comparaison avec l'intérêt simple (2400 $)
+ERREURS GRAVES À CHERCHER : arrondi de 1,04⁵ avant la fin (2433,40 $) ; intérêt simple présenté comme composé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Calculer 2000 $ à 4 % composé pendant 5 ans
+math_context : {"symbols":{"C0":{"kind":"constant","value":2000},"i":{"kind":"constant","value":0.04},"n":{"kind":"constant","value":5}},"expressions":{"montant":"2000*1.04^5","interet_simple":"2000 + 5*2000*0.04","interet_gagne":"2000*1.04^5 - 2000"}}
+=== Tranche s_tableau
+  OBJET tab [matrix] {"rows":[[0,1,2,3,4,5],[2000,2080,2163.2,2249.73,2339.72,2433.31]],"row_labels":["année","capital ($)"]} 
+  OBJET note [label] "× 1,04 chaque année" attaché à tab
+DIT (depart) : Placer deux mille dollars à quatre pour cent par année, c'est que chaque année, ton capital augmente de quatre pour cent.
+    show tab @cue:c_deux_mille 
+DIT (annee1) : La première année, quatre pour cent de deux mille, c'est quatre-vingts dollars d'intérêt. Le capital passe à deux mille quatre-vingts.
+    highlight tab @- {"start":"cue:c_quatre_vingts","end":"cue_end:c_quatre_vingts","role":"accent","part":"r2c2"}
+    highlight tab @- {"start":"cue:c_deux_mille_quatre_vingts","end":"cue_end:c_deux_mille_quatre_vingts","role":"accent","part":"r2"}
+DIT (suite) : L'année suivante, l'intérêt se calcule sur les deux mille quatre-vingts : quatre-vingt-trois dollars et vingt cents. C'est l'intérêt sur l'intérêt.
+    highlight tab @- {"start":"cue:c_suivante","end":"cue_end:c_suivante","role":"accent","part":"r2"}
+    show note @cue:c_interet_interet 
+=== Tranche s_formule
+  OBJET formule [math] "C = C_0 \\times (1 + i)^n" parts=C | = C_0 | \times (1 + i)^n
+DIT (idee) : Plutôt que de tout refaire année par année, on multiplie directement par un virgule zéro quatre, cinq fois de suite.
+    write formule @beat:start {"part":"c"}
+    write formule @after:w_c {"part":"c0"}
+    write formule @cue:c_cinq {"part":"facteur"}
+DIT (valeurs) : Le capital de départ, deux mille dollars, multiplié par un virgule zéro quatre exposant cinq.
+    highlight formule @- {"start":"cue:c_depart","end":"cue_end:c_depart","role":"given","part":"c0"}
+    highlight formule @- {"start":"cue:c_exposant","end":"cue_end:c_exposant","role":"given","part":"facteur"}
+=== Tranche s_calcul
+  OBJET calc [math] {"kind":"computed","expression_ref":"montant","template":"2000 \\times 1{,}04^5 = {value} \\ \\$","precision":2} 
+DIT (puissance) : Un virgule zéro quatre exposant cinq donne environ un virgule deux cent seize six.
+    write calc @- {"start":"cue:c_puissance","end":"cue_end:c_puissance"}
+DIT (resultat) : Je multiplie deux mille par ce facteur : j'obtiens approximativement deux mille quatre cent trente-trois dollars et trente et un cents.
+    highlight calc @- {"start":"cue:c_resultat","end":"cue_end:c_resultat","role":"result"}
+=== Tranche s_comparer
+  OBJET simple [math] {"kind":"computed","expression_ref":"interet_simple","template":"2000 + 5 \\times 80 = {value} \\ \\$","precision":0} 
+  OBJET gagne [text] "Intérêt gagné : environ 433,31 $" 
+DIT (interet_simple) : À intérêt simple, on n'aurait reçu que quatre-vingts dollars par année, toujours sur les deux mille. Total : deux mille quatre cents dollars.
+    write simple @cue:c_deux_mille_quatre_cents 
+DIT (difference) : La différence de trente-trois dollars et trente et un cents, c'est justement l'intérêt gagné sur les intérêts des années précédentes. À retenir : ajouter quatre pour cent, c'est multiplier par un virgule zéro quatre, et on le fait cinq fois.
+    show gagne @cue:c_difference 
+    highlight gagne @- {"start":"cue:c_retenir","end":"cue_end:c_retenir","role":"result"}
+--- 4 tranches, 194 mots dits (≈ 1.3 min d'oral)

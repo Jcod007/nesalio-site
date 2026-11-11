@@ -1,0 +1,958 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "chemin_min_critique",
+  "title": "Chemin de valeur minimale ou chemin critique",
+  "language": "fr",
+  "learning_goal": "Distinguer le chemin de valeur minimale (somme la plus petite) du chemin critique (somme la plus grande) dans un graphe orienté valué."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "chemin1": "3 + 5",
+    "chemin2": "4 + 5",
+    "chemin3": "4 + 3 + 2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Graphe orienté et valué",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Bonne question : le choix dépend de ce que le problème te demande de trouver.",
+     "cues": [
+      {
+       "id": "c_choix",
+       "text": "dépend de ce que le problème"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_choix",
+       "target": "titre"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "rule_min",
+     "layout": {
+      "next_to": "titre",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{minimum : somme la plus PETITE}",
+     "type": "math"
+    },
+    {
+     "id": "rule_crit",
+     "layout": {
+      "next_to": "rule_min",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{critique : somme la plus GRANDE}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "orientation",
+     "say": "Rappelle-toi d'abord : orienté veut dire que les arêtes ont une flèche, on avance seulement dans ce sens. Valué veut dire que chaque arête porte un nombre : une durée, un coût, une distance.",
+     "cues": [
+      {
+       "id": "c_oriente",
+       "text": "orienté"
+      },
+      {
+       "id": "c_value",
+       "text": "Valué"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_min",
+       "verb": "show",
+       "at": "cue:c_oriente",
+       "target": "rule_min"
+      },
+      {
+       "id": "s_crit",
+       "verb": "show",
+       "at": "cue:c_value",
+       "target": "rule_crit"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "Le chemin de valeur minimale, c'est celui dont la somme des valeurs est la plus PETITE : le trajet le plus court ou le moins cher. Le chemin critique, lui, est celui dont la somme est la plus GRANDE.",
+     "cues": [
+      {
+       "id": "c_min",
+       "text": "la plus PETITE"
+      },
+      {
+       "id": "c_crit",
+       "text": "la plus GRANDE"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_min",
+       "verb": "highlight",
+       "start": "cue:c_min",
+       "end": "cue_end:c_min",
+       "target": "rule_min",
+       "role": "accent"
+      },
+      {
+       "id": "h_crit",
+       "verb": "highlight",
+       "start": "cue:c_crit",
+       "end": "cue_end:c_crit",
+       "target": "rule_crit",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_graphe",
+   "introduces": [
+    {
+     "id": "A",
+     "params": {
+      "at": [
+       0,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "B",
+     "params": {
+      "at": [
+       2,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "C",
+     "params": {
+      "at": [
+       2,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "D",
+     "params": {
+      "at": [
+       4,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lblA",
+     "attachment": {
+      "parent": "A",
+      "anchor": "left"
+     },
+     "content": "A",
+     "type": "label"
+    },
+    {
+     "id": "lblB",
+     "attachment": {
+      "parent": "B",
+      "anchor": "top"
+     },
+     "content": "B",
+     "type": "label"
+    },
+    {
+     "id": "lblC",
+     "attachment": {
+      "parent": "C",
+      "anchor": "bottom"
+     },
+     "content": "C",
+     "type": "label"
+    },
+    {
+     "id": "lblD",
+     "attachment": {
+      "parent": "D",
+      "anchor": "right"
+     },
+     "content": "D",
+     "type": "label"
+    },
+    {
+     "id": "a1",
+     "params": {
+      "from": [
+       0,
+       2
+      ],
+      "to": [
+       2,
+       3
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "a2",
+     "params": {
+      "from": [
+       0,
+       2
+      ],
+      "to": [
+       2,
+       0.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "a3",
+     "params": {
+      "from": [
+       2,
+       3
+      ],
+      "to": [
+       4,
+       1.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "a4",
+     "params": {
+      "from": [
+       2,
+       0.5
+      ],
+      "to": [
+       4,
+       1.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "v1",
+     "attachment": {
+      "parent": "a1",
+      "anchor": "center",
+      "placement": "inside",
+      "gap": "xs"
+     },
+     "content": "3",
+     "type": "label"
+    },
+    {
+     "id": "v2",
+     "attachment": {
+      "parent": "a2",
+      "anchor": "center",
+      "placement": "inside",
+      "gap": "xs"
+     },
+     "content": "4",
+     "type": "label"
+    },
+    {
+     "id": "v3",
+     "attachment": {
+      "parent": "a3",
+      "anchor": "center",
+      "placement": "inside",
+      "gap": "xs"
+     },
+     "content": "5",
+     "type": "label"
+    },
+    {
+     "id": "v4",
+     "attachment": {
+      "parent": "a4",
+      "anchor": "center",
+      "placement": "inside",
+      "gap": "xs"
+     },
+     "content": "2",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "graphe",
+     "say": "Regarde ce petit graphe orienté et valué. On part de A et on veut arriver à D.",
+     "cues": [
+      {
+       "id": "c_graphe",
+       "text": "graphe orienté et valué"
+      },
+      {
+       "id": "c_arriver",
+       "text": "arriver à D"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "A",
+        "B",
+        "C",
+        "D"
+       ]
+      },
+      {
+       "id": "d1",
+       "verb": "draw",
+       "start": "cue:c_graphe",
+       "end": "cue_end:c_graphe",
+       "target": "a1"
+      },
+      {
+       "id": "d2",
+       "verb": "draw",
+       "start": "cue:c_graphe",
+       "end": "cue_end:c_graphe",
+       "target": "a2"
+      },
+      {
+       "id": "d3",
+       "verb": "draw",
+       "start": "cue:c_graphe",
+       "end": "cue_end:c_graphe",
+       "target": "a3"
+      },
+      {
+       "id": "d4",
+       "verb": "draw",
+       "start": "cue:c_graphe",
+       "end": "cue_end:c_graphe",
+       "target": "a4"
+      },
+      {
+       "id": "sA",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "A"
+      },
+      {
+       "id": "sB",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "B"
+      },
+      {
+       "id": "sC",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "C"
+      },
+      {
+       "id": "sD",
+       "verb": "show",
+       "at": "cue:c_arriver",
+       "target": "D"
+      }
+     ]
+    },
+    {
+     "id": "valeurs",
+     "say": "Il y a trois chemins possibles : A vers B vers D, A vers C vers D, ou bien A vers B puis C puis D.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois chemins"
+      },
+      {
+       "id": "c_abd",
+       "text": "A vers B vers D"
+      },
+      {
+       "id": "c_acd",
+       "text": "A vers C vers D"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam2",
+       "verb": "camera.focus",
+       "at": "cue:c_trois",
+       "targets": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "v1",
+        "v2",
+        "v3",
+        "v4"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "somme1",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "chemin1",
+      "template": "A \\to B \\to D : 3 + 5 = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "somme2",
+     "layout": {
+      "next_to": "somme1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "chemin2",
+      "template": "A \\to C \\to D : 4 + 5 = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "somme3",
+     "layout": {
+      "next_to": "somme2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "chemin3",
+      "template": "A \\to B \\to C \\to D : 4 + 3 + 2 = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ecrit",
+     "say": "On additionne les valeurs de chaque chemin, jamais de tête. A vers B vers D donne trois plus cinq égale huit.",
+     "cues": [
+      {
+       "id": "c_abd",
+       "text": "A vers B vers D"
+      },
+      {
+       "id": "c_huit",
+       "text": "égale huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "w1",
+       "verb": "write",
+       "at": "cue:c_abd",
+       "target": "somme1"
+      },
+      {
+       "id": "d_ab",
+       "verb": "highlight",
+       "start": "cue:c_abd",
+       "end": "cue_end:c_huit",
+       "target": "a1",
+       "role": "accent"
+      },
+      {
+       "id": "d_bd",
+       "verb": "highlight",
+       "start": "cue:c_abd",
+       "end": "cue_end:c_huit",
+       "target": "a3",
+       "role": "accent"
+      },
+      {
+       "id": "h1",
+       "verb": "highlight",
+       "at": "after:w1",
+       "target": "somme1",
+       "role": "result"
+      },
+      {
+       "id": "f_ab",
+       "verb": "highlight",
+       "at": "after:h1",
+       "target": "a1",
+       "role": "neutral"
+      },
+      {
+       "id": "f_bd",
+       "verb": "highlight",
+       "at": "after:h1",
+       "target": "a3",
+       "role": "neutral"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "suite",
+     "say": "A vers C vers D donne quatre plus cinq égale neuf. Et le chemin A vers B vers C vers D donne quatre plus trois plus deux égale neuf.",
+     "cues": [
+      {
+       "id": "c_acd",
+       "text": "A vers C vers D"
+      },
+      {
+       "id": "c_neuf1",
+       "text": "égale neuf",
+       "occurrence": 1
+      },
+      {
+       "id": "c_abcd",
+       "text": "A vers B vers C vers D"
+      },
+      {
+       "id": "c_neuf2",
+       "text": "égale neuf",
+       "occurrence": 2
+      }
+     ],
+     "do": [
+      {
+       "id": "w2",
+       "verb": "write",
+       "at": "cue:c_acd",
+       "target": "somme2"
+      },
+      {
+       "id": "h2",
+       "verb": "highlight",
+       "at": "after:w2",
+       "target": "somme2",
+       "role": "result"
+      },
+      {
+       "id": "w3",
+       "verb": "write",
+       "at": "cue:c_abcd",
+       "target": "somme3"
+      },
+      {
+       "id": "h3",
+       "verb": "highlight",
+       "at": "after:w3",
+       "target": "somme3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_choix",
+   "introduces": [
+    {
+     "id": "crit",
+     "layout": {
+      "next_to": "somme3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{Chemin critique } = \\text{ somme la plus GRANDE}",
+     "type": "math"
+    },
+    {
+     "id": "min",
+     "layout": {
+      "next_to": "crit",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{Valeur minimale } = \\text{ somme la plus PETITE}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "choix",
+     "say": "Maintenant, tout dépend de la question. Si on te demande le temps minimal pour réaliser TOUT le projet, chaque tâche attend celles qui la précèdent : le bon chemin est le plus long, c'est le chemin critique.",
+     "cues": [
+      {
+       "id": "c_critique",
+       "text": "chemin critique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_crit",
+       "verb": "show",
+       "at": "cue:c_critique",
+       "target": "crit"
+      },
+      {
+       "id": "d_fig",
+       "verb": "dim",
+       "at": "cue:c_critique",
+       "target": "a1"
+      },
+      {
+       "id": "d_fig2",
+       "verb": "dim",
+       "at": "cue:c_critique",
+       "target": "a2"
+      },
+      {
+       "id": "d_fig3",
+       "verb": "dim",
+       "at": "cue:c_critique",
+       "target": "a3"
+      },
+      {
+       "id": "d_fig4",
+       "verb": "dim",
+       "at": "cue:c_critique",
+       "target": "a4"
+      }
+     ]
+    },
+    {
+     "id": "min2",
+     "say": "Si la question demande le trajet le moins cher ou le plus court entre A et D, c'est le contraire : tu prends le chemin de valeur minimale, celui dont la somme est la plus petite.",
+     "cues": [
+      {
+       "id": "c_min2",
+       "text": "chemin de valeur minimale"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_min2",
+       "verb": "show",
+       "at": "cue:c_min2",
+       "target": "min"
+      },
+      {
+       "id": "h_min2",
+       "verb": "highlight",
+       "start": "cue:c_min2",
+       "end": "cue_end:c_min2",
+       "target": "min",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : le chemin critique, c'est la plus GRANDE somme des durées, celle qui donne le temps minimal du projet entier. Le chemin de valeur minimale, c'est la plus PETITE somme, pour un trajet le plus court ou le moins cher.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_grande",
+       "text": "la plus GRANDE somme"
+      },
+      {
+       "id": "c_petite",
+       "text": "la plus PETITE somme"
+      }
+     ],
+     "do": [
+      {
+       "id": "remove_fig",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "A"
+      },
+      {
+       "id": "remove_fig2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "B"
+      },
+      {
+       "id": "remove_fig3",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "C"
+      },
+      {
+       "id": "remove_fig4",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "D"
+      },
+      {
+       "id": "cadr",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "rule_min",
+        "rule_crit",
+        "crit",
+        "min"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_crit",
+       "verb": "highlight",
+       "start": "cue:c_grande",
+       "end": "cue_end:c_grande",
+       "target": "crit",
+       "role": "result"
+      },
+      {
+       "id": "h_min",
+       "verb": "highlight",
+       "start": "cue:c_petite",
+       "end": "cue_end:c_petite",
+       "target": "min",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1584 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "carre_binome",
+  "title": "Pourquoi (x + 5)² n'est pas x² + 25",
+  "language": "fr",
+  "learning_goal": "Comprendre, par un modèle d'aire et la double distributivité, que (x + 5)² = x² + 10x + 25 : le carré d'un binôme cache un terme du milieu que l'on oublie en élevant chaque terme tout seul."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "x": {
+     "kind": "parameter",
+     "initial": 1,
+     "min": 1,
+     "max": 1
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_cache",
+   "introduces": [
+    {
+     "id": "ident",
+     "content": "(x+5)^2 = (x+5)(x+5)",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "(x+5)^2"
+      },
+      {
+       "id": "eg",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "(x+5)(x+5)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_deux_binomes",
+     "layout": {
+      "next_to": "ident",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "deux binômes multipliés",
+     "type": "callout"
+    },
+    {
+     "id": "carre_a",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        6
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "piece_x2",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab_x2",
+     "attachment": {
+      "parent": "piece_x2",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "x^2",
+     "type": "label"
+    },
+    {
+     "id": "piece_5x_haut",
+     "params": {
+      "vertices": [
+       [
+        1,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        1,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab_5x_haut",
+     "attachment": {
+      "parent": "piece_5x_haut",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "5x",
+     "type": "label"
+    },
+    {
+     "id": "piece_5x_bas",
+     "params": {
+      "vertices": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        6
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab_5x_bas",
+     "attachment": {
+      "parent": "piece_5x_bas",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "5x",
+     "type": "label"
+    },
+    {
+     "id": "piece_25",
+     "params": {
+      "vertices": [
+       [
+        1,
+        1
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        6,
+        6
+       ],
+       [
+        1,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lab_25",
+     "attachment": {
+      "parent": "piece_25",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "25",
+     "type": "label"
+    },
+    {
+     "id": "somme_5x",
+     "layout": {
+      "next_to": "carre_a",
+      "direction": "right",
+      "gap": "xl"
+     },
+     "content": "5x + 5x = 10x",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_identite",
+     "say": "Écrire x plus cinq au carré, c'est écrire x plus cinq, fois x plus cinq : deux binômes identiques qu'on multiplie.",
+     "cues": [
+      {
+       "id": "c_xplus",
+       "text": "x plus cinq au carré"
+      },
+      {
+       "id": "c_fois",
+       "text": "fois x plus cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_xplus",
+       "target": "ident",
+       "part": "gauche"
+      },
+      {
+       "id": "w_eg",
+       "verb": "write",
+       "at": "after:w_gauche",
+       "target": "ident",
+       "part": "eg"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_fois",
+       "target": "ident",
+       "part": "droite"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "after:w_droite",
+       "target": "note_deux_binomes"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_dessin",
+     "say": "Pour voir ce que ça donne, je dessine un carré découpé en quatre pièces : un carré x par x, un rectangle x par 5, un rectangle 5 par x, et un carré 5 par 5.",
+     "cues": [
+      {
+       "id": "c_carre",
+       "text": "un carré découpé"
+      },
+      {
+       "id": "c_xparx",
+       "text": "un carré x par x"
+      },
+      {
+       "id": "c_xpar5",
+       "text": "un rectangle x par 5"
+      },
+      {
+       "id": "c_5parx",
+       "text": "un rectangle 5 par x"
+      },
+      {
+       "id": "c_5par5",
+       "text": "un carré 5 par 5"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_carre",
+       "verb": "draw",
+       "at": "cue:c_carre",
+       "target": "carre_a"
+      },
+      {
+       "id": "s_px2",
+       "verb": "show",
+       "at": "cue:c_xparx",
+       "target": "piece_x2"
+      },
+      {
+       "id": "s_lx2",
+       "verb": "show",
+       "at": "after:s_px2",
+       "target": "lab_x2"
+      },
+      {
+       "id": "s_p5h",
+       "verb": "show",
+       "at": "cue:c_xpar5",
+       "target": "piece_5x_haut"
+      },
+      {
+       "id": "s_l5h",
+       "verb": "show",
+       "at": "after:s_p5h",
+       "target": "lab_5x_haut"
+      },
+      {
+       "id": "s_p5b",
+       "verb": "show",
+       "at": "cue:c_5parx",
+       "target": "piece_5x_bas"
+      },
+      {
+       "id": "s_l5b",
+       "verb": "show",
+       "at": "after:s_p5b",
+       "target": "lab_5x_bas"
+      },
+      {
+       "id": "s_p25",
+       "verb": "show",
+       "at": "cue:c_5par5",
+       "target": "piece_25"
+      },
+      {
+       "id": "s_l25",
+       "verb": "show",
+       "at": "after:s_p25",
+       "target": "lab_25"
+      }
+     ]
+    },
+    {
+     "id": "b_correct",
+     "say": "En haut à gauche, x fois x donne x au carré. En bas à droite, 5 fois 5 donne 25. Ça, c'est ce que tu as écrit, et c'est correct.",
+     "cues": [
+      {
+       "id": "c_hg",
+       "text": "x fois x donne x au carré"
+      },
+      {
+       "id": "c_bd",
+       "text": "5 fois 5 donne 25"
+      },
+      {
+       "id": "c_correct",
+       "text": "c'est correct"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_px2",
+       "verb": "highlight",
+       "at": "cue:c_hg",
+       "target": "piece_x2",
+       "role": "given"
+      },
+      {
+       "id": "h_lx2",
+       "verb": "highlight",
+       "at": "after:h_px2",
+       "target": "lab_x2",
+       "role": "given"
+      },
+      {
+       "id": "h_p25",
+       "verb": "highlight",
+       "at": "cue:c_bd",
+       "target": "piece_25",
+       "role": "given"
+      },
+      {
+       "id": "h_l25",
+       "verb": "highlight",
+       "at": "after:h_p25",
+       "target": "lab_25",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "b_rectangles",
+     "say": "Mais il reste deux rectangles que tu n'as pas comptés : x fois 5, et 5 fois x. Chacun vaut cinq x, et les deux ensemble donnent dix x.",
+     "cues": [
+      {
+       "id": "c_restent",
+       "text": "deux rectangles"
+      },
+      {
+       "id": "c_chacun",
+       "text": "Chacun vaut cinq x"
+      },
+      {
+       "id": "c_ensemble",
+       "text": "les deux ensemble donnent dix x"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_p5",
+       "verb": "highlight",
+       "at": "cue:c_restent",
+       "target": "piece_5x_haut",
+       "role": "accent"
+      },
+      {
+       "id": "h_l5",
+       "verb": "highlight",
+       "at": "after:h_p5",
+       "target": "lab_5x_haut",
+       "role": "accent"
+      },
+      {
+       "id": "h_p5b",
+       "verb": "highlight",
+       "at": "after:h_l5",
+       "target": "piece_5x_bas",
+       "role": "accent"
+      },
+      {
+       "id": "h_l5b",
+       "verb": "highlight",
+       "at": "after:h_p5b",
+       "target": "lab_5x_bas",
+       "role": "accent"
+      },
+      {
+       "id": "h_5a",
+       "verb": "highlight",
+       "at": "cue:c_chacun",
+       "target": "lab_5x_haut",
+       "role": "accent"
+      },
+      {
+       "id": "h_5b",
+       "verb": "highlight",
+       "at": "after:h_5a",
+       "target": "lab_5x_bas",
+       "role": "accent"
+      },
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_ensemble",
+       "target": "somme_5x"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_distribue",
+   "introduces": [
+    {
+     "id": "distrib",
+     "content": "x(x+5) + 5(x+5)",
+     "parts": [
+      {
+       "id": "premier",
+       "text": "x(x+5)"
+      },
+      {
+       "id": "plus",
+       "text": "+"
+      },
+      {
+       "id": "deuxieme",
+       "text": "5(x+5)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "groupe1",
+     "layout": {
+      "next_to": "piece_x2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "x^2 + 5x",
+     "type": "math"
+    },
+    {
+     "id": "groupe2",
+     "layout": {
+      "next_to": "piece_25",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "5x + 25",
+     "type": "math"
+    },
+    {
+     "id": "final",
+     "content": "(x+5)^2 = x^2 + 10x + 25",
+     "parts": [
+      {
+       "id": "fgauche",
+       "text": "(x+5)^2"
+      },
+      {
+       "id": "feg",
+       "text": "="
+      },
+      {
+       "id": "fdroite",
+       "text": "x^2 + 10x + 25"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_general",
+     "say": "Pourquoi ces deux rectangles existent-ils forcément ? Parce que multiplier deux binômes, c'est distribuer chaque terme du premier sur chaque terme du second.",
+     "cues": [
+      {
+       "id": "c_pourquoi",
+       "text": "ces deux rectangles existent-ils forcément"
+      },
+      {
+       "id": "c_distribuer",
+       "text": "distribuer chaque terme"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_rect",
+       "verb": "highlight",
+       "at": "cue:c_pourquoi",
+       "target": "piece_5x_haut",
+       "role": "accent"
+      },
+      {
+       "id": "h_rect2",
+       "verb": "highlight",
+       "at": "after:h_rect",
+       "target": "piece_5x_bas",
+       "role": "accent"
+      },
+      {
+       "id": "t_distrib",
+       "verb": "transform",
+       "at": "cue:c_distribuer",
+       "source": "ident",
+       "target": "distrib"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_groupe1",
+     "say": "Premier groupe : x fois x donne x au carré, et x fois 5 donne cinq x. On écrit x au carré plus cinq x.",
+     "cues": [
+      {
+       "id": "c_xfoisx",
+       "text": "x fois x donne x au carré"
+      },
+      {
+       "id": "c_xfois5",
+       "text": "x fois 5 donne cinq x"
+      },
+      {
+       "id": "c_ecrit1",
+       "text": "x au carré plus cinq x"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_g1",
+       "verb": "highlight",
+       "at": "cue:c_xfoisx",
+       "target": "distrib",
+       "role": "accent",
+       "part": "premier"
+      },
+      {
+       "id": "h_px2_bis",
+       "verb": "highlight",
+       "at": "after:h_g1",
+       "target": "piece_x2",
+       "role": "accent"
+      },
+      {
+       "id": "h_p5h_bis",
+       "verb": "highlight",
+       "at": "cue:c_xfois5",
+       "target": "piece_5x_haut",
+       "role": "accent"
+      },
+      {
+       "id": "t_g1",
+       "verb": "transform",
+       "at": "cue:c_ecrit1",
+       "source": "distrib",
+       "target": "groupe1"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_groupe2",
+     "say": "Deuxième groupe : 5 fois x donne cinq x, et 5 fois 5 donne 25. On écrit cinq x plus 25.",
+     "cues": [
+      {
+       "id": "c_5foisx",
+       "text": "5 fois x donne cinq x"
+      },
+      {
+       "id": "c_5fois5",
+       "text": "5 fois 5 donne 25"
+      },
+      {
+       "id": "c_ecrit2",
+       "text": "cinq x plus 25"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_p5b_bis",
+       "verb": "highlight",
+       "at": "cue:c_5foisx",
+       "target": "piece_5x_bas",
+       "role": "accent"
+      },
+      {
+       "id": "h_p25_bis",
+       "verb": "highlight",
+       "at": "cue:c_5fois5",
+       "target": "piece_25",
+       "role": "accent"
+      },
+      {
+       "id": "t_g2",
+       "verb": "transform",
+       "at": "cue:c_ecrit2",
+       "source": "groupe1",
+       "target": "groupe2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_rassembler",
+     "say": "On rassemble les deux cinq x : ça fait dix x. Donc x plus cinq au carré égale x au carré plus dix x plus 25.",
+     "cues": [
+      {
+       "id": "c_rassembler",
+       "text": "On rassemble les deux cinq x"
+      },
+      {
+       "id": "c_donc",
+       "text": "Donc x plus cinq au carré égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_final",
+       "verb": "transform",
+       "at": "cue:c_rassembler",
+       "source": "groupe2",
+       "target": "final"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "at": "cue:c_donc",
+       "target": "final",
+       "role": "result",
+       "part": "fdroite"
+      },
+      {
+       "id": "h_rects3",
+       "verb": "highlight",
+       "at": "after:h_final",
+       "target": "piece_5x_haut",
+       "role": "result"
+      },
+      {
+       "id": "h_rects4",
+       "verb": "highlight",
+       "at": "after:h_rects3",
+       "target": "piece_5x_bas",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_dix",
+   "introduces": [
+    {
+     "id": "calcul_2ab",
+     "layout": {
+      "next_to": "final",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "2 \\cdot x \\cdot 5 = 10x",
+     "type": "math"
+    },
+    {
+     "id": "fleche1",
+     "params": {
+      "from": [
+       3,
+       3
+      ],
+      "to": [
+       1,
+       3
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "fleche2",
+     "params": {
+      "from": [
+       3,
+       3
+      ],
+      "to": [
+       3,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "faux",
+     "layout": {
+      "next_to": "calcul_2ab",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "x^2 + 25",
+     "type": "math"
+    },
+    {
+     "id": "note_manque",
+     "layout": {
+      "next_to": "faux",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "il manque 10x",
+     "type": "callout"
+    },
+    {
+     "id": "verif_x",
+     "layout": {
+      "next_to": "faux",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "x = 1",
+     "type": "math"
+    },
+    {
+     "id": "verif_bon",
+     "layout": {
+      "next_to": "verif_x",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "(1+5)^2 = 6^2 = 36",
+     "type": "math"
+    },
+    {
+     "id": "verif_bonne",
+     "layout": {
+      "next_to": "verif_bon",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "1^2 + 10(1) + 25 = 1 + 10 + 25 = 36",
+     "type": "math"
+    },
+    {
+     "id": "verif_mauvaise",
+     "layout": {
+      "next_to": "verif_bonne",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "1^2 + 25 = 26",
+     "type": "math"
+    },
+    {
+     "id": "note_diff",
+     "layout": {
+      "next_to": "verif_mauvaise",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "36 ≠ 26",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_douze",
+     "say": "D'où sort ce dix ? Deux fois x fois 5 : le double du produit des deux termes du binôme. Le 5 apparaît deux fois, une fois par rectangle.",
+     "cues": [
+      {
+       "id": "c_douze",
+       "text": "D'où sort ce dix"
+      },
+      {
+       "id": "c_deuxfois",
+       "text": "Deux fois x fois 5"
+      },
+      {
+       "id": "c_deux_fois",
+       "text": "Le 5 apparaît deux fois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_douze",
+       "target": "calcul_2ab"
+      },
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "at": "cue:c_deuxfois",
+       "target": "calcul_2ab",
+       "role": "accent"
+      },
+      {
+       "id": "d_f1",
+       "verb": "draw",
+       "at": "cue:c_deux_fois",
+       "target": "fleche1"
+      },
+      {
+       "id": "d_f2",
+       "verb": "draw",
+       "at": "after:d_f1",
+       "target": "fleche2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_trou",
+     "say": "Si tu écris seulement x au carré plus 25, tu as enlevé deux pièces de ton carré : le dessin n'est plus un carré, il est troué au milieu.",
+     "cues": [
+      {
+       "id": "c_si",
+       "text": "Si tu écris seulement x au carré plus 25"
+      },
+      {
+       "id": "c_troue",
+       "text": "troué au milieu"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_rect1",
+       "verb": "dim",
+       "at": "cue:c_si",
+       "target": "piece_5x_haut"
+      },
+      {
+       "id": "dim_rect2",
+       "verb": "dim",
+       "at": "after:dim_rect1",
+       "target": "piece_5x_bas"
+      },
+      {
+       "id": "w_faux",
+       "verb": "write",
+       "at": "cue:c_troue",
+       "target": "faux"
+      },
+      {
+       "id": "s_manque",
+       "verb": "show",
+       "at": "after:w_faux",
+       "target": "note_manque"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_verif",
+     "say": "Vérifions avec des nombres qui tombent juste : prenons x égal 1. Un plus cinq donne six, et six au carré donne 36.",
+     "cues": [
+      {
+       "id": "c_prenons",
+       "text": "prenons x égal 1"
+      },
+      {
+       "id": "c_unpluscinq",
+       "text": "Un plus cinq donne six"
+      },
+      {
+       "id": "c_sixcarre",
+       "text": "six au carré donne 36"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_vx",
+       "verb": "write",
+       "at": "cue:c_prenons",
+       "target": "verif_x"
+      },
+      {
+       "id": "w_vbon",
+       "verb": "write",
+       "at": "cue:c_unpluscinq",
+       "target": "verif_bon"
+      },
+      {
+       "id": "h_vbon",
+       "verb": "highlight",
+       "at": "cue:c_sixcarre",
+       "target": "verif_bon",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_compare",
+     "say": "Avec la bonne formule : un au carré plus dix fois un plus 25, ça fait un plus dix plus 25, donc 36. Avec la mauvaise : un plus 25, ça fait 26. Ce n'est pas la même chose.",
+     "cues": [
+      {
+       "id": "c_bonne",
+       "text": "un au carré plus dix fois un plus 25"
+      },
+      {
+       "id": "c_fait36",
+       "text": "ça fait un plus dix plus 25, donc 36"
+      },
+      {
+       "id": "c_mauvaise",
+       "text": "un plus 25, ça fait 26"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_bonne",
+       "verb": "write",
+       "at": "cue:c_bonne",
+       "target": "verif_bonne"
+      },
+      {
+       "id": "h_36",
+       "verb": "highlight",
+       "at": "cue:c_fait36",
+       "target": "verif_bonne",
+       "role": "result"
+      },
+      {
+       "id": "w_mauv",
+       "verb": "write",
+       "at": "cue:c_mauvaise",
+       "target": "verif_mauvaise"
+      },
+      {
+       "id": "s_diff",
+       "verb": "show",
+       "at": "after:w_mauv",
+       "target": "note_diff"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_trinome",
+   "introduces": [
+    {
+     "id": "encadre_tcp",
+     "layout": {
+      "to_edge": "up",
+      "gap": "lg"
+     },
+     "content": "(a+b)^2 = a^2 + 2ab + b^2",
+     "type": "math"
+    },
+    {
+     "id": "encadre_tcm",
+     "layout": {
+      "next_to": "encadre_tcp",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "(a-b)^2 = a^2 - 2ab + b^2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b_nom",
+     "say": "Cette formule porte un nom : le trinôme carré parfait. Quand tu vois a plus b entre parenthèses le tout au carré, tu obtiens a au carré plus deux ab plus b au carré.",
+     "cues": [
+      {
+       "id": "c_nom",
+       "text": "le trinôme carré parfait"
+      },
+      {
+       "id": "c_aplusb",
+       "text": "a plus b entre parenthèses le tout au carré"
+      },
+      {
+       "id": "c_resultat",
+       "text": "a au carré plus deux ab plus b au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_tcp",
+       "verb": "write",
+       "at": "cue:c_nom",
+       "target": "encadre_tcp"
+      },
+      {
+       "id": "h_tcp",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "encadre_tcp",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_pieces",
+     "say": "Regarde chaque terme collé à sa pièce : le a au carré, c'est le grand carré ; le deux ab, c'est les deux rectangles cinq x ; le b au carré, c'est le petit carré 25.",
+     "cues": [
+      {
+       "id": "c_acarre",
+       "text": "le a au carré, c'est le grand carré"
+      },
+      {
+       "id": "c_deuxab",
+       "text": "le deux ab, c'est les deux rectangles cinq x"
+      },
+      {
+       "id": "c_bcarre",
+       "text": "le b au carré, c'est le petit carré 25"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_acarre",
+       "verb": "highlight",
+       "at": "cue:c_acarre",
+       "target": "encadre_tcp",
+       "role": "accent"
+      },
+      {
+       "id": "h_px2_ter",
+       "verb": "highlight",
+       "at": "after:h_acarre",
+       "target": "piece_x2",
+       "role": "accent"
+      },
+      {
+       "id": "h_p5h_ter",
+       "verb": "highlight",
+       "at": "cue:c_deuxab",
+       "target": "piece_5x_haut",
+       "role": "accent"
+      },
+      {
+       "id": "h_p5b_ter",
+       "verb": "highlight",
+       "at": "after:h_p5h_ter",
+       "target": "piece_5x_bas",
+       "role": "accent"
+      },
+      {
+       "id": "h_p25_ter",
+       "verb": "highlight",
+       "at": "cue:c_bcarre",
+       "target": "piece_25",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_signe",
+     "say": "Attention au signe : si c'est a moins b au carré, le terme du milieu devient négatif, moins deux ab, mais le dernier, b au carré, reste positif.",
+     "cues": [
+      {
+       "id": "c_signe",
+       "text": "si c'est a moins b au carré"
+      },
+      {
+       "id": "c_negatif",
+       "text": "le terme du milieu devient négatif, moins deux ab"
+      },
+      {
+       "id": "c_positif",
+       "text": "le dernier, b au carré, reste positif"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_tcm",
+       "verb": "write",
+       "at": "cue:c_signe",
+       "target": "encadre_tcm"
+      },
+      {
+       "id": "h_tcm",
+       "verb": "highlight",
+       "at": "cue:c_negatif",
+       "target": "encadre_tcm",
+       "role": "accent"
+      },
+      {
+       "id": "h_tcm_last",
+       "verb": "highlight",
+       "at": "cue:c_positif",
+       "target": "encadre_tcm",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "b_idee",
+     "say": "L'idée à retenir : x plus cinq au carré, ce n'est pas x au carré plus 25, parce que le carré cache la multiplication du binôme par lui-même.",
+     "cues": [
+      {
+       "id": "c_idee",
+       "text": "L'idée à retenir"
+      },
+      {
+       "id": "c_cache",
+       "text": "le carré cache la multiplication"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tout",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "encadre_tcm"
+      },
+      {
+       "id": "f_tout2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif_mauvaise"
+      },
+      {
+       "id": "f_tout3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note_diff"
+      },
+      {
+       "id": "f_tout4",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif_bonne"
+      },
+      {
+       "id": "f_tout5",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif_bon"
+      },
+      {
+       "id": "f_tout6",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif_x"
+      },
+      {
+       "id": "f_tout7",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "faux"
+      },
+      {
+       "id": "f_tout8",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "note_manque"
+      },
+      {
+       "id": "f_tout9",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "fleche1"
+      },
+      {
+       "id": "f_tout10",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "fleche2"
+      },
+      {
+       "id": "f_tout11",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "calcul_2ab"
+      },
+      {
+       "id": "f_tout12",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "somme_5x"
+      },
+      {
+       "id": "f_tout13",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "groupe2"
+      },
+      {
+       "id": "h_ident",
+       "verb": "highlight",
+       "at": "cue:c_idee",
+       "target": "ident",
+       "role": "result"
+      },
+      {
+       "id": "h_droite",
+       "verb": "highlight",
+       "at": "cue:c_cache",
+       "target": "ident",
+       "role": "result",
+       "part": "droite"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "ident",
+        "carre_a",
+        "encadre_tcp",
+        "final"
+       ]
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_terme",
+     "say": "Le carré cache deux rectangles x fois 5 : ils donnent dix x, et c'est exactement le terme du milieu qu'on oublie en élevant chaque terme tout seul.",
+     "cues": [
+      {
+       "id": "c_deux_rect",
+       "text": "deux rectangles x fois 5"
+      },
+      {
+       "id": "c_dix",
+       "text": "ils donnent dix x"
+      },
+      {
+       "id": "c_oubli",
+       "text": "le terme du milieu qu'on oublie"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_final",
+       "verb": "show",
+       "at": "cue:c_dix",
+       "target": "final"
+      },
+      {
+       "id": "h_final_2",
+       "verb": "highlight",
+       "at": "cue:c_oubli",
+       "target": "final",
+       "role": "result",
+       "part": "fdroite"
+      },
+      {
+       "id": "h_rects5",
+       "verb": "highlight",
+       "at": "after:h_final_2",
+       "target": "piece_5x_haut",
+       "role": "result"
+      },
+      {
+       "id": "h_rects6",
+       "verb": "highlight",
+       "at": "after:h_rects5",
+       "target": "piece_5x_bas",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b_regle",
+     "say": "La règle est le trinôme carré parfait : a plus b au carré donne a au carré plus deux ab plus b au carré, un terme pour chaque pièce du carré.",
+     "cues": [
+      {
+       "id": "c_regle",
+       "text": "le trinôme carré parfait"
+      },
+      {
+       "id": "c_aplusb2",
+       "text": "a plus b au carré donne a au carré plus deux ab plus b au carré"
+      },
+      {
+       "id": "c_piece",
+       "text": "un terme pour chaque pièce du carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tcp",
+       "verb": "show",
+       "at": "cue:c_regle",
+       "target": "encadre_tcp"
+      },
+      {
+       "id": "h_tcp_final",
+       "verb": "highlight",
+       "at": "cue:c_aplusb2",
+       "target": "encadre_tcp",
+       "role": "result"
+      },
+      {
+       "id": "h_px2_final",
+       "verb": "highlight",
+       "at": "cue:c_piece",
+       "target": "piece_x2",
+       "role": "accent"
+      },
+      {
+       "id": "h_p5h_final",
+       "verb": "highlight",
+       "at": "after:h_px2_final",
+       "target": "piece_5x_haut",
+       "role": "accent"
+      },
+      {
+       "id": "h_p5b_final",
+       "verb": "highlight",
+       "at": "after:h_p5h_final",
+       "target": "piece_5x_bas",
+       "role": "accent"
+      },
+      {
+       "id": "h_p25_final",
+       "verb": "highlight",
+       "at": "after:h_p5b_final",
+       "target": "piece_25",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

@@ -5,16 +5,27 @@
  * Dans les deux cas, on produit le texte du modèle morceau par morceau.
  */
 import { LineSplitter } from "@/domain/tutor/ndjson";
-import type { ChatMessage } from "./prompt";
+
+/** One message of a conversation with the model. */
+export interface ChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
 
 export class UpstreamError extends Error {
   constructor(
     message: string,
     readonly status?: number,
+    readonly code?: "token_limit",
   ) {
     super(message);
     this.name = "UpstreamError";
   }
+}
+
+/** The provider refuses the account (key, payment, rights): the service is unavailable, not just slow. */
+export function isUnavailable(error: unknown): boolean {
+  return error instanceof UpstreamError && [401, 402, 403].includes(error.status ?? 0);
 }
 
 export interface CompletionOptions {
@@ -63,10 +74,31 @@ async function* streamOpenAi(options: CompletionOptions): AsyncGenerator<string>
       max_tokens: options.maxTokens ?? 16000,
       // Extension d'AI Gateway, traduite vers le réglage propre à chaque modèle.
       ...(options.reasoningEffort ? { reasoning: { effort: options.reasoningEffort } } : {}),
+      ...gatewayPrivacy(options.endpoint),
     }),
   });
   await ensureOk(response);
   yield* parseSse(response.body!);
+}
+
+/**
+ * Vie privée des élèves sur AI Gateway : ni conservation des requêtes (ZDR) ni entraînement
+ * sur leur contenu. Le Gateway n'envoie alors la requête qu'aux fournisseurs qui s'y engagent,
+ * et répond 400 s'il n'y en a aucun pour le modèle (403 pour la ZDR sans compte payant ni crédits).
+ * NESALIO_ZDR=0 retire la seule ZDR (l'interdiction d'entraînement reste, sans condition de compte).
+ * Hors Gateway (OpenRouter, Claude direct), ces champs n'existent pas : rien n'est ajouté.
+ * Doc : vercel.com/docs/ai-gateway/security-and-compliance (zdr, disallow-prompt-training).
+ */
+export function gatewayPrivacy(endpoint: string, env: NodeJS.ProcessEnv = process.env) {
+  let host = "";
+  try {
+    host = new URL(endpoint).hostname;
+  } catch {
+    /* not a URL: not the Gateway */
+  }
+  if (host !== "ai-gateway.vercel.sh") return {};
+  const zeroDataRetention = env.NESALIO_ZDR?.trim() !== "0";
+  return { providerOptions: { gateway: { ...(zeroDataRetention ? { zeroDataRetention: true } : {}), disallowPromptTraining: true } } };
 }
 
 /** API Messages de Claude : le système à part, réflexion modérée pour garder la voix réactive. */
@@ -171,7 +203,7 @@ export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerato
     const text = payload.choices?.[0]?.delta?.content;
     if (text) yield text;
     // Réponse coupée par la limite de jetons : à surveiller dans les journaux (le tour finit incomplet).
-    if (payload.choices?.[0]?.finish_reason === "length") throw new UpstreamError("Réponse coupée : limite de jetons atteinte");
+    if (payload.choices?.[0]?.finish_reason === "length") throw new UpstreamError("Réponse coupée : limite de jetons atteinte", undefined, "token_limit");
   }
   if (!completed) throw new UpstreamError("Flux OpenAI interrompu avant le marqueur de fin");
 }

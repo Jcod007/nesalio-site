@@ -1,0 +1,704 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "optimisation_ordonnee_origine",
+  "title": "Une fonction à optimiser peut-elle avoir une ordonnée à l'origine ?",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une fonction à optimiser peut s'écrire sous la forme canonique y = ax + b (l'ordonnée à l'origine b existe) et donner un contexte de situation-problème."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "a": {
+     "kind": "constant",
+     "value": 2
+    },
+    "b": {
+     "kind": "constant",
+     "value": 3
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "layout": {
+      "to_corner": "top_left"
+     },
+     "content": "Objectif : y = ax + b",
+     "type": "text"
+    },
+    {
+     "id": "plan",
+     "params": {
+      "x": [
+       0,
+       6
+      ],
+      "y": [
+       0,
+       16
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "droite",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2*x + 3",
+      "domain": [
+       0,
+       6
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "formule",
+     "layout": {
+      "next_to": "plan",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "y = 2x + 3",
+     "parts": [
+      {
+       "id": "ya",
+       "text": "y"
+      },
+      {
+       "id": "pente",
+       "text": "= 2x"
+      },
+      {
+       "id": "ord",
+       "text": "+ 3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etiq_b",
+     "attachment": {
+      "parent": "formule",
+      "anchor": "right"
+     },
+     "content": "ordonnée à l'origine : 3",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Oui, tu peux tout à fait avoir une ordonnée à l'origine dans une fonction à optimiser. Je te montre comment ça se voit.",
+     "cues": [
+      {
+       "id": "c_oui",
+       "text": "Oui"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "plan",
+        "formule"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_plan"
+      },
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      }
+     ]
+    },
+    {
+     "id": "droite",
+     "say": "Prenons la droite y égale deux x plus trois. Le deux, c'est le taux de variation ; le trois, c'est l'ordonnée à l'origine.",
+     "cues": [
+      {
+       "id": "c_droite",
+       "text": "droite y égale deux x plus trois"
+      },
+      {
+       "id": "c_taux",
+       "text": "taux de variation"
+      },
+      {
+       "id": "c_ord",
+       "text": "ordonnée à l'origine"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_plan",
+       "verb": "show",
+       "at": "cue:c_droite",
+       "target": "plan"
+      },
+      {
+       "id": "d_droite",
+       "verb": "draw",
+       "start": "cue:c_droite",
+       "end": "cue_end:c_taux",
+       "target": "droite"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:c_taux",
+       "target": "formule",
+       "part": "pente"
+      },
+      {
+       "id": "w_ord",
+       "verb": "write",
+       "at": "cue:c_ord",
+       "target": "formule",
+       "part": "ord"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_contexte",
+   "introduces": [
+    {
+     "id": "sit",
+     "layout": {
+      "next_to": "plan",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Situation : un kiosque vend des limonades.",
+     "type": "text"
+    },
+    {
+     "id": "revenu",
+     "layout": {
+      "next_to": "sit",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "R(x) = 2x + 3",
+     "parts": [
+      {
+       "id": "R",
+       "text": "R(x)"
+      },
+      {
+       "id": "deux",
+       "text": "= 2x"
+      },
+      {
+       "id": "trois",
+       "text": "+ 3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "lire",
+     "attachment": {
+      "parent": "revenu",
+      "anchor": "right"
+     },
+     "content": "3 $ de revenus même si x = 0",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "contexte",
+     "say": "Voici un contexte qui arrive souvent en secondaire quatre : un kiosque vend des limonades deux dollars chacune, mais il a déjà reçu trois dollars en commandites.",
+     "cues": [
+      {
+       "id": "c_kiosque",
+       "text": "kiosque vend des limonades"
+      },
+      {
+       "id": "c_deuxdollars",
+       "text": "deux dollars chacune"
+      },
+      {
+       "id": "c_troisdollars",
+       "text": "trois dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sit",
+       "verb": "show",
+       "at": "cue:c_kiosque",
+       "target": "sit"
+      }
+     ]
+    },
+    {
+     "id": "modele",
+     "say": "Le revenu total du kiosque s'écrit R de x égale deux x plus trois. Le deux, c'est ce que rapporte chaque limonade ; le trois, c'est l'ordonnée à l'origine : même avec zéro limonade vendue, le kiosque a déjà trois dollars.",
+     "cues": [
+      {
+       "id": "c_modele",
+       "text": "R de x égale deux x plus trois"
+      },
+      {
+       "id": "c_chaque",
+       "text": "chaque limonade"
+      },
+      {
+       "id": "c_zero",
+       "text": "zéro limonade vendue"
+      },
+      {
+       "id": "c_troisdollars2",
+       "text": "déjà trois dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_R",
+       "verb": "write",
+       "at": "cue:c_modele",
+       "target": "revenu",
+       "part": "R"
+      },
+      {
+       "id": "w_deux",
+       "verb": "write",
+       "at": "cue:c_chaque",
+       "target": "revenu",
+       "part": "deux"
+      },
+      {
+       "id": "h_trois",
+       "verb": "highlight",
+       "start": "cue:c_zero",
+       "end": "cue_end:c_troisdollars2",
+       "target": "revenu",
+       "role": "accent",
+       "part": "trois"
+      },
+      {
+       "id": "s_lire",
+       "verb": "show",
+       "at": "cue:c_troisdollars2",
+       "target": "lire"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_optimiser",
+   "introduces": [
+    {
+     "id": "contrainte",
+     "layout": {
+      "next_to": "revenu",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "0 \\leq x \\leq 10",
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "layout": {
+      "next_to": "contrainte",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "R(0) = 2(0) + 3 = 3",
+     "parts": [
+      {
+       "id": "zero",
+       "text": "R(0)"
+      },
+      {
+       "id": "calc",
+       "text": "= 2(0) + 3"
+      },
+      {
+       "id": "res",
+       "text": "= 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "max",
+     "say": "Comme le kiosque ne peut pas vendre plus de dix limonades, l'optimisation est simple : le revenu augmente avec x, donc il est maximal quand x vaut dix.",
+     "cues": [
+      {
+       "id": "c_dix",
+       "text": "dix limonades"
+      },
+      {
+       "id": "c_max",
+       "text": "maximal quand x vaut dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_contrainte",
+       "verb": "write",
+       "at": "cue:c_dix",
+       "target": "contrainte"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "zero",
+     "say": "Et si on vérifie le départ : à zéro limonade, le revenu est deux fois zéro plus trois, donc trois dollars. C'est bien l'ordonnée à l'origine.",
+     "cues": [
+      {
+       "id": "c_verifie",
+       "text": "on vérifie le départ"
+      },
+      {
+       "id": "c_zero2",
+       "text": "zéro limonade"
+      },
+      {
+       "id": "c_trois",
+       "text": "donc trois dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_zero",
+       "verb": "write",
+       "at": "cue:c_zero2",
+       "target": "verif",
+       "part": "zero"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_zero2",
+       "target": "verif",
+       "part": "calc"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "verif",
+       "part": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_trois",
+       "target": "verif",
+       "role": "result",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "y = ax + b",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "b : valeur quand x = 0",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : oui, une fonction à optimiser peut avoir une ordonnée à l'origine. Dans y égale a x plus b, le b est la valeur de départ, celle de la situation quand x vaut zéro.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_oui",
+       "text": "oui"
+      },
+      {
+       "id": "c_b",
+       "text": "le b"
+      },
+      {
+       "id": "c_zero",
+       "text": "x vaut zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "deg",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "revenu"
+      },
+      {
+       "id": "deg2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "contrainte"
+      },
+      {
+       "id": "deg3",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "verif"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "note"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_b",
+       "target": "regle"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "note"
+      },
+      {
+       "id": "h_ord",
+       "verb": "highlight",
+       "start": "cue:c_zero",
+       "end": "cue_end:c_zero",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

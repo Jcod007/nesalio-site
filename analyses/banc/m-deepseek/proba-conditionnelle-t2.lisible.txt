@@ -1,0 +1,92 @@
+QUESTION (proba-conditionnelle, mathematiques, sec 5, sens) : pourquoi dans une probabilité conditionnelle on divise par P(B)? je comprends pas d'où ça sort
+RÉPONSE DE RÉFÉRENCE : P(A|B) = P(A∩B)/P(B), avec P(B) ≠ 0 ; exemple du dé (A pair, B > 3) : 2/3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. savoir que B s'est réalisé réduit l'univers à B, d'où la division par P(B)
+  2. P(A|B) = P(A∩B)/P(B) = part de B où A est aussi vrai, avec P(B) ≠ 0
+  3. exemple mené au résultat (dé : A pair, B > 3, P(A|B) = 2/3 = (2/6)/(3/6))
+  4. diagramme de Venn ou tableau à double entrée où l'univers rétrécit à B
+  5. P(A|B) distinguée de P(A∩B) et de P(B|A)
+ERREURS GRAVES À CHERCHER : figure dont les aires contredisent les probabilités dites ; confusion P(A|B) et P(A∩B)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi on divise par P(B) dans P(A | B)
+=== Tranche s_univers
+  OBJET carre1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET carre2 [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET carre3 [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET carre4 [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET carre5 [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET carre6 [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET f1 [label] "1" attaché à carre1
+  OBJET f2 [label] "2" attaché à carre2
+  OBJET f3 [label] "3" attaché à carre3
+  OBJET f4 [label] "4" attaché à carre4
+  OBJET f5 [label] "5" attaché à carre5
+  OBJET f6 [label] "6" attaché à carre6
+  OBJET univers [text] "Univers : lancer d'un dé, 6 issues équiprobables" 
+DIT (intro) : Bonne question : cette division sort toute droite de l'idée que savoir B change l'univers.
+DIT (univers) : Imagine un dé. Les six résultats possibles sont six cases égales : un, deux, trois, quatre, cinq, six.
+    show univers @beat:start 
+    draw carre1 @cue:c_six 
+    draw carre2 @after:d_c1 
+    draw carre3 @after:d_c2 
+    draw carre4 @after:d_c3 
+    draw carre5 @after:d_c4 
+    draw carre6 @after:d_c5 
+    show f1 @after:d_c1 
+    show f2 @after:d_c2 
+    show f3 @after:d_c3 
+    show f4 @after:d_c4 
+    show f5 @after:d_c5 
+    show f6 @after:d_c6 
+=== Tranche s_reduire
+  OBJET evB [text] "B : le dé donne plus que 3 → {4 ; 5 ; 6}" 
+  OBJET evA [text] "A : le dé donne un nombre pair → {2 ; 4 ; 6}" 
+DIT (savoirB) : Maintenant, quelqu'un a regardé le dé et te dit : le résultat est plus grand que trois. Cette information, c'est l'événement B.
+    show evB @cue:c_evenement 
+    dim carre1 @cue:c_plusgrand 
+    dim carre2 @cue:c_plusgrand 
+    dim carre3 @cue:c_plusgrand 
+    dim f1 @after:dim_c1 
+    dim f2 @after:dim_c2 
+    dim f3 @after:dim_c3 
+DIT (nouveauTout) : Les cases un, deux et trois sont éliminées. B est devenu ton nouveau tout : il ne reste que quatre, cinq et six, trois cases qui se partagent tout l'espace.
+    highlight carre4 @- {"start":"cue:c_nouveau","end":"cue_end:c_nouveau","role":"given"}
+    highlight carre5 @- {"start":"cue:c_nouveau","end":"cue_end:c_nouveau","role":"given"}
+    highlight carre6 @- {"start":"cue:c_nouveau","end":"cue_end:c_nouveau","role":"given"}
+    show evA @after:h_B6 
+=== Tranche s_formule
+  OBJET formule [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = | \frac{P(A \cap B)}{P(B)}
+DIT (partDeB) : La question devient : parmi ces trois cases qui restent, combien donnent un nombre pair ? Quatre et six, donc deux cases sur trois. Voilà le deux tiers.
+    highlight carre4 @- {"start":"cue:c_pair","end":"cue_end:c_deuxtrois","role":"result"}
+    highlight carre6 @- {"start":"cue:c_pair","end":"cue_end:c_deuxtrois","role":"result"}
+DIT (dOuVient) : D'où vient la division ? En haut, P de A inter B compte deux chances sur six. En bas, P de B compte trois chances sur six, le nouveau tout. En divisant, les six du dénominateur s'annulent : il reste deux sur trois, exactement comme les cases.
+    write formule @beat:start {"part":"gauche"}
+    write formule @cue:c_enhaut {"part":"eg"}
+    write formule @cue:c_enbas {"part":"frac"}
+    highlight formule @- {"start":"cue:c_divisant","end":"cue_end:c_divisant","role":"accent","part":"frac"}
+=== Tranche s_calcul
+  OBJET calc [math] "\\frac{2/6}{3/6} = \\frac{2}{3}" 
+  OBJET cond [text] "Condition : P(B) ≠ 0" 
+DIT (calcul) : Vérifions avec les fractions. P de A inter B, c'est deux sixièmes. P de B, c'est trois sixièmes. On divise deux sixièmes par trois sixièmes : les six s'annulent, il reste deux tiers. On retrouve le même résultat que le comptage des cases.
+    write calc @cue:c_deuxsix 
+    highlight calc @cue:c_reste {"role":"result"}
+DIT (condition) : Attention à une condition essentielle : on ne peut diviser que si P de B n'est pas zéro. Si B est impossible, il n'y a plus de nouveau tout, la formule n'a plus de sens.
+    show cond @cue:c_condition 
+=== Tranche s_retenir
+  OBJET recap [text] "Savoir B réduit l'univers à B : P(A | B) = P(A ∩ B) ÷ P(B)" 
+DIT (retenir) : À retenir : savoir que B est réalisé réduit l'univers à B. La probabilité de A devient la part de B où A est aussi vrai, donc les cas A inter B divisés par les cas B.
+    camera.focus  @cue:c_retenir {"targets":["formule","recap"],"bounds":"layout_bounds"}
+    fade_out carre1 @cue:c_retenir 
+    fade_out carre2 @cue:c_retenir 
+    fade_out carre3 @cue:c_retenir 
+    fade_out f1 @cue:c_retenir 
+    fade_out f2 @cue:c_retenir 
+    fade_out f3 @cue:c_retenir 
+    fade_out univers @cue:c_retenir 
+    fade_out evB @cue:c_retenir 
+    fade_out evA @cue:c_retenir 
+    fade_out calc @cue:c_retenir 
+    fade_out cond @cue:c_retenir 
+    write recap @cue:c_part 
+--- 5 tranches, 275 mots dits (≈ 1.8 min d'oral)

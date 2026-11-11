@@ -1,0 +1,544 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ph_base",
+  "title": "Pourquoi un pH de 5 est-il acide et non basique ?",
+  "language": "fr",
+  "learning_goal": "Situer un pH de 5 sur l'échelle du pH grâce à la concentration en ions H⁺, et distinguer acide et basique."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_echelle",
+   "introduces": [
+    {
+     "id": "ligne",
+     "params": {
+      "domain": [
+       0,
+       14
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "p_7",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "ligne",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_7",
+     "attachment": {
+      "parent": "p_7",
+      "anchor": "top"
+     },
+     "content": "7 : neutre",
+     "type": "label"
+    },
+    {
+     "id": "p_5",
+     "style": {
+      "role": "given"
+     },
+     "frame": "ligne",
+     "params": {
+      "at": [
+       5,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_5",
+     "attachment": {
+      "parent": "p_5",
+      "anchor": "bottom"
+     },
+     "content": "pH 5",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "echelle",
+     "say": "Pour répondre, place le pH cinq sur l'échelle du pH, qui va de zéro à quatorze.",
+     "cues": [
+      {
+       "id": "c_echelle",
+       "text": "échelle du pH"
+      },
+      {
+       "id": "c_quatorze",
+       "text": "zéro à quatorze"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_ligne",
+       "verb": "draw",
+       "start": "cue:c_echelle",
+       "end": "cue_end:c_quatorze",
+       "target": "ligne"
+      },
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "cue:c_quatorze",
+       "target": "p_5"
+      },
+      {
+       "id": "s_l5",
+       "verb": "show",
+       "at": "after:s_p5",
+       "target": "l_5"
+      }
+     ]
+    },
+    {
+     "id": "sept",
+     "say": "Au milieu, sept, c'est le neutre : de l'eau pure. En dessous de sept, c'est acide. Au-dessus, c'est basique.",
+     "cues": [
+      {
+       "id": "c_sept",
+       "text": "sept, c'est le neutre"
+      },
+      {
+       "id": "c_dessous",
+       "text": "En dessous de sept"
+      },
+      {
+       "id": "c_au-dessus",
+       "text": "Au-dessus"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p7",
+       "verb": "show",
+       "at": "cue:c_sept",
+       "target": "p_7"
+      },
+      {
+       "id": "s_l7",
+       "verb": "show",
+       "at": "after:s_p7",
+       "target": "l_7"
+      },
+      {
+       "id": "h_p5",
+       "verb": "highlight",
+       "start": "cue:c_dessous",
+       "end": "cue_end:c_au-dessus",
+       "target": "p_5",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ions",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "[\\mathrm{H^+}] = 10^{-5}\\ \\text{mol/L}",
+     "parts": [
+      {
+       "id": "concentration",
+       "text": "[\\mathrm{H^+}]"
+      },
+      {
+       "id": "valeur",
+       "text": "= 10^{-5}\\ \\text{mol/L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "kw",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "[\\mathrm{H^+}] \\times [\\mathrm{OH^-}] = 10^{-14}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pourquoi",
+     "say": "Ce qui décide, c'est la concentration en ions H plus. Un pH de cinq veut dire dix exposant moins cinq mole par litre de H plus.",
+     "cues": [
+      {
+       "id": "c_hplus",
+       "text": "ions H plus"
+      },
+      {
+       "id": "c_moinscinq",
+       "text": "dix exposant moins cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_conc",
+       "verb": "write",
+       "at": "cue:c_hplus",
+       "target": "eq",
+       "part": "concentration"
+      },
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue:c_moinscinq",
+       "target": "eq",
+       "part": "valeur"
+      }
+     ]
+    },
+    {
+     "id": "donc",
+     "say": "Il y a donc beaucoup de H plus, et peu de OH moins : une solution chargée en H plus est acide. Le produit des deux vaut toujours dix exposant moins quatorze.",
+     "cues": [
+      {
+       "id": "c_beaucoup",
+       "text": "beaucoup de H plus"
+      },
+      {
+       "id": "c_acide",
+       "text": "est acide"
+      },
+      {
+       "id": "c_produit",
+       "text": "produit des deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "start": "cue:c_beaucoup",
+       "end": "cue_end:c_beaucoup",
+       "target": "eq",
+       "role": "accent",
+       "part": "valeur"
+      },
+      {
+       "id": "s_kw",
+       "verb": "show",
+       "at": "cue:c_produit",
+       "target": "kw"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pH < 7 : acide — beaucoup de H⁺",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : un pH de cinq est plus petit que sept, donc la solution est acide, avec beaucoup d'ions H plus.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_acide",
+       "text": "solution est acide"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_ligne",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "ligne"
+      },
+      {
+       "id": "f_l5",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "l_5"
+      },
+      {
+       "id": "f_l7",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "l_7"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_acide",
+       "target": "idee"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "at": "after:w_idee",
+       "target": "idee",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "resume",
+     "say": "Donc non, un pH de cinq n'est pas une base : c'est un acide. Une base a un pH au-dessus de sept, comme la soude, autour de treize.",
+     "cues": [
+      {
+       "id": "c_pasunebase",
+       "text": "n'est pas une base"
+      },
+      {
+       "id": "c_acide",
+       "text": "c'est un acide"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_pasunebase",
+       "targets": [
+        "eq",
+        "idee"
+       ]
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "at": "cue:c_acide",
+       "target": "idee",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

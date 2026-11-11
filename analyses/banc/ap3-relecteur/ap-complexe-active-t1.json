@@ -1,0 +1,989 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "complexe_active_hess",
+  "title": "Pourquoi H2I2 est le complexe activé",
+  "language": "fr",
+  "learning_goal": "Comprendre que le complexe activé est l'espèce intermédiaire instable qui s'annule dans la somme des étapes (loi de Hess), donc H2I2."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "eq1",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\ce{H2(g) + I2(g) -> H2I2(g)} \\quad \\Delta H = +173 \\text{ kJ}",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "layout": {
+      "next_to": "eq1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "given"
+     },
+     "content": "\\ce{H2I2(g) -> 2 HI(g)} \\quad \\Delta H = -183 \\text{ kJ}",
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "layout": {
+      "next_to": "eq2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "\\ce{H2(g) + I2(g) -> 2 HI(g)} \\quad \\Delta H = -10 \\text{ kJ}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu as trois équations : H deux plus I deux donne H deux I deux, qui absorbe cent soixante-treize kilojoules ; puis H deux I deux donne deux H I, qui dégage cent quatre-vingt-trois kilojoules ; et au total, H deux plus I deux donne deux H I, avec moins dix kilojoules.",
+     "cues": [
+      {
+       "id": "c_h2i2",
+       "text": "H deux I deux"
+      },
+      {
+       "id": "c_total",
+       "text": "au total"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_eq1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "eq1"
+      },
+      {
+       "id": "s_eq2",
+       "verb": "show",
+       "at": "cue:c_h2i2",
+       "target": "eq2"
+      },
+      {
+       "id": "s_eq3",
+       "verb": "show",
+       "at": "cue:c_total",
+       "target": "eq3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_somme",
+   "introduces": [
+    {
+     "id": "somme1",
+     "content": "\\ce{H2 + I2 -> H2I2}",
+     "type": "math"
+    },
+    {
+     "id": "somme2",
+     "layout": {
+      "next_to": "somme1",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "\\ce{H2I2 -> 2 HI}",
+     "type": "math"
+    },
+    {
+     "id": "somme3",
+     "layout": {
+      "next_to": "somme2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "\\ce{H2 + I2 -> 2 HI}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "addition",
+     "say": "Additionne les équations un et deux comme des égalités. H deux I deux apparaît comme produit à l'étape un, et comme réactif à l'étape deux.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "produit à l'étape un"
+      },
+      {
+       "id": "c_reactif",
+       "text": "réactif à l'étape deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_s1",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "somme1"
+      },
+      {
+       "id": "w_s2",
+       "verb": "write",
+       "at": "cue:c_produit",
+       "target": "somme2"
+      },
+      {
+       "id": "h_s1",
+       "verb": "highlight",
+       "start": "cue:c_produit",
+       "end": "cue_end:c_produit",
+       "target": "somme1",
+       "role": "accent"
+      },
+      {
+       "id": "h_s2",
+       "verb": "highlight",
+       "start": "cue:c_reactif",
+       "end": "cue_end:c_reactif",
+       "target": "somme2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "annule",
+     "say": "Fabriqué d'un côté, consommé de l'autre : H deux I deux s'annule. Il reste H deux plus I deux donnent deux H I.",
+     "cues": [
+      {
+       "id": "c_annule",
+       "text": "s'annule"
+      },
+      {
+       "id": "c_reste",
+       "text": "Il reste"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_s1",
+       "verb": "dim",
+       "at": "cue:c_annule",
+       "target": "somme1"
+      },
+      {
+       "id": "d_s2",
+       "verb": "dim",
+       "at": "cue:c_annule",
+       "target": "somme2"
+      },
+      {
+       "id": "w_s3",
+       "verb": "write",
+       "at": "cue:c_reste",
+       "target": "somme3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verification",
+   "introduces": [
+    {
+     "id": "enonce",
+     "layout": {
+      "next_to": "somme3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "+173 + (-183) = -10",
+     "parts": [
+      {
+       "id": "a",
+       "text": "+173"
+      },
+      {
+       "id": "b",
+       "text": "+ (-183)"
+      },
+      {
+       "id": "c",
+       "text": "= -10"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "raison",
+     "layout": {
+      "next_to": "enonce",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "H2I2 se forme puis se consomme : intermédiaire réactionnel",
+     "type": "text"
+    },
+    {
+     "id": "ca",
+     "layout": {
+      "next_to": "raison",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "C.A. : sommet instable de la barrière d'énergie (H2I2)",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "check",
+     "say": "Vérifions avec les énergies : cent soixante-treize plus moins cent quatre-vingt-trois donne moins dix. Ça confirme que notre somme est correcte.",
+     "cues": [
+      {
+       "id": "c_173",
+       "text": "cent soixante-treize"
+      },
+      {
+       "id": "c_183",
+       "text": "moins cent quatre-vingt-trois"
+      },
+      {
+       "id": "c_dix",
+       "text": "moins dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_173",
+       "target": "enonce",
+       "part": "a"
+      },
+      {
+       "id": "w_b",
+       "verb": "write",
+       "at": "cue:c_183",
+       "target": "enonce",
+       "part": "b"
+      },
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_dix",
+       "target": "enonce",
+       "part": "c"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "concl",
+     "say": "Donc H deux I deux est l'intermédiaire réactionnel : il n'apparaît jamais à la fin. C'est aussi lui qui occupe le sommet instable de la barrière d'énergie, là où il faut franchir l'énergie d'activation.",
+     "cues": [
+      {
+       "id": "c_inter",
+       "text": "intermédiaire réactionnel"
+      },
+      {
+       "id": "c_sommet",
+       "text": "sommet instable"
+      },
+      {
+       "id": "c_barriere",
+       "text": "barrière d'énergie"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_raison",
+       "verb": "show",
+       "at": "cue:c_inter",
+       "target": "raison"
+      },
+      {
+       "id": "s_ca",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "ca"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diagramme",
+   "introduces": [
+    {
+     "id": "axes_E",
+     "params": {
+      "x": [
+       0,
+       6
+      ],
+      "y": [
+       0,
+       10
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "ligne",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       4
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "montee",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       2,
+       4
+      ],
+      "to": [
+       3,
+       9
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "descente",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       3,
+       9
+      ],
+      "to": [
+       4,
+       3
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "produits",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       4,
+       3
+      ],
+      "to": [
+       6,
+       3
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lbl_reactifs",
+     "attachment": {
+      "parent": "ligne",
+      "anchor": "left"
+     },
+     "content": "réactifs",
+     "type": "label"
+    },
+    {
+     "id": "lbl_produits",
+     "attachment": {
+      "parent": "produits",
+      "anchor": "right"
+     },
+     "content": "produits",
+     "type": "label"
+    },
+    {
+     "id": "lbl_sommet",
+     "attachment": {
+      "parent": "descente",
+      "anchor": "center"
+     },
+     "content": "sommet (H2I2)",
+     "type": "label"
+    },
+    {
+     "id": "fleche_Ea",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       3,
+       4
+      ],
+      "to": [
+       3,
+       9
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lbl_Ea",
+     "attachment": {
+      "parent": "fleche_Ea",
+      "anchor": "right"
+     },
+     "content": "énergie d'activation (+173 kJ)",
+     "type": "label"
+    },
+    {
+     "id": "fleche_dH",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "from": [
+       5,
+       4
+      ],
+      "to": [
+       5,
+       3
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lbl_dH",
+     "attachment": {
+      "parent": "fleche_dH",
+      "anchor": "right"
+     },
+     "content": "ΔH = -10 kJ",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Sur ce diagramme, les réactifs sont à gauche, les produits sont un peu plus bas à droite. La montée représente l'énergie d'activation qu'il faut fournir.",
+     "cues": [
+      {
+       "id": "c_reactifs",
+       "text": "réactifs"
+      },
+      {
+       "id": "c_produits",
+       "text": "produits"
+      },
+      {
+       "id": "c_activation",
+       "text": "énergie d'activation"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes_E"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_energie"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes_E"
+      },
+      {
+       "id": "d_l1",
+       "verb": "draw",
+       "start": "cue:c_reactifs",
+       "end": "cue_end:c_reactifs",
+       "target": "ligne"
+      },
+      {
+       "id": "d_l2",
+       "verb": "draw",
+       "start": "cue:c_activation",
+       "end": "cue_end:c_activation",
+       "target": "montee"
+      },
+      {
+       "id": "d_l3",
+       "verb": "draw",
+       "at": "cue:c_activation",
+       "target": "descente"
+      },
+      {
+       "id": "d_l4",
+       "verb": "draw",
+       "at": "cue:c_produits",
+       "target": "produits"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sommet",
+     "say": "Au sommet de la montée se trouve H deux I deux : c'est l'état instable, le complexe activé. À droite, la descente libère de l'énergie.",
+     "cues": [
+      {
+       "id": "c_sommet2",
+       "text": "sommet de la montée"
+      },
+      {
+       "id": "c_ca",
+       "text": "complexe activé"
+      },
+      {
+       "id": "c_droite",
+       "text": "À droite"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "cue:c_sommet2",
+       "target": "lbl_sommet"
+      },
+      {
+       "id": "s_flecheEa",
+       "verb": "show",
+       "at": "cue:c_ca",
+       "target": "fleche_Ea"
+      },
+      {
+       "id": "s_lblEa",
+       "verb": "show",
+       "at": "after:s_flecheEa",
+       "target": "lbl_Ea"
+      },
+      {
+       "id": "s_produits",
+       "verb": "show",
+       "at": "cue:c_droite",
+       "target": "lbl_produits"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "bilan",
+     "say": "Au bilan, la barre des produits est à peine plus basse : le système a dégagé dix kilojoules, alors que la montée en demandait cent soixante-treize. C'est la somme de la montée et de la descente : plus cent soixante-treize et moins cent quatre-vingt-trois.",
+     "cues": [
+      {
+       "id": "c_barre",
+       "text": "barre des produits"
+      },
+      {
+       "id": "c_dixkj",
+       "text": "dix kilojoules"
+      },
+      {
+       "id": "c_somme",
+       "text": "plus cent soixante-treize"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_dH",
+       "verb": "show",
+       "at": "cue:c_dixkj",
+       "target": "fleche_dH"
+      },
+      {
+       "id": "s_lbldH",
+       "verb": "show",
+       "at": "after:s_dH",
+       "target": "lbl_dH"
+      },
+      {
+       "id": "f_eq1",
+       "verb": "fade_out",
+       "at": "cue:c_somme",
+       "target": "eq1"
+      },
+      {
+       "id": "f_eq2",
+       "verb": "fade_out",
+       "at": "cue:c_somme",
+       "target": "eq2"
+      },
+      {
+       "id": "f_eq3",
+       "verb": "fade_out",
+       "at": "cue:c_somme",
+       "target": "eq3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee1",
+     "content": "Intermédiaire réactionnel : se forme puis se consomme, s'annule dans le bilan (loi de Hess)",
+     "type": "text"
+    },
+    {
+     "id": "idee2",
+     "layout": {
+      "next_to": "idee1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Complexe activé : état instable au sommet de la barrière d'énergie, à énergie des réactifs + Ea",
+     "type": "text"
+    },
+    {
+     "id": "ca_final",
+     "layout": {
+      "next_to": "idee2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "H2I2(g) joue les deux rôles : intermédiaire et complexe activé",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : un intermédiaire réactionnel se forme puis se consomme, il s'annule dans la somme des étapes. Le complexe activé, lui, est l'état instable au sommet de la barrière d'énergie, à l'énergie des réactifs plus l'énergie d'activation.",
+     "cues": [
+      {
+       "id": "c_inter",
+       "text": "intermédiaire réactionnel"
+      },
+      {
+       "id": "c_ca",
+       "text": "complexe activé"
+      },
+      {
+       "id": "c_sommet",
+       "text": "sommet de la barrière"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.restore",
+       "at": "beat:start",
+       "frame": "vue_energie"
+      },
+      {
+       "id": "s_i1",
+       "verb": "show",
+       "at": "cue:c_inter",
+       "target": "idee1"
+      },
+      {
+       "id": "s_i2",
+       "verb": "show",
+       "at": "cue:c_ca",
+       "target": "idee2"
+      },
+      {
+       "id": "h_i2",
+       "verb": "highlight",
+       "at": "cue:c_sommet",
+       "target": "idee2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "conclusion",
+     "say": "Ici, c'est la même espèce qui fait les deux : H deux I deux, le diiode d'hydrogène, est ton complexe activé.",
+     "cues": [
+      {
+       "id": "c_meme",
+       "text": "même espèce"
+      },
+      {
+       "id": "c_h2i2",
+       "text": "H deux I deux"
+      },
+      {
+       "id": "c_ca2",
+       "text": "complexe activé"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_raison",
+       "verb": "fade_out",
+       "at": "cue:c_meme",
+       "target": "raison"
+      },
+      {
+       "id": "f_ca",
+       "verb": "fade_out",
+       "at": "cue:c_meme",
+       "target": "ca"
+      },
+      {
+       "id": "f_enonce",
+       "verb": "fade_out",
+       "at": "cue:c_meme",
+       "target": "enonce"
+      },
+      {
+       "id": "f_s3",
+       "verb": "fade_out",
+       "at": "cue:c_meme",
+       "target": "somme3"
+      },
+      {
+       "id": "s_caf",
+       "verb": "show",
+       "at": "cue:c_h2i2",
+       "target": "ca_final"
+      },
+      {
+       "id": "h_caf",
+       "verb": "highlight",
+       "at": "cue:c_ca2",
+       "target": "ca_final",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

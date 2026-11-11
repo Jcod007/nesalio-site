@@ -1,0 +1,71 @@
+QUESTION (programmation-lineaire, mathematiques, sec 5, methode) : comment je trouve le maximum de 3x + 2y si x ≥ 0, y ≥ 0, x + y ≤ 6 pis x ≤ 4 ? on fait ça avec un polygone de contraintes
+RÉPONSE DE RÉFÉRENCE : Sommets (0, 0), (4, 0), (4, 2), (0, 6) ; valeurs 0, 12, 16, 12 ; maximum 16 en (4, 2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. tracer les droites frontières et ombrer la région qui respecte toutes les contraintes
+  2. trouver les sommets du polygone : (0, 0), (4, 0), (4, 2), (0, 6)
+  3. le maximum d'une fonction à optimiser se trouve à un sommet du polygone
+  4. évaluer 3x + 2y à chaque sommet : 0, 12, 16, 12
+  5. réponse : maximum 16 en (4, 2), écrit
+ERREURS GRAVES À CHERCHER : sommet (4, 2) oublié ou mal calculé ; région ombrée fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le maximum de 3x + 2y sous contraintes
+=== Tranche s_zone
+  OBJET rep [axes] {"x":[-1,6],"y":[-1,7]} 
+  OBJET d1 [line] {"from":[0,6],"to":[6,0]} 
+  OBJET d2 [line] {"from":[4,-0.5],"to":[4,6.5]} 
+  OBJET lbl1 [label] "x + y = 6" attaché à d1
+  OBJET lbl2 [label] "x = 4" attaché à d2
+  OBJET poly [polygon] {"vertices":[[0,0],[4,0],[4,2],[0,6]]} 
+  OBJET sA [point] {"at":[0,0]} 
+  OBJET sB [point] {"at":[4,0]} 
+  OBJET sC [point] {"at":[4,2]} 
+  OBJET sD [point] {"at":[0,6]} 
+  OBJET nA [label] "A (0 ; 0)" attaché à sA
+  OBJET nB [label] "B (4 ; 0)" attaché à sB
+  OBJET nC [label] "C (4 ; 2)" attaché à sC
+  OBJET nD [label] "D (0 ; 6)" attaché à sD
+DIT (zone) : Chaque inégalité dessine un demi-plan, et leur rencontre forme un polygone : le polygone de contraintes.
+    show rep @beat:start 
+    draw d1 @beat:start 
+    draw d2 @beat:start 
+    show lbl1 @after:d_d1 
+    show lbl2 @after:d_d2 
+    show poly @cue:c_poly 
+    highlight poly @- {"start":"cue:c_poly","end":"cue_end:c_poly","role":"accent"}
+DIT (sommets) : Ses sommets sont A zéro zéro, B quatre zéro, C quatre deux, et D zéro six.
+    show sA @cue:c_A 
+    show nA @after:s_A 
+    show sB @cue:c_B 
+    show nB @after:s_B 
+    show sC @cue:c_C 
+    show nC @after:s_C 
+    show sD @cue:c_D 
+    show nD @after:s_D 
+=== Tranche s_eval
+  OBJET tab [matrix] {"rows":[[0,0,0],[4,0,12],[4,2,16],[0,6,12]],"column_labels":["x","y","3x + 2y"]} 
+  OBJET regle [math] "z = 3x + 2y" parts=z | = 3x + 2y
+DIT (pourquoi) : L'expression à maximiser est z égale trois x plus deux y. Pourquoi suffit-il de tester les sommets ?
+    write regle @cue:c_z {"part":"z"}
+    write regle @cue:c_z {"part":"expr"}
+    show tab @cue:c_som 
+DIT (pente) : Le taux de variation de z est toujours moins trois demis : les droites z constant sont parallèles, alors le meilleur point touche le bord du polygone.
+    highlight tab @- {"start":"cue:c_pente","end":"cue_end:c_bord","role":"accent"}
+=== Tranche s_calculs
+DIT (calc_sommets) : Calculons en chaque sommet. En A, trois fois zéro plus deux fois zéro donne zéro.
+    highlight tab @- {"start":"cue:c_A","end":"cue_end:c_0","part":"r1c3"}
+DIT (calc_B) : En B, trois fois quatre plus deux fois zéro donne douze.
+    highlight tab @- {"start":"cue:c_B","end":"cue_end:c_12","part":"r2c3"}
+DIT (calc_C) : En C, trois fois quatre plus deux fois deux : douze plus quatre, seize.
+    highlight tab @- {"start":"cue:c_C","end":"cue_end:c_16","part":"r3c3"}
+DIT (calc_D) : En D, trois fois zéro plus deux fois six donne douze. Le plus grand est seize, au sommet C.
+    highlight tab @- {"start":"cue:c_D","end":"cue_end:c_D","part":"r4c3"}
+    highlight tab @- {"start":"cue:c_plus_grand","end":"cue_end:c_plus_grand","role":"result","part":"r3c3"}
+=== Tranche s_retenir
+  OBJET idee [text] "Maximum atteint au sommet : x = 4, y = 2, z = 16" 
+DIT (final) : On conclut : ce maximum vaut seize, atteint en x égale quatre et y égale deux.
+    dim tab @beat:start 
+    camera.focus  @beat:start {"targets":["poly","sC","sC"],"bounds":"layout_bounds"}
+    highlight sC @- {"start":"cue:c_point","end":"cue_end:c_point","role":"result"}
+    write idee @cue:c_max 
+--- 4 tranches, 152 mots dits (≈ 1.0 min d'oral)

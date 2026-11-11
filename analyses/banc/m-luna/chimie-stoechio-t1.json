@@ -1,0 +1,661 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "stoichiometrie_hydrogene",
+  "title": "Calculer la masse d’eau produite à partir de 4 g d’hydrogène",
+  "language": "fr",
+  "learning_goal": "Utiliser les coefficients d’une équation balancée comme rapport de moles pour convertir une masse de réactif en masse de produit."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "tableau",
+     "params": {
+      "rows": [
+       [
+        "substance",
+        "H₂",
+        "O₂",
+        "H₂O"
+       ],
+       [
+        "coefficient",
+        2,
+        1,
+        2
+       ],
+       [
+        "quantité (mol)",
+        1.98,
+        "?",
+        "?"
+       ],
+       [
+        "masse (g)",
+        4,
+        "?",
+        "?"
+       ]
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "etape_masse_moles",
+     "content": "n(\\ce{H2})=\\frac{4}{2.02}\\approx1.98\\text{ mol}",
+     "parts": [
+      {
+       "id": "conversion",
+       "text": "n(\\ce{H2})=\\frac{4}{2.02}"
+      },
+      {
+       "id": "valeur",
+       "text": "\\approx1.98\\text{ mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape_rapport",
+     "content": "n(\\ce{H2O})=1.98\\text{ mol}",
+     "parts": [
+      {
+       "id": "produit",
+       "text": "n(\\ce{H2O})"
+      },
+      {
+       "id": "produit_valeur",
+       "text": "=1.98\\text{ mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape_masse_eau",
+     "content": "m(\\ce{H2O})=1.98\\times18.02\\approx35.68\\text{ g}",
+     "parts": [
+      {
+       "id": "masse_eau",
+       "text": "m(\\ce{H2O})"
+      },
+      {
+       "id": "calcul_eau",
+       "text": "=1.98\\times18.02"
+      },
+      {
+       "id": "resultat_eau",
+       "text": "\\approx35.68\\text{ g}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etiquette_division",
+     "attachment": {
+      "parent": "tableau",
+      "anchor": "r3"
+     },
+     "content": "÷ 2,02",
+     "type": "label"
+    },
+    {
+     "id": "etiquette_multiplication",
+     "attachment": {
+      "parent": "tableau",
+      "anchor": "r4"
+     },
+     "content": "× 18,02",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "convertir",
+     "say": "Les coefficients donnent des rapports de moles, pas de grammes. On commence donc par convertir les quatre grammes d’hydrogène en moles : quatre divisé par 2,02, soit environ 1,98 mole.",
+     "cues": [
+      {
+       "id": "coefficients",
+       "text": "Les coefficients"
+      },
+      {
+       "id": "convertir_masse",
+       "text": "convertir les quatre grammes"
+      },
+      {
+       "id": "resultat_moles",
+       "text": "environ 1,98 mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "montrer_tableau",
+       "verb": "show",
+       "at": "cue:coefficients",
+       "target": "tableau"
+      },
+      {
+       "id": "ecrire_conversion",
+       "verb": "write",
+       "at": "cue:convertir_masse",
+       "target": "etape_masse_moles",
+       "part": "conversion"
+      },
+      {
+       "id": "ecrire_moles",
+       "verb": "write",
+       "at": "cue:resultat_moles",
+       "target": "etape_masse_moles",
+       "part": "valeur"
+      },
+      {
+       "id": "ecrire_etiquette_division",
+       "verb": "show",
+       "at": "cue:convertir_masse",
+       "target": "etiquette_division"
+      },
+      {
+       "id": "surligner_hydrogene_moles",
+       "verb": "highlight",
+       "start": "cue:resultat_moles",
+       "end": "cue_end:resultat_moles",
+       "target": "tableau",
+       "role": "accent",
+       "part": "r2c2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "suivre_rapport",
+     "say": "Dans l’équation, deux moles de H deux donnent deux moles de H deux O. Le rapport est donc un pour un : 1,98 mole d’hydrogène produit 1,98 mole d’eau.",
+     "cues": [
+      {
+       "id": "rapport",
+       "text": "Le rapport est donc un pour un"
+      },
+      {
+       "id": "moles_eau",
+       "text": "1,98 mole d’eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_eau",
+       "verb": "write",
+       "at": "cue:rapport",
+       "target": "etape_rapport",
+       "part": "produit"
+      },
+      {
+       "id": "ecrire_valeur_eau",
+       "verb": "write",
+       "at": "cue:moles_eau",
+       "target": "etape_rapport",
+       "part": "produit_valeur"
+      },
+      {
+       "id": "surligner_eau_moles",
+       "verb": "highlight",
+       "start": "cue:moles_eau",
+       "end": "cue_end:moles_eau",
+       "target": "tableau",
+       "role": "accent",
+       "part": "r2c4"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "convertir_eau",
+     "say": "Pour obtenir des grammes, on multiplie les moles d’eau par sa masse molaire, 18,02 grammes par mole. On obtient environ 35,68 grammes d’eau.",
+     "cues": [
+      {
+       "id": "masse_molaire",
+       "text": "18,02 grammes par mole"
+      },
+      {
+       "id": "masse_finale",
+       "text": "35,68 grammes d’eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_masse",
+       "verb": "write",
+       "at": "cue:masse_molaire",
+       "target": "etape_masse_eau",
+       "part": "masse_eau"
+      },
+      {
+       "id": "ecrire_calcul",
+       "verb": "write",
+       "at": "cue:masse_molaire",
+       "target": "etape_masse_eau",
+       "part": "calcul_eau"
+      },
+      {
+       "id": "ecrire_resultat",
+       "verb": "write",
+       "at": "cue:masse_finale",
+       "target": "etape_masse_eau",
+       "part": "resultat_eau"
+      },
+      {
+       "id": "ecrire_etiquette_multiplication",
+       "verb": "show",
+       "at": "cue:masse_molaire",
+       "target": "etiquette_multiplication"
+      },
+      {
+       "id": "surligner_eau_grammes",
+       "verb": "highlight",
+       "start": "cue:masse_finale",
+       "end": "cue_end:masse_finale",
+       "target": "tableau",
+       "role": "result",
+       "part": "r3c4"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_controle",
+   "introduces": [
+    {
+     "id": "controle_oxygene",
+     "content": "n(\\ce{O2})=\\frac{1.98}{2}=0.99\\text{ mol}",
+     "parts": [
+      {
+       "id": "controle_conversion",
+       "text": "n(\\ce{O2})=\\frac{1.98}{2}"
+      },
+      {
+       "id": "controle_valeur",
+       "text": "=0.99\\text{ mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "controle_masse_oxygene",
+     "content": "m(\\ce{O2})=0.99\\times32=31.68\\text{ g}",
+     "parts": [
+      {
+       "id": "masse_oxygene",
+       "text": "m(\\ce{O2})"
+      },
+      {
+       "id": "calcul_oxygene",
+       "text": "=0.99\\times32"
+      },
+      {
+       "id": "valeur_oxygene",
+       "text": "=31.68\\text{ g}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "controle_masse_totale",
+     "content": "4+31.68=35.68\\text{ g}",
+     "parts": [
+      {
+       "id": "masse_hydrogene",
+       "text": "4"
+      },
+      {
+       "id": "addition_masses",
+       "text": "+31.68"
+      },
+      {
+       "id": "total_masses",
+       "text": "=35.68\\text{ g}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verifier_oxygene",
+     "say": "Vérifions la conservation de la masse. Il faut une demi-mole d’oxygène par mole d’hydrogène, donc 0,99 mole d’oxygène, soit 31,68 grammes.",
+     "cues": [
+      {
+       "id": "conservation",
+       "text": "la conservation de la masse"
+      },
+      {
+       "id": "moles_oxygene",
+       "text": "0,99 mole d’oxygène"
+      },
+      {
+       "id": "grammes_oxygene",
+       "text": "31,68 grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_conversion_oxygene",
+       "verb": "write",
+       "at": "cue:moles_oxygene",
+       "target": "controle_oxygene",
+       "part": "controle_conversion"
+      },
+      {
+       "id": "ecrire_valeur_oxygene",
+       "verb": "write",
+       "at": "cue:moles_oxygene",
+       "target": "controle_oxygene",
+       "part": "controle_valeur"
+      },
+      {
+       "id": "ecrire_masse_oxygene",
+       "verb": "write",
+       "at": "cue:grammes_oxygene",
+       "target": "controle_masse_oxygene",
+       "part": "masse_oxygene"
+      },
+      {
+       "id": "ecrire_calcul_oxygene",
+       "verb": "write",
+       "at": "cue:grammes_oxygene",
+       "target": "controle_masse_oxygene",
+       "part": "calcul_oxygene"
+      },
+      {
+       "id": "ecrire_valeur_masse_oxygene",
+       "verb": "write",
+       "at": "cue:grammes_oxygene",
+       "target": "controle_masse_oxygene",
+       "part": "valeur_oxygene"
+      },
+      {
+       "id": "mettre_tableau_en_retrait",
+       "verb": "dim",
+       "at": "cue:conservation",
+       "target": "tableau"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "confirmer_masse",
+     "say": "La masse totale des réactifs est quatre plus 31,68, donc 35,68 grammes. Ça confirme la masse d’eau calculée.",
+     "cues": [
+      {
+       "id": "addition",
+       "text": "quatre plus 31,68"
+      },
+      {
+       "id": "confirmation",
+       "text": "35,68 grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_masse_hydrogene",
+       "verb": "write",
+       "at": "cue:addition",
+       "target": "controle_masse_totale",
+       "part": "masse_hydrogene"
+      },
+      {
+       "id": "ecrire_addition",
+       "verb": "write",
+       "at": "cue:addition",
+       "target": "controle_masse_totale",
+       "part": "addition_masses"
+      },
+      {
+       "id": "ecrire_total",
+       "verb": "write",
+       "at": "cue:confirmation",
+       "target": "controle_masse_totale",
+       "part": "total_masses"
+      },
+      {
+       "id": "degager_calculs_precedents",
+       "verb": "fade_out",
+       "at": "cue:confirmation",
+       "target": "etape_masse_moles"
+      },
+      {
+       "id": "degager_rapport",
+       "verb": "fade_out",
+       "at": "cue:confirmation",
+       "target": "etape_rapport"
+      },
+      {
+       "id": "degager_controle_oxygene",
+       "verb": "fade_out",
+       "at": "cue:confirmation",
+       "target": "controle_oxygene"
+      },
+      {
+       "id": "degager_masse_oxygene",
+       "verb": "fade_out",
+       "at": "cue:confirmation",
+       "target": "controle_masse_oxygene"
+      },
+      {
+       "id": "degager_controle_total",
+       "verb": "fade_out",
+       "at": "cue:confirmation",
+       "target": "controle_masse_totale"
+      },
+      {
+       "id": "degager_tableau",
+       "verb": "fade_out",
+       "at": "cue:confirmation",
+       "target": "tableau"
+      },
+      {
+       "id": "degager_masse_eau",
+       "verb": "fade_out",
+       "at": "cue:confirmation",
+       "target": "etape_masse_eau"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

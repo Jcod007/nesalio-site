@@ -1,0 +1,1019 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "mediane_pair_impair",
+  "title": "La médiane : nombre pair ou impair de données",
+  "language": "fr",
+  "learning_goal": "Comprendre que la médiane est la valeur du milieu des données ordonnées : la donnée du milieu si le nombre de données est impair, la moyenne des deux du milieu s'il est pair, et corriger l'idée de « diviser par 2 »."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "sept": {
+     "kind": "constant",
+     "value": 7
+    },
+    "huit": {
+     "kind": "constant",
+     "value": 8
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "def",
+     "content": "Médiane : la valeur du milieu des données ordonnées",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Ta confusion vient d'une phrase de ton aide-mémoire : on ne divise jamais la médiane par deux.",
+     "cues": [
+      {
+       "id": "c_phrase",
+       "text": "on ne divise jamais la médiane par deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_def",
+       "verb": "show",
+       "at": "cue:c_phrase",
+       "target": "def"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "La médiane, c'est la valeur du milieu quand les données sont rangées en ordre. Le pair ou l'impair change seulement comment on trouve ce milieu.",
+     "cues": [
+      {
+       "id": "c_milieu",
+       "text": "la valeur du milieu"
+      },
+      {
+       "id": "c_ordre",
+       "text": "rangées en ordre"
+      },
+      {
+       "id": "c_change",
+       "text": "change seulement comment"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_def",
+       "verb": "highlight",
+       "start": "cue:c_milieu",
+       "end": "cue_end:c_ordre",
+       "target": "def",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_impair",
+   "introduces": [
+    {
+     "id": "nl_imp",
+     "params": {
+      "domain": [
+       0,
+       12
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "pt3",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_imp",
+     "params": {
+      "at": [
+       3,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt5",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_imp",
+     "params": {
+      "at": [
+       5,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt7",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_imp",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt9",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_imp",
+     "params": {
+      "at": [
+       9,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pt11",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_imp",
+     "params": {
+      "at": [
+       11,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "milieu1",
+     "layout": {
+      "next_to": "nl_imp",
+      "direction": "up",
+      "gap": "lg"
+     },
+     "content": "5, 7, 3, 9, 11 \\rightarrow 3, 5, 7, 9, 11",
+     "parts": [
+      {
+       "id": "desordre",
+       "text": "5, 7, 3, 9, 11"
+      },
+      {
+       "id": "fleche",
+       "text": "\\rightarrow"
+      },
+      {
+       "id": "ordre",
+       "text": "3, 5, 7, 9, 11"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "med1",
+     "layout": {
+      "next_to": "milieu1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{médiane} = 7",
+     "type": "math"
+    },
+    {
+     "id": "med1_pt",
+     "style": {
+      "role": "result"
+     },
+     "frame": "nl_imp",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Prenons cinq données : cinq, sept, trois, neuf, onze. D'abord, on les range en ordre croissant.",
+     "cues": [
+      {
+       "id": "c_cinq",
+       "text": "cinq données"
+      },
+      {
+       "id": "c_ordre",
+       "text": "en ordre croissant"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_nl",
+       "verb": "show",
+       "at": "cue:c_cinq",
+       "target": "nl_imp"
+      },
+      {
+       "id": "w_desordre",
+       "verb": "write",
+       "at": "cue:c_cinq",
+       "target": "milieu1",
+       "part": "desordre"
+      },
+      {
+       "id": "w_fleche",
+       "verb": "write",
+       "at": "cue:c_ordre",
+       "target": "milieu1",
+       "part": "fleche"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "after:w_fleche",
+       "target": "pt3"
+      },
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "after:s_p3",
+       "target": "pt5"
+      },
+      {
+       "id": "s_p7",
+       "verb": "show",
+       "at": "after:s_p5",
+       "target": "pt7"
+      },
+      {
+       "id": "s_p9",
+       "verb": "show",
+       "at": "after:s_p7",
+       "target": "pt9"
+      },
+      {
+       "id": "s_p11",
+       "verb": "show",
+       "at": "after:s_p9",
+       "target": "pt11"
+      },
+      {
+       "id": "w_ordre",
+       "verb": "write",
+       "at": "after:s_p11",
+       "target": "milieu1",
+       "part": "ordre"
+      }
+     ]
+    },
+    {
+     "id": "milieu",
+     "say": "Il y a cinq données, un nombre impair : la médiane est celle du milieu, la troisième, donc sept.",
+     "cues": [
+      {
+       "id": "c_impair",
+       "text": "un nombre impair"
+      },
+      {
+       "id": "c_milieu",
+       "text": "celle du milieu"
+      },
+      {
+       "id": "c_sept",
+       "text": "donc sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_med1pt",
+       "verb": "show",
+       "at": "cue:c_milieu",
+       "target": "med1_pt"
+      },
+      {
+       "id": "w_med1",
+       "verb": "write",
+       "at": "cue:c_sept",
+       "target": "med1"
+      },
+      {
+       "id": "h_med1",
+       "verb": "highlight",
+       "at": "after:w_med1",
+       "target": "med1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pair",
+   "introduces": [
+    {
+     "id": "nl_pair",
+     "params": {
+      "domain": [
+       0,
+       12
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "q2",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_pair",
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q4",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_pair",
+     "params": {
+      "at": [
+       4,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q6",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_pair",
+     "params": {
+      "at": [
+       6,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q8",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_pair",
+     "params": {
+      "at": [
+       8,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q10",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_pair",
+     "params": {
+      "at": [
+       10,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "q12",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "nl_pair",
+     "params": {
+      "at": [
+       12,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "milieu2",
+     "layout": {
+      "next_to": "nl_pair",
+      "direction": "up",
+      "gap": "lg"
+     },
+     "content": "4, 2, 10, 6, 12, 8 \\rightarrow 2, 4, 6, 8, 10, 12",
+     "parts": [
+      {
+       "id": "desordre",
+       "text": "4, 2, 10, 6, 12, 8"
+      },
+      {
+       "id": "fleche",
+       "text": "\\rightarrow"
+      },
+      {
+       "id": "ordre",
+       "text": "2, 4, 6, 8, 10, 12"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "med2",
+     "layout": {
+      "next_to": "milieu2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{médiane} = \\frac{6 + 8}{2} = \\frac{14}{2} = 7",
+     "type": "math"
+    },
+    {
+     "id": "med2_pt",
+     "style": {
+      "role": "result"
+     },
+     "frame": "nl_pair",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Maintenant six données : quatre, deux, dix, six, douze, huit. On range d'abord en ordre croissant.",
+     "cues": [
+      {
+       "id": "c_six",
+       "text": "six données"
+      },
+      {
+       "id": "c_ordre",
+       "text": "ordre croissant"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_nl_imp",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "nl_imp"
+      },
+      {
+       "id": "s_nl_pair",
+       "verb": "show",
+       "at": "cue:c_six",
+       "target": "nl_pair"
+      },
+      {
+       "id": "w_desordre2",
+       "verb": "write",
+       "at": "cue:c_six",
+       "target": "milieu2",
+       "part": "desordre"
+      },
+      {
+       "id": "w_fleche2",
+       "verb": "write",
+       "at": "cue:c_ordre",
+       "target": "milieu2",
+       "part": "fleche"
+      },
+      {
+       "id": "s_q2",
+       "verb": "show",
+       "at": "after:w_fleche2",
+       "target": "q2"
+      },
+      {
+       "id": "s_q4",
+       "verb": "show",
+       "at": "after:s_q2",
+       "target": "q4"
+      },
+      {
+       "id": "s_q6",
+       "verb": "show",
+       "at": "after:s_q4",
+       "target": "q6"
+      },
+      {
+       "id": "s_q8",
+       "verb": "show",
+       "at": "after:s_q6",
+       "target": "q8"
+      },
+      {
+       "id": "s_q10",
+       "verb": "show",
+       "at": "after:s_q8",
+       "target": "q10"
+      },
+      {
+       "id": "s_q12",
+       "verb": "show",
+       "at": "after:s_q10",
+       "target": "q12"
+      },
+      {
+       "id": "w_ordre2",
+       "verb": "write",
+       "at": "after:s_q12",
+       "target": "milieu2",
+       "part": "ordre"
+      }
+     ]
+    },
+    {
+     "id": "deuxmilieux",
+     "say": "Six, c'est pair : il n'y a pas une seule donnée au milieu, mais deux, la troisième et la quatrième, six et huit.",
+     "cues": [
+      {
+       "id": "c_pair",
+       "text": "c'est pair"
+      },
+      {
+       "id": "c_deux",
+       "text": "mais deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_q6q8",
+       "verb": "highlight",
+       "at": "cue:c_deux",
+       "target": "milieu2",
+       "part": "ordre"
+      }
+     ]
+    },
+    {
+     "id": "moyenne",
+     "say": "La médiane est la moyenne de ces deux valeurs : six plus huit, divisé par deux, ça donne sept.",
+     "cues": [
+      {
+       "id": "c_moyenne",
+       "text": "la moyenne de ces deux valeurs"
+      },
+      {
+       "id": "c_sept",
+       "text": "ça donne sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_moyenne",
+       "target": "med2"
+      },
+      {
+       "id": "w_inter",
+       "verb": "highlight",
+       "at": "after:w_calc",
+       "target": "med2",
+       "role": "accent"
+      },
+      {
+       "id": "w_res_med2",
+       "verb": "highlight",
+       "at": "cue:c_sept",
+       "target": "med2",
+       "role": "accent"
+      },
+      {
+       "id": "s_med2pt",
+       "verb": "show",
+       "at": "after:w_res_med2",
+       "target": "med2_pt"
+      },
+      {
+       "id": "h_med2",
+       "verb": "highlight",
+       "at": "after:s_med2pt",
+       "target": "med2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "regle_imp",
+     "content": "Impair : la donnée du milieu",
+     "type": "text"
+    },
+    {
+     "id": "regle_pair",
+     "content": "Pair : la moyenne des deux du milieu",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "Voilà la seule différence : impair, la donnée du milieu ; pair, la moyenne des deux du milieu.",
+     "cues": [
+      {
+       "id": "c_impair",
+       "text": "impair"
+      },
+      {
+       "id": "c_pair",
+       "text": "pair"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_nl_imp",
+       "verb": "fade_out",
+       "at": "cue:c_impair",
+       "target": "nl_imp"
+      },
+      {
+       "id": "f_med1",
+       "verb": "fade_out",
+       "at": "cue:c_impair",
+       "target": "med1"
+      },
+      {
+       "id": "f_med1_pt",
+       "verb": "fade_out",
+       "at": "cue:c_impair",
+       "target": "med1_pt"
+      },
+      {
+       "id": "s_regle_imp",
+       "verb": "show",
+       "at": "after:f_med1_pt",
+       "target": "regle_imp"
+      },
+      {
+       "id": "f_nl_pair",
+       "verb": "fade_out",
+       "at": "cue:c_pair",
+       "target": "nl_pair"
+      },
+      {
+       "id": "f_med2",
+       "verb": "fade_out",
+       "at": "cue:c_pair",
+       "target": "med2"
+      },
+      {
+       "id": "f_med2_pt",
+       "verb": "fade_out",
+       "at": "cue:c_pair",
+       "target": "med2_pt"
+      },
+      {
+       "id": "s_regle_pair",
+       "verb": "show",
+       "at": "after:f_med2_pt",
+       "target": "regle_pair"
+      }
+     ]
+    },
+    {
+     "id": "correction",
+     "say": "Le « diviser par deux » s'applique seulement aux deux valeurs du milieu quand le nombre est pair, jamais à la médiane elle-même.",
+     "cues": [
+      {
+       "id": "c_diviser",
+       "text": "diviser par deux"
+      },
+      {
+       "id": "c_pair",
+       "text": "quand le nombre est pair"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_regle_pair",
+       "verb": "highlight",
+       "at": "cue:c_diviser",
+       "target": "regle_pair",
+       "role": "accent"
+      },
+      {
+       "id": "f_def",
+       "verb": "fade_out",
+       "at": "cue:c_pair",
+       "target": "def"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "center_on": "regle_imp"
+     },
+     "content": "Médiane : la valeur du milieu des données ordonnées",
+     "type": "text"
+    },
+    {
+     "id": "formule_imp",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{impair} : \\text{la } 3^e \\text{ donnée}",
+     "type": "math"
+    },
+    {
+     "id": "formule_pair",
+     "layout": {
+      "next_to": "formule_imp",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{pair} : \\frac{6 + 8}{2} = 7",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la médiane, c'est toujours la valeur du milieu des données ordonnées. Le pair ou l'impair ne change que la façon de la trouver.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_milieu",
+       "text": "valeur du milieu"
+      }
+     ],
+     "do": [
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle_imp",
+        "regle_pair",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_milieu",
+       "target": "idee"
+      },
+      {
+       "id": "h_regle_imp",
+       "verb": "highlight",
+       "at": "after:w_idee",
+       "target": "regle_imp",
+       "role": "accent"
+      },
+      {
+       "id": "h_regle_pair",
+       "verb": "highlight",
+       "at": "after:h_regle_imp",
+       "target": "regle_pair",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,739 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "isoler_T_loi_gaz_combines",
+  "title": "Isoler la température dans la loi des gaz combinés",
+  "language": "fr",
+  "learning_goal": "Isoler T₂ dans p₁V₁/(n₁T₁) = p₂V₂/(n₂T₂) quand n₁ = n₂, en passant par la loi simplifiée p₁V₁/T₁ = p₂V₂/T₂."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_depart",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{p_1 V_1}{n_1 T_1}"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "\\frac{p_2 V_2}{n_2 T_2}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Ta formule, c'est la loi des gaz combinés : pression fois volume sur nombre de moles fois température, d'un côté égale à la même chose de l'autre côté.",
+     "cues": [
+      {
+       "id": "c_formule",
+       "text": "Ta formule"
+      },
+      {
+       "id": "c_loi",
+       "text": "loi des gaz combinés"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_loi",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "loi"
+      },
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "start": "cue:c_loi",
+       "end": "cue_end:c_loi",
+       "target": "loi",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "noms",
+     "say": "À gauche, la situation un : pression p un, volume V un, moles n un, température T un. À droite, la situation deux, avec un indice deux partout.",
+     "cues": [
+      {
+       "id": "c_indice",
+       "text": "indice deux partout"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_g",
+       "verb": "highlight",
+       "start": "cue:c_indice",
+       "end": "cue_end:c_indice",
+       "target": "loi",
+       "role": "secondary",
+       "part": "gauche"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_simplifie",
+   "introduces": [
+    {
+     "id": "loi2",
+     "content": "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}",
+     "parts": [
+      {
+       "id": "g2",
+       "text": "\\frac{p_1 V_1}{T_1}"
+      },
+      {
+       "id": "e2",
+       "text": "="
+      },
+      {
+       "id": "d2",
+       "text": "\\frac{p_2 V_2}{T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_n",
+     "attachment": {
+      "parent": "loi2",
+      "anchor": "right"
+     },
+     "content": "n₁ = n₂ : les moles cancellent",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "egales",
+     "say": "On te dit que la quantité de gaz est constante : les moles ne changent pas, donc n un égale n deux.",
+     "cues": [
+      {
+       "id": "c_constante",
+       "text": "quantité de gaz est constante"
+      },
+      {
+       "id": "c_egal",
+       "text": "n un égale n deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_n",
+       "verb": "highlight",
+       "start": "cue:c_constante",
+       "end": "cue_end:c_egal",
+       "target": "loi",
+       "role": "accent",
+       "part": "gauche"
+      }
+     ]
+    },
+    {
+     "id": "annule",
+     "say": "Comme ce nombre est le même en haut à gauche et en bas à droite, on peut l'enlever des deux côtés : il ne reste que pression fois volume sur température, des deux côtés.",
+     "cues": [
+      {
+       "id": "c_enlever",
+       "text": "l'enlever des deux côtés"
+      },
+      {
+       "id": "c_reste",
+       "text": "il ne reste que"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_loi",
+       "verb": "transform",
+       "at": "cue:c_enlever",
+       "source": "loi",
+       "target": "loi2"
+      },
+      {
+       "id": "w_n",
+       "verb": "write",
+       "at": "cue:c_reste",
+       "target": "note_n"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "after:w_n",
+       "target": "note_n"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isole",
+   "introduces": [
+    {
+     "id": "etape1",
+     "content": "\\frac{p_2 V_2}{T_2} = \\frac{p_1 V_1}{T_1}",
+     "parts": [
+      {
+       "id": "d1",
+       "text": "\\frac{p_2 V_2}{T_2}"
+      },
+      {
+       "id": "e1",
+       "text": "="
+      },
+      {
+       "id": "g1",
+       "text": "\\frac{p_1 V_1}{T_1}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape2",
+     "content": "p_2 V_2 \\cdot T_1 = p_1 V_1 \\cdot T_2",
+     "parts": [
+      {
+       "id": "l2",
+       "text": "p_2 V_2 \\cdot T_1"
+      },
+      {
+       "id": "e3",
+       "text": "="
+      },
+      {
+       "id": "r2",
+       "text": "p_1 V_1 \\cdot T_2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "etape3",
+     "content": "T_2 = \\frac{p_2 V_2 \\cdot T_1}{p_1 V_1}",
+     "parts": [
+      {
+       "id": "t2",
+       "text": "T_2"
+      },
+      {
+       "id": "ee",
+       "text": "="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{p_2 V_2 \\cdot T_1}{p_1 V_1}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "inverse",
+     "say": "Je mets la situation deux à gauche pour travailler directement sur T deux.",
+     "cues": [
+      {
+       "id": "c_sit2",
+       "text": "situation deux à gauche"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e1",
+       "verb": "transform",
+       "at": "cue:c_sit2",
+       "source": "loi2",
+       "target": "etape1"
+      }
+     ]
+    },
+    {
+     "id": "croise",
+     "say": "Pour faire disparaître les fractions, je multiplie les deux côtés par T deux, puis par T un : le T deux descend, le T un monte, on obtient un produit en croix.",
+     "cues": [
+      {
+       "id": "c_croise",
+       "text": "produit en croix"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e2",
+       "verb": "transform",
+       "at": "cue:c_croise",
+       "source": "etape1",
+       "target": "etape2"
+      },
+      {
+       "id": "h_e2",
+       "verb": "highlight",
+       "start": "cue:c_croise",
+       "end": "cue_end:c_croise",
+       "target": "etape2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "divise",
+     "say": "Maintenant, T deux est multiplié par p un V un. Pour l'isoler, je divise les deux côtés par p un V un : il reste T deux égale p deux V deux fois T un, sur p un V un.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "divise les deux côtés"
+      },
+      {
+       "id": "c_reste_t",
+       "text": "T deux égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_e3",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "etape2",
+       "target": "etape3"
+      },
+      {
+       "id": "h_t2",
+       "verb": "highlight",
+       "start": "cue:c_reste_t",
+       "end": "cue_end:c_reste_t",
+       "target": "etape3",
+       "role": "result",
+       "part": "t2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "ex",
+     "content": "T_2 = \\frac{(2)(3)(300)}{(1)(2)}",
+     "type": "math"
+    },
+    {
+     "id": "res",
+     "content": "T_2 = 900\\ \\text{K}",
+     "parts": [
+      {
+       "id": "t2r",
+       "text": "T_2"
+      },
+      {
+       "id": "vr",
+       "text": "= 900\\ \\text{K}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "verif",
+     "content": "\\frac{(1)(2)}{300} = \\frac{(2)(3)}{900}",
+     "parts": [
+      {
+       "id": "vg",
+       "text": "\\frac{(1)(2)}{300}"
+      },
+      {
+       "id": "ve",
+       "text": "="
+      },
+      {
+       "id": "vd",
+       "text": "\\frac{(2)(3)}{900}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Prenons des nombres simples : p un vaut un, V un vaut deux, T un vaut trois cents kelvins, p deux vaut deux, V deux vaut trois.",
+     "cues": [
+      {
+       "id": "c_p1",
+       "text": "p un vaut un"
+      },
+      {
+       "id": "c_t1",
+       "text": "trois cents kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ex",
+       "verb": "write",
+       "at": "cue:c_p1",
+       "target": "ex"
+      },
+      {
+       "id": "f_e3",
+       "verb": "dim",
+       "at": "cue:c_t1",
+       "target": "etape3"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "En haut : deux fois trois fois trois cents, ça fait dix-huit cents. En bas : un fois deux, deux. Dix-huit cents divisé par deux, neuf cents. T deux égale neuf cents kelvins.",
+     "cues": [
+      {
+       "id": "c_neuf",
+       "text": "T deux égale neuf cents kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_neuf",
+       "end": "cue_end:c_neuf",
+       "target": "res",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "check",
+     "say": "Vérifions : à gauche, un fois deux sur trois cents. À droite, deux fois trois sur neuf cents. Six sur neuf cents égale six sur neuf cents : les deux côtés sont égaux, c'est correct.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_egal2",
+       "text": "les deux côtés sont égaux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_verif",
+       "verb": "write",
+       "at": "cue:c_verif",
+       "target": "verif"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:c_egal2",
+       "end": "cue_end:c_egal2",
+       "target": "verif",
+       "role": "given"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "reponse",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "T_2 = \\frac{p_2 V_2 T_1}{p_1 V_1}",
+     "type": "math"
+    },
+    {
+     "id": "astuce",
+     "layout": {
+      "next_to": "reponse",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Moles constantes : multiplier en croix, puis diviser par ce qui reste collé à T₂.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : quand les moles ne changent pas, la loi se simplifie en pression fois volume sur température, et T deux s'isole en faisant le produit en croix, puis en divisant par p un V un.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_isole",
+       "text": "T deux s'isole"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_ex",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ex"
+      },
+      {
+       "id": "f_res",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "res"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "verif"
+      },
+      {
+       "id": "f_e3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "etape3"
+      },
+      {
+       "id": "w_rep",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "reponse"
+      },
+      {
+       "id": "w_ast",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "astuce"
+      },
+      {
+       "id": "c_rep",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "reponse",
+        "astuce"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

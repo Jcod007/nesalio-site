@@ -1,0 +1,938 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "inequations_polygone",
+  "title": "Résoudre une inéquation et la lire dans un polygone de contraintes",
+  "language": "fr",
+  "learning_goal": "Résoudre une inéquation du premier degré et comprendre qu'un polygone de contraintes est l'ensemble des solutions d'un système d'inéquations."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Inéquations et polygone de contraintes",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Je te comprends : les inéquations et les polygones de contraintes, ça mélange deux choses. On va les séparer pour de bon.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux choses"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_inequation",
+   "introduces": [
+    {
+     "id": "ineq1",
+     "content": "3x - 4 > 2x + 1",
+     "type": "math"
+    },
+    {
+     "id": "ineq2",
+     "content": "x - 4 > 1",
+     "type": "math"
+    },
+    {
+     "id": "ineq3",
+     "content": "x > 5",
+     "type": "math"
+    },
+    {
+     "id": "droite_num",
+     "layout": {
+      "next_to": "ineq1",
+      "direction": "down",
+      "gap": "xl"
+     },
+     "params": {
+      "domain": [
+       0,
+       8
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "pt5",
+     "style": {
+      "role": "result"
+     },
+     "frame": "droite_num",
+     "params": {
+      "at": [
+       5,
+       0
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Une inéquation, c'est la même chose qu'une équation, sauf que le égale devient plus grand. Prenons trois x moins quatre plus grand que deux x plus un.",
+     "cues": [
+      {
+       "id": "c_troisx",
+       "text": "trois x moins quatre"
+      },
+      {
+       "id": "c_plusgrand",
+       "text": "plus grand que"
+      },
+      {
+       "id": "c_deuxx",
+       "text": "deux x plus un"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_titre",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_troisx",
+       "target": "ineq1"
+      },
+      {
+       "id": "w_signe",
+       "verb": "highlight",
+       "at": "cue:c_plusgrand",
+       "target": "ineq1",
+       "role": "accent"
+      },
+      {
+       "id": "w_droite",
+       "verb": "highlight",
+       "at": "cue:c_deuxx",
+       "target": "ineq1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "enleve",
+     "say": "On enlève deux x des deux côtés. À gauche, trois x moins deux x donne un x, et à droite les deux x partent.",
+     "cues": [
+      {
+       "id": "c_enleve",
+       "text": "enlève deux x"
+      },
+      {
+       "id": "c_unx",
+       "text": "donne un x"
+      },
+      {
+       "id": "c_partent",
+       "text": "les deux x partent"
+      }
+     ],
+     "do": [
+      {
+       "id": "t1",
+       "verb": "transform",
+       "at": "cue:c_enleve",
+       "source": "ineq1",
+       "target": "ineq2"
+      },
+      {
+       "id": "h_gauche",
+       "verb": "highlight",
+       "start": "cue:c_unx",
+       "end": "cue_end:c_unx",
+       "target": "ineq2",
+       "role": "accent"
+      },
+      {
+       "id": "h_droite",
+       "verb": "highlight",
+       "start": "cue:c_partent",
+       "end": "cue_end:c_partent",
+       "target": "ineq2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "ajoute",
+     "say": "Ensuite on ajoute quatre des deux côtés : à gauche il reste x, à droite un plus quatre font cinq. Donc x est plus grand que cinq.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "ajoute quatre"
+      },
+      {
+       "id": "c_cinq",
+       "text": "cinq"
+      },
+      {
+       "id": "c_conclusion",
+       "text": "plus grand que cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "t2",
+       "verb": "transform",
+       "at": "cue:c_ajoute",
+       "source": "ineq2",
+       "target": "ineq3"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "at": "cue:c_conclusion",
+       "target": "ineq3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "ligne",
+     "say": "Sur une droite numérique, ça se lit : tous les nombres à droite de cinq, et le point cinq est ouvert, parce que cinq lui-même n'est pas inclus.",
+     "cues": [
+      {
+       "id": "c_droite",
+       "text": "droite numérique"
+      },
+      {
+       "id": "c_ouvert",
+       "text": "point cinq est ouvert"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_dn",
+       "verb": "show",
+       "at": "cue:c_droite",
+       "target": "droite_num"
+      },
+      {
+       "id": "s_pt5",
+       "verb": "show",
+       "at": "cue:c_ouvert",
+       "target": "pt5"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_polygone",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       6
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "d1",
+     "params": {
+      "from": [
+       0,
+       6
+      ],
+      "to": [
+       6,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "d2",
+     "params": {
+      "from": [
+       0,
+       1
+      ],
+      "to": [
+       7,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "poly",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        5,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "c1",
+     "attachment": {
+      "parent": "axes",
+      "anchor": "top",
+      "placement": "outside"
+     },
+     "content": "x + y ≤ 6",
+     "type": "callout"
+    },
+    {
+     "id": "c2",
+     "attachment": {
+      "parent": "axes",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "y ≤ 1",
+     "type": "callout"
+    },
+    {
+     "id": "c3",
+     "content": "et x ≥ 0, y ≥ 0",
+     "type": "callout"
+    }
+   ],
+   "groups": [
+    {
+     "id": "contraintes",
+     "items": [
+      "c1",
+      "c2",
+      "c3"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     },
+     "layout": {
+      "next_to": "axes",
+      "direction": "right",
+      "gap": "lg"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "vide",
+     "say": "Maintenant, le polygone de contraintes. C'est simplement un système de plusieurs inéquations qu'on regarde ensemble sur un graphique.",
+     "cues": [
+      {
+       "id": "c_systeme",
+       "text": "système"
+      },
+      {
+       "id": "c_plusieurs",
+       "text": "plusieurs inéquations"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_ineq",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ineq3"
+      },
+      {
+       "id": "f_dn",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "droite_num"
+      },
+      {
+       "id": "f_pt5",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pt5"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "cue:c_systeme",
+       "target": "axes"
+      },
+      {
+       "id": "g_contraintes",
+       "verb": "show",
+       "at": "cue:c_plusieurs",
+       "target": "contraintes",
+       "stagger": "normal"
+      }
+     ]
+    },
+    {
+     "id": "premiere",
+     "say": "Première inéquation : x plus y plus petit ou égal à six. La frontière est la droite d'équation x plus y égale six, qui passe par le point six zéro et le point zéro six.",
+     "cues": [
+      {
+       "id": "c_xy6",
+       "text": "x plus y plus petit ou égal à six"
+      },
+      {
+       "id": "c_frontiere",
+       "text": "frontière"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_front1",
+       "verb": "draw",
+       "start": "cue:c_frontiere",
+       "end": "cue_end:c_frontiere",
+       "target": "d1"
+      },
+      {
+       "id": "h_c1",
+       "verb": "highlight",
+       "start": "cue:c_xy6",
+       "end": "cue_end:c_xy6",
+       "target": "c1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "deuxieme",
+     "say": "Deuxième inéquation : y plus petit ou égal à un. Sa frontière est l'horizontale à la hauteur un, et on garde sous elle.",
+     "cues": [
+      {
+       "id": "c_y1",
+       "text": "y plus petit ou égal à un"
+      },
+      {
+       "id": "c_horizontale",
+       "text": "horizontale"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_front2",
+       "verb": "draw",
+       "start": "cue:c_y1",
+       "end": "cue_end:c_y1",
+       "target": "d2"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "start": "cue:c_horizontale",
+       "end": "cue_end:c_horizontale",
+       "target": "c2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "region",
+     "say": "En tenant compte aussi que x et y sont positifs, la région qui satisfait tout en même temps est ce triangle, à cheval sur les deux axes. Voilà le polygone de contraintes.",
+     "cues": [
+      {
+       "id": "c_region",
+       "text": "région"
+      },
+      {
+       "id": "c_polygone",
+       "text": "polygone de contraintes"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_poly",
+       "verb": "draw",
+       "start": "cue:c_region",
+       "end": "cue_end:c_polygone",
+       "target": "poly"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sommet",
+   "introduces": [
+    {
+     "id": "lien",
+     "content": "Le polygone, c'est l'ensemble des solutions",
+     "type": "text"
+    },
+    {
+     "id": "verif",
+     "layout": {
+      "next_to": "lien",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "0 + 1 = 1 \\le 6",
+     "type": "math"
+    },
+    {
+     "id": "verif2",
+     "layout": {
+      "next_to": "verif",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "1 \\le 1",
+     "type": "math"
+    },
+    {
+     "id": "sommet",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       1
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Chaque point à l'intérieur du triangle respecte les trois inéquations en même temps. Prends le point zéro, un : zéro plus un font un, et un est bien plus petit que six.",
+     "cues": [
+      {
+       "id": "c_point",
+       "text": "point zéro, un"
+      },
+      {
+       "id": "c_un",
+       "text": "font un"
+      },
+      {
+       "id": "c_pluspetit",
+       "text": "plus petit que six"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_lien",
+       "verb": "show",
+       "at": "cue:c_point",
+       "target": "lien"
+      },
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "cue:c_point",
+       "target": "sommet"
+      },
+      {
+       "id": "w_verif",
+       "verb": "write",
+       "at": "cue:c_un",
+       "target": "verif"
+      },
+      {
+       "id": "h_verif",
+       "verb": "highlight",
+       "start": "cue:c_pluspetit",
+       "end": "cue_end:c_pluspetit",
+       "target": "verif",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "deux",
+     "say": "Et un est aussi plus petit ou égal à un. Donc ce point est une solution : il est dans la région.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "plus petit ou égal à un"
+      },
+      {
+       "id": "c_solution",
+       "text": "une solution"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_verif2",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "verif2"
+      },
+      {
+       "id": "h_sommet",
+       "verb": "highlight",
+       "start": "cue:c_solution",
+       "end": "cue_end:c_solution",
+       "target": "sommet",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "fin",
+     "layout": {
+      "next_to": "fin2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "3x - 4 > 2x + 1 \\;\\Rightarrow\\; x > 5",
+     "type": "math"
+    },
+    {
+     "id": "fin2",
+     "content": "Le polygone, c'est toutes les solutions du système, ensemble",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "resume",
+     "say": "À retenir : une inéquation se résout comme une équation, on isole x et le résultat se lit sur une droite. Ici, x plus grand que cinq.",
+     "cues": [
+      {
+       "id": "c_ineq",
+       "text": "inéquation"
+      },
+      {
+       "id": "c_isole",
+       "text": "isole x"
+      },
+      {
+       "id": "c_cinq",
+       "text": "plus grand que cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "axes"
+      },
+      {
+       "id": "f_d1",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "d1"
+      },
+      {
+       "id": "f_d2",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "d2"
+      },
+      {
+       "id": "f_poly",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "poly"
+      },
+      {
+       "id": "f_c1",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "c1"
+      },
+      {
+       "id": "f_c2",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "c2"
+      },
+      {
+       "id": "f_c3",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "c3"
+      },
+      {
+       "id": "f_lien",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "lien"
+      },
+      {
+       "id": "f_verif",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "verif"
+      },
+      {
+       "id": "f_verif2",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "verif2"
+      },
+      {
+       "id": "f_sommet",
+       "verb": "fade_out",
+       "at": "cue:c_ineq",
+       "target": "sommet"
+      },
+      {
+       "id": "s_fin",
+       "verb": "show",
+       "at": "cue:c_isole",
+       "target": "fin"
+      },
+      {
+       "id": "s_fin2",
+       "verb": "show",
+       "at": "cue:c_cinq",
+       "target": "fin2"
+      },
+      {
+       "id": "h_fin",
+       "verb": "highlight",
+       "at": "cue:c_cinq",
+       "target": "fin",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

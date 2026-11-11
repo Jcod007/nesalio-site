@@ -1,0 +1,73 @@
+QUESTION (derivee, mathematiques, sec 5, sens) : C'est quoi une dérivée, concrètement ?
+RÉPONSE DE RÉFÉRENCE : Le taux de variation instantané : la pente de la tangente, limite des pentes des sécantes.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. taux de variation moyen = pente d'une sécante
+  2. on rapproche le second point : la sécante tend vers la tangente
+  3. dérivée = taux de variation instantané = pente de la tangente
+  4. exemple chiffré mené au résultat (ex. f(x) = x², pente 2 en x = 1)
+  5. interprétation concrète (vitesse instantanée)
+ERREURS GRAVES À CHERCHER : tangente de mauvaise pente ; sécante qui ne passe pas par les points annoncés
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi une dérivée : la pente de la tangente
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{"pente":"q+1"}}
+=== Tranche s_pente
+  OBJET rep [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-1,3]} 
+  OBJET pA [point] {"at":[1,1]} 
+  OBJET labA [label] "A(1 ; 1)" attaché à pA
+DIT (intro) : Une dérivée, c'est une pente. Pas la pente d'une droite, mais la pente de la courbe en un seul point.
+    show rep @beat:start 
+    draw courbe @- {"start":"cue:c_pente","end":"cue_end:c_point"}
+    show pA @cue:c_point 
+    show labA @after:s_pA 
+DIT (probleme) : Prends la parabole de x au carré, et le point A sur la courbe, à un et un. Quelle est la pente de la courbe juste là ?
+    highlight pA @- {"start":"cue:c_A","end":"cue_end:c_la","role":"accent"}
+=== Tranche s_secante
+  OBJET pP [point] {"at":[3,9]} 
+  OBJET labP [label] "P(3 ; 9)" attaché à pP
+  OBJET secante [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-0.5,3.5]} 
+  OBJET pente [math] {"kind":"computed","expression_ref":"pente","template":"pente = {value}","precision":0} 
+DIT (part) : On ne peut pas poser une règle sur un point tout seul. Alors on prend un deuxième point P sur la courbe, à trois et neuf.
+    show pP @cue:c_P 
+    show labP @cue:c_trois 
+DIT (droite) : La droite qui passe par A et P, c'est une sécante. Sa pente vaut neuf moins un, divisé par trois moins un, donc quatre.
+    draw secante @cue:c_secante 
+    write pente @cue:c_quatre 
+=== Tranche s_pivote
+  OBJET pente2 [math] {"kind":"computed","expression_ref":"pente","template":"pente = {value}","precision":1} 
+  OBJET tangente [math] "y = 2x - 1" 
+DIT (approche) : Maintenant, approche P de A. P se rapproche, et regarde la sécante qui pivote : la pente descend de quatre vers deux.
+    fade_out pente @cue:c_approche 
+    animate_parameter  @- {"start":"cue:c_pivote","end":"cue_end:c_versdeux","parameter":"q","from":3,"to":1.5}
+    write pente2 @cue:c_versdeux 
+DIT (tangente) : Quand P est presque sur A, la sécante devient la tangente. Sa pente est deux : c'est la dérivée de x au carré en un.
+    animate_parameter  @- {"start":"cue:c_tangente","end":"cue_end:c_tangente","parameter":"q","from":1.5,"to":1}
+    fade_out pente2 @cue:c_derivee 
+    write tangente @cue:c_derivee 
+    highlight tangente @- {"start":"cue:c_derivee","end":"cue_end:c_derivee","role":"result"}
+=== Tranche s_sens
+  OBJET vitesse [text] "La dérivée, c'est un taux de variation instantané : la vitesse à cet instant précis." 
+DIT (concret) : Concrètement, si la courbe donne la position d'une auto selon le temps, la dérivée donne sa vitesse à cet instant précis, pas sa vitesse moyenne.
+    dim rep @cue:c_position 
+    dim courbe @cue:c_position 
+    show vitesse @cue:c_instant 
+DIT (retenir) : À retenir : la dérivée en un point, c'est la pente de la tangente à la courbe en ce point.
+    fade_out secante @cue:c_retenir 
+    fade_out pP @cue:c_retenir 
+    fade_out labP @cue:c_retenir 
+=== Tranche s_retenir
+  OBJET regle [math] "f'(1) = 2" parts=f'(1) | = 2
+  OBJET idee [text] "La dérivée = la pente de la tangente = le taux de variation instantané" 
+DIT (final) : Baisse le q jusqu'à un : la sécante devient la tangente, et la pente se fixe à deux. Pour x au carré en un, f prime de un égale deux.
+    write regle @cue:c_fprime {"part":"gauche"}
+    write regle @cue:c_deux {"part":"droite"}
+    highlight regle @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"result"}
+DIT (centre) : La dérivée, c'est donc la pente de la tangente en un point : la limite des pentes des sécantes.
+    fade_out courbe @cue:c_limite 
+    fade_out rep @cue:c_limite 
+    fade_out pA @cue:c_limite 
+    fade_out labA @cue:c_limite 
+    show idee @cue:c_limite 
+    highlight idee @- {"start":"cue:c_limite","end":"cue_end:c_limite","role":"accent"}
+--- 5 tranches, 239 mots dits (≈ 1.6 min d'oral)

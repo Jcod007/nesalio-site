@@ -1,0 +1,1017 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "endo_exo",
+  "title": "Reconnaître une réaction endothermique ou exothermique",
+  "language": "fr",
+  "learning_goal": "Classer une transformation (exothermique ou endothermique) selon le transfert d'énergie, et distinguer une transformation physique d'une transformation chimique."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "T_i": {
+     "kind": "constant",
+     "value": 20
+    },
+    "T_f": {
+     "kind": "constant",
+     "value": 45
+    },
+    "delta_T": {
+     "kind": "constant",
+     "value": 25
+    },
+    "m_eau": {
+     "kind": "constant",
+     "value": 200
+    },
+    "c_eau": {
+     "kind": "constant",
+     "value": 4.19
+    }
+   },
+   "expressions": {
+    "Q_eau": "m_eau*c_eau*delta_T"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_critere",
+   "introduces": [
+    {
+     "id": "regle",
+     "style": {
+      "role": "accent"
+     },
+     "content": "\\text{exothermique : dégage de l'énergie}",
+     "type": "math"
+    },
+    {
+     "id": "regle2",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{endothermique : absorbe de l'énergie}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Pour classer une transformation, il y a une seule question à se poser : est-ce que l'énergie sort ou entre ?",
+     "cues": [
+      {
+       "id": "c_energie",
+       "text": "l'énergie"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "regle"
+      }
+     ]
+    },
+    {
+     "id": "criteres",
+     "say": "Si elle dégage de l'énergie, souvent sous forme de chaleur, elle est exothermique. Si elle doit en absorber pour se produire, elle est endothermique.",
+     "cues": [
+      {
+       "id": "c_exo",
+       "text": "dégage de l'énergie"
+      },
+      {
+       "id": "c_endo",
+       "text": "en absorber"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_exo",
+       "verb": "highlight",
+       "start": "cue:c_exo",
+       "end": "cue_end:c_exo",
+       "target": "regle",
+       "role": "result"
+      },
+      {
+       "id": "s_regle2",
+       "verb": "show",
+       "at": "cue:c_endo",
+       "target": "regle2"
+      },
+      {
+       "id": "h_endo",
+       "verb": "highlight",
+       "start": "cue:c_endo",
+       "end": "cue_end:c_endo",
+       "target": "regle2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "chaleur",
+     "say": "Un truc simple à l'école : quand ça dégage vraiment de la chaleur, c'est exothermique. La sensation de chaleur, c'est l'énergie qui sort.",
+     "cues": [
+      {
+       "id": "c_degage",
+       "text": "dégage vraiment de la chaleur"
+      }
+     ],
+     "do": []
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemples_exo",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        "dégage de la chaleur"
+       ],
+       [
+        "dégage de la chaleur"
+       ],
+       [
+        "dégage de l'énergie"
+       ],
+       [
+        "dégage de l'énergie"
+       ]
+      ],
+      "row_labels": [
+       "combustion du bois",
+       "explosion de TNT",
+       "désintégration de l'uranium",
+       "fermentation du raisin"
+      ],
+      "column_labels": [
+       "observation"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "liste",
+     "say": "Regarde tes exemples. La combustion du bois, l'explosion de TNT, la désintégration de l'uranium et la fermentation du raisin dégagent tous de l'énergie.",
+     "cues": [
+      {
+       "id": "c_combustion",
+       "text": "combustion du bois"
+      },
+      {
+       "id": "c_tnt",
+       "text": "explosion de TNT"
+      },
+      {
+       "id": "c_uranium",
+       "text": "désintégration de l'uranium"
+      },
+      {
+       "id": "c_fermentation",
+       "text": "fermentation du raisin"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_combustion",
+       "target": "tab"
+      },
+      {
+       "id": "h_ligne2",
+       "verb": "highlight",
+       "at": "cue:c_tnt",
+       "target": "tab",
+       "role": "accent",
+       "part": "r2"
+      },
+      {
+       "id": "h_ligne3",
+       "verb": "highlight",
+       "at": "cue:c_uranium",
+       "target": "tab",
+       "role": "accent",
+       "part": "r3"
+      },
+      {
+       "id": "h_ligne4",
+       "verb": "highlight",
+       "at": "cue:c_fermentation",
+       "target": "tab",
+       "role": "accent",
+       "part": "r4"
+      }
+     ]
+    },
+    {
+     "id": "conclusion",
+     "say": "Donc ces quatre-là sont exothermiques. La congelation de l'eau, elle, fait le contraire : l'eau doit perdre de l'énergie pour devenir de la glace.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "quatre-là"
+      },
+      {
+       "id": "c_congelation",
+       "text": "congelation"
+      },
+      {
+       "id": "c_perdre",
+       "text": "perdre de l'énergie"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_quatre",
+       "end": "cue_end:c_quatre",
+       "target": "tab",
+       "role": "result"
+      },
+      {
+       "id": "h_congel",
+       "verb": "highlight",
+       "at": "cue:c_congelation",
+       "target": "tab",
+       "role": "unknown",
+       "part": "r1"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diagramme",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       0,
+       6
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "diag",
+     "params": {
+      "vertices": [
+       [
+        0,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        7
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        6,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lbl_react",
+     "layout": {
+      "next_to": "axes",
+      "direction": "left",
+      "gap": "sm"
+     },
+     "content": "réactifs",
+     "type": "label"
+    },
+    {
+     "id": "lbl_prod",
+     "layout": {
+      "next_to": "axes",
+      "direction": "right",
+      "gap": "sm"
+     },
+     "content": "produits",
+     "type": "label"
+    },
+    {
+     "id": "act",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       3,
+       4
+      ],
+      "to": [
+       3,
+       7
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lbl_act",
+     "attachment": {
+      "parent": "act",
+      "anchor": "right"
+     },
+     "content": "énergie d'activation",
+     "type": "label"
+    },
+    {
+     "id": "dh",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "from": [
+       3,
+       4
+      ],
+      "to": [
+       3,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lbl_dh",
+     "attachment": {
+      "parent": "dh",
+      "anchor": "right"
+     },
+     "content": "ΔH négatif",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Le meilleur outil, c'est le diagramme énergétique. Les réactifs sont en haut, les produits en bas, et la hauteur représente l'énergie.",
+     "cues": [
+      {
+       "id": "c_diagramme",
+       "text": "diagramme énergétique"
+      },
+      {
+       "id": "c_haut",
+       "text": "en haut"
+      },
+      {
+       "id": "c_bas",
+       "text": "en bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_diag",
+       "verb": "draw",
+       "at": "cue:c_diagramme",
+       "target": "diag"
+      },
+      {
+       "id": "s_react",
+       "verb": "show",
+       "at": "cue:c_haut",
+       "target": "lbl_react"
+      },
+      {
+       "id": "s_prod",
+       "verb": "show",
+       "at": "cue:c_bas",
+       "target": "lbl_prod"
+      }
+     ]
+    },
+    {
+     "id": "activation",
+     "say": "Pour démarrer, il faut franchir une colline, l'énergie d'activation. Ensuite la réaction redescend.",
+     "cues": [
+      {
+       "id": "c_activation",
+       "text": "l'énergie d'activation"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_act",
+       "verb": "show",
+       "at": "cue:c_activation",
+       "target": "act"
+      },
+      {
+       "id": "s_lbl_act",
+       "verb": "show",
+       "at": "after:s_act",
+       "target": "lbl_act"
+      }
+     ]
+    },
+    {
+     "id": "delta",
+     "say": "Quand les produits sont plus bas que les réactifs, la réaction a libéré de l'énergie : c'est exothermique, et le ΔH est négatif.",
+     "cues": [
+      {
+       "id": "c_plusbas",
+       "text": "plus bas que les réactifs"
+      },
+      {
+       "id": "c_libere",
+       "text": "libéré de l'énergie"
+      },
+      {
+       "id": "c_exo",
+       "text": "exothermique"
+      },
+      {
+       "id": "c_negatif",
+       "text": "ΔH est négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_dh",
+       "verb": "show",
+       "at": "cue:c_libere",
+       "target": "dh"
+      },
+      {
+       "id": "s_lbl_dh",
+       "verb": "show",
+       "at": "cue:c_negatif",
+       "target": "lbl_dh"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_nature",
+   "introduces": [
+    {
+     "id": "physique",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\text{physique : même substance, autre état}",
+     "type": "math"
+    },
+    {
+     "id": "chimique",
+     "layout": {
+      "next_to": "physique",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "\\text{chimique : nouvelles substances}",
+     "type": "math"
+    },
+    {
+     "id": "congel",
+     "content": "\\ce{H2O (l) -> H2O (s)}",
+     "type": "math"
+    },
+    {
+     "id": "combust",
+     "layout": {
+      "next_to": "congel",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\ce{C + O2 -> CO2}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "distinction",
+     "say": "Maintenant, physique ou chimique ? Physique, c'est quand la substance change d'état mais reste la même. Chimique, c'est quand de nouvelles substances apparaissent.",
+     "cues": [
+      {
+       "id": "c_physique",
+       "text": "Physique"
+      },
+      {
+       "id": "c_chimique",
+       "text": "Chimique"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_diag",
+       "verb": "dim",
+       "at": "cue:c_physique",
+       "target": "diag"
+      },
+      {
+       "id": "d_axes",
+       "verb": "dim",
+       "at": "cue:c_physique",
+       "target": "axes"
+      },
+      {
+       "id": "s_phys",
+       "verb": "show",
+       "at": "cue:c_physique",
+       "target": "physique"
+      },
+      {
+       "id": "s_chim",
+       "verb": "show",
+       "at": "cue:c_chimique",
+       "target": "chimique"
+      }
+     ]
+    },
+    {
+     "id": "eau",
+     "say": "La congelation de l'eau, c'est physique : c'est encore de l'eau, juste de la glace. Et c'est endothermique, parce que l'eau doit libérer... non, perdre de l'énergie.",
+     "cues": [
+      {
+       "id": "c_eau",
+       "text": "congelation de l'eau"
+      },
+      {
+       "id": "c_phys",
+       "text": "c'est physique"
+      },
+      {
+       "id": "c_perte",
+       "text": "perdre de l'énergie"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_congel",
+       "verb": "show",
+       "at": "cue:c_eau",
+       "target": "congel"
+      },
+      {
+       "id": "h_phys",
+       "verb": "highlight",
+       "start": "cue:c_phys",
+       "end": "cue_end:c_phys",
+       "target": "physique",
+       "role": "unknown"
+      },
+      {
+       "id": "h_congel",
+       "verb": "highlight",
+       "start": "cue:c_perte",
+       "end": "cue_end:c_perte",
+       "target": "congel",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "bois",
+     "say": "La combustion du bois, elle, est chimique : le carbone et le dioxygène deviennent du dioxyde de carbone. Nouvelle substance, donc chimique.",
+     "cues": [
+      {
+       "id": "c_bois",
+       "text": "combustion du bois"
+      },
+      {
+       "id": "c_chim",
+       "text": "chimique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_combust",
+       "verb": "show",
+       "at": "cue:c_bois",
+       "target": "combust"
+      },
+      {
+       "id": "h_chim",
+       "verb": "highlight",
+       "start": "cue:c_chim",
+       "end": "cue_end:c_chim",
+       "target": "chimique",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Énergie : dégage = exothermique, absorbe = endothermique",
+     "type": "text"
+    },
+    {
+     "id": "idee2",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Substances : mêmes = physique, nouvelles = chimique",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "resume",
+     "say": "À retenir : d'abord l'énergie. Si ça dégage de la chaleur, c'est exothermique ; si ça doit en absorber, c'est endothermique.",
+     "cues": [
+      {
+       "id": "c_energie",
+       "text": "l'énergie"
+      },
+      {
+       "id": "c_degage",
+       "text": "dégage de la chaleur"
+      },
+      {
+       "id": "c_absorber",
+       "text": "en absorber"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_diag",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "diag"
+      },
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "f_phys",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "physique"
+      },
+      {
+       "id": "f_chim",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "chimique"
+      },
+      {
+       "id": "f_congel",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "congel"
+      },
+      {
+       "id": "f_combust",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "combust"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_energie",
+       "targets": [
+        "regle",
+        "idee"
+       ]
+      },
+      {
+       "id": "h_exo",
+       "verb": "highlight",
+       "start": "cue:c_degage",
+       "end": "cue_end:c_degage",
+       "target": "regle",
+       "role": "result"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_absorber",
+       "target": "idee"
+      }
+     ]
+    },
+    {
+     "id": "substances",
+     "say": "Et pour physique ou chimique : même substance, c'est physique ; nouvelles substances, c'est chimique.",
+     "cues": [
+      {
+       "id": "c_meme",
+       "text": "même substance"
+      },
+      {
+       "id": "c_nouvelles",
+       "text": "nouvelles substances"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee2",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "idee2"
+      },
+      {
+       "id": "h_regle2",
+       "verb": "highlight",
+       "start": "cue:c_nouvelles",
+       "end": "cue_end:c_nouvelles",
+       "target": "regle2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "final",
+     "say": "Donc pour tes exemples : la congelation est physique et endothermique ; la combustion, la fermentation, le TNT et l'uranium sont exothermiques.",
+     "cues": [
+      {
+       "id": "c_congel",
+       "text": "congelation"
+      },
+      {
+       "id": "c_exo",
+       "text": "exothermiques"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "f_idee",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "idee"
+      },
+      {
+       "id": "f_idee2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "idee2"
+      },
+      {
+       "id": "c_gen",
+       "verb": "camera.focus",
+       "at": "cue:c_congel",
+       "targets": [
+        "regle",
+        "regle2"
+       ]
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_exo",
+       "end": "cue_end:c_exo",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

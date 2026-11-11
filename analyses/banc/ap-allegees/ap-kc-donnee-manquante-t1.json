@@ -1,0 +1,694 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "equilibre_kc_c",
+  "title": "Trouver [C] avec Kc = 64",
+  "language": "fr",
+  "learning_goal": "Utiliser Kc = [B][C]²/[A]² et la relation [B] = 2[A] pour trouver la concentration de C à l'équilibre."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_pose",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{2 A(g) <=> B(g) + 2 C(g)}",
+     "type": "math"
+    },
+    {
+     "id": "kc",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "K_c = \\frac{[B][C]^2}{[A]^2} = 64",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "On a l'équilibre deux A gazeux donne B gazeux plus deux C gazeux, avec une constante d'équilibre de soixante-quatre.",
+     "cues": [
+      {
+       "id": "c_eq",
+       "text": "deux A gazeux donne B gazeux plus deux C gazeux"
+      },
+      {
+       "id": "c_k",
+       "text": "constante d'équilibre de soixante-quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_eq",
+       "target": "eq"
+      },
+      {
+       "id": "w_kc",
+       "verb": "write",
+       "at": "cue:c_k",
+       "target": "kc"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "La constante d'équilibre compare les produits aux réactifs : chaque concentration est élevée à son coefficient. Le deux devant C devient donc un exposant deux.",
+     "cues": [
+      {
+       "id": "c_produits",
+       "text": "produits aux réactifs"
+      },
+      {
+       "id": "c_coeff",
+       "text": "élevée à son coefficient"
+      },
+      {
+       "id": "c_exposant",
+       "text": "exposant deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_kc",
+       "verb": "highlight",
+       "start": "cue:c_produits",
+       "end": "cue_end:c_coeff",
+       "target": "kc",
+       "role": "accent"
+      },
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "start": "cue:c_exposant",
+       "end": "cue_end:c_exposant",
+       "target": "eq",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_relation",
+   "introduces": [
+    {
+     "id": "rel",
+     "layout": {
+      "next_to": "kc",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "[B] = 2[A]",
+     "parts": [
+      {
+       "id": "b",
+       "text": "[B]"
+      },
+      {
+       "id": "deuxa",
+       "text": "= 2[A]"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donne",
+     "say": "L'énoncé donne une deuxième information : à l'équilibre, la concentration de B est deux fois celle de A.",
+     "cues": [
+      {
+       "id": "c_deuxfois",
+       "text": "deux fois celle de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_kc",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "kc"
+      },
+      {
+       "id": "w_b",
+       "verb": "write",
+       "at": "cue:c_deuxfois",
+       "target": "rel",
+       "part": "b"
+      },
+      {
+       "id": "w_deuxa",
+       "verb": "write",
+       "at": "cue:c_deuxfois",
+       "target": "rel",
+       "part": "deuxa"
+      }
+     ]
+    },
+    {
+     "id": "substitue",
+     "say": "On remplace B par deux A dans la constante : au numérateur, deux A fois C au carré.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "remplace B par deux A"
+      },
+      {
+       "id": "c_numerateur",
+       "text": "deux A fois C au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_rel",
+       "verb": "highlight",
+       "at": "cue:c_remplace",
+       "target": "rel",
+       "role": "accent"
+      },
+      {
+       "id": "h_num",
+       "verb": "highlight",
+       "start": "cue:c_numerateur",
+       "end": "cue_end:c_numerateur",
+       "target": "kc",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "sub",
+     "content": "\\frac{2[A][C]^2}{[A]^2} = 64",
+     "parts": [
+      {
+       "id": "frac",
+       "text": "\\frac{2[A][C]^2}{[A]^2}"
+      },
+      {
+       "id": "val",
+       "text": "= 64"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "simpl",
+     "content": "\\frac{2[C]^2}{[A]} = 64",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{2[C]^2}{[A]}"
+      },
+      {
+       "id": "val2",
+       "text": "= 64"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso",
+     "content": "[C]^2 = 32[A]",
+     "parts": [
+      {
+       "id": "cg",
+       "text": "[C]^2"
+      },
+      {
+       "id": "iso2",
+       "text": "= 32[A]"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ecris",
+     "say": "Ça donne deux A fois C au carré sur A au carré, égale soixante-quatre.",
+     "cues": [
+      {
+       "id": "c_ecris",
+       "text": "deux A fois C au carré sur A au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_sub",
+       "verb": "transform",
+       "at": "cue:c_ecris",
+       "source": "rel",
+       "target": "sub"
+      }
+     ]
+    },
+    {
+     "id": "simplifie",
+     "say": "Un A s'annule en haut et en bas : il reste deux C au carré sur A, égale soixante-quatre.",
+     "cues": [
+      {
+       "id": "c_annule",
+       "text": "s'annule en haut et en bas"
+      },
+      {
+       "id": "c_reste",
+       "text": "deux C au carré sur A"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_simpl",
+       "verb": "transform",
+       "at": "cue:c_annule",
+       "source": "sub",
+       "target": "simpl"
+      },
+      {
+       "id": "h_simpl",
+       "verb": "highlight",
+       "start": "cue:c_reste",
+       "end": "cue_end:c_reste",
+       "target": "simpl",
+       "role": "neutral",
+       "part": "gauche"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "On divise par deux des deux côtés : C au carré égale trente-deux fois la concentration de A.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "divise par deux des deux côtés"
+      },
+      {
+       "id": "c_32",
+       "text": "trente-deux fois la concentration de A"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_iso",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "simpl",
+       "target": "iso"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_test",
+   "introduces": [
+    {
+     "id": "exemple",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "[A] = 0{,}5 \\text{ mol/L}",
+     "parts": [
+      {
+       "id": "a",
+       "text": "[A]"
+      },
+      {
+       "id": "v",
+       "text": "= 0{,}5 \\text{ mol/L}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verifie",
+     "say": "Prenons un exemple pour voir si ça tient : disons que la concentration de A vaut zéro virgule cinq mole par litre.",
+     "cues": [
+      {
+       "id": "c_exemple",
+       "text": "exemple pour voir"
+      },
+      {
+       "id": "c_demi",
+       "text": "zéro virgule cinq mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rel",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "rel"
+      },
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_exemple",
+       "target": "exemple",
+       "part": "a"
+      },
+      {
+       "id": "w_v",
+       "verb": "write",
+       "at": "cue:c_demi",
+       "target": "exemple",
+       "part": "v"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "Alors B vaut deux fois ça, soit un, et C au carré vaut trente-deux fois zéro virgule cinq, donc seize. La racine de seize donne C égale quatre moles par litre.",
+     "cues": [
+      {
+       "id": "c_b",
+       "text": "B vaut deux fois ça"
+      },
+      {
+       "id": "c_seize",
+       "text": "donc seize"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre moles par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_a",
+       "verb": "highlight",
+       "start": "cue:c_b",
+       "end": "cue_end:c_b",
+       "target": "exemple",
+       "role": "given",
+       "part": "v"
+      },
+      {
+       "id": "h_iso",
+       "verb": "highlight",
+       "start": "cue:c_seize",
+       "end": "cue_end:c_seize",
+       "target": "iso",
+       "role": "accent",
+       "part": "iso2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "iso",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[C] = \\sqrt{32[A]}",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "Kc relie les concentrations à l'équilibre",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la constante d'équilibre relie les concentrations, et avec B égale deux A, il reste C égale la racine carrée de trente-deux A.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_reste",
+       "text": "il reste"
+      },
+      {
+       "id": "c_formule",
+       "text": "racine carrée de trente-deux A"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "eq",
+        "kc",
+        "idee",
+        "note"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "f_exemple",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "exemple"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "idee"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_formule",
+       "target": "note"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_formule",
+       "end": "cue_end:c_formule",
+       "target": "idee",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

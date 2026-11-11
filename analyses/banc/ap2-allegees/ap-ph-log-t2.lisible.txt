@@ -1,0 +1,69 @@
+QUESTION (ap-ph-log, chimie, sec 4, alloprof) : J’étudie présentement La concentration molaire des ions H+ et le pH et je n’y comprend absolument rien. Je ne comprend pas comment pH = -log[H+] devient [H+] = 10^-pH Ensuite, 0.01 mol de H+ est bien égal à un pH de 1 mais j’aimerais avoir une explication plus profonde à ce sujet.
+RÉPONSE DE RÉFÉRENCE : [H+] = 0,01 mol/L donne pH 2, pas 1 (l'élève se trompe).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Comment pH = -log[H+] devient [H+] = 10^-pH
+math_context : {"symbols":{"ph":{"kind":"constant","value":1}},"expressions":{"hplus":"10^(-ph)","ph_calcule":"-log(0.01)"}}
+=== Tranche s_renverse
+  OBJET regle [math] "\\text{pH} = -\\log [\\text{H}^+]" parts=\text{pH} | = -\log [\text{H}^+]
+  OBJET inverse [math] "[\\text{H}^+] = 10^{-\\text{pH}}" parts=[\text{H}^+] | = 10^{-\text{pH}}
+DIT (accueil) : Je reprends ta question : tu veux voir pourquoi la formule du pH se renverse en concentration.
+    write regle @cue:c_renverse {"part":"membre_ph"}
+    write regle @after:w_ph {"part":"membre_log"}
+DIT (question) : Au fond, ta question est celle-ci : un pH, c'est quoi par rapport à la concentration ? Commençons par le sens du logarithme.
+    highlight regle @- {"start":"cue:c_sens","end":"cue_end:c_sens","role":"accent"}
+=== Tranche s_sens_log
+  OBJET tab [matrix] {"rows":[[-2,-1,0,1,2,3],[0.01,0.1,1,10,100,1000]],"row_labels":["exposant","valeur"]} 
+  OBJET lien [math] "\\log(0{,}01) = -2" 
+DIT (log) : Le logarithme, c'est l'exposant qu'il faut mettre sur dix pour obtenir le nombre.
+    show tab @- {"start":"cue:c_exposant","end":"cue_end:c_dix"}
+DIT (exemple) : Ici, dix exposant moins deux donne zéro virgule zéro un. Alors le logarithme de zéro virgule zéro un vaut moins deux.
+    highlight tab @- {"start":"cue:c_moinsdeux","end":"cue_end:c_moinsdeux","role":"accent","part":"r1c2"}
+    write lien @cue:c_log 
+DIT (signe) : Retiens ce détail : quand le nombre est plus petit que un, son logarithme est négatif.
+    highlight lien @- {"start":"cue:c_negatif","end":"cue_end:c_negatif","role":"accent"}
+=== Tranche s_pourquoi_moins
+  OBJET p01 [math] "\\text{pH} = -\\log(0{,}01) = -(-2) = 2" parts=\text{pH} | = -\log(0{,}01) | = -(-2) | = 2
+  OBJET note [text] "Le moins du pH sert à rendre le pH positif." 
+DIT (applique) : Appliquons la formule à une solution où la concentration en H plus est zéro virgule zéro un mole par litre.
+    fade_out lien @beat:start 
+    write p01 @cue:c_concentration {"part":"p_part1"}
+    write p01 @cue:c_valeur {"part":"p_part2"}
+DIT (moins) : Le logarithme de zéro virgule zéro un vaut moins deux. Le signe moins de la formule le change en plus deux.
+    write p01 @cue:c_moins_deux {"part":"p_part3"}
+    write p01 @cue:c_plus_deux {"part":"p_part4"}
+    show note @after:w_p4 
+    highlight note @- {"start":"cue:c_plus_deux","end":"cue_end:c_plus_deux","role":"accent"}
+=== Tranche s_inverser
+  OBJET pas1 [math] "1{,}0 = 10^{-\\text{pH}}"   <<JAMAIS MONTRÉ>>
+DIT (renverser) : Maintenant, on repart du pH et on veut retrouver la concentration. On isole le H plus dans la formule.
+    dim regle @cue:c_isole 
+    write inverse @cue:c_hplus {"part":"membre_h"}
+    write inverse @after:w_inv1 {"part":"membre_dix"}
+DIT (meme_chose) : Le pH et la concentration disent la même chose, mais dans l'autre sens : le pH est l'exposant, et on le remet sur dix.
+    highlight inverse @- {"start":"cue:c_meme","end":"cue_end:c_meme","role":"accent"}
+=== Tranche s_verif
+  OBJET verif [math] "[\\text{H}^+] = 10^{-1} = 0{,}1\\ \\text{mol/L}" parts=[\text{H}^+] = 10^{-1} | = 0{,}1\ \text{mol/L}
+  OBJET retour [math] "\\text{pH} = -\\log(0{,}1) = 1" 
+DIT (test) : Vérifions : prends un pH de un. Sa concentration en H plus vaut dix exposant moins un, soit zéro virgule un mole par litre.
+    fade_out p01 @beat:start 
+    fade_out inverse @beat:start 
+    write verif @cue:c_ph_un {"part":"v_part1"}
+    write verif @cue:c_un_mol {"part":"v_part2"}
+DIT (remonte) : Et si on remonte : le logarithme de zéro virgule un vaut moins un, donc le pH vaut bien un.
+    write retour @cue:c_remonte 
+    highlight verif @- {"start":"cue:c_bien_un","end":"cue_end:c_bien_un","role":"result"}
+=== Tranche s_chiffres
+  OBJET suite [matrix] {"rows":[[1,2,3,4],[0.1,0.01,0.001,0.0001]],"row_labels":["pH","[H⁺] (mol/L)"]} 
+DIT (motif) : Regarde la suite des pH : un, deux, trois, quatre, et en dessous les concentrations.
+    fade_out tab @beat:start 
+    dim verif @beat:start 
+    dim retour @beat:start 
+    show suite @cue:c_suite 
+DIT (facteur) : Chaque fois que le pH monte de un, la concentration est divisée par dix. Les H plus deviennent dix fois plus rares.
+    highlight suite @- {"start":"cue:c_monte","end":"cue_end:c_divisee","role":"accent","part":"r2"}
+DIT (sens) : Un pH plus grand veut donc dire moins de H plus : c'est ce qui rend la solution moins acide.
+    highlight suite @- {"start":"cue:c_moins","end":"cue_end:c_moins","role":"accent","part":"c3"}
+--- 6 tranches, 275 mots dits (≈ 1.8 min d'oral)

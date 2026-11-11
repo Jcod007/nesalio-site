@@ -1,0 +1,668 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_gaz_parfaits_quantite",
+  "title": "Trouver la quantité de gaz dans un ballon",
+  "language": "fr",
+  "learning_goal": "Calculer la quantité de matière d’un gaz à partir de sa pression, de son volume et de sa température."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "temperature_kelvins": "25+273.15",
+    "quantite_mol": "101.3*5.0/(8.314*298.15)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "donnees",
+     "params": {
+      "rows": [
+       [
+        "5,0 L",
+        "25 °C",
+        "101,3 kPa"
+       ]
+      ],
+      "row_labels": [
+       "donnée"
+      ],
+      "column_labels": [
+       "volume",
+       "température",
+       "pression"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "situation",
+     "say": "On cherche la quantité de gaz dans un ballon de cinq virgule zéro litres, à vingt-cinq degrés Celsius et à cent un virgule trois kilopascals.",
+     "cues": [
+      {
+       "id": "ballon",
+       "text": "dans un ballon"
+      },
+      {
+       "id": "donnees_mot",
+       "text": "cinq virgule zéro litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "montre_donnees",
+       "verb": "show",
+       "at": "cue:donnees_mot",
+       "target": "donnees"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "modele",
+     "say": "Pour relier ces trois données au nombre de moles, on utilise la loi des gaz parfaits : pression fois volume égale quantité fois R fois température en kelvins.",
+     "cues": [
+      {
+       "id": "loi",
+       "text": "loi des gaz parfaits"
+      },
+      {
+       "id": "formule",
+       "text": "pression fois volume"
+      }
+     ],
+     "do": [
+      {
+       "id": "estompe_donnees",
+       "verb": "dim",
+       "at": "cue:loi",
+       "target": "donnees"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_temperature",
+   "introduces": [
+    {
+     "id": "temp_calc",
+     "content": "T = 25 + 273{,}15 = 298{,}15\\ \\mathrm{K}",
+     "parts": [
+      {
+       "id": "temp_base",
+       "text": "T ="
+      },
+      {
+       "id": "temp_celsius",
+       "text": "25 + 273{,}15"
+      },
+      {
+       "id": "temp_resultat",
+       "text": "= 298{,}15\\ \\mathrm{K}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "loi",
+     "content": "pV = nRT",
+     "parts": [
+      {
+       "id": "pv",
+       "text": "pV ="
+      },
+      {
+       "id": "nrt",
+       "text": "nRT"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "constante",
+     "content": "R = 8,314 kPa·L/(mol·K)",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conversion",
+     "say": "La température doit être en kelvins. On ajoute deux cent soixante-treize virgule quinze à vingt-cinq degrés Celsius : on obtient deux cent quatre-vingt-dix-huit virgule quinze kelvins.",
+     "cues": [
+      {
+       "id": "kelvins",
+       "text": "en kelvins"
+      },
+      {
+       "id": "ajoute",
+       "text": "On ajoute"
+      },
+      {
+       "id": "resultat",
+       "text": "deux cent quatre-vingt-dix-huit virgule quinze kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrit_t",
+       "verb": "write",
+       "at": "cue:kelvins",
+       "target": "temp_calc",
+       "part": "temp_base"
+      },
+      {
+       "id": "ecrit_conversion",
+       "verb": "write",
+       "at": "cue:ajoute",
+       "target": "temp_calc",
+       "part": "temp_celsius"
+      },
+      {
+       "id": "ecrit_resultat",
+       "verb": "write",
+       "at": "cue:resultat",
+       "target": "temp_calc",
+       "part": "temp_resultat"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "loi_gaz",
+     "say": "La loi des gaz parfaits s’écrit pression fois volume égale n fois R fois T. R vaut huit virgule trois cent quatorze kilopascals-litres par mole-kelvin.",
+     "cues": [
+      {
+       "id": "loi_mot",
+       "text": "La loi des gaz parfaits"
+      },
+      {
+       "id": "r_mot",
+       "text": "R vaut huit virgule trois cent quatorze"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrit_pv",
+       "verb": "write",
+       "at": "cue:loi_mot",
+       "target": "loi",
+       "part": "pv"
+      },
+      {
+       "id": "ecrit_nrt",
+       "verb": "write",
+       "at": "cue:r_mot",
+       "target": "loi",
+       "part": "nrt"
+      },
+      {
+       "id": "montre_r",
+       "verb": "show",
+       "at": "cue:r_mot",
+       "target": "constante"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "isolement",
+     "content": "n = \\frac{pV}{RT}",
+     "parts": [
+      {
+       "id": "n_egal",
+       "text": "n ="
+      },
+      {
+       "id": "fraction",
+       "text": "\\frac{pV}{RT}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "substitution",
+     "content": "n = \\frac{101{,}3\\times 5{,}0}{8{,}314\\times 298{,}15}",
+     "parts": [
+      {
+       "id": "n_sub_egal",
+       "text": "n ="
+      },
+      {
+       "id": "fraction_sub",
+       "text": "\\frac{101{,}3\\times 5{,}0}{8{,}314\\times 298{,}15}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "resultat",
+     "style": {
+      "role": "result"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "quantite_mol",
+      "template": "n \\approx {value}\\ \\mathrm{mol}",
+      "precision": 3
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isoler",
+     "say": "Pour trouver n, on divise les deux côtés de l’égalité par R fois T; ainsi, n reste seul à gauche et pression fois volume sur R fois T à droite.",
+     "cues": [
+      {
+       "id": "trouver",
+       "text": "Pour trouver n"
+      },
+      {
+       "id": "divise",
+       "text": "on divise"
+      },
+      {
+       "id": "seul",
+       "text": "n reste seul"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrit_n",
+       "verb": "write",
+       "at": "cue:trouver",
+       "target": "isolement",
+       "part": "n_egal"
+      },
+      {
+       "id": "ecrit_fraction",
+       "verb": "write",
+       "at": "cue:seul",
+       "target": "isolement",
+       "part": "fraction"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "remplacer",
+     "say": "On remplace la pression par cent un virgule trois kilopascals, le volume par cinq virgule zéro litres, R par huit virgule trois cent quatorze, et T par deux cent quatre-vingt-dix-huit virgule quinze kelvins.",
+     "cues": [
+      {
+       "id": "pression",
+       "text": "la pression par cent un virgule trois kilopascals"
+      },
+      {
+       "id": "volume",
+       "text": "le volume par cinq virgule zéro litres"
+      },
+      {
+       "id": "r",
+       "text": "R par huit virgule trois cent quatorze"
+      },
+      {
+       "id": "temperature",
+       "text": "T par deux cent quatre-vingt-dix-huit virgule quinze kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "remplace_formule",
+       "verb": "transform",
+       "at": "cue:pression",
+       "source": "isolement",
+       "target": "substitution"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calculer",
+     "say": "Le calcul donne environ zéro virgule deux cent quatre moles. Les kilopascals et les litres s’annulent avec les unités de R; il reste bien des moles.",
+     "cues": [
+      {
+       "id": "donne",
+       "text": "Le calcul donne"
+      },
+      {
+       "id": "unites",
+       "text": "Les kilopascals et les litres"
+      },
+      {
+       "id": "moles",
+       "text": "des moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrit_reponse",
+       "verb": "write",
+       "at": "cue:donne",
+       "target": "resultat"
+      },
+      {
+       "id": "met_en_valeur",
+       "verb": "highlight",
+       "start": "cue:donne",
+       "end": "cue_end:moles",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle_retenir",
+     "style": {
+      "role": "accent"
+     },
+     "content": "Loi des gaz parfaits : n = pV ÷ (RT)",
+     "type": "text"
+    },
+    {
+     "id": "reponse_retenir",
+     "style": {
+      "role": "result"
+     },
+     "content": "n \\approx 0{,}204\\ \\mathrm{mol}",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "resume",
+     "items": [
+      "regle_retenir",
+      "reponse_retenir"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_centrale",
+     "say": "À retenir : la loi des gaz parfaits relie pression, volume, température et quantité de matière; ici, le ballon contient environ zéro virgule deux cent quatre moles de gaz.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "loi_retenir",
+       "text": "la loi des gaz parfaits"
+      },
+      {
+       "id": "quantite",
+       "text": "zéro virgule deux cent quatre moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "efface_donnees",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "donnees"
+      },
+      {
+       "id": "efface_temp",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "temp_calc"
+      },
+      {
+       "id": "efface_loi",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "loi"
+      },
+      {
+       "id": "efface_r",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "constante"
+      },
+      {
+       "id": "efface_isolement",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "isolement"
+      },
+      {
+       "id": "efface_substitution",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "substitution"
+      },
+      {
+       "id": "efface_resultat",
+       "verb": "fade_out",
+       "at": "cue:retenir",
+       "target": "resultat"
+      },
+      {
+       "id": "montre_regle",
+       "verb": "show",
+       "at": "cue:loi_retenir",
+       "target": "regle_retenir"
+      },
+      {
+       "id": "montre_reponse",
+       "verb": "show",
+       "at": "cue:quantite",
+       "target": "reponse_retenir"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

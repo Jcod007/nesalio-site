@@ -1,0 +1,72 @@
+QUESTION (ap-kps-solubilite, chimie, sec 5, alloprof) : Peut-on comparer la solubilité du dihydroxyde de magnésium et celle du dichlorure de plomb en comparant uniquement leurs constantes du produit de solubilité? Si a 25C, les constantes du produits de solubilité sont de 5,61x10e-12 pour le dihydroxyde de magnésium est de 1,6x10e-5 pour le dichlorure de plomb, lequel des deux composés possede la plus grande solubilité dans l'eau a 25C ?
+RÉPONSE DE RÉFÉRENCE : Oui ici (même type AB2, Kps = 4s³) : s(Mg(OH)2) ≈ 1,1×10⁻⁴ mol/L, s(PbCl2) ≈ 1,6×10⁻² mol/L ; PbCl2 est plus soluble.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Comparer la solubilité à partir du Kps
+math_context : {"symbols":{"Kps_MgOH2":{"kind":"constant","value":5.61e-12},"Kps_PbCl2":{"kind":"constant","value":0.000016}},"expressions":{"s_mgoh2":"(5.61e-12/4)^(1/3)","s_pbcl2":"(1.6e-5/4)^(1/3)"}}
+=== Tranche s_piege
+  OBJET kps_mg [math] "K_{ps} = 5{,}61 \\times 10^{-12}" 
+  OBJET kps_pb [math] "K_{ps} = 1{,}6 \\times 10^{-5}" 
+  OBJET nom_mg [text] "Mg(OH)₂" 
+  OBJET nom_pb [text] "PbCl₂" 
+DIT (accroche) : Bonne question de situation-problème : deux sels, deux Kps, et on veut savoir lequel se dissout le plus.
+    show nom_mg @beat:start 
+    show kps_mg @cue:c_kps 
+    show nom_pb @beat:start 
+    show kps_pb @beat:start 
+DIT (piege) : Le piège, c'est de dire tout de suite que le plus grand Kps gagne. Ce n'est pas vrai quand les sels ne se brisent pas en autant d'ions.
+    highlight kps_pb @- {"start":"cue:c_pasvrai","end":"cue_end:c_pasvrai","role":"unknown"}
+=== Tranche s_equations
+  OBJET diss_mg [math] "\\ce{Mg(OH)2(s) <=> Mg^2+ + 2OH^-}" 
+  OBJET kps_expr_mg [math] "K_{ps} = [Mg^{2+}]\\,[OH^-]^2" 
+DIT (dissocie) : Écrivons ce qui se passe dans l'eau. Le dihydroxyde de magnésium solide donne un ion magnésium deux plus et deux ions hydroxyde.
+    write diss_mg @cue:c_mg 
+    highlight diss_mg @cue:c_mg {"role":"accent"}
+    highlight diss_mg @cue:c_ions {"role":"accent"}
+DIT (expr_kps) : Sa constante du produit de solubilité, c'est la concentration en magnésium multipliée par la concentration en hydroxyde au carré. Le solide n'apparaît jamais dans le Kps.
+    write kps_expr_mg @cue:c_multipliee 
+    highlight kps_expr_mg @cue:c_carre {"role":"accent"}
+    highlight kps_expr_mg @- {"start":"cue:c_solide","end":"cue_end:c_solide","role":"accent"}
+=== Tranche s_calculs
+  OBJET tableau [matrix] {"rows":[["—","0","0"],["+s","+s","+2s"],[null,"s","2s"]],"row_labels":["départ","variation","équilibre"],"column_labels":["Mg(OH)₂(s)","Mg²⁺","OH⁻"]} 
+  OBJET subst_mg [math] "K_{ps} = s \\times (2s)^2 = 4s^3" 
+  OBJET s_mg_val [math] {"kind":"computed","expression_ref":"s_mgoh2","template":"s = {value}","precision":4} 
+DIT (s_tableau) : Appelons s la solubilité molaire, le nombre de moles de solide qui se dissolvent par litre. Au départ, aucun ion ; à l'équilibre, on a s de magnésium et deux s d'hydroxyde.
+    show tableau @cue:c_s 
+    highlight tableau @- {"start":"cue:c_equilibre","end":"cue_end:c_equilibre","role":"accent","part":"r3c3"}
+DIT (substitue) : On remplace dans le Kps : s fois, ouvrons la parenthèse, deux s au carré. Deux s au carré, ça fait quatre s au carré, donc quatre s au cube.
+    write subst_mg @cue:c_remplace 
+    highlight subst_mg @beat:start {"role":"accent"}
+    highlight subst_mg @cue:c_cube {"role":"accent"}
+DIT (isole) : On isole s : s égale Kps divisé par quatre, le tout à la racine cubique. Avec cinq virgule soixante et un fois dix exposant moins douze divisé par quatre, ça donne environ un virgule douze fois dix exposant moins quatre mole par litre.
+    write s_mg_val @cue:c_resultat_mg 
+    highlight s_mg_val @- {"start":"cue:c_resultat_mg","end":"cue_end:c_resultat_mg","role":"result"}
+=== Tranche s_pb
+  OBJET diss_pb [math] "\\ce{PbCl2(s) <=> Pb^2+ + 2Cl^-}" 
+  OBJET subst_pb [math] "K_{ps} = 4s^3" 
+  OBJET s_pb_val [math] {"kind":"computed","expression_ref":"s_pbcl2","template":"s = {value}","precision":4} 
+DIT (meme_forme) : Le dichlorure de plomb se dissocie de la même façon : un ion plomb deux plus et deux ions chlorure.
+    fade_out s_mg_val @beat:start 
+    write diss_pb @cue:c_pb 
+    highlight diss_pb @cue:c_cl {"role":"accent"}
+DIT (calcul_pb) : Donc son Kps vaut aussi quatre s au cube. On isole s de la même manière, et on obtient environ un virgule six fois dix exposant moins deux mole par litre.
+    write subst_pb @cue:c_aussit 
+    write s_pb_val @cue:c_pb_val 
+    highlight s_pb_val @- {"start":"cue:c_pb_val","end":"cue_end:c_pb_val","role":"accent"}
+=== Tranche s_retenir
+  OBJET regle [text] "Même formule de sel = comparer les Kps directement." 
+  OBJET regle2 [text] "Formules différentes = comparer les solubilités calculées." 
+DIT (comparer) : Comparons : un virgule douze fois dix exposant moins quatre est plus petit que un virgule six fois dix exposant moins deux. C'est donc le dichlorure de plomb qui se dissout le plus.
+    fade_out tableau @beat:start 
+    fade_out subst_mg @beat:start 
+    fade_out subst_pb @beat:start 
+    move s_mg_val @beat:start {"to":{"next_to":"s_pb_val","direction":"down","gap":"md"}}
+    highlight s_pb_val @- {"start":"cue:c_plus","end":"cue_end:c_plus","role":"result"}
+DIT (idee) : À retenir : jamais avec les Kps seuls. Il faut écrire la dissociation, exprimer le Kps avec s, puis comparer les s. Ici, c'est le dichlorure de plomb.
+    show regle @cue:c_a_retenir 
+    show regle2 @beat:start 
+    dim diss_mg @beat:start 
+    dim diss_pb @beat:start 
+--- 5 tranches, 312 mots dits (≈ 2.1 min d'oral)

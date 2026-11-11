@@ -1,0 +1,485 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "correlation_force",
+  "title": "Faible ou forte, une corrélation ?",
+  "language": "fr",
+  "learning_goal": "Comprendre que r mesure la proximité des points d'un nuage avec une droite : le signe donne le sens, |r| la force."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "amorce",
+     "say": "Pour dire si une corrélation est faible ou forte, on regarde une seule chose : à quel point les points de ton nuage se collent à une droite.",
+     "cues": [
+      {
+       "id": "c_nuage",
+       "text": "points de ton nuage"
+      },
+      {
+       "id": "c_droite",
+       "text": "se collent à une droite"
+      }
+     ],
+     "do": []
+    }
+   ]
+  },
+  {
+   "slice_id": "s_nuages",
+   "introduces": [
+    {
+     "id": "axeAx",
+     "attachment": {
+      "parent": "rep",
+      "anchor": "right"
+     },
+     "content": "variables x",
+     "type": "label"
+    },
+    {
+     "id": "axeAy",
+     "attachment": {
+      "parent": "rep",
+      "anchor": "top"
+     },
+     "content": "variables y",
+     "type": "label"
+    },
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "nuage1",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       1,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nuage2",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nuage3",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       3,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nuage4",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nuage5",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       5,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nuage6",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       6,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "nuage7",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       7,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "droite",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "expression": "-0.64*x+8.14",
+      "domain": [
+       0,
+       7.5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "gel",
+     "content": "r \\approx -0{,}81",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "montre",
+     "say": "Voici un nuage de sept points. Les x sont sur l'axe du bas, les y sur l'axe de gauche.",
+     "cues": [
+      {
+       "id": "c_sept",
+       "text": "sept points"
+      },
+      {
+       "id": "c_bas",
+       "text": "l'axe du bas"
+      },
+      {
+       "id": "c_gauche",
+       "text": "l'axe de gauche"
+      }
+     ],
+     "do": [
+      {
+       "id": "sh_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "sh_g",
+       "verb": "show",
+       "at": "cue:c_sept",
+       "target": "nuage1",
+       "stagger": "quick"
+      },
+      {
+       "id": "sh_ax",
+       "verb": "show",
+       "at": "cue:c_bas",
+       "target": "axeAx"
+      },
+      {
+       "id": "sh_ay",
+       "verb": "show",
+       "at": "cue:c_gauche",
+       "target": "axeAy"
+      }
+     ]
+    },
+    {
+     "id": "ajuste",
+     "say": "Trace la droite qui passe le plus près de tous les points. Ça descend : quand x augmente, y a tendance à diminuer.",
+     "cues": [
+      {
+       "id": "c_droite",
+       "text": "droite"
+      },
+      {
+       "id": "c_descend",
+       "text": "Ça descend"
+      },
+      {
+       "id": "c_diminuer",
+       "text": "tendance à diminuer"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_d",
+       "verb": "draw",
+       "start": "cue:c_droite",
+       "end": "cue_end:c_descend",
+       "target": "droite"
+      },
+      {
+       "id": "h_n",
+       "verb": "highlight",
+       "start": "cue:c_diminuer",
+       "end": "cue_end:c_diminuer",
+       "target": "nuage4",
+       "role": "neutral"
+      }
+     ]
+    },
+    {
+     "id": "valeur",
+     "say": "Le coefficient de corrélation, c'est r. Ici, r vaut environ moins zéro virgule quatre-vingt-un.",
+     "cues": [
+      {
+       "id": "c_coeff",
+       "text": "coefficient de corrélation"
+      },
+      {
+       "id": "c_r",
+       "text": "r vaut"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_r",
+       "target": "gel"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

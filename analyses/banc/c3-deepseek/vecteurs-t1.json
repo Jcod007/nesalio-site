@@ -1,0 +1,787 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "somme_vecteurs_norme",
+  "title": "Comment additionner les vecteurs u = (3, 4) et v = (-1, 2), et la norme du résultat",
+  "language": "fr",
+  "learning_goal": "Additionner deux vecteurs composante par composante, tracer le vecteur somme et calculer sa norme avec Pythagore."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "norme": "sqrt(2^2+6^2)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_position",
+   "introduces": [
+    {
+     "id": "repere",
+     "params": {
+      "x": [
+       -2,
+       5
+      ],
+      "y": [
+       -1,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "seg_u",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_u",
+     "attachment": {
+      "parent": "seg_u",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "u = (3, 4)",
+     "type": "label"
+    },
+    {
+     "id": "seg_v",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       -1,
+       2
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_v",
+     "attachment": {
+      "parent": "seg_v",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "v = (-1, 2)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Un vecteur, c'est une flèche : un déplacement horizontal et un déplacement vertical.",
+     "cues": [
+      {
+       "id": "c_fleche",
+       "text": "une flèche"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "repere"
+      },
+      {
+       "id": "d_u",
+       "verb": "draw",
+       "at": "cue:c_fleche",
+       "target": "seg_u"
+      },
+      {
+       "id": "s_lab_u",
+       "verb": "show",
+       "at": "after:d_u",
+       "target": "lab_u"
+      }
+     ]
+    },
+    {
+     "id": "montre_v",
+     "say": "Le vecteur v, lui, recule de un et monte de deux.",
+     "cues": [
+      {
+       "id": "c_v",
+       "text": "vecteur v"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_v",
+       "verb": "draw",
+       "at": "cue:c_v",
+       "target": "seg_v"
+      },
+      {
+       "id": "s_lab_v",
+       "verb": "show",
+       "at": "after:d_v",
+       "target": "lab_v"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_composantes",
+   "introduces": [
+    {
+     "id": "add",
+     "content": "(3, 4) + (-1, 2) = (3 + (-1),\\ 4 + 2) = (2, 6)",
+     "parts": [
+      {
+       "id": "dep",
+       "text": "(3, 4) + (-1, 2)"
+      },
+      {
+       "id": "sep",
+       "text": "= (3 + (-1),\\ 4 + 2)"
+      },
+      {
+       "id": "res",
+       "text": "= (2, 6)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "content": "On additionne les composantes une à une",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "methode",
+     "say": "Pour additionner, on additionne les premières composantes ensemble, puis les deuxièmes ensemble.",
+     "cues": [
+      {
+       "id": "c_premieres",
+       "text": "premières composantes"
+      },
+      {
+       "id": "c_deuxiemes",
+       "text": "deuxièmes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_dep",
+       "verb": "write",
+       "at": "cue:c_premieres",
+       "target": "add",
+       "part": "dep"
+      },
+      {
+       "id": "h_dep",
+       "verb": "highlight",
+       "start": "cue:c_premieres",
+       "end": "cue_end:c_deuxiemes",
+       "target": "add",
+       "role": "given",
+       "part": "dep"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Trois plus moins un donne deux, et quatre plus deux donne six. La somme est le vecteur deux, six.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "Trois plus moins un"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre plus deux"
+      },
+      {
+       "id": "c_somme",
+       "text": "vecteur deux, six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sep",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "add",
+       "part": "sep"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "add",
+       "part": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_somme",
+       "end": "cue_end:c_somme",
+       "target": "add",
+       "role": "result",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "note",
+     "say": "Composante par composante, c'est tout ce qu'il y a à faire.",
+     "cues": [
+      {
+       "id": "c_composante",
+       "text": "Composante par composante"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_composante",
+       "target": "regle"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_norme",
+   "introduces": [
+    {
+     "id": "seg_s",
+     "style": {
+      "role": "result"
+     },
+     "frame": "repere",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       2,
+       6
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_s",
+     "attachment": {
+      "parent": "seg_s",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "s = (2, 6)",
+     "type": "label"
+    },
+    {
+     "id": "pyt",
+     "content": "\\|s\\|^2 = 2^2 + 6^2",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\|s\\|^2"
+      },
+      {
+       "id": "droite",
+       "text": "= 2^2 + 6^2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "norme",
+     "layout": {
+      "next_to": "pyt",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "norme",
+      "template": "\\|s\\| \\approx {value}",
+      "precision": 2
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Traçons ce vecteur somme : horizontalement deux, verticalement six.",
+     "cues": [
+      {
+       "id": "c_somme2",
+       "text": "vecteur somme"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_s",
+       "verb": "draw",
+       "at": "cue:c_somme2",
+       "target": "seg_s"
+      },
+      {
+       "id": "s_lab_s",
+       "verb": "show",
+       "at": "after:d_s",
+       "target": "lab_s"
+      }
+     ]
+    },
+    {
+     "id": "pythagore",
+     "say": "Sa longueur, c'est la norme. On la trouve avec Pythagore : deux au carré plus six au carré.",
+     "cues": [
+      {
+       "id": "c_longueur",
+       "text": "longueur"
+      },
+      {
+       "id": "c_norme",
+       "text": "norme"
+      },
+      {
+       "id": "c_pyth",
+       "text": "Pythagore"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_s",
+       "verb": "highlight",
+       "start": "cue:c_longueur",
+       "end": "cue_end:c_norme",
+       "target": "seg_s",
+       "role": "accent"
+      },
+      {
+       "id": "w_pyt",
+       "verb": "write",
+       "at": "cue:c_norme",
+       "target": "pyt",
+       "part": "gauche"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_pyth",
+       "target": "pyt",
+       "part": "droite"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "racine",
+     "say": "Quatre plus trente-six font quarante. La racine carrée de quarante vaut environ six virgule trente-deux.",
+     "cues": [
+      {
+       "id": "c_quarante",
+       "text": "quarante"
+      },
+      {
+       "id": "c_racine",
+       "text": "racine carrée"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_norme",
+       "verb": "write",
+       "at": "cue:c_racine",
+       "target": "norme"
+      },
+      {
+       "id": "h_norme",
+       "verb": "highlight",
+       "start": "cue:c_racine",
+       "end": "cue_end:c_racine",
+       "target": "norme",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "(a, b) + (c, d) = (a + c,\\ b + d)",
+     "parts": [
+      {
+       "id": "g",
+       "text": "(a, b) + (c, d)"
+      },
+      {
+       "id": "r",
+       "text": "= (a + c,\\ b + d)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "norme_regle",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\|(x, y)\\| = \\sqrt{x^2 + y^2}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "resume",
+     "say": "À retenir : la somme s'obtient en additionnant composante par composante, c'est-à-dire a plus c, puis b plus d.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_aplusc",
+       "text": "a plus c"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_add",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "add"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "regle"
+      },
+      {
+       "id": "f_pyt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pyt"
+      },
+      {
+       "id": "f_norme",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "norme"
+      },
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "repere"
+      },
+      {
+       "id": "f_segu",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "seg_u"
+      },
+      {
+       "id": "f_labu",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab_u"
+      },
+      {
+       "id": "f_segv",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "seg_v"
+      },
+      {
+       "id": "f_labv",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab_v"
+      },
+      {
+       "id": "f_segs",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "seg_s"
+      },
+      {
+       "id": "f_labs",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "lab_s"
+      },
+      {
+       "id": "c_idee",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "idee",
+        "norme_regle"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "idee",
+       "part": "g"
+      },
+      {
+       "id": "w_r",
+       "verb": "write",
+       "at": "cue:c_aplusc",
+       "target": "idee",
+       "part": "r"
+      }
+     ]
+    },
+    {
+     "id": "fin",
+     "say": "Et la norme du résultat, c'est la racine de la somme des carrés de ses composantes.",
+     "cues": [
+      {
+       "id": "c_norme_fin",
+       "text": "norme du résultat"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_norme_regle",
+       "verb": "write",
+       "at": "cue:c_norme_fin",
+       "target": "norme_regle"
+      },
+      {
+       "id": "h_norme_regle",
+       "verb": "highlight",
+       "start": "cue:c_norme_fin",
+       "end": "cue_end:c_norme_fin",
+       "target": "norme_regle",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

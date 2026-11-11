@@ -1,0 +1,59 @@
+QUESTION (chimie-gaz-parfaits, chimie, sec 5, methode) : combien de moles de gaz il y a dans un ballon de 5,0 L à 25 °C pis 101,3 kPa?
+RÉPONSE DE RÉFÉRENCE : n = PV/RT = 101,3 × 5,0 / (8,314 × 298) ≈ 0,204 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. PV = nRT, donc n = PV / RT
+  2. température en kelvins : 25 + 273 = 298 K
+  3. R = 8,314 kPa·L/(mol·K), unités cohérentes avec kPa et L
+  4. n ≈ 0,204 mol écrit
+  5. contrôle : à TPAN une mole occupe ≈ 24,5 L, et 5,0 / 24,5 ≈ 0,20
+ERREURS GRAVES À CHERCHER : température laissée en °C ; R avec des unités incohérentes
+CONTRÔLE AUTOMATIQUE : réponse absente (0[,.]20\d*\s*mol) ; issue complète
+
+TITRE : Combien de moles dans un ballon de 5,0 L à 25 °C et 101,3 kPa
+math_context : {"symbols":{},"expressions":{"calcul_n":"101.3*5.0/(8.314*298.15)"}}
+=== Tranche s_donnees
+  OBJET donnees [matrix] {"rows":[["101,3","kPa"],["5,0","L"],["25","°C"],["?","mol"]],"row_labels":["pression","volume","température","quantité"],"column_labels":["valeur","unité"]} 
+  OBJET formule [math] "pV = nRT" parts=pV | = | nRT
+DIT (poser) : Bonne question : on cherche le nombre de moles d'un gaz dans un ballon, connaissant sa pression, son volume et sa température.
+    show donnees @cue:c_moles 
+DIT (loi) : La loi qui relie tout ça, c'est p fois V égale n fois R fois T. La pression p, le volume V, la quantité n, la température T, et R une constante.
+    write formule @cue:c_pv {"part":"lhs"}
+    write formule @cue:c_r {"part":"nrt"}
+=== Tranche s_kelvin
+  OBJET temp [math] "T = 25 + 273{,}15 = 298{,}15" parts=T = 25 + 273{,}15 | = 298{,}15
+  OBJET cond [label] "T en kelvins" attaché à temp
+DIT (avant) : Avant de calculer, une condition : la température doit être en kelvins, et R vaut huit virgule trois cent quatorze kilopascals par mole-kelvin.
+    show cond @cue:c_kelvins 
+DIT (conv) : On ajoute donc deux cent soixante-treize virgule quinze à vingt-cinq : ça donne deux cent quatre-vingt-dix-huit virgule quinze kelvins.
+    show temp @cue:c_ajoute 
+    write temp @cue:c_resultat {"part":"kel"}
+=== Tranche s_isoler
+  OBJET isole [math] "n = \\frac{pV}{RT}" 
+  OBJET remplace [math] "n = \\frac{101{,}3 \\times 5{,}0}{8{,}314 \\times 298{,}15}" 
+DIT (isoler) : On isole n : en divisant les deux côtés par R fois T, la formule devient n égale p V sur R T.
+    transform isole @cue:c_isole {"source":"formule"}
+    highlight isole @cue:c_resultat {"role":"accent"}
+DIT (remplacer) : Remplaçons : en haut cent un virgule trois fois cinq virgule zéro, en bas huit virgule trois cent quatorze fois deux cent quatre-vingt-dix-huit virgule quinze.
+    transform remplace @cue:c_haut {"source":"isole"}
+    highlight remplace @cue:c_bas {"role":"given"}
+=== Tranche s_resultat
+  OBJET resu [math] {"kind":"computed","expression_ref":"calcul_n","template":"n = {value} \\ \\text{mol}","precision":3} 
+DIT (calcul) : En haut, cinq cent six virgule cinq. En bas, deux mille quatre cent soixante-dix-huit. La division donne environ zéro virgule deux zéro quatre mole.
+    transform resu @cue:c_environ {"source":"remplace"}
+    highlight resu @after:t_res {"role":"result"}
+DIT (verifier) : Vérifions l'ordre de grandeur : un ballon ordinaire, c'est une fraction de mole, pas trois ni trente. Zéro virgule deux mole, c'est cohérent.
+    dim donnees @cue:c_ordre 
+    dim temp @cue:c_ordre 
+    dim cond @cue:c_ordre 
+=== Tranche s_retenir
+  OBJET regle [math] "pV = nRT \\quad \\Rightarrow \\quad n = \\frac{pV}{RT}" 
+  OBJET unites [text] "p en kPa, V en L, T en K, R = 8,314 kPa·L/(mol·K)" 
+  GROUPE recap = regle, unites
+DIT (idee) : À retenir : pour trouver les moles d'un gaz, on met la température en kelvins, puis on divise p V par R T.
+    fade_out remplace @cue:c_retenir 
+    fade_out temp @cue:c_retenir 
+    fade_out cond @cue:c_retenir 
+    write regle @cue:c_retenir 
+    show unites @cue:c_divise 
+    highlight regle @- {"start":"cue:c_divise","end":"cue_end:c_divise","role":"result"}
+--- 5 tranches, 214 mots dits (≈ 1.4 min d'oral)

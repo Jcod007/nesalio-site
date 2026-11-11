@@ -1,0 +1,771 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "quadratique_differences",
+  "title": "La fonction quadratique : de la table de valeurs à sa règle",
+  "language": "fr",
+  "learning_goal": "Comprendre la fonction quadratique, trouver sa règle à partir d'une table de valeurs grâce aux différences premières et secondes, et distinguer ces deux différences."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_table",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        0,
+        1,
+        2,
+        3,
+        4
+       ],
+       [
+        3,
+        0,
+        -1,
+        0,
+        3
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "f(x)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "points_note",
+     "content": "Chaque colonne = un point (x ; f(x))",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "T'inquiète, on repart tout doux : une fonction quadratique, c'est une fonction dont la règle contient x au carré.",
+     "cues": [
+      {
+       "id": "c_quad",
+       "text": "fonction quadratique"
+      },
+      {
+       "id": "c_carre",
+       "text": "x au carré"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "lire",
+     "say": "Regarde cette table de valeurs. Chaque colonne, c'est un couple : quand x vaut zéro, f de x vaut trois. Quand x vaut un, f de x vaut zéro.",
+     "cues": [
+      {
+       "id": "c_colonne",
+       "text": "Chaque colonne"
+      },
+      {
+       "id": "c_zero",
+       "text": "x vaut zéro"
+      },
+      {
+       "id": "c_trois",
+       "text": "vaut trois"
+      },
+      {
+       "id": "c_un",
+       "text": "x vaut un"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c1",
+       "verb": "highlight",
+       "at": "cue:c_zero",
+       "target": "tab",
+       "role": "given",
+       "part": "c1"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "at": "cue:c_un",
+       "target": "tab",
+       "role": "given",
+       "part": "c2"
+      }
+     ]
+    },
+    {
+     "id": "lien",
+     "say": "Le but, c'est de retrouver la règle qui a produit ces valeurs : quelque chose comme a x au carré plus b x plus c.",
+     "cues": [
+      {
+       "id": "c_regle",
+       "text": "retrouver la règle"
+      },
+      {
+       "id": "c_forme",
+       "text": "a x au carré plus b x plus c"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_regle",
+       "target": "points_note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diff",
+   "introduces": [
+    {
+     "id": "d1_note",
+     "content": "Différence première = f(x+1) − f(x)",
+     "type": "callout"
+    },
+    {
+     "id": "d2_note",
+     "content": "Différence seconde = différence des différences premières",
+     "type": "callout"
+    },
+    {
+     "id": "d1",
+     "content": "-3 \\quad -1 \\quad 1 \\quad 3",
+     "parts": [
+      {
+       "id": "m3",
+       "text": "-3"
+      },
+      {
+       "id": "m1",
+       "text": "-1"
+      },
+      {
+       "id": "p1",
+       "text": "1"
+      },
+      {
+       "id": "p3",
+       "text": "3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "d2",
+     "content": "2 \\quad 2 \\quad 2",
+     "parts": [
+      {
+       "id": "d2a",
+       "text": "2"
+      },
+      {
+       "id": "d2b",
+       "text": "2"
+      },
+      {
+       "id": "d2c",
+       "text": "2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "premiere",
+     "say": "La différence première, c'est l'écart entre deux f de x voisins. De trois à zéro, moins trois. De zéro à moins un, moins un. Ensuite plus un, puis plus trois.",
+     "cues": [
+      {
+       "id": "c_prem",
+       "text": "différence première"
+      },
+      {
+       "id": "c_ecart",
+       "text": "l'écart"
+      },
+      {
+       "id": "c_moins3",
+       "text": "moins trois"
+      },
+      {
+       "id": "c_moins1",
+       "text": "moins un"
+      },
+      {
+       "id": "c_plus1",
+       "text": "plus un"
+      },
+      {
+       "id": "c_plus3",
+       "text": "plus trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note1",
+       "verb": "show",
+       "at": "cue:c_prem",
+       "target": "d1_note"
+      },
+      {
+       "id": "w_m3",
+       "verb": "write",
+       "at": "cue:c_moins3",
+       "target": "d1",
+       "part": "m3"
+      },
+      {
+       "id": "w_m1",
+       "verb": "write",
+       "at": "cue:c_moins1",
+       "target": "d1",
+       "part": "m1"
+      },
+      {
+       "id": "w_p1",
+       "verb": "write",
+       "at": "cue:c_plus1",
+       "target": "d1",
+       "part": "p1"
+      },
+      {
+       "id": "w_p3",
+       "verb": "write",
+       "at": "cue:c_plus3",
+       "target": "d1",
+       "part": "p3"
+      }
+     ]
+    },
+    {
+     "id": "seconde",
+     "say": "Ces différences premières changent : moins trois, moins un, un, trois. Alors on refait l'écart entre elles. Et là, surprise : toujours deux, deux, deux.",
+     "cues": [
+      {
+       "id": "c_changent",
+       "text": "changent"
+      },
+      {
+       "id": "c_ecart2",
+       "text": "l'écart entre elles"
+      },
+      {
+       "id": "c_toujours2",
+       "text": "toujours deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note2",
+       "verb": "show",
+       "at": "cue:c_ecart2",
+       "target": "d2_note"
+      },
+      {
+       "id": "w_2a",
+       "verb": "write",
+       "at": "cue:c_toujours2",
+       "target": "d2",
+       "part": "d2a"
+      },
+      {
+       "id": "w_2b",
+       "verb": "write",
+       "at": "after:w_2a",
+       "target": "d2",
+       "part": "d2b"
+      },
+      {
+       "id": "w_2c",
+       "verb": "write",
+       "at": "after:w_2b",
+       "target": "d2",
+       "part": "d2c"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "a_eq",
+     "content": "2a = 2",
+     "type": "math"
+    },
+    {
+     "id": "a_val",
+     "content": "a = 1",
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "content": "f(x) = x^2 - 2x + 3",
+     "parts": [
+      {
+       "id": "r_f",
+       "text": "f(x) ="
+      },
+      {
+       "id": "r_ax2",
+       "text": "x^2"
+      },
+      {
+       "id": "r_bx",
+       "text": "- 2x"
+      },
+      {
+       "id": "r_c",
+       "text": "+ 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pa",
+     "say": "Pourquoi c'est important ? Parce que la différence seconde constante vaut toujours deux fois a. Ici, deux a égale deux, donc a égale un.",
+     "cues": [
+      {
+       "id": "c_deuxfois",
+       "text": "deux fois a"
+      },
+      {
+       "id": "c_1",
+       "text": "a égale un"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_d2",
+       "verb": "highlight",
+       "start": "cue:c_deuxfois",
+       "end": "cue_end:c_deuxfois",
+       "target": "d2",
+       "role": "accent"
+      },
+      {
+       "id": "w_aeq",
+       "verb": "write",
+       "at": "cue:c_deuxfois",
+       "target": "a_eq"
+      },
+      {
+       "id": "w_aval",
+       "verb": "write",
+       "at": "cue:c_1",
+       "target": "a_val"
+      }
+     ]
+    },
+    {
+     "id": "c",
+     "say": "Pour c, c'est gratuit : c'est f de zéro, et la table nous dit trois.",
+     "cues": [
+      {
+       "id": "c_dezero",
+       "text": "f de zéro"
+      },
+      {
+       "id": "c_trois2",
+       "text": "trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c1b",
+       "verb": "highlight",
+       "start": "cue:c_dezero",
+       "end": "cue_end:c_trois2",
+       "target": "tab",
+       "role": "given",
+       "part": "c1"
+      }
+     ]
+    },
+    {
+     "id": "b",
+     "say": "Puis pour b, on utilise un autre point. Au point x égale un, f de x vaut zéro.",
+     "cues": [
+      {
+       "id": "c_autre",
+       "text": "un autre point"
+      },
+      {
+       "id": "c_point1",
+       "text": "x égale un"
+      },
+      {
+       "id": "c_vaut0",
+       "text": "vaut zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c2b",
+       "verb": "highlight",
+       "start": "cue:c_point1",
+       "end": "cue_end:c_vaut0",
+       "target": "tab",
+       "role": "given",
+       "part": "c2"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "On remplace : un plus b plus trois égale zéro, donc b égale moins deux. La règle est f de x égale x au carré moins deux x plus trois.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "un plus b plus trois"
+      },
+      {
+       "id": "c_b",
+       "text": "b égale moins deux"
+      },
+      {
+       "id": "c_regle",
+       "text": "x au carré moins deux x plus trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_f",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "regle",
+       "part": "r_f"
+      },
+      {
+       "id": "w_ax2",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "regle",
+       "part": "r_ax2"
+      },
+      {
+       "id": "w_bx",
+       "verb": "write",
+       "at": "cue:c_b",
+       "target": "regle",
+       "part": "r_bx"
+      },
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "regle",
+       "part": "r_c"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "at": "after:w_c",
+       "target": "regle",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : la différence seconde constante donne deux a et confirme que c'est une quadratique ; c'est f de zéro ; et b, on le trouve avec un autre point.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_deuxa",
+       "text": "deux a"
+      },
+      {
+       "id": "c_fzero",
+       "text": "f de zéro"
+      },
+      {
+       "id": "c_b",
+       "text": "b"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "d1_note",
+        "d2_note"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tab"
+      },
+      {
+       "id": "f_d1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "d1"
+      },
+      {
+       "id": "f_d2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "d2"
+      },
+      {
+       "id": "f_aeq",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "a_eq"
+      },
+      {
+       "id": "f_aval",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "a_val"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "points_note"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_deuxa",
+       "end": "cue_end:c_b",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

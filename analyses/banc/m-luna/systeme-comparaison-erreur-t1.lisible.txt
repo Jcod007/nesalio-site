@@ -1,0 +1,73 @@
+QUESTION (systeme-comparaison-erreur, mathematiques, sec 4, erreur) : J'essaie de résoudre y = 2x + 3 et y = -x + 9 par comparaison, j'obtiens x = 4 mais quand je vérifie ça marche pas
+RÉPONSE DE RÉFÉRENCE : x = 2, y = 7 : solution (2, 7) ; x = 4 vient de 3x = 9 + 3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. comparaison : les deux y sont égaux au point de rencontre, donc 2x + 3 = -x + 9
+  2. diagnostic : x = 4 vient de 3x = 9 + 3 ; il faut soustraire 3 des deux côtés, donc 3x = 6
+  3. réponse x = 2, y = 7, solution (2, 7) écrite
+  4. vérification dans les deux équations (7 = 7) et échec montré de x = 4 (11 contre 5)
+  5. valorisé : point d'intersection des deux droites
+ERREURS GRAVES À CHERCHER : diagnostic inventé (signe oublié) ; titre ou réponse affichée fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (y\s*=\s*7(?!\d|[,.]\d)) ; issue complète
+
+TITRE : Résoudre le système par comparaison et vérifier x = 4
+=== Tranche s_erreur
+  OBJET erreur [math] "2x + 3 = -x + 9" parts=2x + 3 | = | -x + 9
+  OBJET faux [math] "x = 4" 
+  OBJET test_faux [math] "2(4) + 3 = 11\\qquad -4 + 9 = 5" parts=2(4) + 3 = 11 | -4 + 9 = 5
+DIT (origine) : Par comparaison, on égale les deux expressions de y, car au point de rencontre elles donnent la même valeur.
+    write erreur @cue:egal 
+DIT (operation) : Pour isoler x, on ajoute x des deux côtés : trois x plus trois égale neuf. Ensuite, on enlève trois des deux côtés, puis on divise par trois.
+    write faux @cue:ajoute 
+    highlight faux @cue:enleve {"role":"unknown"}
+DIT (erreur_signe) : Mais cette opération donne trois x égale six, puis x égale deux, pas quatre. L’erreur vient du signe : neuf moins trois vaut six, pas douze.
+    write test_faux @cue:six {"part":"test_gauche"}
+    write test_faux @cue:pas_quatre {"part":"test_droite"}
+    highlight faux @cue:signe {"role":"unknown"}
+=== Tranche s_solution
+  OBJET egalite [math] "2x + 3 = -x + 9" parts=2x + 3 | = | -x + 9
+  OBJET etape_x [math] "3x + 3 = 9" 
+  OBJET etape_constante [math] "3x = 6" 
+  OBJET solution_x [math] "x = 2" 
+  OBJET calcul_y [math] "y = 2(2) + 3 = 7" parts=y = | 2(2) + 3 | = 7
+  OBJET couple [math] "(x ; y) = (2 ; 7)" 
+DIT (egaliser) : On écrit la comparaison correctement : deux x plus trois égale moins x plus neuf, puisque les deux expressions décrivent y.
+    write egalite @cue:comparaison 
+DIT (regrouper) : On ajoute x aux deux membres pour regrouper les x et garder un coefficient positif : trois x plus trois égale neuf.
+    transform etape_x @cue:ajoute_x {"source":"egalite"}
+    highlight etape_x @cue:trois_x {"role":"accent"}
+DIT (isoler) : On enlève trois des deux membres pour garder l’égalité, puis on divise par trois : x vaut deux.
+    transform etape_constante @cue:enlever {"source":"etape_x"}
+    transform solution_x @cue:vaut_deux {"source":"etape_constante"}
+DIT (trouver_y) : On remplace x par deux dans la première équation : y égale deux fois deux plus trois, donc y vaut sept et le couple est deux, sept.
+    write calcul_y @cue:remplace 
+    highlight calcul_y @cue:sept {"role":"result"}
+    write couple @cue:couple_mot 
+=== Tranche s_verification
+  OBJET verif1 [math] "2(2) + 3 = 7" parts=2(2) + 3 | = 7
+  OBJET verif2 [math] "-(2) + 9 = 7" parts=-(2) + 9 | = 7
+  OBJET droite1 [function_graph] {"expression":"2*x+3","domain":[-1,4]} 
+  OBJET droite2 [function_graph] {"expression":"-x+9","domain":[-1,4]} 
+  OBJET axes [axes] {"x":[-1,4],"y":[-1,10]} 
+  OBJET point_rencontre [point] {"at":[2,7]} 
+  OBJET etiquette_rencontre [label] "(2 ; 7)" attaché à point_rencontre
+DIT (verification1) : Vérifions dans la première équation : deux fois deux plus trois vaut sept, donc les deux côtés sont égaux.
+    write verif1 @cue:premiere 
+    highlight verif1 @cue:egaux1 {"role":"result"}
+DIT (verification2) : Dans la deuxième équation, moins deux plus neuf vaut aussi sept. Le couple vérifie donc les deux équations en même temps.
+    write verif2 @cue:deuxieme 
+    highlight verif2 @cue:temps {"role":"result"}
+DIT (rencontre) : Sur le graphique, les deux droites se croisent au point deux, sept : c’est la solution commune du système.
+    show axes @cue:graphique 
+    draw droite1 @- {"start":"cue:graphique","end":"cue_end:croisent"}
+    draw droite2 @- {"start":"cue:graphique","end":"cue_end:croisent"}
+    show point_rencontre @cue:croisent 
+    show etiquette_rencontre @cue:croisent 
+=== Tranche s_retenir
+  OBJET resume_idee [text] "La solution est le couple qui vérifie les deux équations et marque leur point de rencontre." 
+  OBJET resume_regle [math] "2x + 3 = -x + 9\\quad\\Longrightarrow\\quad (x ; y) = (2 ; 7)" 
+  GROUPE resume_groupe = resume_idee, resume_regle
+DIT (retenir) : À retenir : la solution d’un système est le couple qui vérifie les deux équations en même temps, donc le point de rencontre des droites. Ici, c’est deux, sept.
+    show resume_idee @cue:couple_mot2 
+    write resume_regle @cue:deux_sept 
+    highlight resume_regle @- {"start":"cue:deux_sept","end":"cue_end:deux_sept","role":"result"}
+--- 4 tranches, 249 mots dits (≈ 1.7 min d'oral)

@@ -42,6 +42,13 @@ export const DEFAULTS = {
   gatewayModel: "deepseek/deepseek-v4.1-flash",
   openRouterModel: "anthropic/claude-sonnet-4.5",
   voiceModel: "google/gemini-3.8-flash-lite-tts",
+  nesalioVoiceModel: "elevenlabs/eleven-flash-v2.5",
+  // The user, 2026-11-09, after a real trial: 0.85 still too fast for a student to follow, wants a smoother tone.
+  // 0.75 (ElevenLabs accepts 0.7 to 1.2; 1 sounded too fast in analyses/voix-vitesse).
+  nesalioVoiceSpeed: 0.75,
+  // Smoother delivery: steadier voice (stability 0.7, ElevenLabs' default about 0.5) and no exaggerated style.
+  nesalioVoiceStability: 0.7,
+  nesalioVoiceStyle: 0,
   voiceName: "Kore",
   voiceInstructions:
     "Tu es Nesa, une tutrice québécoise chaleureuse qui explique au tableau à un élève de secondaire. " +
@@ -49,10 +56,8 @@ export const DEFAULTS = {
     "à un rythme posé, avec de petites pauses aux virgules. Jamais monotone.",
   transcriptionModel: "openai/whisper-1",
   /**
-   * Premier tour sans réflexion : Nesa commence à parler en moins de 1,5 s (accroche et question
-   * qualitative, sans calcul). Tours suivants avec une réflexion courte : sans elle, DeepSeek s'est
-   * trompé de calcul dans un test sur six (pente annoncée 3/2 au lieu de 1/2) ; avec, 1,5 à 4 s,
-   * masquées par la réaction de Nesa à la réponse de l'élève (mesures du 17 octobre 2026).
+   * Garder le démarrage sans réflexion cachée par défaut : les essais avec « low » ont
+   * parfois épuisé 16 000 jetons avant la première étape. Un réglage explicite reste prioritaire.
    */
   firstTurnEffort: "none" as ReasoningEffort,
 } as const;
@@ -67,6 +72,31 @@ export const DEFAULTS = {
  */
 export function followUpEffortFor(model: string): ReasoningEffort {
   return /(^|\/)(anthropic|claude)/i.test(model) ? "none" : "low";
+}
+
+/** Relecteur de fond par défaut (server/nesalio/review.ts) : le plus rapide des deux essayés hors ligne. */
+export const DEFAULT_REVIEWER_MODEL = "anthropic/claude-sonnet-5.5";
+
+/**
+ * Le relecteur des tranches Nesalio, sur AI Gateway seulement (protection des données
+ * de chatCompletions.ts). Activé par défaut depuis le 2026-11-09 (choix de l'utilisateur après le banc
+ * Alloprof : leçons < 50 de 17 à 6 sur 54) ; NESALIO_RELECTEUR=0 le coupe ;
+ * NESALIO_RELECTEUR_MODELE choisit un autre modèle (ex. deepseek/deepseek-v4.1-flash).
+ */
+export function readReviewer(headers: Headers, env: NodeJS.ProcessEnv = process.env): ChatProvider | null {
+  if (env.NESALIO_RELECTEUR?.trim() === "0" || env.DISABLE_AI === "1") return null;
+  const gatewayToken = env.AI_GATEWAY_API_KEY?.trim() || headers.get("x-vercel-oidc-token") || env.VERCEL_OIDC_TOKEN?.trim();
+  if (!gatewayToken) return null;
+  const model = env.NESALIO_RELECTEUR_MODELE?.trim() || DEFAULT_REVIEWER_MODEL;
+  return {
+    name: "gateway",
+    protocol: "openai",
+    endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
+    apiKey: gatewayToken,
+    model,
+    // Claude relit sans réflexion (2,5 s par leçon) ; un autre modèle prend NESALIO_RELECTEUR_EFFORT (ex. low).
+    ...(parseEffort(env.NESALIO_RELECTEUR_EFFORT) ? { reasoningEffort: parseEffort(env.NESALIO_RELECTEUR_EFFORT) } : {}),
+  };
 }
 
 export function parseEffort(value: string | null | undefined): ReasoningEffort | undefined {

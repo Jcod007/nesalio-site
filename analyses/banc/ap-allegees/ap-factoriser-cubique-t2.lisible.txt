@@ -1,0 +1,92 @@
+QUESTION (ap-factoriser-cubique, mathematiques, sec 4, alloprof) : Comment factorise t-on 20x^3+70x^2+60x? On a pas appris à 3e degré...
+RÉPONSE DE RÉFÉRENCE : 10x(2x+3)(x+2)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Factoriser 20x³ + 70x² + 60x
+=== Tranche s_mise_evidence
+  OBJET poly [math] "20x^3 + 70x^2 + 60x" parts=20x^3 | + 70x^2 | + 60x
+  OBJET facteurs [math] "10x" 
+  OBJET reste [math] "2x^2 + 7x + 6" 
+  OBJET forme [math] "10x\\,(2x^2 + 7x + 6)"   <<JAMAIS MONTRÉ>>
+DIT (pose) : Le troisième degré, ça ne change rien à ta méthode : on cherche toujours ce qui se répète dans chaque terme.
+    write poly @cue:c_degre {"part":"t1"}
+    write poly @after:s_poly {"part":"t2"}
+    write poly @after:w_t2 {"part":"t3"}
+DIT (commun) : Regarde les coefficients : vingt, soixante-dix et soixante sont tous divisibles par dix. Et chaque terme porte un x.
+    highlight poly @- {"start":"cue:c_coeff","end":"cue_end:c_x","role":"accent"}
+DIT (sors) : Je sors dix x devant. Il me reste deux x au carré, plus sept x, plus six.
+    write facteurs @cue:c_sort 
+    write reste @cue:c_reste 
+=== Tranche s_produit_somme
+  OBJET cherche [math] "2x^2 + 7x + 6" 
+  OBJET regleps [math] "a \\cdot c = 12, \\quad b = 7" parts=a \cdot c = 12 | , b = 7
+  OBJET paires [matrix] {"rows":[["1 × 12",13],["2 × 6",8],["3 × 4",7]],"row_labels":["paire","1 × 12","2 × 6"],"column_labels":["produit","somme"]} 
+  OBJET decomp [math] "2x^2 + 3x + 4x + 6" parts=2x^2 + 3x | + 4x + 6
+DIT (reviens) : Il reste à factoriser ce trinôme du second degré. La méthode, c'est produit-somme.
+    dim forme @cue:c_trinome 
+    write cherche @cue:c_trinome 
+    write regleps @cue:c_produitsomme {"part":"ps_ac"}
+    write regleps @after:w_ps_ac {"part":"ps_b"}
+DIT (paires_dites) : Je cherche deux nombres dont le produit vaut douze et la somme vaut sept. Un et douze donne treize, deux et six donne huit, trois et quatre donne sept.
+    show paires @cue:c_paires 
+    highlight paires @cue:c_troisquatre {"role":"accent","part":"r3"}
+DIT (coupe) : Je coupe donc sept x en trois x plus quatre x.
+    write decomp @cue:c_coupe {"part":"d1"}
+    write decomp @after:d_decomp {"part":"d2"}
+=== Tranche s_double_ev
+  OBJET grp1 [math] "(2x^2 + 3x) + (4x + 6)" parts=(2x^2 + 3x) | + (4x + 6)
+  OBJET grp2 [math] "x(2x + 3) + 2(2x + 3)" parts=x(2x + 3) | + 2(2x + 3)
+  OBJET final [math] "(2x + 3)(x + 2)" 
+DIT (groupe) : Je groupe les deux premiers termes ensemble, et les deux derniers ensemble.
+    fade_out paires @cue:c_groupe 
+    fade_out decomp @cue:c_groupe 
+    write grp1 @cue:c_groupe {"part":"g1a"}
+    write grp1 @after:w_g1a {"part":"g1b"}
+DIT (miseev) : Dans le premier groupe, je sors x : il reste deux x plus trois. Dans le second, je sors deux : il reste aussi deux x plus trois.
+    transform grp2 @cue:c_sortx {"source":"grp1"}
+    highlight grp2 @- {"start":"cue:c_sortdeux","end":"cue_end:c_sortdeux","role":"accent","part":"g2b"}
+DIT (facteur_commun) : Le facteur deux x plus trois est commun, je le sors devant : il reste x plus deux.
+    write final @cue:c_xplusdeux 
+=== Tranche s_verification
+  OBJET resultat [math] "20x^3 + 70x^2 + 60x = 10x(2x + 3)(x + 2)" parts=20x^3 + 70x^2 + 60x | = 10x(2x + 3)(x + 2)
+  OBJET check [math] "(2x + 3)(x + 2) = 2x^2 + 4x + 3x + 6"   <<JAMAIS MONTRÉ>>
+  OBJET check2 [math] "2x^2 + 7x + 6" 
+DIT (assemble) : Je remets tout ensemble : vingt x au cube plus soixante-dix x au carré plus soixante x égale dix x fois deux x plus trois fois x plus deux.
+    fade_out grp2 @cue:c_egale 
+    write resultat @cue:c_egale {"part":"membre_g"}
+    write resultat @after:w_g {"part":"membre_d"}
+DIT (redev) : Vérifions en redéveloppant les deux parenthèses : deux x fois x donne deux x au carré, puis quatre x, puis trois x, puis six.
+    highlight check @- {"start":"cue:c_redev","end":"cue_end:c_six","role":"accent"}
+DIT (somme) : On additionne les termes semblables : quatre x plus trois x donne sept x. On retrouve bien deux x au carré plus sept x plus six.
+    write check2 @cue:c_septx 
+=== Tranche s_zero
+  OBJET zeros [math] "x = 0, \\quad x = -\\frac{3}{2}, \\quad x = -2" parts=x = 0 | , \quad x = -\frac{3}{2} | , \quad x = -2
+DIT (pourquoi) : Cette forme est pratique pour trouver les zéros : un produit vaut zéro dès que l'un de ses facteurs vaut zéro.
+    fade_out check @cue:c_produit 
+    fade_out check2 @cue:c_produit 
+    highlight resultat @- {"start":"cue:c_produit","end":"cue_end:c_produit","role":"accent","part":"membre_d"}
+DIT (les_zeros) : Le premier facteur dix x s'annule en zéro, deux x plus trois en moins trois demis, et x plus deux en moins deux.
+    write zeros @cue:c_zero {"part":"z1"}
+    write zeros @cue:c_moinstrois {"part":"z2"}
+    write zeros @cue:c_moinsdeux {"part":"z3"}
+=== Tranche s_retenir
+  OBJET idee [text] "Mise en évidence d'abord, puis produit-somme" 
+  OBJET forme_finale [math] "20x^3 + 70x^2 + 60x = 10x(2x + 3)(x + 2)" 
+DIT (retenir) : À retenir : devant un polynôme, on sort d'abord le facteur commun, puis on factorise le trinôme qui reste par produit-somme.
+    fade_out poly @cue:c_retenir 
+    fade_out facteurs @cue:c_retenir 
+    fade_out reste @cue:c_retenir 
+    fade_out regleps @cue:c_retenir 
+    fade_out cherche @cue:c_retenir 
+    fade_out grp1 @cue:c_retenir 
+    fade_out final @cue:c_retenir 
+    fade_out resultat @cue:c_retenir 
+    fade_out zeros @cue:c_retenir 
+DIT (garder) : Le résultat à garder : vingt x au cube plus soixante-dix x au carré plus soixante x égale dix x fois deux x plus trois fois x plus deux.
+    camera.focus  @beat:start {"targets":["idee","forme_finale"],"bounds":"layout_bounds"}
+    show idee @beat:start 
+    write forme_finale @cue:c_egale 
+    highlight forme_finale @after:w_forme {"role":"result"}
+--- 6 tranches, 341 mots dits (≈ 2.3 min d'oral)

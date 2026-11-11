@@ -1,0 +1,88 @@
+QUESTION (completion, mathematiques, sec 4, methode) : C'est quoi la complétion du carré ? Par exemple avec x² + 6x − 7.
+RÉPONSE DE RÉFÉRENCE : x² + 6x − 7 = (x + 3)² − 16.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. on prend la moitié du coefficient de x (3) et on ajoute puis retire son carré (9)
+  2. modèle d'aire : la bande 6x coupée en deux 3x, coin 3 × 3 qui manque
+  3. x² + 6x − 7 = (x + 3)² − 9 − 7 = (x + 3)² − 16 écrit
+  4. lien avec la forme canonique et le sommet (−3, −16)
+  5. vérification par développement
+ERREURS GRAVES À CHERCHER : coin du modèle d'aire de mauvaise taille ; règle fausse (« on ajoute la moitié du coefficient »)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Compléter le carré dans x² + 6x − 7
+=== Tranche s_bandes
+  OBJET carre_x [polygon] {"vertices":[[0,0],[6,0],[6,6],[0,6]]} 
+  OBJET bande_haut [polygon] {"vertices":[[0,6],[6,6],[6,9],[0,9]]} 
+  OBJET bande_droite [polygon] {"vertices":[[6,0],[9,0],[9,6],[6,6]]} 
+  OBJET coin [polygon] {"vertices":[[6,6],[9,6],[9,9],[6,9]]} 
+  OBJET lab_x2 [label] "x²" attaché à carre_x
+  OBJET lab_3x_h [label] "3x" attaché à bande_haut
+  OBJET lab_3x_d [label] "3x" attaché à bande_droite
+  OBJET lab_9 [label] "9" attaché à coin
+  OBJET etapes [math] "x^2 + 6x = (x + 3)^2 - 9" parts=x^2 + 6x | = (x + 3)^2 - 9
+  GROUPE carre_complet = carre_x, bande_haut, bande_droite, coin
+DIT (intro) : Compléter le carré, c'est un carré qu'on complète. Regarde x au carré plus six x comme une figure.
+    draw carre_x @cue:c_nom 
+    write lab_x2 @cue:c_six 
+DIT (bandes) : Le carré x fois x fait x au carré. La bande de six x, je la coupe en deux bandes de trois x, une en haut, une à droite.
+    draw bande_haut @cue:c_bande 
+    draw bande_droite @after:d_haut 
+    write lab_3x_h @after:d_haut 
+    write lab_3x_d @after:d_droite 
+DIT (manque) : En haut à droite, il manque un petit coin : trois fois trois, ça fait neuf.
+    draw coin @cue:c_coin 
+    write lab_9 @cue:c_neuf 
+DIT (resultat) : Avec ce coin, le grand carré a pour côté x plus trois : c'est x plus trois au carré. Mais j'ai ajouté neuf, alors je le retire. Donc x au carré plus six x égale x plus trois au carré moins neuf.
+    camera.focus  @cue:c_cote {"targets":["carre_x","bande_haut","bande_droite","coin","etapes"],"bounds":"layout_bounds"}
+    write etapes @cue:c_cote {"part":"depart"}
+    write etapes @cue:c_egal {"part":"arrivee"}
+    highlight coin @- {"start":"cue:c_retire","end":"cue_end:c_retire","role":"result"}
+=== Tranche s_exemple
+  OBJET pas1 [math] "x^2 + 6x - 7" parts=x^2 + 6x | - 7
+  OBJET pas2 [math] "(x + 3)^2 - 9 - 7" 
+  OBJET pas3 [math] "(x + 3)^2 - 16" 
+  OBJET pas4 [math] "(x + 3)^2 - 4^2" parts=(x + 3)^2 | - 4^2
+  OBJET pas5 [math] "(x + 3 - 4)(x + 3 + 4)" 
+  OBJET pas6 [math] "(x - 1)(x + 7)" 
+DIT (poser) : Appliquons-le à x au carré plus six x moins sept. Je complète seulement les deux premiers termes, et je garde le moins sept de côté.
+    fade_out etapes @beat:start 
+    write pas1 @cue:c_six 
+    highlight pas1 @- {"start":"cue:c_garde","end":"cue_end:c_garde","part":"constante"}
+DIT (remplacer) : Je remplace x au carré plus six x par x plus trois au carré moins neuf, et le moins sept reste là.
+    transform pas2 @cue:c_remplace {"source":"pas1"}
+DIT (reduire) : Je réduis les constantes : moins neuf moins sept, ça fait moins seize.
+    transform pas3 @cue:c_reduis {"source":"pas2"}
+    highlight pas3 @- {"start":"cue:c_seize","end":"cue_end:c_seize","role":"accent"}
+DIT (carres) : Seize, c'est quatre au carré. J'ai donc une différence de deux carrés, et ça se factorise.
+    transform pas4 @cue:c_quatre {"source":"pas3"}
+    write pas4 @cue:c_difference {"part":"moins16"}
+DIT (facto) : La différence de deux carrés donne a moins b fois a plus b, d'où x moins un fois x plus sept.
+    transform pas5 @cue:c_formule {"source":"pas4"}
+    transform pas6 @cue:c_facto {"source":"pas5"}
+    set_style pas6 @after:t_pas6 {"role":"result"}
+=== Tranche s_verif
+  OBJET verif [math] "(x - 1)(x + 7) = x^2 + 7x - x - 7 = x^2 + 6x - 7" parts=(x - 1)(x + 7) | = x^2 + 7x - x - 7 | = x^2 + 6x - 7
+DIT (verifier) : Vérifions en redéveloppant : x fois x donne x au carré, plus sept x, moins x, moins sept. Sept x moins x donne six x, et je retrouve bien x au carré plus six x moins sept.
+    dim carre_x @beat:start 
+    dim bande_haut @beat:start 
+    dim bande_droite @beat:start 
+    dim coin @beat:start 
+    write verif @cue:c_verif {"part":"produit"}
+    write verif @cue:c_six {"part":"dev"}
+    write verif @cue:c_retrouve {"part":"fin"}
+    highlight verif @- {"start":"cue:c_retrouve","end":"cue_end:c_retrouve","role":"result","part":"fin"}
+=== Tranche s_retenir
+  OBJET regle [math] "x^2 + bx = \\left(x + \\frac{b}{2}\\right)^2 - \\left(\\frac{b}{2}\\right)^2" 
+  OBJET idee [text] "Le coin manquant, c'est le carré de la moitié de b" 
+DIT (retenir) : À retenir : pour compléter le carré de x au carré plus b x, j'ajoute le carré de la moitié de b, puis je le retire tout de suite pour ne rien changer.
+    fade_out carre_x @beat:start 
+    fade_out bande_haut @beat:start 
+    fade_out bande_droite @beat:start 
+    fade_out coin @beat:start 
+    fade_out pas6 @beat:start 
+    fade_out verif @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["regle","idee"],"bounds":"layout_bounds"}
+    write regle @cue:c_retenir 
+    write idee @cue:c_moitie 
+    highlight regle @- {"start":"cue:c_moitie","end":"cue_end:c_retire","role":"accent"}
+--- 4 tranches, 272 mots dits (≈ 1.8 min d'oral)

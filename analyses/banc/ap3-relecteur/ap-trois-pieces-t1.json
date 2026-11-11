@@ -1,0 +1,826 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "probabilites_denominateur",
+  "title": "Pourquoi 2/8 et 6/8 avec seulement trois pièces",
+  "language": "fr",
+  "learning_goal": "Comprendre que dans une probabilité, le dénominateur compte toutes les issues possibles (pas les objets), et que 2/8 et 6/8 viennent du choix de l'univers."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_denominateur",
+   "introduces": [
+    {
+     "id": "frac_a",
+     "content": "\\frac{2}{8}",
+     "type": "math"
+    },
+    {
+     "id": "frac_b",
+     "layout": {
+      "next_to": "frac_a",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\frac{6}{8}",
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "frac_a",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "P = \\frac{\\text{cas favorables}}{\\text{cas possibles}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "question",
+     "say": "Bonne question : tu as trois pièces, alors d'où viennent le huit en bas et le deux et le six en haut ?",
+     "cues": [
+      {
+       "id": "c_huit",
+       "text": "le huit"
+      },
+      {
+       "id": "c_deux_six",
+       "text": "le deux et le six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a_haut",
+       "verb": "write",
+       "at": "cue:c_deux_six",
+       "target": "frac_a"
+      },
+      {
+       "id": "w_a_bas",
+       "verb": "highlight",
+       "at": "cue:c_huit",
+       "target": "frac_a",
+       "role": "accent"
+      },
+      {
+       "id": "w_b_haut",
+       "verb": "write",
+       "at": "after:w_a_haut",
+       "target": "frac_b"
+      },
+      {
+       "id": "w_b_bas",
+       "verb": "highlight",
+       "at": "after:w_a_bas",
+       "target": "frac_b",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "regle_den",
+     "say": "Le bas d'une probabilité, le dénominateur, c'est le nombre de cas possibles. Et avec trois pièces, il y a huit résultats possibles, pas trois.",
+     "cues": [
+      {
+       "id": "c_denom",
+       "text": "le dénominateur"
+      },
+      {
+       "id": "c_possibles",
+       "text": "cas possibles"
+      },
+      {
+       "id": "c_huit_resultats",
+       "text": "huit résultats possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_a_bas",
+       "verb": "highlight",
+       "start": "cue:c_denom",
+       "end": "cue_end:c_huit_resultats",
+       "target": "frac_a"
+      },
+      {
+       "id": "h_b_bas",
+       "verb": "highlight",
+       "start": "cue:c_denom",
+       "end": "cue_end:c_huit_resultats",
+       "target": "frac_b"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "cases",
+     "params": {
+      "rows": [
+       [
+        "Face",
+        "Face",
+        "Face"
+       ],
+       [
+        "Face",
+        "Face",
+        "Pile"
+       ],
+       [
+        "Face",
+        "Pile",
+        "Face"
+       ],
+       [
+        "Pile",
+        "Face",
+        "Face"
+       ],
+       [
+        "Face",
+        "Pile",
+        "Pile"
+       ],
+       [
+        "Pile",
+        "Face",
+        "Pile"
+       ],
+       [
+        "Pile",
+        "Pile",
+        "Face"
+       ],
+       [
+        "Pile",
+        "Pile",
+        "Pile"
+       ]
+      ],
+      "row_labels": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "6",
+       "7",
+       "8"
+      ],
+      "column_labels": [
+       "Pièce 1",
+       "Pièce 2",
+       "Pièce 3"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "p3_label",
+     "layout": {
+      "next_to": "cases",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "3 cas où il y a 2 piles",
+     "type": "text"
+    },
+    {
+     "id": "p7_label",
+     "layout": {
+      "next_to": "p3_label",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "7 cas où il y a au moins 1 pile",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tableau",
+     "say": "Chaque pièce donne pile ou face, donc chaque ligne du tableau est une issue de l'univers des huit possibilités.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "chaque ligne du tableau"
+      },
+      {
+       "id": "c_huit_poss",
+       "text": "huit possibilités"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_cases",
+       "verb": "show",
+       "at": "cue:c_tableau",
+       "target": "cases"
+      },
+      {
+       "id": "h_lignes",
+       "verb": "highlight",
+       "start": "cue:c_huit_poss",
+       "end": "cue_end:c_huit_poss",
+       "target": "cases",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "compte",
+     "say": "Pour avoir exactement deux piles : face-pile-pile, pile-face-pile, pile-pile-face. Ça fait trois lignes sur huit, trois huitièmes.",
+     "cues": [
+      {
+       "id": "c_deux_piles",
+       "text": "exactement deux piles"
+      },
+      {
+       "id": "c_trois_sur_huit",
+       "text": "trois lignes sur huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_r5",
+       "verb": "highlight",
+       "start": "cue:c_deux_piles",
+       "end": "cue_end:c_deux_piles",
+       "target": "cases",
+       "role": "given",
+       "part": "r5"
+      },
+      {
+       "id": "h_r6",
+       "verb": "highlight",
+       "start": "cue:c_deux_piles",
+       "end": "cue_end:c_deux_piles",
+       "target": "cases",
+       "role": "given",
+       "part": "r6"
+      },
+      {
+       "id": "h_r7",
+       "verb": "highlight",
+       "start": "cue:c_deux_piles",
+       "end": "cue_end:c_deux_piles",
+       "target": "cases",
+       "role": "given",
+       "part": "r7"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "cue:c_trois_sur_huit",
+       "target": "p3_label"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "autre_regle",
+     "say": "Autre question : au moins un pile. Seule la ligne face-face-face est exclue, donc sept lignes sur huit sont gagnantes : sept huitièmes.",
+     "cues": [
+      {
+       "id": "c_au_moins",
+       "text": "au moins un pile"
+      },
+      {
+       "id": "c_sept_sur_huit",
+       "text": "sept lignes sur huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_p3",
+       "verb": "fade_out",
+       "at": "cue:c_au_moins",
+       "target": "p3_label"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "start": "cue:c_au_moins",
+       "end": "cue_end:c_sept_sur_huit",
+       "target": "cases",
+       "role": "secondary",
+       "part": "r1"
+      },
+      {
+       "id": "s_p7",
+       "verb": "show",
+       "at": "cue:c_sept_sur_huit",
+       "target": "p7_label"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_fractions",
+   "introduces": [
+    {
+     "id": "p2",
+     "content": "\\frac{3}{8}",
+     "type": "math"
+    },
+    {
+     "id": "p6",
+     "layout": {
+      "next_to": "p2",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\frac{7}{8}",
+     "type": "math"
+    },
+    {
+     "id": "p2_note",
+     "layout": {
+      "next_to": "p2",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "3 façons sur 8",
+     "type": "text"
+    },
+    {
+     "id": "p6_note",
+     "layout": {
+      "next_to": "p6",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "7 façons sur 8",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exact",
+     "say": "Exactement deux piles, ça donne trois huitièmes. Le trois vient du nombre de lignes gagnantes, pas du nombre de pièces.",
+     "cues": [
+      {
+       "id": "c_exact",
+       "text": "Exactement deux piles"
+      },
+      {
+       "id": "c_huitiemes",
+       "text": "trois huitièmes"
+      },
+      {
+       "id": "c_pas_pieces",
+       "text": "pas du nombre de pièces"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p2",
+       "verb": "write",
+       "at": "cue:c_huitiemes",
+       "target": "p2"
+      },
+      {
+       "id": "s_p2_note",
+       "verb": "show",
+       "at": "after:w_p2",
+       "target": "p2_note"
+      },
+      {
+       "id": "h_p2",
+       "verb": "highlight",
+       "start": "cue:c_pas_pieces",
+       "end": "cue_end:c_pas_pieces",
+       "target": "p2",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "au_moins",
+     "say": "Au moins un pile, ça donne sept huitièmes : même dénominateur, un autre numérateur.",
+     "cues": [
+      {
+       "id": "c_au_moins2",
+       "text": "Au moins un pile"
+      },
+      {
+       "id": "c_sept",
+       "text": "sept huitièmes"
+      },
+      {
+       "id": "c_denom_commun",
+       "text": "même dénominateur"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p6",
+       "verb": "write",
+       "at": "cue:c_sept",
+       "target": "p6"
+      },
+      {
+       "id": "s_p6_note",
+       "verb": "show",
+       "at": "after:w_p6",
+       "target": "p6_note"
+      },
+      {
+       "id": "h_p6_den",
+       "verb": "highlight",
+       "at": "cue:c_denom_commun",
+       "target": "p6",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_simplifier",
+   "introduces": [
+    {
+     "id": "p2_simp",
+     "content": "\\frac{3}{8} = 0{,}375",
+     "type": "math"
+    },
+    {
+     "id": "p6_simp",
+     "layout": {
+      "next_to": "p2_simp",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\frac{7}{8} = 0{,}875",
+     "type": "math"
+    },
+    {
+     "id": "complement",
+     "layout": {
+      "next_to": "p2_simp",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\frac{5}{8} = 0{,}625",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "decimal",
+     "say": "En décimal, trois huitièmes vaut zéro virgule trois cent soixante-quinze, et sept huitièmes vaut zéro virgule huit cent soixante-quinze.",
+     "cues": [
+      {
+       "id": "c_trois_dec",
+       "text": "trois huitièmes vaut"
+      },
+      {
+       "id": "c_sept_dec",
+       "text": "sept huitièmes vaut"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p2_simp",
+       "verb": "write",
+       "at": "cue:c_trois_dec",
+       "target": "p2_simp"
+      },
+      {
+       "id": "w_p6_simp",
+       "verb": "write",
+       "at": "cue:c_sept_dec",
+       "target": "p6_simp"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verif",
+     "say": "Vérifions : le complément de trois huitièmes, c'est cinq huitièmes, qui vaut zéro virgule six cent vingt-cinq. Et zéro virgule trois cent soixante-quinze plus zéro virgule six cent vingt-cinq égale un.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_complement",
+       "text": "cinq huitièmes"
+      },
+      {
+       "id": "c_six",
+       "text": "zéro virgule six cent vingt-cinq"
+      },
+      {
+       "id": "c_un",
+       "text": "égale un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_comp",
+       "verb": "write",
+       "at": "cue:c_complement",
+       "target": "complement"
+      },
+      {
+       "id": "h_comp",
+       "verb": "highlight",
+       "start": "cue:c_six",
+       "end": "cue_end:c_six",
+       "target": "complement",
+       "role": "accent"
+      },
+      {
+       "id": "h_somme",
+       "verb": "highlight",
+       "at": "cue:c_un",
+       "target": "p2_simp",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Le dénominateur = toutes les issues possibles\nLe numérateur = les issues favorables",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : le dénominateur compte toutes les issues possibles de l'expérience, pas les objets qu'on lance. Le numérateur, lui, compte seulement les issues qui répondent à la question.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_denom",
+       "text": "toutes les issues possibles"
+      },
+      {
+       "id": "c_numer",
+       "text": "les issues qui répondent"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_cases",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "cases"
+      },
+      {
+       "id": "f_p7",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "p7_label"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "regle"
+      },
+      {
+       "id": "f_frac_b",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "frac_b"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_denom",
+       "target": "idee"
+      },
+      {
+       "id": "h_den",
+       "verb": "highlight",
+       "start": "cue:c_denom",
+       "end": "cue_end:c_denom",
+       "target": "idee",
+       "role": "accent"
+      },
+      {
+       "id": "h_num",
+       "verb": "highlight",
+       "start": "cue:c_numer",
+       "end": "cue_end:c_numer",
+       "target": "idee",
+       "role": "given"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

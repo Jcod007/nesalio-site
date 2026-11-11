@@ -1,0 +1,84 @@
+QUESTION (ap-perpendiculaire-point, mathematiques, sec 4, alloprof) : Si AB est perpendiculaire à CB et que l'équation pour AB est 5x+4y-684=0 et le point C est de (60,14), comment faire pour trouver les coordonnées du point b
+RÉPONSE DE RÉFÉRENCE : B(100, 46)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver B avec AB perpendiculaire à CB
+=== Tranche s_donnees
+  OBJET eq_ab [math] "5x + 4y - 684 = 0" parts=5x + 4y - 684 | = 0
+  OBJET pt_c [point] {"at":[60,14]} 
+  OBJET lab_c [label] "C(60 ; 14)" attaché à pt_c
+  OBJET note_perp [text] "AB ⟂ CB : les pentes sont opposées inverses" 
+DIT (poser) : On connaît l'équation de la droite AB : cinq x plus quatre y moins six cent quatre-vingt-quatre égale zéro. Et le point C, qui est en soixante, quatorze.
+    write eq_ab @cue:c_eq {"part":"membre"}
+    write eq_ab @after:w_eq {"part":"zero"}
+    show pt_c @cue:c_c 
+    show lab_c @cue:c_c 
+DIT (but) : Le point B, on ne le connaît pas encore. Mais il est sur la droite AB. Et à cause de la perpendicularité, il est aussi sur une deuxième droite : celle qui passe par C et qui est perpendiculaire à AB.
+    show note_perp @cue:c_perp 
+=== Tranche s_pente_perp
+  OBJET eq2 [math] "5x + 4y = 684" parts=5x + 4y | = 684
+  OBJET isole [math] "4y = -5x + 684" 
+  OBJET ymx [math] "y = -\\dfrac{5}{4}x + 171" 
+  OBJET pente_cb [math] "m_{CB} = \\dfrac{4}{5}" 
+DIT (isoler) : Pour lire la pente de AB, isole y. Je passe le 684 de l'autre côté : cinq x plus quatre y égale six cent quatre-vingt-quatre.
+    transform eq2 @cue:c_passe {"source":"eq_ab"}
+    write eq2 @after:t_eq {"part":"b1"}
+    write eq2 @cue:c_cote {"part":"b2"}
+DIT (diviser) : Ensuite je divise les deux côtés par quatre pour isoler y : quatre y égale moins cinq x plus six cent quatre-vingt-quatre.
+    transform isole @cue:c_divise {"source":"eq2"}
+    highlight isole @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"accent"}
+DIT (pente) : Je divise chaque terme par quatre. La pente de AB, c'est moins cinq quarts.
+    transform ymx @cue:c_pente_ab {"source":"isole"}
+    highlight ymx @- {"start":"cue:c_moins","end":"cue_end:c_moins","role":"accent"}
+DIT (oppose) : Pour une perpendiculaire, on inverse la fraction et on change le signe : la pente de CB devient quatre cinquièmes.
+    write pente_cb @cue:c_quatre 
+    highlight pente_cb @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"accent"}
+=== Tranche s_equation_cb
+  OBJET eq_cb [math] "y = \\dfrac{4}{5}x + b" parts=y | = \dfrac{4}{5}x + b
+  OBJET calcul_b [math] "14 = \\dfrac{4}{5}(60) + b" parts=14 | = \dfrac{4}{5}(60) + b
+  OBJET b_val [math] "b = -34" 
+  OBJET eq_cb_fin [math] "y = \\dfrac{4}{5}x - 34" parts=y | = \dfrac{4}{5}x - 34
+DIT (pose) : Donc la droite CB a pour équation y égale quatre cinquièmes de x plus b. Il me reste à trouver b.
+    fade_out eq2 @cue:c_y 
+    fade_out isole @cue:c_y 
+    fade_out pente_cb @cue:c_y 
+    fade_out note_perp @cue:c_y 
+    write eq_cb @cue:c_y {"part":"y_cb"}
+    write eq_cb @cue:c_b {"part":"form"}
+DIT (subst) : Le point C est sur cette droite : je remplace x par soixante et y par quatorze.
+    transform calcul_b @cue:c_remplace {"source":"eq_cb"}
+    write calcul_b @cue:c_remplace {"part":"subst"}
+    write calcul_b @cue:c_remplace {"part":"dev"}
+DIT (calcule) : Quatre cinquièmes de soixante, ça fait quarante-huit. Alors quatorze égale quarante-huit plus b. Je retire quarante-huit des deux côtés : b égale moins trente-quatre.
+    highlight calcul_b @- {"start":"cue:c_quarante","end":"cue_end:c_quarante","role":"accent","part":"dev"}
+    write b_val @cue:c_b 
+DIT (finale) : La droite CB, c'est donc y égale quatre cinquièmes de x moins trente-quatre.
+    transform eq_cb_fin @cue:c_finale {"source":"b_val"}
+    fade_out calcul_b @cue:c_finale 
+=== Tranche s_intersection
+  OBJET axe_xy [axes] {"x":[0,80],"y":[0,180]} 
+  OBJET droite_ab [function_graph] {"expression":"(-5/4)*x + 171","domain":[55,75]} 
+  OBJET droite_cb [function_graph] {"expression":"(4/5)*x - 34","domain":[55,75]} 
+  OBJET pt_b [point] {"at":[68.75,21]} 
+  OBJET lab_b [label] "B(68,75 ; 21)" attaché à pt_b
+DIT (systeme) : Le point B est à l'intersection des deux droites : il doit donc vérifier les deux équations. C'est un système.
+    show axe_xy @cue:c_intersec 
+    draw droite_ab @cue:c_intersec 
+    draw droite_cb @after:d_ab 
+DIT (egaler) : J'égale les deux expressions : moins cinq quarts de x plus cent soixante et onze égale quatre cinquièmes de x moins trente-quatre.
+    show pt_b @cue:c_egale 
+DIT (resoudre) : En ramenant les x d'un côté : on obtient quatre-vingt-unième quart de x égale deux cent cinq, donc x égale huit et quatre quarts... je vérifie : x vaut soixante-huit et trois quarts.
+    show lab_b @cue:c_donc_x 
+DIT (verifie) : Vérifions avec l'équation de CB : quatre cinquièmes de soixante-huit et trois quarts égale cinquante-cinq, moins trente-quatre donne vingt et un. Le point B est bien en soixante-huit et trois quarts, vingt et un.
+    highlight pt_b @cue:c_vingt_et_un {"role":"result"}
+=== Tranche s_retenir
+  OBJET recap [text] "Méthode : pente de AB → pente perpendiculaire → b avec C → intersection" 
+  OBJET res [math] "B\\left(\\dfrac{275}{4} ; 21\\right)" 
+DIT (idee) : À retenir : on lit d'abord la pente de AB, on prend la pente opposée inverse pour la droite perpendiculaire, on trouve son b avec le point C, puis on croise les deux droites.
+    camera.focus  @cue:c_retenir {"targets":["axe_xy","pt_b","lab_b"]}
+    show recap @cue:c_retenir 
+    show res @cue:c_croise 
+    highlight pt_b @- {"start":"cue:c_croise","end":"cue_end:c_croise","role":"result"}
+--- 5 tranches, 368 mots dits (≈ 2.5 min d'oral)

@@ -1,0 +1,38 @@
+QUESTION (ap-zinc-hcl, chimie, sec 5, alloprof) : Comment fait-on pour déterminer une équation équilibrée a partir de substances? Par exemple, si on fais réagir des morceaux de zinc dans l'acide chlorhydrique et que l'on obtient du dihydrogène gazeux.
+RÉPONSE DE RÉFÉRENCE : Zn + 2 HCl → ZnCl2 + H2
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Équilibrer Zn + HCl → ZnCl₂ + H₂
+=== Tranche s_depart
+  OBJET eq [math] "\\ce{Zn + HCl -> ZnCl2 + H2}" 
+DIT (reformule) : Tu fais réagir du zinc dans l'acide chlorhydrique, et il se forme du dihydrogène gazeux.
+    write eq @- {"start":"cue:c_zinc","end":"cue_end:c_h2"}
+DIT (produit2) : En plus du gaz, il reste le chlorure de zinc en solution, puisque le zinc a pris la place de l'hydrogène.
+    highlight eq @- {"start":"cue:c_zncl2","end":"cue_end:c_zncl2","role":"accent"}
+=== Tranche s_compte
+  OBJET tab [matrix] {"rows":[[1,1,1],[1,2,2]],"row_labels":["réactifs","produits"],"column_labels":["Zn","H","Cl"]} 
+DIT (loi) : Pour équilibrer, une seule idée compte : les atomes ne disparaissent pas, ils se réarrangent.
+    dim eq @cue:c_atomes 
+    show tab @cue:c_rearrangent 
+DIT (desaccord) : Comptons : à gauche un zinc, un hydrogène et un chlore. À droite, un zinc, deux hydrogènes et deux chlores. Ça ne correspond pas.
+    highlight tab @- {"start":"cue:c_gauche","end":"cue_end:c_gauche","role":"given","part":"r1"}
+    highlight tab @- {"start":"cue:c_droite","end":"cue_end:c_droite","role":"unknown","part":"r2"}
+    highlight tab @- {"start":"cue:c_pas","end":"cue_end:c_pas","role":"accent","part":"c2"}
+=== Tranche s_balance
+  OBJET eq2 [math] "\\ce{Zn + 2HCl -> ZnCl2 + H2}" 
+DIT (coef) : On ajoute un deux devant l'acide chlorhydrique, jamais un indice dans la formule.
+    transform eq2 @cue:c_deux {"source":"eq"}
+    highlight eq2 @after:t_coef {"role":"accent"}
+DIT (verifie) : Vérifions : à gauche deux hydrogènes et deux chlores, à droite aussi deux et deux. Le zinc, un et un. C'est équilibré.
+    set_style tab @cue:c_verif {"role":"result"}
+    highlight eq2 @- {"start":"cue:c_equilibre","end":"cue_end:c_equilibre","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [text] "Même nombre d'atomes de chaque sorte des deux côtés" 
+DIT (idee) : À retenir : pour équilibrer, tu comptes les atomes des deux côtés et tu ajustes les coefficients jusqu'à ce que les deux colonnes du tableau s'accordent.
+    fade_out tab @cue:c_retenir 
+    camera.focus  @cue:c_compte {"targets":["eq2","regle"]}
+    write regle @cue:c_coefficients 
+    highlight eq2 @- {"start":"cue:c_compte","end":"cue_end:c_coefficients","role":"result"}
+--- 4 tranches, 136 mots dits (≈ 0.9 min d'oral)

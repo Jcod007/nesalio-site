@@ -3,10 +3,14 @@
 Cette intégration utilise le SDK officiel Clerk 7.9.24. Les comptes et leurs
 courriels sont gérés par Clerk. L'application ne fabrique pas les codes, ne
 stocke pas de mots de passe et ne reçoit pas les clés secrètes dans le navigateur.
-Le site vitrine et le tuteur sont accessibles sans compte. Les trois premières
-réponses du tuteur forment un essai borné ; un compte connecté est ensuite requis.
-La transcription cloud reste réservée aux comptes ; les invités peuvent dicter
-avec la reconnaissance du navigateur quand elle est disponible, ou écrire.
+Le site vitrine et Nesalio sont accessibles sans compte. Les trois premières
+leçons (`/api/nesalio`, une leçon = une demande) forment un essai borné ; un compte
+connecté est ensuite requis. La transcription reste réservée aux comptes ; les invités
+écrivent leur question (la reconnaissance vocale du navigateur n'est plus utilisée :
+elle enverrait la voix de l'élève à Google, Apple ou Microsoft).
+
+Depuis la fusion du 2026-11-10, « le tuteur » désigne Nesalio : l'ancien tuteur
+(`/api/tutor`) est retiré ; l'essai, ses plafonds et la voix s'appliquent à Nesalio.
 
 ## Activation
 

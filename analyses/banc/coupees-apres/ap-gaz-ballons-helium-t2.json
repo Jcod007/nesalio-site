@@ -1,0 +1,802 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_generale_gaz_bonbonne",
+  "title": "Combien de ballons à TAPN avec une bonbonne d'hélium",
+  "language": "fr",
+  "learning_goal": "Appliquer la loi générale des gaz pour trouver le volume disponible à TAPN, puis le nombre de ballons de 100,0 L."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1e+30,
+    "max_abs_exponent": 400,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        "10,00 L",
+        "15 000 kPa",
+        "15,00 °C"
+       ],
+       [
+        "?",
+        "101,3 kPa",
+        "25,00 °C"
+       ]
+      ],
+      "row_labels": [
+       "bonbonne",
+       "TAPN"
+      ],
+      "column_labels": [
+       "volume",
+       "pression",
+       "température"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "t1",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "T_1 = 15{,}00 + 273{,}15 = 288{,}15\\ \\text{K}",
+     "type": "math"
+    },
+    {
+     "id": "t2",
+     "layout": {
+      "next_to": "t1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "T_2 = 25{,}00 + 273{,}15 = 298{,}15\\ \\text{K}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "comprends",
+     "say": "D'abord, reformulons ta question. On part d'une bonbonne de dix litres sous une très forte pression, quinze mille kilopascals, à quinze degrés Celsius.",
+     "cues": [
+      {
+       "id": "c_bonbonne",
+       "text": "bonbonne"
+      },
+      {
+       "id": "c_pression",
+       "text": "quinze mille kilopascals"
+      },
+      {
+       "id": "c_quinze",
+       "text": "quinze degrés Celsius"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_bonbonne",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "cherche",
+     "say": "On veut gonfler des ballons de cent litres à TAPN : la température ambiante normale, c'est vingt-cinq degrés, et la pression atmosphérique normale, cent un virgule trois kilopascals.",
+     "cues": [
+      {
+       "id": "c_tapn",
+       "text": "TAPN"
+      },
+      {
+       "id": "c_cent",
+       "text": "cent un virgule trois kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_tapn",
+       "end": "cue_end:c_cent",
+       "target": "tab",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "kelvins",
+     "say": "Les lois des gaz exigent des températures absolues : on ajoute deux cent soixante-treize virgule quinze. Quinze degrés donnent deux cent quatre-vingt-huit virgule quinze kelvins, et vingt-cinq degrés donnent deux cent quatre-vingt-dix-huit virgule quinze kelvins.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "on ajoute"
+      },
+      {
+       "id": "c_288",
+       "text": "deux cent quatre-vingt-huit virgule quinze kelvins"
+      },
+      {
+       "id": "c_298",
+       "text": "deux cent quatre-vingt-dix-huit virgule quinze kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_t1",
+       "verb": "write",
+       "at": "cue:c_288",
+       "target": "t1"
+      },
+      {
+       "id": "w_t2",
+       "verb": "write",
+       "at": "cue:c_298",
+       "target": "t2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_volume",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{p_1 V_1}{T_1}"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "\\frac{p_2 V_2}{T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso",
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "V_2 = \\frac{p_1 V_1 T_2}{p_2 T_1}",
+     "type": "math"
+    },
+    {
+     "id": "subst",
+     "layout": {
+      "next_to": "iso",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "V_2 = \\frac{15\\,000 \\times 10{,}00 \\times 298{,}15}{101{,}3 \\times 288{,}15}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pourquoi",
+     "say": "La quantité d'hélium ne change pas : c'est le même gaz qu'on laisse se détendre. On peut donc relier les deux états par la loi générale des gaz.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "loi générale des gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_t1",
+       "verb": "dim",
+       "at": "cue:c_loi",
+       "target": "t1"
+      },
+      {
+       "id": "d_t2",
+       "verb": "dim",
+       "at": "cue:c_loi",
+       "target": "t2"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi",
+       "part": "gauche"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi",
+       "part": "egal"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "after:w_egal",
+       "target": "loi",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "On isole V deux : on multiplie par T deux et par p un, on divise par p deux et par T un.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "On isole"
+      },
+      {
+       "id": "c_par",
+       "text": "on divise par p deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_iso",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "iso"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "Remplaçons par tes nombres : quinze mille fois dix virgule zéro zéro fois deux cent quatre-vingt-dix-huit virgule quinze, sur cent un virgule trois fois deux cent quatre-vingt-huit virgule quinze.",
+     "cues": [
+      {
+       "id": "c_remplacons",
+       "text": "Remplaçons par tes nombres"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_subst",
+       "verb": "write",
+       "at": "cue:c_remplacons",
+       "target": "subst"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "valeur",
+     "layout": {
+      "next_to": "subst",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "V_2 = \\frac{44\\,722\\,500}{29\\,189{,}6} \\approx 1\\,532\\ \\text{L}",
+     "type": "math"
+    },
+    {
+     "id": "nb",
+     "layout": {
+      "next_to": "valeur",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n = \\frac{1\\,532}{100{,}0} \\approx 15",
+     "type": "math"
+    },
+    {
+     "id": "ver",
+     "layout": {
+      "next_to": "nb",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "1\\,532 \\times 101{,}3 \\times 288{,}15 \\approx 15\\,000 \\times 10{,}00 \\times 298{,}15",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcule",
+     "say": "Au numérateur, ça donne environ quarante-quatre millions sept cent vingt-deux mille cinq cents. Au dénominateur, vingt-neuf mille cent quatre-vingt-neuf virgule six.",
+     "cues": [
+      {
+       "id": "c_num",
+       "text": "quarante-quatre millions sept cent vingt-deux mille cinq cents"
+      },
+      {
+       "id": "c_denom",
+       "text": "vingt-neuf mille cent quatre-vingt-neuf virgule six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_val",
+       "verb": "write",
+       "at": "cue:c_denom",
+       "target": "valeur"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "divise",
+     "say": "La division donne environ mille cinq cent trente-deux litres. C'est le volume que l'hélium occuperait une fois détendu à TAPN.",
+     "cues": [
+      {
+       "id": "c_1532",
+       "text": "mille cinq cent trente-deux litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_val",
+       "verb": "highlight",
+       "start": "cue:c_1532",
+       "end": "cue_end:c_1532",
+       "target": "valeur",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "ballons",
+     "say": "Chaque ballon a une capacité de cent virgule zéro litres. On divise mille cinq cent trente-deux par cent : on remplit environ quinze ballons complets.",
+     "cues": [
+      {
+       "id": "c_cent",
+       "text": "cent virgule zéro litres",
+       "occurrence": 1
+      },
+      {
+       "id": "c_quinze",
+       "text": "environ quinze ballons"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_nb",
+       "verb": "write",
+       "at": "cue:c_quinze",
+       "target": "nb"
+      },
+      {
+       "id": "h_nb",
+       "verb": "highlight",
+       "start": "cue:c_quinze",
+       "end": "cue_end:c_quinze",
+       "target": "nb",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verifie",
+     "say": "Vérifions : mille cinq cent trente-deux fois cent un virgule trois fois deux cent quatre-vingt-huit virgule quinze redonne bien le produit de départ. La réponse tient.",
+     "cues": [
+      {
+       "id": "c_verifions",
+       "text": "Vérifions"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ver",
+       "verb": "write",
+       "at": "cue:c_verifions",
+       "target": "ver"
+      },
+      {
+       "id": "h_ver",
+       "verb": "highlight",
+       "start": "cue:c_verifions",
+       "end": "cue_end:c_verifions",
+       "target": "ver",
+       "role": "given"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "On détend un gaz : diviser par la pression, multiplier par la température absolue",
+     "type": "text"
+    },
+    {
+     "id": "regle",
+     "content": "V_2 = V_1 \\times \\frac{p_1}{p_2} \\times \\frac{T_2}{T_1}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "À retenir : pour une même quantité de gaz, un seul rapport donne le volume final.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tab"
+      },
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "loi"
+      },
+      {
+       "id": "f_iso",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "iso"
+      },
+      {
+       "id": "f_subst",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "subst"
+      },
+      {
+       "id": "f_val",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "valeur"
+      },
+      {
+       "id": "f_nb",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "nb"
+      },
+      {
+       "id": "f_ver",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "ver"
+      }
+     ]
+    },
+    {
+     "id": "rapport",
+     "say": "Le volume est multiplié par le rapport des pressions, parce qu'on détend le gaz, et par le rapport des températures absolues.",
+     "cues": [
+      {
+       "id": "c_pressions",
+       "text": "rapport des pressions"
+      },
+      {
+       "id": "c_temperatures",
+       "text": "rapport des températures absolues"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_pressions",
+       "targets": [
+        "regle",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_pressions",
+       "target": "regle"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_temperatures",
+       "target": "idee"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "avec",
+     "say": "Avec tes nombres : dix litres, fois quinze mille sur cent un virgule trois, fois deux cent quatre-vingt-dix-huit virgule quinze sur deux cent quatre-vingt-huit virgule quinze.",
+     "cues": [
+      {
+       "id": "c_avecnos",
+       "text": "Avec tes nombres"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_avecnos",
+       "end": "cue_end:c_avecnos",
+       "target": "regle",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_final",
+   "introduces": [
+    {
+     "id": "res",
+     "content": "V_2 \\approx 1\\,532\\ \\text{L} \\quad\\Rightarrow\\quad n = \\frac{1\\,532}{100{,}0} \\approx 15\\ \\text{ballons}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reponse",
+     "say": "Donc la démarche complète : on convertit les températures en kelvins, on applique la loi générale des gaz avec la quantité d'hélium qui reste constante, et on obtient environ quinze ballons.",
+     "cues": [
+      {
+       "id": "c_enkelvins",
+       "text": "en kelvins"
+      },
+      {
+       "id": "c_loigenerale",
+       "text": "loi générale des gaz"
+      },
+      {
+       "id": "c_reponse",
+       "text": "environ quinze ballons"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_idee",
+       "verb": "fade_out",
+       "at": "cue:c_enkelvins",
+       "target": "idee"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_enkelvins",
+       "target": "regle"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_reponse",
+       "target": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_reponse",
+       "end": "cue_end:c_reponse",
+       "target": "res",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

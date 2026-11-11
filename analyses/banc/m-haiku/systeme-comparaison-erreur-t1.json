@@ -1,0 +1,652 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "systeme_comparaison_verif",
+  "title": "Pourquoi x = 4 ne marche pas dans le système",
+  "language": "fr",
+  "learning_goal": "Comprendre que la solution doit vérifier les deux équations en même temps, et repérer l'erreur de la méthode par comparaison."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       6
+      ],
+      "y": [
+       -2,
+       12
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "d1",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "expression": "2*x+3",
+      "domain": [
+       -1,
+       6
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "d2",
+     "style": {
+      "role": "unknown"
+     },
+     "params": {
+      "expression": "-x+9",
+      "domain": [
+       -1,
+       6
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "p_sol",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p_sol_label",
+     "attachment": {
+      "parent": "p_sol",
+      "anchor": "right"
+     },
+     "content": "(2 ; 7)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Une solution d'un système, c'est le point où les deux droites se rencontrent : il doit vérifier les deux équations en même temps.",
+     "cues": [
+      {
+       "id": "c_solution",
+       "text": "Une solution"
+      },
+      {
+       "id": "c_rencontrent",
+       "text": "se rencontrent"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_d1",
+       "verb": "draw",
+       "start": "cue:c_solution",
+       "end": "cue_end:c_rencontrent",
+       "target": "d1"
+      },
+      {
+       "id": "d_d2",
+       "verb": "draw",
+       "start": "cue:c_solution",
+       "end": "cue_end:c_rencontrent",
+       "target": "d2"
+      }
+     ]
+    },
+    {
+     "id": "point",
+     "say": "Ici, le point de rencontre est deux, sept : x vaut deux et y vaut sept.",
+     "cues": [
+      {
+       "id": "c_point",
+       "text": "deux, sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_point",
+       "target": "p_sol"
+      },
+      {
+       "id": "s_pt_l",
+       "verb": "show",
+       "at": "cue:c_point",
+       "target": "p_sol_label"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "eq1",
+     "content": "y = 2x + 3",
+     "parts": [
+      {
+       "id": "e1_y",
+       "text": "y ="
+      },
+      {
+       "id": "e1_r",
+       "text": "2x + 3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "y = -x + 9",
+     "parts": [
+      {
+       "id": "e2_y",
+       "text": "y ="
+      },
+      {
+       "id": "e2_r",
+       "text": "-x + 9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "test",
+     "content": "x = 4 \\Rightarrow y = 2(4) + 3 = 11 \\quad \\text{et} \\quad y = -4 + 9 = 5",
+     "type": "math"
+    },
+    {
+     "id": "conclu",
+     "content": "11 ≠ 5 : x = 4 n'est pas la solution",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "eqs",
+     "items": [
+      "eq1",
+      "eq2"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     },
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "poser",
+     "say": "Reprenons les deux équations : y égale deux x plus trois, et y égale moins x plus neuf.",
+     "cues": [
+      {
+       "id": "c_eq",
+       "text": "deux x plus trois"
+      },
+      {
+       "id": "c_moins",
+       "text": "moins x plus neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_eqs",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "eqs",
+       "stagger": "normal"
+      },
+      {
+       "id": "h_eq1",
+       "verb": "highlight",
+       "at": "cue:c_eq",
+       "target": "eq1",
+       "role": "accent"
+      },
+      {
+       "id": "h_eq2",
+       "verb": "highlight",
+       "at": "cue:c_moins",
+       "target": "eq2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "tester",
+     "say": "Prenons ta valeur, x égale quatre, et remplaçons-la dans les deux équations.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "x égale quatre"
+      },
+      {
+       "id": "c_remplace",
+       "text": "remplaçons-la"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_test",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "test"
+      },
+      {
+       "id": "w_y1",
+       "verb": "highlight",
+       "at": "cue:c_remplace",
+       "target": "test",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "deux",
+     "say": "Dans la deuxième, moins quatre plus neuf donne cinq. Onze et cinq ne sont pas égaux : ça ne marche pas.",
+     "cues": [
+      {
+       "id": "c_deuxieme",
+       "text": "Dans la deuxième"
+      },
+      {
+       "id": "c_cinq",
+       "text": "donne cinq"
+      },
+      {
+       "id": "c_pas",
+       "text": "ne sont pas égaux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_y2",
+       "verb": "highlight",
+       "at": "cue:c_cinq",
+       "target": "test",
+       "role": "accent"
+      },
+      {
+       "id": "s_concl",
+       "verb": "show",
+       "at": "cue:c_pas",
+       "target": "conclu"
+      },
+      {
+       "id": "h_concl",
+       "verb": "highlight",
+       "at": "after:s_concl",
+       "target": "conclu",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "comp",
+     "content": "2x + 3 = -x + 9",
+     "parts": [
+      {
+       "id": "c_gauche",
+       "text": "2x + 3"
+      },
+      {
+       "id": "c_egal",
+       "text": "="
+      },
+      {
+       "id": "c_droite",
+       "text": "-x + 9"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ajout",
+     "content": "2x + x = 9 + 3 \\quad \\text{(erreur : le 3 change de signe, pas le +)}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "comparer",
+     "say": "Par comparaison, on égale les deux y : deux x plus trois égale moins x plus neuf.",
+     "cues": [
+      {
+       "id": "c_comp",
+       "text": "égale les deux y"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_comp",
+       "verb": "show",
+       "at": "cue:c_comp",
+       "target": "comp"
+      }
+     ]
+    },
+    {
+     "id": "regrouper",
+     "say": "On regroupe les x d'un côté et les nombres de l'autre : deux x plus x, et neuf moins trois.",
+     "cues": [
+      {
+       "id": "c_regroupe",
+       "text": "On regroupe"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_aj",
+       "verb": "show",
+       "at": "cue:c_regroupe",
+       "target": "ajout"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "bon",
+     "say": "Le trois doit être soustrait : neuf moins trois donne six, donc trois x égale six, et x égale deux.",
+     "cues": [
+      {
+       "id": "c_soustrait",
+       "text": "soustrait"
+      },
+      {
+       "id": "c_deux",
+       "text": "x égale deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_bon",
+       "verb": "write",
+       "at": "cue:c_soustrait",
+       "target": "ajout"
+      },
+      {
+       "id": "h_bon",
+       "verb": "highlight",
+       "at": "cue:c_deux",
+       "target": "ajout",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "retenir",
+     "content": "La solution doit vérifier les DEUX équations",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fin",
+     "say": "À retenir : la solution doit fonctionner dans les deux équations en même temps. Ton x égale quatre ne passait que dans une seule.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_deux_eq",
+       "text": "les deux équations"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "rep",
+        "retenir"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_ret",
+       "verb": "write",
+       "at": "cue:c_deux_eq",
+       "target": "retenir"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

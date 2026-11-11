@@ -1,0 +1,936 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ph_electrolytes",
+  "title": "Le lien entre la conductibilité, les électrolytes et le pH",
+  "language": "fr",
+  "learning_goal": "Comprendre que le pH mesure la concentration des ions H⁺, que ces ions viennent de la dissociation d'un électrolyte et que ce sont eux qui font conduire la solution."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "droite",
+     "params": {
+      "domain": [
+       0,
+       14
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "acide",
+     "layout": {
+      "next_to": "droite",
+      "direction": "down",
+      "gap": "md",
+      "align": "left"
+     },
+     "content": "acide (pH < 7)",
+     "type": "label"
+    },
+    {
+     "id": "neutre",
+     "layout": {
+      "next_to": "droite",
+      "direction": "down",
+      "gap": "md",
+      "align": "center"
+     },
+     "content": "neutre (pH = 7)",
+     "type": "label"
+    },
+    {
+     "id": "base",
+     "layout": {
+      "next_to": "droite",
+      "direction": "down",
+      "gap": "md",
+      "align": "right"
+     },
+     "content": "basique (pH > 7)",
+     "type": "label"
+    },
+    {
+     "id": "p_citron",
+     "frame": "droite",
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_citron",
+     "attachment": {
+      "parent": "p_citron",
+      "anchor": "top"
+     },
+     "content": "jus de citron ≈ 2",
+     "type": "label"
+    },
+    {
+     "id": "p_eau",
+     "frame": "droite",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_eau",
+     "attachment": {
+      "parent": "p_eau",
+      "anchor": "top"
+     },
+     "content": "eau pure = 7",
+     "type": "label"
+    },
+    {
+     "id": "p_javel",
+     "frame": "droite",
+     "params": {
+      "at": [
+       12,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_javel",
+     "attachment": {
+      "parent": "p_javel",
+      "anchor": "top"
+     },
+     "content": "eau de javel ≈ 12",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "echelle",
+     "say": "Le pH se lit sur une échelle qui va de zéro à quatorze. Sous sept, c'est acide ; à sept, c'est neutre ; au-dessus, c'est basique.",
+     "cues": [
+      {
+       "id": "c_echelle",
+       "text": "échelle"
+      },
+      {
+       "id": "c_sous",
+       "text": "Sous sept"
+      },
+      {
+       "id": "c_au_dessus",
+       "text": "au-dessus"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_droite",
+       "verb": "show",
+       "at": "cue:c_echelle",
+       "target": "droite"
+      },
+      {
+       "id": "s_acide",
+       "verb": "show",
+       "at": "cue:c_sous",
+       "target": "acide"
+      },
+      {
+       "id": "s_base",
+       "verb": "show",
+       "at": "cue:c_au_dessus",
+       "target": "base"
+      }
+     ]
+    },
+    {
+     "id": "reperes",
+     "say": "Par exemple, le jus de citron est vers deux, l'eau pure est à sept, et l'eau de javel vers douze.",
+     "cues": [
+      {
+       "id": "c_citron",
+       "text": "jus de citron"
+      },
+      {
+       "id": "c_eau",
+       "text": "eau pure"
+      },
+      {
+       "id": "c_javel",
+       "text": "eau de javel"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_neutre",
+       "verb": "show",
+       "at": "cue:c_eau",
+       "target": "neutre"
+      },
+      {
+       "id": "s_citron",
+       "verb": "show",
+       "at": "cue:c_citron",
+       "target": "p_citron"
+      },
+      {
+       "id": "s_lcitron",
+       "verb": "show",
+       "at": "after:s_citron",
+       "target": "l_citron"
+      },
+      {
+       "id": "s_eau",
+       "verb": "show",
+       "at": "cue:c_eau",
+       "target": "p_eau"
+      },
+      {
+       "id": "s_leau",
+       "verb": "show",
+       "at": "after:s_eau",
+       "target": "l_eau"
+      },
+      {
+       "id": "s_javel",
+       "verb": "show",
+       "at": "cue:c_javel",
+       "target": "p_javel"
+      },
+      {
+       "id": "s_ljavel",
+       "verb": "show",
+       "at": "after:s_javel",
+       "target": "l_javel"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_ions",
+   "introduces": [
+    {
+     "id": "na",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "center": [
+       -1,
+       0
+      ],
+      "radius": 0.5
+     },
+     "type": "circle"
+    },
+    {
+     "id": "na_label",
+     "attachment": {
+      "parent": "na",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "Na⁺",
+     "type": "label"
+    },
+    {
+     "id": "cl",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "center": [
+       1,
+       0
+      ],
+      "radius": 0.5
+     },
+     "type": "circle"
+    },
+    {
+     "id": "cl_label",
+     "attachment": {
+      "parent": "cl",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "Cl⁻",
+     "type": "label"
+    },
+    {
+     "id": "naplus",
+     "layout": {
+      "next_to": "na",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": "Na⁺ libre",
+     "type": "label"
+    },
+    {
+     "id": "clmoins",
+     "layout": {
+      "next_to": "cl",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": "Cl⁻ libre",
+     "type": "label"
+    },
+    {
+     "id": "dissoc",
+     "content": "\\ce{NaCl(s) -> Na+(aq) + Cl-(aq)}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sel",
+     "say": "Regarde ce qui se passe quand on met du sel de table dans l'eau. Le solide se sépare en deux ions : un sodium positif et un chlore négatif.",
+     "cues": [
+      {
+       "id": "c_sel",
+       "text": "sel de table"
+      },
+      {
+       "id": "c_separe",
+       "text": "se sépare"
+      },
+      {
+       "id": "c_sodium",
+       "text": "sodium positif"
+      },
+      {
+       "id": "c_chlore",
+       "text": "chlore négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_na",
+       "verb": "show",
+       "at": "cue:c_separe",
+       "target": "na"
+      },
+      {
+       "id": "s_nl",
+       "verb": "show",
+       "at": "after:s_na",
+       "target": "na_label"
+      },
+      {
+       "id": "s_cl",
+       "verb": "show",
+       "at": "cue:c_chlore",
+       "target": "cl"
+      },
+      {
+       "id": "s_cll",
+       "verb": "show",
+       "at": "after:s_cl",
+       "target": "cl_label"
+      }
+     ]
+    },
+    {
+     "id": "separent",
+     "say": "Ces ions se détachent et se promènent librement dans l'eau. On dit que le sel est un électrolyte, parce qu'il libère des ions.",
+     "cues": [
+      {
+       "id": "c_detachent",
+       "text": "se détachent"
+      },
+      {
+       "id": "c_electrolyte",
+       "text": "électrolyte"
+      }
+     ],
+     "do": [
+      {
+       "id": "m_na",
+       "verb": "move",
+       "at": "cue:c_detachent",
+       "target": "na",
+       "to": {
+        "next_to": "cl",
+        "direction": "left",
+        "gap": "lg"
+       }
+      },
+      {
+       "id": "s_naplus",
+       "verb": "show",
+       "at": "after:m_na",
+       "target": "naplus"
+      },
+      {
+       "id": "w_dissoc",
+       "verb": "write",
+       "at": "cue:c_electrolyte",
+       "target": "dissoc"
+      }
+     ]
+    },
+    {
+     "id": "courant",
+     "say": "Et comme ces ions sont chargés, ils peuvent transporter le courant : c'est ça, la conductibilité électrique d'une solution.",
+     "cues": [
+      {
+       "id": "c_charges",
+       "text": "chargés"
+      },
+      {
+       "id": "c_courant",
+       "text": "transporter le courant"
+      },
+      {
+       "id": "c_conductibilite",
+       "text": "conductibilité électrique"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_naplus",
+       "verb": "fade_out",
+       "at": "cue:c_charges",
+       "target": "naplus"
+      },
+      {
+       "id": "f_clmoins",
+       "verb": "fade_out",
+       "at": "cue:c_charges",
+       "target": "clmoins"
+      },
+      {
+       "id": "h_dissoc",
+       "verb": "highlight",
+       "start": "cue:c_courant",
+       "end": "cue_end:c_conductibilite",
+       "target": "dissoc",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_hplus",
+   "introduces": [
+    {
+     "id": "hcl_fig",
+     "content": "\\ce{HCl(s) -> H+(aq) + Cl-(aq)}",
+     "type": "math"
+    },
+    {
+     "id": "leg",
+     "content": "1 \\times 10^{-3}\\ \\text{mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "calc",
+     "content": "\\text{pH} = -\\log(1 \\times 10^{-3}) = 3",
+     "parts": [
+      {
+       "id": "ph",
+       "text": "\\text{pH} ="
+      },
+      {
+       "id": "log",
+       "text": "-\\log(1 \\times 10^{-3})"
+      },
+      {
+       "id": "res",
+       "text": "= 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "acide_ion",
+     "say": "Il existe un ion encore plus important pour le pH : l'ion hydrogène, H plus. Un acide comme l'acide chlorhydrique en libère lui aussi.",
+     "cues": [
+      {
+       "id": "c_hplus",
+       "text": "H plus"
+      },
+      {
+       "id": "c_acide",
+       "text": "acide chlorhydrique"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_dissoc",
+       "verb": "fade_out",
+       "at": "cue:c_hplus",
+       "target": "dissoc"
+      },
+      {
+       "id": "f_na",
+       "verb": "fade_out",
+       "at": "cue:c_hplus",
+       "target": "na"
+      },
+      {
+       "id": "f_cl",
+       "verb": "fade_out",
+       "at": "cue:c_hplus",
+       "target": "cl"
+      },
+      {
+       "id": "f_nl",
+       "verb": "fade_out",
+       "at": "cue:c_hplus",
+       "target": "na_label"
+      },
+      {
+       "id": "f_cll",
+       "verb": "fade_out",
+       "at": "cue:c_hplus",
+       "target": "cl_label"
+      },
+      {
+       "id": "w_hcl",
+       "verb": "write",
+       "at": "cue:c_acide",
+       "target": "hcl_fig"
+      }
+     ]
+    },
+    {
+     "id": "concentration",
+     "say": "Le pH, c'est en fait une façon de mesurer la concentration de ces ions H plus. Prenons une solution où il y a un fois dix exposant moins trois mole par litre.",
+     "cues": [
+      {
+       "id": "c_concentration",
+       "text": "concentration"
+      },
+      {
+       "id": "c_moins_trois",
+       "text": "un fois dix exposant moins trois mole par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_leg",
+       "verb": "write",
+       "at": "cue:c_moins_trois",
+       "target": "leg"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul_ph",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "La formule du pH, c'est pH égale moins log de la concentration des ions H plus.",
+     "cues": [
+      {
+       "id": "c_ph_formule",
+       "text": "pH égale moins log"
+      },
+      {
+       "id": "c_concentration_plus",
+       "text": "concentration des ions H plus"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ph",
+       "verb": "write",
+       "at": "cue:c_ph_formule",
+       "target": "calc",
+       "part": "ph"
+      },
+      {
+       "id": "w_log",
+       "verb": "write",
+       "at": "cue:c_concentration_plus",
+       "target": "calc",
+       "part": "log"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Avec un fois dix exposant moins trois, le log vaut moins trois, et le moins devant donne un pH de trois.",
+     "cues": [
+      {
+       "id": "c_log_vaut",
+       "text": "le log vaut moins trois"
+      },
+      {
+       "id": "c_ph_trois",
+       "text": "pH de trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_ph_trois",
+       "target": "calc",
+       "part": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "calc",
+       "role": "result",
+       "part": "res"
+      }
+     ]
+    },
+    {
+     "id": "retenir_calcul",
+     "say": "Donc un pH de trois veut dire dix exposant moins trois mole par litre d'ions H plus : plus le pH est petit, plus il y a d'ions H plus.",
+     "cues": [
+      {
+       "id": "c_plus_petit",
+       "text": "plus le pH est petit"
+      },
+      {
+       "id": "c_plus_ions",
+       "text": "plus il y a d'ions H plus"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_hcl",
+       "verb": "dim",
+       "at": "cue:c_plus_petit",
+       "target": "hcl_fig"
+      },
+      {
+       "id": "f_leg",
+       "verb": "fade_out",
+       "at": "cue:c_plus_petit",
+       "target": "leg"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_facteur",
+   "introduces": [
+    {
+     "id": "unite",
+     "layout": {
+      "next_to": "calc",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "1 unité de pH = facteur 10 sur [H⁺]",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "facteur",
+     "say": "Chaque unité de pH correspond à un facteur dix sur la concentration des ions H plus. Deux pH, c'est cent fois moins d'ions H plus que pH quatre.",
+     "cues": [
+      {
+       "id": "c_facteur",
+       "text": "facteur dix"
+      },
+      {
+       "id": "c_deux_quatre",
+       "text": "Deux pH"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_unite",
+       "verb": "show",
+       "at": "cue:c_facteur",
+       "target": "unite"
+      },
+      {
+       "id": "h_ph",
+       "verb": "highlight",
+       "start": "cue:c_deux_quatre",
+       "end": "cue_end:c_deux_quatre",
+       "target": "calc",
+       "role": "accent",
+       "part": "ph"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "synthese",
+     "layout": {
+      "next_to": "calc",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "[\\ce{H+}] \\times 10^{-\\text{pH}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_centrale",
+     "say": "À retenir : le pH mesure la concentration des ions H plus, et ces ions viennent de la dissociation d'un électrolyte. Ce sont eux qui conduisent le courant en solution.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_concentration_finale",
+       "text": "concentration des ions H plus"
+      },
+      {
+       "id": "c_conduisent",
+       "text": "conduisent le courant"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_unite",
+       "verb": "dim",
+       "at": "cue:c_retenir",
+       "target": "unite"
+      },
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "start": "cue:c_concentration_finale",
+       "end": "cue_end:c_concentration_finale",
+       "target": "calc",
+       "role": "result"
+      },
+      {
+       "id": "s_synthese",
+       "verb": "show",
+       "at": "cue:c_conduisent",
+       "target": "synthese"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,519 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "droite_perpendiculaire_point",
+  "title": "Trouver le point B sur une droite perpendiculaire",
+  "language": "fr",
+  "learning_goal": "Trouver les coordonnées d'un point situé sur une droite passant par C et perpendiculaire à AB, à partir de l'équation de AB."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "5x + 4y - 684 = 0",
+     "parts": [
+      {
+       "id": "p5",
+       "text": "5x"
+      },
+      {
+       "id": "p4",
+       "text": "+ 4y"
+      },
+      {
+       "id": "pc",
+       "text": "- 684"
+      },
+      {
+       "id": "pe",
+       "text": "= 0"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ptC",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "C(60 ; 14)",
+     "type": "math"
+    },
+    {
+     "id": "manque",
+     "layout": {
+      "next_to": "ptC",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Ce qui manque : sur AB ? sur CB ?",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Reprenons ce que tu me donnes. La droite AB a pour équation cinq x plus quatre y moins six cent quatre-vingt-quatre égale zéro.",
+     "cues": [
+      {
+       "id": "c_eq",
+       "text": "cinq x plus quatre y"
+      },
+      {
+       "id": "c_684",
+       "text": "six cent quatre-vingt-quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p5",
+       "verb": "write",
+       "at": "cue:c_eq",
+       "target": "eq",
+       "part": "p5"
+      },
+      {
+       "id": "w_p4",
+       "verb": "write",
+       "at": "after:w_p5",
+       "target": "eq",
+       "part": "p4"
+      },
+      {
+       "id": "w_pc",
+       "verb": "write",
+       "at": "cue:c_684",
+       "target": "eq",
+       "part": "pc"
+      },
+      {
+       "id": "w_pe",
+       "verb": "write",
+       "at": "after:w_pc",
+       "target": "eq",
+       "part": "pe"
+      }
+     ]
+    },
+    {
+     "id": "pointC",
+     "say": "Le point C vaut soixante, quatorze. Et AB est perpendiculaire à CB.",
+     "cues": [
+      {
+       "id": "c_C",
+       "text": "soixante, quatorze"
+      },
+      {
+       "id": "c_perp",
+       "text": "perpendiculaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_C",
+       "verb": "write",
+       "at": "cue:c_C",
+       "target": "ptC"
+      },
+      {
+       "id": "h_perp",
+       "verb": "highlight",
+       "start": "cue:c_perp",
+       "end": "cue_end:c_perp",
+       "target": "eq",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "question",
+     "say": "Avant de calculer, il manque une précision : le point B, on le cherche sur la droite AB, ou sur la droite qui passe par C ?",
+     "cues": [
+      {
+       "id": "c_manque",
+       "text": "le point B"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_manque",
+       "verb": "show",
+       "at": "cue:c_manque",
+       "target": "manque"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pente",
+   "introduces": [
+    {
+     "id": "isole",
+     "content": "4y = -5x + 684",
+     "parts": [
+      {
+       "id": "g4",
+       "text": "4y"
+      },
+      {
+       "id": "gd",
+       "text": "="
+      },
+      {
+       "id": "gr",
+       "text": "-5x + 684"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "fonc",
+     "content": "y = -\\frac{5}{4}x + 171",
+     "parts": [
+      {
+       "id": "fy",
+       "text": "y ="
+      },
+      {
+       "id": "fm",
+       "text": "-\\frac{5}{4}x"
+      },
+      {
+       "id": "fb",
+       "text": "+ 171"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "perp",
+     "content": "m_{CB} = \\frac{4}{5}",
+     "parts": [
+      {
+       "id": "pcb",
+       "text": "m_{CB}"
+      },
+      {
+       "id": "pval",
+       "text": "= \\frac{4}{5}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isoleY",
+     "say": "Si B est sur AB, le plus utile, c'est la pente de AB. Isolons y : quatre y égale moins cinq x plus six cent quatre-vingt-quatre.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "quatre y"
+      },
+      {
+       "id": "c_r",
+       "text": "moins cinq x plus six cent quatre-vingt-quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_manque",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "manque"
+      },
+      {
+       "id": "w_g4",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "isole",
+       "part": "g4"
+      },
+      {
+       "id": "w_gd",
+       "verb": "write",
+       "at": "after:w_g4",
+       "target": "isole",
+       "part": "gd"
+      },
+      {
+       "id": "w_gr",
+       "verb": "write",
+       "at": "cue:c_r",
+       "target": "isole",
+       "part": "gr"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "On divise tout par quatre : y égale moins cinq quarts de x plus cent soixante-et-onze. La pente de AB est donc moins cinq quarts.",
+     "cues": [
+      {
+       "id": "c_fonc",
+       "text": "y égale moins cinq quarts"
+      },
+      {
+       "id": "c_penteAB",
+       "text": "pente de AB"
+      },
+      {
+       "id": "c_m5",
+       "text": "moins cinq quarts"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_fonc",
+       "verb": "transform",
+       "at": "cue:c_fonc",
+       "source": "isole",
+       "target": "fonc"
+      },
+      {
+       "id": "h_fm",
+       "verb": "highlight",
+       "start": "cue:c_m5",
+       "end": "cue_end:c_m5",
+       "target": "fonc",
+       "role": "given",
+       "part": "fm"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "opposee",
+     "say": "Pour une perpendiculaire, on prend l'opposée de l'inverse : moins cinq quarts devient quatre cinquièmes.",
+     "cues": [
+      {
+       "id": "c_perp2",
+       "text": "perpendiculaire"
+      },
+      {
+       "id": "c_quatre",
+       "text": "quatre cinquièmes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_perp",
+       "verb": "write",
+       "at": "cue:c_perp2",
+       "target": "perp",
+       "part": "pcb"
+      },
+      {
+       "id": "w_pval",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "perp",
+       "part": "pval"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

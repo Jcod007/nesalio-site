@@ -1,0 +1,57 @@
+QUESTION (chimie-equilibrer, chimie, sec 4, methode) : comment j'équilibre l'équation C3H8 + O2 → CO2 + H2O? j'arrive jamais à avoir le même nombre d'oxygènes des deux bords
+RÉPONSE DE RÉFÉRENCE : C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. conservation des atomes ; on change les coefficients, jamais les indices
+  2. C puis H, O à la fin (O₂ seul)
+  3. C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O écrit
+  4. vérification : 3 C, 8 H, 10 O de chaque côté
+  5. l'O à la fin, parce que O₂ est un corps simple
+ERREURS GRAVES À CHERCHER : indices modifiés ; décompte d'atomes faux
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comment équilibrer C₃H₈ + O₂ → CO₂ + H₂O
+=== Tranche s_depart
+  OBJET eq [math] "\\ce{C3H8 + O2 -> CO2 + H2O}" 
+  OBJET tab [matrix] {"rows":[[3,8,2],[1,2,3]],"row_labels":["réactifs","produits"],"column_labels":["C","H","O"]} 
+DIT (pose) : Équilibrer une équation, c'est une affaire de comptage : les atomes ne se créent pas, ils se réarrangent.
+    write eq @beat:start 
+    highlight eq @after:w_eq {"role":"accent"}
+    highlight eq @after:w_eq2 {"role":"accent"}
+    highlight eq @after:w_eq3 {"role":"accent"}
+    show tab @cue:c_compter 
+DIT (manque) : À gauche, il y a trois carbones, huit hydrogènes et deux oxygènes. À droite, un carbone, deux hydrogènes et trois oxygènes : c'est bien là que ton oxygène cloche.
+    highlight tab @- {"start":"cue:c_gauche","end":"cue_end:c_droite","role":"given","part":"r1"}
+    highlight tab @cue:c_cloche {"role":"unknown","part":"c3"}
+=== Tranche s_carbone_hydrogene
+  OBJET eq2 [math] "\\ce{C3H8 + O2 -> 3CO2 + H2O}" 
+  OBJET eq3 [math] "\\ce{C3H8 + O2 -> 3CO2 + 4H2O}" 
+DIT (carbone) : On commence par le carbone, parce qu'il n'apparaît que dans le propane et le dioxyde de carbone. Trois carbones à gauche, il en faut trois à droite : un trois devant le C O deux.
+    dim tab @cue:c_carbone 
+    transform eq2 @cue:c_trois {"source":"eq"}
+DIT (hydrogene) : Puis l'hydrogène : huit à gauche, donc quatre fois deux à droite. Un quatre devant le H deux O. Note qu'on n'a touché à aucun indice.
+    transform eq3 @cue:c_h {"source":"eq2"}
+    highlight eq3 @cue:c_quatre {"role":"accent"}
+    show tab @after:h_coef 
+=== Tranche s_oxygene
+  OBJET eq4 [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+  OBJET verif [math] "10 = 6 + 4" parts=10 | = 6 + 4
+DIT (oxygene) : Reste l'oxygène, et c'est là que ton blocage arrive. À droite : trois C O deux donnent six oxygènes, quatre H deux O en donnent quatre. Six plus quatre, dix oxygènes à droite.
+    highlight tab @- {"start":"cue:c_droite","end":"cue_end:c_six","role":"accent","part":"r2"}
+    highlight tab @- {"start":"cue:c_dix","end":"cue_end:c_dix","role":"result","part":"r2c3"}
+DIT (cinq) : À gauche, l'oxygène est seul dans O deux : chaque molécule apporte deux atomes. Cinq fois deux, dix. Cinq devant O deux, et le compte tombe pile.
+    transform eq4 @cue:c_seul {"source":"eq3"}
+    write verif @cue:c_cinq {"part":"g"}
+    write verif @after:w_g {"part":"e"}
+    highlight eq4 @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "On change les coefficients, jamais les indices." 
+  OBJET final [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+  GROUPE recap = final, idee
+DIT (retien) : À retenir : compte chaque élément, équilibre le carbone puis l'hydrogène, et garde l'oxygène pour la fin parce qu'il est seul dans O deux.
+    fade_out tab @cue:c_retien 
+    fade_out eq4 @cue:c_retien 
+    fade_out verif @cue:c_retien 
+    show final @cue:c_fin 
+    show idee @cue:c_fin 
+    camera.focus  @cue:c_fin {"targets":["recap"],"bounds":"layout_bounds"}
+--- 4 tranches, 192 mots dits (≈ 1.3 min d'oral)

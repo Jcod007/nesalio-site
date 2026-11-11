@@ -8,8 +8,10 @@
  *
  * Tout est déterministe et général : aucune règle propre à une notion.
  */
+import { collisions, type Collision } from "@/domain/board/collisions";
 import { resolveTargets, type BoardState } from "@/domain/board/state";
 import type { Step } from "@/domain/scene/schema";
+import { stepActions, stepText } from "@/domain/scene/stepAccess";
 
 /** Commandes qui montrent un changement sous les yeux de l'élève. */
 export const GESTURE_COMMANDS: ReadonlySet<string> = new Set(["move", "copy", "rotate", "transform", "applyMatrix"]);
@@ -60,6 +62,8 @@ export interface TurnReview {
   missingTargets: string[];
   /** Phrases qui annoncent une action sans rien montrer, avec le mot en cause. */
   unshown: Array<{ say: string; word: string }>;
+  /** Premier chevauchement entre deux textes encore visibles en fin de tour. */
+  textOverlap?: Collision;
   /** Phrases de plus de 22 mots (une idée par phrase). */
   longSentences: number;
 }
@@ -72,23 +76,24 @@ export function reviewTurn(steps: readonly Step[], board: BoardState): TurnRevie
   let longSentences = 0;
   let previousShowed = false;
   for (const step of steps) {
-    const types = (step.do ?? []).map((a) => a.type);
+    const types = stepActions(step).map((a) => a.type);
     const shows = types.some((t) => SHOWING_COMMANDS.has(t));
     // Seul un vrai geste (ou une aire, un parcours) couvre la phrase suivante ; une mise en évidence, non.
     const changes = types.some((t) => SHOWING_COMMANDS.has(t) && t !== "highlight");
     gestures += types.filter((t) => GESTURE_COMMANDS.has(t)).length;
-    for (const action of step.do ?? []) {
+    for (const action of stepActions(step)) {
       if ("target" in action && typeof action.target === "string" && !(action.target in board.nodes) && resolveTargets(board, action.target).length === 0) {
         missing.add(action.target);
       }
     }
     // Une phrase qui commente le geste de l'étape précédente (« tu vois, il s'est étiré ») est couverte.
-    const word = actionWord(step.say);
-    if (word && !shows && !previousShowed) unshown.push({ say: step.say.slice(0, 120), word });
+    const word = actionWord(stepText(step));
+    if (word && !shows && !previousShowed) unshown.push({ say: stepText(step).slice(0, 120), word });
     previousShowed = changes;
-    if (step.say.trim().split(/\s+/).length > 22) longSentences++;
+    if (stepText(step).trim().split(/\s+/).length > 22) longSentences++;
   }
-  return { steps: steps.length, gestures, missingTargets: [...missing], unshown, longSentences };
+  const textOverlap = collisions(board).find((collision) => collision.kind === "texte");
+  return { steps: steps.length, gestures, missingTargets: [...missing], unshown, textOverlap, longSentences };
 }
 
 /** Le retour donné au modèle au début du tour suivant (vide si le tour était propre). */
@@ -100,10 +105,14 @@ export function reviewNotes(review: TurnReview, rejected: readonly string[] = []
   for (const { say, word } of review.unshown.slice(0, 2)) {
     notes.push(`Tu as dit « ${say} » (« ${word} ») sans le montrer : fais-le au tableau (move, rotate, transform, applyMatrix, area).`);
   }
-  if (review.gestures === 0 && review.steps >= 3) notes.push("Aucun objet n'a bougé ni changé de forme : montre au moins un geste dans ce tour.");
   if (review.missingTargets.length > 0) {
     notes.push(`Tu as désigné ${review.missingTargets.slice(0, 4).join(", ")}, absent(s) du tableau : dessine un objet avant d'en parler.`);
   }
-  if (review.longSentences > 0) notes.push(`${review.longSentences} phrase(s) trop longue(s) : une idée par phrase, 20 mots au plus.`);
+  if (review.textOverlap) {
+    const { a, b } = review.textOverlap;
+    notes.push(`Les textes « ${a} » et « ${b} » se chevauchent au tableau. Sépare-les pour les rendre lisibles.`);
+  }
+  if (review.longSentences > 0)
+    notes.push(`${review.longSentences} phrase(s) chargée(s) : découpe les idées sans supprimer les définitions ni les raisons nécessaires.`);
   return notes.slice(0, 4).map((n) => n.slice(0, 240));
 }

@@ -1,0 +1,84 @@
+QUESTION (proba-conditionnelle, mathematiques, sec 5, sens) : pourquoi dans une probabilité conditionnelle on divise par P(B)? je comprends pas d'où ça sort
+RÉPONSE DE RÉFÉRENCE : P(A|B) = P(A∩B)/P(B), avec P(B) ≠ 0 ; exemple du dé (A pair, B > 3) : 2/3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. savoir que B s'est réalisé réduit l'univers à B, d'où la division par P(B)
+  2. P(A|B) = P(A∩B)/P(B) = part de B où A est aussi vrai, avec P(B) ≠ 0
+  3. exemple mené au résultat (dé : A pair, B > 3, P(A|B) = 2/3 = (2/6)/(3/6))
+  4. diagramme de Venn ou tableau à double entrée où l'univers rétrécit à B
+  5. P(A|B) distinguée de P(A∩B) et de P(B|A)
+ERREURS GRAVES À CHERCHER : figure dont les aires contredisent les probabilités dites ; confusion P(A|B) et P(A∩B)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi diviser par P(B) en probabilité conditionnelle
+=== Tranche s_univers
+  OBJET univ [polygon] {"vertices":[[0,0],[6,0],[6,1],[0,1]]} 
+  OBJET b_zone [polygon] {"vertices":[[3,0],[6,0],[6,1],[3,1]]} 
+  OBJET a_b_zone [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET ticks [matrix] {"rows":[["1","2","3","4","5","6"]],"row_labels":["résultat du dé"]} 
+  OBJET b_note [text] "B : résultats 4, 5, 6" 
+  OBJET ab_note [text] "A et B : résultats 4 et 6" 
+  GROUPE notes = b_note, ab_note
+DIT (intuition) : Imagine un dé équilibré : chaque résultat de un à six a la même chance. La condition B, « obtenir plus que trois », garde seulement quatre, cinq et six.
+    draw univ @cue:de 
+    draw b_zone @cue:condition 
+    show ticks @cue:garde 
+    show b_note @cue:garde 
+DIT (reduire) : Les six cases représentent tout l'univers de départ. Une fois B connu, les trois cases de B deviennent notre nouvel univers; les autres ne comptent plus.
+    highlight univ @- {"start":"cue:six_cases","end":"cue_end:trois_cases","role":"neutral"}
+    dim univ @cue:autres 
+=== Tranche s_part
+  OBJET a_zone [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET a_label [text] "A : résultat pair" 
+  OBJET part_b [math] "P(A | B) = \\frac{\\text{cas dans A et B}}{\\text{cas dans B}}" parts=P(A | B) | = | \frac{\text{cas dans A et B}}{\text{cas dans B}}
+  OBJET formule [math] "P(A | B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A | B) | = | \frac{P(A \cap B)}{P(B)}   <<JAMAIS MONTRÉ>>
+DIT (intersection) : Ici, A signifie « obtenir un nombre pair ». Dans B, A est vrai pour quatre et six : ce sont deux résultats sur les trois gardés.
+    draw a_zone @cue:pair 
+    show a_label @cue:pair 
+    draw a_b_zone @cue:deux 
+    show ab_note @cue:deux 
+DIT (sens) : La probabilité conditionnelle est donc la part de B où A est aussi vrai. On compte deux cases favorables parmi les trois cases de B.
+    write part_b @cue:sens_part {"part":"conditionnelle"}
+    write part_b @cue:sens_part {"part":"egal"}
+    write part_b @cue:deux_cases {"part":"fraction"}
+DIT (pourquoi) : En général, il faut que P(B) ne soit pas zéro, sinon B ne peut pas servir de nouvel univers. La probabilité de B mesure la taille de cet univers dans le départ.
+    dim ticks @cue:condition 
+    highlight b_zone @- {"start":"cue:taille","end":"cue_end:taille","role":"given"}
+=== Tranche s_calcul
+  OBJET calcul [math] "P(A | B) = \\frac{2}{3}" parts=P(A | B) | = | \frac{2}{3}
+  OBJET quotient_probs [math] "\\frac{P(A \\cap B)}{P(B)} = \\frac{2/6}{3/6} = \\frac{2}{3}" parts=\frac{P(A \cap B)}{P(B)} | = | \frac{2/6}{3/6} | = \frac{2}{3}
+  OBJET compare [math] "P(A \\cap B)=\\frac{2}{6}\\qquad P(B)=\\frac{3}{6}\\qquad P(A | B)=\\frac{2}{3}" parts=P(A \cap B)=\frac{2}{6} | \qquad P(B)=\frac{3}{6} | \qquad P(A | B)=\frac{2}{3}
+DIT (calcul_part) : On obtient donc deux tiers : deux résultats sur les trois qui restent possibles quand B est connu.
+    write calcul @cue:deux_tiers {"part":"calc_gauche"}
+    write calcul @cue:deux_tiers {"part":"calc_egal"}
+    write calcul @cue:restent {"part":"calc_resultat"}
+    highlight a_b_zone @- {"start":"cue:deux_tiers","end":"cue_end:restent","role":"result"}
+DIT (division) : Et voilà d’où vient la division par P(B) : on compare la part A et B, deux sur six, à tout B, trois sur six. Les sixièmes se simplifient, il reste deux tiers.
+    write quotient_probs @cue:origine {"part":"ratio"}
+    write quotient_probs @cue:part {"part":"ratio_egal"}
+    write quotient_probs @cue:tout_b {"part":"ratio_numerique"}
+    write quotient_probs @cue:simplifient {"part":"ratio_final"}
+    highlight quotient_probs @- {"start":"cue:tout_b","end":"cue_end:simplifient","role":"accent","part":"ratio_numerique"}
+DIT (distinction) : Attention, P de A intersection B est deux sur six dans tout l’univers, tandis que P de A sachant B est deux tiers dans B seulement : le dénominateur change avec l’univers choisi.
+    write compare @cue:intersection {"part":"compare_ab"}
+    write compare @cue:denominateur {"part":"compare_b"}
+    write compare @cue:sachant {"part":"compare_cond"}
+    highlight compare @- {"start":"cue:sachant","end":"cue_end:denominateur","role":"accent","part":"compare_cond"}
+    fade_out ticks @cue:denominateur 
+    fade_out b_note @cue:denominateur 
+    fade_out a_label @cue:denominateur 
+    fade_out ab_note @cue:denominateur 
+    fade_out part_b @cue:denominateur 
+    fade_out univ @cue:denominateur 
+    fade_out b_zone @cue:denominateur 
+    fade_out a_zone @cue:denominateur 
+    fade_out a_b_zone @cue:denominateur 
+=== Tranche s_retenir
+  OBJET resume_idee [text] "B devient le nouvel univers" 
+  OBJET resume_formule [math] "P(A \\mid B)=\\frac{P(A\\cap B)}{P(B)}" 
+  OBJET resume_exemple [math] "P(A \\mid B)=\\frac{2}{3}" 
+DIT (resume) : À retenir : connaître B réduit l’univers à B. On divise par P(B) parce qu’on cherche quelle part de cet univers vérifie aussi A.
+    write resume_idee @cue:reduit 
+    write resume_formule @cue:divise 
+    write resume_exemple @cue:divise 
+    highlight resume_formule @- {"start":"cue:divise","end":"cue_end:divise","role":"result"}
+--- 4 tranches, 248 mots dits (≈ 1.7 min d'oral)

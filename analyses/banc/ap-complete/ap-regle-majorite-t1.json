@@ -1,0 +1,778 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "regle_majorite",
+  "title": "Règle de la majorité : diviser par 2, ou (diviser par 2) + 1 ?",
+  "language": "fr",
+  "learning_goal": "Distinguer la majorité absolue (plus de la moitié : diviser par 2, puis prendre l'entier suivant) de la demi-majorité (la moitié exacte), et savoir choisir la bonne dans un vote."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "n": {
+     "kind": "parameter",
+     "initial": 100,
+     "min": 4,
+     "max": 200
+    }
+   },
+   "expressions": {
+    "moitie": "n/2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Quand faut-il « la moitié » et quand « la moitié + 1 » ?",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accroche",
+     "say": "Bonne question : les deux existent, mais ils ne veulent pas dire la même chose.",
+     "cues": [
+      {
+       "id": "chose",
+       "text": "la même chose"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      }
+     ]
+    },
+    {
+     "id": "plan",
+     "say": "Je vais comparer deux idées : avoir plus que la moitié, ou avoir exactement la moitié.",
+     "cues": [
+      {
+       "id": "plus",
+       "text": "plus que la moitié"
+      },
+      {
+       "id": "exact",
+       "text": "exactement la moitié"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_titre",
+       "verb": "highlight",
+       "start": "cue:plus",
+       "end": "cue_end:exact",
+       "target": "titre",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "seuil",
+     "content": "\\frac{100}{2} = 50",
+     "parts": [
+      {
+       "id": "frac",
+       "text": "\\frac{100}{2}"
+      },
+      {
+       "id": "res",
+       "text": "= 50"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "absolue",
+     "layout": {
+      "next_to": "seuil",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "50 + 1 = 51",
+     "parts": [
+      {
+       "id": "cinquante",
+       "text": "50"
+      },
+      {
+       "id": "plusun",
+       "text": "+ 1"
+      },
+      {
+       "id": "cinquanteun",
+       "text": "= 51"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "demi",
+     "layout": {
+      "next_to": "absolue",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Demi-majorité : 50 voix",
+     "type": "text"
+    },
+    {
+     "id": "absolue_nom",
+     "layout": {
+      "next_to": "demi",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "Majorité absolue : 51 voix",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul",
+     "say": "Prenons une assemblée de cent personnes. La moitié, c'est cent divisé par deux, donc cinquante.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "La moitié"
+      },
+      {
+       "id": "c_divise",
+       "text": "cent divisé par deux"
+      },
+      {
+       "id": "c_cinquante",
+       "text": "cinquante"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_moitie",
+       "target": "seuil",
+       "part": "frac"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_cinquante",
+       "target": "seuil",
+       "part": "res"
+      }
+     ]
+    },
+    {
+     "id": "exact",
+     "say": "Cinquante, c'est exactement la moitié des voix : ça suffit pour la demi-majorité, qui demande au moins la moitié.",
+     "cues": [
+      {
+       "id": "c_exact",
+       "text": "exactement la moitié"
+      },
+      {
+       "id": "c_demi",
+       "text": "demi-majorité"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_demi",
+       "verb": "show",
+       "at": "cue:c_demi",
+       "target": "demi"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "plus",
+     "say": "Pour la majorité absolue, il faut strictement plus que la moitié. Comme les voix sont entières, la première quantité qui dépasse cinquante, c'est cinquante et un.",
+     "cues": [
+      {
+       "id": "c_plus",
+       "text": "strictement plus que la moitié"
+      },
+      {
+       "id": "c_cinquanteun",
+       "text": "cinquante et un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cinquante",
+       "verb": "write",
+       "at": "cue:c_plus",
+       "target": "absolue",
+       "part": "cinquante"
+      },
+      {
+       "id": "w_plusun",
+       "verb": "write",
+       "at": "cue:c_cinquanteun",
+       "target": "absolue",
+       "part": "plusun"
+      },
+      {
+       "id": "w_cinquanteun",
+       "verb": "write",
+       "at": "after:w_plusun",
+       "target": "absolue",
+       "part": "cinquanteun"
+      },
+      {
+       "id": "s_absolue_nom",
+       "verb": "show",
+       "at": "after:w_cinquanteun",
+       "target": "absolue_nom"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_montre",
+   "introduces": [
+    {
+     "id": "n",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "moitie",
+      "template": "n = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "n2",
+     "content": "n = 101",
+     "type": "math"
+    },
+    {
+     "id": "seuil2",
+     "content": "\\frac{101}{2} = 50{,}5",
+     "parts": [
+      {
+       "id": "frac2",
+       "text": "\\frac{101}{2}"
+      },
+      {
+       "id": "res2",
+       "text": "= 50{,}5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "abs2",
+     "content": "50 + 1 = 51",
+     "parts": [
+      {
+       "id": "cinq",
+       "text": "50"
+      },
+      {
+       "id": "un",
+       "text": "+ 1"
+      },
+      {
+       "id": "un_un",
+       "text": "= 51"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "paire",
+     "say": "Regarde le cas d'une assemblée dont le nombre est pair : toute la troupe avant, le total valait cent, et la moitié tombait juste sur cinquante.",
+     "cues": [
+      {
+       "id": "c_pair",
+       "text": "le nombre est pair"
+      },
+      {
+       "id": "c_juste",
+       "text": "tombait juste"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_seuil",
+       "verb": "dim",
+       "at": "cue:c_pair",
+       "target": "seuil"
+      },
+      {
+       "id": "dim_demi",
+       "verb": "dim",
+       "at": "cue:c_pair",
+       "target": "demi"
+      },
+      {
+       "id": "dim_nom",
+       "verb": "dim",
+       "at": "cue:c_pair",
+       "target": "absolue_nom"
+      },
+      {
+       "id": "dim_abs",
+       "verb": "dim",
+       "at": "cue:c_pair",
+       "target": "absolue"
+      }
+     ]
+    },
+    {
+     "id": "impaire",
+     "say": "Maintenant onze cents moins un, c'est-à-dire cent un votants : la moitié donne cinquante et un dixièmes, un nombre à virgule.",
+     "cues": [
+      {
+       "id": "c_impaire",
+       "text": "cent un votants"
+      },
+      {
+       "id": "c_virgule",
+       "text": "cinquante et un dixièmes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n2",
+       "verb": "write",
+       "at": "cue:c_impaire",
+       "target": "n2"
+      },
+      {
+       "id": "w_frac2",
+       "verb": "write",
+       "at": "cue:c_virgule",
+       "target": "seuil2",
+       "part": "frac2"
+      },
+      {
+       "id": "w_res2",
+       "verb": "write",
+       "at": "after:w_frac2",
+       "target": "seuil2",
+       "part": "res2"
+      }
+     ]
+    },
+    {
+     "id": "entier",
+     "say": "Comme on ne peut pas avoir une demi-voix, la première majorité entière plus grande que cinquante et un dixièmes, c'est cinquante et un.",
+     "cues": [
+      {
+       "id": "c_premier",
+       "text": "première majorité entière"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cinq",
+       "verb": "write",
+       "at": "cue:c_premier",
+       "target": "abs2",
+       "part": "cinq"
+      },
+      {
+       "id": "w_un",
+       "verb": "write",
+       "at": "after:w_cinq",
+       "target": "abs2",
+       "part": "un"
+      },
+      {
+       "id": "w_unun",
+       "verb": "write",
+       "at": "after:w_un",
+       "target": "abs2",
+       "part": "un_un"
+      },
+      {
+       "id": "h_abs2",
+       "verb": "highlight",
+       "at": "after:w_unun",
+       "target": "abs2",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_piege",
+   "introduces": [
+    {
+     "id": "piege",
+     "content": "Attention : 50 voix = un vote sur deux, mais pas plus de la moitié.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reflexe",
+     "say": "Attention au piège : dans une assemblée de cent, atteindre la moitié ne veut pas dire dépasser la moitié.",
+     "cues": [
+      {
+       "id": "c_piege",
+       "text": "piège"
+      },
+      {
+       "id": "c_depasser",
+       "text": "dépasser la moitié"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_piege",
+       "verb": "show",
+       "at": "cue:c_piege",
+       "target": "piege"
+      },
+      {
+       "id": "h_seuil",
+       "verb": "highlight",
+       "start": "cue:c_depasser",
+       "end": "cue_end:c_depasser",
+       "target": "seuil",
+       "role": "secondary",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "\\text{demi-majorit\\'e} \\ge \\frac{n}{2} \\qquad \\text{majorit\\'e absolue} > \\frac{n}{2}",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "content": "Plus de la moitié : on divise par 2, puis on prend l'entier suivant.",
+     "type": "text"
+    },
+    {
+     "id": "gr",
+     "content": "Demi-majorité : on divise par 2, la moitié exacte suffit.",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "tout",
+     "items": [
+      "regle",
+      "idee",
+      "gr"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retiens",
+     "say": "À retenir : diviser par deux donne le point de comparaison, et non le seuil de la majorité absolue.",
+     "cues": [
+      {
+       "id": "c_retiens",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_diviser",
+       "text": "diviser par deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_titre",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "f_seuil",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "seuil"
+      },
+      {
+       "id": "f_abs",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "absolue"
+      },
+      {
+       "id": "f_demi",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "demi"
+      },
+      {
+       "id": "f_nom",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "absolue_nom"
+      },
+      {
+       "id": "f_n2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "n2"
+      },
+      {
+       "id": "f_seuil2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "seuil2"
+      },
+      {
+       "id": "f_abs2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "abs2"
+      },
+      {
+       "id": "f_piege",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "piege"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_diviser",
+       "target": "regle"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "after:s_regle",
+       "target": "idee"
+      },
+      {
+       "id": "s_gr",
+       "verb": "show",
+       "at": "after:s_idee",
+       "target": "gr"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

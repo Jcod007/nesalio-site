@@ -1,0 +1,96 @@
+QUESTION (derivee, mathematiques, sec 5, sens) : C'est quoi une dérivée, concrètement ?
+RÉPONSE DE RÉFÉRENCE : Le taux de variation instantané : la pente de la tangente, limite des pentes des sécantes.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. taux de variation moyen = pente d'une sécante
+  2. on rapproche le second point : la sécante tend vers la tangente
+  3. dérivée = taux de variation instantané = pente de la tangente
+  4. exemple chiffré mené au résultat (ex. f(x) = x², pente 2 en x = 1)
+  5. interprétation concrète (vitesse instantanée)
+ERREURS GRAVES À CHERCHER : tangente de mauvaise pente ; sécante qui ne passe pas par les points annoncés
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Ce que mesure une dérivée en un point
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{}}
+=== Tranche s_pente
+  OBJET axes [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-1,3]} 
+  OBJET A [point] {"at":[1,1]} 
+  OBJET A_label [label] "A(1 ; 1)" attaché à A
+  OBJET P [point] {"at":[3,9]} 
+  OBJET P_label [label] "P(3 ; 9)" attaché à P
+  OBJET secante [line] {"from":[1,1],"to":[3,9]} 
+  OBJET avance [line] {"from":[1,0],"to":[3,0]} 
+  OBJET montee [line] {"from":[3,1],"to":[3,9]} 
+  OBJET avance_label [label] "avancée : 2" attaché à avance
+  OBJET montee_label [label] "montée : 8" attaché à montee
+DIT (concret) : Concrètement, une dérivée dit à quel rythme une quantité change à un instant précis.
+    show axes @beat:start 
+    draw courbe @- {"start":"cue:rythme","end":"cue_end:instant"}
+DIT (pente) : Sur ce dessin, on suit la fonction x au carré et on compare les points A et P de sa courbe.
+    show A @cue:points 
+    show A_label @cue:points 
+    show P @cue:points 
+    show P_label @cue:points 
+=== Tranche s_secante
+  OBJET formule_pente [math] "\\frac{\\text{montée}}{\\text{avancée}} = \\frac{8}{2} = 4" parts=\frac{\text{montée}}{\text{avancée}} | = \frac{8}{2} | = 4
+  OBJET note_taux [text] "Taux de variation moyen entre A et P" 
+DIT (secante) : La sécante relie A à P. Elle monte de huit pendant une avancée de deux : la pente, c'est montée divisée par avancée.
+    draw secante @cue:relie 
+    draw avance @cue:monte 
+    draw montee @cue:monte 
+    show avance_label @cue:avance 
+    show montee_label @cue:monte 
+    write formule_pente @cue:pente_mot {"part":"quotient_mots"}
+    write formule_pente @cue:avance {"part":"calcul"}
+    write formule_pente @cue:avance {"part":"resultat"}
+DIT (moyenne) : Ici, la montée vaut neuf moins un, et l'avancée vaut trois moins un : le taux de variation moyen est donc quatre.
+    show note_taux @cue:taux 
+    highlight formule_pente @- {"start":"cue:quatre","end":"cue_end:quatre","role":"accent","part":"resultat"}
+=== Tranche s_limite
+  OBJET secante_q [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-1,4]} 
+  OBJET P2 [point] {"at":[2,4]} 
+  OBJET P2_label [label] "P(2 ; 4)" attaché à P2
+  OBJET P15 [point] {"at":[1.5,2.25]} 
+  OBJET P15_label [label] "P(1,5 ; 2,25)" attaché à P15
+  OBJET tangente [function_graph] {"expression":"2*x-1","domain":[-1,4]} 
+  OBJET pente3 [math] "\\frac{9-1}{3-1}=4" parts=\frac{9-1}{3-1} | =4
+  OBJET pente2 [math] "\\frac{4-1}{2-1}=3" parts=\frac{4-1}{2-1} | =3
+  OBJET pente15 [math] "\\frac{2.25-1}{1.5-1}=2.5" parts=\frac{2.25-1}{1.5-1} | =2.5
+  OBJET pente_limite [math] "f'(1)=\\lim_{q\\to1}\\frac{q^2-1}{q-1}=2" parts=f'(1) | =\lim_{q\to1}\frac{q^2-1}{q-1} | =2
+  OBJET tangente_eq [math] "y=2x-1" 
+DIT (rapproche) : Quand P se rapproche de A, la sécante pivote et sa pente passe de quatre vers deux.
+    dim secante @cue:approche 
+    draw secante_q @- {"start":"cue:approche","end":"cue_end:pivote"}
+    animate_parameter  @- {"start":"cue:approche","end":"cue_end:deux","parameter":"q","from":3,"to":1}
+    show P2 @cue:pivote 
+    show P2_label @cue:pivote 
+    write pente3 @cue:approche {"part":"fraction3"}
+    write pente3 @cue:deux {"part":"egal3"}
+DIT (nombres) : À x égal trois, la pente moyenne vaut quatre ; à x égal deux, elle vaut trois ; à un virgule cinq, elle vaut deux virgule cinq.
+    highlight pente3 @- {"start":"cue:trois","end":"cue_end:trois","role":"accent"}
+    write pente2 @cue:deux_point {"part":"fraction2"}
+    write pente2 @cue:deux_point {"part":"egal2"}
+    write pente15 @cue:un_cinq {"part":"fraction15"}
+    write pente15 @cue:un_cinq {"part":"egal15"}
+    show P15 @cue:un_cinq 
+    show P15_label @cue:un_cinq 
+DIT (limite) : La pente se rapproche de deux : cette limite est la dérivée en un, et la tangente a pour équation y égale deux x moins un.
+    write pente_limite @cue:derivee_mot {"part":"deriv_def"}
+    write pente_limite @cue:limite_mot {"part":"limite_expr"}
+    write pente_limite @cue:derivee_mot {"part":"limite_val"}
+    draw tangente @- {"start":"cue:tangente_mot","end":"cue_end:equation"}
+    write tangente_eq @cue:equation 
+    fade_out note_taux @cue:limite_mot 
+    fade_out avance @cue:limite_mot 
+    fade_out montee @cue:limite_mot 
+=== Tranche s_retenir
+  OBJET idee_finale [text] "La dérivée en un point = la pente de la tangente = la limite des pentes des sécantes." 
+  OBJET formule_finale [math] "f'(1)=2" 
+  OBJET taux_final [text] "Taux de variation instantané" 
+  GROUPE resume = idee_finale, formule_finale, taux_final
+DIT (idee) : À retenir : la dérivée est le taux de variation instantané, c'est la pente de la tangente et la limite des pentes des sécantes.
+    show idee_finale @cue:derivee 
+    show formule_finale @cue:tangente 
+    show taux_final @cue:limite 
+    camera.focus  @cue:retenir {"targets":["idee_finale","formule_finale","taux_final"],"bounds":"layout_bounds"}
+--- 4 tranches, 174 mots dits (≈ 1.2 min d'oral)

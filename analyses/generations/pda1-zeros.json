@@ -1,0 +1,917 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "zeros_canonique",
+  "title": "Trouver les zéros de f(x) = −(x − 2)² + 3",
+  "language": "fr",
+  "learning_goal": "Résoudre f(x) = 0 pour une fonction sous forme canonique, en isolant le carré, en prenant la racine des deux côtés, et en donnant les deux zéros exacts et arrondis, lus aussi sur le graphique."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "f",
+     "content": "f(x) = -(x-2)^2 + 3",
+     "type": "math"
+    },
+    {
+     "id": "obj",
+     "attachment": {
+      "parent": "f",
+      "anchor": "right"
+     },
+     "content": "on cherche f(x) = 0",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "bonjour",
+     "say": "Chercher les zéros d'une fonction, c'est trouver les valeurs de x pour lesquelles la sortie vaut zéro.",
+     "cues": [
+      {
+       "id": "c_zeros",
+       "text": "les zéros"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_f",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "f"
+      },
+      {
+       "id": "h_zero",
+       "verb": "highlight",
+       "at": "cue:c_zeros",
+       "target": "obj",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "posons",
+     "say": "On pose donc l'équation : moins, parenthèse x moins deux, au carré, plus trois, égale zéro.",
+     "cues": [
+      {
+       "id": "c_equation",
+       "text": "l'équation"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_obj",
+       "verb": "show",
+       "at": "cue:c_equation",
+       "target": "obj"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isole",
+   "introduces": [
+    {
+     "id": "e1",
+     "content": "-(x-2)^2 + 3 = 0",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "-(x-2)^2 + 3"
+      },
+      {
+       "id": "droite",
+       "text": "= 0"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "e2",
+     "content": "-(x-2)^2 = -3",
+     "parts": [
+      {
+       "id": "g2",
+       "text": "-(x-2)^2"
+      },
+      {
+       "id": "d2",
+       "text": "= -3"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "e3",
+     "content": "(x-2)^2 = 3",
+     "parts": [
+      {
+       "id": "carre",
+       "text": "(x-2)^2"
+      },
+      {
+       "id": "trois",
+       "text": "= 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Écrivons l'équation en entier : moins, x moins deux, au carré, plus trois, égale zéro.",
+     "cues": [
+      {
+       "id": "c_moins",
+       "text": "moins"
+      },
+      {
+       "id": "c_zero",
+       "text": "égale zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_f",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "f"
+      },
+      {
+       "id": "f_obj",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "obj"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_moins",
+       "target": "e1",
+       "part": "gauche"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_zero",
+       "target": "e1",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "enleve",
+     "say": "J'enlève trois des deux côtés pour garder l'égalité : il reste moins, x moins deux, au carré, égale moins trois.",
+     "cues": [
+      {
+       "id": "c_enleve",
+       "text": "J'enlève trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t1",
+       "verb": "transform",
+       "at": "cue:c_enleve",
+       "source": "e1",
+       "target": "e2"
+      }
+     ]
+    },
+    {
+     "id": "divise",
+     "say": "Maintenant je divise les deux côtés par moins un, et j'obtiens x moins deux, au carré, égale trois.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "je divise"
+      },
+      {
+       "id": "c_trois",
+       "text": "égale trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "t2",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "e2",
+       "target": "e3"
+      },
+      {
+       "id": "h_carre",
+       "verb": "highlight",
+       "at": "cue:c_trois",
+       "target": "e3",
+       "part": "carre"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_racines",
+   "introduces": [
+    {
+     "id": "e4",
+     "content": "x-2 = \\sqrt{3} \\quad \\text{ou} \\quad x-2 = -\\sqrt{3}",
+     "parts": [
+      {
+       "id": "un",
+       "text": "x-2 = \\sqrt{3}"
+      },
+      {
+       "id": "ou1",
+       "text": "\\quad \\text{ou} \\quad"
+      },
+      {
+       "id": "deux",
+       "text": "x-2 = -\\sqrt{3}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "e5",
+     "content": "x = 2 + \\sqrt{3} \\quad \\text{ou} \\quad x = 2 - \\sqrt{3}",
+     "parts": [
+      {
+       "id": "un2",
+       "text": "x = 2 + \\sqrt{3}"
+      },
+      {
+       "id": "ou2",
+       "text": "\\quad \\text{ou} \\quad"
+      },
+      {
+       "id": "deux2",
+       "text": "x = 2 - \\sqrt{3}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "e6",
+     "content": "x \\approx 3{,}732 \\quad \\text{ou} \\quad x \\approx 0{,}268",
+     "parts": [
+      {
+       "id": "un3",
+       "text": "x \\approx 3{,}732"
+      },
+      {
+       "id": "ou3",
+       "text": "\\quad \\text{ou} \\quad"
+      },
+      {
+       "id": "deux3",
+       "text": "x \\approx 0{,}268"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "racine",
+     "say": "Un carré égal à trois : je prends la racine des deux côtés. Mais attention, il y a deux nombres dont le carré vaut trois : racine de trois, et moins racine de trois.",
+     "cues": [
+      {
+       "id": "c_carre",
+       "text": "Un carré égal à trois"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux nombres"
+      },
+      {
+       "id": "c_moins",
+       "text": "moins racine de trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_un",
+       "verb": "write",
+       "at": "cue:c_carre",
+       "target": "e4",
+       "part": "un"
+      },
+      {
+       "id": "w_ou1",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "e4",
+       "part": "ou1"
+      },
+      {
+       "id": "w_deux",
+       "verb": "write",
+       "at": "cue:c_moins",
+       "target": "e4",
+       "part": "deux"
+      }
+     ]
+    },
+    {
+     "id": "isolex",
+     "say": "J'ajoute deux des deux côtés : x égale deux plus racine de trois, ou x égale deux moins racine de trois.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "J'ajoute deux"
+      },
+      {
+       "id": "c_ou",
+       "text": "ou x égale deux moins"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_e3",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "e3"
+      },
+      {
+       "id": "t3",
+       "verb": "transform",
+       "at": "cue:c_ajoute",
+       "source": "e4",
+       "target": "e5"
+      }
+     ]
+    },
+    {
+     "id": "arrondi",
+     "say": "En arrondissant au millième : x environ trois virgule sept cent trente-deux, ou x environ zéro virgule deux cent soixante-huit.",
+     "cues": [
+      {
+       "id": "c_arrondi",
+       "text": "En arrondissant"
+      },
+      {
+       "id": "c_ou2",
+       "text": "ou x environ zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_e5",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "e5"
+      },
+      {
+       "id": "w_e6",
+       "verb": "write",
+       "at": "cue:c_arrondi",
+       "target": "e6"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_graphe",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -2,
+       6
+      ],
+      "y": [
+       -2,
+       4
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "-(x-2)^2 + 3",
+      "domain": [
+       -0.2,
+       4.2
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "sommet",
+     "frame": "axes",
+     "params": {
+      "at": [
+       2,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "et_s",
+     "attachment": {
+      "parent": "sommet",
+      "anchor": "top"
+     },
+     "content": "S(2 ; 3)",
+     "type": "label"
+    },
+    {
+     "id": "z1",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       3.732,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "et_z1",
+     "attachment": {
+      "parent": "z1",
+      "anchor": "bottom"
+     },
+     "content": "x ≈ 3,732",
+     "type": "label"
+    },
+    {
+     "id": "z2",
+     "style": {
+      "role": "result"
+     },
+     "frame": "axes",
+     "params": {
+      "at": [
+       0.268,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "et_z2",
+     "attachment": {
+      "parent": "z2",
+      "anchor": "bottom"
+     },
+     "content": "x ≈ 0,268",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Traçons la courbe : son sommet est à deux, trois, et elle descend vers le bas en forme de cloche.",
+     "cues": [
+      {
+       "id": "c_trace",
+       "text": "Traçons la courbe"
+      },
+      {
+       "id": "c_sommet",
+       "text": "sommet est à deux, trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_e6",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "e6"
+      },
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes",
+        "courbe",
+        "sommet"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_graphe"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_trace",
+       "end": "cue_end:c_sommet",
+       "target": "courbe"
+      },
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "sommet"
+      }
+     ]
+    },
+    {
+     "id": "point_z1",
+     "say": "Le premier zéro est à x environ trois virgule sept cent trente-deux : c'est là que la courbe coupe l'axe des x.",
+     "cues": [
+      {
+       "id": "c_premier",
+       "text": "premier zéro"
+      },
+      {
+       "id": "c_coupe",
+       "text": "coupe l'axe des x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_z1",
+       "verb": "show",
+       "at": "cue:c_premier",
+       "target": "z1"
+      },
+      {
+       "id": "s_et_z1",
+       "verb": "show",
+       "at": "cue:c_coupe",
+       "target": "et_z1"
+      }
+     ]
+    },
+    {
+     "id": "point_z2",
+     "say": "Le second zéro est à x environ zéro virgule deux cent soixante-huit, de l'autre côté du sommet.",
+     "cues": [
+      {
+       "id": "c_second",
+       "text": "second zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_z2",
+       "verb": "show",
+       "at": "cue:c_second",
+       "target": "z2"
+      },
+      {
+       "id": "s_et_z2",
+       "verb": "show",
+       "at": "after:s_z2",
+       "target": "et_z2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "(x-2)^2 = 3 \\;\\Rightarrow\\; x = 2 \\pm \\sqrt{3}",
+     "type": "math"
+    },
+    {
+     "id": "res",
+     "content": "x \\approx 3{,}732 \\;\\text{ ou }\\; x \\approx 0{,}268",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "final",
+     "items": [
+      "regle",
+      "res"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : les zéros sont les x qui annulent la fonction, donc là où la courbe touche l'axe des x.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_touche",
+       "text": "touche l'axe des x"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "f_courbe",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "courbe"
+      },
+      {
+       "id": "f_sommet",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sommet"
+      },
+      {
+       "id": "f_et_s",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "et_s"
+      },
+      {
+       "id": "f_z1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "z1"
+      },
+      {
+       "id": "f_et_z1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "et_z1"
+      },
+      {
+       "id": "f_z2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "z2"
+      },
+      {
+       "id": "f_et_z2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "et_z2"
+      },
+      {
+       "id": "cam",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "regle",
+        "res"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_touche",
+       "target": "regle"
+      }
+     ]
+    },
+    {
+     "id": "valeurs",
+     "say": "Pour f de x égale moins, x moins deux, au carré, plus trois, on trouve x environ trois virgule sept cent trente-deux ou x environ zéro virgule deux cent soixante-huit.",
+     "cues": [
+      {
+       "id": "c_valeurs",
+       "text": "trois virgule sept cent trente-deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_valeurs",
+       "target": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "res",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

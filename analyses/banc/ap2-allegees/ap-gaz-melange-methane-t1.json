@@ -1,0 +1,759 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "gaz_melange_pression_totale",
+  "title": "Pression totale d'un mélange N₂ et CH₄",
+  "language": "fr",
+  "learning_goal": "Comprendre pourquoi m(CH₄) = 22,55 % de 110,0 g, puis calculer la pression totale avec pV = nRT."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "m_tot": {
+     "kind": "constant",
+     "value": 110
+    },
+    "pourcent": {
+     "kind": "constant",
+     "value": 0.2255
+    },
+    "T": {
+     "kind": "constant",
+     "value": 523.15
+    },
+    "V": {
+     "kind": "constant",
+     "value": 70
+    },
+    "R": {
+     "kind": "constant",
+     "value": 8.314
+    }
+   },
+   "expressions": {
+    "m_ch4": "0.2255*110",
+    "m_n2": "110 - 0.2255*110",
+    "n_ch4": "(0.2255*110)/16.05",
+    "n_n2": "(110 - 0.2255*110)/28.02",
+    "n_tot": "((0.2255*110)/16.05) + ((110 - 0.2255*110)/28.02)",
+    "p_tot": "((((0.2255*110)/16.05) + ((110 - 0.2255*110)/28.02)) * 8.314 * 523.15) / 70"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_pourcentage",
+   "introduces": [
+    {
+     "id": "masses",
+     "params": {
+      "rows": [
+       [
+        110,
+        null
+       ],
+       [
+        null,
+        null
+       ],
+       [
+        null,
+        null
+       ]
+      ],
+      "row_labels": [
+       "mélange",
+       "méthane CH₄",
+       "diazote N₂"
+      ],
+      "column_labels": [
+       "masse (g)",
+       "part du mélange"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "calc_ch4",
+     "layout": {
+      "next_to": "masses",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "m(\\ce{CH4}) = 22{,}55\\,\\% \\times 110{,}0\\ \\text{g} = 24{,}805\\ \\text{g}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "On a cent dix virgule zéro gramme de mélange, dont vingt-deux virgule cinquante-cinq pour cent en masse de méthane, dans soixante-dix litres à deux cent cinquante degrés Celsius. On cherche la pression totale.",
+     "cues": [
+      {
+       "id": "c_tot",
+       "text": "cent dix virgule zéro gramme"
+      },
+      {
+       "id": "c_pct",
+       "text": "vingt-deux virgule cinquante-cinq pour cent"
+      },
+      {
+       "id": "c_pres",
+       "text": "la pression totale"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_tot",
+       "target": "masses"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "Un pourcentage en masse, c'est une part de chaque centaine de grammes. Vingt-deux virgule cinquante-cinq pour cent veut donc dire vingt-deux virgule cinquante-cinq grammes de méthane pour chaque cent grammes de mélange.",
+     "cues": [
+      {
+       "id": "c_part",
+       "text": "une part de chaque centaine"
+      },
+      {
+       "id": "c_grammes",
+       "text": "grammes de méthane"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_part",
+       "end": "cue_end:c_grammes",
+       "target": "masses",
+       "role": "accent",
+       "part": "r2c2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "multiplie",
+     "say": "Alors de combien de grammes de méthane dispose-t-on ? On multiplie la part par le total : vingt-deux virgule cinquante-cinq pour cent fois cent dix grammes donne vingt-quatre virgule huit cent cinq grammes. On multiplie parce qu'on prend la fraction du tout.",
+     "cues": [
+      {
+       "id": "c_mult",
+       "text": "On multiplie la part par le total"
+      },
+      {
+       "id": "c_pct2",
+       "text": "vingt-deux virgule cinquante-cinq pour cent"
+      },
+      {
+       "id": "c_110",
+       "text": "cent dix grammes"
+      },
+      {
+       "id": "c_res",
+       "text": "vingt-quatre virgule huit cent cinq grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_mpour",
+       "verb": "write",
+       "at": "cue:c_pct2",
+       "target": "calc_ch4"
+      },
+      {
+       "id": "w_mfois",
+       "verb": "highlight",
+       "at": "cue:c_110",
+       "target": "calc_ch4",
+       "role": "accent"
+      },
+      {
+       "id": "w_mres",
+       "verb": "highlight",
+       "at": "cue:c_res",
+       "target": "calc_ch4",
+       "role": "accent"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_mres",
+       "target": "calc_ch4",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "calc_n",
+     "layout": {
+      "next_to": "calc_ch4",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n(\\ce{CH4}) = \\frac{24{,}805\\ \\text{g}}{16{,}05\\ \\text{g/mol}} = 1{,}5455\\ \\text{mol}",
+     "type": "math"
+    },
+    {
+     "id": "calc_n2",
+     "layout": {
+      "next_to": "calc_n",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n(\\ce{N2}) = \\frac{110{,}0 - 24{,}805\\ \\text{g}}{28{,}02\\ \\text{g/mol}} = 3{,}0405\\ \\text{mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "masse_molaire",
+     "say": "Pour arriver à la pression, il faut le nombre de moles. La masse molaire du méthane, seize virgule zéro cinq grammes par mole, transforme la masse en moles.",
+     "cues": [
+      {
+       "id": "c_mm",
+       "text": "seize virgule zéro cinq grammes par mole"
+      },
+      {
+       "id": "c_moles",
+       "text": "le nombre de moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tab",
+       "verb": "dim",
+       "at": "cue:c_mm",
+       "target": "masses"
+      },
+      {
+       "id": "w_nch4",
+       "verb": "write",
+       "at": "cue:c_moles",
+       "target": "calc_n"
+      }
+     ]
+    },
+    {
+     "id": "diazote",
+     "say": "Le reste du mélange est du diazote : cent dix moins vingt-quatre virgule huit cent cinq, soit quatre-vingt-cinq virgule un neuf cinq grammes. Divisé par vingt-huit virgule zéro deux grammes par mole, ça donne trois virgule zéro quatre zéro cinq moles.",
+     "cues": [
+      {
+       "id": "c_reste",
+       "text": "cent dix moins vingt-quatre virgule huit cent cinq"
+      },
+      {
+       "id": "c_pmm",
+       "text": "vingt-huit virgule zéro deux grammes par mole"
+      },
+      {
+       "id": "c_n2",
+       "text": "trois virgule zéro quatre zéro cinq moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_nn2",
+       "verb": "write",
+       "at": "cue:c_pmm",
+       "target": "calc_n2"
+      }
+     ]
+    },
+    {
+     "id": "total_mol",
+     "say": "Au total, une virgule cinq quatre cinq cinq plus trois virgule zéro quatre zéro cinq donnent quatre virgule cinq huit six zéro moles de gaz.",
+     "cues": [
+      {
+       "id": "c_somme",
+       "text": "une virgule cinq quatre cinq cinq plus trois virgule zéro quatre zéro cinq"
+      },
+      {
+       "id": "c_ntot",
+       "text": "quatre virgule cinq huit six zéro moles"
+      },
+      {
+       "id": "c_gaz",
+       "text": "moles de gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_n",
+       "verb": "highlight",
+       "at": "cue:c_somme",
+       "target": "calc_n",
+       "role": "accent"
+      },
+      {
+       "id": "h_n2",
+       "verb": "highlight",
+       "at": "after:h_n",
+       "target": "calc_n2",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_temperature",
+   "introduces": [
+    {
+     "id": "temp",
+     "layout": {
+      "next_to": "calc_n2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "T = 250{,}0 + 273{,}15 = 523{,}15\\ \\text{K}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "kelvin",
+     "say": "Attention à la température : dans la loi des gaz, elle doit être en kelvins, jamais en degrés Celsius. On ajoute deux cent soixante-treize virgule quinze.",
+     "cues": [
+      {
+       "id": "c_kelvin",
+       "text": "en kelvins"
+      },
+      {
+       "id": "c_ajoute",
+       "text": "deux cent soixante-treize virgule quinze"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_temp",
+       "verb": "write",
+       "at": "cue:c_ajoute",
+       "target": "temp"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Deux cent cinquante plus deux cent soixante-treize virgule quinze donnent cinq cent vingt-trois virgule quinze kelvins.",
+     "cues": [
+      {
+       "id": "c_res",
+       "text": "cinq cent vingt-trois virgule quinze kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_temp",
+       "verb": "highlight",
+       "at": "cue:c_res",
+       "target": "temp",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pression",
+   "introduces": [
+    {
+     "id": "formule",
+     "layout": {
+      "next_to": "temp",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pV = nRT \\quad \\Rightarrow \\quad p = \\frac{nRT}{V}",
+     "parts": [
+      {
+       "id": "loi",
+       "text": "pV = nRT"
+      },
+      {
+       "id": "iso",
+       "text": "\\Rightarrow"
+      },
+      {
+       "id": "p",
+       "text": "p = \\frac{nRT}{V}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calc_p",
+     "layout": {
+      "next_to": "formule",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "p_{tot} = \\frac{4{,}5860\\ \\text{mol} \\times 8{,}314\\ \\text{kPa}\\cdot\\text{L/(mol}\\cdot\\text{K)} \\times 523{,}15\\ \\text{K}}{70{,}00\\ \\text{L}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "loi",
+     "say": "La loi des gaz parfaits relie tout : pression fois volume égale moles fois R fois température.",
+     "cues": [
+      {
+       "id": "c_loi",
+       "text": "pression fois volume égale moles fois R fois température"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_loi",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "formule",
+       "part": "loi"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "Comme on cherche la pression, on divise les deux côtés par le volume : p égale n R T divisé par V.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "p égale"
+      },
+      {
+       "id": "c_divV",
+       "text": "divisé par V"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p",
+       "verb": "write",
+       "at": "cue:c_isole",
+       "target": "formule",
+       "part": "p"
+      },
+      {
+       "id": "h_p",
+       "verb": "highlight",
+       "at": "cue:c_divV",
+       "target": "formule",
+       "role": "accent",
+       "part": "p"
+      }
+     ]
+    },
+    {
+     "id": "remplace",
+     "say": "On remplace chaque lettre par sa valeur : quatre virgule cinq huit six zéro mole, R vaut huit virgule trois cent quatorze kilopascals litre par mole kelvin, la température cinq cent vingt-trois virgule quinze kelvins, et le volume soixante-dix litres.",
+     "cues": [
+      {
+       "id": "c_n",
+       "text": "quatre virgule cinq huit six zéro mole"
+      },
+      {
+       "id": "c_R",
+       "text": "huit virgule trois cent quatorze kilopascals litre par mole kelvin"
+      },
+      {
+       "id": "c_T",
+       "text": "cinq cent vingt-trois virgule quinze kelvins"
+      },
+      {
+       "id": "c_V",
+       "text": "soixante-dix litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n",
+       "verb": "write",
+       "at": "cue:c_n",
+       "target": "calc_p"
+      },
+      {
+       "id": "w_R",
+       "verb": "highlight",
+       "at": "cue:c_R",
+       "target": "calc_p",
+       "role": "accent"
+      },
+      {
+       "id": "w_T",
+       "verb": "highlight",
+       "at": "cue:c_T",
+       "target": "calc_p",
+       "role": "accent"
+      },
+      {
+       "id": "w_V",
+       "verb": "highlight",
+       "at": "cue:c_V",
+       "target": "calc_p",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resultat",
+   "introduces": [
+    {
+     "id": "resultat",
+     "layout": {
+      "next_to": "calc_p",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "p_{tot} = \\frac{4{,}5860 \\times 8{,}314 \\times 523{,}15}{70{,}00} \\approx 285{,}0\\ \\text{kPa}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcule",
+     "say": "On fait le produit au numérateur : quatre virgule cinq huit six zéro fois huit virgule trois cent quatorze fois cinq cent vingt-trois virgule quinze. Puis on divise par soixante-dix.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "quatre virgule cinq huit six zéro fois huit virgule trois cent quatorze"
+      },
+      {
+       "id": "c_div",
+       "text": "on divise par soixante-dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_div",
+       "target": "resultat"
+      }
+     ]
+    },
+    {
+     "id": "final",
+     "say": "La pression totale du mélange vaut environ deux cent quatre-vingt-cinq kilopascals.",
+     "cues": [
+      {
+       "id": "c_final",
+       "text": "deux cent quatre-vingt-cinq kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:c_final",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

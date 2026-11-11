@@ -1,0 +1,65 @@
+QUESTION (interets-composes, mathematiques, sec 5, methode) : comment je calcule combien j'vais avoir si je place 2000 $ à 4 % d'intérêt composé par année pendant 5 ans?
+RÉPONSE DE RÉFÉRENCE : 2000 × 1,04⁵ = 2433,31 $ (intérêt gagné 433,31 $).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. intérêt composé = l'intérêt s'ajoute au capital et rapporte à son tour ; ajouter 4 % = multiplier par 1,04
+  2. tableau année par année : 2080 ; 2163,20 ; 2249,73 ; 2339,72 ; 2433,31 $
+  3. formule C = C0(1 + i)^n reliée au tableau : 2000 × 1,04^5
+  4. réponse 2433,31 $ écrite (intérêt gagné 433,31 $)
+  5. valorisé : comparaison avec l'intérêt simple (2400 $)
+ERREURS GRAVES À CHERCHER : arrondi de 1,04⁵ avant la fin (2433,40 $) ; intérêt simple présenté comme composé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Combien vaut un placement de 2000 $ à 4 % composé 5 ans
+math_context : {"symbols":{},"expressions":{"capital_final":"2000*1.04^5","interet_gagne":"2000*1.04^5-2000","interet_simple":"2000+5*80"}}
+=== Tranche s_tableau
+  OBJET tab [matrix] {"rows":[[0,1,2,3,4,5],[2000,2080,2163.2,2249.73,2339.72,2433.31]],"row_labels":["année","capital ($)"]} 
+  OBJET note [label] "× 1,04 chaque année" attaché à tab
+DIT (depart) : Bonne question : on place deux mille dollars à quatre pour cent d'intérêt composé, pendant cinq ans.
+    show tab @cue:c_place 
+DIT (annee1) : Composé veut dire que l'intérêt s'ajoute au capital, puis rapporte à son tour. Ajouter quatre pour cent, c'est multiplier par un virgule zéro quatre.
+    show note @cue:c_mult 
+    highlight tab @- {"start":"cue:c_mult","end":"cue_end:c_mult","role":"accent","part":"r2c2"}
+=== Tranche s_annee_annee
+DIT (suite) : Regarde la ligne du capital : deux mille, puis deux mille quatre-vingts après un an, deux mille cent soixante-trois et vingt cents après deux ans.
+    highlight tab @- {"start":"cue:c_deuxmille","end":"cue_end:c_deuxmille","role":"neutral","part":"r2c2"}
+    highlight tab @- {"start":"cue:c_an1","end":"cue_end:c_an1","role":"accent","part":"r2c3"}
+    highlight tab @- {"start":"cue:c_an2","end":"cue_end:c_an2","role":"accent","part":"r2c4"}
+DIT (fin) : Après trois ans, deux mille deux cent quarante-neuf et soixante-treize cents ; après quatre ans, deux mille trois cent trente-neuf et soixante-douze cents ; après cinq ans, deux mille quatre cent trente-trois et trente et un cents.
+    highlight tab @- {"start":"cue:c_an3","end":"cue_end:c_an3","role":"neutral","part":"r2c5"}
+    highlight tab @- {"start":"cue:c_an4","end":"cue_end:c_an4","role":"neutral","part":"r2c6"}
+    highlight tab @- {"start":"cue:c_an5","end":"cue_end:c_an5","role":"result","part":"r2c6"}
+=== Tranche s_formule
+  OBJET formule [math] "C = C_0 (1 + i)^n" parts=C | = C_0 | (1 + i)^n
+  OBJET calc [math] "2000 \\times 1{,}04^5" parts=2000 | \times 1{,}04^5
+  OBJET res [math] {"kind":"computed","expression_ref":"capital_final","template":"C = {value} \\ \\$","precision":2} 
+DIT (regle) : Plutôt que de refaire ça cinq fois, on résume le tableau avec une formule. Le capital final, c'est le capital de départ multiplié par un plus le taux, exposant le nombre d'années.
+    fade_out tab @cue:c_capital 
+    write formule @cue:c_capital {"part":"c"}
+    write formule @cue:c_capital {"part":"c0"}
+    write formule @cue:c_annees {"part":"facteur"}
+DIT (calcul) : Avec nos nombres : deux mille multiplié par un virgule zéro quatre exposant cinq.
+    write calc @cue:c_2000 {"part":"c2000"}
+    write calc @cue:c_105 {"part":"puiss"}
+DIT (resultat) : Et ça donne deux mille quatre cent trente-trois dollars et trente et un cents.
+    write res @cue:c_donne 
+    highlight res @after:w_res {"role":"result"}
+=== Tranche s_comparaison
+  OBJET interet [math] {"kind":"computed","expression_ref":"interet_gagne","template":"\\text{intérêt gagné} = {value} \\ \\$","precision":2} 
+  OBJET simple [math] {"kind":"computed","expression_ref":"interet_simple","template":"\\text{intérêt simple} = {value} \\ \\$","precision":2} 
+  OBJET expl [text] "la différence, c'est l'intérêt sur l'intérêt" 
+DIT (gagne) : Ton placement t'a rapporté quatre cent trente-trois dollars et trente et un cents d'intérêt.
+    show interet @cue:c_rapporte 
+DIT (compare) : Avec un intérêt simple, sans composition, tu aurais eu deux mille quatre cents dollars : la différence, c'est l'intérêt sur l'intérêt.
+    show simple @cue:c_simple 
+    show expl @cue:c_diff 
+    highlight simple @- {"start":"cue:c_diff","end":"cue_end:c_diff","role":"accent"}
+=== Tranche s_retenir
+  OBJET idee [text] "Composé : chaque année, on multiplie par (1 + i)" 
+DIT (retenir) : À retenir : l'intérêt composé, c'est une multiplication par un plus le taux, répétée autant de fois qu'il y a de périodes.
+    fade_out calc @cue:c_retenir 
+    fade_out interet @cue:c_retenir 
+    fade_out simple @cue:c_retenir 
+    fade_out expl @cue:c_retenir 
+    write idee @cue:c_mult 
+    highlight formule @- {"start":"cue:c_mult","end":"cue_end:c_mult","role":"accent","part":"facteur"}
+--- 5 tranches, 220 mots dits (≈ 1.5 min d'oral)

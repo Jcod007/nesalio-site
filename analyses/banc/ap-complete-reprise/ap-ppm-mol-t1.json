@@ -1,0 +1,748 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ppm_vers_mol_par_litre",
+  "title": "Passer des ppm aux moles par litre",
+  "language": "fr",
+  "learning_goal": "Convertir une concentration en ppm en concentration molaire en mol/L, en passant par les mg/L et la masse molaire."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "C_ppm": {
+     "kind": "constant",
+     "value": 40
+    },
+    "M": {
+     "kind": "constant",
+     "value": 58.44
+    }
+   },
+   "expressions": {
+    "litre": "C_ppm/1000",
+    "molaire": "C_ppm/1000/M"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_ppm_definition",
+   "introduces": [
+    {
+     "id": "rect",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        0,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lbl_eau",
+     "attachment": {
+      "parent": "rect",
+      "anchor": "bottom"
+     },
+     "content": "1 L d'eau",
+     "type": "label"
+    },
+    {
+     "id": "p1",
+     "params": {
+      "at": [
+       0.7,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "params": {
+      "at": [
+       1.6,
+       0.6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3",
+     "params": {
+      "at": [
+       2.3,
+       1.3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "params": {
+      "at": [
+       3.1,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5",
+     "params": {
+      "at": [
+       3.6,
+       1.6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "def_ppm",
+     "content": "1\\ \\text{ppm} = 1\\ \\text{mg/L}",
+     "parts": [
+      {
+       "id": "un_ppm",
+       "text": "1\\ \\text{ppm}"
+      },
+      {
+       "id": "un_mg",
+       "text": "= 1\\ \\text{mg/L}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "solute_pts",
+     "items": [
+      "p1",
+      "p2",
+      "p3",
+      "p4",
+      "p5"
+     ]
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Pour passer des ppm aux moles par litre, il faut d'abord se rappeler ce qu'est un ppm.",
+     "cues": [
+      {
+       "id": "c_ppm",
+       "text": "un ppm"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rect",
+       "verb": "show",
+       "at": "cue:c_ppm",
+       "target": "rect"
+      },
+      {
+       "id": "s_eau",
+       "verb": "show",
+       "at": "after:s_rect",
+       "target": "lbl_eau"
+      },
+      {
+       "id": "s_pts",
+       "verb": "show",
+       "at": "after:s_eau",
+       "target": "solute_pts",
+       "stagger": "quick"
+      }
+     ]
+    },
+    {
+     "id": "def",
+     "say": "Un ppm, c'est un milligramme de soluté par litre de solution. Les points dans le litre d'eau représentent ce soluté.",
+     "cues": [
+      {
+       "id": "c_solute",
+       "text": "soluté"
+      },
+      {
+       "id": "c_litre",
+       "text": "litre de solution"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_def",
+       "verb": "write",
+       "at": "cue:c_solute",
+       "target": "def_ppm",
+       "part": "un_ppm"
+      },
+      {
+       "id": "w_mg",
+       "verb": "write",
+       "at": "cue:c_litre",
+       "target": "def_ppm",
+       "part": "un_mg"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_mg_par_litre",
+   "introduces": [
+    {
+     "id": "conv",
+     "content": "40\\ \\text{ppm} = 40\\ \\text{mg/L} = 0{,}040\\ \\text{g/L}",
+     "parts": [
+      {
+       "id": "p_ppm",
+       "text": "40\\ \\text{ppm}"
+      },
+      {
+       "id": "p_mg",
+       "text": "= 40\\ \\text{mg/L}"
+      },
+      {
+       "id": "p_g",
+       "text": "= 0{,}040\\ \\text{g/L}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_milli",
+     "layout": {
+      "next_to": "conv",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "1 g = 1000 mg",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Prenons quarante ppm de sel dans l'eau. Comme un ppm vaut un milligramme par litre, ça donne quarante milligrammes par litre.",
+     "cues": [
+      {
+       "id": "c_quarante",
+       "text": "quarante ppm"
+      },
+      {
+       "id": "c_quarante2",
+       "text": "quarante milligrammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_def",
+       "verb": "dim",
+       "at": "cue:c_quarante",
+       "target": "def_ppm"
+      },
+      {
+       "id": "w_ppm",
+       "verb": "write",
+       "at": "cue:c_quarante",
+       "target": "conv",
+       "part": "p_ppm"
+      },
+      {
+       "id": "w_mg",
+       "verb": "write",
+       "at": "cue:c_quarante2",
+       "target": "conv",
+       "part": "p_mg"
+      }
+     ]
+    },
+    {
+     "id": "grammes",
+     "say": "Pour la suite, il vaut mieux des grammes par litre : un gramme vaut mille milligrammes, donc quarante milligrammes font zéro virgule zéro quatre zéro gramme.",
+     "cues": [
+      {
+       "id": "c_gramme",
+       "text": "un gramme vaut mille milligrammes"
+      },
+      {
+       "id": "c_zero",
+       "text": "zéro virgule zéro quatre zéro gramme"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_gramme",
+       "target": "note_milli"
+      },
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_zero",
+       "target": "conv",
+       "part": "p_g"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse_molaire",
+   "introduces": [
+    {
+     "id": "masse",
+     "content": "M(\\text{NaCl}) = 22{,}99 + 35{,}45 = 58{,}44\\ \\text{g/mol}",
+     "parts": [
+      {
+       "id": "na",
+       "text": "M(\\text{NaCl})"
+      },
+      {
+       "id": "somme",
+       "text": "= 22{,}99 + 35{,}45"
+      },
+      {
+       "id": "tot",
+       "text": "= 58{,}44\\ \\text{g/mol}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "molaire",
+     "say": "Pour transformer des grammes en moles, il faut la masse molaire du sel, NaCl.",
+     "cues": [
+      {
+       "id": "c_masse",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_nacl",
+       "text": "NaCl"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_conv",
+       "verb": "dim",
+       "at": "cue:c_masse",
+       "target": "conv"
+      },
+      {
+       "id": "w_na",
+       "verb": "write",
+       "at": "cue:c_nacl",
+       "target": "masse",
+       "part": "na"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Le sodium pèse vingt-deux virgule quatre-vingt-dix-neuf grammes par mole, le chlore trente-cinq virgule quarante-cinq. Ensemble, cinquante-huit virgule quarante-quatre grammes par mole.",
+     "cues": [
+      {
+       "id": "c_somme",
+       "text": "vingt-deux virgule quatre-vingt-dix-neuf grammes par mole"
+      },
+      {
+       "id": "c_total",
+       "text": "cinquante-huit virgule quarante-quatre grammes par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_somme",
+       "verb": "write",
+       "at": "cue:c_somme",
+       "target": "masse",
+       "part": "somme"
+      },
+      {
+       "id": "w_tot",
+       "verb": "write",
+       "at": "cue:c_total",
+       "target": "masse",
+       "part": "tot"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_concentration_molaire",
+   "introduces": [
+    {
+     "id": "final",
+     "content": "C = \\frac{0{,}040\\ \\text{g/L}}{58{,}44\\ \\text{g/mol}} \\approx 6{,}8 \\times 10^{-4}\\ \\text{mol/L}",
+     "parts": [
+      {
+       "id": "c_debut",
+       "text": "C"
+      },
+      {
+       "id": "c_frac",
+       "text": "= \\frac{0{,}040\\ \\text{g/L}}{58{,}44\\ \\text{g/mol}}"
+      },
+      {
+       "id": "c_res",
+       "text": "\\approx 6{,}8 \\times 10^{-4}\\ \\text{mol/L}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "division",
+     "say": "On divise la concentration en grammes par litre par la masse molaire. Les grammes s'annulent, il reste des moles par litre.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "On divise"
+      },
+      {
+       "id": "c_rest",
+       "text": "moles par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_masse",
+       "verb": "dim",
+       "at": "cue:c_divise",
+       "target": "masse"
+      },
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "final",
+       "part": "c_debut"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_rest",
+       "target": "final",
+       "part": "c_frac"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Zéro virgule zéro quatre divisé par cinquante-huit virgule quarante-quatre donne environ six virgule huit fois dix exposant moins quatre moles par litre.",
+     "cues": [
+      {
+       "id": "c_environ",
+       "text": "environ six virgule huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_environ",
+       "target": "final",
+       "part": "c_res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "final",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "resume",
+     "content": "\\text{ppm} \\xrightarrow{\\div 1000} \\text{g/L} \\xrightarrow{\\div M} \\text{mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "content": "1 ppm = 1 mg/L, puis on divise par la masse molaire",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap",
+     "items": [
+      "resume",
+      "idee"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : un ppm, c'est un milligramme par litre. On convertit en grammes par litre, puis on divise par la masse molaire.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_divise",
+       "text": "on divise par la masse molaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_final",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "final"
+      },
+      {
+       "id": "s_resume",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "resume"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_divise",
+       "target": "idee"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "after:s_idee",
+       "targets": [
+        "recap"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

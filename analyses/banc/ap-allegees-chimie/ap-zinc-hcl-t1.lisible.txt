@@ -1,0 +1,50 @@
+QUESTION (ap-zinc-hcl, chimie, sec 5, alloprof) : Comment fait-on pour déterminer une équation équilibrée a partir de substances? Par exemple, si on fais réagir des morceaux de zinc dans l'acide chlorhydrique et que l'on obtient du dihydrogène gazeux.
+RÉPONSE DE RÉFÉRENCE : Zn + 2 HCl → ZnCl2 + H2
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Équilibrer le zinc et l'acide chlorhydrique
+=== Tranche s_reaction
+  OBJET eq [math] "\\ce{Zn + HCl -> ZnCl2 + H2}" 
+  OBJET rule [text] "Tout atome présent au départ se retrouve à l'arrivée." 
+DIT (pose) : Le zinc réagit avec l'acide chlorhydrique et donne du chlorure de zinc avec du dihydrogène gazeux.
+    write eq @cue:c_zinc 
+    highlight eq @cue:c_hcl {"role":"accent"}
+    highlight eq @cue:c_produits {"role":"accent"}
+    highlight eq @after:w_zncl2 {"role":"accent"}
+    highlight eq @after:w_fleche {"role":"accent"}
+DIT (regle) : Équilibrer, c'est placer les bons coefficients pour que le nombre d'atomes de chaque sorte soit pareil des deux côtés.
+    show rule @cue:c_equilibrer 
+    highlight eq @- {"start":"cue:c_coefficients","end":"cue_end:c_coefficients","role":"accent"}
+=== Tranche s_comptage
+  OBJET tab [matrix] {"rows":[["1","1","1","1"],["1","2","2","2"]],"row_labels":["Zn","H"],"column_labels":["Zn","H","Cl","H"]} 
+DIT (compte_gauche) : À gauche, il y a un atome de zinc, un atome d'hydrogène et un atome de chlore.
+    show tab @cue:c_gauche 
+    highlight tab @- {"start":"cue:c_unzn","end":"cue_end:c_unchlore","role":"given","part":"c2"}
+DIT (compte_droite) : À droite, il y a un zinc, deux chlores et deux hydrogènes.
+    highlight tab @- {"start":"cue:c_deuxchlores","end":"cue_end:c_deuxhydro","role":"unknown","part":"r2"}
+DIT (constat) : Le zinc est déjà équilibré, mais le chlore et l'hydrogène manquent à gauche. Il faut les doubler.
+    highlight tab @- {"start":"cue:c_manque","end":"cue_end:c_doubler","role":"secondary","part":"c3"}
+=== Tranche s_coefficients
+  OBJET eq2 [math] "\\ce{Zn + 2HCl -> ZnCl2 + H2}" 
+  OBJET verif [matrix] {"rows":[["1","1"],["2","2"],["2","2"]],"row_labels":["Zn","H","Cl"],"column_labels":["à gauche","à droite"]} 
+DIT (ajuste) : On place un deux devant l'acide chlorhydrique : deux H C l.
+    transform eq2 @cue:c_deuxdevant {"source":"eq"}
+    highlight eq2 @- {"start":"cue:c_deuxhcl","end":"cue_end:c_deuxhcl","role":"accent"}
+DIT (verifie) : Vérifions le nouveau compte : un zinc, deux hydrogènes et deux chlores de chaque côté. C'est équilibré.
+    fade_out tab @cue:c_verifions 
+    show verif @cue:c_verifions 
+    highlight verif @- {"start":"cue:c_deux_chlores","end":"cue_end:c_equilibre","role":"result"}
+DIT (memo) : Le zinc garde son un, le deux devant H C l est le seul coefficient ajouté.
+    highlight eq2 @- {"start":"cue:c_garde","end":"cue_end:c_garde","role":"given"}
+    highlight eq2 @- {"start":"cue:c_seul","end":"cue_end:c_seul","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Compter les atomes des deux côtés, puis ajuster les coefficients." 
+DIT (retenir) : À retenir : pour équilibrer, on compte les atomes de chaque élément des deux côtés, puis on ajuste les coefficients.
+    fade_out verif @cue:c_retenir 
+    fade_out rule @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["eq2","idee"],"bounds":"layout_bounds"}
+    write idee @cue:c_retenir 
+    highlight eq2 @- {"start":"cue:c_ajuster","end":"cue_end:c_ajuster","role":"result"}
+--- 4 tranches, 146 mots dits (≈ 1.0 min d'oral)

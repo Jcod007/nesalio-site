@@ -1,0 +1,55 @@
+QUESTION (ap3-gaz-ambulance-o2, chimie, sec 5, alloprof) : je comprend pas un problème.
+il s'agit de trouver la pression partielle du o2
+La grande majorité des ambulances ont à leur bord une bonbonne d'oxygène. Le gaz contenu dans ces bonbonnes est en fait du dioxygène pur mais le patient ne peut recevoir ce gaz dans les poumons que pour une très brève période de temps, le grand pouvoir oxydant du dioxygène étant en cause. C'est pourquoi ces dispositifs sont munis d'un mélangeur qui règle la pression partielle d'O2(g) à la sortie du masque en incorporant de l'air ambiant et de la vapeur d'eau au mélange. Si le mélangeur limite le débit de la bonbonne à 25 % d'O2 et 70 % d'air et 5% de H2O(g) à TAPN, quelle est la pression partielle du O2 dans le masque du patient?
+cela fait des heures que j'essaye mais je ne trouve pas
+RÉPONSE DE RÉFÉRENCE : Fraction d'O2 = 0,25 + 0,70 × 0,21 = 0,397 (air à 21 % d'O2) ; P(O2) = 0,397 × 101,3 kPa ≈ 40 kPa.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pression partielle du O₂ dans le masque
+=== Tranche s_donnees
+  OBJET m1 [matrix] {"rows":[["25 %"],["70 %"],["5 %"],["100 %"]],"row_labels":["O₂","air","H₂O(g)","total"]} 
+  OBJET ptot [math] "p_{totale} = 101{,}3\\ \\text{kPa}" parts=p_{totale} | = 101{,}3\ \text{kPa}
+DIT (reformule) : Reprenons ton problème. Le mélangeur livre vingt-cinq pour cent d'O deux, soixante-dix pour cent d'air et cinq pour cent de H deux O gazeux, le tout à TAPN.
+    show m1 @cue:c_pct 
+DIT (tapn) : TAPN veut dire température ambiante et pression normale : vingt-cinq degrés Celsius, et une pression totale de cent un virgule trois kilopascals.
+    write ptot @cue:c_kpa {"part":"pval"}
+    write ptot @after:w_ptot {"part":"pnom"}
+=== Tranche s_dalton
+  OBJET dalton [math] "p_{totale} = p_{O_2} + p_{air} + p_{H_2O}" parts=p_{totale} | = p_{O_2} | + p_{air} | + p_{H_2O}
+DIT (loi) : La clé, c'est la loi de Dalton : dans un mélange, la pression totale est la somme des pressions partielles de chaque gaz.
+    write dalton @cue:c_dalton {"part":"dl"}
+    write dalton @cue:c_somme {"part":"d1"}
+    write dalton @after:w_d1 {"part":"d2"}
+    write dalton @after:w_d2 {"part":"d3"}
+DIT (proportion) : Chaque pression partielle est proportionnelle à la fraction de ce gaz dans le mélange. Le dioxygène occupe vingt-cinq pour cent du mélange, donc sa pression partielle, c'est vingt-cinq pour cent de la pression totale.
+    highlight dalton @- {"start":"cue:c_vintcinq","end":"cue_end:c_vintcinq","role":"accent","part":"d1"}
+    highlight m1 @cue:c_vintcinq {"role":"accent","part":"r1"}
+=== Tranche s_calcul
+  OBJET calc [math] "p_{O_2} = 0{,}25 \\times 101{,}3 = 25{,}325\\ \\text{kPa}" parts=p_{O_2} | = 0{,}25 | \times 101{,}3 | = 25{,}325\ \text{kPa}
+  OBJET verif [math] "p_{air} + p_{H_2O} = 0{,}70 \\times 101{,}3 + 0{,}05 \\times 101{,}3 = 70{,}91 + 5{,}065 = 75{,}975\\ \\text{kPa}" parts=p_{air} + p_{H_2O} | = 0{,}70 \times 101{,}3 + 0{,}05 \times 101{,}3 | = 70{,}91 + 5{,}065 | = 75{,}975\ \text{kPa}
+DIT (calcule) : Vingt-cinq pour cent, en décimal, c'est zéro virgule deux cinq. On multiplie : zéro virgule deux cinq fois cent un virgule trois donne vingt-cinq virgule trois deux cinq kilopascals.
+    write calc @beat:start {"part":"cnom"}
+    write calc @cue:c_decimal {"part":"c25"}
+    write calc @cue:c_multiplie {"part":"c101"}
+    write calc @after:w_c101 {"part":"cres"}
+DIT (valide) : Vérifions : l'air donne environ soixante-dix virgule neuf kilopascals, l'eau cinq virgule un, et la somme des trois pressions partielles redonne bien la pression totale. Ton résultat tient debout.
+    write verif @cue:c_verif {"part":"v1"}
+    write verif @after:w_v1 {"part":"v2"}
+    write verif @after:w_v2 {"part":"v3"}
+    write verif @cue:c_somme {"part":"v4"}
+    highlight calc @cue:c_somme {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "p_{O_2} = 0{,}25 \\times 101{,}3 \\approx 25{,}3\\ \\text{kPa}" 
+DIT (idee) : À retenir : la pression partielle d'un gaz, c'est sa fraction du mélange multipliée par la pression totale.
+    fade_out m1 @cue:c_retenir 
+    fade_out ptot @cue:c_retenir 
+    fade_out dalton @cue:c_retenir 
+    fade_out calc @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["regle"],"bounds":"render_bounds"}
+DIT (final) : Donc la pression partielle du O deux dans le masque vaut environ vingt-cinq virgule trois kilopascals.
+    show regle @cue:c_resultat 
+    highlight regle @after:s_regle {"role":"result"}
+--- 4 tranches, 199 mots dits (≈ 1.3 min d'oral)

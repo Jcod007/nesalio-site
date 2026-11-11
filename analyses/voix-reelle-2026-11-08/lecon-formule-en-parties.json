@@ -1,0 +1,794 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "pythagore-introduction",
+  "title": "Comprendre le théorème de Pythagore",
+  "language": "fr",
+  "learning_goal": "Comprendre la relation entre les côtés d'un triangle rectangle"
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "a": {
+     "kind": "constant",
+     "value": 3
+    },
+    "b": {
+     "kind": "constant",
+     "value": 4
+    },
+    "b_dynamic": {
+     "kind": "parameter",
+     "initial": 3,
+     "min": 2,
+     "max": 6
+    }
+   },
+   "expressions": {
+    "hypotenuse_fixed": "sqrt(a^2 + b^2)",
+    "hypotenuse_dynamic": "sqrt(a^2 + b_dynamic^2)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "slices": [
+  {
+   "slice_id": "s1",
+   "introduces": [
+    {
+     "id": "tri",
+     "type": "triangle_right",
+     "params": {
+      "leg_a": 3,
+      "leg_b": 4
+     },
+     "size": "large",
+     "priority": "high",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "style": {
+      "role": "given"
+     }
+    },
+    {
+     "id": "title",
+     "type": "text",
+     "content": "Le théorème de Pythagore",
+     "priority": "medium",
+     "layout": {
+      "next_to": "tri",
+      "direction": "up",
+      "gap": "lg",
+      "align": "center"
+     },
+     "style": {
+      "role": "neutral"
+     }
+    },
+    {
+     "id": "label_a",
+     "type": "label",
+     "content": "a",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "side_a",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "style": {
+      "role": "secondary"
+     }
+    },
+    {
+     "id": "label_b",
+     "type": "label",
+     "content": "b",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "side_b",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "style": {
+      "role": "secondary"
+     }
+    },
+    {
+     "id": "label_c",
+     "type": "label",
+     "content": "c",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "hypotenuse",
+      "placement": "outside",
+      "gap": "sm"
+     },
+     "style": {
+      "role": "secondary"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Prenons un triangle rectangle. Appelons ses côtés a, b et c, où c est l'hypoténuse.",
+     "cues": [
+      {
+       "id": "triangle",
+       "text": "triangle",
+       "occurrence": 1
+      },
+      {
+       "id": "sides",
+       "text": "côtés",
+       "occurrence": 1
+      },
+      {
+       "id": "hypotenuse",
+       "text": "hypoténuse",
+       "occurrence": 1
+      },
+      {
+       "id": "a",
+       "text": "a"
+      },
+      {
+       "id": "b",
+       "text": "b"
+      },
+      {
+       "id": "c",
+       "text": "c"
+      }
+     ],
+     "do": [
+      {
+       "verb": "camera.focus",
+       "targets": [
+        "tri",
+        "title"
+       ],
+       "at": "beat:start",
+       "bounds": "layout_bounds",
+       "id": "a_b1_1"
+      },
+      {
+       "verb": "show",
+       "target": "title",
+       "at": "beat:start",
+       "id": "a_b1_2"
+      },
+      {
+       "verb": "show",
+       "target": "tri",
+       "at": "cue:triangle",
+       "id": "a_b1_3"
+      },
+      {
+       "verb": "show",
+       "target": "label_a",
+       "at": "cue:a",
+       "id": "a_b1_4"
+      },
+      {
+       "verb": "show",
+       "target": "label_b",
+       "at": "cue:b",
+       "id": "a_b1_5"
+      },
+      {
+       "verb": "show",
+       "target": "label_c",
+       "at": "cue:c",
+       "id": "a_b1_6"
+      }
+     ],
+     "pause_after": "brief"
+    }
+   ]
+  },
+  {
+   "slice_id": "s2",
+   "introduces": [
+    {
+     "id": "eq",
+     "type": "math",
+     "content": "a^2 + b^2 = c^2",
+     "priority": "high",
+     "style": {
+      "role": "accent"
+     }
+    },
+    {
+     "id": "note",
+     "type": "text",
+     "content": "Valable uniquement pour un triangle rectangle",
+     "priority": "medium",
+     "style": {
+      "role": "secondary"
+     }
+    }
+   ],
+   "groups": [
+    {
+     "id": "formula_group",
+     "items": [
+      "eq",
+      "note"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "sm"
+     },
+     "layout": {
+      "next_to": "tri",
+      "direction": "right",
+      "gap": "lg",
+      "align": "center"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b2",
+     "say": "Cette formule relie les longueurs des trois côtés. Elle s'applique uniquement aux triangles rectangles.",
+     "cues": [
+      {
+       "id": "formula",
+       "text": "formule",
+       "occurrence": 1
+      },
+      {
+       "id": "condition",
+       "text": "uniquement",
+       "occurrence": 1
+      }
+     ],
+     "do": [
+      {
+       "verb": "camera.focus",
+       "targets": [
+        "tri",
+        "formula_group"
+       ],
+       "at": "cue:formula",
+       "transition": "smooth",
+       "bounds": "layout_bounds",
+       "id": "a_b2_1"
+      },
+      {
+       "verb": "show",
+       "target": "eq",
+       "at": "cue:formula",
+       "id": "a_b2_2"
+      },
+      {
+       "verb": "show",
+       "target": "note",
+       "at": "cue:condition",
+       "id": "a_b2_3"
+      }
+     ],
+     "pause_after": "brief"
+    }
+   ]
+  },
+  {
+   "slice_id": "s3",
+   "introduces": [
+    {
+     "id": "example",
+     "type": "math",
+     "content": "3^2 + 4^2 = 5^2",
+     "priority": "high",
+     "layout": {
+      "next_to": "formula_group",
+      "direction": "down",
+      "gap": "xl",
+      "align": "left"
+     },
+     "style": {
+      "role": "given"
+     }
+    },
+    {
+     "id": "result",
+     "type": "math",
+     "content": "9 + 16 = 25",
+     "priority": "high",
+     "layout": {
+      "next_to": "example",
+      "direction": "down",
+      "gap": "md",
+      "align": "left"
+     },
+     "style": {
+      "role": "result"
+     },
+     "parts": [
+      {
+       "id": "p9",
+       "text": "9"
+      },
+      {
+       "id": "p16",
+       "text": "+ 16"
+      },
+      {
+       "id": "p25",
+       "text": "= 25"
+      }
+     ]
+    },
+    {
+     "id": "hyp_value",
+     "type": "math",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "hypotenuse_fixed",
+      "template": "c = {value}",
+      "precision": 0
+     },
+     "priority": "high",
+     "style": {
+      "role": "result"
+     },
+     "layout": {
+      "next_to": "result",
+      "direction": "down",
+      "gap": "md",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b3",
+     "say": "Prenons maintenant un exemple numérique. Avec trois et quatre, nous obtenons neuf plus seize, soit vingt-cinq. L'hypoténuse vaut cinq.",
+     "cues": [
+      {
+       "id": "example",
+       "text": "exemple",
+       "occurrence": 1
+      },
+      {
+       "id": "longueur",
+       "text": "vaut cinq",
+       "occurrence": 1
+      },
+      {
+       "id": "neuf",
+       "text": "neuf"
+      },
+      {
+       "id": "seize",
+       "text": "seize"
+      },
+      {
+       "id": "result",
+       "text": "vingt-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "a_b3_1",
+       "verb": "camera.focus",
+       "targets": [
+        "example",
+        "result",
+        "hyp_value"
+       ],
+       "bounds": "layout_bounds",
+       "at": "cue:example",
+       "transition": "smooth"
+      },
+      {
+       "id": "a_b3_2",
+       "verb": "write",
+       "target": "example",
+       "at": "cue:example"
+      },
+      {
+       "id": "a_b3_3a",
+       "verb": "write",
+       "target": "result",
+       "part": "p9",
+       "at": "cue:neuf"
+      },
+      {
+       "id": "a_b3_3b",
+       "verb": "write",
+       "target": "result",
+       "part": "p16",
+       "at": "cue:seize"
+      },
+      {
+       "id": "a_b3_3",
+       "verb": "write",
+       "target": "result",
+       "part": "p25",
+       "at": "cue:result"
+      },
+      {
+       "id": "a_b3_4",
+       "verb": "highlight",
+       "target": "result",
+       "at": "after:a_b3_3",
+       "role": "accent",
+       "pace": "quick"
+      },
+      {
+       "id": "a_b3_5",
+       "verb": "write",
+       "target": "hyp_value",
+       "at": "cue:longueur"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s4",
+   "introduces": [
+    {
+     "id": "hypotenuse_explainer",
+     "type": "callout",
+     "content": "L’hypoténuse est le côté opposé à l’angle droit.",
+     "priority": "medium",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "hypotenuse",
+      "placement": "outside",
+      "gap": "md"
+     },
+     "style": {
+      "role": "accent"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b4",
+     "say": "Revenons au triangle : le côté c est l’hypoténuse, opposée à l’angle droit.",
+     "cues": [
+      {
+       "id": "hypotenuse",
+       "text": "hypoténuse",
+       "occurrence": 1
+      }
+     ],
+     "do": [
+      {
+       "verb": "camera.focus",
+       "targets": [
+        "tri",
+        "hypotenuse_explainer"
+       ],
+       "bounds": "layout_bounds",
+       "at": "cue:hypotenuse",
+       "transition": "smooth",
+       "id": "a_b4_1"
+      },
+      {
+       "verb": "show",
+       "target": "hypotenuse_explainer",
+       "at": "cue:hypotenuse",
+       "id": "a_b4_2"
+      }
+     ],
+     "pause_after": "brief"
+    }
+   ]
+  },
+  {
+   "slice_id": "s5",
+   "introduces": [
+    {
+     "id": "tri_dynamic",
+     "type": "triangle_right",
+     "params": {
+      "leg_a": {
+       "symbol": "a"
+      },
+      "leg_b": {
+       "parameter": "b_dynamic"
+      }
+     },
+     "priority": "high",
+     "style": {
+      "role": "given"
+     },
+     "layout": {
+      "next_to": "hyp_value",
+      "direction": "down",
+      "gap": "xl",
+      "align": "left"
+     }
+    },
+    {
+     "id": "dyn_label_b",
+     "type": "label",
+     "content": "b",
+     "style": {
+      "role": "secondary"
+     },
+     "attachment": {
+      "parent": "tri_dynamic",
+      "anchor": "side_b",
+      "placement": "outside",
+      "gap": "sm"
+     }
+    },
+    {
+     "id": "dyn_hyp",
+     "type": "math",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "hypotenuse_dynamic",
+      "template": "c = {value}",
+      "precision": 2
+     },
+     "priority": "high",
+     "style": {
+      "role": "result"
+     },
+     "layout": {
+      "next_to": "tri_dynamic",
+      "direction": "right",
+      "gap": "lg",
+      "align": "center"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b5",
+     "say": "Faisons varier le second côté. Regardons comment l'hypoténuse grandit pendant que le côté s'allonge. Nous terminons ici le mouvement.",
+     "cues": [
+      {
+       "id": "c_glisse",
+       "text": "s'allonge",
+       "occurrence": 1
+      },
+      {
+       "id": "c_fin",
+       "text": "Nous terminons",
+       "occurrence": 1
+      }
+     ],
+     "do": [
+      {
+       "id": "a_b5_1",
+       "verb": "camera.focus",
+       "targets": [
+        "tri_dynamic",
+        "dyn_hyp"
+       ],
+       "at": "beat:start",
+       "bounds": "layout_bounds",
+       "transition": "smooth"
+      },
+      {
+       "id": "a_b5_2",
+       "verb": "show",
+       "target": "tri_dynamic",
+       "at": "beat:start"
+      },
+      {
+       "id": "a_b5_3",
+       "verb": "show",
+       "target": "dyn_label_b",
+       "at": "beat:start"
+      },
+      {
+       "id": "a_b5_4",
+       "verb": "show",
+       "target": "dyn_hyp",
+       "at": "beat:start"
+      },
+      {
+       "id": "a_b5_5",
+       "verb": "animate_parameter",
+       "parameter": "b_dynamic",
+       "from": 3,
+       "to": 5,
+       "start": "cue:c_glisse",
+       "end": "cue:c_fin",
+       "easing": "smooth"
+      }
+     ],
+     "pause_after": "brief"
+    }
+   ]
+  }
+ ],
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ }
+}

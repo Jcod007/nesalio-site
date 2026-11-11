@@ -68,7 +68,7 @@ describe("listTurns", () => {
     const all = await listTurns({ env: "production", day: "2026-10-18" }, blob);
     expect(all).toHaveLength(3);
     const mine = await listTurns({ env: "production", day: "2026-10-18", session: "3f9c2e1a" }, blob);
-    expect(mine.map((t) => t.mode)).toEqual(["question", "continue"]);
+    expect(mine.map((t) => ("mode" in t ? t.mode : t.kind))).toEqual(["question", "continue"]);
   });
 });
 

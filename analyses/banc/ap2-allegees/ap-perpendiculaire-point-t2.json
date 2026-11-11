@@ -1,0 +1,686 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "perpendiculaire_trouver_b",
+  "title": "Trouver B avec une droite et un point de perpendiculaire",
+  "language": "fr",
+  "learning_goal": "Trouver les coordonnées de B, sachant que AB est perpendiculaire à CB, connaissant l'équation de AB et les coordonnées de C."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_lire",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "5x + 4y - 684 = 0",
+     "parts": [
+      {
+       "id": "pente",
+       "text": "5x + 4y"
+      },
+      {
+       "id": "const",
+       "text": "- 684 = 0"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "iso",
+     "content": "y = -\\frac{5}{4}x + 171",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Tu as l'équation de la droite AB, et le point C de coordonnées soixante quatorze. On cherche le point B, le pied de la perpendiculaire.",
+     "cues": [
+      {
+       "id": "c_eq",
+       "text": "l'équation de la droite AB"
+      },
+      {
+       "id": "c_C",
+       "text": "le point C"
+      },
+      {
+       "id": "c_B",
+       "text": "le point B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_eq",
+       "target": "eq",
+       "part": "pente"
+      },
+      {
+       "id": "w_const",
+       "verb": "write",
+       "at": "cue:c_eq",
+       "target": "eq",
+       "part": "const"
+      }
+     ]
+    },
+    {
+     "id": "isole",
+     "say": "D'abord, je lis la pente de AB. J'isole y : quatre y égale moins cinq x plus six cent quatre-vingt-quatre, donc y égale moins cinq quarts de x plus cent soixante et onze.",
+     "cues": [
+      {
+       "id": "c_isole",
+       "text": "J'isole y"
+      },
+      {
+       "id": "c_pente",
+       "text": "la pente de AB"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_iso",
+       "verb": "transform",
+       "at": "cue:c_isole",
+       "source": "eq",
+       "target": "iso"
+      },
+      {
+       "id": "h_m1",
+       "verb": "highlight",
+       "start": "cue:c_pente",
+       "end": "cue_end:c_pente",
+       "target": "iso",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_perpendiculaire",
+   "introduces": [
+    {
+     "id": "mp",
+     "content": "m_{CB} = \\frac{4}{5}",
+     "type": "math"
+    },
+    {
+     "id": "prod",
+     "content": "m_{AB} \\times m_{CB} = -\\frac{5}{4} \\times \\frac{4}{5} = -1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "Deux droites perpendiculaires ont des pentes opposées et inverses : leur produit vaut moins un. La pente de AB vaut moins cinq quarts, donc celle de CB vaut quatre cinquièmes.",
+     "cues": [
+      {
+       "id": "c_perp",
+       "text": "perpendiculaires"
+      },
+      {
+       "id": "c_produit",
+       "text": "leur produit vaut moins un"
+      },
+      {
+       "id": "c_quatre_cinquieme",
+       "text": "quatre cinquièmes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_mp",
+       "verb": "write",
+       "at": "cue:c_quatre_cinquieme",
+       "target": "mp"
+      },
+      {
+       "id": "s_prod",
+       "verb": "show",
+       "at": "cue:c_produit",
+       "target": "prod"
+      },
+      {
+       "id": "h_prod",
+       "verb": "highlight",
+       "start": "cue:c_produit",
+       "end": "cue_end:c_produit",
+       "target": "prod",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_droite_cb",
+   "introduces": [
+    {
+     "id": "cb",
+     "content": "y = \\frac{4}{5}x - 34",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "poser",
+     "say": "La droite CB passe par C, donc je remplace x par soixante et y par quatorze dans y égale quatre cinquièmes de x plus b, pour trouver b.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "je remplace x par soixante"
+      },
+      {
+       "id": "c_b",
+       "text": "trouver b"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_b2",
+       "verb": "write",
+       "at": "cue:c_b",
+       "target": "cb"
+      }
+     ]
+    },
+    {
+     "id": "calcul_b",
+     "say": "Quatorze égale quatre cinquièmes fois soixante, donc quarante-huit, plus b. Quarante-huit plus b égale quatorze donne b égale moins trente-quatre.",
+     "cues": [
+      {
+       "id": "c_calc",
+       "text": "donne b égale moins trente-quatre"
+      },
+      {
+       "id": "c_resultat",
+       "text": "b égale moins trente-quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_m2",
+       "verb": "highlight",
+       "at": "cue:c_calc",
+       "target": "cb",
+       "role": "accent"
+      },
+      {
+       "id": "h_cb",
+       "verb": "highlight",
+       "start": "cue:c_resultat",
+       "end": "cue_end:c_resultat",
+       "target": "cb",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_intersection",
+   "introduces": [
+    {
+     "id": "sys",
+     "content": "\\frac{4}{5}x - 34 = -\\frac{5}{4}x + 171",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{4}{5}x - 34"
+      },
+      {
+       "id": "droite",
+       "text": "= -\\frac{5}{4}x + 171"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res",
+     "content": "\\frac{4}{5}x + \\frac{5}{4}x = 171 + 34",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "egaliser",
+     "say": "Le point B est l'intersection des deux droites. J'égale les deux expressions de y : quatre cinquièmes de x moins trente-quatre égale moins cinq quarts de x plus cent soixante et onze.",
+     "cues": [
+      {
+       "id": "c_egaler",
+       "text": "J'égale les deux expressions"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_mp",
+       "verb": "fade_out",
+       "at": "cue:c_egaler",
+       "target": "mp"
+      },
+      {
+       "id": "f_prod",
+       "verb": "fade_out",
+       "at": "cue:c_egaler",
+       "target": "prod"
+      },
+      {
+       "id": "f_iso",
+       "verb": "dim",
+       "at": "cue:c_egaler",
+       "target": "iso"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_egaler",
+       "target": "sys",
+       "part": "gauche"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "after:w_gauche",
+       "target": "sys",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "isoler_x",
+     "say": "Je regroupe les x d'un côté : quatre cinquièmes plus cinq quarts font quarante et un vingtièmes de x, et cent soixante et onze plus trente-quatre font deux cent cinq.",
+     "cues": [
+      {
+       "id": "c_groupe",
+       "text": "Je regroupe les x"
+      },
+      {
+       "id": "c_cent_cinq",
+       "text": "deux cent cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_cb",
+       "verb": "fade_out",
+       "at": "cue:c_groupe",
+       "target": "cb"
+      },
+      {
+       "id": "s_res",
+       "verb": "show",
+       "at": "cue:c_cent_cinq",
+       "target": "res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_reponse",
+   "introduces": [
+    {
+     "id": "fin",
+     "content": "x = \\frac{205 \\times 20}{41} = 100",
+     "type": "math"
+    },
+    {
+     "id": "yb",
+     "content": "y = \\frac{4}{5}(100) - 34 = 46",
+     "type": "math"
+    },
+    {
+     "id": "pointB",
+     "layout": {
+      "next_to": "yb",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "B(100 ; 46)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "x",
+     "say": "Je multiplie les deux côtés par vingt sur quarante et un : x égale cent.",
+     "cues": [
+      {
+       "id": "c_multi",
+       "text": "multiplie les deux côtés"
+      },
+      {
+       "id": "c_cent",
+       "text": "x égale cent"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_multi",
+       "target": "fin"
+      },
+      {
+       "id": "w_x",
+       "verb": "highlight",
+       "at": "cue:c_cent",
+       "target": "fin",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "y",
+     "say": "Je remplace x par cent dans l'équation de CB : y égale quatre cinquièmes fois cent moins trente-quatre, donc quarante-six. Le point B est cent, quarante-six.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "Je remplace x par cent"
+      },
+      {
+       "id": "c_quarante_six",
+       "text": "quarante-six"
+      },
+      {
+       "id": "c_B",
+       "text": "Le point B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_yb",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "yb"
+      },
+      {
+       "id": "w_pointB",
+       "verb": "write",
+       "at": "cue:c_B",
+       "target": "pointB"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "v1",
+     "content": "5(100) + 4(46) - 684 = 500 + 184 - 684 = 0",
+     "type": "math"
+    },
+    {
+     "id": "v2",
+     "content": "\\frac{4}{5}(100) - 34 = 46",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verifie",
+     "say": "Vérifions B dans les deux équations. Dans celle de AB : cinq fois cent plus quatre fois quarante-six moins six cent quatre-vingt-quatre égale zéro.",
+     "cues": [
+      {
+       "id": "c_verifie",
+       "text": "Vérifions B"
+      },
+      {
+       "id": "c_zero",
+       "text": "égale zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_fin",
+       "verb": "dim",
+       "at": "cue:c_verifie",
+       "target": "fin"
+      },
+      {
+       "id": "w_v1",
+       "verb": "write",
+       "at": "cue:c_zero",
+       "target": "v1"
+      }
+     ]
+    },
+    {
+     "id": "verifie2",
+     "say": "Et dans celle de CB : quatre cinquièmes de cent moins trente-quatre égale bien quarante-six. Les deux droites se coupent en B.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "dans celle de CB"
+      },
+      {
+       "id": "c_coupent",
+       "text": "se coupent en B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_v2",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "v2"
+      },
+      {
+       "id": "h_pointB",
+       "verb": "highlight",
+       "start": "cue:c_coupent",
+       "end": "cue_end:c_coupent",
+       "target": "pointB",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

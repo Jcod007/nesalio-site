@@ -1,0 +1,63 @@
+QUESTION (systeme-comparaison-erreur, mathematiques, sec 4, erreur) : J'essaie de résoudre y = 2x + 3 et y = -x + 9 par comparaison, j'obtiens x = 4 mais quand je vérifie ça marche pas
+RÉPONSE DE RÉFÉRENCE : x = 2, y = 7 : solution (2, 7) ; x = 4 vient de 3x = 9 + 3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. comparaison : les deux y sont égaux au point de rencontre, donc 2x + 3 = -x + 9
+  2. diagnostic : x = 4 vient de 3x = 9 + 3 ; il faut soustraire 3 des deux côtés, donc 3x = 6
+  3. réponse x = 2, y = 7, solution (2, 7) écrite
+  4. vérification dans les deux équations (7 = 7) et échec montré de x = 4 (11 contre 5)
+  5. valorisé : point d'intersection des deux droites
+ERREURS GRAVES À CHERCHER : diagnostic inventé (signe oublié) ; titre ou réponse affichée fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (x\s*=\s*2(?!\d|[,.]\d), y\s*=\s*7(?!\d|[,.]\d)) ; issue complète
+
+TITRE : Résoudre par comparaison un système d'équations
+=== Tranche s_erreur
+  OBJET sys [math] "y = 2x + 3 \\quad \\text{et} \\quad y = -x + 9" parts=y = 2x + 3 | \quad \text{et} \quad | y = -x + 9
+  OBJET e1 [math] "2x + 3 = -x + 9" 
+  OBJET e2 [math] "5 = x + 9" 
+  OBJET e3 [math] "x = 4" 
+DIT (pose) : Par comparaison, au point de rencontre les deux y sont égaux, donc on écrit deux x plus trois égale moins x plus neuf.
+    write sys @beat:start 
+    write e1 @cue:c_egal 
+DIT (ajout) : Si on ajoute x des deux côtés, le moins x disparaît à droite, mais on ajoute x en double à gauche : cinq égale x plus neuf.
+    write e2 @cue:c_cinq 
+DIT (quatre) : Puis cinq moins neuf donne moins quatre, pas quatre. Le x vaut moins quatre.
+    highlight e2 @- {"start":"cue:c_moins","end":"cue_end:c_moins","role":"secondary"}
+    write e3 @cue:c_vaut 
+=== Tranche s_graphique
+  OBJET rep [axes] {"x":[-1,7],"y":[-1,12]} 
+  OBJET d1 [function_graph] {"expression":"2*x + 3","domain":[-1,6]} 
+  OBJET d2 [function_graph] {"expression":"-x + 9","domain":[-1,7]} 
+  OBJET p4 [point] {"at":[4,11]} 
+  OBJET l4 [label] "x = 4 : y = 11 et y = 5" attaché à p4
+DIT (droites) : Traçons les deux droites : la première monte de deux par un, la seconde descend de un par un.
+    camera.focus  @beat:start {"targets":["rep"],"bounds":"layout_bounds"}
+    show rep @beat:start 
+    draw d1 @- {"start":"cue:c_trace","end":"cue_end:c_trace"}
+    draw d2 @- {"start":"cue:c_trace","end":"cue_end:c_trace"}
+DIT (echec) : À x égale quatre, la première donne onze, la seconde donne cinq : deux hauteurs différentes, donc ce n'est pas la rencontre.
+    show p4 @cue:c_x4 
+    show l4 @cue:c_cinq 
+=== Tranche s_rencontre
+  OBJET p [point] {"at":[2,7]} 
+  OBJET lp [label] "S(2 ; 7)" attaché à p
+DIT (bon) : Le vrai point de rencontre : à x égale deux, la première donne sept, et la seconde aussi.
+    show p @cue:c_aussi 
+    show lp @cue:c_aussi 
+DIT (verifie) : Je vérifie dans les deux équations : deux fois deux plus trois font sept, et moins deux plus neuf font sept. Ça marche.
+    fade_out l4 @cue:c_verifie 
+    fade_out p4 @cue:c_verifie 
+    highlight lp @cue:c_marche {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "La solution est le couple (x ; y) qui vérifie les deux équations." 
+  OBJET res [math] "S(2 ; 7)" 
+  GROUPE fin = idee, res
+DIT (retenir) : À retenir : on cherche le couple qui vérifie les deux équations en même temps, le point où les droites se croisent.
+    fade_out sys @beat:start 
+    fade_out e1 @beat:start 
+    fade_out e2 @beat:start 
+    fade_out e3 @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["idee","res"],"bounds":"layout_bounds"}
+    show idee @cue:c_retenir 
+    show res @cue:c_croisent 
+    highlight res @- {"start":"cue:c_croisent","end":"cue_end:c_croisent","role":"result"}
+--- 4 tranches, 168 mots dits (≈ 1.1 min d'oral)

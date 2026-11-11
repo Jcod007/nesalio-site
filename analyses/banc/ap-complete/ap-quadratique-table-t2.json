@@ -1,0 +1,751 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "fonction_quadratique_table",
+  "title": "La fonction quadratique : sa règle, ses différences",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'une fonction quadratique est une relation entrée-sortie à différence seconde constante, et retrouver sa règle à partir d'une table de valeurs."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "d1_0": "4-1",
+    "d1_1": "9-4",
+    "d1_2": "16-9",
+    "d1_3": "25-16",
+    "d2_0": "5-3",
+    "d2_1": "7-5",
+    "d2_2": "9-7"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        -2,
+        0,
+        2,
+        4
+       ],
+       [
+        4,
+        1,
+        4,
+        9
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "f(x)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "phrase",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Une entrée donne une seule sortie",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Pas de panique : une fonction quadratique, c'est juste une relation entre une entrée x et une sortie f de x.",
+     "cues": [
+      {
+       "id": "c_entree",
+       "text": "une entrée x"
+      },
+      {
+       "id": "c_sortie",
+       "text": "une sortie f de x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_entree",
+       "target": "tab"
+      },
+      {
+       "id": "s_phrase",
+       "verb": "show",
+       "at": "cue:c_sortie",
+       "target": "phrase"
+      }
+     ]
+    },
+    {
+     "id": "lit",
+     "say": "Regarde la table : quand x vaut zéro, f de x vaut un ; quand x vaut deux, f de x vaut quatre ; quand x vaut quatre, f de x vaut neuf.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "x vaut zéro"
+      },
+      {
+       "id": "c_deux",
+       "text": "x vaut deux"
+      },
+      {
+       "id": "c_quatre",
+       "text": "x vaut quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_col2",
+       "verb": "highlight",
+       "start": "cue:c_zero",
+       "end": "cue_end:c_zero",
+       "target": "tab",
+       "part": "r2c2"
+      },
+      {
+       "id": "h_col3",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "tab",
+       "part": "r2c3"
+      },
+      {
+       "id": "h_col4",
+       "verb": "highlight",
+       "start": "cue:c_quatre",
+       "end": "cue_end:c_quatre",
+       "target": "tab",
+       "part": "r2c4"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diff1",
+   "introduces": [
+    {
+     "id": "d1",
+     "layout": {
+      "next_to": "tab",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "params": {
+      "rows": [
+       [
+        3,
+        5,
+        7,
+        9
+       ]
+      ],
+      "row_labels": [
+       "différence 1ᵉʳ"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "d1expl",
+     "layout": {
+      "next_to": "d1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "4 - 1 = 3",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul",
+     "say": "On regarde le saut de f de x d'un x au suivant : de un à quatre, ça fait trois ; de quatre à neuf, ça fait cinq.",
+     "cues": [
+      {
+       "id": "c_saut",
+       "text": "le saut de f de x"
+      },
+      {
+       "id": "c_trois",
+       "text": "ça fait trois"
+      },
+      {
+       "id": "c_cinq",
+       "text": "ça fait cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_d1",
+       "verb": "show",
+       "at": "cue:c_saut",
+       "target": "d1"
+      },
+      {
+       "id": "h_d1a",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_trois",
+       "target": "d1",
+       "part": "r1c1"
+      },
+      {
+       "id": "h_d1b",
+       "verb": "highlight",
+       "start": "cue:c_cinq",
+       "end": "cue_end:c_cinq",
+       "target": "d1",
+       "part": "r1c2"
+      }
+     ]
+    },
+    {
+     "id": "nom",
+     "say": "Ces écarts, de dix-sept moins neuf par exemple, c'est la différence première : la vitesse à laquelle f de x change d'une colonne à l'autre.",
+     "cues": [
+      {
+       "id": "c_nom",
+       "text": "la différence première"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_d1expl",
+       "verb": "write",
+       "at": "cue:c_nom",
+       "target": "d1expl"
+      },
+      {
+       "id": "h_nom",
+       "verb": "highlight",
+       "start": "cue:c_nom",
+       "end": "cue_end:c_nom",
+       "target": "d1",
+       "role": "accent",
+       "part": "r1"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diff2",
+   "introduces": [
+    {
+     "id": "d2",
+     "layout": {
+      "next_to": "d1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "params": {
+      "rows": [
+       [
+        2,
+        2,
+        2
+       ]
+      ],
+      "row_labels": [
+       "différence 2ᵉ"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "d2expl",
+     "layout": {
+      "next_to": "d2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "5 - 3 = 2",
+     "type": "math"
+    },
+    {
+     "id": "reconn",
+     "layout": {
+      "next_to": "d2expl",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Un motif constant = quadratique",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul2",
+     "say": "Maintenant, l'écart entre les écarts : cinq moins trois donne deux, sept moins cinq donne deux, neuf moins sept donne deux.",
+     "cues": [
+      {
+       "id": "c_ecart",
+       "text": "l'écart entre les écarts"
+      },
+      {
+       "id": "c_deux",
+       "text": "donne deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_d2",
+       "verb": "show",
+       "at": "cue:c_ecart",
+       "target": "d2"
+      },
+      {
+       "id": "w_d2expl",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "d2expl"
+      }
+     ]
+    },
+    {
+     "id": "reconnaitre",
+     "say": "Toujours deux : la différence seconde est constante, et c'est ça la signature d'une fonction quadratique.",
+     "cues": [
+      {
+       "id": "c_sec",
+       "text": "la différence seconde"
+      },
+      {
+       "id": "c_signature",
+       "text": "la signature d'une fonction quadratique"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_d2",
+       "verb": "highlight",
+       "start": "cue:c_sec",
+       "end": "cue_end:c_sec",
+       "target": "d2",
+       "role": "result",
+       "part": "r1"
+      },
+      {
+       "id": "s_reconn",
+       "verb": "show",
+       "at": "cue:c_signature",
+       "target": "reconn"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "forme",
+     "layout": {
+      "next_to": "reconn",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "f(x) = ax^2 + bx + c",
+     "type": "math"
+    },
+    {
+     "id": "lien",
+     "layout": {
+      "next_to": "forme",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "la différence 2ᵉ vaut 2a",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "forme",
+     "say": "La règle générale s'écrit f de x égale a x au carré plus b x plus c.",
+     "cues": [
+      {
+       "id": "c_fx",
+       "text": "f de x égale"
+      },
+      {
+       "id": "c_ax",
+       "text": "a x au carré"
+      },
+      {
+       "id": "c_bx",
+       "text": "plus b x"
+      },
+      {
+       "id": "c_c",
+       "text": "plus c"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ax",
+       "verb": "write",
+       "at": "cue:c_ax",
+       "target": "forme"
+      },
+      {
+       "id": "w_bx",
+       "verb": "highlight",
+       "at": "cue:c_bx",
+       "target": "forme",
+       "role": "accent"
+      },
+      {
+       "id": "w_c",
+       "verb": "highlight",
+       "at": "cue:c_c",
+       "target": "forme",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "Et cette différence seconde constante vaut exactement deux a : elle te donne le coefficient devant x au carré, ici a vaut un.",
+     "cues": [
+      {
+       "id": "c_deuxa",
+       "text": "vaut exactement deux a"
+      },
+      {
+       "id": "c_aun",
+       "text": "a vaut un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_lien",
+       "verb": "write",
+       "at": "cue:c_deuxa",
+       "target": "lien"
+      },
+      {
+       "id": "h_lien",
+       "verb": "highlight",
+       "start": "cue:c_aun",
+       "end": "cue_end:c_aun",
+       "target": "lien",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_final",
+   "introduces": [
+    {
+     "id": "resume",
+     "layout": {
+      "next_to": "lien",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\Delta_2 = 2a",
+     "type": "math"
+    },
+    {
+     "id": "motcle",
+     "layout": {
+      "next_to": "resume",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Différence 2ᵉ constante ⇒ quadratique",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la différence première, c'est le saut d'une colonne à l'autre ; la différence seconde, l'écart entre ces sauts.",
+     "cues": [
+      {
+       "id": "c_ret",
+       "text": "la différence première"
+      },
+      {
+       "id": "c_sec2",
+       "text": "la différence seconde"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_ret",
+       "targets": [
+        "forme",
+        "lien",
+        "resume",
+        "motcle"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_d1",
+       "verb": "highlight",
+       "at": "cue:c_ret",
+       "target": "d1",
+       "role": "secondary"
+      },
+      {
+       "id": "h_d2",
+       "verb": "highlight",
+       "at": "cue:c_sec2",
+       "target": "d2",
+       "role": "secondary"
+      }
+     ]
+    },
+    {
+     "id": "but",
+     "say": "Et quand cette différence seconde reste constante, la table cache une quadratique, et cette valeur vaut deux a : tu tiens ton a, puis b et c suivent.",
+     "cues": [
+      {
+       "id": "c_const",
+       "text": "reste constante"
+      },
+      {
+       "id": "c_deuxa2",
+       "text": "deux a"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_resume",
+       "verb": "write",
+       "at": "cue:c_const",
+       "target": "resume"
+      },
+      {
+       "id": "s_motcle",
+       "verb": "show",
+       "at": "cue:c_deuxa2",
+       "target": "motcle"
+      },
+      {
+       "id": "h_resume",
+       "verb": "highlight",
+       "start": "cue:c_deuxa2",
+       "end": "cue_end:c_deuxa2",
+       "target": "resume",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

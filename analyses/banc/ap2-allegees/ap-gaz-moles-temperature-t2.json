@@ -1,0 +1,717 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "lois_gaz_moles_temperature",
+  "title": "Une loi des gaz qui relie les moles et la température",
+  "language": "fr",
+  "learning_goal": "Comprendre que la loi générale des gaz relie n et T (à p et V constants, n et T varient en sens inverse), et savoir choisir la bonne loi simple."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "p1": {
+     "kind": "constant",
+     "value": 100
+    },
+    "T1": {
+     "kind": "constant",
+     "value": 300
+    },
+    "n1": {
+     "kind": "constant",
+     "value": 2
+    },
+    "n2": {
+     "kind": "constant",
+     "value": 1
+    },
+    "T2": {
+     "kind": "constant",
+     "value": 150
+    }
+   },
+   "expressions": {
+    "T2_calc": "T2",
+    "verif": "n1*T1"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "loi_avogadro",
+     "content": "\\frac{V_1}{n_1} = \\frac{V_2}{n_2}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\frac{V_1}{n_1}"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "droite",
+       "text": "\\frac{V_2}{n_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "loi_gay",
+     "content": "\\frac{p_1}{T_1} = \\frac{p_2}{T_2}",
+     "parts": [
+      {
+       "id": "g2",
+       "text": "\\frac{p_1}{T_1}"
+      },
+      {
+       "id": "e2",
+       "text": "="
+      },
+      {
+       "id": "d2",
+       "text": "\\frac{p_2}{T_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "loi_adn",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\frac{p_1}{n_1} = \\frac{p_2}{n_2}",
+     "parts": [
+      {
+       "id": "g3",
+       "text": "\\frac{p_1}{n_1}"
+      },
+      {
+       "id": "e3",
+       "text": "="
+      },
+      {
+       "id": "d3",
+       "text": "\\frac{p_2}{n_2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "loi_generale",
+     "layout": {
+      "next_to": "loi_adn",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}",
+     "parts": [
+      {
+       "id": "g4",
+       "text": "\\frac{p_1 V_1}{n_1 T_1}"
+      },
+      {
+       "id": "e4",
+       "text": "="
+      },
+      {
+       "id": "d4",
+       "text": "\\frac{p_2 V_2}{n_2 T_2}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu me demandes s'il existe une loi des gaz qui relie les moles et la température. Oui, ça existe — c'est la loi d'Avogadro pour n et V, et la loi de Gay-Lussac pour p et T. Je te montre les deux, puis la loi générale qui les rassemble.",
+     "cues": [
+      {
+       "id": "c_avogadro",
+       "text": "loi d'Avogadro"
+      },
+      {
+       "id": "c_gay",
+       "text": "loi de Gay-Lussac"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_avog",
+       "verb": "write",
+       "at": "cue:c_avogadro",
+       "target": "loi_avogadro"
+      },
+      {
+       "id": "w_gay",
+       "verb": "write",
+       "at": "cue:c_gay",
+       "target": "loi_gay"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "avogadro",
+     "say": "La loi d'Avogadro dit : à pression et température constantes, le volume d'un gaz est proportionnel à sa quantité de matière en moles. Deux fois plus de moles, deux fois plus de volume.",
+     "cues": [
+      {
+       "id": "c_tp",
+       "text": "à pression et température constantes"
+      },
+      {
+       "id": "c_prop",
+       "text": "proportionnel à sa quantité"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_avog",
+       "verb": "highlight",
+       "start": "cue:c_tp",
+       "end": "cue_end:c_prop",
+       "target": "loi_avogadro",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_gay",
+   "introduces": [
+    {
+     "id": "p_loi",
+     "content": "\\frac{p_1}{n_1} = \\frac{p_2}{n_2} \\quad \\text{à } V \\text{ et } T \\text{ constants}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "relie",
+     "say": "Si tu veux relier les moles et la température directement, à volume et pression constants, c'est la loi d'Avogadro pour les gaz qui donne : n un sur T un égale n deux sur T deux. Autrement dit, n et T varient en sens inverse quand p et V ne bougent pas.",
+     "cues": [
+      {
+       "id": "c_direct",
+       "text": "relier les moles et la température"
+      },
+      {
+       "id": "c_inverse",
+       "text": "varient en sens inverse"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p",
+       "verb": "write",
+       "at": "cue:c_direct",
+       "target": "p_loi"
+      }
+     ]
+    },
+    {
+     "id": "gay",
+     "say": "Et la loi de Gay-Lussac, elle, relie la pression et la température à volume constant : p un sur T un égale p deux sur T deux. Elle ne contient pas de n.",
+     "cues": [
+      {
+       "id": "c_gay2",
+       "text": "loi de Gay-Lussac"
+      },
+      {
+       "id": "c_p",
+       "text": "pression et la température"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_gay",
+       "verb": "highlight",
+       "start": "cue:c_gay2",
+       "end": "cue_end:c_p",
+       "target": "loi_gay",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "generale",
+     "say": "Toutes ces lois sortent d'une seule : la loi générale des gaz. p un V un sur n un T un égale p deux V deux sur n deux T deux. Tu rayes les variables qui ne changent pas.",
+     "cues": [
+      {
+       "id": "c_generale",
+       "text": "loi générale"
+      },
+      {
+       "id": "c_raye",
+       "text": "rayes les variables"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_gen",
+       "verb": "write",
+       "at": "cue:c_generale",
+       "target": "loi_generale"
+      },
+      {
+       "id": "h_gen",
+       "verb": "highlight",
+       "at": "after:w_gen",
+       "target": "loi_generale",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "donnees",
+     "params": {
+      "rows": [
+       [
+        "100",
+        "1,0"
+       ],
+       [
+        "200",
+        "?"
+       ]
+      ],
+      "row_labels": [
+       "p (kPa)",
+       "T (K)"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cas",
+     "say": "Regarde un cas concret, avec n et V constants. p un vaut cent kilopascals et T un vaut trois cents kelvins. Je garde les deux moles. Je double les moles : n deux vaut deux fois n un.",
+     "cues": [
+      {
+       "id": "c_n",
+       "text": "avec n et V constants"
+      },
+      {
+       "id": "c_deux",
+       "text": "Je double les moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_donnees",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "donnees"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "À pression constante, la loi dit : T deux égale T un fois n deux sur n un. Ici : trois cents fois deux sur un, ça donne six cents kelvins. La température a doublé en même temps que les moles.",
+     "cues": [
+      {
+       "id": "c_t2",
+       "text": "T deux égale T un fois"
+      },
+      {
+       "id": "c_resultat",
+       "text": "six cents kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_case",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "donnees",
+       "role": "result",
+       "part": "r1c2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_verif",
+   "introduces": [
+    {
+     "id": "calc_verif",
+     "layout": {
+      "next_to": "donnees",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "T_2 = T_1 \\times \\frac{n_2}{n_1} = 300 \\times \\frac{4}{2} = 600",
+     "parts": [
+      {
+       "id": "start",
+       "text": "T_2 = T_1 \\times \\frac{n_2}{n_1}"
+      },
+      {
+       "id": "sub",
+       "text": "= 300 \\times \\frac{4}{2}"
+      },
+      {
+       "id": "res",
+       "text": "= 600"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "check",
+     "layout": {
+      "next_to": "calc_verif",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "given"
+     },
+     "content": "2 \\times 300 = 2 \\times 300",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verifie",
+     "say": "Vérifions : si n double et reste à pression constante, la température absolue doit doubler. Avec n un égale deux et n deux égale quatre, T un égale trois cents, T deux égale six cents. L'égalité n un T un égale n deux T deux est respectée : deux fois trois cents égale quatre fois cent cinquante.",
+     "cues": [
+      {
+       "id": "c_verif",
+       "text": "Vérifions"
+      },
+      {
+       "id": "c_double",
+       "text": "la température absolue doit doubler"
+      },
+      {
+       "id": "c_egalite",
+       "text": "deux fois trois cents égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_calc",
+       "verb": "show",
+       "at": "cue:c_verif",
+       "target": "calc_verif"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:c_egalite",
+       "target": "calc_verif",
+       "role": "result",
+       "part": "res"
+      }
+     ]
+    },
+    {
+     "id": "unite",
+     "say": "N'oublie jamais l'unité : en kelvins pour la température. Cinquante degrés Celsius, c'est trois cent vingt-trois kelvins ; si tu laisses en degrés Celsius, tes rapports seront faux.",
+     "cues": [
+      {
+       "id": "c_unite",
+       "text": "en kelvins"
+      },
+      {
+       "id": "c_celsius",
+       "text": "Cinquante degrés Celsius"
+      },
+      {
+       "id": "c_faux",
+       "text": "tes rapports seront faux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_check",
+       "verb": "fade_out",
+       "at": "cue:c_unite",
+       "target": "check"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "La loi générale des gaz relie p, V, n et T",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la loi générale des gaz relie p, V, n et T ensemble. Si la pression et le volume ne changent pas, elle donne n un T un égale n deux T deux : moles et température absolue varient en sens inverse.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_sens",
+       "text": "varient en sens inverse"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_avog",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "loi_avogadro"
+      },
+      {
+       "id": "f_gay",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "loi_gay"
+      },
+      {
+       "id": "f_p",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "p_loi"
+      },
+      {
+       "id": "f_don",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "donnees"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_sens",
+       "targets": [
+        "loi_generale",
+        "idee"
+       ]
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_sens",
+       "target": "idee"
+      },
+      {
+       "id": "h_gen",
+       "verb": "highlight",
+       "start": "cue:c_sens",
+       "end": "cue_end:c_sens",
+       "target": "loi_generale",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

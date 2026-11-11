@@ -1,0 +1,712 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "mole_masse_molaire",
+  "title": "La mole, un paquet de 6,02 × 10²³ entités",
+  "language": "fr",
+  "learning_goal": "Comprendre que la mole est un paquet d'entités, et que la masse molaire permet de passer des grammes aux moles en divisant par M."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_mole",
+   "introduces": [
+    {
+     "id": "dizaine",
+     "content": "1\\ \\text{douzaine} = 12\\ \\text{objets}",
+     "type": "math"
+    },
+    {
+     "id": "mole",
+     "content": "1\\ \\text{mol} = 6{,}02 \\times 10^{23}\\ \\text{entit\\'es}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Pas de souci, la mole fait peur à bien du monde, mais c'est juste un paquet. Regardons ça ensemble.",
+     "cues": [],
+     "do": []
+    },
+    {
+     "id": "dizaine_beat",
+     "say": "Quand je dis une douzaine d'œufs, tout le monde comprend douze œufs. C'est juste une façon de compter par paquets.",
+     "cues": [
+      {
+       "id": "c_douzaine",
+       "text": "douzaine"
+      },
+      {
+       "id": "c_douze",
+       "text": "douze œufs"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_dizaine",
+       "verb": "write",
+       "at": "cue:c_douze",
+       "target": "dizaine"
+      }
+     ]
+    },
+    {
+     "id": "mole_beat",
+     "say": "La mole, c'est exactement la même idée : un paquet qui contient toujours le même nombre d'entités, soit six virgule zéro deux fois dix exposant vingt-trois.",
+     "cues": [
+      {
+       "id": "c_mole",
+       "text": "La mole"
+      },
+      {
+       "id": "c_paquet",
+       "text": "toujours le même nombre"
+      },
+      {
+       "id": "c_nombre",
+       "text": "six virgule zéro deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_dizaine",
+       "verb": "dim",
+       "at": "cue:c_paquet",
+       "target": "dizaine"
+      },
+      {
+       "id": "w_mole",
+       "verb": "write",
+       "at": "cue:c_nombre",
+       "target": "mole"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse_molaire",
+   "introduces": [
+    {
+     "id": "h2o",
+     "content": "M(\\text{H}_2\\text{O}) = 2 \\times 1{,}01 + 16{,}00 = 18{,}02\\ \\text{g/mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "Ce nombre est trop gros pour compter des grains un par un. Alors on pèse. La masse molaire, c'est la masse d'une mole, en grammes par mole.",
+     "cues": [
+      {
+       "id": "c_molaire",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_une_mole",
+       "text": "masse d'une mole"
+      },
+      {
+       "id": "c_gmol",
+       "text": "grammes par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_molaire",
+       "verb": "write",
+       "at": "cue:c_gmol",
+       "target": "h2o"
+      },
+      {
+       "id": "h_molaire",
+       "verb": "highlight",
+       "start": "cue:c_gmol",
+       "end": "cue_end:c_gmol",
+       "target": "h2o",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Prenons l'eau, H deux O. Deux atomes d'hydrogène à un virgule zéro un gramme par mole, plus un atome d'oxygène à seize grammes par mole : j'additionne et j'obtiens dix-huit virgule zéro deux grammes par mole.",
+     "cues": [
+      {
+       "id": "c_hydrogene",
+       "text": "hydrogène"
+      },
+      {
+       "id": "c_oxygene",
+       "text": "oxygène"
+      },
+      {
+       "id": "c_additionne",
+       "text": "j'additionne"
+      },
+      {
+       "id": "c_resultat",
+       "text": "dix-huit virgule zéro deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_h",
+       "verb": "highlight",
+       "at": "cue:c_hydrogene",
+       "target": "h2o",
+       "role": "accent"
+      },
+      {
+       "id": "w_o",
+       "verb": "highlight",
+       "at": "cue:c_oxygene",
+       "target": "h2o",
+       "role": "accent"
+      },
+      {
+       "id": "w_total",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "h2o",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_proportion",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        18.02,
+        36.04,
+        9.01
+       ],
+       [
+        1,
+        2,
+        0.5
+       ]
+      ],
+      "row_labels": [
+       "masse (g)",
+       "quantité (mol)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "division",
+     "attachment": {
+      "parent": "tab",
+      "anchor": "right"
+     },
+     "content": "÷ 18,02",
+     "type": "label"
+    },
+    {
+     "id": "formule",
+     "content": "n = \\frac{m}{M}",
+     "parts": [
+      {
+       "id": "n",
+       "text": "n"
+      },
+      {
+       "id": "m",
+       "text": "= \\frac{m}{M}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tableau",
+     "say": "Je te montre le plus simple : un petit tableau de proportionnalité. En haut, la masse en grammes. En bas, la quantité en moles.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "tableau de proportionnalité"
+      },
+      {
+       "id": "c_masse",
+       "text": "masse en grammes"
+      },
+      {
+       "id": "c_quantite",
+       "text": "quantité en moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_tableau",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "passage",
+     "say": "Pour passer des grammes aux moles, je divise toujours par dix-huit virgule zéro deux, la masse molaire de l'eau.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "je divise toujours"
+      },
+      {
+       "id": "c_dixhuit",
+       "text": "dix-huit virgule zéro deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_div",
+       "verb": "show",
+       "at": "cue:c_divise",
+       "target": "division"
+      },
+      {
+       "id": "w_n",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "formule",
+       "part": "n"
+      },
+      {
+       "id": "w_m",
+       "verb": "write",
+       "at": "cue:c_dixhuit",
+       "target": "formule",
+       "part": "m"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "exemple",
+     "content": "n = \\frac{36\\ \\text{g}}{18{,}02\\ \\text{g/mol}} \\approx 2{,}0\\ \\text{mol}",
+     "parts": [
+      {
+       "id": "n",
+       "text": "n"
+      },
+      {
+       "id": "fraction",
+       "text": "= \\frac{36\\ \\text{g}}{18{,}02\\ \\text{g/mol}}"
+      },
+      {
+       "id": "res",
+       "text": "\\approx 2{,}0\\ \\text{mol}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "enonce",
+     "say": "Alors si j'ai trente-six grammes d'eau à peser, dans combien de moles ça me donne ?",
+     "cues": [
+      {
+       "id": "c_trentesix",
+       "text": "trente-six grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "exemple",
+       "part": "n"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_trentesix",
+       "target": "exemple",
+       "part": "fraction"
+      }
+     ]
+    },
+    {
+     "id": "reponse",
+     "say": "Je prends les trente-six grammes, je divise par dix-huit virgule zéro deux, et j'obtiens environ deux moles et zéro dixième. Les grammes s'annulent, il reste des moles.",
+     "cues": [
+      {
+       "id": "c_annulent",
+       "text": "Les grammes s'annulent"
+      },
+      {
+       "id": "c_moles",
+       "text": "il reste des moles"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_ext",
+       "verb": "highlight",
+       "start": "cue:c_annulent",
+       "end": "cue_end:c_annulent",
+       "target": "exemple",
+       "role": "neutral",
+       "part": "fraction"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "exemple",
+       "part": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "exemple",
+       "role": "result",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Une mole = 6,02 × 10²³ entités, et sa masse en g/mol s'appelle la masse molaire M.",
+     "type": "text"
+    },
+    {
+     "id": "form",
+     "content": "n = \\frac{m}{M}",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "reste",
+     "items": [
+      "idee",
+      "form"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "conclure",
+     "say": "À retenir : la mole, c'est un paquet de six virgule zéro deux fois dix exposant vingt-trois entités, comme douze fait une douzaine. Et pour la peser, on divise la masse par la masse molaire.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_douzaine",
+       "text": "une douzaine"
+      },
+      {
+       "id": "c_divise",
+       "text": "on divise"
+      },
+      {
+       "id": "c_molaire",
+       "text": "masse molaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "f_div",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "division"
+      },
+      {
+       "id": "f_mole",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "mole"
+      },
+      {
+       "id": "f_h2o",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "h2o"
+      },
+      {
+       "id": "f_ex",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "exemple"
+      },
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "formule"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_douzaine",
+       "target": "idee"
+      },
+      {
+       "id": "s_form",
+       "verb": "show",
+       "at": "cue:c_divise",
+       "target": "form"
+      }
+     ]
+    },
+    {
+     "id": "fin",
+     "say": "C'est cette petite astuce de division qui va te servir dans presque tous tes problèmes de moles.",
+     "cues": [
+      {
+       "id": "c_astuce",
+       "text": "petite astuce"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_form",
+       "verb": "highlight",
+       "start": "cue:c_astuce",
+       "end": "cue_end:c_astuce",
+       "target": "form",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

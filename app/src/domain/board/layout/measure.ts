@@ -5,7 +5,7 @@
  * Les tailles de texte sont fixes à l'écran (unités du monde Manim) : on les
  * convertit avec l'échelle du repère courant.
  */
-import { hasMath, mathSize as texSize } from "../tex";
+import { hasMath, mathSize as texSize } from "@/domain/nesalio/tex";
 import type { Frame, TextNode } from "../state";
 
 /** Taille du repère dans le monde de Manim (cadre standard : 14 × 8). Partagée avec le rendu. */

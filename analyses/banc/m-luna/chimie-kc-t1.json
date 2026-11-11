@@ -1,0 +1,641 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "constante_equilibre_kc",
+  "title": "Calculer Kc pour H₂ + I₂ ⇌ 2 HI",
+  "language": "fr",
+  "learning_goal": "Comprendre le sens de Kc et calculer sa valeur à partir des concentrations à l’équilibre."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "eqchim",
+     "style": {
+      "role": "given"
+     },
+     "content": "\\ce{H2 + I2 <=> 2HI}",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "eqchim",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "À l’équilibre, les deux réactions continuent à la même vitesse; les concentrations restent constantes, sans être nécessairement égales.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "K c, c’est la constante qui décrit la répartition des substances quand un système chimique est à l’équilibre.",
+     "cues": [
+      {
+       "id": "kc",
+       "text": "K c"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "eqchim"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "dynamique",
+     "say": "L’équilibre est dynamique : la réaction directe et la réaction inverse continuent à la même vitesse, donc les concentrations restent constantes, mais elles ne sont pas forcément égales.",
+     "cues": [
+      {
+       "id": "dynamique_mot",
+       "text": "L’équilibre est dynamique"
+      },
+      {
+       "id": "constantes",
+       "text": "les concentrations restent constantes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:dynamique_mot",
+       "target": "idee"
+      },
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "start": "cue:dynamique_mot",
+       "end": "cue_end:constantes",
+       "target": "eqchim",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_expression",
+   "introduces": [
+    {
+     "id": "kcform",
+     "content": "K_c = \\frac{[\\ce{HI}]^2}{[\\ce{H2}][\\ce{I2}]}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "Pour calculer K c, on met les concentrations des produits au numérateur et celles des réactifs au dénominateur; chaque coefficient de l’équation devient un exposant.",
+     "cues": [
+      {
+       "id": "calculer",
+       "text": "calculer K c"
+      },
+      {
+       "id": "produits",
+       "text": "les concentrations des produits"
+      },
+      {
+       "id": "exposant",
+       "text": "un exposant"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_kc",
+       "verb": "write",
+       "at": "cue:calculer",
+       "target": "kcform"
+      },
+      {
+       "id": "w_hi",
+       "verb": "highlight",
+       "at": "cue:produits",
+       "target": "kcform",
+       "role": "accent"
+      },
+      {
+       "id": "w_react",
+       "verb": "highlight",
+       "at": "cue:exposant",
+       "target": "kcform",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "lien",
+     "say": "Ici, le deux devant H I donne l’exposant deux sur la concentration de H I; H deux et I deux ont chacun un coefficient un.",
+     "cues": [
+      {
+       "id": "deux_devant",
+       "text": "le deux devant H I"
+      },
+      {
+       "id": "exposant_deux",
+       "text": "l’exposant deux"
+      },
+      {
+       "id": "coefficient_un",
+       "text": "un coefficient un"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_hi",
+       "verb": "highlight",
+       "start": "cue:deux_devant",
+       "end": "cue_end:exposant_deux",
+       "target": "kcform",
+       "role": "accent"
+      },
+      {
+       "id": "h_react",
+       "verb": "highlight",
+       "start": "cue:coefficient_un",
+       "end": "cue_end:coefficient_un",
+       "target": "kcform",
+       "role": "secondary"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "sub",
+     "content": "K_c = \\frac{(0.70)^2}{(0.10)(0.10)}",
+     "type": "math"
+    },
+    {
+     "id": "num",
+     "content": "0.70^2 = 0.49",
+     "parts": [
+      {
+       "id": "num_calc",
+       "text": "0.70^2 ="
+      },
+      {
+       "id": "num_res",
+       "text": "0.49"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "den",
+     "content": "0.10 \\times 0.10 = 0.010",
+     "parts": [
+      {
+       "id": "den_calc",
+       "text": "0.10 \\times 0.10 ="
+      },
+      {
+       "id": "den_res",
+       "text": "0.010"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "final",
+     "style": {
+      "role": "result"
+     },
+     "content": "K_c = \\frac{0.49}{0.010} = 49",
+     "parts": [
+      {
+       "id": "final_k",
+       "text": "K_c ="
+      },
+      {
+       "id": "final_frac",
+       "text": "\\frac{0.49}{0.010}"
+      },
+      {
+       "id": "final_res",
+       "text": "= 49"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "substitution",
+     "say": "On remplace par les concentrations à l’équilibre : H I vaut zéro virgule soixante-dix, et H deux et I deux valent chacun zéro virgule dix.",
+     "cues": [
+      {
+       "id": "remplace",
+       "text": "On remplace"
+      },
+      {
+       "id": "hi_val",
+       "text": "H I vaut zéro virgule soixante-dix"
+      },
+      {
+       "id": "react_val",
+       "text": "valent chacun zéro virgule dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_sk",
+       "verb": "write",
+       "at": "cue:remplace",
+       "target": "sub"
+      },
+      {
+       "id": "w_sn",
+       "verb": "highlight",
+       "at": "cue:hi_val",
+       "target": "sub",
+       "role": "accent"
+      },
+      {
+       "id": "w_sd",
+       "verb": "highlight",
+       "at": "cue:react_val",
+       "target": "sub",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calculs",
+     "say": "Zéro virgule soixante-dix au carré donne zéro virgule quarante-neuf; au dénominateur, zéro virgule dix fois zéro virgule dix donne zéro virgule zéro dix.",
+     "cues": [
+      {
+       "id": "num_word",
+       "text": "Zéro virgule soixante-dix au carré"
+      },
+      {
+       "id": "den_word",
+       "text": "zéro virgule dix fois zéro virgule dix"
+      },
+      {
+       "id": "den_result",
+       "text": "donne zéro virgule zéro dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_numc",
+       "verb": "write",
+       "at": "cue:num_word",
+       "target": "num",
+       "part": "num_calc"
+      },
+      {
+       "id": "w_numr",
+       "verb": "write",
+       "at": "cue:num_word",
+       "target": "num",
+       "part": "num_res"
+      },
+      {
+       "id": "w_denc",
+       "verb": "write",
+       "at": "cue:den_word",
+       "target": "den",
+       "part": "den_calc"
+      },
+      {
+       "id": "w_denr",
+       "verb": "write",
+       "at": "cue:den_result",
+       "target": "den",
+       "part": "den_res"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "division",
+     "say": "On divise zéro virgule quarante-neuf par zéro virgule zéro dix : le résultat est quarante-neuf.",
+     "cues": [
+      {
+       "id": "division_mot",
+       "text": "On divise"
+      },
+      {
+       "id": "res_mot",
+       "text": "quarante-neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_final",
+       "verb": "write",
+       "at": "cue:division_mot",
+       "target": "final",
+       "part": "final_k"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:division_mot",
+       "target": "final",
+       "part": "final_frac"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:res_mot",
+       "target": "final",
+       "part": "final_res"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_conclusion",
+   "introduces": [
+    {
+     "id": "resume",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "Kc compare les concentrations à l’équilibre : produits sur réactifs.",
+     "type": "text"
+    },
+    {
+     "id": "resumeform",
+     "layout": {
+      "next_to": "resume",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "K_c = \\frac{[\\ce{HI}]^2}{[\\ce{H2}][\\ce{I2}]} = 49",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : K c est le rapport des concentrations des produits sur celles des réactifs, avec les exposants donnés par les coefficients de l’équation.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "rapport",
+       "text": "le rapport des concentrations"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_form",
+       "verb": "show",
+       "at": "cue:retenir",
+       "target": "resume"
+      },
+      {
+       "id": "s_formule",
+       "verb": "show",
+       "at": "cue:rapport",
+       "target": "resumeform"
+      }
+     ]
+    },
+    {
+     "id": "interpretation",
+     "say": "Ici, K c vaut quarante-neuf, donc il est supérieur à un : à l’équilibre, les produits sont favorisés dans cette réaction.",
+     "cues": [
+      {
+       "id": "quarante_neuf",
+       "text": "quarante-neuf"
+      },
+      {
+       "id": "favorises",
+       "text": "les produits sont favorisés"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "start": "cue:quarante_neuf",
+       "end": "cue_end:favorises",
+       "target": "resumeform",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

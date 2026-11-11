@@ -1,0 +1,98 @@
+QUESTION (mediatrice, mathematiques, sec 4, methode) : comment je trouve l'équation de la médiatrice du segment AB si A(1, 2) et B(5, 6) ?
+RÉPONSE DE RÉFÉRENCE : Milieu M(3, 4), pente perpendiculaire -1 : y = −x + 7.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. médiatrice = droite perpendiculaire au segment passant par son milieu, points équidistants de A et B (figure)
+  2. milieu M(3, 4)
+  3. pente de AB = 1, pente perpendiculaire = -1 (opposé de l'inverse, m1 × m2 = -1)
+  4. réponse y = -x + 7 écrite
+  5. vérification : M sur la droite, ou (0, 7) à √26 de A et de B
+ERREURS GRAVES À CHERCHER : droite tracée qui n'est pas perpendiculaire
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver l'équation de la médiatrice de AB
+=== Tranche s_idee
+  OBJET rep [axes] {"x":[-1,7],"y":[-1,8]} 
+  OBJET pa [point] {"at":[1,2]} 
+  OBJET la [label] "A(1 ; 2)" attaché à pa
+  OBJET pb [point] {"at":[5,6]} 
+  OBJET lb [label] "B(5 ; 6)" attaché à pb
+  OBJET seg [line] {"from":[1,2],"to":[5,6]} 
+DIT (poser) : Pour la médiatrice, je pose les points A un, deux et B cinq, six dans un repère, et je trace le segment AB.
+    show rep @beat:start 
+    show pa @cue:c_a 
+    show la @after:s_pa 
+    show pb @cue:c_b 
+    show lb @after:s_pb 
+    draw seg @- {"start":"cue:c_seg","end":"cue_end:c_seg"}
+DIT (definir) : La médiatrice, c'est la droite qui coupe le segment en plein milieu, à angle droit. Chaque point de cette droite est à la même distance de A et de B.
+    highlight seg @- {"start":"cue:c_milieu","end":"cue_end:c_angle","role":"given"}
+=== Tranche s_milieu
+  OBJET pm [point] {"at":[3,4]} 
+  OBJET lm [label] "M(3 ; 4)" attaché à pm
+  OBJET calc_m [math] "M = \\left(\\frac{1+5}{2} ; \\frac{2+6}{2}\\right) = (3 ; 4)" 
+DIT (moyenne) : Le milieu M, c'est la moyenne des coordonnées : je fais un plus cinq divisé par deux, et deux plus six divisé par deux.
+    write calc_m @cue:c_x 
+    highlight calc_m @cue:c_y {"role":"accent"}
+DIT (reponse) : Ça donne le point M trois, quatre : c'est le milieu du segment.
+    highlight calc_m @cue:c_m {"role":"accent"}
+    show pm @cue:c_m 
+    show lm @after:s_pm 
+=== Tranche s_pente
+  OBJET tri [polygon] {"vertices":[[1,2],[5,2],[5,6]]} 
+  OBJET pente [math] "m_{AB} = \\frac{6-2}{5-1} = \\frac{4}{4} = 1" 
+  OBJET perp [math] "m_{\\perp} = -1" 
+DIT (calcule) : Pour la pente de AB, je monte de quatre et j'avance de quatre : six moins deux sur cinq moins un.
+    draw tri @- {"start":"cue:c_monte","end":"cue_end:c_avance"}
+    write pente @cue:c_monte 
+    highlight pente @cue:c_avance {"role":"accent"}
+DIT (resultat) : Quatre sur quatre, ça fait un : la pente de AB est un.
+    highlight pente @cue:c_un {"role":"accent"}
+DIT (oppose) : La médiatrice est perpendiculaire, alors sa pente est l'opposée inverse : moins un.
+    write perp @cue:c_moins 
+=== Tranche s_equation
+  OBJET droite [function_graph] {"expression":"-1*x+7","domain":[-1,7]} 
+  OBJET etape1 [math] "y = -1x + b" 
+  OBJET etape2 [math] "4 = -1 \\times 3 + b" parts=4 | = -1 \times 3 + b
+  OBJET etape3 [math] "4 = -3 + b" 
+  OBJET etape4 [math] "b = 7" 
+  OBJET etape5 [math] "y = -x + 7" 
+DIT (forme) : La médiatrice a la forme y égale m x plus b. Je connais m, moins un, mais pas encore b.
+    write etape1 @cue:c_m 
+    highlight etape1 @cue:c_forme {"role":"accent"}
+DIT (remplacer) : Le point M trois, quatre est sur la droite, alors je remplace x par trois et y par quatre.
+    transform etape2 @cue:c_remplace {"source":"etape1"}
+DIT (simplifie) : Moins un fois trois, ça fait moins trois.
+    transform etape3 @cue:c_moins3 {"source":"etape2"}
+DIT (isole) : Pour isoler b, j'ajoute trois des deux côtés : quatre plus trois fait sept.
+    transform etape4 @cue:c_ajoute {"source":"etape3"}
+DIT (finale) : L'équation de la médiatrice est donc y égale moins x plus sept.
+    transform etape5 @cue:c_eq {"source":"etape4"}
+    draw droite @- {"start":"cue:c_eq","end":"cue_end:c_eq"}
+    highlight etape5 @- {"start":"cue:c_eq","end":"cue_end:c_eq","role":"result"}
+=== Tranche s_verif
+  OBJET check_m [math] "-1 \\times 3 + 7 = 4" parts=-1 \times 3 + 7 | = 4
+DIT (verifie) : Vérifions : je remplace x par trois dans mon équation. Moins un fois trois plus sept donne quatre, exactement l'ordonnée de M.
+    write check_m @cue:c_verif {"part":"calc"}
+    write check_m @cue:c_quatre {"part":"ok"}
+    highlight pm @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"accent"}
+DIT (conclure) : La droite passe bien par M et elle est perpendiculaire à AB : c'est la médiatrice.
+    fade_out tri @cue:c_passe 
+    fade_out calc_m @cue:c_passe 
+    fade_out pente @cue:c_passe 
+    fade_out perp @cue:c_passe 
+    fade_out check_m @cue:c_passe 
+    fade_out etape1 @cue:c_passe 
+    fade_out etape2 @cue:c_passe 
+    fade_out etape3 @cue:c_passe 
+    fade_out etape4 @cue:c_passe 
+=== Tranche s_retenir
+  OBJET resume [math] "m_{\\perp} = -\\frac{1}{m_{AB}}" 
+  OBJET note [text] "La médiatrice passe par le milieu, à angle droit" 
+DIT (idee) : À retenir : la médiatrice passe par le milieu du segment, et sa pente est l'opposée inverse de celle du segment.
+    camera.focus  @cue:c_retenir {"targets":["rep","etape5","resume","note"],"bounds":"layout_bounds"}
+    write resume @cue:c_opposee 
+    write note @after:w_resume 
+    highlight etape5 @- {"start":"cue:c_opposee","end":"cue_end:c_opposee","role":"result"}
+DIT (final) : Ici, ça donne l'équation y égale moins x plus sept.
+    draw droite @- {"start":"cue:c_final","end":"cue_end:c_final"}
+--- 6 tranches, 279 mots dits (≈ 1.9 min d'oral)

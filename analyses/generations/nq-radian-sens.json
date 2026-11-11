@@ -1,0 +1,601 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "radian_sens",
+  "title": "C'est quoi un radian, et pourquoi l'utiliser",
+  "language": "fr",
+  "learning_goal": "Comprendre qu'un radian est un angle dont l'arc a la même longueur que le rayon, qu'un tour complet vaut 2 pi radians, et pourquoi les radians simplifient les formules."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_arc",
+   "introduces": [
+    {
+     "id": "cercle_rayon",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "x": "cos(t)",
+      "y": "sin(t)",
+      "domain": [
+       0,
+       6.283185307
+      ]
+     },
+     "type": "parametric_curve"
+    },
+    {
+     "id": "pt_depart",
+     "params": {
+      "at": [
+       1,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "rayon",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       1,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_rayon",
+     "attachment": {
+      "parent": "rayon",
+      "anchor": "bottom"
+     },
+     "content": "r",
+     "type": "label"
+    },
+    {
+     "id": "arc1",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "x": "cos(t)",
+      "y": "sin(t)",
+      "domain": [
+       0,
+       1
+      ]
+     },
+     "type": "parametric_curve"
+    },
+    {
+     "id": "pt_arrivee",
+     "params": {
+      "at": [
+       0.5403023059,
+       0.8414709848
+      ]
+     },
+     "type": "point"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Un radian, c'est un angle qu'on mesure avec le rayon du cercle lui-même.",
+     "cues": [
+      {
+       "id": "c_rayon",
+       "text": "rayon"
+      }
+     ],
+     "do": [
+      {
+       "id": "b_cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "cercle_rayon"
+       ]
+      },
+      {
+       "id": "s_cercle",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "cercle_rayon"
+      },
+      {
+       "id": "d_rayon",
+       "verb": "draw",
+       "at": "cue:c_rayon",
+       "target": "rayon"
+      }
+     ]
+    },
+    {
+     "id": "onplie",
+     "say": "Prends le rayon, et plie-le sur le bord du cercle comme une ficelle.",
+     "cues": [
+      {
+       "id": "c_bord",
+       "text": "bord du cercle"
+      },
+      {
+       "id": "c_ficelle",
+       "text": "ficelle"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_arc",
+       "verb": "draw",
+       "start": "cue:c_bord",
+       "end": "cue_end:c_ficelle",
+       "target": "arc1"
+      }
+     ]
+    },
+    {
+     "id": "angle",
+     "say": "L'angle au centre devant cet arc, c'est exactement un radian.",
+     "cues": [
+      {
+       "id": "c_angle",
+       "text": "L'angle au centre"
+      },
+      {
+       "id": "c_unradian",
+       "text": "un radian"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_arrivee",
+       "verb": "show",
+       "at": "cue:c_angle",
+       "target": "pt_arrivee"
+      },
+      {
+       "id": "h_arc",
+       "verb": "highlight",
+       "at": "cue:c_unradian",
+       "target": "arc1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tour",
+   "introduces": [
+    {
+     "id": "eq_tour",
+     "content": "2\\pi \\ \\text{rad} = 360^\\circ",
+     "parts": [
+      {
+       "id": "deuxpi",
+       "text": "2\\pi \\ \\text{rad}"
+      },
+      {
+       "id": "egal",
+       "text": "= 360^\\circ"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "demi",
+     "content": "\\pi \\ \\text{rad} = 180^\\circ",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "compte",
+     "say": "Fais le tour complet : le rayon se plie six fois et un petit peu plus, deux pi fois en tout.",
+     "cues": [
+      {
+       "id": "c_tour",
+       "text": "tour complet"
+      },
+      {
+       "id": "c_deuxpi",
+       "text": "deux pi"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_cercle",
+       "verb": "dim",
+       "at": "cue:c_tour",
+       "target": "cercle_rayon"
+      },
+      {
+       "id": "w_tour",
+       "verb": "write",
+       "at": "cue:c_deuxpi",
+       "target": "eq_tour",
+       "part": "deuxpi"
+      }
+     ]
+    },
+    {
+     "id": "egalite",
+     "say": "Donc un tour complet vaut deux pi radians, c'est-à-dire trois cent soixante degrés.",
+     "cues": [
+      {
+       "id": "c_radians",
+       "text": "deux pi radians"
+      },
+      {
+       "id": "c_degres",
+       "text": "trois cent soixante degrés"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_degres",
+       "target": "eq_tour",
+       "part": "egal"
+      },
+      {
+       "id": "h_tour",
+       "verb": "highlight",
+       "at": "after:w_egal",
+       "target": "eq_tour",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "demies",
+     "say": "Coupe en deux : pi radians, c'est cent quatre-vingts degrés.",
+     "cues": [
+      {
+       "id": "c_pi",
+       "text": "pi radians"
+      },
+      {
+       "id": "c_180",
+       "text": "cent quatre-vingts degrés"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_demi",
+       "verb": "highlight",
+       "at": "cue:c_pi",
+       "target": "demi",
+       "role": "accent"
+      },
+      {
+       "id": "w_demi",
+       "verb": "write",
+       "at": "cue:c_180",
+       "target": "demi"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pourquoi",
+   "introduces": [
+    {
+     "id": "arc_omega",
+     "content": "v = \\omega r",
+     "type": "math"
+    },
+    {
+     "id": "arc_deg",
+     "content": "v = \\frac{\\pi}{180}\\,\\omega_D\\, r",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "Voici la vraie raison : avec les radians, la vitesse est simplement oméga fois r.",
+     "cues": [
+      {
+       "id": "c_vitesse",
+       "text": "vitesse"
+      },
+      {
+       "id": "c_omega",
+       "text": "oméga fois r"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_eq",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "eq_tour"
+      },
+      {
+       "id": "d_demi",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "demi"
+      },
+      {
+       "id": "w_arc",
+       "verb": "write",
+       "at": "cue:c_omega",
+       "target": "arc_omega"
+      }
+     ]
+    },
+    {
+     "id": "degat",
+     "say": "En degrés, un facteur pi sur cent quatre-vingts traîne dans la formule.",
+     "cues": [
+      {
+       "id": "c_degres",
+       "text": "En degrés"
+      },
+      {
+       "id": "c_facteur",
+       "text": "facteur pi sur cent quatre-vingts"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_deg",
+       "verb": "write",
+       "at": "cue:c_facteur",
+       "target": "arc_deg"
+      },
+      {
+       "id": "h_deg",
+       "verb": "highlight",
+       "at": "cue:c_degres",
+       "target": "arc_deg"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "conclusion",
+     "say": "Le radian n'est pas une mode : c'est l'unité qui rend les formules naturelles et simples.",
+     "cues": [
+      {
+       "id": "c_mode",
+       "text": "pas une mode"
+      },
+      {
+       "id": "c_simples",
+       "text": "naturelles et simples"
+      }
+     ],
+     "do": [
+      {
+       "id": "mv_eq",
+       "verb": "move",
+       "at": "cue:c_simples",
+       "target": "arc_omega",
+       "to": {
+        "to_corner": "top_left"
+       }
+      },
+      {
+       "id": "f_deg",
+       "verb": "fade_out",
+       "at": "cue:c_mode",
+       "target": "arc_deg"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

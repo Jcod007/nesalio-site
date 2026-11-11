@@ -1,0 +1,62 @@
+QUESTION (ap-zeros-partie-entiere, mathematiques, sec 4, alloprof) : Comment trouves ton les zéros d'une fontion partie entière?
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver les zéros d'une fonction partie entière
+math_context : {"symbols":{},"expressions":{"f3":"2*floor(3-1)-4","f4":"2*floor(4-1)-4"}}
+=== Tranche s_rappel
+  OBJET tab [matrix] {"rows":[[1,2,3],[-4,-2,0]],"row_labels":["x","f(x)"]} 
+  OBJET rule [math] "f(x) = 2[x - 1] - 4" 
+DIT (accroche) : Bonne question : avec la partie entière, les zéros ne sont pas des points, mais tout un intervalle.
+DIT (regle) : Prenons f de x égale deux fois la partie entière de x moins un, moins quatre. Je vérifie d'abord : quand x vaut trois, la partie entière de deux vaut deux, et deux fois deux moins quatre donne zéro.
+    write rule @cue:c_regle 
+    show tab @cue:c_verif 
+    highlight tab @cue:c_zero {"role":"accent"}
+=== Tranche s_etapes
+  OBJET eq0 [math] "2[x - 1] - 4 = 0" parts=2[x - 1] - 4 | = 0
+  OBJET eq1 [math] "[x - 1] = 2" 
+  OBJET eq2 [math] "2 \\le x - 1 < 3" 
+  OBJET eq3 [math] "3 \\le x < 4" 
+DIT (poser) : On cherche les zéros : on résout f de x égale zéro.
+    write eq0 @beat:start {"part":"gauche"}
+    write eq0 @cue:c_egalezero {"part":"droite"}
+DIT (isoler) : On ajoute quatre des deux côtés, puis on divise par deux : la partie entière de x moins un doit valoir deux.
+    transform eq1 @- {"start":"cue:c_ajoute","end":"cue_end:c_divise","source":"eq0"}
+    highlight eq1 @cue:c_valoirdeux {"role":"accent"}
+DIT (traduire) : Or la partie entière d'un nombre vaut deux exactement quand ce nombre est au moins deux et plus petit que trois.
+    transform eq2 @- {"start":"cue:c_aumoinsdeux","end":"cue_end:c_pluspetit","source":"eq1"}
+DIT (intervalle) : J'ajoute un partout : les zéros sont tous les x de trois inclus jusqu'à quatre exclu.
+    transform eq3 @- {"start":"cue:c_ajouteun","end":"cue_end:c_quatre","source":"eq2"}
+    highlight eq3 @cue:c_quatre {"role":"result"}
+=== Tranche s_piege
+  OBJET a_faux [math] "-2 \\le x - 1 < -1" 
+  OBJET a_bon [math] "-3 \\le x < -2" 
+  OBJET piege [text] "partie entière d'un négatif : on descend" 
+DIT (piege) : Attention au piège des négatifs : la partie entière de moins deux virgule trois, c'est moins trois, pas moins deux.
+    fade_out tab @cue:c_piege 
+    show piege @cue:c_moinstrois 
+DIT (exemple) : Par exemple, pour obtenir une partie entière de moins deux, il faut que x moins un soit au moins moins deux et plus petit que moins un.
+    show a_faux @- {"start":"cue:c_moinsdeux","end":"cue_end:c_moinsun"}
+DIT (suite) : J'ajoute un partout : les zéros sont alors de moins trois inclus à moins deux exclu.
+    show a_bon @- {"start":"cue:c_bon","end":"cue_end:c_exclu"}
+=== Tranche s_condition
+  OBJET gen [math] "[x] = -\\frac{k}{a}" parts=[x] | = -\frac{k}{a}
+  OBJET cond [text] "si −k/a n'est pas entier : aucun zéro" 
+DIT (general) : En général, f de x égale zéro te donne la partie entière égale à moins k sur a.
+    write gen @beat:start {"part":"partx"}
+    fade_out piege @cue:c_moinska 
+    fade_out a_faux @cue:c_moinska 
+    fade_out a_bon @cue:c_moinska 
+    write gen @after:w_partx {"part":"val"}
+DIT (controle) : Si ce nombre n'est pas un entier, la fonction ne touche jamais zéro : aucun zéro.
+    show cond @cue:c_pasentier 
+    fade_out eq3 @cue:c_pasentier 
+=== Tranche s_retenir
+  OBJET idee [text] "Les zéros d'une partie entière forment un intervalle" 
+DIT (retenir) : À retenir : on isole la partie entière, on encadre avec deux entiers voisins, et on obtient un intervalle de zéros.
+    camera.focus  @cue:c_retenir {"targets":["idee","gen"],"bounds":"layout_bounds"}
+    show idee @cue:c_intervalle 
+    highlight gen @- {"start":"cue:c_intervalle","end":"cue_end:c_intervalle","role":"accent"}
+--- 5 tranches, 246 mots dits (≈ 1.6 min d'oral)

@@ -1,0 +1,73 @@
+QUESTION (carre, mathematiques, sec 4, sens) : Pourquoi (x + 5)² ce n'est pas x² + 25 ?
+RÉPONSE DE RÉFÉRENCE : (x + 5)² = x² + 10x + 25 : il manque les deux rectangles 5x.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. (x + 5)² = (x + 5)(x + 5), pas x² + 5²
+  2. modèle d'aire : carré x², deux rectangles 5x, carré 25
+  3. terme croisé 10x = 2 × 5x
+  4. résultat x² + 10x + 25 écrit
+  5. vérification numérique (ex. x = 1 : 36 ≠ 26)
+ERREURS GRAVES À CHERCHER : modèle d'aire mal découpé (pièces hors du grand carré)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi (x + 5)² n'est pas x² + 25
+=== Tranche s_erreur
+  OBJET faux [math] "(x + 5)^2 = x^2 + 25" parts=(x + 5)^2 | = x^2 + 25
+  OBJET verif [math] "x = 1 \\Rightarrow 6^2 = 36 \\text{ et } 1^2 + 25 = 26" 
+DIT (pose) : Bonne question : on a souvent envie d'écrire que x plus cinq au carré donne juste x au carré plus vingt-cinq.
+    write faux @cue:c_envie {"part":"gauche"}
+    write faux @after:w_faux {"part":"droite"}
+DIT (test) : Testons avec x égale un : à gauche, six au carré donne trente-six ; à droite, un plus vingt-cinq donne vingt-six.
+    write verif @cue:c_test 
+    highlight faux @cue:c_droite {"role":"unknown"}
+    set_style verif @after:h_faux {"role":"unknown"}
+=== Tranche s_aire
+  OBJET carre [polygon] {"vertices":[[0,0],[7,0],[7,7],[0,7]]} 
+  OBJET coin [polygon] {"vertices":[[2,0],[7,0],[7,5],[2,5]]} 
+  OBJET bas [polygon] {"vertices":[[0,0],[2,0],[2,5],[0,5]]} 
+  OBJET haut [polygon] {"vertices":[[2,5],[7,5],[7,7],[2,7]]} 
+  OBJET lab_x2 [label] "x²" attaché à bas
+  OBJET lab_5x_bas [label] "5x" attaché à coin
+  OBJET lab_5x_haut [label] "5x" attaché à haut
+  OBJET lab_25 [label] "25" attaché à coin
+  OBJET lab_x [label] "x" attaché à bas
+  OBJET lab_5a [label] "5" attaché à bas
+  OBJET lab_5b [label] "5" attaché à haut   <<JAMAIS MONTRÉ>>
+DIT (dessine) : Fais un carré de côté x plus cinq : deux morceaux de longueur x et cinq sur chaque côté.
+    draw carre @cue:c_cote 
+    show lab_x @cue:c_cote 
+    show lab_5a @after:l_x 
+DIT (quatre) : Le grand carré se découpe alors en quatre pièces : un carré x par x, deux rectangles cinq par x, et un carré cinq par cinq.
+    draw bas @cue:c_x2 
+    show lab_x2 @cue:c_x2 
+    draw coin @cue:c_rect 
+    draw haut @cue:c_rect 
+    show lab_5x_bas @cue:c_rect 
+    show lab_5x_haut @after:s_5x_bas 
+    show lab_25 @cue:c_25 
+DIT (somme) : L'aire totale est la somme des quatre pièces : x au carré, plus cinq x, plus cinq x, plus vingt-cinq.
+    highlight bas @cue:c_total {"role":"accent"}
+    highlight haut @cue:c_vingtcinq {"role":"accent"}
+    highlight coin @after:h_5x {"role":"accent"}
+=== Tranche s_resultat
+  OBJET etapes [math] "(x + 5)^2 = x^2 + 5x + 5x + 25" parts=(x + 5)^2 | = x^2 | + 5x | + 5x | + 25
+  OBJET bon [math] "(x + 5)^2 = x^2 + 10x + 25" parts=(x + 5)^2 | = x^2 | + 10x | + 25
+DIT (ecris) : On écrit donc x plus cinq au carré égale x au carré plus cinq x plus cinq x plus vingt-cinq.
+    write etapes @cue:c_egale {"part":"g"}
+    write etapes @after:w_g {"part":"x2"}
+    write etapes @after:w_x2 {"part":"cinq1"}
+    write etapes @after:w_c1 {"part":"cinq2"}
+    write etapes @after:w_c2 {"part":"fin"}
+DIT (reduis) : Les deux rectangles cinq par x se rassemblent : cinq x plus cinq x donne dix x. Voilà le terme qu'on oublie.
+    fade_out carre @cue:c_dix 
+    transform bon @cue:c_dix {"source":"etapes"}
+    highlight bon @- {"start":"cue:c_oublie","end":"cue_end:c_oublie","role":"result","part":"dix"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : élever au carré, c'est multiplier par soi-même, et les deux morceaux du milieu s'ajoutent.
+    fade_out bas @cue:c_retenir 
+    fade_out coin @cue:c_retenir 
+    fade_out haut @cue:c_retenir 
+    fade_out faux @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["bon"],"bounds":"layout_bounds","save_as":"vue_finale"}
+    highlight bon @cue:c_milieu {"role":"result"}
+--- 4 tranches, 166 mots dits (≈ 1.1 min d'oral)

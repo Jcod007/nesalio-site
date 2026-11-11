@@ -1,0 +1,109 @@
+QUESTION (ap3-gaz-boyle-pression-diminue, chimie, sec 5, alloprof) : Bonjour, c'est une question sur les lois simples des gaz:
+Je comprend la loi de Boyle: si le volume diminue, il y aura plus de collisions donc, plus de pression, et vice versa.
+Mais si c'est la PRESSION qui diminue, pourquoi est-ce que le volume augmenterait? Par exemple, si la pression intérieur d'un contenant solide diminue de 101.3kpa jusqu'à 50 kpa et la pression à l'extérieur ( atmostphérique) est aussi de 101.3Kpa, le volume devrait diminuer non? puisque la pression qui s'applique sur la surface extérieure est plus forte que celle qui s'applique à l'intérieur?
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi une pression qui baisse fait augmenter le volume
+=== Tranche s_boite
+  OBJET cadre [polygon] {"vertices":[[-3,-2.6],[3,-2.6],[3,2.6],[-3,2.6]]} 
+  OBJET mur_gauche [line] {"from":[-3,-2.6],"to":[-3,2.6]}   <<JAMAIS MONTRÉ>>
+  OBJET piston [line] {"from":[3,-2.6],"to":[3,2.6]} 
+  OBJET p1 [point] {"at":[0.6,-1.3]} 
+  OBJET p2 [point] {"at":[-0.8,0.9]} 
+  OBJET p3 [point] {"at":[1.5,1.6]} 
+  OBJET p4 [point] {"at":[-1.7,-0.7]} 
+  OBJET p5 [point] {"at":[0.2,1.9]} 
+  OBJET lab_ext_g [label] "pression extérieure"   <<JAMAIS MONTRÉ>>
+  OBJET lab_int_g [label] "pression intérieure"   <<JAMAIS MONTRÉ>>
+  OBJET note_int [label] "la pression extérieure pousse le piston"   <<JAMAIS MONTRÉ>>
+  GROUPE gaz = p1, p2, p3, p4, p5
+DIT (salut) : Bonne question ! Tu as bien compris Boyle du côté « on comprime ». Regardons l'autre sens, avec un piston qui bouge.
+    draw cadre @beat:start 
+    draw piston @beat:start 
+    show gaz @beat:start {"stagger":"quick"}
+=== Tranche s_force
+  OBJET fleche_ext [arrow] {"from":[5.6,0],"to":[3.1,0]} 
+  OBJET fleche_int [arrow] {"from":[-0.6,0],"to":[2.9,0]} 
+  OBJET lab_grand [label] "extérieur : 100 kPa" attaché à fleche_ext
+  OBJET lab_petit [label] "intérieur : 50 kPa" attaché à fleche_int
+  OBJET texte_grand [text] "Dehors, la pression est plus FORTE." 
+  OBJET texte_petit [text] "Dedans, la pression est plus FAIBLE." 
+  OBJET texte_ecrase [text] "La force extérieure l'emporte : le piston avance vers la gauche." 
+DIT (deux_pressions) : À ce moment-là, à l'extérieur, il y a cent un virgule trois kilo pascals, et à l'intérieur, cinquante. Il y a un déséquilibre.
+    show fleche_ext @cue:c_ext 
+    show fleche_int @cue:c_int 
+    show texte_grand @cue:c_ext 
+    show texte_petit @cue:c_int 
+    show texte_ecrase @cue:c_des 
+    show lab_grand @after:s_fext 
+    show lab_petit @after:s_fint 
+DIT (avance) : La pression extérieure est plus grande que la pression intérieure : la force qui pousse le piston vers la gauche est plus forte.
+    highlight fleche_ext @cue:c_avance {"role":"accent"}
+    highlight fleche_int @cue:c_plus {"role":"unknown"}
+=== Tranche s_loi
+  OBJET loi [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2
+  OBJET cond [label] "n et T constants" attaché à loi
+  OBJET exemple [math] "101{,}3 \\times 2{,}0 = 50 \\times V_2" parts=101{,}3 \times 2{,}0 | = | 50 \times V_2
+  OBJET rep [math] "V_2 = \\frac{101{,}3 \\times 2{,}0}{50} \\approx 4{,}1 \\text{ L}" parts=V_2 = \frac{101{,}3 \times 2{,}0}{50} | \approx 4{,}1 \text{ L}
+  OBJET verif1 [math] "101{,}3 \\times 2{,}0 = 202{,}6" parts=101{,}3 \times 2{,}0 | = 202{,}6
+  OBJET verif2 [math] "50 \\times 4{,}1 = 205" parts=50 \times 4{,}1 | = 205
+  OBJET note [text] "p et V varient en sens inverse : p ÷ 2, V × 2"   <<JAMAIS MONTRÉ>>
+DIT (fais) : Faisons bouger le piston. On part d'un volume de deux litres sous cent un virgule trois kilo pascals, et la pression descend à cinquante.
+    move piston @cue:c_descend {"to":{"next_to":"mur_gauche","direction":"right","gap":"xs"}}
+    move gaz @cue:c_descend {"to":{"next_to":"mur_gauche","direction":"right","gap":"xs"}}
+    fade_out fleche_ext @cue:c_descend 
+    fade_out fleche_int @cue:c_descend 
+    fade_out lab_grand @cue:c_descend 
+    fade_out lab_petit @cue:c_descend 
+    fade_out texte_ecrase @cue:c_descend 
+DIT (calcule) : La loi de Boyle-Mariotte dit : p un V un égale p deux V deux, si les moles et la température restent constantes.
+    write loi @cue:c_loi 
+    show cond @after:w_loi 
+DIT (resolution) : On remplace : cent un virgule trois fois deux divisé par cinquante, ça donne environ quatre virgule un litres.
+    write exemple @cue:c_remplace 
+    write rep @cue:c_remplace {"part":"calc"}
+    write rep @cue:c_reste {"part":"res"}
+=== Tranche s_sens
+  OBJET texte_sens [text] "p diminue ÷ 2 → V augmente × 2" 
+  OBJET idee [text] "La pression exercée sur le piston s'équilibre avec celle du gaz." 
+DIT (verifie) : Vérification : du côté gauche, cent un virgule trois fois deux virgule zéro donne deux cent deux virgule six. Du côté droit, cinquante fois quatre virgule un donne environ deux cent cinq, ça concorde.
+    show texte_sens @cue:c_verif 
+    show idee @cue:c_concorde 
+    show verif1 @cue:c_verif 
+    show verif2 @cue:c_concorde 
+DIT (concl) : Donc si la pression intérieure baisse et que le piston peut bouger, la pression extérieure le pousse vers l'intérieur, le gaz occupe MOINS d'espace, et le volume augmente pour rétablir l'équilibre.
+    highlight rep @- {"start":"cue:c_moins","end":"cue_end:c_eq","role":"result"}
+    highlight texte_sens @- {"start":"cue:c_eq","end":"cue_end:c_eq","role":"accent"}
+=== Tranche s_retenir
+  OBJET loi_f [math] "p_1 V_1 = p_2 V_2" 
+DIT (idee_centrale) : L'idée centrale : dans un gaz à température et quantité constantes, la pression et le volume sont inversement proportionnels.
+    fade_out cadre @beat:start 
+    fade_out mur_gauche @beat:start 
+    fade_out piston @beat:start 
+    fade_out gaz @beat:start 
+    fade_out lab_int_g @beat:start 
+    fade_out lab_ext_g @beat:start 
+    fade_out note_int @beat:start 
+    fade_out exemple @beat:start 
+    fade_out rep @beat:start 
+    fade_out verif1 @beat:start 
+    fade_out verif2 @beat:start 
+    fade_out texte_sens @beat:start 
+    fade_out idee @beat:start 
+    fade_out loi @beat:start 
+    fade_out cond @beat:start 
+    fade_out texte_grand @beat:start 
+    fade_out texte_petit @beat:start 
+    write loi_f @cue:c_invers 
+    highlight loi_f @after:s_loi_f {"role":"result"}
+=== Tranche s_retenir2
+  OBJET rappel [math] "V = \\frac{k}{p}" 
+  OBJET resume [text] "p et V varient en sens inverse (n, T constants)." 
+DIT (fin) : Quand p double, V est divisé par deux. C'est la représentation d'une fonction en un sur p.
+    write rappel @cue:c_un 
+    show resume @cue:c_fin 
+    highlight resume @after:s_resume {"role":"accent"}
+--- 6 tranches, 235 mots dits (≈ 1.6 min d'oral)

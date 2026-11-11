@@ -1,0 +1,45 @@
+QUESTION (chimie-gaz-parfaits, chimie, sec 5, methode) : combien de moles de gaz il y a dans un ballon de 5,0 L à 25 °C pis 101,3 kPa?
+RÉPONSE DE RÉFÉRENCE : n = PV/RT = 101,3 × 5,0 / (8,314 × 298) ≈ 0,204 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. PV = nRT, donc n = PV / RT
+  2. température en kelvins : 25 + 273 = 298 K
+  3. R = 8,314 kPa·L/(mol·K), unités cohérentes avec kPa et L
+  4. n ≈ 0,204 mol écrit
+  5. contrôle : à TPAN une mole occupe ≈ 24,5 L, et 5,0 / 24,5 ≈ 0,20
+ERREURS GRAVES À CHERCHER : température laissée en °C ; R avec des unités incohérentes
+CONTRÔLE AUTOMATIQUE : réponse absente (0[,.]20\d*\s*mol) ; issue complète
+
+TITRE : Combien de moles dans un ballon de 5,0 L
+math_context : {"symbols":{"R":{"kind":"constant","value":8.314}},"expressions":{"n_gaz":"101.3*5.0/(8.314*298.15)"}}
+=== Tranche s_idee
+  OBJET titre_q [text] "Pour un gaz : p V = n R T" 
+  OBJET donnees [matrix] {"rows":[["5,0 L"],["101,3 kPa"],["25 °C"]],"row_labels":["volume","pression","température"]} 
+DIT (intro) : Pour compter les moles d'un gaz, on utilise la loi des gaz parfaits, qui relie la pression, le volume, la température et la quantité de gaz.
+    show titre_q @cue:c_loi 
+DIT (donnees_mot) : Notre ballon a un volume de cinq litres, une pression de cent un virgule trois kilopascals, et une température de vingt-cinq degrés Celsius.
+    show donnees @cue:c_donnees 
+    highlight donnees @cue:c_temp {"role":"given","part":"r3"}
+=== Tranche s_kelvin
+  OBJET kelvin [math] "T = 25 + 273{,}15 = 298{,}15 \\text{ K}" parts=T = 25 + 273{,}15 | = 298{,}15 \text{ K}
+DIT (kelvins) : La température doit être en kelvins. On ajoute deux cent soixante-treize virgule quinze à vingt-cinq, ce qui donne deux cent quatre-vingt-dix-huit virgule quinze kelvins.
+    write kelvin @cue:c_ajoute {"part":"conv"}
+    write kelvin @cue:c_kelvins {"part":"res_k"}
+=== Tranche s_calcul
+  OBJET formule_n [math] "n = \\frac{p V}{R T}" parts=n = | \frac{p V}{R T}
+  OBJET calc_n [math] "n = \\frac{101{,}3 \\times 5{,}0}{8{,}314 \\times 298{,}15}" 
+  OBJET res_n [math] {"kind":"computed","expression_ref":"n_gaz","template":"n \\approx {value} \\text{ mol}","precision":3} 
+  GROUPE etapes = formule_n, calc_n, res_n
+DIT (isole) : On isole n en divisant p V par R T.
+    show formule_n @cue:c_isole 
+DIT (remplace) : On remplace : cent un virgule trois fois cinq, divisé par huit virgule trois cent quatorze fois deux cent quatre-vingt-dix-huit virgule quinze.
+    show calc_n @cue:c_remplace 
+DIT (resultat) : Le résultat est environ zéro virgule deux cent quatre mole. Le ballon contient donc un peu plus de deux dixièmes de mole de gaz.
+    show res_n @cue:c_resultat 
+    highlight res_n @cue:c_dixiemes {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Température en kelvins, pression en kPa, volume en L : n = pV ÷ RT" 
+DIT (retenir) : À retenir : la température doit être en kelvins, sinon le calcul est faux. Avec pV égale nRT, on trouve le nombre de moles.
+    fade_out etapes @beat:start 
+    show idee @cue:c_retenir 
+    highlight idee @cue:c_kelvins2 {"role":"accent"}
+--- 4 tranches, 153 mots dits (≈ 1.0 min d'oral)

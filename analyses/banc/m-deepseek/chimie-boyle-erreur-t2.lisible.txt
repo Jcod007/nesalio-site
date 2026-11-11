@@ -1,0 +1,70 @@
+QUESTION (chimie-boyle-erreur, chimie, sec 5, erreur) : un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L
+RÉPONSE DE RÉFÉRENCE : P₁V₁ = P₂V₂ : V₂ = 100 × 2,0 / 250 = 0,80 L ; 5 L est impossible (la pression augmente, le volume diminue).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. à température constante, pression et volume sont inversement proportionnels : P₁V₁ = P₂V₂
+  2. diagnostic : 5 L vient du rapport des pressions inversé ; comprimer ne peut pas augmenter le volume
+  3. V₂ = 100 × 2,0 / 250 = 0,80 L écrit
+  4. explication particulaire : moins d'espace, plus de collisions sur les parois
+  5. valorisé : graphique P en fonction de V (hyperbole)
+ERREURS GRAVES À CHERCHER : volume qui augmente avec la pression ; relation dite proportionnelle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comprimer un gaz : trouver le nouveau volume
+math_context : {"symbols":{"V2":{"kind":"parameter","initial":1.2,"min":0.7,"max":2}},"expressions":{"v2":"100*2/250"}}
+=== Tranche s_erreur
+  OBJET rep [axes] {"x":[0,3.5],"y":[0,5]} 
+  OBJET lab_p [label] "pression (centaines de kPa)" attaché à rep   <<JAMAIS MONTRÉ>>
+  OBJET lab_v [label] "volume (L)" attaché à rep   <<JAMAIS MONTRÉ>>
+  OBJET courbe [function_graph] {"expression":"2/x","domain":[0.4,3.5]} 
+  OBJET pt_depart [point] {"at":[1,2]} 
+  OBJET lab_depart [label] "(1 ; 2)" attaché à pt_depart
+  OBJET pt_final [point] {"at":[2.5,0.8]} 
+  OBJET lab_final [label] "(2,5 ; 0,8)" attaché à pt_final
+DIT (faux) : Ta réponse, cinq litres, voudrait dire que comprimer un gaz le fait grossir. Ça ne peut pas : en le serrant, on lui laisse moins de place.
+    show rep @beat:start 
+    draw courbe @- {"start":"cue:c_grossir","end":"cue_end:c_grossir"}
+    show pt_depart @cue:c_cinq 
+    show lab_depart @cue:c_cinq 
+DIT (inverse) : Sur ce graphique, quand la pression monte vers la droite, la courbe descend : le volume diminue. Les deux varient en sens inverse.
+    highlight courbe @- {"start":"cue:c_monte","end":"cue_end:c_descend","role":"accent"}
+    show pt_final @cue:c_inverse 
+    show lab_final @cue:c_inverse 
+=== Tranche s_loi
+  OBJET loi [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2
+  OBJET cond [label] "si n et T sont constants" attaché à loi
+DIT (regle) : La loi de Boyle-Mariotte dit : p un fois V un égale p deux fois V deux, à condition que le nombre de moles et la température ne changent pas.
+    dim rep @beat:start 
+    write loi @cue:c_pv {"part":"gauche"}
+    write loi @cue:c_egale {"part":"droite"}
+    show cond @cue:c_cond 
+DIT (isole) : Pour isoler V deux, on divise les deux côtés par p deux. Il reste V deux égale p un V un divisé par p deux.
+    highlight loi @- {"start":"cue:c_isoler","end":"cue_end:c_par","role":"unknown"}
+    highlight loi @- {"start":"cue:c_reste","end":"cue_end:c_reste","role":"accent"}
+=== Tranche s_calcul
+  OBJET calcul [math] "V_2 = \\frac{100 \\times 2{,}0}{250}" parts=V_2 | = \frac{100 \times 2{,}0}{250}
+  OBJET resultat [math] "V_2 = 0{,}80\\ \\text{L}" parts=V_2 | = 0{,}80\ \text{L}
+  OBJET verif [label] "100 × 2,0 = 200 et 250 × 0,80 = 200 : les deux côtés restent égaux" 
+DIT (pose) : Remplaçons : cent kilopascals fois deux litres, divisé par deux cent cinquante kilopascals.
+    write calcul @cue:c_cent {"part":"vg"}
+    write calcul @cue:c_divise {"part":"frac"}
+DIT (res) : Deux cents divisé par deux cent cinquante donne zéro virgule huit. Le volume final est de zéro virgule huit litre, soit huit cents millilitres.
+    transform resultat @cue:c_zero {"source":"calcul"}
+    highlight resultat @after:t_res {"role":"result"}
+DIT (verifie) : Vérifions : cent fois deux donne deux cents, et deux cent cinquante fois zéro virgule huit donne aussi deux cents. L'égalité tient.
+    show verif @cue:c_verif 
+=== Tranche s_retenir
+  OBJET idee [text] "Même quantité de gaz, même température : pression et volume varient en sens inverse." 
+  OBJET formule_finale [math] "p_1 V_1 = p_2 V_2" 
+  GROUPE recap = idee, formule_finale
+DIT (retenir) : À retenir : plus la pression augmente, plus le volume diminue. Pour diviser cent par deux cent cinquante, on multiplie par l'inverse, pas par le rapport direct.
+    fade_out calcul @beat:start 
+    fade_out resultat @beat:start 
+    fade_out verif @beat:start 
+    fade_out loi @beat:start 
+    fade_out cond @beat:start 
+    fade_out rep @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["recap"]}
+    show idee @cue:c_augmente 
+    show formule_finale @cue:c_diminue 
+    highlight formule_finale @after:s_formule {"role":"result"}
+--- 4 tranches, 191 mots dits (≈ 1.3 min d'oral)

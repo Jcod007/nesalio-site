@@ -1,0 +1,556 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "optimisation_ordonnee_origine",
+  "title": "Une fonction à optimiser peut-elle avoir une ordonnée à l'origine ?",
+  "language": "fr",
+  "learning_goal": "Comprendre que la fonction à optimiser (la fonction économique) peut être une droite de la forme M = Ax + By + C, où C est l'ordonnée à l'origine, et la reconnaître en contexte."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_reformule",
+   "introduces": [
+    {
+     "id": "reponse",
+     "layout": {
+      "to_corner": "top_left"
+     },
+     "content": "M = Ax + By + C",
+     "type": "math"
+    },
+    {
+     "id": "noteC",
+     "attachment": {
+      "parent": "reponse",
+      "anchor": "right"
+     },
+     "content": "C : ordonnée à l'origine",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "oui",
+     "say": "Oui, c'est tout à fait possible. La fonction à optimiser, ce qu'on appelle la fonction économique, peut très bien avoir une ordonnée à l'origine C.",
+     "cues": [
+      {
+       "id": "c_oui",
+       "text": "Oui"
+      },
+      {
+       "id": "c_C",
+       "text": "ordonnée à l'origine C"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "cue:c_oui",
+       "target": "reponse"
+      },
+      {
+       "id": "h_C",
+       "verb": "highlight",
+       "start": "cue:c_C",
+       "end": "cue_end:c_C",
+       "target": "reponse",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "ordre",
+     "say": "Ce n'est pas la fonction à optimiser qui est en cause, c'est la même forme que tu connais : A x plus B y plus C.",
+     "cues": [
+      {
+       "id": "c_forme",
+       "text": "A x plus B y plus C"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_forme",
+       "target": "noteC"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_contexte",
+   "introduces": [
+    {
+     "id": "ex",
+     "content": "M = 5x + 3y + 200\\ \\$",
+     "type": "math"
+    },
+    {
+     "id": "donnees",
+     "layout": {
+      "next_to": "ex",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "x + y \\le 100",
+     "type": "math"
+    },
+    {
+     "id": "contrainte2",
+     "layout": {
+      "next_to": "donnees",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "x \\ge 0,\\ y \\ge 0",
+     "type": "math"
+    },
+    {
+     "id": "explication",
+     "layout": {
+      "next_to": "ex",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "200 \\($\\) déjà gagnés avant la vente",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "situation",
+     "say": "Par exemple, un kiosque a déjà gagné deux cents dollars avant même de vendre. Chaque article x rapporte cinq dollars, chaque article y en rapporte trois.",
+     "cues": [
+      {
+       "id": "c_deja",
+       "text": "déjà gagné deux cents dollars"
+      },
+      {
+       "id": "c_x",
+       "text": "Chaque article x"
+      },
+      {
+       "id": "c_y",
+       "text": "chaque article y"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_ex",
+       "verb": "write",
+       "at": "cue:c_deja",
+       "target": "ex"
+      },
+      {
+       "id": "s_ex",
+       "verb": "show",
+       "at": "cue:c_deja",
+       "target": "explication"
+      },
+      {
+       "id": "w_don",
+       "verb": "write",
+       "at": "cue:c_x",
+       "target": "donnees"
+      }
+     ]
+    },
+    {
+     "id": "contraintes",
+     "say": "Les contraintes, elles, limitent combien d'articles on peut vendre au total.",
+     "cues": [
+      {
+       "id": "c_limite",
+       "text": "Les contraintes"
+      },
+      {
+       "id": "c_total",
+       "text": "au total"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c2",
+       "verb": "write",
+       "at": "cue:c_limite",
+       "target": "contrainte2"
+      },
+      {
+       "id": "h_don",
+       "verb": "highlight",
+       "start": "cue:c_total",
+       "end": "cue_end:c_total",
+       "target": "donnees",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_effet",
+   "introduces": [
+    {
+     "id": "droites",
+     "layout": {
+      "next_to": "ex",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "M = 200\\ :\\ 5x + 3y = 0",
+     "type": "math"
+    },
+    {
+     "id": "droites2",
+     "layout": {
+      "next_to": "droites",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "M = 500\\ :\\ 5x + 3y = 300",
+     "type": "math"
+    },
+    {
+     "id": "concl",
+     "layout": {
+      "next_to": "explication",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "M = 5x + 3y + 200",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "graphe",
+     "say": "Dans un graphique, le C déplace toutes les droites M égale constante vers le haut : la même pente, mais un départ plus haut.",
+     "cues": [
+      {
+       "id": "c_deplace",
+       "text": "déplace"
+      },
+      {
+       "id": "c_haut",
+       "text": "vers le haut"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_d1",
+       "verb": "write",
+       "at": "cue:c_deplace",
+       "target": "droites"
+      },
+      {
+       "id": "w_d2",
+       "verb": "write",
+       "at": "cue:c_haut",
+       "target": "droites2"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_deplace",
+       "target": "noteC"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "opt",
+     "say": "L'optimisation travaille quand même : on cherche le point du polygone des contraintes qui donne le plus grand M, et le deux cents reste ajouté au résultat final.",
+     "cues": [
+      {
+       "id": "c_point",
+       "text": "le point du polygone"
+      },
+      {
+       "id": "c_final",
+       "text": "résultat final"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_concl",
+       "verb": "write",
+       "at": "cue:c_final",
+       "target": "concl"
+      },
+      {
+       "id": "h_concl",
+       "verb": "highlight",
+       "start": "cue:c_final",
+       "end": "cue_end:c_final",
+       "target": "concl",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : la fonction économique peut très bien contenir une ordonnée à l'origine, un montant déjà acquis, un coût fixe, un profit de départ. C'est le C de M égale A x plus B y plus C.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_C",
+       "text": "C de M égale"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_d1",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "droites"
+      },
+      {
+       "id": "f_d2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "droites2"
+      },
+      {
+       "id": "f_don",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "donnees"
+      },
+      {
+       "id": "f_c2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "contrainte2"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "reponse",
+        "ex",
+        "concl"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_concl",
+       "verb": "highlight",
+       "at": "cue:c_C",
+       "target": "concl",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

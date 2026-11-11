@@ -1,0 +1,1099 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "portee_projectile",
+  "title": "Calculer la portée d'un projectile",
+  "language": "fr",
+  "learning_goal": "Trouver la portée d'un projectile en séparant le mouvement horizontal (vitesse constante) du mouvement vertical (accéléré par la gravité)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_lancer",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       0,
+       40
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "0",
+      "domain": [
+       0,
+       35.3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "O",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "O_lab",
+     "attachment": {
+      "parent": "O",
+      "anchor": "left"
+     },
+     "content": "O(0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "g_lab",
+     "content": "g = 9,8 m/s² vers le bas",
+     "type": "label"
+    },
+    {
+     "id": "v0",
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6,
+       3.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "v0_lab",
+     "attachment": {
+      "parent": "v0",
+      "anchor": "top"
+     },
+     "content": "v₀ = 20 m/s, 30°",
+     "type": "label"
+    },
+    {
+     "id": "v0x",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6,
+       0
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "v0x_lab",
+     "attachment": {
+      "parent": "v0x",
+      "anchor": "bottom"
+     },
+     "content": "v₀ₓ",
+     "type": "label"
+    },
+    {
+     "id": "v0y",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       0,
+       3.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "v0y_lab",
+     "attachment": {
+      "parent": "v0y",
+      "anchor": "left"
+     },
+     "content": "v₀ᵧ",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Imagine que tu lances une balle vers l'avant. Elle avance, mais elle retombe aussi. Ces deux mouvements se passent en même temps.",
+     "cues": [
+      {
+       "id": "c_lances",
+       "text": "lances"
+      },
+      {
+       "id": "c_avance",
+       "text": "avance"
+      },
+      {
+       "id": "c_retombe",
+       "text": "retombe"
+      },
+      {
+       "id": "c_meme_temps",
+       "text": "même temps"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "s_O",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "O"
+      },
+      {
+       "id": "s_O_lab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "O_lab"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_avance",
+       "end": "cue_end:c_retombe",
+       "target": "courbe"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Ici, je néglige la résistance de l'air. La gravité, elle, ne se néglige pas : elle vaut g = 9,8 m/s², vers le bas.",
+     "cues": [
+      {
+       "id": "c_air",
+       "text": "néglige la résistance de l'air"
+      },
+      {
+       "id": "c_gravite",
+       "text": "gravité"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_glab",
+       "verb": "show",
+       "at": "cue:c_gravite",
+       "target": "g_lab"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "La balle a une vitesse de départ, disons v₀ = 20 m/s à un angle de 30° au-dessus de l'horizontale.",
+     "cues": [
+      {
+       "id": "c_v0",
+       "text": "v₀ = 20 m/s"
+      },
+      {
+       "id": "c_30",
+       "text": "30°"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_v0",
+       "verb": "draw",
+       "at": "cue:c_v0",
+       "target": "v0"
+      },
+      {
+       "id": "s_v0lab",
+       "verb": "show",
+       "at": "cue:c_30",
+       "target": "v0_lab"
+      }
+     ]
+    },
+    {
+     "id": "b4",
+     "say": "On sépare cette vitesse en deux : une partie horizontale, une partie verticale. C'est notre triangle rectangle.",
+     "cues": [
+      {
+       "id": "c_horizontale",
+       "text": "horizontale"
+      },
+      {
+       "id": "c_verticale",
+       "text": "verticale"
+      },
+      {
+       "id": "c_triangle",
+       "text": "triangle rectangle"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_v0x",
+       "verb": "draw",
+       "at": "cue:c_horizontale",
+       "target": "v0x"
+      },
+      {
+       "id": "s_v0xlab",
+       "verb": "show",
+       "at": "cue:c_horizontale",
+       "target": "v0x_lab"
+      },
+      {
+       "id": "d_v0y",
+       "verb": "draw",
+       "at": "cue:c_verticale",
+       "target": "v0y"
+      },
+      {
+       "id": "s_v0ylab",
+       "verb": "show",
+       "at": "cue:c_verticale",
+       "target": "v0y_lab"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_composantes",
+   "introduces": [
+    {
+     "id": "eqx",
+     "content": "v_{0x} = v_0 \\cos 30^\\circ = 20 \\times 0{,}866 = 17{,}3 \\text{ m/s}",
+     "type": "math"
+    },
+    {
+     "id": "eqy",
+     "content": "v_{0y} = v_0 \\sin 30^\\circ = 20 \\times 0{,}5 = 10 \\text{ m/s}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "La composante horizontale, c'est le côté adjacent à l'angle. Donc v₀ₓ = v₀ cos 30°.",
+     "cues": [
+      {
+       "id": "c_adjacent",
+       "text": "côté adjacent"
+      },
+      {
+       "id": "c_doncx",
+       "text": "Donc v₀ₓ"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqx",
+       "verb": "write",
+       "at": "cue:c_doncx",
+       "target": "eqx"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "La composante verticale, c'est le côté opposé. Donc v₀ᵧ = v₀ sin 30°.",
+     "cues": [
+      {
+       "id": "c_oppose",
+       "text": "côté opposé"
+      },
+      {
+       "id": "c_doncy",
+       "text": "Donc v₀ᵧ"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqy",
+       "verb": "write",
+       "at": "cue:c_doncy",
+       "target": "eqy"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "Voilà pourquoi on sépare : horizontalement, il n'y a aucune force, donc la vitesse reste 17,3 m/s tout le long.",
+     "cues": [
+      {
+       "id": "c_aucune",
+       "text": "aucune force"
+      },
+      {
+       "id": "c_tout",
+       "text": "tout le long"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_v0x",
+       "verb": "highlight",
+       "at": "cue:c_tout",
+       "target": "v0x",
+       "role": "result"
+      },
+      {
+       "id": "h_eqx",
+       "verb": "highlight",
+       "at": "cue:c_tout",
+       "target": "eqx",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "b4",
+     "say": "Verticalement, la gravité tire vers le bas, donc la vitesse verticale change à chaque instant.",
+     "cues": [
+      {
+       "id": "c_tirebas",
+       "text": "la gravité tire vers le bas"
+      },
+      {
+       "id": "c_change",
+       "text": "change à chaque instant"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_v0y",
+       "verb": "highlight",
+       "at": "cue:c_tirebas",
+       "target": "v0y",
+       "role": "accent"
+      },
+      {
+       "id": "h_glab",
+       "verb": "highlight",
+       "at": "cue:c_tirebas",
+       "target": "g_lab",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retombe",
+   "introduces": [
+    {
+     "id": "eqy_t",
+     "content": "y = v_{0y}\\, t - \\tfrac{1}{2} g t^2",
+     "parts": [
+      {
+       "id": "lhs",
+       "text": "y"
+      },
+      {
+       "id": "vterm",
+       "text": "= v_{0y}\\, t"
+      },
+      {
+       "id": "gterm",
+       "text": "- \\tfrac{1}{2} g t^2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq0",
+     "content": "10\\, t - 4{,}9\\, t^2 = 0",
+     "type": "math"
+    },
+    {
+     "id": "eqf",
+     "content": "t(10 - 4{,}9\\, t) = 0",
+     "type": "math"
+    },
+    {
+     "id": "eqs",
+     "content": "4{,}9\\, t = 10",
+     "type": "math"
+    },
+    {
+     "id": "eqt",
+     "content": "t = \\dfrac{10}{4{,}9} = 2{,}04 \\text{ s}",
+     "type": "math"
+    },
+    {
+     "id": "tvol",
+     "style": {
+      "role": "result"
+     },
+     "content": "temps de vol = 2,04 s",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "La hauteur en fonction du temps s'écrit y = v₀ᵧ t − ½ g t².",
+     "cues": [
+      {
+       "id": "c_y",
+       "text": "y ="
+      },
+      {
+       "id": "c_gt",
+       "text": "½ g t²"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_lhs",
+       "verb": "write",
+       "at": "cue:c_y",
+       "target": "eqy_t",
+       "part": "lhs"
+      },
+      {
+       "id": "w_vterm",
+       "verb": "write",
+       "at": "cue:c_y",
+       "target": "eqy_t",
+       "part": "vterm"
+      },
+      {
+       "id": "w_gterm",
+       "verb": "write",
+       "at": "cue:c_gt",
+       "target": "eqy_t",
+       "part": "gterm"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "On cherche le temps où la balle revient à la hauteur de départ, donc y = 0.",
+     "cues": [
+      {
+       "id": "c_yzero",
+       "text": "y = 0"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq0",
+       "verb": "write",
+       "at": "cue:c_yzero",
+       "target": "eq0"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "On factorise par t : t(10 − 4,9 t) = 0. Deux solutions : t = 0, le départ, et 10 − 4,9 t = 0.",
+     "cues": [
+      {
+       "id": "c_factorise",
+       "text": "factorise"
+      },
+      {
+       "id": "c_deux",
+       "text": "Deux solutions"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqf",
+       "verb": "write",
+       "at": "cue:c_factorise",
+       "target": "eqf"
+      },
+      {
+       "id": "w_eqs",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "eqs"
+      }
+     ]
+    },
+    {
+     "id": "b4",
+     "say": "La balle reste donc en l'air environ 2,04 secondes avant de retomber à la même hauteur.",
+     "cues": [
+      {
+       "id": "c_204",
+       "text": "2,04 secondes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqt",
+       "verb": "write",
+       "at": "cue:c_204",
+       "target": "eqt"
+      },
+      {
+       "id": "s_tvol",
+       "verb": "show",
+       "at": "after:w_eqt",
+       "target": "tvol"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_portee",
+   "introduces": [
+    {
+     "id": "eqx_t",
+     "content": "x = v_{0x} \\times t",
+     "type": "math"
+    },
+    {
+     "id": "eqp",
+     "style": {
+      "role": "result"
+     },
+     "content": "x = 17{,}3 \\times 2{,}04 = 35{,}3 \\text{ m}",
+     "type": "math"
+    },
+    {
+     "id": "eqh",
+     "content": "y = 10 \\times 1{,}02 - 4{,}9 \\times 1{,}02^2",
+     "type": "math"
+    },
+    {
+     "id": "eqh2",
+     "content": "y = 10{,}2 - 4{,}9 \\times 1{,}04 = 10{,}2 - 5{,}1 = 5{,}1 \\text{ m}",
+     "type": "math"
+    },
+    {
+     "id": "sommet",
+     "frame": "axes",
+     "params": {
+      "at": [
+       17.6,
+       5.1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "sommet_lab",
+     "attachment": {
+      "parent": "sommet",
+      "anchor": "top"
+     },
+     "content": "sommet (17,6 ; 5,1)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Pendant tout ce temps, la vitesse horizontale ne change pas : 17,3 m/s.",
+     "cues": [
+      {
+       "id": "c_173",
+       "text": "17,3 m/s"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqxt",
+       "verb": "write",
+       "at": "cue:c_173",
+       "target": "eqx_t"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Donc la portée, c'est 17,3 × 2,04.",
+     "cues": [
+      {
+       "id": "c_portee",
+       "text": "portée"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqp",
+       "verb": "write",
+       "at": "cue:c_portee",
+       "target": "eqp"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "Vérifions au sommet : à t = 1,02 s, la hauteur est y = 10 × 1,02 − 4,9 × 1,02².",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "sommet"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqh",
+       "verb": "write",
+       "at": "cue:c_sommet",
+       "target": "eqh"
+      }
+     ]
+    },
+    {
+     "id": "b4",
+     "say": "Voilà le sommet de la trajectoire, à 5,1 m de haut, positionné au milieu des 35,3 m.",
+     "cues": [
+      {
+       "id": "c_51",
+       "text": "5,1 m de haut"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eqh2",
+       "verb": "write",
+       "at": "cue:c_51",
+       "target": "eqh2"
+      },
+      {
+       "id": "s_sommet",
+       "verb": "show",
+       "at": "after:w_eqh2",
+       "target": "sommet"
+      },
+      {
+       "id": "s_somlab",
+       "verb": "show",
+       "at": "after:s_sommet",
+       "target": "sommet_lab"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "style": {
+      "role": "result"
+     },
+     "content": "\\text{portée} = v_{0x} \\times t_{\\text{vol}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Retiens : la portée, c'est là où y revient à zéro. On utilise le temps de vol trouvé avec la hauteur.",
+     "cues": [
+      {
+       "id": "c_revient",
+       "text": "y revient à zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "f_courbe",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "courbe"
+      },
+      {
+       "id": "f_O",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "O"
+      },
+      {
+       "id": "f_Ol",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "O_lab"
+      },
+      {
+       "id": "f_glab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "g_lab"
+      },
+      {
+       "id": "f_v0",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v0"
+      },
+      {
+       "id": "f_v0l",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v0_lab"
+      },
+      {
+       "id": "f_v0x",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v0x"
+      },
+      {
+       "id": "f_v0xl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v0x_lab"
+      },
+      {
+       "id": "f_v0y",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v0y"
+      },
+      {
+       "id": "f_v0yl",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "v0y_lab"
+      },
+      {
+       "id": "f_eqx",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqx"
+      },
+      {
+       "id": "f_eqy",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqy"
+      },
+      {
+       "id": "f_eqyt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqy_t"
+      },
+      {
+       "id": "f_eq0",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eq0"
+      },
+      {
+       "id": "f_eqf",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqf"
+      },
+      {
+       "id": "f_eqs",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqs"
+      },
+      {
+       "id": "f_eqt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqt"
+      },
+      {
+       "id": "f_tvol",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tvol"
+      },
+      {
+       "id": "f_eqxt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqx_t"
+      },
+      {
+       "id": "f_eqp",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqp"
+      },
+      {
+       "id": "f_eqh",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqh"
+      },
+      {
+       "id": "f_eqh2",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "eqh2"
+      },
+      {
+       "id": "f_sommet",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sommet"
+      },
+      {
+       "id": "f_somlab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sommet_lab"
+      },
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_revient",
+       "target": "regle"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Horizontalement, rien ne ralentit la balle ; verticalement, la gravité la fait tomber. C'est ça, la clé du projectile.",
+     "cues": [
+      {
+       "id": "c_cle",
+       "text": "clé du projectile"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "at": "cue:c_cle",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

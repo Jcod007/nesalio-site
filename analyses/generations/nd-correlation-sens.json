@@ -1,0 +1,667 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "coefficient_correlation",
+  "title": "C'est quoi le coefficient de corrélation",
+  "language": "fr",
+  "learning_goal": "Comprendre que le coefficient de corrélation r mesure le sens et la force d'une relation linéaire entre deux variables, et interpréter concrètement r = -0,8."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_nuage",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       30,
+       90
+      ],
+      "y": [
+       30,
+       90
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "p1",
+     "params": {
+      "at": [
+       40,
+       45
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p2",
+     "params": {
+      "at": [
+       50,
+       50
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3",
+     "params": {
+      "at": [
+       60,
+       70
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p4",
+     "params": {
+      "at": [
+       70,
+       65
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5",
+     "params": {
+      "at": [
+       80,
+       85
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_x",
+     "attachment": {
+      "parent": "axes",
+      "anchor": "right"
+     },
+     "content": "note de maths",
+     "type": "label"
+    },
+    {
+     "id": "lab_y",
+     "attachment": {
+      "parent": "axes",
+      "anchor": "top"
+     },
+     "content": "note de physique",
+     "type": "label"
+    },
+    {
+     "id": "fl_dir",
+     "params": {
+      "from": [
+       40,
+       40
+      ],
+      "to": [
+       80,
+       85
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_dir",
+     "attachment": {
+      "parent": "fl_dir",
+      "anchor": "top"
+     },
+     "content": "tendance vers le haut",
+     "type": "label"
+    },
+    {
+     "id": "fl_bas",
+     "params": {
+      "from": [
+       40,
+       85
+      ],
+      "to": [
+       80,
+       40
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_bas",
+     "attachment": {
+      "parent": "fl_bas",
+      "anchor": "bottom"
+     },
+     "content": "tendance vers le bas",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "nuage",
+     "say": "Imagine un nuage de points. Chaque point, c'est un élève : à droite sa note de maths, en haut sa note de physique.",
+     "cues": [
+      {
+       "id": "c_nuage",
+       "text": "nuage de points"
+      },
+      {
+       "id": "c_eleve",
+       "text": "un élève"
+      },
+      {
+       "id": "c_maths",
+       "text": "note de maths"
+      },
+      {
+       "id": "c_physique",
+       "text": "note de physique"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_nuage"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "cue:c_nuage",
+       "target": "axes"
+      },
+      {
+       "id": "s_labx",
+       "verb": "show",
+       "at": "cue:c_maths",
+       "target": "lab_x"
+      },
+      {
+       "id": "s_laby",
+       "verb": "show",
+       "at": "cue:c_physique",
+       "target": "lab_y"
+      },
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "at": "cue:c_eleve",
+       "target": "p1"
+      },
+      {
+       "id": "s_p2",
+       "verb": "show",
+       "at": "after:s_p1",
+       "target": "p2"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "after:s_p2",
+       "target": "p3"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "after:s_p3",
+       "target": "p4"
+      },
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "after:s_p4",
+       "target": "p5"
+      }
+     ]
+    },
+    {
+     "id": "monte",
+     "say": "Si les points montent ensemble — maths hautes, physique hautes — le nuage a une tendance vers le haut.",
+     "cues": [
+      {
+       "id": "c_montent",
+       "text": "montent ensemble"
+      },
+      {
+       "id": "c_tendance",
+       "text": "tendance vers le haut"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_fl_dir",
+       "verb": "show",
+       "start": "cue:c_montent",
+       "end": "cue_end:c_tendance",
+       "target": "fl_dir"
+      },
+      {
+       "id": "s_lab_dir",
+       "verb": "show",
+       "at": "cue:c_tendance",
+       "target": "lab_dir"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "descend",
+     "say": "À l'inverse, si les maths montent pendant que la physique descend, la tendance penche vers le bas.",
+     "cues": [
+      {
+       "id": "c_inverse",
+       "text": "À l'inverse"
+      },
+      {
+       "id": "c_penche",
+       "text": "penche vers le bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_fl_dir",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "fl_dir"
+      },
+      {
+       "id": "f_lab_dir",
+       "verb": "fade_out",
+       "at": "cue:c_inverse",
+       "target": "lab_dir"
+      },
+      {
+       "id": "s_fl_bas",
+       "verb": "show",
+       "at": "cue:c_inverse",
+       "target": "fl_bas"
+      },
+      {
+       "id": "s_lab_bas",
+       "verb": "show",
+       "at": "cue:c_penche",
+       "target": "lab_bas"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_r_resume",
+   "introduces": [
+    {
+     "id": "enc_r",
+     "content": "-1 \\le r \\le 1",
+     "parts": [
+      {
+       "id": "r_un",
+       "text": "-1 \\le r"
+      },
+      {
+       "id": "r_deux",
+       "text": "\\le 1"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "droite",
+     "params": {
+      "domain": [
+       -1,
+       1
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "m_pos",
+     "attachment": {
+      "parent": "droite",
+      "anchor": "center"
+     },
+     "content": "r > 0 : monte",
+     "type": "label"
+    },
+    {
+     "id": "m_neg",
+     "attachment": {
+      "parent": "droite",
+      "anchor": "center"
+     },
+     "content": "r < 0 : descend",
+     "type": "label"
+    },
+    {
+     "id": "enc_zero",
+     "content": "|r| proche de 0 : éparpillé",
+     "type": "callout"
+    },
+    {
+     "id": "enc_un",
+     "content": "|r| proche de 1 : aligné",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "un_nombre",
+     "say": "Le coefficient de corrélation r, c'est un seul nombre qui résume ce dessin. Il dit deux choses à la fois : le sens et la force.",
+     "cues": [
+      {
+       "id": "c_coef",
+       "text": "coefficient de corrélation"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux choses"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_nuage",
+       "verb": "fade_out",
+       "at": "cue:c_coef",
+       "target": "axes"
+      },
+      {
+       "id": "w_r_un",
+       "verb": "write",
+       "at": "cue:c_coef",
+       "target": "enc_r",
+       "part": "r_un"
+      },
+      {
+       "id": "w_r_deux",
+       "verb": "write",
+       "at": "after:w_r_un",
+       "target": "enc_r",
+       "part": "r_deux"
+      },
+      {
+       "id": "s_droite",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "droite"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "Le signe, c'est le sens. Si r est positif, la tendance monte, comme la première flèche. Si r est négatif, elle descend.",
+     "cues": [
+      {
+       "id": "c_signe",
+       "text": "Le signe"
+      },
+      {
+       "id": "c_positif",
+       "text": "r est positif"
+      },
+      {
+       "id": "c_negatif",
+       "text": "r est négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_r_un",
+       "verb": "highlight",
+       "at": "cue:c_signe",
+       "target": "enc_r",
+       "part": "r_un"
+      },
+      {
+       "id": "s_pos",
+       "verb": "show",
+       "at": "cue:c_positif",
+       "target": "m_pos"
+      },
+      {
+       "id": "s_neg",
+       "verb": "show",
+       "at": "cue:c_negatif",
+       "target": "m_neg"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "force",
+     "say": "La valeur, c'est la force. Près de zéro, les points sont éparpillés, presque aucun lien. Près de un, en valeur absolue, ils collent à une droite.",
+     "cues": [
+      {
+       "id": "c_valeur",
+       "text": "c'est la force"
+      },
+      {
+       "id": "c_eparpille",
+       "text": "sont éparpillés"
+      },
+      {
+       "id": "c_colent",
+       "text": "collent à une droite"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_zero",
+       "verb": "show",
+       "at": "cue:c_eparpille",
+       "target": "enc_zero"
+      },
+      {
+       "id": "s_un",
+       "verb": "show",
+       "at": "cue:c_colent",
+       "target": "enc_un"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,98 @@
+QUESTION (ap-gaz-pression-variations, chimie, sec 5, alloprof) : Que devient la pression d'un gaz si son volume est réduit de moitié tandis que la valeur de la température absolue double ? Combien y a-t-il de mol de O2 dans 20 L d'air à TPN ? Qu'arrive-t-il à la pression d'un gaz lorsque la température absolue double et le volume double lui aussi ?
+RÉPONSE DE RÉFÉRENCE : Pression × 4 ; air à 21 % de O2 : 20/22,4 × 0,21 ≈ 0,19 mol de O2 ; pression inchangée.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pression, volume et température : les lois des gaz
+math_context : {"symbols":{},"expressions":{"vol_mol":"20/22.4","p_avant":"1"}}
+=== Tranche s_boyle
+  OBJET axes_pv [axes] {"x":[0,3.5],"y":[0,5]} 
+  OBJET courbe_pv [function_graph] {"expression":"2/x","domain":[0.4,3.5]} 
+  OBJET lab_p [label] "pression (centaines de kPa)" attaché à axes_pv
+  OBJET lab_v [label] "volume (L)" attaché à axes_pv
+  OBJET pt1 [point] {"at":[1,2]} 
+  OBJET pt1_lab [label] "(1 ; 2)" attaché à pt1
+  OBJET pt2 [point] {"at":[2.5,0.8]} 
+  OBJET pt2_lab [label] "(2,5 ; 0,8)" attaché à pt2
+DIT (intro) : Trois questions, une seule idée : la loi générale des gaz. Commençons par voir ce qui arrive quand on comprime un gaz.
+    camera.focus  @beat:start {"targets":["axes_pv"],"bounds":"layout_bounds","save_as":"vue_pv"}
+    show axes_pv @beat:start 
+    show lab_p @beat:start 
+    show lab_v @beat:start 
+DIT (trace) : Voici la courbe pression-volume : si le volume baisse, la pression monte. Elles varient en sens inverse.
+    draw courbe_pv @- {"start":"cue:c_courbe","end":"cue_end:c_inverse"}
+DIT (points) : Sur la courbe, quand le volume est deux litres, la pression vaut cent kilopascals. Si on réduit le volume à huit dixièmes de litre, la pression grimpe à deux cent cinquante kilopascals.
+    show pt1 @cue:c_pt1 
+    show pt1_lab @cue:c_pt1 
+    show pt2 @cue:c_pt2 
+    show pt2_lab @cue:c_pt2 
+=== Tranche s_loi_generale
+  OBJET loi_gen [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" parts=\frac{p_1 V_1}{n_1 T_1} | = | \frac{p_2 V_2}{n_2 T_2}
+  OBJET note_const [text] "n constant : on le raye" 
+DIT (pose) : Toutes les lois des gaz sortent d'une seule relation, la loi générale. Tu y retrouves p, V, n et T des deux côtés.
+    fade_out courbe_pv @cue:c_loi 
+    fade_out pt1 @cue:c_loi 
+    fade_out pt2 @cue:c_loi 
+    write loi_gen @cue:c_pvnt 
+    highlight loi_gen @- {"start":"cue:c_pvnt","end":"cue_end:c_pvnt","role":"accent"}
+DIT (rayer) : Quand la quantité de gaz ne change pas, les deux n sont égaux : on les raye, il reste p un V un sur T un égale p deux V deux sur T deux.
+    show note_const @cue:c_raye 
+    dim axes_pv @cue:c_reste 
+    dim lab_p @cue:c_reste 
+    dim lab_v @cue:c_reste 
+=== Tranche s_q1_q3
+  OBJET cas1 [math] "p_2 = p_1 \\times \\frac{V_1}{V_2} \\times \\frac{T_2}{T_1} = p_1 \\times \\frac{1}{2} \\times 2 = p_1" parts=p_2 = p_1 \times \frac{V_1}{V_2} \times \frac{T_2}{T_1} | = p_1 \times \frac{1}{2} \times 2 | = p_1
+  OBJET res1_txt [text] "La pression ne change pas." 
+  OBJET cas2 [math] "p_2 = p_1 \\times \\frac{2}{2} = p_1" 
+  OBJET verif1 [label] "Vérif : 1/2 × 2 = 1 ✓" attaché à cas1
+  OBJET verif2 [label] "Vérif : 2/2 = 1 ✓" attaché à cas2
+DIT (quest1) : Première question : volume réduit de moitié, température absolue doublée. On isole p deux : chaque facteur qui monte va au numérateur, chaque facteur qui baisse va au dénominateur.
+    fade_out note_const @cue:c_isole 
+    write cas1 @cue:c_isole {"part":"prod"}
+DIT (calcul1) : Volume divisé par deux donne le facteur un demi ; température doublée donne le facteur deux. Un demi fois deux, ça fait un : la pression reste la même.
+    write cas1 @cue:c_un_demi {"part":"num1"}
+    write cas1 @cue:c_meme {"part":"res1"}
+    show verif1 @after:w_res1 
+    highlight cas1 @after:s_v1 {"role":"result","part":"res1"}
+DIT (pause1) : Bonne vérification : un demi multiplié par deux donne bien un. La compression est exactement annulée par le doublement de la température.
+    show res1_txt @cue:c_annule 
+DIT (quest3) : Troisième question : température doublée et volume doublé. Cette fois, T deux sur T un vaut deux, et V un sur V deux vaut un demi. Deux fois un demi, encore un.
+    write cas2 @cue:c_double_volume 
+    highlight cas2 @cue:c_encore_un {"role":"accent"}
+    highlight cas2 @after:w_num2 {"role":"accent"}
+    show verif2 @after:w_res2 
+=== Tranche s_tpn
+  OBJET vol_mol [math] "V_m = 22{,}4 \\text{ L/mol} \\quad \\text{à TPN}" 
+  OBJET calcul_n [math] "n = \\frac{V}{V_m} = \\frac{20 \\text{ L}}{22{,}4 \\text{ L/mol}} \\approx 0{,}89 \\text{ mol}" parts=n = \frac{V}{V_m} | = \frac{20 \text{ L}}{22{,}4 \text{ L/mol}} | \approx 0{,}89 \text{ mol}
+  OBJET note_o2 [text] "L'air n'est pas du O₂ pur : environ 21 % de O₂." 
+DIT (molaire) : Deuxième question : les moles dans vingt litres à TPN. À TPN, zéro degré et cent un virgule trois kilopascals, une mole de n'importe quel gaz occupe vingt-deux virgule quatre litres.
+    fade_out cas1 @cue:c_tpn 
+    fade_out res1_txt @cue:c_tpn 
+    fade_out verif1 @cue:c_tpn 
+    fade_out cas2 @cue:c_tpn 
+    fade_out verif2 @cue:c_tpn 
+    write vol_mol @cue:c_224 
+DIT (division) : Donc on divise le volume par ce volume molaire : vingt divisé par vingt-deux virgule quatre donne environ zéro virgule quatre-vingt-neuf mole.
+    write calcul_n @cue:c_divise {"part":"frac"}
+    write calcul_n @after:w_frac {"part":"nombres"}
+    write calcul_n @cue:c_approx {"part":"resultat"}
+    highlight calcul_n @- {"start":"cue:c_approx","end":"cue_end:c_approx","role":"result","part":"resultat"}
+DIT (attention) : Attention : ces vingt litres d'air ne sont pas du O deux pur. L'air contient environ vingt et un pour cent de O deux, alors la vraie quantité de O deux est plus petite.
+    show note_o2 @cue:c_pur 
+=== Tranche s_retenir
+  OBJET resume [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" 
+  OBJET regle [text] "Un facteur qui monte au numérateur, un facteur qui baisse au dénominateur." 
+  OBJET n_espace [text] "n = 20 L ÷ 22,4 L/mol ≈ 0,89 mol à TPN" 
+DIT (central) : À retenir : une seule loi générale gouverne les trois situations. Chaque variable qui change devient un facteur, et on multiplie tous ces facteurs ensemble.
+    fade_out loi_gen @cue:c_ret 
+    fade_out vol_mol @cue:c_ret 
+    fade_out calcul_n @cue:c_ret 
+    fade_out note_o2 @cue:c_ret 
+    fade_out axes_pv @cue:c_ret 
+    fade_out lab_p @cue:c_ret 
+    fade_out lab_v @cue:c_ret 
+    show n_espace @cue:c_ret 
+    write resume @cue:c_ensemble 
+    show regle @after:w_res 
+--- 5 tranches, 352 mots dits (≈ 2.3 min d'oral)

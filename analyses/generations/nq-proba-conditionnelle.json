@@ -1,0 +1,553 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "proba_cond",
+  "title": "Pourquoi on divise par P(B) dans une probabilité conditionnelle",
+  "language": "fr",
+  "learning_goal": "Comprendre que P(A|B) = P(A∩B)/P(B) en restreignant l'univers des cas possibles à B."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+       ]
+      ],
+      "row_labels": [
+       "dé"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "lance",
+     "say": "Avant de parler de probabilité conditionnelle, regardons un univers très simple : un dé à six faces.",
+     "cues": [
+      {
+       "id": "c_de",
+       "text": "un dé à six faces"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_de",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "total",
+     "say": "L'univers, c'est les six résultats possibles. Chaque face a une chance sur six.",
+     "cues": [
+      {
+       "id": "c_six",
+       "text": "six résultats possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_six",
+       "end": "cue_end:c_six",
+       "target": "tab",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_condition",
+   "introduces": [
+    {
+     "id": "tab2",
+     "params": {
+      "rows": [
+       [
+        2,
+        4,
+        6
+       ]
+      ],
+      "row_labels": [
+       "pairs"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note",
+     "content": "On sait que le résultat est pair.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "appris",
+     "say": "Maintenant, quelqu'un te dit une information : le résultat est pair. Tu sais déjà quelque chose sur le lancer.",
+     "cues": [
+      {
+       "id": "c_pair",
+       "text": "le résultat est pair"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_pair",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "restreint",
+     "say": "Du coup, l'univers change. Les résultats impairs sont éliminés : il ne reste que deux, quatre et six.",
+     "cues": [
+      {
+       "id": "c_reste",
+       "text": "il ne reste que deux, quatre et six"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_reste",
+       "target": "tab"
+      },
+      {
+       "id": "s_tab2",
+       "verb": "show",
+       "at": "cue:c_reste",
+       "target": "tab2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_denominateur",
+   "introduces": [
+    {
+     "id": "frac",
+     "layout": {
+      "next_to": "tab2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\frac{\\text{cas favorables}}{\\text{cas possibles}}",
+     "type": "math"
+    },
+    {
+     "id": "ex",
+     "content": "P(A \\mid B) = \\frac{1}{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "Une probabilité, c'est toujours cas favorables divisé par cas possibles. Sauf que les cas possibles, ce n'est plus un dé à six faces.",
+     "cues": [
+      {
+       "id": "c_possibles",
+       "text": "cas possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_possibles",
+       "target": "frac"
+      }
+     ]
+    },
+    {
+     "id": "exemple",
+     "say": "Si A est tirer un quatre, alors un seul cas restant convient : quatre. Un cas sur trois.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "quatre"
+      },
+      {
+       "id": "c_un_trois",
+       "text": "Un cas sur trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab2",
+       "verb": "highlight",
+       "at": "cue:c_quatre",
+       "target": "tab2",
+       "role": "given"
+      },
+      {
+       "id": "w_ex",
+       "verb": "write",
+       "at": "cue:c_un_trois",
+       "target": "ex"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_general",
+   "introduces": [
+    {
+     "id": "formule",
+     "layout": {
+      "center_on": "ex"
+     },
+     "content": "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}",
+     "type": "math"
+    },
+    {
+     "id": "just",
+     "layout": {
+      "next_to": "formule",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "P(B) est la taille du nouvel univers",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "generalise",
+     "say": "En général, on divise par la probabilité de B, parce que B devient notre nouvel univers complet.",
+     "cues": [
+      {
+       "id": "c_b",
+       "text": "probabilité de B"
+      },
+      {
+       "id": "c_univers",
+       "text": "nouvel univers"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_frac",
+       "verb": "fade_out",
+       "at": "cue:c_b",
+       "target": "frac"
+      },
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "cue:c_b",
+       "target": "tab2"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_b",
+       "target": "note"
+      },
+      {
+       "id": "f_ex",
+       "verb": "fade_out",
+       "at": "cue:c_b",
+       "target": "ex"
+      },
+      {
+       "id": "w_f",
+       "verb": "write",
+       "at": "cue:c_b",
+       "target": "formule"
+      },
+      {
+       "id": "s_just",
+       "verb": "show",
+       "at": "cue:c_univers",
+       "target": "just"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retour_nombres",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "verif",
+     "say": "Vérifions avec les nombres du dé. A, c'est tirer un quatre, et B, c'est tirer un pair.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "quatre"
+      },
+      {
+       "id": "c_pair",
+       "text": "pair"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_f",
+       "verb": "highlight",
+       "at": "cue:c_quatre",
+       "target": "formule",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "La probabilité de A et B, c'est un sur six. La probabilité de B, c'est trois sur six. En divisant, un sixième sur trois sixièmes donne bien un tiers.",
+     "cues": [
+      {
+       "id": "c_un_six",
+       "text": "un sur six"
+      },
+      {
+       "id": "c_trois_six",
+       "text": "trois sur six"
+      },
+      {
+       "id": "c_tiers",
+       "text": "un tiers"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_den",
+       "verb": "highlight",
+       "at": "cue:c_trois_six",
+       "target": "formule",
+       "role": "accent"
+      },
+      {
+       "id": "h_result",
+       "verb": "highlight",
+       "at": "cue:c_tiers",
+       "target": "formule",
+       "role": "result"
+      },
+      {
+       "id": "s_just",
+       "verb": "show",
+       "at": "after:h_result",
+       "target": "just"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

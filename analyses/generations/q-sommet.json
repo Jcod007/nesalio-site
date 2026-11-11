@@ -1,0 +1,924 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "sommet_parabole",
+  "title": "Trouver le sommet d'une parabole",
+  "language": "fr",
+  "learning_goal": "Comprendre que le sommet d'une parabole se trouve sur l'axe de symétrie, et savoir le calculer"
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intuition",
+   "introduces": [
+    {
+     "id": "axes1",
+     "params": {
+      "x": [
+       -3,
+       5
+      ],
+      "y": [
+       -4,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "para1",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "x^2 - 2*x - 3",
+      "domain": [
+       -2,
+       4
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "sommet1",
+     "params": {
+      "at": [
+       1,
+       -4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lab_sommet1",
+     "attachment": {
+      "parent": "sommet1",
+      "anchor": "top"
+     },
+     "content": "sommet",
+     "type": "label"
+    },
+    {
+     "id": "lab_sym1",
+     "params": {
+      "from": [
+       1,
+       -4
+      ],
+      "to": [
+       1,
+       8
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Trouver le sommet d'une parabole, c'est trouver son point le plus bas, ou le plus haut.",
+     "cues": [
+      {
+       "id": "sommet_mot",
+       "text": "sommet"
+      },
+      {
+       "id": "point_bas",
+       "text": "point le plus bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre1",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "axes1"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_para1"
+      },
+      {
+       "id": "show_axes1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes1"
+      },
+      {
+       "id": "draw_para1",
+       "verb": "draw",
+       "start": "cue:sommet_mot",
+       "end": "cue_end:point_bas",
+       "target": "para1"
+      },
+      {
+       "id": "show_s1",
+       "verb": "show",
+       "at": "after:draw_para1",
+       "target": "sommet1"
+      },
+      {
+       "id": "show_l1",
+       "verb": "show",
+       "at": "after:draw_para1",
+       "target": "lab_sommet1"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b2",
+     "say": "Regarde : la courbe descend, atteint ce point, puis remonte. Ce point, c'est le sommet.",
+     "cues": [
+      {
+       "id": "descend",
+       "text": "descend"
+      },
+      {
+       "id": "remonte",
+       "text": "remonte"
+      },
+      {
+       "id": "ce_point",
+       "text": "ce point"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_s1",
+       "verb": "highlight",
+       "at": "cue:ce_point",
+       "target": "sommet1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b3",
+     "say": "Et il y a une chose très pratique : la parabole est symétrique. Sa moitié gauche est le miroir de sa moitié droite.",
+     "cues": [
+      {
+       "id": "symetrique",
+       "text": "symétrique"
+      },
+      {
+       "id": "miroir",
+       "text": "miroir"
+      }
+     ],
+     "do": [
+      {
+       "id": "show_sym1",
+       "verb": "show",
+       "at": "cue:symetrique",
+       "target": "lab_sym1"
+      },
+      {
+       "id": "style_sym1",
+       "verb": "set_style",
+       "at": "after:show_sym1",
+       "target": "lab_sym1",
+       "role": "secondary"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b4",
+     "say": "Le sommet est donc exactement sur cet axe de symétrie, au milieu des deux côtés.",
+     "cues": [
+      {
+       "id": "axe_sym",
+       "text": "axe de symétrie"
+      },
+      {
+       "id": "milieu",
+       "text": "milieu"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_sym1",
+       "verb": "highlight",
+       "at": "cue:axe_sym",
+       "target": "lab_sym1",
+       "role": "accent"
+      },
+      {
+       "id": "h_s1bis",
+       "verb": "highlight",
+       "at": "cue:milieu",
+       "target": "sommet1",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b5",
+     "say": "Du coup, pour trouver le sommet, il suffit de trouver cet axe. Voyons comment le calculer.",
+     "cues": [
+      {
+       "id": "cet_axe",
+       "text": "cet axe"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_axes1",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "axes1"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule",
+   "introduces": [
+    {
+     "id": "rule_x",
+     "content": "x_S = \\frac{-b}{2a}",
+     "parts": [
+      {
+       "id": "xs",
+       "text": "x_S ="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{-b}{2a}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "func",
+     "content": "f(x) = ax^2 + bx + c",
+     "parts": [
+      {
+       "id": "fx",
+       "text": "f(x) ="
+      },
+      {
+       "id": "poly",
+       "text": "ax^2 + bx + c"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note_ab",
+     "content": "a ≠ 0",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b6",
+     "say": "Une parabole, c'est la courbe d'une fonction du type f de x égale a x carré plus b x plus c.",
+     "cues": [
+      {
+       "id": "type",
+       "text": "type"
+      },
+      {
+       "id": "bx",
+       "text": "b x"
+      },
+      {
+       "id": "plusc",
+       "text": "plus c"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_fx",
+       "verb": "write",
+       "at": "cue:type",
+       "target": "func",
+       "part": "fx"
+      },
+      {
+       "id": "w_poly",
+       "verb": "write",
+       "at": "cue:bx",
+       "target": "func",
+       "part": "poly"
+      }
+     ]
+    },
+    {
+     "id": "b7",
+     "say": "Ici a, b et c sont des nombres donnés. Le a doit juste être différent de zéro, sinon ce n'est plus une parabole.",
+     "cues": [
+      {
+       "id": "diff_zero",
+       "text": "différent de zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note_ab",
+       "verb": "show",
+       "at": "cue:diff_zero",
+       "target": "note_ab"
+      },
+      {
+       "id": "h_poly",
+       "verb": "highlight",
+       "at": "cue:diff_zero",
+       "target": "func",
+       "role": "accent",
+       "part": "poly"
+      }
+     ]
+    },
+    {
+     "id": "b8",
+     "say": "Et voici la formule magique : l'abscisse du sommet vaut moins b sur deux a.",
+     "cues": [
+      {
+       "id": "abscisse",
+       "text": "abscisse"
+      },
+      {
+       "id": "moins_b",
+       "text": "moins b"
+      },
+      {
+       "id": "sur_deux_a",
+       "text": "deux a"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_xs",
+       "verb": "write",
+       "at": "cue:abscisse",
+       "target": "rule_x",
+       "part": "xs"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:moins_b",
+       "target": "rule_x",
+       "part": "frac"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exemple",
+   "introduces": [
+    {
+     "id": "ex_start",
+     "content": "f(x) = x^2 - 6x + 5",
+     "parts": [
+      {
+       "id": "fx2",
+       "text": "f(x) ="
+      },
+      {
+       "id": "poly2",
+       "text": "x^2 - 6x + 5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ex_a",
+     "content": "a = 1",
+     "type": "math"
+    },
+    {
+     "id": "ex_b",
+     "content": "b = -6",
+     "type": "math"
+    },
+    {
+     "id": "ex_calc",
+     "content": "x_S = \\frac{-b}{2a} = \\frac{6}{2} = 3",
+     "parts": [
+      {
+       "id": "p1",
+       "text": "x_S = \\frac{-b}{2a}"
+      },
+      {
+       "id": "p2",
+       "text": "= \\frac{6}{2}"
+      },
+      {
+       "id": "p3",
+       "text": "= 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b9",
+     "say": "Prenons un exemple : f de x égale x carré moins six x plus cinq.",
+     "cues": [
+      {
+       "id": "x_carre",
+       "text": "x carré"
+      },
+      {
+       "id": "plus_cinq",
+       "text": "plus cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_fx2",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "ex_start",
+       "part": "fx2"
+      },
+      {
+       "id": "w_poly2",
+       "verb": "write",
+       "at": "cue:x_carre",
+       "target": "ex_start",
+       "part": "poly2"
+      }
+     ]
+    },
+    {
+     "id": "b10",
+     "say": "Ici a vaut un, et b vaut moins six. Je remplace dans la formule.",
+     "cues": [
+      {
+       "id": "a_vaut_un",
+       "text": "a vaut un"
+      },
+      {
+       "id": "b_moins_six",
+       "text": "b vaut moins six"
+      },
+      {
+       "id": "je_remplace",
+       "text": "Je remplace"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_a",
+       "verb": "show",
+       "at": "cue:a_vaut_un",
+       "target": "ex_a"
+      },
+      {
+       "id": "s_b",
+       "verb": "show",
+       "at": "cue:b_moins_six",
+       "target": "ex_b"
+      },
+      {
+       "id": "w_p1",
+       "verb": "write",
+       "at": "cue:je_remplace",
+       "target": "ex_calc",
+       "part": "p1"
+      }
+     ]
+    },
+    {
+     "id": "b11",
+     "say": "Moins b, ça fait six. Et deux a, ça fait deux. Six sur deux égale trois.",
+     "cues": [
+      {
+       "id": "fait_six",
+       "text": "fait six"
+      },
+      {
+       "id": "fait_deux",
+       "text": "fait deux"
+      },
+      {
+       "id": "egale_trois",
+       "text": "égale trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p2",
+       "verb": "write",
+       "at": "cue:fait_six",
+       "target": "ex_calc",
+       "part": "p2"
+      },
+      {
+       "id": "w_p3",
+       "verb": "write",
+       "at": "cue:egale_trois",
+       "target": "ex_calc",
+       "part": "p3"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "b12",
+     "say": "Le sommet a donc pour abscisse trois. Voilà la réponse : x égale trois.",
+     "cues": [
+      {
+       "id": "abscisse_trois",
+       "text": "abscisse trois"
+      },
+      {
+       "id": "reponse",
+       "text": "réponse"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_p3",
+       "verb": "highlight",
+       "at": "cue:abscisse_trois",
+       "target": "ex_calc",
+       "role": "result",
+       "part": "p3"
+      },
+      {
+       "id": "h_p1bis",
+       "verb": "highlight",
+       "at": "cue:reponse",
+       "target": "ex_calc",
+       "role": "accent",
+       "part": "p1"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "recap_rule",
+     "content": "x_S = \\frac{-b}{2a}",
+     "parts": [
+      {
+       "id": "r_xs",
+       "text": "x_S ="
+      },
+      {
+       "id": "r_frac",
+       "text": "\\frac{-b}{2a}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "recap_note",
+     "content": "sur l'axe de symétrie",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap_group",
+     "items": [
+      "recap_rule",
+      "recap_note"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b13",
+     "say": "Pour résumer : le sommet est toujours sur l'axe de symétrie de la parabole.",
+     "cues": [
+      {
+       "id": "sommet_final",
+       "text": "sommet"
+      },
+      {
+       "id": "axe_final",
+       "text": "axe de symétrie"
+      }
+     ],
+     "do": [
+      {
+       "id": "remove_axes1",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "axes1"
+      },
+      {
+       "id": "remove_ex",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "ex_start"
+      },
+      {
+       "id": "remove_a",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "ex_a"
+      },
+      {
+       "id": "remove_b",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "ex_b"
+      },
+      {
+       "id": "remove_calc",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "ex_calc"
+      },
+      {
+       "id": "remove_func",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "func"
+      },
+      {
+       "id": "remove_noteab",
+       "verb": "remove",
+       "at": "beat:start",
+       "target": "note_ab"
+      },
+      {
+       "id": "cadre_final",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "recap_group"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_rxs",
+       "verb": "write",
+       "at": "cue:sommet_final",
+       "target": "recap_rule",
+       "part": "r_xs"
+      }
+     ]
+    },
+    {
+     "id": "b14",
+     "say": "Et son abscisse se calcule avec cette formule : moins b sur deux a.",
+     "cues": [
+      {
+       "id": "formule_finale",
+       "text": "formule"
+      },
+      {
+       "id": "moins_b_final",
+       "text": "moins b"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rfrac",
+       "verb": "write",
+       "at": "cue:moins_b_final",
+       "target": "recap_rule",
+       "part": "r_frac"
+      },
+      {
+       "id": "s_note_final",
+       "verb": "show",
+       "at": "after:w_rfrac",
+       "target": "recap_note"
+      }
+     ]
+    },
+    {
+     "id": "b15",
+     "say": "Tu retiens ces deux idées : sommet sur l'axe, et x égale moins b sur deux a.",
+     "cues": [
+      {
+       "id": "deux_idees",
+       "text": "deux idées"
+      },
+      {
+       "id": "x_moins_b",
+       "text": "x égale moins b"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "at": "cue:x_moins_b",
+       "target": "recap_rule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

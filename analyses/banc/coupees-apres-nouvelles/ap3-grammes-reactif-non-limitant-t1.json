@@ -1,0 +1,772 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "reactif_non_limitant",
+  "title": "Calculer la masse produite à partir du réactif non limitant",
+  "language": "fr",
+  "learning_goal": "Comprendre que le réactif limitant fixe la quantité de produit formé, puis calculer la masse d'un produit à l'aide des proportions stœchiométriques et de la masse molaire."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1e+30,
+    "max_abs_exponent": 400,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_reformuler",
+   "introduces": [
+    {
+     "id": "question",
+     "content": "? \\rightarrow m_{\\text{produit}}",
+     "type": "math"
+    },
+    {
+     "id": "note_lim",
+     "layout": {
+      "next_to": "question",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Le réactif limitant s'épuise en premier : c'est lui qui fixe la quantité de produit.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reform",
+     "say": "Tu demandes comment trouver le nombre de grammes d'un produit quand tu sais quel réactif est en excès.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "grammes d'un produit"
+      },
+      {
+       "id": "c_exces",
+       "text": "réactif est en excès"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_q",
+       "verb": "draw",
+       "at": "cue:c_produit",
+       "target": "question"
+      }
+     ]
+    },
+    {
+     "id": "cle",
+     "say": "Attention à une idée clé : c'est le réactif limitant qui décide de la quantité de produit formé, pas celui en excès.",
+     "cues": [
+      {
+       "id": "c_limitant",
+       "text": "réactif limitant"
+      },
+      {
+       "id": "c_exces2",
+       "text": "en excès"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_limitant",
+       "target": "note_lim"
+      },
+      {
+       "id": "h_note",
+       "verb": "highlight",
+       "at": "after:s_note",
+       "target": "note_lim",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_methode",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        2,
+        1,
+        2
+       ],
+       [
+        null,
+        null,
+        null
+       ],
+       [
+        null,
+        "0,25",
+        "0,50"
+       ]
+      ],
+      "row_labels": [
+       "coefficients",
+       "quantités (mol)",
+       "proportion"
+      ],
+      "column_labels": [
+       "H_2",
+       "O_2",
+       "H_2O"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "etapes",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "1) moles du limitant  2) proportion  3) masse du produit",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "posons",
+     "say": "Prenons une réaction simple : deux moles de dihydrogène réagissent avec une mole de dioxygène pour donner deux moles d'eau.",
+     "cues": [
+      {
+       "id": "c_react",
+       "text": "dihydrogène"
+      },
+      {
+       "id": "c_dio",
+       "text": "dioxygène"
+      },
+      {
+       "id": "c_eau",
+       "text": "d'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_react",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "donnees",
+     "say": "Disons que tu as un quart de mole de dioxygène, mais beaucoup plus d'hydrogène : l'oxygène est le limitant.",
+     "cues": [
+      {
+       "id": "c_quart",
+       "text": "un quart de mole"
+      },
+      {
+       "id": "c_lim",
+       "text": "l'oxygène est le limitant"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_cell",
+       "verb": "highlight",
+       "start": "cue:c_quart",
+       "end": "cue_end:c_quart",
+       "target": "tab",
+       "role": "given",
+       "part": "r2c2"
+      },
+      {
+       "id": "h_cell2",
+       "verb": "highlight",
+       "at": "cue:c_lim",
+       "target": "tab",
+       "role": "accent",
+       "part": "r2c2"
+      },
+      {
+       "id": "s_et",
+       "verb": "show",
+       "at": "cue:c_lim",
+       "target": "etapes"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_proportion",
+   "introduces": [
+    {
+     "id": "prop",
+     "content": "\\frac{n_{\\ce{H2O}}}{n_{\\ce{O2}}} = \\frac{2}{1} = 2",
+     "parts": [
+      {
+       "id": "rapport",
+       "text": "\\frac{n_{\\ce{H2O}}}{n_{\\ce{O2}}}"
+      },
+      {
+       "id": "deux",
+       "text": "= \\frac{2}{1} = 2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calc",
+     "content": "n_{\\ce{H2O}} = 2 \\times 0{,}25 = 0{,}50 \\ \\text{mol}",
+     "parts": [
+      {
+       "id": "debut",
+       "text": "n_{\\ce{H2O}}"
+      },
+      {
+       "id": "mult",
+       "text": "= 2 \\times 0{,}25"
+      },
+      {
+       "id": "fin",
+       "text": "= 0{,}50 \\ \\text{mol}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "proportion",
+     "say": "Regarde les coefficients : il se forme deux moles d'eau pour une mole de dioxygène. Le rapport est donc de deux.",
+     "cues": [
+      {
+       "id": "c_coef",
+       "text": "coefficients"
+      },
+      {
+       "id": "c_rapport",
+       "text": "rapport"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rapport",
+       "verb": "write",
+       "at": "cue:c_coef",
+       "target": "prop",
+       "part": "rapport"
+      },
+      {
+       "id": "w_deux",
+       "verb": "write",
+       "at": "cue:c_rapport",
+       "target": "prop",
+       "part": "deux"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "Donc n d'eau vaut deux fois un quart de mole, c'est-à-dire zéro virgule cinquante mole.",
+     "cues": [
+      {
+       "id": "c_ndeux",
+       "text": "deux fois un quart de mole"
+      },
+      {
+       "id": "c_zero",
+       "text": "zéro virgule cinquante mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_ndeux",
+       "target": "calc",
+       "part": "debut"
+      },
+      {
+       "id": "w_calc2",
+       "verb": "write",
+       "at": "cue:c_ndeux",
+       "target": "calc",
+       "part": "mult"
+      },
+      {
+       "id": "w_calc3",
+       "verb": "write",
+       "at": "cue:c_zero",
+       "target": "calc",
+       "part": "fin"
+      },
+      {
+       "id": "h_cell3",
+       "verb": "highlight",
+       "at": "after:w_calc3",
+       "target": "tab",
+       "role": "result",
+       "part": "r2c3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse",
+   "introduces": [
+    {
+     "id": "mm",
+     "content": "M_{\\ce{H2O}} = 2 \\times 1{,}0 + 16{,}0 = 18{,}0 \\ \\text{g/mol}",
+     "type": "math"
+    },
+    {
+     "id": "mf",
+     "content": "m = n \\times M = 0{,}50 \\times 18{,}0 = 9{,}0 \\ \\text{g}",
+     "parts": [
+      {
+       "id": "form",
+       "text": "m = n \\times M"
+      },
+      {
+       "id": "calc",
+       "text": "= 0{,}50 \\times 18{,}0"
+      },
+      {
+       "id": "rep",
+       "text": "= 9{,}0 \\ \\text{g}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "masse_molaire",
+     "say": "Maintenant il reste à convertir en grammes. La masse molaire de l'eau vaut dix-huit grammes par mole : deux hydrogènes et un oxygène.",
+     "cues": [
+      {
+       "id": "c_mm",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_h",
+       "text": "deux hydrogènes"
+      },
+      {
+       "id": "c_o",
+       "text": "un oxygène"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "dim",
+       "at": "cue:c_mm",
+       "target": "tab"
+      },
+      {
+       "id": "f_prop",
+       "verb": "fade_out",
+       "at": "cue:c_mm",
+       "target": "prop"
+      },
+      {
+       "id": "w_mm1",
+       "verb": "write",
+       "at": "cue:c_h",
+       "target": "mm"
+      },
+      {
+       "id": "w_mm2",
+       "verb": "highlight",
+       "at": "cue:c_o",
+       "target": "mm",
+       "role": "accent"
+      },
+      {
+       "id": "w_mm3",
+       "verb": "highlight",
+       "at": "after:w_mm2",
+       "target": "mm",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "final",
+     "say": "Ensuite, masse égale quantité multipliée par masse molaire : zéro virgule cinquante mole fois dix-huit grammes par mole donne neuf grammes.",
+     "cues": [
+      {
+       "id": "c_form",
+       "text": "masse égale quantité multipliée par masse molaire"
+      },
+      {
+       "id": "c_neuf",
+       "text": "neuf grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_m1",
+       "verb": "write",
+       "at": "cue:c_form",
+       "target": "mf",
+       "part": "form"
+      },
+      {
+       "id": "w_m2",
+       "verb": "write",
+       "at": "cue:c_form",
+       "target": "mf",
+       "part": "calc"
+      },
+      {
+       "id": "w_m3",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "mf",
+       "part": "rep"
+      },
+      {
+       "id": "h_m",
+       "verb": "highlight",
+       "at": "after:w_m3",
+       "target": "mf",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Le limitant fixe n ; puis m = n × M donne les grammes",
+     "type": "text"
+    },
+    {
+     "id": "formule",
+     "content": "m_{\\text{produit}} = n_{\\text{lim}} \\times \\frac{\\text{coef}_{\\text{produit}}}{\\text{coef}_{\\text{lim}}} \\times M",
+     "parts": [
+      {
+       "id": "debut",
+       "text": "m_{\\text{produit}}"
+      },
+      {
+       "id": "nlim",
+       "text": "= n_{\\text{lim}}"
+      },
+      {
+       "id": "ratio",
+       "text": "\\times \\frac{\\text{coef}_{\\text{produit}}}{\\text{coef}_{\\text{lim}}}"
+      },
+      {
+       "id": "M",
+       "text": "\\times M"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : on part toujours de la quantité du réactif limitant, on applique le rapport des coefficients, puis on multiplie par la masse molaire.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_coefs",
+       "text": "rapport des coefficients"
+      },
+      {
+       "id": "c_mm",
+       "text": "masse molaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_mm",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "mm"
+      },
+      {
+       "id": "f_mf",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "mf"
+      },
+      {
+       "id": "f_tab2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tab"
+      },
+      {
+       "id": "f_et",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "etapes"
+      },
+      {
+       "id": "f_q",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "question"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note_lim"
+      },
+      {
+       "id": "w_i",
+       "verb": "write",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "w_f1",
+       "verb": "write",
+       "at": "cue:c_coefs",
+       "target": "formule",
+       "part": "debut"
+      },
+      {
+       "id": "w_f2",
+       "verb": "write",
+       "at": "cue:c_coefs",
+       "target": "formule",
+       "part": "nlim"
+      },
+      {
+       "id": "w_f3",
+       "verb": "write",
+       "at": "cue:c_coefs",
+       "target": "formule",
+       "part": "ratio"
+      },
+      {
+       "id": "w_f4",
+       "verb": "write",
+       "at": "cue:c_mm",
+       "target": "formule",
+       "part": "M"
+      },
+      {
+       "id": "h_f",
+       "verb": "highlight",
+       "at": "after:w_f4",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

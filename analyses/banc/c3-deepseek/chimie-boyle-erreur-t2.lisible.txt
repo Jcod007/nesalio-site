@@ -1,0 +1,85 @@
+QUESTION (chimie-boyle-erreur, chimie, sec 5, erreur) : un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L
+RÉPONSE DE RÉFÉRENCE : P₁V₁ = P₂V₂ : V₂ = 100 × 2,0 / 250 = 0,80 L ; 5 L est impossible (la pression augmente, le volume diminue).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. à température constante, pression et volume sont inversement proportionnels : P₁V₁ = P₂V₂
+  2. diagnostic : 5 L vient du rapport des pressions inversé ; comprimer ne peut pas augmenter le volume
+  3. V₂ = 100 × 2,0 / 250 = 0,80 L écrit
+  4. explication particulaire : moins d'espace, plus de collisions sur les parois
+  5. valorisé : graphique P en fonction de V (hyperbole)
+ERREURS GRAVES À CHERCHER : volume qui augmente avec la pression ; relation dite proportionnelle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comprimer un gaz : trouver le bon volume
+math_context : {"symbols":{"p1":{"kind":"constant","value":100},"V1":{"kind":"constant","value":2},"p2":{"kind":"constant","value":250}},"expressions":{"V2":"p1*V1/p2"}}
+=== Tranche s_verif
+  OBJET donnees [matrix] {"rows":[[100,2],[250,"?"]],"row_labels":["pression (kPa)","volume (L)"],"column_labels":["état 1","état 2"]} 
+  OBJET calc_eleve [math] "2 \\times 250 \\div 100 = 5 \\text{ L}" parts=2 \times 250 | \div 100 | = 5 \text{ L}
+DIT (pose) : Tu as la pression et le volume de départ, puis la nouvelle pression : deux virgule zéro litre à cent kilopascals, comprimés à deux cent cinquante kilopascals.
+    show donnees @beat:start 
+    highlight donnees @- {"start":"cue:c_depart","end":"cue_end:c_p100","role":"given","part":"c1"}
+    highlight donnees @- {"start":"cue:c_p250","end":"cue_end:c_p250","role":"given","part":"c2"}
+DIT (erreur) : Ton calcul donne cinq litres : deux fois deux cent cinquante divisé par cent.
+    write calc_eleve @cue:c_ton 
+    highlight calc_eleve @cue:c_cinq {"role":"unknown","part":"cinq"}
+DIT (prouve) : Mais comprimer, c'est pousser sur le gaz : son volume doit diminuer, pas quintupler. Cinq litres, c'est impossible ici.
+    highlight calc_eleve @cue:c_impossible {"role":"unknown","part":"cinq"}
+=== Tranche s_loi
+  OBJET loi [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2
+  OBJET noteT [label] "n et T constants" attaché à loi
+DIT (regle) : À température constante, la loi de Boyle-Mariotte dit : pression un fois volume un égale pression deux fois volume deux.
+    fade_out calc_eleve @cue:c_temp 
+    dim donnees @cue:c_temp 
+    write loi @cue:c_p1v1 {"part":"gauche"}
+    write loi @cue:c_p2v2 {"part":"droite"}
+DIT (condition) : La condition est importante : la quantité de gaz et la température ne changent pas. La pression et le volume, eux, varient en sens inverse.
+    show noteT @cue:c_condition 
+    highlight loi @- {"start":"cue:c_inverse","end":"cue_end:c_inverse","role":"accent"}
+=== Tranche s_calcul
+  OBJET subst [math] "100 \\times 2,0 = 250 \\times V_2" parts=100 \times 2,0 | = 250 \times V_2
+  OBJET suite [math] "V_2 = \\frac{200}{250}" 
+  OBJET res [math] "V_2 = 0,80 \\text{ L}" 
+DIT (remplace) : Remplaçons : cent fois deux virgule zéro égale deux cent cinquante fois V deux.
+    write subst @cue:c_remplacons {"part":"membre1"}
+    write subst @cue:c_250v {"part":"membre2"}
+DIT (isole) : Cent fois deux, ça fait deux cents. On divise les deux côtés par deux cent cinquante pour isoler V deux.
+    transform suite @cue:c_deuxcents {"source":"subst"}
+    highlight suite @- {"start":"cue:c_divise","end":"cue_end:c_isole","role":"accent"}
+DIT (reponse) : Deux cents divisé par deux cent cinquante donne zéro virgule quatre-vingts. Le volume final est de zéro virgule quatre-vingts litre, exactement.
+    transform res @cue:c_resultat {"source":"suite"}
+    highlight res @cue:c_final {"role":"result"}
+=== Tranche s_image
+  OBJET axesV [axes] {"x":[0,3.5],"y":[0,5]} 
+  OBJET courbe [function_graph] {"expression":"2/x","domain":[0.4,3.5]} 
+  OBJET lab_p [label] "pression (centaines de kPa)" attaché à axesV
+  OBJET lab_V [label] "volume (L)" attaché à axesV
+  OBJET pt1 [point] {"at":[1,2]} 
+  OBJET l_pt1 [label] "(1 ; 2)" attaché à pt1
+  OBJET pt2 [point] {"at":[2.5,0.8]} 
+  OBJET l_pt2 [label] "(2,5 ; 0,8)" attaché à pt2
+DIT (courbeM) : Voici la même idée en image : la courbe du volume selon la pression, quand la température ne change pas.
+    fade_out loi @beat:start 
+    fade_out noteT @beat:start 
+    show axesV @beat:start 
+    show lab_p @beat:start 
+    show lab_V @beat:start 
+    draw courbe @- {"start":"cue:c_courbe","end":"cue_end:c_courbe"}
+DIT (points) : Au départ, à cent kilopascals, le volume vaut deux litres ; après compression, à deux cent cinquante, il tombe à zéro virgule huit.
+    show pt1 @cue:c_depart 
+    show l_pt1 @cue:c_deuxlitres 
+    show pt2 @cue:c_apres 
+    show l_pt2 @after:s_pt2 
+=== Tranche s_retenir
+  OBJET idee [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2
+  OBJET rapp [text] "pression en haut → volume en bas" 
+  OBJET rep [math] "V_2 = \\frac{p_1 V_1}{p_2} = \\frac{100 \\times 2,0}{250} = 0,80 \\text{ L}" 
+  GROUPE recap = idee, rapp, rep
+DIT (retenir) : À retenir : à température constante, p un V un égale p deux V deux. Quand la pression monte, le volume descend dans le même rapport inverse.
+    fade_out axesV @cue:c_retenir 
+    fade_out courbe @cue:c_retenir 
+    show idee @cue:c_retenir 
+    highlight idee @- {"start":"cue:c_egale","end":"cue_end:c_inverse","role":"accent"}
+DIT (fini) : Ici, deux cents divisés par deux cent cinquante donnent zéro virgule quatre-vingts litre : comprimer un gaz, c'est le faire tenir dans moins de place.
+    show rapp @cue:c_ici 
+    show rep @cue:c_moins 
+    highlight rep @after:s_rep {"role":"result"}
+--- 5 tranches, 255 mots dits (≈ 1.7 min d'oral)

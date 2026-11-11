@@ -1,0 +1,701 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "endo_exo",
+  "title": "Comment savoir si une transformation est endothermique ou exothermique",
+  "language": "fr",
+  "learning_goal": "Reconnaître une transformation endothermique ou exothermique par le diagramme énergétique, le signe de ΔH et les indices d'une réaction."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_diagramme",
+   "introduces": [
+    {
+     "id": "ax",
+     "params": {
+      "x": [
+       0,
+       6
+      ],
+      "y": [
+       0,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "ax_xlab",
+     "attachment": {
+      "parent": "ax",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "progression de la réaction",
+     "type": "label"
+    },
+    {
+     "id": "ax_ylab",
+     "attachment": {
+      "parent": "ax",
+      "anchor": "top",
+      "placement": "outside"
+     },
+     "content": "énergie",
+     "type": "label"
+    },
+    {
+     "id": "l_react",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       4
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "l_monte",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       2,
+       4
+      ],
+      "to": [
+       3,
+       7
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "l_desc",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       3,
+       7
+      ],
+      "to": [
+       4,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "l_prod",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       4,
+       1
+      ],
+      "to": [
+       6,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lab_react",
+     "attachment": {
+      "parent": "l_react",
+      "anchor": "top",
+      "placement": "outside"
+     },
+     "content": "réactifs",
+     "type": "label"
+    },
+    {
+     "id": "lab_prod",
+     "attachment": {
+      "parent": "l_prod",
+      "anchor": "bottom",
+      "placement": "outside"
+     },
+     "content": "produits",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Pour savoir si une transformation est endothermique ou exothermique, on compare l'énergie des produits à celle des réactifs.",
+     "cues": [
+      {
+       "id": "c_compare",
+       "text": "on compare l'énergie"
+      },
+      {
+       "id": "c_prod",
+       "text": "des produits"
+      },
+      {
+       "id": "c_react",
+       "text": "des réactifs"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ax",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ax"
+      },
+      {
+       "id": "s_xlab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ax_xlab"
+      },
+      {
+       "id": "s_ylab",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ax_ylab"
+      },
+      {
+       "id": "d_react",
+       "verb": "draw",
+       "at": "cue:c_react",
+       "target": "l_react"
+      },
+      {
+       "id": "s_react_lab",
+       "verb": "show",
+       "at": "after:d_react",
+       "target": "lab_react"
+      },
+      {
+       "id": "d_prod",
+       "verb": "draw",
+       "at": "cue:c_prod",
+       "target": "l_prod"
+      },
+      {
+       "id": "s_prod_lab",
+       "verb": "show",
+       "at": "after:d_prod",
+       "target": "lab_prod"
+      },
+      {
+       "id": "d_monte",
+       "verb": "draw",
+       "start": "cue:c_compare",
+       "end": "cue_end:c_compare",
+       "target": "l_monte"
+      },
+      {
+       "id": "d_desc",
+       "verb": "draw",
+       "start": "cue:c_compare",
+       "end": "cue_end:c_compare",
+       "target": "l_desc"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_niveau",
+   "introduces": [
+    {
+     "id": "l_niv",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       2,
+       4
+      ],
+      "to": [
+       6,
+       1
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "a_dh",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "from": [
+       5,
+       4
+      ],
+      "to": [
+       5,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_dh",
+     "attachment": {
+      "parent": "a_dh",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "ΔH",
+     "type": "label"
+    },
+    {
+     "id": "lab_dh_neg",
+     "attachment": {
+      "parent": "lab_dh",
+      "anchor": "right",
+      "placement": "outside"
+     },
+     "content": "négatif : exothermique",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "compare",
+     "say": "Ici, les produits sont plus bas que les réactifs : la transformation a dégagé de l'énergie vers le milieu.",
+     "cues": [
+      {
+       "id": "c_plusbas",
+       "text": "plus bas"
+      },
+      {
+       "id": "c_degage",
+       "text": "dégagé de l'énergie"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_niv",
+       "verb": "draw",
+       "at": "cue:c_plusbas",
+       "target": "l_niv"
+      },
+      {
+       "id": "s_dh",
+       "verb": "show",
+       "at": "cue:c_degage",
+       "target": "a_dh"
+      },
+      {
+       "id": "s_dh_lab",
+       "verb": "show",
+       "at": "after:s_dh",
+       "target": "lab_dh"
+      },
+      {
+       "id": "s_dh_neg",
+       "verb": "show",
+       "at": "after:s_dh_lab",
+       "target": "lab_dh_neg"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "inverse",
+     "say": "Si les produits étaient plus hauts, il aurait fallu fournir de l'énergie : ΔH serait positif, endothermique.",
+     "cues": [
+      {
+       "id": "c_hauts",
+       "text": "plus hauts"
+      },
+      {
+       "id": "c_endothermique",
+       "text": "endothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_lab_neg",
+       "verb": "highlight",
+       "start": "cue:c_hauts",
+       "end": "cue_end:c_endothermique",
+       "target": "lab_dh_neg",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_indices",
+   "introduces": [
+    {
+     "id": "tab",
+     "layout": {
+      "to_edge": "left",
+      "gap": "md"
+     },
+     "params": {
+      "rows": [
+       [
+        "se réchauffe",
+        "se refroidit"
+       ],
+       [
+        "énergie : produits",
+        "énergie : réactifs"
+       ],
+       [
+        "ΔH < 0",
+        "ΔH > 0"
+       ]
+      ],
+      "row_labels": [
+       "le milieu",
+       "l'énergie écrite",
+       "le signe"
+      ],
+      "column_labels": [
+       "exothermique",
+       "endothermique"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note_retour",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Une réaction inverse change le signe de ΔH",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tableau",
+     "say": "En pratique, tu as trois indices qui te répondent : le milieu se réchauffe, l'énergie est écrite du côté des produits, et ΔH est négatif : c'est exothermique.",
+     "cues": [
+      {
+       "id": "c_rechauffe",
+       "text": "se réchauffe"
+      },
+      {
+       "id": "c_produits",
+       "text": "du côté des produits"
+      },
+      {
+       "id": "c_negatif",
+       "text": "négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_rechauffe",
+       "target": "tab",
+       "stagger": "normal"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "start": "cue:c_rechauffe",
+       "end": "cue_end:c_rechauffe",
+       "target": "tab",
+       "role": "accent",
+       "part": "c1"
+      },
+      {
+       "id": "h_c3",
+       "verb": "highlight",
+       "start": "cue:c_negatif",
+       "end": "cue_end:c_negatif",
+       "target": "tab",
+       "role": "accent",
+       "part": "c2"
+      }
+     ]
+    },
+    {
+     "id": "colonne",
+     "say": "Et à l'inverse : s'il se refroidit, si l'énergie est du côté des réactifs et que ΔH est positif, c'est endothermique.",
+     "cues": [
+      {
+       "id": "c_refroidit",
+       "text": "se refroidit"
+      },
+      {
+       "id": "c_endothermique2",
+       "text": "endothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c2b",
+       "verb": "highlight",
+       "start": "cue:c_refroidit",
+       "end": "cue_end:c_refroidit",
+       "target": "tab",
+       "role": "secondary",
+       "part": "c2"
+      },
+      {
+       "id": "h_c2c",
+       "verb": "highlight",
+       "start": "cue:c_endothermique2",
+       "end": "cue_end:c_endothermique2",
+       "target": "tab",
+       "role": "secondary",
+       "part": "c2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "attention",
+     "say": "Attention, écris toujours l'équation avec son ΔH : deux réactions peuvent sembler identiques et avoir un signe opposé.",
+     "cues": [
+      {
+       "id": "c_toujours",
+       "text": "toujours"
+      },
+      {
+       "id": "c_oppose",
+       "text": "signe opposé"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_monte",
+       "verb": "dim",
+       "at": "cue:c_toujours",
+       "target": "l_monte"
+      },
+      {
+       "id": "d_desc",
+       "verb": "dim",
+       "at": "cue:c_toujours",
+       "target": "l_desc"
+      },
+      {
+       "id": "h_note",
+       "verb": "highlight",
+       "at": "cue:c_oppose",
+       "target": "note_retour",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

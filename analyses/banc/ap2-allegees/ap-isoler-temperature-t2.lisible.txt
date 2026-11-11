@@ -1,0 +1,81 @@
+QUESTION (ap-isoler-temperature, chimie, sec 5, alloprof) : Comment isoler la variable temperature dans la formule p1v1/n1t1=p2v2/n2t2 avec la quantiter de gaz qui est constante
+RÉPONSE DE RÉFÉRENCE : T2 = P2·V2·T1 / (P1·V1)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Isoler la température dans la loi générale des gaz
+math_context : {"symbols":{},"expressions":{"T2":"(353.15*(2.0/4.0)*(100.0/200.0)*(2.0/1.0))/(1.0)","T2num":"(353.15*2.0*100.0*2.0)/(1.0*200.0*4.0)"}}
+=== Tranche s_depart
+  OBJET loi [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" parts=\frac{p_1 V_1}{n_1 T_1} | = | \frac{p_2 V_2}{n_2 T_2}
+  OBJET nconst [label] "n₁ = n₂" attaché à loi
+DIT (pose) : Tu veux isoler la température, et on te dit que la quantité de gaz ne change pas. Ça veut dire n un égale n deux.
+    write loi @cue:c_temp {"part":"gauche"}
+    write loi @cue:c_quantite {"part":"eg"}
+    write loi @cue:c_egaux {"part":"droite"}
+    show nconst @cue:c_egaux 
+DIT (simplifie) : Comme n un égale n deux, on peut rayer les deux n dans la formule : ils s'annulent.
+    highlight loi @- {"start":"cue:c_rayer","end":"cue_end:c_rayer","role":"secondary","part":"droite"}
+    dim loi @cue:c_rayer 
+=== Tranche s_loi_simple
+  OBJET loi2 [math] "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}" parts=\frac{p_1 V_1}{T_1} | = | \frac{p_2 V_2}{T_2}
+  OBJET iso [math] "T_2 = \\frac{p_2 V_2 T_1}{p_1 V_1}" parts=T_2 | = | \frac{p_2 V_2 T_1}{p_1 V_1}
+DIT (reecrire) : La formule simplifiée ressemble à ceci : p un V un sur T un égale p deux V deux sur T deux.
+    fade_out loi @beat:start 
+    fade_out nconst @beat:start 
+    write loi2 @cue:c_p1 {"part":"lg"}
+    write loi2 @after:w_lg {"part":"le"}
+    write loi2 @cue:c_simplifiee {"part":"ld"}
+DIT (isoler) : Pour isoler T deux, on multiplie les deux côtés par T deux, puis on divise par p un V un. On obtient T deux égale p deux V deux T un sur p un V un.
+    write iso @cue:c_obtient {"part":"tt"}
+    write iso @after:w_tt {"part":"te"}
+    write iso @after:w_te {"part":"tf"}
+    highlight iso @- {"start":"cue:c_obtient","end":"cue_end:c_obtient","role":"accent"}
+=== Tranche s_exemple
+  OBJET data [matrix] {"rows":[[100,200],[2,4],[353.15,null]],"row_labels":["P (kPa)","V (L)","T (K)"],"column_labels":["état 1","état 2"]} 
+  OBJET calc [math] "T_2 = \\frac{200 \\times 4{,}0 \\times 353{,}15}{100 \\times 2{,}0} = 1412{,}6\\ \\text{K}" parts=T_2 = | \frac{200 \times 4{,}0 \times 353{,}15}{100 \times 2{,}0} | = 1412{,}6\ \text{K}
+DIT (contexte) : Essayons avec des chiffres. À l'état un, la pression est cent kilopascals, le volume deux litres, la température trois cent cinquante-trois kelvins. À l'état deux, la pression est deux cents kilopascals et le volume quatre litres. Trouvons T deux.
+    show data @beat:start 
+    highlight data @- {"start":"cue:c_volume2","end":"cue_end:c_volume2","role":"accent","part":"r3"}
+    write calc @after:s_data {"part":"ct1"}
+DIT (calcule) : On remplace : T deux égale deux cents fois quatre virgule zéro fois trois cent cinquante-trois virgule quinze divisé par cent fois deux virgule zéro. Le résultat est environ mille quatre cent douze virgule six kelvins.
+    write calc @cue:c_remplace {"part":"ct2"}
+    write calc @cue:c_resultat {"part":"ct3"}
+    highlight calc @- {"start":"cue:c_resultat","end":"cue_end:c_resultat","role":"result"}
+DIT (unites) : Attention : la température doit toujours être en kelvins dans cette formule. Si on te donne des degrés Celsius, ajoute deux cent soixante-treize virgule quinze avant de calculer.
+    dim data @cue:c_kelvins 
+=== Tranche s_verifier
+  OBJET verif [math] "\\frac{100 \\times 2{,}0}{353{,}15} = \\frac{200 \\times 4{,}0}{1412{,}6}" parts=\frac{100 \times 2{,}0}{353{,}15} | = | \frac{200 \times 4{,}0}{1412{,}6}
+DIT (remplace) : Vérifions. On remet la valeur trouvée dans la formule de départ : cent fois deux divisé par trois cent cinquante-trois virgule quinze d'un côté, deux cents fois quatre divisé par mille quatre cent douze virgule six de l'autre.
+    write verif @cue:c_remet {"part":"vg"}
+    write verif @after:w_vg {"part":"ve"}
+    write verif @cue:c_verifions {"part":"vd"}
+DIT (egaux) : Les deux côtés donnent environ zéro virgule cinq six six : la réponse tient.
+    highlight verif @- {"start":"cue:c_egaux","end":"cue_end:c_tient","role":"result"}
+=== Tranche s_attention
+  OBJET err [math] "T_2 = T_1 \\times \\frac{p_1 V_1}{p_2 V_2}" 
+  OBJET corr [text] "On multiplie par l'inverse de ce qu'on veut éliminer" 
+DIT (piege) : Un piège fréquent : mettre p un V un au numérateur au lieu de p deux V deux. Ça inverse le résultat et te donne une température beaucoup trop petite.
+    fade_out calc @cue:c_piege 
+    fade_out verif @cue:c_piege 
+    show err @cue:c_inverse 
+DIT (pourquoi) : La raison est simple : pour isoler T deux, T deux est au dénominateur à droite. On le remonte en multipliant, puis on divise par ce qui reste au-dessus de lui, soit p deux V deux.
+    show corr @cue:c_remonte 
+    dim loi2 @cue:c_raison 
+    dim iso @cue:c_raison 
+=== Tranche s_retenir
+  OBJET final [math] "T_2 = \\frac{p_2 V_2 T_1}{p_1 V_1}" parts=T_2 | = | \frac{p_2 V_2 T_1}{p_1 V_1}
+  OBJET cle [text] "n constant se simplifie" attaché à final
+DIT (retenir) : À retenir : quand la quantité de gaz est constante, elle disparaît de la formule. Il reste T deux égale p deux V deux T un sur p un V un.
+    fade_out err @beat:start 
+    fade_out corr @beat:start 
+    fade_out loi2 @beat:start 
+    fade_out iso @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["final","cle"],"bounds":"layout_bounds"}
+    write final @cue:c_reste {"part":"ft"}
+    write final @after:w_ft {"part":"fe"}
+    write final @cue:c_retenir {"part":"ff"}
+DIT (idee) : Voilà l'idée centrale : isoler une variable, c'est faire disparaître tout ce qui l'entoure en appliquant la même opération aux deux côtés.
+    show cle @cue:c_idee 
+    highlight final @- {"start":"cue:c_meme","end":"cue_end:c_meme","role":"result"}
+--- 6 tranches, 375 mots dits (≈ 2.5 min d'oral)

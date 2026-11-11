@@ -1,0 +1,68 @@
+QUESTION (chimie-concentration, chimie, sec 4, methode) : j'ai dissous 10 g de NaCl dans assez d'eau pour faire 250 mL de solution, c'est quoi la concentration en g/L pis en mol/L?
+RÉPONSE DE RÉFÉRENCE : C = 10 g / 0,250 L = 40 g/L ; n = 10 / 58,44 ≈ 0,171 mol ; C ≈ 0,68 mol/L.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. C = m/V avec V en litres (0,250 L)
+  2. 40 g/L écrit
+  3. M(NaCl) = 58,44 g/mol, n ≈ 0,171 mol
+  4. ≈ 0,68 mol/L écrit
+  5. unités, et le lien C(mol/L) = C(g/L)/M
+ERREURS GRAVES À CHERCHER : volume laissé en mL (0,04 g/mL présenté comme g/L)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Concentration de 10 g de NaCl dans 250 mL
+math_context : {"symbols":{"m":{"kind":"constant","value":10},"V_L":{"kind":"constant","value":0.25},"M_NaCl":{"kind":"constant","value":58.44},"C_gL":{"kind":"constant","value":40},"C_mol":{"kind":"constant","value":0.6844626968}},"expressions":{}}
+=== Tranche s_idee
+  OBJET def [math] "C = \\frac{m_{\\text{soluté}}}{V_{\\text{solution}}}" parts=C | = \frac{m_{\text{soluté}}}{V_{\text{solution}}}
+  OBJET sol [polygon] {"vertices":[[0,0],[3,0],[3,2],[0,2]]} 
+  OBJET solute [point] {"at":[1,1]} 
+  OBJET note_solute [label] "soluté" attaché à solute
+  OBJET vol [label] "250 mL de solution" attaché à sol
+DIT (definir) : La concentration, c'est la quantité de soluté divisée par le volume de solution.
+    write def @beat:start {"part":"c"}
+    write def @cue:c_quantite {"part":"frac"}
+DIT (dix_grammes) : Ici, tu as dissous dix grammes de sel : ça, c'est ton soluté.
+    draw sol @cue:c_dix 
+    show solute @cue:c_dix 
+    show note_solute @cue:c_dix 
+    show vol @cue:c_dix 
+=== Tranche s_grammes
+  OBJET mL [math] "250\\ \\text{mL} = 0{,}250\\ \\text{L}" 
+  OBJET calc1 [math] "C = \\frac{10\\ \\text{g}}{0{,}250\\ \\text{L}} = 40\\ \\text{g/L" 
+DIT (litres) : Attention à l'unité de volume : la concentration en grammes par litre exige des litres. On convertit deux cent cinquante millilitres en zéro virgule deux cent cinquante litre.
+    dim def @cue:c_litres 
+    dim sol @cue:c_litres 
+    write mL @beat:start 
+    highlight mL @cue:c_convertit {"role":"accent"}
+DIT (diviser) : On divise dix grammes par zéro virgule deux cent cinquante litre : dix divisé par un quart donne quarante. Donc quarante grammes par litre.
+    write calc1 @cue:c_divise 
+    highlight calc1 @cue:c_quarante {"role":"result"}
+=== Tranche s_molaire
+  OBJET masse [math] "M(\\text{NaCl}) = 22{,}99 + 35{,}45 = 58{,}44\\ \\text{g/mol}" 
+  OBJET calc2 [math] "C = \\frac{40\\ \\text{g/L}}{58{,}44\\ \\text{g/mol}} \\approx 0{,}68\\ \\text{mol/L}" 
+DIT (masse) : Pour avoir des moles par litre, il faut la masse d'une mole de sel. Le sodium pèse vingt-deux virgule quatre-vingt-dix-neuf, le chlore trente-cinq virgule quarante-cinq. Total : cinquante-huit virgule quarante-quatre grammes par mole.
+    dim mL @beat:start 
+    dim calc1 @beat:start 
+    fade_out sol @beat:start 
+    fade_out solute @beat:start 
+    fade_out note_solute @beat:start 
+    fade_out vol @beat:start 
+    write masse @cue:c_sodium 
+    highlight masse @cue:c_chlore {"role":"accent"}
+    highlight masse @cue:c_total {"role":"accent"}
+DIT (calcul_mol) : Maintenant on divise quarante grammes par litre par cinquante-huit virgule quarante-quatre grammes par mole : les grammes s'annulent, il reste environ zéro virgule soixante-huit mole par litre.
+    write calc2 @beat:start 
+    highlight calc2 @cue:c_mol {"role":"accent"}
+    highlight calc2 @cue:c_mol {"role":"result"}
+=== Tranche s_retenir
+  OBJET res1 [math] "C = 40\\ \\text{g/L}" 
+  OBJET res2 [math] "C \\approx 0{,}68\\ \\text{mol/L}" 
+  GROUPE final = res1, res2
+DIT (retenir) : À retenir : on divise la masse de soluté par le volume en litres pour la concentration en grammes par litre.
+    fade_out masse @beat:start 
+    fade_out calc2 @beat:start 
+    camera.focus  @beat:start {"targets":["res1","res2"],"bounds":"layout_bounds"}
+    write res1 @cue:c_retenir 
+DIT (fin) : Et pour passer en moles par litre, on divise cette concentration par la masse molaire : quarante grammes par litre donne environ zéro virgule soixante-huit mole par litre.
+    write res2 @cue:c_fin 
+    highlight res2 @- {"start":"cue:c_fin","end":"cue_end:c_fin","role":"result"}
+--- 4 tranches, 187 mots dits (≈ 1.2 min d'oral)

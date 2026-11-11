@@ -1,0 +1,962 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "probabilite_conditionnelle_division",
+  "title": "Pourquoi diviser par P(B) en probabilité conditionnelle",
+  "language": "fr",
+  "learning_goal": "Comprendre que la condition B réduit l'univers à B et que P(A | B) mesure la part de B qui vérifie aussi A."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_univers",
+   "introduces": [
+    {
+     "id": "univ",
+     "style": {
+      "role": "neutral"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "b_zone",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "a_b_zone",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "ticks",
+     "params": {
+      "rows": [
+       [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+       ]
+      ],
+      "row_labels": [
+       "résultat du dé"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "b_note",
+     "content": "B : résultats 4, 5, 6",
+     "type": "text"
+    },
+    {
+     "id": "ab_note",
+     "content": "A et B : résultats 4 et 6",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "notes",
+     "items": [
+      "b_note",
+      "ab_note"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     },
+     "layout": {
+      "next_to": "univ",
+      "direction": "right",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "intuition",
+     "say": "Imagine un dé équilibré : chaque résultat de un à six a la même chance. La condition B, « obtenir plus que trois », garde seulement quatre, cinq et six.",
+     "cues": [
+      {
+       "id": "de",
+       "text": "dé équilibré"
+      },
+      {
+       "id": "condition",
+       "text": "La condition B"
+      },
+      {
+       "id": "garde",
+       "text": "garde seulement"
+      }
+     ],
+     "do": [
+      {
+       "id": "dessin",
+       "verb": "draw",
+       "at": "cue:de",
+       "target": "univ"
+      },
+      {
+       "id": "montre_b",
+       "verb": "draw",
+       "at": "cue:condition",
+       "target": "b_zone"
+      },
+      {
+       "id": "montre_cases",
+       "verb": "show",
+       "at": "cue:garde",
+       "target": "ticks"
+      },
+      {
+       "id": "note_b",
+       "verb": "show",
+       "at": "cue:garde",
+       "target": "b_note"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "reduire",
+     "say": "Les six cases représentent tout l'univers de départ. Une fois B connu, les trois cases de B deviennent notre nouvel univers; les autres ne comptent plus.",
+     "cues": [
+      {
+       "id": "six_cases",
+       "text": "six cases"
+      },
+      {
+       "id": "trois_cases",
+       "text": "trois cases"
+      },
+      {
+       "id": "autres",
+       "text": "les autres"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_univers",
+       "verb": "highlight",
+       "start": "cue:six_cases",
+       "end": "cue_end:trois_cases",
+       "target": "univ",
+       "role": "neutral"
+      },
+      {
+       "id": "estompe",
+       "verb": "dim",
+       "at": "cue:autres",
+       "target": "univ"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_part",
+   "introduces": [
+    {
+     "id": "a_zone",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "vertices": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        1,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "a_label",
+     "content": "A : résultat pair",
+     "type": "text"
+    },
+    {
+     "id": "part_b",
+     "content": "P(A | B) = \\frac{\\text{cas dans A et B}}{\\text{cas dans B}}",
+     "parts": [
+      {
+       "id": "conditionnelle",
+       "text": "P(A | B)"
+      },
+      {
+       "id": "egal",
+       "text": "="
+      },
+      {
+       "id": "fraction",
+       "text": "\\frac{\\text{cas dans A et B}}{\\text{cas dans B}}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "formule",
+     "content": "P(A | B) = \\frac{P(A \\cap B)}{P(B)}",
+     "parts": [
+      {
+       "id": "formule_cond",
+       "text": "P(A | B)"
+      },
+      {
+       "id": "formule_egal",
+       "text": "="
+      },
+      {
+       "id": "quotient",
+       "text": "\\frac{P(A \\cap B)}{P(B)}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intersection",
+     "say": "Ici, A signifie « obtenir un nombre pair ». Dans B, A est vrai pour quatre et six : ce sont deux résultats sur les trois gardés.",
+     "cues": [
+      {
+       "id": "pair",
+       "text": "un nombre pair"
+      },
+      {
+       "id": "dans_b",
+       "text": "Dans B"
+      },
+      {
+       "id": "deux",
+       "text": "deux résultats"
+      }
+     ],
+     "do": [
+      {
+       "id": "draw_a",
+       "verb": "draw",
+       "at": "cue:pair",
+       "target": "a_zone"
+      },
+      {
+       "id": "note_a",
+       "verb": "show",
+       "at": "cue:pair",
+       "target": "a_label"
+      },
+      {
+       "id": "draw_ab",
+       "verb": "draw",
+       "at": "cue:deux",
+       "target": "a_b_zone"
+      },
+      {
+       "id": "note_ab",
+       "verb": "show",
+       "at": "cue:deux",
+       "target": "ab_note"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "La probabilité conditionnelle est donc la part de B où A est aussi vrai. On compte deux cases favorables parmi les trois cases de B.",
+     "cues": [
+      {
+       "id": "sens_part",
+       "text": "la part de B"
+      },
+      {
+       "id": "deux_cases",
+       "text": "deux cases"
+      },
+      {
+       "id": "trois_cases",
+       "text": "trois cases"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cond",
+       "verb": "write",
+       "at": "cue:sens_part",
+       "target": "part_b",
+       "part": "conditionnelle"
+      },
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:sens_part",
+       "target": "part_b",
+       "part": "egal"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:deux_cases",
+       "target": "part_b",
+       "part": "fraction"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "pourquoi",
+     "say": "En général, il faut que P(B) ne soit pas zéro, sinon B ne peut pas servir de nouvel univers. La probabilité de B mesure la taille de cet univers dans le départ.",
+     "cues": [
+      {
+       "id": "condition",
+       "text": "P(B) ne soit pas zéro"
+      },
+      {
+       "id": "taille",
+       "text": "La probabilité de B"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_univ",
+       "verb": "dim",
+       "at": "cue:condition",
+       "target": "ticks"
+      },
+      {
+       "id": "h_zone",
+       "verb": "highlight",
+       "start": "cue:taille",
+       "end": "cue_end:taille",
+       "target": "b_zone",
+       "role": "given"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "calcul",
+     "content": "P(A | B) = \\frac{2}{3}",
+     "parts": [
+      {
+       "id": "calc_gauche",
+       "text": "P(A | B)"
+      },
+      {
+       "id": "calc_egal",
+       "text": "="
+      },
+      {
+       "id": "calc_resultat",
+       "text": "\\frac{2}{3}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "quotient_probs",
+     "content": "\\frac{P(A \\cap B)}{P(B)} = \\frac{2/6}{3/6} = \\frac{2}{3}",
+     "parts": [
+      {
+       "id": "ratio",
+       "text": "\\frac{P(A \\cap B)}{P(B)}"
+      },
+      {
+       "id": "ratio_egal",
+       "text": "="
+      },
+      {
+       "id": "ratio_numerique",
+       "text": "\\frac{2/6}{3/6}"
+      },
+      {
+       "id": "ratio_final",
+       "text": "= \\frac{2}{3}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "compare",
+     "content": "P(A \\cap B)=\\frac{2}{6}\\qquad P(B)=\\frac{3}{6}\\qquad P(A | B)=\\frac{2}{3}",
+     "parts": [
+      {
+       "id": "compare_ab",
+       "text": "P(A \\cap B)=\\frac{2}{6}"
+      },
+      {
+       "id": "compare_b",
+       "text": "\\qquad P(B)=\\frac{3}{6}"
+      },
+      {
+       "id": "compare_cond",
+       "text": "\\qquad P(A | B)=\\frac{2}{3}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul_part",
+     "say": "On obtient donc deux tiers : deux résultats sur les trois qui restent possibles quand B est connu.",
+     "cues": [
+      {
+       "id": "deux_tiers",
+       "text": "deux tiers"
+      },
+      {
+       "id": "restent",
+       "text": "qui restent possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "write_calc1",
+       "verb": "write",
+       "at": "cue:deux_tiers",
+       "target": "calcul",
+       "part": "calc_gauche"
+      },
+      {
+       "id": "write_calc2",
+       "verb": "write",
+       "at": "cue:deux_tiers",
+       "target": "calcul",
+       "part": "calc_egal"
+      },
+      {
+       "id": "write_calc3",
+       "verb": "write",
+       "at": "cue:restent",
+       "target": "calcul",
+       "part": "calc_resultat"
+      },
+      {
+       "id": "highlight_b",
+       "verb": "highlight",
+       "start": "cue:deux_tiers",
+       "end": "cue_end:restent",
+       "target": "a_b_zone",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "division",
+     "say": "Et voilà d’où vient la division par P(B) : on compare la part A et B, deux sur six, à tout B, trois sur six. Les sixièmes se simplifient, il reste deux tiers.",
+     "cues": [
+      {
+       "id": "origine",
+       "text": "d’où vient la division"
+      },
+      {
+       "id": "part",
+       "text": "la part A et B"
+      },
+      {
+       "id": "tout_b",
+       "text": "tout B"
+      },
+      {
+       "id": "simplifient",
+       "text": "se simplifient"
+      }
+     ],
+     "do": [
+      {
+       "id": "write_ratio",
+       "verb": "write",
+       "at": "cue:origine",
+       "target": "quotient_probs",
+       "part": "ratio"
+      },
+      {
+       "id": "write_eq",
+       "verb": "write",
+       "at": "cue:part",
+       "target": "quotient_probs",
+       "part": "ratio_egal"
+      },
+      {
+       "id": "write_num",
+       "verb": "write",
+       "at": "cue:tout_b",
+       "target": "quotient_probs",
+       "part": "ratio_numerique"
+      },
+      {
+       "id": "write_final",
+       "verb": "write",
+       "at": "cue:simplifient",
+       "target": "quotient_probs",
+       "part": "ratio_final"
+      },
+      {
+       "id": "h_num",
+       "verb": "highlight",
+       "start": "cue:tout_b",
+       "end": "cue_end:simplifient",
+       "target": "quotient_probs",
+       "role": "accent",
+       "part": "ratio_numerique"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "distinction",
+     "say": "Attention, P de A intersection B est deux sur six dans tout l’univers, tandis que P de A sachant B est deux tiers dans B seulement : le dénominateur change avec l’univers choisi.",
+     "cues": [
+      {
+       "id": "intersection",
+       "text": "P de A intersection B"
+      },
+      {
+       "id": "sachant",
+       "text": "P de A sachant B"
+      },
+      {
+       "id": "denominateur",
+       "text": "le dénominateur change"
+      }
+     ],
+     "do": [
+      {
+       "id": "write_compare1",
+       "verb": "write",
+       "at": "cue:intersection",
+       "target": "compare",
+       "part": "compare_ab"
+      },
+      {
+       "id": "write_compare2",
+       "verb": "write",
+       "at": "cue:denominateur",
+       "target": "compare",
+       "part": "compare_b"
+      },
+      {
+       "id": "write_compare3",
+       "verb": "write",
+       "at": "cue:sachant",
+       "target": "compare",
+       "part": "compare_cond"
+      },
+      {
+       "id": "h_compare",
+       "verb": "highlight",
+       "start": "cue:sachant",
+       "end": "cue_end:denominateur",
+       "target": "compare",
+       "role": "accent",
+       "part": "compare_cond"
+      },
+      {
+       "id": "fade_ticks",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "ticks"
+      },
+      {
+       "id": "fade_notes",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "b_note"
+      },
+      {
+       "id": "fade_a_note",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "a_label"
+      },
+      {
+       "id": "fade_ab_note",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "ab_note"
+      },
+      {
+       "id": "fade_part",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "part_b"
+      },
+      {
+       "id": "fade_univ",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "univ"
+      },
+      {
+       "id": "fade_b",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "b_zone"
+      },
+      {
+       "id": "fade_a",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "a_zone"
+      },
+      {
+       "id": "fade_ab",
+       "verb": "fade_out",
+       "at": "cue:denominateur",
+       "target": "a_b_zone"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "resume_idee",
+     "content": "B devient le nouvel univers",
+     "type": "text"
+    },
+    {
+     "id": "resume_formule",
+     "content": "P(A \\mid B)=\\frac{P(A\\cap B)}{P(B)}",
+     "type": "math"
+    },
+    {
+     "id": "resume_exemple",
+     "content": "P(A \\mid B)=\\frac{2}{3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "resume",
+     "say": "À retenir : connaître B réduit l’univers à B. On divise par P(B) parce qu’on cherche quelle part de cet univers vérifie aussi A.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "reduit",
+       "text": "réduit l’univers à B"
+      },
+      {
+       "id": "divise",
+       "text": "On divise par P(B)"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:reduit",
+       "target": "resume_idee"
+      },
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "cue:divise",
+       "target": "resume_formule"
+      },
+      {
+       "id": "w_exemple",
+       "verb": "write",
+       "at": "cue:divise",
+       "target": "resume_exemple"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "start": "cue:divise",
+       "end": "cue_end:divise",
+       "target": "resume_formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

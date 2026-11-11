@@ -1,0 +1,931 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "dilution_concentration",
+  "title": "La concentration après une dilution",
+  "language": "fr",
+  "learning_goal": "Comprendre que diluer ne change pas la quantité de soluté, donc que la concentration diminue : C₁V₁ = C₂V₂, ici 0,5 mol/L et non 8 mol/L."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_erreur",
+   "introduces": [
+    {
+     "id": "donnees",
+     "content": "50 mL à 2 mol/L, on ajoute de l'eau jusqu'à 200 mL",
+     "type": "text"
+    },
+    {
+     "id": "reponse",
+     "style": {
+      "role": "unknown"
+     },
+     "content": "C_2 = 8 \\text{ mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "doute",
+     "content": "Sa réponse : 2 × 200 ÷ 50",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne question, et c'est super de vérifier ton résultat.",
+     "cues": [],
+     "do": []
+    },
+    {
+     "id": "rappel",
+     "say": "Tu pars de cinquante millilitres d'une solution à deux moles par litre, et tu ajoutes de l'eau jusqu'à deux cents millilitres.",
+     "cues": [
+      {
+       "id": "c_depart",
+       "text": "cinquante millilitres"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux moles par litre"
+      },
+      {
+       "id": "c_eau",
+       "text": "ajoutes de l'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_donnees",
+       "verb": "show",
+       "at": "cue:c_depart",
+       "target": "donnees"
+      },
+      {
+       "id": "h_donnees",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_eau",
+       "target": "donnees",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "tonhuit",
+     "say": "Toi, tu trouves huit moles par litre. Gardons ça sous les yeux, on va voir si ça tient debout.",
+     "cues": [
+      {
+       "id": "c_huit",
+       "text": "huit moles par litre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_reponse",
+       "verb": "write",
+       "at": "cue:c_huit",
+       "target": "reponse"
+      },
+      {
+       "id": "h_reponse",
+       "verb": "highlight",
+       "start": "cue:c_huit",
+       "end": "cue_end:c_huit",
+       "target": "reponse",
+       "role": "unknown"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_quantite",
+   "introduces": [
+    {
+     "id": "avant",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        0,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "apres",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        5,
+        0
+       ],
+       [
+        13,
+        0
+       ],
+       [
+        13,
+        2
+       ],
+       [
+        5,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "n1",
+     "frame": "avant",
+     "params": {
+      "at": [
+       0.5,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "n2",
+     "frame": "avant",
+     "params": {
+      "at": [
+       1.5,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "n3",
+     "frame": "avant",
+     "params": {
+      "at": [
+       0.5,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "n4",
+     "frame": "avant",
+     "params": {
+      "at": [
+       1.5,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "m1",
+     "frame": "apres",
+     "params": {
+      "at": [
+       6,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "m2",
+     "frame": "apres",
+     "params": {
+      "at": [
+       12,
+       0.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "m3",
+     "frame": "apres",
+     "params": {
+      "at": [
+       6,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "m4",
+     "frame": "apres",
+     "params": {
+      "at": [
+       12,
+       1.5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "mot_avant",
+     "attachment": {
+      "parent": "n1",
+      "anchor": "top"
+     },
+     "content": "avant : 50 mL",
+     "type": "label"
+    },
+    {
+     "id": "mot_apres",
+     "attachment": {
+      "parent": "m1",
+      "anchor": "top"
+     },
+     "content": "après : 200 mL",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "image",
+     "say": "Imagine la solution comme un rectangle, et le soluté comme des points dedans.",
+     "cues": [
+      {
+       "id": "c_rectangle",
+       "text": "un rectangle"
+      },
+      {
+       "id": "c_points",
+       "text": "des points"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_avant",
+       "verb": "draw",
+       "at": "cue:c_rectangle",
+       "target": "avant"
+      },
+      {
+       "id": "s_n1",
+       "verb": "show",
+       "at": "cue:c_points",
+       "target": "n1"
+      },
+      {
+       "id": "s_n2",
+       "verb": "show",
+       "at": "after:s_n1",
+       "target": "n2"
+      },
+      {
+       "id": "s_n3",
+       "verb": "show",
+       "at": "after:s_n2",
+       "target": "n3"
+      },
+      {
+       "id": "s_n4",
+       "verb": "show",
+       "at": "after:s_n3",
+       "target": "n4"
+      },
+      {
+       "id": "s_motavant",
+       "verb": "show",
+       "at": "after:s_n4",
+       "target": "mot_avant"
+      }
+     ]
+    },
+    {
+     "id": "meme",
+     "say": "Quand tu ajoutes de l'eau, le contenant s'agrandit, mais les mêmes points restent : ajouter de l'eau n'ajoute pas de soluté.",
+     "cues": [
+      {
+       "id": "c_agrandit",
+       "text": "s'agrandit"
+      },
+      {
+       "id": "c_memes",
+       "text": "les mêmes points"
+      },
+      {
+       "id": "c_pas",
+       "text": "n'ajoute pas de soluté"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_avant",
+       "verb": "dim",
+       "at": "cue:c_agrandit",
+       "target": "avant"
+      },
+      {
+       "id": "d_apres",
+       "verb": "draw",
+       "at": "cue:c_agrandit",
+       "target": "apres"
+      },
+      {
+       "id": "s_m1",
+       "verb": "show",
+       "at": "cue:c_memes",
+       "target": "m1"
+      },
+      {
+       "id": "s_m2",
+       "verb": "show",
+       "at": "after:s_m1",
+       "target": "m2"
+      },
+      {
+       "id": "s_m3",
+       "verb": "show",
+       "at": "after:s_m2",
+       "target": "m3"
+      },
+      {
+       "id": "s_m4",
+       "verb": "show",
+       "at": "after:s_m3",
+       "target": "m4"
+      },
+      {
+       "id": "s_motapres",
+       "verb": "show",
+       "at": "after:s_m4",
+       "target": "mot_apres"
+      },
+      {
+       "id": "h_pas",
+       "verb": "highlight",
+       "start": "cue:c_pas",
+       "end": "cue_end:c_pas",
+       "target": "mot_apres",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "C_1 V_1 = C_2 V_2",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "C_1 V_1"
+      },
+      {
+       "id": "droite",
+       "text": "= C_2 V_2"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "poser",
+     "content": "2 \\times 50 = C_2 \\times 200",
+     "parts": [
+      {
+       "id": "cent",
+       "text": "2 \\times 50"
+      },
+      {
+       "id": "egal",
+       "text": "= C_2 \\times 200"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "isoler",
+     "content": "C_2 = \\frac{100}{200}",
+     "type": "math"
+    },
+    {
+     "id": "resultat",
+     "style": {
+      "role": "result"
+     },
+     "content": "C_2 = 0{,}5 \\text{ mol/L}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conservation",
+     "say": "Puisque la quantité de soluté ne change pas, on a la relation concentration un fois volume un égale concentration deux fois volume deux.",
+     "cues": [
+      {
+       "id": "c_relation",
+       "text": "la relation"
+      },
+      {
+       "id": "c_un",
+       "text": "concentration un"
+      },
+      {
+       "id": "c_deux",
+       "text": "concentration deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_apres",
+       "verb": "fade_out",
+       "at": "cue:c_relation",
+       "target": "apres"
+      },
+      {
+       "id": "f_motapres",
+       "verb": "fade_out",
+       "at": "cue:c_relation",
+       "target": "mot_apres"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_un",
+       "target": "formule",
+       "part": "gauche"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_deux",
+       "target": "formule",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "poser",
+     "say": "On remplace : deux fois cinquante égale concentration deux fois deux cents.",
+     "cues": [
+      {
+       "id": "c_remplace",
+       "text": "On remplace"
+      },
+      {
+       "id": "c_deuxcent",
+       "text": "deux cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_formule",
+       "verb": "dim",
+       "at": "cue:c_remplace",
+       "target": "formule"
+      },
+      {
+       "id": "w_cent",
+       "verb": "write",
+       "at": "cue:c_remplace",
+       "target": "poser",
+       "part": "cent"
+      },
+      {
+       "id": "w_egal",
+       "verb": "write",
+       "at": "cue:c_deuxcent",
+       "target": "poser",
+       "part": "egal"
+      }
+     ]
+    },
+    {
+     "id": "isoler",
+     "say": "Deux fois cinquante fait cent. Pour isoler concentration deux, on divise cent par deux cents : un demi.",
+     "cues": [
+      {
+       "id": "c_cent",
+       "text": "fait cent"
+      },
+      {
+       "id": "c_divise",
+       "text": "on divise cent par deux cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_isoler",
+       "verb": "transform",
+       "at": "cue:c_cent",
+       "source": "poser",
+       "target": "isoler"
+      },
+      {
+       "id": "t_resultat",
+       "verb": "transform",
+       "at": "cue:c_divise",
+       "source": "isoler",
+       "target": "resultat"
+      },
+      {
+       "id": "h_resultat",
+       "verb": "highlight",
+       "start": "cue:c_divise",
+       "end": "cue_end:c_divise",
+       "target": "resultat",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_comparer",
+   "introduces": [
+    {
+     "id": "erreur_expl",
+     "layout": {
+      "next_to": "reponse",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "2 \\times \\frac{200}{50} = 8",
+     "type": "math"
+    },
+    {
+     "id": "sens",
+     "content": "Volume ×4 → concentration ÷4",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "verif",
+     "say": "Vérifions ta réponse de tout à l'heure : huit, ça vient de deux fois deux cents divisé par cinquante.",
+     "cues": [
+      {
+       "id": "c_huit",
+       "text": "huit"
+      },
+      {
+       "id": "c_deuxcens",
+       "text": "deux fois deux cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_erreur",
+       "verb": "show",
+       "at": "cue:c_huit",
+       "target": "erreur_expl"
+      },
+      {
+       "id": "h_donnees2",
+       "verb": "highlight",
+       "start": "cue:c_deuxcens",
+       "end": "cue_end:c_deuxcens",
+       "target": "donnees",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "inverse",
+     "say": "Ça inverse le rapport : le volume a été multiplié par quatre, donc la concentration doit être divisée par quatre, pas multipliée.",
+     "cues": [
+      {
+       "id": "c_inverse",
+       "text": "inverse le rapport"
+      },
+      {
+       "id": "c_quatre",
+       "text": "multiplié par quatre"
+      },
+      {
+       "id": "c_divisee",
+       "text": "divisée par quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_sens",
+       "verb": "show",
+       "at": "cue:c_inverse",
+       "target": "sens"
+      },
+      {
+       "id": "h_sens",
+       "verb": "highlight",
+       "start": "cue:c_quatre",
+       "end": "cue_end:c_divisee",
+       "target": "sens",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "final",
+     "style": {
+      "role": "result"
+     },
+     "content": "C_2 = 0{,}5 \\text{ mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "rappel_final",
+     "content": "Diluer : la quantité de soluté ne change pas, la concentration diminue.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : quand tu dilues, la quantité de soluté reste la même et la concentration diminue.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_meme",
+       "text": "reste la même"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_avant",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "avant"
+      },
+      {
+       "id": "f_reponse",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "reponse"
+      },
+      {
+       "id": "f_erreur",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "erreur_expl"
+      },
+      {
+       "id": "f_sens",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "sens"
+      },
+      {
+       "id": "f_donnees",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "donnees"
+      },
+      {
+       "id": "s_final",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "final"
+      },
+      {
+       "id": "s_rappelfinal",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "rappel_final"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "start": "cue:c_meme",
+       "end": "cue_end:c_meme",
+       "target": "final",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

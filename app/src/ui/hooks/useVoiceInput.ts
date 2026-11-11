@@ -20,7 +20,9 @@ export interface VoiceInputControls {
 /** Le micro, branché sur l'état React (enregistrement, niveau, transcription). */
 export function useVoiceInput(onStateChange?: (state: VoiceInputState) => void): VoiceInputControls {
   const trial = useTrialAccess();
-  const browserOnly = trial.enabled && !trial.authenticated;
+  // Transcription is for accounts only, and the browser's own recognition is not used (it would send the
+  // student's voice to Google, Apple or Microsoft): a guest in the trial writes the question.
+  const guest = trial.enabled && !trial.authenticated;
   const input = useRef<VoiceInput | null>(null);
   const [supported, setSupported] = useState(false);
   const [ready, setReady] = useState(false);
@@ -32,11 +34,11 @@ export function useVoiceInput(onStateChange?: (state: VoiceInputState) => void):
   notify.current = onStateChange;
 
   useEffect(() => {
-    input.current = createVoiceInput({ browserOnly });
-    setSupported(input.current.supported);
+    input.current = createVoiceInput();
+    setSupported(input.current.supported && !guest);
     setReady(true);
     return () => input.current?.cancel();
-  }, [browserOnly]);
+  }, [guest]);
 
   useEffect(() => notify.current?.(state), [state]);
 

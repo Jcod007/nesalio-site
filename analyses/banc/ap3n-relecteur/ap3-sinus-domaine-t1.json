@@ -1,0 +1,1055 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "sinusoide_tableau_domaine",
+  "title": "Tableau de valeurs et domaine d'une sinusoïde",
+  "language": "fr",
+  "learning_goal": "Construire le tableau de valeurs d'une sinusoïde à partir du cercle trigonométrique et déterminer son domaine."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "f0": "-sin(0)+3",
+    "fpi2": "-sin(1.5707963)+3",
+    "fpi": "-sin(3.1415927)+3",
+    "f3pi2": "-sin(4.712389)+3",
+    "f2pi": "-sin(6.2831853)+3"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "f(x) = -\\sin(2\\pi x) + 3",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Bonjour ! Ta règle, c'est f de x égale moins sinus de deux pi x, plus trois. On va remplir son tableau ensemble.",
+     "cues": [
+      {
+       "id": "c_regle",
+       "text": "f de x égale moins sinus de deux pi x, plus trois"
+      },
+      {
+       "id": "c_tableau",
+       "text": "tableau"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:c_regle",
+       "target": "regle"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "regle"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cercle",
+   "introduces": [
+    {
+     "id": "axes_c",
+     "params": {
+      "x": [
+       -1.5,
+       1.5
+      ],
+      "y": [
+       -1.5,
+       1.5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "cercle",
+     "params": {
+      "center": [
+       0,
+       0
+      ],
+      "radius": 1
+     },
+     "type": "circle"
+    },
+    {
+     "id": "p0",
+     "params": {
+      "at": [
+       1,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l0",
+     "attachment": {
+      "parent": "p0",
+      "anchor": "right"
+     },
+     "content": "(1 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "ppi2",
+     "params": {
+      "at": [
+       0,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lpi2",
+     "attachment": {
+      "parent": "ppi2",
+      "anchor": "right"
+     },
+     "content": "(0 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "ppi",
+     "params": {
+      "at": [
+       -1,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lpi",
+     "attachment": {
+      "parent": "ppi",
+      "anchor": "left"
+     },
+     "content": "(-1 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "p3pi2",
+     "params": {
+      "at": [
+       0,
+       -1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l3pi2",
+     "attachment": {
+      "parent": "p3pi2",
+      "anchor": "right"
+     },
+     "content": "(0 ; -1)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cercle_un",
+     "say": "Pour le sinus, on lit la hauteur des points sur le cercle de rayon un. Quatre points suffisent pour un cycle complet.",
+     "cues": [
+      {
+       "id": "c_hauteur",
+       "text": "la hauteur des points"
+      },
+      {
+       "id": "c_cycle",
+       "text": "un cycle complet"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes_c",
+       "verb": "show",
+       "at": "cue:c_hauteur",
+       "target": "axes_c"
+      },
+      {
+       "id": "d_cercle",
+       "verb": "draw",
+       "start": "cue:c_hauteur",
+       "end": "cue_end:c_hauteur",
+       "target": "cercle"
+      }
+     ]
+    },
+    {
+     "id": "quatre",
+     "say": "À zéro tour, la hauteur est zéro. À pi sur deux, elle monte à un. À pi, elle revient à zéro. À trois pi sur deux, elle descend à moins un.",
+     "cues": [
+      {
+       "id": "c_zero",
+       "text": "À zéro tour"
+      },
+      {
+       "id": "c_pi2",
+       "text": "pi sur deux"
+      },
+      {
+       "id": "c_pi",
+       "text": "À pi,"
+      },
+      {
+       "id": "c_3pi2",
+       "text": "trois pi sur deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p0",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "p0"
+      },
+      {
+       "id": "s_l0",
+       "verb": "show",
+       "at": "cue:c_zero",
+       "target": "l0"
+      },
+      {
+       "id": "s_ppi2",
+       "verb": "show",
+       "at": "cue:c_pi2",
+       "target": "ppi2"
+      },
+      {
+       "id": "s_lpi2",
+       "verb": "show",
+       "at": "cue:c_pi2",
+       "target": "lpi2"
+      },
+      {
+       "id": "s_ppi",
+       "verb": "show",
+       "at": "cue:c_pi",
+       "target": "ppi"
+      },
+      {
+       "id": "s_lpi",
+       "verb": "show",
+       "at": "cue:c_pi",
+       "target": "lpi"
+      },
+      {
+       "id": "s_p3pi2",
+       "verb": "show",
+       "at": "cue:c_3pi2",
+       "target": "p3pi2"
+      },
+      {
+       "id": "s_l3pi2",
+       "verb": "show",
+       "at": "cue:c_3pi2",
+       "target": "l3pi2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_table",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        "0",
+        "1/4",
+        "1/2",
+        "3/4",
+        "1"
+       ],
+       [
+        "0",
+        "1",
+        "0",
+        "-1",
+        "0"
+       ],
+       [
+        "0",
+        "-1",
+        "0",
+        "1",
+        "0"
+       ],
+       [
+        "3",
+        "2",
+        "3",
+        "4",
+        "3"
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "sin(2\\pi x)",
+       "-sin(2\\pi x)",
+       "f(x)"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "lignes",
+     "say": "On prépare le tableau : la ligne des x, la ligne du sinus, la ligne avec le signe moins, puis la ligne de f de x.",
+     "cues": [
+      {
+       "id": "c_x",
+       "text": "la ligne des x"
+      },
+      {
+       "id": "c_sin",
+       "text": "la ligne du sinus"
+      },
+      {
+       "id": "c_moins",
+       "text": "le signe moins"
+      },
+      {
+       "id": "c_fx",
+       "text": "la ligne de f de x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_x",
+       "target": "tab"
+      },
+      {
+       "id": "h_sin",
+       "verb": "highlight",
+       "at": "cue:c_sin",
+       "target": "tab",
+       "part": "r2"
+      },
+      {
+       "id": "h_moins",
+       "verb": "highlight",
+       "at": "cue:c_moins",
+       "target": "tab",
+       "part": "r3"
+      },
+      {
+       "id": "h_f",
+       "verb": "highlight",
+       "at": "cue:c_fx",
+       "target": "tab",
+       "part": "r4"
+      }
+     ]
+    },
+    {
+     "id": "remplir",
+     "say": "Chaque valeur de sinus se recopie dans la ligne du moins en changeant son signe, puis on ajoute trois. Par exemple, x vaut un quart : le sinus vaut un, le moins donne moins un, plus trois donne deux.",
+     "cues": [
+      {
+       "id": "c_ajoute",
+       "text": "on ajoute trois"
+      },
+      {
+       "id": "c_unquart",
+       "text": "x vaut un quart"
+      },
+      {
+       "id": "c_deux",
+       "text": "donne deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_r2",
+       "verb": "highlight",
+       "start": "cue:c_ajoute",
+       "end": "cue_end:c_ajoute",
+       "target": "tab",
+       "role": "given",
+       "part": "r2"
+      },
+      {
+       "id": "h_r2c2",
+       "verb": "highlight",
+       "start": "cue:c_unquart",
+       "end": "cue_end:c_unquart",
+       "target": "tab",
+       "role": "accent",
+       "part": "r2c2"
+      },
+      {
+       "id": "h_r4c2",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "tab",
+       "role": "result",
+       "part": "r4c2"
+      },
+      {
+       "id": "h_r4",
+       "verb": "highlight",
+       "at": "after:h_r4c2",
+       "target": "tab",
+       "role": "result",
+       "part": "r4"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_points",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -0.2,
+       1.2
+      ],
+      "y": [
+       1.5,
+       4.5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "-sin(2*3.141592653589793*x)+3",
+      "domain": [
+       0,
+       1
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "p0_2",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l0_2",
+     "attachment": {
+      "parent": "p0_2",
+      "anchor": "right"
+     },
+     "content": "(0 ; 3)",
+     "type": "label"
+    },
+    {
+     "id": "p1",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0.25,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l1",
+     "attachment": {
+      "parent": "p1",
+      "anchor": "right"
+     },
+     "content": "(1/4 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "p2",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0.5,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l2",
+     "attachment": {
+      "parent": "p2",
+      "anchor": "right"
+     },
+     "content": "(1/2 ; 3)",
+     "type": "label"
+    },
+    {
+     "id": "p3",
+     "frame": "axes",
+     "params": {
+      "at": [
+       0.75,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l3",
+     "attachment": {
+      "parent": "p3",
+      "anchor": "left"
+     },
+     "content": "(3/4 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "p4",
+     "frame": "axes",
+     "params": {
+      "at": [
+       1,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l4",
+     "attachment": {
+      "parent": "p4",
+      "anchor": "left"
+     },
+     "content": "(1 ; 3)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "placer",
+     "say": "Chaque colonne du tableau devient un point : zéro trois, un quart deux, un demi trois, trois quarts quatre, et un trois.",
+     "cues": [
+      {
+       "id": "c_q1",
+       "text": "zéro trois"
+      },
+      {
+       "id": "c_q2",
+       "text": "un quart deux"
+      },
+      {
+       "id": "c_q3",
+       "text": "un demi trois"
+      },
+      {
+       "id": "c_q4",
+       "text": "trois quarts quatre"
+      },
+      {
+       "id": "c_q5",
+       "text": "un trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_q1",
+       "target": "tab"
+      },
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "s_p0",
+       "verb": "show",
+       "at": "cue:c_q1",
+       "target": "p0_2"
+      },
+      {
+       "id": "s_l0",
+       "verb": "show",
+       "at": "cue:c_q1",
+       "target": "l0_2"
+      },
+      {
+       "id": "s_p1",
+       "verb": "show",
+       "at": "cue:c_q2",
+       "target": "p1"
+      },
+      {
+       "id": "s_l1",
+       "verb": "show",
+       "at": "cue:c_q2",
+       "target": "l1"
+      },
+      {
+       "id": "s_p2",
+       "verb": "show",
+       "at": "cue:c_q3",
+       "target": "p2"
+      },
+      {
+       "id": "s_l2",
+       "verb": "show",
+       "at": "cue:c_q3",
+       "target": "l2"
+      },
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "cue:c_q4",
+       "target": "p3"
+      },
+      {
+       "id": "s_l3",
+       "verb": "show",
+       "at": "cue:c_q4",
+       "target": "l3"
+      },
+      {
+       "id": "s_p4",
+       "verb": "show",
+       "at": "cue:c_q5",
+       "target": "p4"
+      },
+      {
+       "id": "s_l4",
+       "verb": "show",
+       "at": "cue:c_q5",
+       "target": "l4"
+      }
+     ]
+    },
+    {
+     "id": "rejoint",
+     "say": "Les points se rejoignent en une vague qui monte et descend autour de la ligne trois.",
+     "cues": [
+      {
+       "id": "c_rejoignent",
+       "text": "se rejoignent"
+      },
+      {
+       "id": "c_vague",
+       "text": "une vague"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_rejoignent",
+       "end": "cue_end:c_vague",
+       "target": "courbe"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_domaine",
+   "introduces": [
+    {
+     "id": "dom",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{Dom } f = \\mathbb{R}",
+     "type": "math"
+    },
+    {
+     "id": "codom",
+     "layout": {
+      "next_to": "dom",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "\\text{Image } f = [2 ; 4]",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "domaine",
+     "say": "Pour le domaine : ton x est un angle mesuré le long du cercle, tu peux faire autant de tours que tu veux, alors le domaine est tous les réels.",
+     "cues": [
+      {
+       "id": "c_domaine",
+       "text": "le domaine est tous les réels"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_dom",
+       "verb": "show",
+       "at": "cue:c_domaine",
+       "target": "dom"
+      },
+      {
+       "id": "h_dom",
+       "verb": "highlight",
+       "at": "after:s_dom",
+       "target": "dom",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "image",
+     "say": "L'image, c'est l'intervalle entre le minimum deux et le maximum quatre.",
+     "cues": [
+      {
+       "id": "c_image",
+       "text": "L'image"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_codom",
+       "verb": "show",
+       "at": "cue:c_image",
+       "target": "codom"
+      },
+      {
+       "id": "h_codom",
+       "verb": "highlight",
+       "at": "after:s_codom",
+       "target": "codom",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "r1",
+     "content": "Sinus : hauteur du point sur le cercle de rayon 1",
+     "type": "text"
+    },
+    {
+     "id": "r2",
+     "content": "5 points dans le tableau = 5 points sur le graphique",
+     "type": "text"
+    },
+    {
+     "id": "r3",
+     "content": "\\text{Dom } f = \\mathbb{R}",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap",
+     "items": [
+      "r1",
+      "r2",
+      "r3"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left",
+      "gap": "md"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : sinus, c'est la hauteur d'un point sur le cercle de rayon un. Chaque colonne du tableau devient un point, et le domaine est toujours tous les réels.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_domaine",
+       "text": "le domaine est toujours tous les réels"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "regle"
+      },
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "axes"
+      },
+      {
+       "id": "f_dom",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "dom"
+      },
+      {
+       "id": "f_codom",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "codom"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "recap"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "recap"
+      },
+      {
+       "id": "h_r3",
+       "verb": "highlight",
+       "at": "cue:c_domaine",
+       "target": "r3",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

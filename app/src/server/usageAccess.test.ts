@@ -4,14 +4,15 @@ const { session, reserve, generate } = vi.hoisted(() => ({ session: vi.fn(), res
 vi.mock("@clerk/nextjs/server", () => ({ auth: session }));
 vi.mock("@/server/trial", () => ({ authorizeTrial: reserve }));
 vi.mock("next/server", () => ({ after: vi.fn() }));
-vi.mock("@/server/config", () => ({ readAiConfig: () => ({ chat: null }) }));
+vi.mock("@/server/config", () => ({ readAiConfig: () => ({ chat: { model: "test-model" } }), readReviewer: () => null }));
 vi.mock("@/server/sessionStore", () => ({ recordEnv: () => "development", saveTurn: vi.fn() }));
-vi.mock("@/server/tutor/service", () => ({ tutorEvents: generate }));
+vi.mock("@/server/nesalio/generator", () => ({ generateNesalio: generate }));
 
-import { POST } from "@/app/api/tutor/route";
+// The trial now guards Nesalio's lessons (the former tutor route was removed on 2026-11-10).
+import { POST } from "@/app/api/nesalio/route";
 
-function request(body = JSON.stringify({ mode: "question", question: "Les zéros d'une parabole" }), origin = "https://app.nesalio.com") {
-  return new Request("https://app.nesalio.com/api/tutor", {
+function request(body = JSON.stringify({ question: "Les zéros d'une parabole" }), origin = "https://app.nesalio.com") {
+  return new Request("https://app.nesalio.com/api/nesalio", {
     method: "POST",
     headers: { origin, "Content-Type": "application/json", "x-nesalio-session": crypto.randomUUID() },
     body,
@@ -27,13 +28,12 @@ beforeEach(() => {
   session.mockReset().mockResolvedValue({ userId: null });
   reserve.mockReset();
   generate.mockReset().mockImplementation(async function* () {
-    yield { kind: "source", source: "demo" };
-    yield { kind: "end", summary: [] };
+    yield { kind: "end" };
   });
 });
 afterEach(() => vi.unstubAllEnvs());
 
-describe("guest trial at the tutor API boundary", () => {
+describe("guest trial at the lesson API boundary", () => {
   it("allows three reserved replies and rejects the fourth before generation, retaining cookie and quota headers", async () => {
     let count = 0;
     reserve.mockImplementation(async () => {

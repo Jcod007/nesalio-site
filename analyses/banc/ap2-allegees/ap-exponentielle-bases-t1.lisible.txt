@@ -1,0 +1,73 @@
+QUESTION (ap-exponentielle-bases, mathematiques, sec 5, alloprof) : Quelles sont les étapes pour déterminer la valeur de x? 7 exposant 2x−3= 5 exposant x
+RÉPONSE DE RÉFÉRENCE : x = 3 log 7 / (2 log 7 − log 5) ≈ 2,56
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Résoudre 7 exposant 2x moins 3 égale 5 exposant x
+math_context : {"symbols":{},"expressions":{"xlog":"log(5)/(2*log(7)-log(5))"}}
+=== Tranche s_idee
+  OBJET eq [math] "7^{2x-3} = 5^{x}" parts=7^{2x-3} | = 5^{x}
+DIT (pose) : On veut trouver la valeur de x dans sept exposant deux x moins trois égale cinq exposant x.
+    show eq @beat:start 
+    highlight eq @- {"start":"cue:c_math","end":"cue_end:c_math","part":"gauche"}
+    highlight eq @- {"start":"cue:c_fin","end":"cue_end:c_fin","part":"droite"}
+DIT (blocage) : Les bases sont différentes : sept et cinq. Impossible d'égaler les exposants directement. Le x est pris dans l'exposant, c'est ça qui bloque.
+    highlight eq @- {"start":"cue:c_bases","end":"cue_end:c_bases","role":"secondary","part":"gauche"}
+    highlight eq @- {"start":"cue:c_bases","end":"cue_end:c_exposant","role":"secondary","part":"droite"}
+=== Tranche s_logs
+  OBJET eq2 [math] "(2x-3)\\log 7 = x\\log 5" parts=(2x-3)\log 7 | = x\log 5
+DIT (outil) : L'outil, c'est le logarithme. Prendre le log des deux côtés garde l'égalité, et l'exposant descend devant.
+    dim eq @beat:start 
+    show eq2 @cue:c_log 
+    highlight eq2 @- {"start":"cue:c_descend","end":"cue_end:c_descend","role":"accent","part":"p1"}
+DIT (detail) : À gauche, l'exposant deux x moins trois passe devant le log de sept. À droite, l'exposant x passe devant le log de cinq.
+    highlight eq2 @- {"start":"cue:c_gauche","end":"cue_end:c_gauche","part":"p1"}
+    highlight eq2 @- {"start":"cue:c_droite","end":"cue_end:c_droite","part":"p2"}
+=== Tranche s_isoler
+  OBJET dev [math] "2x\\log 7 - 3\\log 7 = x\\log 5" parts=2x\log 7 | - 3\log 7 | = x\log 5
+  OBJET regroupe [math] "2x\\log 7 - x\\log 5 = 3\\log 7" parts=2x\log 7 - x\log 5 | = 3\log 7
+  OBJET facto [math] "x\\,(2\\log 7 - \\log 5) = 3\\log 7" parts=x\,(2\log 7 - \log 5) | = 3\log 7
+DIT (distrib) : On distribue le deux x moins trois : ça donne deux x log sept moins trois log sept, égale x log cinq.
+    dim eq2 @beat:start 
+    show dev @cue:c_distrib 
+DIT (rassemble) : On rassemble les termes en x d'un côté, les nombres de l'autre. Les deux x log sept moins x log cinq, égale trois log sept.
+    dim dev @cue:c_rassemble 
+    show regroupe @cue:c_rassemble 
+    highlight regroupe @- {"start":"cue:c_rassemble","end":"cue_end:c_nombres","part":"r1"}
+DIT (factorise) : On met x en évidence : x fois, entre parenthèses, deux log sept moins log cinq, égale trois log sept.
+    dim regroupe @cue:c_facto 
+    show facto @cue:c_facto 
+    highlight facto @- {"start":"cue:c_paren","end":"cue_end:c_paren","part":"f1"}
+=== Tranche s_resultat
+  OBJET iso [math] "x = \\frac{3\\log 7}{2\\log 7 - \\log 5}" parts=x | = \frac{3\log 7}{2\log 7 - \log 5}
+  OBJET val [math] {"kind":"computed","expression_ref":"xlog","template":"x \\approx {value}","precision":2} 
+  OBJET verif [math] "7^{2(2{,}62)-3} \\approx 78{,}2 \\quad ; \\quad 5^{2{,}62} \\approx 67{,}8" parts=7^{2(2{,}62)-3} \approx 78{,}2 | ; 5^{2{,}62} \approx 67{,}8
+DIT (isole) : La parenthèse est une constante : on divise des deux côtés. x égale trois log sept sur deux log sept moins log cinq.
+    dim facto @beat:start 
+    write iso @cue:c_divise {"part":"m1"}
+    write iso @cue:c_sur {"part":"m2"}
+DIT (calcule) : À la calculatrice : trois log sept divise deux log sept moins log cinq donne environ deux virgule soixante-deux.
+    show val @cue:c_approx 
+    highlight val @after:s_val {"role":"result"}
+DIT (verifie) : Vérifions en remplaçant x par deux virgule soixante-deux : à gauche, sept exposant deux fois deux virgule soixante-deux moins trois donne environ soixante-dix-huit virgule deux, et à droite cinq exposant deux virgule soixante-deux donne environ soixante-sept virgule huit. C'est la même grandeur, l'écart vient de l'arrondi de x.
+    show verif @cue:c_verif 
+    highlight verif @- {"start":"cue:c_gauche","end":"cue_end:c_gauche","part":"vg"}
+    highlight verif @- {"start":"cue:c_droite","end":"cue_end:c_arrondi","part":"vd"}
+=== Tranche s_retenir
+  OBJET idee [text] "Le log fait descendre l'exposant : x se retrouve hors de l'exposant, puis on isole." 
+  OBJET regle [math] "\\log(a^u) = u \\cdot \\log a" 
+DIT (resume) : À retenir : quand les bases diffèrent, on prend le logarithme des deux côtés.
+    fade_out eq @cue:c_retenir 
+    fade_out eq2 @cue:c_retenir 
+    fade_out dev @cue:c_retenir 
+    fade_out regroupe @cue:c_retenir 
+    fade_out facto @cue:c_retenir 
+    fade_out verif @cue:c_retenir 
+    fade_out val @cue:c_retenir 
+    write idee @cue:c_deux_cotes 
+DIT (formule) : C'est la propriété log de a exposant u, égale u fois log de a. L'exposant descend, et c'est là qu'on peut isoler x.
+    camera.focus  @cue:c_prop {"targets":["iso","idee","regle"],"bounds":"layout_bounds"}
+    write regle @cue:c_u_fois 
+    highlight iso @- {"start":"cue:c_u_fois","end":"cue_end:c_u_fois","role":"result"}
+--- 5 tranches, 274 mots dits (≈ 1.8 min d'oral)

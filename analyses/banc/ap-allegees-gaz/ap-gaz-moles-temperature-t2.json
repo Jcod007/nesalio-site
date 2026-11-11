@@ -1,0 +1,669 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "loi_gaz_moles_temperature",
+  "title": "Une loi des gaz qui relie les moles et la température",
+  "language": "fr",
+  "learning_goal": "Découvrir que la loi des gaz parfaits relie n et T (PV = nRT) et que V ∝ T à P constante."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "n": {
+     "kind": "constant",
+     "value": 1
+    },
+    "R": {
+     "kind": "constant",
+     "value": 8.314
+    },
+    "P": {
+     "kind": "constant",
+     "value": 101.3
+    }
+   },
+   "expressions": {
+    "vi": "n*R*273.15/P",
+    "vf": "n*R*373.15/P"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_repondre",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "PV = nRT",
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n et T sont dans la même formule",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "oui",
+     "say": "Oui, ça existe : c'est la loi des gaz parfaits, et elle relie justement le nombre de moles et la température.",
+     "cues": [
+      {
+       "id": "c_oui",
+       "text": "Oui"
+      },
+      {
+       "id": "c_loi",
+       "text": "loi des gaz parfaits"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_p",
+       "verb": "write",
+       "at": "cue:c_loi",
+       "target": "loi"
+      },
+      {
+       "id": "w_v",
+       "verb": "highlight",
+       "at": "after:w_p",
+       "target": "loi",
+       "role": "accent"
+      },
+      {
+       "id": "w_n",
+       "verb": "highlight",
+       "at": "after:w_v",
+       "target": "loi",
+       "role": "accent"
+      },
+      {
+       "id": "w_t",
+       "verb": "highlight",
+       "at": "after:w_n",
+       "target": "loi",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "P est la pression, V le volume, n le nombre de moles, T la température en kelvins, et R une constante.",
+     "cues": [
+      {
+       "id": "c_n",
+       "text": "n le nombre de moles"
+      },
+      {
+       "id": "c_t",
+       "text": "T la température"
+      },
+      {
+       "id": "c_R",
+       "text": "R une constante"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_n",
+       "verb": "highlight",
+       "start": "cue:c_n",
+       "end": "cue_end:c_n",
+       "target": "loi",
+       "role": "accent"
+      },
+      {
+       "id": "h_t",
+       "verb": "highlight",
+       "start": "cue:c_t",
+       "end": "cue_end:c_t",
+       "target": "loi",
+       "role": "accent"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_R",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_comparer",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        1,
+        1,
+        1
+       ],
+       [
+        1,
+        1,
+        1.37
+       ],
+       [
+        2,
+        1,
+        1.37
+       ]
+      ],
+      "row_labels": [
+       "P (atm)",
+       "n (mol)",
+       "V (L)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "divT",
+     "attachment": {
+      "parent": "tab",
+      "anchor": "right"
+     },
+     "content": "V proportionnel à T",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "tablo",
+     "say": "Regarde ce tableau : ici, une mole de gaz occupe environ vingt-deux virgule quatre litres, à zéro degré Celsius.",
+     "cues": [
+      {
+       "id": "c_tab",
+       "text": "tableau"
+      },
+      {
+       "id": "c_1mol",
+       "text": "une mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_tab",
+       "target": "tab"
+      },
+      {
+       "id": "h_l2",
+       "verb": "highlight",
+       "start": "cue:c_1mol",
+       "end": "cue_end:c_1mol",
+       "target": "tab",
+       "part": "r2"
+      }
+     ]
+    },
+    {
+     "id": "chauffe",
+     "say": "Chauffe ce gaz à cent degrés Celsius, soit trois cent soixante-treize kelvins : à pression constante, le volume passe à environ trente virgule six litres.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois cent soixante-treize kelvins"
+      },
+      {
+       "id": "c_vol",
+       "text": "trente virgule six litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_c3",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_vol",
+       "target": "tab",
+       "role": "accent",
+       "part": "r2c3"
+      },
+      {
+       "id": "s_div",
+       "verb": "show",
+       "at": "cue:c_vol",
+       "target": "divT"
+      }
+     ]
+    },
+    {
+     "id": "double",
+     "say": "Et si je double le nombre de moles à deux, le volume double aussi : environ trente virgule six litres.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "double le nombre de moles"
+      },
+      {
+       "id": "c_doublevol",
+       "text": "le volume double"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_r3",
+       "verb": "highlight",
+       "start": "cue:c_double",
+       "end": "cue_end:c_doublevol",
+       "target": "tab",
+       "role": "accent",
+       "part": "r3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_isoler",
+   "introduces": [
+    {
+     "id": "eq1",
+     "content": "PV = nRT",
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "\\frac{V}{n} = \\frac{RT}{P}",
+     "type": "math"
+    },
+    {
+     "id": "eq3",
+     "content": "V = \\frac{nRT}{P}",
+     "parts": [
+      {
+       "id": "vn",
+       "text": "V"
+      },
+      {
+       "id": "membre",
+       "text": "= \\frac{nRT}{P}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "isole",
+     "say": "Pour voir clairement le lien, divisons les deux côtés par n : à gauche, V sur n ; à droite, R T sur P.",
+     "cues": [
+      {
+       "id": "c_div",
+       "text": "divisons les deux côtés par n"
+      },
+      {
+       "id": "c_droite",
+       "text": "R T sur P"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "loi"
+      },
+      {
+       "id": "w_eq1",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "eq1"
+      },
+      {
+       "id": "t_eq2",
+       "verb": "transform",
+       "at": "cue:c_div",
+       "source": "eq1",
+       "target": "eq2"
+      }
+     ]
+    },
+    {
+     "id": "regroupe",
+     "say": "Le produit R T sur P est une constante quand la pression est fixe : autrement dit, V divisé par n vaut toujours la même chose.",
+     "cues": [
+      {
+       "id": "c_const",
+       "text": "constante"
+      },
+      {
+       "id": "c_vn",
+       "text": "V divisé par n"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_eq2",
+       "verb": "highlight",
+       "start": "cue:c_const",
+       "end": "cue_end:c_vn",
+       "target": "eq2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "direct",
+     "say": "En multipliant par n, on obtient V égale n R T sur P : le volume est donc directement proportionnel au nombre de moles.",
+     "cues": [
+      {
+       "id": "c_prop",
+       "text": "proportionnel au nombre de moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq3",
+       "verb": "transform",
+       "at": "cue:c_prop",
+       "source": "eq2",
+       "target": "eq3"
+      },
+      {
+       "id": "h_eq3",
+       "verb": "highlight",
+       "start": "cue:c_prop",
+       "end": "cue_end:c_prop",
+       "target": "eq3",
+       "role": "result",
+       "part": "membre"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "La loi des gaz parfaits relie n et T : PV = nRT",
+     "type": "text"
+    },
+    {
+     "id": "regle",
+     "content": "V = \\frac{nRT}{P}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "final",
+     "say": "À retenir : la loi des gaz parfaits relie bel et bien le nombre de moles et la température.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_relie",
+       "text": "relie bel et bien"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_eq3",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "eq3"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tab"
+      },
+      {
+       "id": "f_div",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "divT"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_relie",
+       "target": "regle"
+      }
+     ]
+    },
+    {
+     "id": "phrase",
+     "say": "À pression constante, doubler les moles ou doubler la température en kelvins double le volume.",
+     "cues": [
+      {
+       "id": "c_double",
+       "text": "double le volume"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_double",
+       "end": "cue_end:c_double",
+       "target": "regle",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

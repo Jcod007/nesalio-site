@@ -1,0 +1,559 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "carre_somme",
+  "title": "Pourquoi (x + 5)² n'est pas x² + 25",
+  "language": "fr",
+  "learning_goal": "Comprendre que (x + 5)² signifie (x + 5) × (x + 5) et développer correctement pour obtenir x² + 10x + 25"
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intuition",
+   "introduces": [
+    {
+     "id": "faux",
+     "content": "x^2 + 25",
+     "type": "math"
+    },
+    {
+     "id": "vrai",
+     "content": "(x + 5)^2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Bonne question. Le carré ne s'accroche pas aux morceaux un par un. (x + 5) au carré, c'est le paquet (x + 5) multiplié par lui-même.",
+     "cues": [
+      {
+       "id": "paquet",
+       "text": "(x + 5)"
+      },
+      {
+       "id": "lui_meme",
+       "text": "lui-même"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_vrai",
+       "verb": "write",
+       "at": "cue:paquet",
+       "target": "vrai"
+      },
+      {
+       "id": "h_vrai",
+       "verb": "highlight",
+       "at": "after:w_vrai",
+       "target": "vrai",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Alors que x au carré plus vingt-cinq, ça voudrait dire qu'on a distribué le carré sur le x et sur le cinq séparément. Et ça, c'est faux.",
+     "cues": [
+      {
+       "id": "faux_mot",
+       "text": "faux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_faux",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "faux"
+      },
+      {
+       "id": "h_faux",
+       "verb": "highlight",
+       "at": "cue:faux_mot",
+       "target": "faux",
+       "role": "unknown"
+      },
+      {
+       "id": "d_vrai",
+       "verb": "dim",
+       "at": "cue:faux_mot",
+       "target": "vrai"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_developpe",
+   "introduces": [
+    {
+     "id": "m1",
+     "content": "\\underbrace{(x + 5)}_{A}\\underbrace{(x + 5)}_{A}",
+     "type": "math"
+    },
+    {
+     "id": "m2",
+     "content": "A + B)\\times(\\ldots)",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "Pour voir ce qui se passe, posons grand A égale x plus cinq. Le carré devient grand A fois grand A.",
+     "cues": [
+      {
+       "id": "grand_a",
+       "text": "grand A"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_m1",
+       "verb": "write",
+       "at": "cue:grand_a",
+       "target": "m1"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Or grand A fois grand A, c'est un produit de deux paquets. Et un produit, ça se distribue : chaque morceau du premier paquet se multiplie avec chaque morceau du second.",
+     "cues": [
+      {
+       "id": "distribue",
+       "text": "distribue"
+      },
+      {
+       "id": "chaque",
+       "text": "chaque"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_m1",
+       "verb": "highlight",
+       "at": "cue:distribue",
+       "target": "m1",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "Donc x fois x, ça fait x au carré. Puis x fois cinq, ça fait cinq x. Puis cinq fois x, encore cinq x. Et cinq fois cinq, vingt-cinq.",
+     "cues": [
+      {
+       "id": "x_carre",
+       "text": "x au carré"
+      },
+      {
+       "id": "cinq_x1",
+       "text": "cinq x"
+      },
+      {
+       "id": "vingt_cinq",
+       "text": "vingt-cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_m2",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "m2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_resultat",
+   "introduces": [
+    {
+     "id": "devel",
+     "content": "x^2 + 5x + 5x + 25",
+     "parts": [
+      {
+       "id": "carre",
+       "text": "x^2"
+      },
+      {
+       "id": "deux_fois_cinqx",
+       "text": "+ 5x + 5x"
+      },
+      {
+       "id": "plus_25",
+       "text": "+ 25"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "final",
+     "content": "x^2 + 10x + 25",
+     "type": "math"
+    },
+    {
+     "id": "regle",
+     "content": "(x + 5)^2 = x^2 + 2 \\times 5x + 25",
+     "type": "math"
+    }
+   ],
+   "groups": [
+    {
+     "id": "synthese",
+     "items": [
+      "regle",
+      "final"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "On rassemble : x au carré, les deux cinq x qui font dix x, et plus vingt-cinq.",
+     "cues": [
+      {
+       "id": "dix_x",
+       "text": "dix x"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_devel",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "devel"
+      },
+      {
+       "id": "t_final",
+       "verb": "transform",
+       "at": "cue:dix_x",
+       "source": "devel",
+       "target": "final"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "at": "after:t_final",
+       "target": "final",
+       "role": "result"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Voilà pourquoi tu n'obtiens pas juste x carré plus vingt-cinq : il y avait un terme du milieu, dix x, qu'on avait oublié.",
+     "cues": [
+      {
+       "id": "milieu",
+       "text": "milieu"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_regle",
+       "verb": "write",
+       "at": "cue:milieu",
+       "target": "regle"
+      },
+      {
+       "id": "f_devel",
+       "verb": "fade_out",
+       "at": "cue:milieu",
+       "target": "devel"
+      }
+     ]
+    },
+    {
+     "id": "b3",
+     "say": "Retiens la formule générale : a plus b au carré égale a carré plus deux a b plus b carré. Le double produit est toujours là.",
+     "cues": [
+      {
+       "id": "double_produit",
+       "text": "double produit"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "at": "cue:double_produit",
+       "target": "regle",
+       "role": "result"
+      },
+      {
+       "id": "pause",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "synthese"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_finale"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "recap",
+     "content": "(x + 5) × (x + 5) = x² + 10x + 25",
+     "type": "callout"
+    },
+    {
+     "id": "rappel",
+     "content": "Le carré d'une somme n'est pas la somme des carrés.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "b1",
+     "say": "En résumé : (x + 5) au carré, c'est (x + 5) fois (x + 5).",
+     "cues": [
+      {
+       "id": "resume",
+       "text": "En résumé"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_recap",
+       "verb": "show",
+       "at": "cue:resume",
+       "target": "recap"
+      }
+     ]
+    },
+    {
+     "id": "b2",
+     "say": "Et ça donne x carré plus dix x plus vingt-cinq. Le terme du milieu n'est jamais facultatif.",
+     "cues": [
+      {
+       "id": "terme_milieu",
+       "text": "terme du milieu"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rappel",
+       "verb": "show",
+       "at": "cue:terme_milieu",
+       "target": "rappel"
+      },
+      {
+       "id": "h_recap",
+       "verb": "highlight",
+       "at": "after:s_rappel",
+       "target": "recap",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

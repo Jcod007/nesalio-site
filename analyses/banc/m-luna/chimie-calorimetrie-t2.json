@@ -1,0 +1,673 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "energie_chauffage_eau",
+  "title": "Calculer l’énergie nécessaire pour chauffer de l’eau",
+  "language": "fr",
+  "learning_goal": "Calculer l’énergie transférée pour chauffer une masse d’eau à l’aide de sa capacité thermique massique."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_ecart_temperature",
+   "introduces": [
+    {
+     "id": "donnees",
+     "params": {
+      "rows": [
+       [
+        "200 g",
+        "20 °C",
+        "45 °C"
+       ]
+      ],
+      "row_labels": [
+       "eau"
+      ],
+      "column_labels": [
+       "matière",
+       "température initiale",
+       "température finale"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "ecart",
+     "content": "\\Delta T = 45 - 20 = 25\\ ^\\circ\\mathrm{C}",
+     "parts": [
+      {
+       "id": "soustraction",
+       "text": "\\Delta T = 45 - 20"
+      },
+      {
+       "id": "vingtcinq",
+       "text": "= 25\\ ^\\circ\\mathrm{C}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Pour chauffer l’eau, il faut lui transférer de l’énergie. On calcule d’abord de combien sa température augmente.",
+     "cues": [
+      {
+       "id": "transfert",
+       "text": "transférer de l’énergie"
+      },
+      {
+       "id": "augmente",
+       "text": "température augmente"
+      }
+     ],
+     "do": [
+      {
+       "id": "montre_donnees",
+       "verb": "show",
+       "at": "cue:augmente",
+       "target": "donnees"
+      }
+     ]
+    },
+    {
+     "id": "ecart_temp",
+     "say": "La température passe de vingt à quarante-cinq degrés Celsius. L’augmentation, appelée delta T, est quarante-cinq moins vingt, donc vingt-cinq degrés Celsius.",
+     "cues": [
+      {
+       "id": "delta",
+       "text": "delta T"
+      },
+      {
+       "id": "moins",
+       "text": "quarante-cinq moins vingt"
+      },
+      {
+       "id": "resultat_delta",
+       "text": "vingt-cinq degrés Celsius"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_soustraction",
+       "verb": "write",
+       "at": "cue:moins",
+       "target": "ecart",
+       "part": "soustraction"
+      },
+      {
+       "id": "ecrire_delta",
+       "verb": "write",
+       "at": "cue:resultat_delta",
+       "target": "ecart",
+       "part": "vingtcinq"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "relation",
+     "content": "Q = mc\\Delta T",
+     "parts": [
+      {
+       "id": "q",
+       "text": "Q ="
+      },
+      {
+       "id": "produit",
+       "text": "mc\\Delta T"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "substitution",
+     "content": "Q = 200 \\times 4{,}19 \\times 25",
+     "parts": [
+      {
+       "id": "qsub",
+       "text": "Q ="
+      },
+      {
+       "id": "valeurs",
+       "text": "200 \\times 4{,}19 \\times 25"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calcul",
+     "content": "Q = 20\\,950\\ \\mathrm{J}",
+     "parts": [
+      {
+       "id": "qcalc",
+       "text": "Q ="
+      },
+      {
+       "id": "joules",
+       "text": "20\\,950\\ \\mathrm{J}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regle",
+     "say": "Pour l’eau, on utilise Q égale m c delta T : la masse multipliée par la capacité thermique massique, puis par l’augmentation de température.",
+     "cues": [
+      {
+       "id": "qegal",
+       "text": "Q égale"
+      },
+      {
+       "id": "produit_mct",
+       "text": "la masse multipliée par la capacité thermique massique, puis par l’augmentation de température"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_q",
+       "verb": "write",
+       "at": "cue:qegal",
+       "target": "relation",
+       "part": "q"
+      },
+      {
+       "id": "ecrire_produit",
+       "verb": "write",
+       "at": "cue:produit_mct",
+       "target": "relation",
+       "part": "produit"
+      }
+     ]
+    },
+    {
+     "id": "substituer",
+     "say": "On prend pour l’eau c égale quatre virgule dix-neuf joules par gramme et par degré Celsius. On remplace avec deux cents grammes et vingt-cinq degrés.",
+     "cues": [
+      {
+       "id": "cvaleur",
+       "text": "c égale quatre virgule dix-neuf joules par gramme et par degré Celsius"
+      },
+      {
+       "id": "remplace",
+       "text": "On remplace"
+      }
+     ],
+     "do": [
+      {
+       "id": "surligne_donnees",
+       "verb": "highlight",
+       "start": "cue:cvaleur",
+       "end": "cue_end:remplace",
+       "target": "donnees",
+       "role": "given"
+      },
+      {
+       "id": "transformer_substitution",
+       "verb": "transform",
+       "at": "cue:remplace",
+       "source": "relation",
+       "target": "substitution"
+      }
+     ]
+    },
+    {
+     "id": "produit",
+     "say": "Deux cents fois quatre virgule dix-neuf fois vingt-cinq donne vingt mille neuf cent cinquante joules. C’est l’énergie nécessaire pour chauffer cette eau.",
+     "cues": [
+      {
+       "id": "produit_nombres",
+       "text": "Deux cents fois quatre virgule dix-neuf fois vingt-cinq"
+      },
+      {
+       "id": "final",
+       "text": "vingt mille neuf cent cinquante joules"
+      }
+     ],
+     "do": [
+      {
+       "id": "transformer_resultat",
+       "verb": "transform",
+       "at": "cue:final",
+       "source": "substitution",
+       "target": "calcul"
+      },
+      {
+       "id": "marquer_resultat",
+       "verb": "highlight",
+       "start": "cue:final",
+       "end": "cue_end:final",
+       "target": "calcul",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_interpretation",
+   "introduces": [
+    {
+     "id": "conversion",
+     "content": "20\\,950\\ \\mathrm{J} = 20{,}95\\ \\mathrm{kJ}",
+     "parts": [
+      {
+       "id": "joules_depart",
+       "text": "20\\,950\\ \\mathrm{J}"
+      },
+      {
+       "id": "egal_kj",
+       "text": "= 20{,}95\\ \\mathrm{kJ}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "distinction",
+     "content": "La température indique l’état thermique ; la chaleur est une énergie transférée.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "unites",
+     "say": "On peut aussi exprimer ce résultat en kilojoules : vingt mille neuf cent cinquante joules, c’est vingt virgule quatre-vingt-quinze kilojoules, puisque mille joules font un kilojoule.",
+     "cues": [
+      {
+       "id": "joules",
+       "text": "vingt mille neuf cent cinquante joules"
+      },
+      {
+       "id": "kilojoules",
+       "text": "vingt virgule quatre-vingt-quinze kilojoules"
+      }
+     ],
+     "do": [
+      {
+       "id": "ecrire_j",
+       "verb": "write",
+       "at": "cue:joules",
+       "target": "conversion",
+       "part": "joules_depart"
+      },
+      {
+       "id": "ecrire_kj",
+       "verb": "write",
+       "at": "cue:kilojoules",
+       "target": "conversion",
+       "part": "egal_kj"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "La température n’est pas la chaleur : la température décrit l’agitation des particules, tandis que la chaleur est l’énergie transférée. Ici, l’eau reçoit vingt virgule quatre-vingt-quinze kilojoules.",
+     "cues": [
+      {
+       "id": "distinction_mot",
+       "text": "La température n’est pas la chaleur"
+      },
+      {
+       "id": "energie",
+       "text": "l’énergie transférée"
+      },
+      {
+       "id": "ici",
+       "text": "Ici"
+      }
+     ],
+     "do": [
+      {
+       "id": "montrer_distinction",
+       "verb": "show",
+       "at": "cue:distinction_mot",
+       "target": "distinction"
+      },
+      {
+       "id": "estomper_donnees",
+       "verb": "dim",
+       "at": "cue:ici",
+       "target": "donnees"
+      },
+      {
+       "id": "estomper_ecart",
+       "verb": "dim",
+       "at": "cue:ici",
+       "target": "ecart"
+      },
+      {
+       "id": "estomper_relation",
+       "verb": "dim",
+       "at": "cue:ici",
+       "target": "relation"
+      },
+      {
+       "id": "estomper_substitution",
+       "verb": "dim",
+       "at": "cue:ici",
+       "target": "substitution"
+      },
+      {
+       "id": "estomper_calcul",
+       "verb": "dim",
+       "at": "cue:ici",
+       "target": "calcul"
+      },
+      {
+       "id": "estomper_conversion",
+       "verb": "dim",
+       "at": "cue:ici",
+       "target": "conversion"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle_finale",
+     "content": "Q = mc\\Delta T",
+     "parts": [
+      {
+       "id": "qfinal",
+       "text": "Q ="
+      },
+      {
+       "id": "produitfinal",
+       "text": "mc\\Delta T"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "reponse_finale",
+     "content": "Q = 20\\,950\\ \\mathrm{J} = 20{,}95\\ \\mathrm{kJ}",
+     "parts": [
+      {
+       "id": "qreponse",
+       "text": "Q ="
+      },
+      {
+       "id": "valeurj",
+       "text": "20\\,950\\ \\mathrm{J}"
+      },
+      {
+       "id": "valeurkj",
+       "text": "= 20{,}95\\ \\mathrm{kJ}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : l’énergie de chauffage se calcule avec Q égale m c delta T. Pour deux cents grammes d’eau chauffés de vingt à quarante-cinq degrés, il faut vingt mille neuf cent cinquante joules, soit vingt virgule quatre-vingt-quinze kilojoules.",
+     "cues": [
+      {
+       "id": "retenir_mot",
+       "text": "À retenir"
+      },
+      {
+       "id": "formule_mot",
+       "text": "Q égale m c delta T"
+      },
+      {
+       "id": "reponse_mot",
+       "text": "vingt mille neuf cent cinquante joules"
+      }
+     ],
+     "do": [
+      {
+       "id": "montrer_regle",
+       "verb": "write",
+       "at": "cue:formule_mot",
+       "target": "regle_finale",
+       "part": "qfinal"
+      },
+      {
+       "id": "ecrire_produit_final",
+       "verb": "write",
+       "at": "cue:formule_mot",
+       "target": "regle_finale",
+       "part": "produitfinal"
+      },
+      {
+       "id": "ecrire_reponse_finale",
+       "verb": "write",
+       "at": "cue:reponse_mot",
+       "target": "reponse_finale",
+       "part": "qreponse"
+      },
+      {
+       "id": "ecrire_valeur_j",
+       "verb": "write",
+       "at": "cue:reponse_mot",
+       "target": "reponse_finale",
+       "part": "valeurj"
+      },
+      {
+       "id": "ecrire_valeur_kj",
+       "verb": "write",
+       "at": "cue:reponse_mot",
+       "target": "reponse_finale",
+       "part": "valeurkj"
+      },
+      {
+       "id": "surligner_reponse_finale",
+       "verb": "highlight",
+       "start": "cue:reponse_mot",
+       "end": "cue_end:reponse_mot",
+       "target": "reponse_finale",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,101 @@
+QUESTION (ap-correlation-force, mathematiques, sec 4, alloprof) : Comment on fait pour savoir si une correlation est faible ou forte?
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Faible ou forte : lire la force d'une corrélation
+=== Tranche s_idee
+  OBJET nuage [axes] {"x":[0,8],"y":[0,9]} 
+  OBJET lab_x [label] "heures de jeu" 
+  OBJET lab_y [label] "note sur 9" 
+  OBJET p1 [point] {"at":[1,7]} 
+  OBJET p2 [point] {"at":[2,8]} 
+  OBJET p3 [point] {"at":[3,5]} 
+  OBJET p4 [point] {"at":[4,6]} 
+  OBJET p5 [point] {"at":[5,6]} 
+  OBJET p6 [point] {"at":[6,3]} 
+  OBJET p7 [point] {"at":[7,4]} 
+  OBJET droite [function_graph] {"expression":"-0.64*x+8.14","domain":[0,8]} 
+  OBJET r_neg [math] "r \\approx -0{,}81" 
+DIT (intro) : Pour savoir si une corrélation est faible ou forte, on regarde à quel point les points du nuage collent à une droite.
+    camera.focus  @beat:start {"targets":["nuage","lab_x","lab_y"],"bounds":"layout_bounds","save_as":"vue_nuage"}
+    show nuage @beat:start 
+    show lab_x @beat:start 
+    show lab_y @beat:start 
+    show p1 @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+    show p2 @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+    show p3 @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+    show p4 @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+    show p5 @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+    show p6 @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+    show p7 @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+    draw droite @- {"start":"cue:c_nuage","end":"cue_end:c_nuage"}
+DIT (sens) : Ici les points descendent vers la droite : quand les heures de jeu augmentent, la note a tendance à baisser. La valeur de r le résume en un seul nombre.
+    write r_neg @cue:c_r 
+    highlight droite @- {"start":"cue:c_descend","end":"cue_end:c_descend","role":"accent"}
+=== Tranche s_echelle
+  OBJET echelle [math] "-1 \\leq r \\leq 1" 
+  OBJET sens_note [text] "le signe donne le sens" 
+  OBJET force_note [text] "|r| donne la force" 
+DIT (bornes) : r est toujours un nombre entre moins un et un. C'est le signe qui donne le sens du lien.
+    write echelle @cue:c_entre 
+    show sens_note @cue:c_signe 
+DIT (force) : Et c'est la valeur absolue qui donne la force : sans le signe, plus r s'approche de un, plus le lien est fort.
+    show force_note @cue:c_absolue 
+    highlight r_neg @- {"start":"cue:c_fort","end":"cue_end:c_fort","role":"accent"}
+=== Tranche s_rectangle
+  OBJET rect [polygon] {"vertices":[[1,3],[7,3],[7,8],[1,8]]} 
+  OBJET calc [math] "r \\approx -(1 - \\frac{2}{8}) = -0{,}75" parts=r \approx - | (1 - \frac{2}{8}) | = -0{,}75
+DIT (tracer) : Pour estimer r à l'œil, trace le plus petit rectangle qui contient tous les points, allongé dans le sens du nuage.
+    camera.focus  @beat:start {"targets":["nuage","rect","lab_x","lab_y"],"bounds":"layout_bounds"}
+    draw rect @- {"start":"cue:c_rectangle","end":"cue_end:c_rectangle"}
+    dim droite @cue:c_rectangle 
+    highlight r_neg @- {"start":"cue:c_rectangle","end":"cue_end:c_rectangle","role":"secondary"}
+DIT (formule) : Ici la largeur vaut deux et la longueur vaut huit : r est environ moins, un moins deux sur huit, ce qui donne moins zéro virgule sept cinq.
+    write calc @cue:c_largeur {"part":"debut"}
+    write calc @cue:c_longueur {"part":"form"}
+    write calc @cue:c_resultat {"part":"res"}
+    move calc @after:w_res {"to":{"next_to":"rect","direction":"right","gap":"lg"}}
+=== Tranche s_comparer
+  OBJET nuage2 [axes] {"x":[0,8],"y":[0,9]} 
+  OBJET droite2 [function_graph] {"expression":"8-x","domain":[1,7]} 
+  OBJET q1 [point] {"at":[1,7]} 
+  OBJET q2 [point] {"at":[2,6]} 
+  OBJET q3 [point] {"at":[3,5]} 
+  OBJET q4 [point] {"at":[4,4]} 
+  OBJET q5 [point] {"at":[5,3]} 
+  OBJET q6 [point] {"at":[6,2]} 
+  OBJET q7 [point] {"at":[7,1]} 
+  OBJET r_parfait [math] "r = -1" 
+  OBJET verdict [text] "moins zéro virgule huit : lien linéaire négatif fort" 
+DIT (parfait) : Si tous les points tombaient exactement sur une droite descendante, on aurait r égale moins un : un lien parfait.
+    fade_out rect @beat:start 
+    fade_out calc @beat:start 
+    show nuage2 @beat:start 
+    draw droite2 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    show q1 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    show q2 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    show q3 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    show q4 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    show q5 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    show q6 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    show q7 @- {"start":"cue:c_tous","end":"cue_end:c_tous"}
+    write r_parfait @cue:c_moinsun 
+DIT (verdict) : Notre nuage de départ, avec son r de moins zéro virgule huit, reste tout près de la droite : on parle d'un lien fort.
+    show verdict @cue:c_fort2 
+    highlight r_neg @- {"start":"cue:c_fort2","end":"cue_end:c_fort2","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "r mesure la proximité des points avec une droite" 
+DIT (central) : À retenir : r mesure la proximité des points avec une droite, pas leur nombre.
+    fade_out nuage2 @beat:start 
+    fade_out r_parfait @beat:start 
+    fade_out sens_note @beat:start 
+    fade_out force_note @beat:start 
+    fade_out verdict @beat:start 
+    camera.focus  @beat:start {"targets":["nuage","r_neg","echelle","idee"],"bounds":"layout_bounds"}
+    show idee @cue:c_mesure 
+    highlight idee @- {"start":"cue:c_mesure","end":"cue_end:c_mesure","role":"result"}
+DIT (prudence) : Et rappelle-toi : une corrélation, même forte, n'est pas une causalité. Deux choses peuvent monter ensemble à cause d'une troisième.
+    show sens_note @cue:c_causalite 
+--- 5 tranches, 222 mots dits (≈ 1.5 min d'oral)

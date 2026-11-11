@@ -1,0 +1,782 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "interet_compose",
+  "title": "Calculer un placement à intérêt composé",
+  "language": "fr",
+  "learning_goal": "Comprendre que l'intérêt composé multiplie le capital par (1 + i) à chaque année, et calculer la valeur d'un placement de 2000 $ à 4 % par année pendant 5 ans."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_motif",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+       ],
+       [
+        2000,
+        2080,
+        2163.2,
+        2249.73,
+        2339.72,
+        2433.31
+       ]
+      ],
+      "row_labels": [
+       "année",
+       "valeur du placement ($)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note",
+     "content": "Chaque année, l'intérêt s'ajoute : l'année suivante rapporte sur le nouveau montant.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouverture",
+     "say": "Bon, on place deux mille dollars à quatre pour cent, et l'intérêt est composé chaque année.",
+     "cues": [
+      {
+       "id": "c_place",
+       "text": "deux mille dollars"
+      },
+      {
+       "id": "c_pourcent",
+       "text": "quatre pour cent"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_place",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "motif",
+     "say": "Composé, ça veut dire que chaque année l'intérêt s'ajoute au capital, et l'année suivante l'intérêt se calcule sur ce nouveau montant.",
+     "cues": [
+      {
+       "id": "c_compose",
+       "text": "Composé"
+      },
+      {
+       "id": "c_sajoute",
+       "text": "l'intérêt s'ajoute au capital"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_compose",
+       "end": "cue_end:c_sajoute",
+       "target": "tab",
+       "role": "accent"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_compose",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_multiplicateur",
+   "introduces": [
+    {
+     "id": "un",
+     "content": "4\\% = 0{,}04",
+     "parts": [
+      {
+       "id": "pct",
+       "text": "4\\%"
+      },
+      {
+       "id": "dec",
+       "text": "= 0{,}04"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "plus1",
+     "layout": {
+      "next_to": "un",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "1 + 0{,}04 = 1{,}04",
+     "parts": [
+      {
+       "id": "un_m",
+       "text": "1 + 0{,}04"
+      },
+      {
+       "id": "total_m",
+       "text": "= 1{,}04"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "an1",
+     "layout": {
+      "next_to": "plus1",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "2000 \\times 1{,}04 = 2080",
+     "parts": [
+      {
+       "id": "cap",
+       "text": "2000"
+      },
+      {
+       "id": "fois",
+       "text": "\\times 1{,}04"
+      },
+      {
+       "id": "res",
+       "text": "= 2080"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pourcent",
+     "say": "D'abord, quatre pour cent, c'est zéro virgule zéro quatre.",
+     "cues": [
+      {
+       "id": "c_pct",
+       "text": "quatre pour cent"
+      },
+      {
+       "id": "c_dec",
+       "text": "zéro virgule zéro quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pct",
+       "verb": "write",
+       "at": "cue:c_pct",
+       "target": "un",
+       "part": "pct"
+      },
+      {
+       "id": "w_dec",
+       "verb": "write",
+       "at": "cue:c_dec",
+       "target": "un",
+       "part": "dec"
+      }
+     ]
+    },
+    {
+     "id": "facteur",
+     "say": "En ajoutant un, on obtient le multiplicateur : un virgule zéro quatre. Garder le capital et ajouter l'intérêt, c'est la même chose que multiplier par un virgule zéro quatre.",
+     "cues": [
+      {
+       "id": "c_ajoutant",
+       "text": "En ajoutant un"
+      },
+      {
+       "id": "c_mult",
+       "text": "le multiplicateur"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_un",
+       "verb": "write",
+       "at": "cue:c_ajoutant",
+       "target": "plus1",
+       "part": "un_m"
+      },
+      {
+       "id": "w_total",
+       "verb": "write",
+       "at": "cue:c_mult",
+       "target": "plus1",
+       "part": "total_m"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "premiere",
+     "say": "Première année : deux mille fois un virgule zéro quatre donne deux mille quatre-vingts dollars. Les quatre-vingts dollars d'intérêt se sont ajoutés.",
+     "cues": [
+      {
+       "id": "c_fois",
+       "text": "deux mille fois"
+      },
+      {
+       "id": "c_resultat",
+       "text": "deux mille quatre-vingts dollars"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_cap",
+       "verb": "write",
+       "at": "cue:c_fois",
+       "target": "an1",
+       "part": "cap"
+      },
+      {
+       "id": "w_f1",
+       "verb": "write",
+       "at": "after:w_cap",
+       "target": "an1",
+       "part": "fois"
+      },
+      {
+       "id": "w_r1",
+       "verb": "write",
+       "at": "cue:c_resultat",
+       "target": "an1",
+       "part": "res"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "at": "after:w_r1",
+       "target": "an1",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cinq_ans",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "V = 2000 \\times (1{,}04)^5",
+     "parts": [
+      {
+       "id": "vn",
+       "text": "V"
+      },
+      {
+       "id": "calc",
+       "text": "= 2000 \\times (1{,}04)^5"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "res5",
+     "layout": {
+      "next_to": "formule",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "V = 2000 \\times 1{,}2166529024",
+     "parts": [
+      {
+       "id": "vn2",
+       "text": "V"
+      },
+      {
+       "id": "calc2",
+       "text": "= 2000 \\times 1{,}2166529024"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "rep",
+     "layout": {
+      "next_to": "res5",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "V \\approx 2433{,}31\\ \\$",
+     "parts": [
+      {
+       "id": "vn3",
+       "text": "V"
+      },
+      {
+       "id": "dollar",
+       "text": "\\approx 2433{,}31\\ \\$"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ans",
+     "attachment": {
+      "parent": "res5",
+      "anchor": "right"
+     },
+     "content": "La 5e année",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "Pour aller directement à la cinquième année, on répète la multiplication cinq fois : deux mille fois un virgule zéro quatre, exposant cinq.",
+     "cues": [
+      {
+       "id": "c_cinq",
+       "text": "cinq fois"
+      },
+      {
+       "id": "c_exposant",
+       "text": "exposant cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_cinq",
+       "target": "tab"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_cinq",
+       "target": "note"
+      },
+      {
+       "id": "w_v",
+       "verb": "write",
+       "at": "after:f_note",
+       "target": "formule",
+       "part": "vn"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_exposant",
+       "target": "formule",
+       "part": "calc"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Un virgule zéro quatre exposant cinq vaut environ un virgule deux un six six cinq. On multiplie par deux mille.",
+     "cues": [
+      {
+       "id": "c_puiss",
+       "text": "exposant cinq vaut"
+      },
+      {
+       "id": "c_multiplie",
+       "text": "On multiplie par deux mille"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_un2",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "res5",
+       "part": "vn2"
+      },
+      {
+       "id": "w_calc2",
+       "verb": "write",
+       "at": "cue:c_multiplie",
+       "target": "res5",
+       "part": "calc2"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Ça donne environ deux mille quatre cent trente-trois dollars et trente et un cents. C'est la valeur après cinq ans.",
+     "cues": [
+      {
+       "id": "c_donne",
+       "text": "deux mille quatre cent trente-trois dollars"
+      },
+      {
+       "id": "c_cents",
+       "text": "trente et un cents"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_v3",
+       "verb": "write",
+       "at": "cue:c_donne",
+       "target": "rep",
+       "part": "vn3"
+      },
+      {
+       "id": "w_d",
+       "verb": "write",
+       "at": "cue:c_cents",
+       "target": "rep",
+       "part": "dollar"
+      },
+      {
+       "id": "h_rep",
+       "verb": "highlight",
+       "at": "after:w_d",
+       "target": "rep",
+       "role": "result"
+      },
+      {
+       "id": "s_ans",
+       "verb": "show",
+       "at": "after:w_d",
+       "target": "ans"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_formule_generale",
+   "introduces": [
+    {
+     "id": "gen",
+     "content": "V = C\\,(1 + i)^n",
+     "parts": [
+      {
+       "id": "gv",
+       "text": "V"
+      },
+      {
+       "id": "gc",
+       "text": "= C\\,(1 + i)^n"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "legende",
+     "content": "C : capital de départ, i : taux par période, n : nombre de périodes",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "general",
+     "say": "La même recette marche pour n'importe quel placement : valeur égale capital fois un plus le taux, exposant le nombre de périodes.",
+     "cues": [
+      {
+       "id": "c_recette",
+       "text": "n'importe quel placement"
+      },
+      {
+       "id": "c_exposant",
+       "text": "exposant le nombre de périodes"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:c_recette",
+       "target": "formule"
+      },
+      {
+       "id": "f_res5",
+       "verb": "fade_out",
+       "at": "cue:c_recette",
+       "target": "res5"
+      },
+      {
+       "id": "f_rep",
+       "verb": "fade_out",
+       "at": "cue:c_recette",
+       "target": "rep"
+      },
+      {
+       "id": "w_gv",
+       "verb": "write",
+       "at": "after:f_rep",
+       "target": "gen",
+       "part": "gv"
+      },
+      {
+       "id": "w_gc",
+       "verb": "write",
+       "at": "cue:c_exposant",
+       "target": "gen",
+       "part": "gc"
+      },
+      {
+       "id": "s_legende",
+       "verb": "show",
+       "at": "after:w_gc",
+       "target": "legende"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : à chaque période, l'intérêt composé multiplie le montant par un plus le taux. Cinq périodes, c'est cinq fois ce facteur.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_cinq",
+       "text": "Cinq périodes"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "gen",
+        "legende"
+       ]
+      },
+      {
+       "id": "f_ans",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "ans"
+      },
+      {
+       "id": "h_gen",
+       "verb": "highlight",
+       "at": "cue:c_cinq",
+       "target": "gen",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

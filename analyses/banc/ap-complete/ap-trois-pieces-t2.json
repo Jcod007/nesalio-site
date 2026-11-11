@@ -1,0 +1,786 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "probabilites_denominateur",
+  "title": "Pourquoi des huitièmes avec seulement trois pièces de monnaie",
+  "language": "fr",
+  "learning_goal": "Comprendre que le dénominateur d'une probabilité est le nombre de cas possibles, pas le nombre d'objets."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "u",
+     "size": "medium",
+     "content": "Probabilité = cas favorables ÷ cas possibles",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Bonne question : le chiffre du bas n'est pas le nombre de pièces de monnaie.",
+     "cues": [
+      {
+       "id": "c_bas",
+       "text": "le chiffre du bas"
+      }
+     ],
+     "do": []
+    },
+    {
+     "id": "idee",
+     "say": "Une probabilité, c'est le nombre de cas favorables divisé par le nombre de cas possibles.",
+     "cues": [
+      {
+       "id": "c_fav",
+       "text": "cas favorables"
+      },
+      {
+       "id": "c_poss",
+       "text": "cas possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_u",
+       "verb": "show",
+       "at": "cue:c_fav",
+       "target": "u"
+      },
+      {
+       "id": "h_u",
+       "verb": "highlight",
+       "start": "cue:c_fav",
+       "end": "cue_end:c_poss",
+       "target": "u",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pieces",
+   "introduces": [
+    {
+     "id": "p1",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "p2",
+     "params": {
+      "vertices": [
+       [
+        1.2,
+        0
+       ],
+       [
+        2.2,
+        0
+       ],
+       [
+        2.2,
+        1
+       ],
+       [
+        1.2,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "p3",
+     "params": {
+      "vertices": [
+       [
+        2.4,
+        0
+       ],
+       [
+        3.4,
+        0
+       ],
+       [
+        3.4,
+        1
+       ],
+       [
+        2.4,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "l1",
+     "attachment": {
+      "parent": "p1",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "P",
+     "type": "label"
+    },
+    {
+     "id": "l2",
+     "attachment": {
+      "parent": "p2",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "P",
+     "type": "label"
+    },
+    {
+     "id": "l3",
+     "attachment": {
+      "parent": "p3",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "P",
+     "type": "label"
+    },
+    {
+     "id": "complet",
+     "layout": {
+      "next_to": "p3",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "Les trois pièces ensemble : un seul cas possible",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "montre",
+     "say": "Trois pièces de monnaie, ensemble, ça forme une seule situation.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "Trois pièces de monnaie"
+      },
+      {
+       "id": "c_ensemble",
+       "text": "ensemble"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_p1",
+       "verb": "draw",
+       "at": "cue:c_trois",
+       "target": "p1"
+      },
+      {
+       "id": "d_p2",
+       "verb": "draw",
+       "at": "after:d_p1",
+       "target": "p2"
+      },
+      {
+       "id": "d_p3",
+       "verb": "draw",
+       "at": "after:d_p2",
+       "target": "p3"
+      },
+      {
+       "id": "s_l1",
+       "verb": "show",
+       "at": "after:d_p1",
+       "target": "l1"
+      },
+      {
+       "id": "s_l2",
+       "verb": "show",
+       "at": "after:d_p2",
+       "target": "l2"
+      },
+      {
+       "id": "s_l3",
+       "verb": "show",
+       "at": "after:d_p3",
+       "target": "l3"
+      },
+      {
+       "id": "s_complet",
+       "verb": "show",
+       "at": "cue:c_ensemble",
+       "target": "complet"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "paires",
+     "say": "Mais la question porte souvent sur des paires : deux pièces qu'on regarde ensemble.",
+     "cues": [
+      {
+       "id": "c_paires",
+       "text": "paires"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux pièces"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_complet",
+       "verb": "fade_out",
+       "at": "cue:c_paires",
+       "target": "complet"
+      },
+      {
+       "id": "h_p1",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "p1",
+       "role": "given"
+      },
+      {
+       "id": "h_p2",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "p2",
+       "role": "given"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_paires",
+   "introduces": [
+    {
+     "id": "paire1",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        1.6
+       ],
+       [
+        1,
+        1.6
+       ],
+       [
+        1,
+        2.6
+       ],
+       [
+        0,
+        2.6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "paire2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        1.2,
+        1.6
+       ],
+       [
+        2.2,
+        1.6
+       ],
+       [
+        2.2,
+        2.6
+       ],
+       [
+        1.2,
+        2.6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "paire3",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        2.4,
+        1.6
+       ],
+       [
+        3.4,
+        1.6
+       ],
+       [
+        3.4,
+        2.6
+       ],
+       [
+        2.4,
+        2.6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lp1",
+     "attachment": {
+      "parent": "paire1",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "PPF",
+     "type": "label"
+    },
+    {
+     "id": "lp2",
+     "attachment": {
+      "parent": "paire2",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "FPF",
+     "type": "label"
+    },
+    {
+     "id": "lp3",
+     "attachment": {
+      "parent": "paire3",
+      "anchor": "center",
+      "placement": "inside"
+     },
+     "content": "FFP",
+     "type": "label"
+    },
+    {
+     "id": "paireNote",
+     "layout": {
+      "next_to": "paire3",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "3 paires différentes : chaque paire = 1 cas possible",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "paires",
+     "say": "Avec trois pièces, tirer deux pièces donne trois paires différentes.",
+     "cues": [
+      {
+       "id": "c_a",
+       "text": "Avec trois pièces"
+      },
+      {
+       "id": "c_b",
+       "text": "trois paires différentes"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_p1",
+       "verb": "fade_out",
+       "at": "cue:c_a",
+       "target": "p1"
+      },
+      {
+       "id": "f_p2",
+       "verb": "fade_out",
+       "at": "cue:c_a",
+       "target": "p2"
+      },
+      {
+       "id": "f_p3",
+       "verb": "fade_out",
+       "at": "cue:c_a",
+       "target": "p3"
+      },
+      {
+       "id": "d_pa",
+       "verb": "draw",
+       "at": "cue:c_b",
+       "target": "paire1"
+      },
+      {
+       "id": "d_pb",
+       "verb": "draw",
+       "at": "after:d_pa",
+       "target": "paire2"
+      },
+      {
+       "id": "d_pc",
+       "verb": "draw",
+       "at": "after:d_pb",
+       "target": "paire3"
+      },
+      {
+       "id": "s_lpa",
+       "verb": "show",
+       "at": "after:d_pa",
+       "target": "lp1"
+      },
+      {
+       "id": "s_lpb",
+       "verb": "show",
+       "at": "after:d_pb",
+       "target": "lp2"
+      },
+      {
+       "id": "s_lpc",
+       "verb": "show",
+       "at": "after:d_pc",
+       "target": "lp3"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_b",
+       "target": "paireNote"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "result",
+     "say": "Si une de ces trois paires est favorable, la probabilité est un sur trois, pas deux sur huit.",
+     "cues": [
+      {
+       "id": "c_fav",
+       "text": "une de ces trois paires"
+      },
+      {
+       "id": "c_un",
+       "text": "un sur trois"
+      },
+      {
+       "id": "c_non",
+       "text": "pas deux sur huit"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_pa",
+       "verb": "highlight",
+       "start": "cue:c_fav",
+       "end": "cue_end:c_fav",
+       "target": "paire1",
+       "role": "accent"
+      },
+      {
+       "id": "s_note2",
+       "verb": "show",
+       "at": "cue:c_un",
+       "target": "paireNote"
+      },
+      {
+       "id": "h_note",
+       "verb": "highlight",
+       "start": "cue:c_un",
+       "end": "cue_end:c_un",
+       "target": "paireNote",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "f1",
+     "layout": {
+      "next_to": "paire3",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\frac{\\text{favorables}}{\\text{possibles}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : le chiffre du bas est le nombre de cas possibles que tu as comptés. Avec trois pièces, c'est trois paires possibles, pas huit.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_possibles",
+       "text": "nombre de cas possibles"
+      },
+      {
+       "id": "c_trois",
+       "text": "trois paires possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "paire1",
+        "f1",
+        "u"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_f1",
+       "verb": "show",
+       "at": "cue:c_possibles",
+       "target": "f1"
+      },
+      {
+       "id": "h_f1",
+       "verb": "highlight",
+       "start": "cue:c_trois",
+       "end": "cue_end:c_trois",
+       "target": "f1",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

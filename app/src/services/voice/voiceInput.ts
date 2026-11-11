@@ -1,12 +1,13 @@
 /**
  * Micro : ce que l'élève dit à Nesa.
  *
- * Méthode principale (tous les navigateurs récents) : on enregistre la voix,
- * on détecte la fin de la phrase (silence), puis le serveur la transcrit
- * (/api/transcribe). Si le serveur n'a pas de transcription configurée, on
- * se rabat sur la reconnaissance vocale du navigateur (Chrome, Edge, Safari).
+ * Seule méthode (tous les navigateurs récents) : on enregistre la voix, on
+ * détecte la fin de la phrase (silence), puis le serveur la transcrit
+ * (/api/transcribe, avec les options de vie privée du Gateway).
+ * Jamais de repli vers la reconnaissance vocale du navigateur : Chrome envoie la
+ * voix à Google, Safari à Apple, Edge à Microsoft (décision de l'utilisateur,
+ * relecture du lot 5). Si la transcription échoue, l'élève écrit sa question.
  */
-import { createSpeechListener } from "./speechListener";
 import { sessionHeaders } from "@/services/session";
 
 export type VoiceInputState = "idle" | "recording" | "transcribing";
@@ -34,25 +35,11 @@ const SILENCE_MS = 1400;
 const NO_SPEECH_MS = 8000;
 const MAX_MS = 30_000;
 
-let serverTranscription: "unknown" | "ok" | "unavailable" = "unknown";
+/** Shown when the server cannot transcribe: the text field stays available. */
+export const MIC_UNAVAILABLE = "Micro indisponible pour le moment : écris ta question.";
 
-export function createVoiceInput(options: { browserOnly?: boolean } = {}): VoiceInput {
-  if (options.browserOnly) return createBrowserInput();
-  const recorder = createRecorderInput();
-  const browser = createBrowserInput();
-  const pick = () => (recorder.supported && serverTranscription !== "unavailable" ? recorder : browser);
-  let active: VoiceInput | null = null;
-  return {
-    get supported() {
-      return recorder.supported || browser.supported;
-    },
-    start(handlers) {
-      active = pick();
-      active.start(handlers);
-    },
-    stop: () => active?.stop(),
-    cancel: () => active?.cancel(),
-  };
+export function createVoiceInput(): VoiceInput {
+  return createRecorderInput();
 }
 
 /* ------------------------- enregistrement + serveur ------------------------- */
@@ -60,31 +47,45 @@ export function createVoiceInput(options: { browserOnly?: boolean } = {}): Voice
 function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
   const supported = typeof window !== "undefined" && typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
   let stopRecording: ((send: boolean) => void) | null = null;
+  let operation = 0;
+  let transcription: AbortController | null = null;
 
   return {
     supported,
     start(handlers) {
       if (!supported) return;
+      operation++;
+      transcription?.abort();
       stopRecording?.(false);
-      void record(handlers);
+      void record(handlers, operation);
     },
     stop: () => stopRecording?.(true),
-    cancel: () => stopRecording?.(false),
+    cancel: () => {
+      operation++;
+      transcription?.abort();
+      stopRecording?.(false);
+    },
   };
 
-  async function record(handlers: VoiceInputHandlers) {
+  async function record(handlers: VoiceInputHandlers, id: number) {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
       });
     } catch (error) {
+      if (id !== operation) return;
       handlers.onState("idle");
       handlers.onError(
         (error as DOMException)?.name === "NotAllowedError"
           ? "Autorise le micro dans ton navigateur pour parler à Nesa."
           : "Je n'arrive pas à ouvrir ton micro.",
       );
+      return;
+    }
+
+    if (id !== operation) {
+      stream.getTracks().forEach((track) => track.stop());
       return;
     }
 
@@ -115,7 +116,7 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
     };
     stopRecording = finish;
 
-    if (context.state === "suspended") await context.resume().catch(() => {});
+    if (context.state === "suspended") void context.resume().catch(() => {});
     meter = setInterval(() => {
       analyser.getFloatTimeDomainData(samples);
       let sum = 0;
@@ -138,6 +139,7 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
     mediaRecorder.onstop = async () => {
       stream.getTracks().forEach((track) => track.stop());
       void context.close();
+      if (id !== operation) return;
       handlers.onLevel?.(0);
       if (!send) {
         handlers.onState("idle");
@@ -146,25 +148,31 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
       }
       handlers.onState("transcribing");
       try {
+        const controller = new AbortController();
+        transcription = controller;
         const blob = new Blob(chunks, { type: mediaRecorder.mimeType || mimeType || "audio/webm" });
+        const audio = await toBase64(blob);
+        if (id !== operation) return;
         const response = await fetch(endpoint, {
           method: "POST",
+          signal: controller.signal,
           headers: { "Content-Type": "application/json", ...sessionHeaders() },
-          body: JSON.stringify({ audio: await toBase64(blob), mediaType: blob.type }),
+          body: JSON.stringify({ audio, mediaType: blob.type }),
         });
-        if (response.status === 503) {
-          serverTranscription = "unavailable";
-          throw new Error("Le micro n'est pas encore branché sur le serveur. Réessaie : j'utilise celui du navigateur.");
-        }
-        if (!response.ok) throw new Error("Je n'ai pas bien compris. Réessaie ?");
-        serverTranscription = "ok";
+        if (id !== operation) return;
+        // Too many tries or an unreadable recording: trying again makes sense. Otherwise, write.
+        if (response.status === 429 || response.status === 400) throw new Error("Je n'ai pas bien compris. Réessaie ?");
+        if (!response.ok) throw new Error(MIC_UNAVAILABLE);
         const { text } = (await response.json()) as { text?: string };
+        if (id !== operation) return;
         handlers.onState("idle");
         if (text?.trim()) handlers.onResult(text.trim());
         else handlers.onError("Je n'ai pas bien compris. Réessaie ?");
       } catch (error) {
+        if (id !== operation) return;
         handlers.onState("idle");
-        handlers.onError((error as Error).message || "Je n'ai pas bien compris. Réessaie ?");
+        // A network failure says nothing useful to a student: the text field is the way out.
+        handlers.onError(error instanceof TypeError ? MIC_UNAVAILABLE : (error as Error).message || MIC_UNAVAILABLE);
       }
     };
 
@@ -180,33 +188,4 @@ function toBase64(blob: Blob): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(blob);
   });
-}
-
-/* --------------------- reconnaissance vocale du navigateur --------------------- */
-
-function createBrowserInput(): VoiceInput {
-  const listener = createSpeechListener("fr-CA");
-  return {
-    supported: listener.supported,
-    start(handlers) {
-      let heard = "";
-      handlers.onState("recording");
-      listener.start({
-        onText(text) {
-          heard = text;
-          handlers.onPartial?.(text);
-        },
-        onEnd() {
-          handlers.onState("idle");
-          if (heard.trim()) handlers.onResult(heard.trim());
-        },
-        onError(code) {
-          handlers.onState("idle");
-          handlers.onError(code === "not-allowed" ? "Autorise le micro dans ton navigateur pour parler à Nesa." : "Je n'ai pas bien entendu. Réessaie ?");
-        },
-      });
-    },
-    stop: () => listener.stop(),
-    cancel: () => listener.stop(),
-  };
 }

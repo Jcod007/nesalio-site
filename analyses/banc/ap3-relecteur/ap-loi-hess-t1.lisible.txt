@@ -1,0 +1,82 @@
+QUESTION (ap-loi-hess, chimie, sec 4, alloprof) : Est-ce que vous pourriez m'expliquer la loi de Hess svp? J'ai un examen de chimie dans deux jours et je ne comprends toujours pas comment faire, mon enseignant ne nous a pas donné des étapes.
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : La loi de Hess : additionner les étapes d'une réaction
+=== Tranche s_idee
+  OBJET axe_x [line] {"from":[0,0],"to":[6,0]} 
+  OBJET axe_y [line] {"from":[0,0],"to":[0,8]} 
+  OBJET lab_x [label] "progression de la réaction" attaché à axe_x
+  OBJET lab_y [label] "énergie" attaché à axe_y
+  OBJET reactifs [line] {"from":[0,4],"to":[2,4]} 
+  OBJET act [line] {"from":[2,4],"to":[3,7]} 
+  OBJET retour [line] {"from":[3,7],"to":[4,1]} 
+  OBJET produits [line] {"from":[4,1],"to":[6,1]} 
+  OBJET lab_reactifs [label] "réactifs" attaché à reactifs
+  OBJET lab_produits [label] "produits" attaché à produits
+  OBJET fleche_dh [arrow] {"from":[5,4],"to":[5,1]} 
+  OBJET lab_dh [label] "ΔH" attaché à fleche_dh
+DIT (intro) : Bonjour ! La loi de Hess, c'est simplement additionner des équations comme des égalités. Regarde d'abord l'énergie d'une réaction sur ce diagramme.
+    show axe_x @beat:start 
+    show axe_y @beat:start 
+    show lab_x @cue:c_diagramme 
+    show lab_y @after:s_lx 
+    draw reactifs @after:s_ly 
+    draw act @after:d_reactifs 
+    draw retour @after:d_act 
+    draw produits @after:d_retour 
+    show lab_reactifs @after:d_produits 
+    show lab_produits @after:s_lr 
+DIT (delta) : Les réactifs partent à une certaine énergie ; les produits finissent plus bas, donc la réaction a libéré de l'énergie. Cette baisse, c'est delta H, négatif ici.
+    highlight reactifs @- {"start":"cue:c_reac","end":"cue_end:c_reac","role":"given"}
+    highlight produits @- {"start":"cue:c_prod","end":"cue_end:c_prod","role":"accent"}
+    show fleche_dh @cue:c_dh 
+    show lab_dh @after:s_f 
+=== Tranche s_etapes
+  OBJET eq1 [math] "\\ce{C + O2 -> CO + 1/2 O2}" 
+  OBJET dh1 [math] "\\Delta H_1 = -110{,}5 \\text{ kJ}" 
+  OBJET eq2 [math] "\\ce{CO + 1/2 O2 -> CO2}" 
+  OBJET dh2 [math] "\\Delta H_2 = -283{,}0 \\text{ kJ}" 
+DIT (pose) : On veut trouver l'énergie de la combustion du carbone en une seule étape. On connaît deux étapes : le carbone donne CO, puis CO donne CO deux.
+    show eq1 @beat:start 
+    show dh1 @beat:start 
+    show eq2 @cue:c_puis 
+    show dh2 @after:s_eq2 
+DIT (annule) : Additionnons les deux équations comme des égalités : le CO est à droite dans la première et à gauche dans la seconde, alors il s'annule.
+    highlight eq1 @- {"start":"cue:c_addition","end":"cue_end:c_annule","role":"unknown"}
+    highlight eq2 @after:h1 {"role":"unknown"}
+    dim eq1 @after:h2 
+    dim eq2 @after:d1 
+=== Tranche s_total
+  OBJET total [math] "\\ce{C + O2 -> CO2}" 
+  OBJET dh_tot [math] "\\Delta H = -110{,}5 + (-283{,}0) = -393{,}5 \\text{ kJ}" 
+DIT (somme) : Ce qui reste, c'est carbone plus O deux donne CO deux, la réaction cherchée. Et on additionne les delta H des étapes.
+    fade_out eq1 @beat:start 
+    fade_out eq2 @beat:start 
+    fade_out dh1 @beat:start 
+    fade_out dh2 @beat:start 
+    show total @cue:c_reste 
+    show dh_tot @cue:c_additionne 
+DIT (calcul) : Moins cent dix virgule cinq, plus moins deux cent quatre-vingt-trois virgule zéro : ça donne moins trois cent quatre-vingt-treize virgule cinq kilojoules.
+    write dh_tot @cue:c_110 
+    highlight dh_tot @cue:c_283 {"role":"accent"}
+    highlight dh_tot @cue:c_393 {"role":"accent"}
+    highlight dh_tot @after:w_393 {"role":"result"}
+DIT (inverse) : Attention à deux pièges : si tu inverses une équation, tu changes le signe de son delta H ; si tu la multiplies par deux, tu doubles aussi son delta H.
+    dim total @cue:c_inverses 
+    dim dh_tot @after:f_total 
+=== Tranche s_retenir
+  OBJET regle [math] "\\Delta H_{\\text{total}} = \\Delta H_1 + \\Delta H_2 + \\dots" parts=\Delta H_{\text{total}} | = \Delta H_1 + \Delta H_2 + \dots
+  OBJET astuce [text] "Ce qui est des deux côtés s'annule" 
+DIT (recap) : À retenir : la loi de Hess dit que l'énergie totale ne dépend pas du chemin. On additionne les équations, on annule ce qui est des deux côtés, et on additionne les delta H.
+    fade_out total @beat:start 
+    fade_out dh_tot @beat:start 
+    fade_out axe_x @beat:start 
+    fade_out axe_y @beat:start 
+    camera.focus  @cue:c_hess {"targets":["regle","astuce"],"bounds":"layout_bounds"}
+    write regle @cue:c_hess {"part":"h1p"}
+    write regle @cue:c_additionne_dh {"part":"h2p"}
+    show astuce @after:w_h2 
+--- 4 tranches, 210 mots dits (≈ 1.4 min d'oral)

@@ -1,0 +1,709 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "nombre_derive_graphique",
+  "title": "C'est quoi le nombre dérivé sur un graphique",
+  "language": "fr",
+  "learning_goal": "Comprendre que le nombre dérivé en un point est la pente de la tangente, limite des pentes des sécantes."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "q": {
+     "kind": "parameter",
+     "initial": 3,
+     "min": 1,
+     "max": 3
+    }
+   },
+   "expressions": {
+    "pente": "q+1"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_secante",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       4
+      ],
+      "y": [
+       -1,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "params": {
+      "expression": "x^2",
+      "domain": [
+       -1,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "A",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       1,
+       1
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "A_lab",
+     "attachment": {
+      "parent": "A",
+      "anchor": "bottom"
+     },
+     "content": "A(1 ; 1)",
+     "type": "label"
+    },
+    {
+     "id": "P",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       3,
+       9
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "P_lab",
+     "attachment": {
+      "parent": "P",
+      "anchor": "left"
+     },
+     "content": "P(3 ; 9)",
+     "type": "label"
+    },
+    {
+     "id": "secante",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "(q+1)*(x-1)+1",
+      "domain": [
+       -1,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "pente",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "pente",
+      "template": "\\text{pente de } AP = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Le nombre dérivé, c'est la pente de la tangente à la courbe en un point. Regarde comment on y arrive.",
+     "cues": [
+      {
+       "id": "c_pente",
+       "text": "pente de la tangente"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_pente",
+       "end": "cue_end:c_pente",
+       "target": "courbe"
+      }
+     ]
+    },
+    {
+     "id": "deux_points",
+     "say": "Voici la courbe de x au carré. Je place le point A en un, un, et le point P en trois, neuf.",
+     "cues": [
+      {
+       "id": "c_A",
+       "text": "A en un, un"
+      },
+      {
+       "id": "c_P",
+       "text": "P en trois, neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "cue:c_A",
+       "target": "A"
+      },
+      {
+       "id": "s_Alab",
+       "verb": "show",
+       "at": "cue:c_A",
+       "target": "A_lab"
+      },
+      {
+       "id": "s_P",
+       "verb": "show",
+       "at": "cue:c_P",
+       "target": "P"
+      },
+      {
+       "id": "s_Plab",
+       "verb": "show",
+       "at": "cue:c_P",
+       "target": "P_lab"
+      }
+     ]
+    },
+    {
+     "id": "droitepente",
+     "say": "La droite qui passe par A et P s'appelle une sécante. Sa pente, c'est la montée divisée par l'avancée.",
+     "cues": [
+      {
+       "id": "c_secante",
+       "text": "sécante"
+      },
+      {
+       "id": "c_montee",
+       "text": "montée divisée par l'avancée"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_sec",
+       "verb": "draw",
+       "start": "cue:c_secante",
+       "end": "cue_end:c_secante",
+       "target": "secante"
+      },
+      {
+       "id": "w_pente",
+       "verb": "write",
+       "at": "cue:c_montee",
+       "target": "pente"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_rapproche",
+   "introduces": [
+    {
+     "id": "p24",
+     "content": "\\text{pente} = 3 \\text{ quand } P(2\\,;\\,4)",
+     "type": "math"
+    },
+    {
+     "id": "p15",
+     "content": "\\text{pente} = 2{,}5 \\text{ quand } P(1{,}5\\,;\\,2{,}25)",
+     "type": "math"
+    },
+    {
+     "id": "tang",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "expression": "2*x-1",
+      "domain": [
+       -1,
+       3
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "tang_lab",
+     "content": "\\text{tangente : pente } = 2",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcule",
+     "say": "De trois à un, l'avancée vaut deux, la montée vaut huit, la pente vaut quatre.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "pente vaut quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pente",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "pente"
+      },
+      {
+       "id": "h_pente",
+       "verb": "highlight",
+       "start": "cue:c_quatre",
+       "end": "cue_end:c_quatre",
+       "target": "pente",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "p2",
+     "say": "Maintenant rapprochons P de A. En deux, quatre, la pente tombe à trois.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "pente tombe à trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_P",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "P"
+      },
+      {
+       "id": "f_Plab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "P_lab"
+      },
+      {
+       "id": "s_P2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "P"
+      },
+      {
+       "id": "w_p24",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "p24"
+      }
+     ]
+    },
+    {
+     "id": "p15",
+     "say": "Encore plus près : en un et demi, deux et quart, la pente descend à deux et demi.",
+     "cues": [
+      {
+       "id": "c_deuxcinq",
+       "text": "pente descend à deux et demi"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_p24",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p24"
+      },
+      {
+       "id": "w_p15",
+       "verb": "write",
+       "at": "cue:c_deuxcinq",
+       "target": "p15"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tangente",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Le nombre dérivé en A est la pente limite des sécantes.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pivote",
+     "say": "Quand P glisse vers A, la sécante pivote et sa pente passe de quatre vers deux. Regarde-la tourner.",
+     "cues": [
+      {
+       "id": "c_pivote",
+       "text": "la sécante pivote"
+      },
+      {
+       "id": "c_versdeux",
+       "text": "vers deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_p15",
+       "verb": "fade_out",
+       "at": "cue:c_pivote",
+       "target": "p15"
+      },
+      {
+       "id": "anim",
+       "verb": "animate_parameter",
+       "start": "cue:c_pivote",
+       "end": "cue_end:c_versdeux",
+       "parameter": "q",
+       "from": 3,
+       "to": 1
+      },
+      {
+       "id": "w_pente",
+       "verb": "write",
+       "at": "cue:c_versdeux",
+       "target": "pente"
+      }
+     ]
+    },
+    {
+     "id": "limite",
+     "say": "À la limite, quand P atteint A, la sécante devient la tangente : sa pente vaut deux. C'est le nombre dérivé.",
+     "cues": [
+      {
+       "id": "c_tangente",
+       "text": "devient la tangente"
+      },
+      {
+       "id": "c_deux",
+       "text": "sa pente vaut deux"
+      },
+      {
+       "id": "c_derive",
+       "text": "nombre dérivé"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tang",
+       "verb": "draw",
+       "start": "cue:c_tangente",
+       "end": "cue_end:c_deux",
+       "target": "tang"
+      },
+      {
+       "id": "s_tlab",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "tang_lab"
+      },
+      {
+       "id": "h_tang",
+       "verb": "highlight",
+       "start": "cue:c_derive",
+       "end": "cue_end:c_derive",
+       "target": "tang",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : sur un graphique, le nombre dérivé en un point, c'est la pente de la tangente. On l'obtient en rapprochant les sécantes jusqu'à la limite.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_pentefinal",
+       "text": "pente de la tangente"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_pente",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pente"
+      },
+      {
+       "id": "f_p24",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p24"
+      },
+      {
+       "id": "f_p15",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p15"
+      },
+      {
+       "id": "f_sec",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "secante"
+      },
+      {
+       "id": "f_P",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "P"
+      },
+      {
+       "id": "f_Plab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "P_lab"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "h_a",
+       "verb": "highlight",
+       "start": "cue:c_pentefinal",
+       "end": "cue_end:c_pentefinal",
+       "target": "A",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

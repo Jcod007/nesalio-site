@@ -1,0 +1,76 @@
+QUESTION (completion, mathematiques, sec 4, methode) : C'est quoi la complétion du carré ? Par exemple avec x² + 6x − 7.
+RÉPONSE DE RÉFÉRENCE : x² + 6x − 7 = (x + 3)² − 16.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. on prend la moitié du coefficient de x (3) et on ajoute puis retire son carré (9)
+  2. modèle d'aire : la bande 6x coupée en deux 3x, coin 3 × 3 qui manque
+  3. x² + 6x − 7 = (x + 3)² − 9 − 7 = (x + 3)² − 16 écrit
+  4. lien avec la forme canonique et le sommet (−3, −16)
+  5. vérification par développement
+ERREURS GRAVES À CHERCHER : coin du modèle d'aire de mauvaise taille ; règle fausse (« on ajoute la moitié du coefficient »)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi la complétion du carré
+=== Tranche s_bande
+  OBJET carre_x [polygon] {"vertices":[[0,0],[3,0],[3,3],[0,3]]} 
+  OBJET label_x2 [label] "x²" attaché à carre_x
+  OBJET bande [polygon] {"vertices":[[3,0],[6,0],[6,3],[3,3]]} 
+  OBJET label_bande [label] "6x" attaché à bande
+  OBJET trait [line] {"from":[4.5,0],"to":[4.5,3]} 
+DIT (intro) : Compléter le carré, c'est un geste géométrique : on ajoute le petit coin qu'il manque pour former un carré parfait.
+    show carre_x @beat:start 
+    show label_x2 @beat:start 
+DIT (x2plus6x) : Prends x au carré plus six x. Dessine un carré de côté x : son aire est x au carré. À côté, une bande de hauteur x et de largeur six : son aire est six x.
+    show bande @cue:c_sixx 
+    show label_bande @cue:c_sixx 
+DIT (coupe) : Coupons la bande en deux moitiés de trois x chacune.
+    show trait @cue:c_coupe 
+=== Tranche s_coin
+  OBJET bande_haut [polygon] {"vertices":[[3,3],[6,3],[6,6],[3,6]]} 
+  OBJET label_3x_up [label] "3x" attaché à bande_haut
+  OBJET coin [polygon] {"vertices":[[3,3],[6,3],[6,6],[3,6]]} 
+  OBJET label_coin [label] "3 × 3 = 9" attaché à coin
+  OBJET grand [polygon] {"vertices":[[0,0],[6,0],[6,6],[0,6]]}   <<JAMAIS MONTRÉ>>
+DIT (remonte) : Fais glisser une moitié sur le dessus : elle a toujours une aire de trois x.
+    fade_out trait @cue:c_glisse 
+    fade_out bande @cue:c_glisse 
+    fade_out label_bande @cue:c_glisse 
+    show bande_haut @cue:c_glisse 
+    show label_3x_up @cue:c_glisse 
+DIT (manque) : Il manque un petit coin en haut à droite : trois par trois, neuf. Sans lui, ce n'est pas un carré complet.
+    show coin @cue:c_coin 
+    show label_coin @cue:c_neuf 
+=== Tranche s_formule
+  OBJET egalite [math] "x^2 + 6x = (x+3)^2 - 9" parts=x^2 + 6x | = (x+3)^2 - 9
+DIT (traduit) : En symboles : x au carré plus six x, c'est x plus trois au carré, moins les neuf qu'on a ajoutés.
+    write egalite @cue:c_symboles {"part":"g"}
+DIT (moins) : On ajoute neuf pour compléter le carré, on retire neuf pour garder la même expression. Le résultat est x plus trois au carré moins neuf.
+    write egalite @cue:c_retire {"part":"d"}
+    highlight egalite @after:w_d {"role":"result","part":"d"}
+=== Tranche s_exemple
+  OBJET eq_depart [math] "x^2 + 6x - 7" parts=x^2 + 6x | - 7
+  OBJET eq_remplace [math] "(x+3)^2 - 9 - 7" parts=(x+3)^2 - 9 | - 7
+  OBJET eq_final [math] "(x+3)^2 - 16" 
+DIT (depart) : Appliquons-le à x au carré plus six x moins sept. On remplace les deux premiers termes par leur carré complété.
+    fade_out carre_x @beat:start 
+    fade_out label_x2 @beat:start 
+    fade_out bande_haut @beat:start 
+    fade_out label_3x_up @beat:start 
+    fade_out grand @beat:start 
+    fade_out coin @beat:start 
+    fade_out label_coin @beat:start 
+    fade_out egalite @beat:start 
+    write eq_depart @cue:c_applique {"part":"p1"}
+    write eq_depart @after:w_p1 {"part":"p2"}
+DIT (substitue) : On remplace : x plus trois au carré moins neuf, puis on garde le moins sept.
+    transform eq_remplace @cue:c_remplace {"source":"eq_depart"}
+DIT (reduis) : On réduit moins neuf moins sept : moins seize. La forme canonique est x plus trois au carré moins seize.
+    transform eq_final @cue:c_seize {"source":"eq_remplace"}
+    highlight eq_final @after:t2 {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "x^2 + bx = \\left(x + \\frac{b}{2}\\right)^2 - \\left(\\frac{b}{2}\\right)^2" 
+DIT (idee) : À retenir : on prend la moitié du coefficient, on la met au carré, on l'ajoute et on la retire. Le carré, pas la moitié.
+    camera.focus  @beat:start {"targets":["eq_final","regle"],"bounds":"layout_bounds"}
+    write regle @cue:c_retenir 
+    fade_out eq_final @beat:start 
+    highlight regle @- {"start":"cue:c_carre","end":"cue_end:c_carre","role":"accent"}
+--- 5 tranches, 232 mots dits (≈ 1.5 min d'oral)

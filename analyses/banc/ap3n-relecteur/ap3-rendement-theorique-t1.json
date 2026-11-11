@@ -1,0 +1,769 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "rendement_theorique",
+  "title": "Comment calculer un rendement théorique",
+  "language": "fr",
+  "learning_goal": "Comprendre que le rendement théorique est la masse maximale de produit prédite par la stœchiométrie, à partir du réactif limitant."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "reaction",
+     "content": "\\ce{N2 + 3H2 -> 2NH3}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "posons",
+     "say": "Bon, calculer un rendement théorique : c'est trouver la masse maximale de produit qu'une réaction peut donner, selon la stœchiométrie.",
+     "cues": [
+      {
+       "id": "c_theo",
+       "text": "rendement théorique"
+      },
+      {
+       "id": "c_max",
+       "text": "masse maximale de produit"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_react",
+       "verb": "show",
+       "at": "cue:c_theo",
+       "target": "reaction"
+      }
+     ]
+    },
+    {
+     "id": "exemple",
+     "say": "Prenons la synthèse de l'ammoniac : un N deux réagit avec trois H deux pour donner deux N H trois.",
+     "cues": [
+      {
+       "id": "c_n2",
+       "text": "un N deux"
+      },
+      {
+       "id": "c_h2",
+       "text": "trois H deux"
+      },
+      {
+       "id": "c_nh3",
+       "text": "deux N H trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_reac",
+       "verb": "write",
+       "at": "cue:c_n2",
+       "target": "reaction"
+      },
+      {
+       "id": "h_fleche",
+       "verb": "highlight",
+       "start": "cue:c_h2",
+       "end": "cue_end:c_h2",
+       "target": "reaction",
+       "role": "given"
+      },
+      {
+       "id": "w_prod",
+       "verb": "highlight",
+       "at": "cue:c_nh3",
+       "target": "reaction",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_limitant",
+   "introduces": [
+    {
+     "id": "tab",
+     "layout": {
+      "next_to": "reaction",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "params": {
+      "rows": [
+       [
+        "28 g",
+        "? en mol"
+       ],
+       [
+        "6 g",
+        "? en mol"
+       ]
+      ],
+      "row_labels": [
+       "N₂",
+       "H₂"
+      ],
+      "column_labels": [
+       "masse",
+       "quantité"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note_n",
+     "layout": {
+      "next_to": "tab",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "n = \\frac{m}{M}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Disons qu'on part de vingt-huit grammes de N deux et de six grammes de H deux.",
+     "cues": [
+      {
+       "id": "c_28",
+       "text": "vingt-huit grammes"
+      },
+      {
+       "id": "c_6",
+       "text": "six grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_28",
+       "target": "tab"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "start": "cue:c_28",
+       "end": "cue_end:c_28",
+       "target": "tab",
+       "role": "given",
+       "part": "r1"
+      },
+      {
+       "id": "h_r2",
+       "verb": "highlight",
+       "start": "cue:c_6",
+       "end": "cue_end:c_6",
+       "target": "tab",
+       "role": "given",
+       "part": "r2"
+      }
+     ]
+    },
+    {
+     "id": "moles",
+     "say": "On convertit les masses en moles avec n égale m sur M.",
+     "cues": [
+      {
+       "id": "c_n",
+       "text": "n égale m sur M"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_n",
+       "target": "note_n"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles",
+   "introduces": [
+    {
+     "id": "calc",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n_{\\ce{N2}} = \\frac{28}{28} = 1 \\text{ mol}",
+     "parts": [
+      {
+       "id": "n1",
+       "text": "n_{\\ce{N2}} = \\frac{28}{28}"
+      },
+      {
+       "id": "r1",
+       "text": "= 1 \\text{ mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "calc2",
+     "layout": {
+      "next_to": "calc",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n_{\\ce{H2}} = \\frac{6}{2} = 3 \\text{ mol}",
+     "parts": [
+      {
+       "id": "n2",
+       "text": "n_{\\ce{H2}} = \\frac{6}{2}"
+      },
+      {
+       "id": "r2",
+       "text": "= 3 \\text{ mol}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "n2",
+     "say": "La masse molaire de N deux est vingt-huit grammes par mole. Vingt-huit divisé par vingt-huit donne un mole.",
+     "cues": [
+      {
+       "id": "c_28g",
+       "text": "vingt-huit grammes par mole"
+      },
+      {
+       "id": "c_1",
+       "text": "un mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_note",
+       "verb": "dim",
+       "at": "cue:c_28g",
+       "target": "note_n"
+      },
+      {
+       "id": "w_n1",
+       "verb": "write",
+       "at": "cue:c_28g",
+       "target": "calc",
+       "part": "n1"
+      },
+      {
+       "id": "w_r1",
+       "verb": "write",
+       "at": "cue:c_1",
+       "target": "calc",
+       "part": "r1"
+      }
+     ]
+    },
+    {
+     "id": "h2",
+     "say": "La masse molaire de H deux est deux grammes par mole. Six divisé par deux donne trois moles.",
+     "cues": [
+      {
+       "id": "c_2",
+       "text": "deux grammes par mole"
+      },
+      {
+       "id": "c_3",
+       "text": "trois moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n2",
+       "verb": "write",
+       "at": "cue:c_2",
+       "target": "calc2",
+       "part": "n2"
+      },
+      {
+       "id": "w_r2",
+       "verb": "write",
+       "at": "cue:c_3",
+       "target": "calc2",
+       "part": "r2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_limitant2",
+   "introduces": [
+    {
+     "id": "coeffs",
+     "layout": {
+      "next_to": "calc2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{n}_{\\ce{N2}} = 1 \\quad \\text{n}_{\\ce{H2}} = 3",
+     "parts": [
+      {
+       "id": "a",
+       "text": "\\text{n}_{\\ce{N2}} = 1"
+      },
+      {
+       "id": "b",
+       "text": "\\text{n}_{\\ce{H2}} = 3"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "compare",
+     "say": "On compare avec les coefficients : un mole de N deux demande trois moles de H deux.",
+     "cues": [
+      {
+       "id": "c_coeff",
+       "text": "un mole de N deux"
+      },
+      {
+       "id": "c_troismo",
+       "text": "trois moles de H deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_coeff",
+       "target": "coeffs",
+       "part": "a"
+      },
+      {
+       "id": "w_b",
+       "verb": "write",
+       "at": "cue:c_troismo",
+       "target": "coeffs",
+       "part": "b"
+      }
+     ]
+    },
+    {
+     "id": "egales",
+     "say": "Ici les quantités sont exactement dans le rapport de la réaction : aucun réactif en excès.",
+     "cues": [
+      {
+       "id": "c_rapport",
+       "text": "rapport de la réaction"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_coeffs",
+       "verb": "highlight",
+       "start": "cue:c_rapport",
+       "end": "cue_end:c_rapport",
+       "target": "coeffs",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_rendement",
+   "introduces": [
+    {
+     "id": "final",
+     "layout": {
+      "next_to": "coeffs",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n_{\\ce{NH3}} = 1 \\times 2 = 2 \\text{ mol} \\quad m = 2 \\times 17 = 34 \\text{ g}",
+     "parts": [
+      {
+       "id": "mol",
+       "text": "n_{\\ce{NH3}} = 1 \\times 2 = 2 \\text{ mol}"
+      },
+      {
+       "id": "masse",
+       "text": "m = 2 \\times 17 = 34 \\text{ g}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "doute",
+     "say": "Pour deux moles de N H trois par mole de N deux, on obtient deux moles d'ammoniac.",
+     "cues": [
+      {
+       "id": "c_deuxmoles",
+       "text": "deux moles d'ammoniac"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_mol",
+       "verb": "write",
+       "at": "cue:c_deuxmoles",
+       "target": "final",
+       "part": "mol"
+      }
+     ]
+    },
+    {
+     "id": "masse_finale",
+     "say": "La masse molaire de N H trois est dix-sept grammes par mole. Deux fois dix-sept donne trente-quatre grammes.",
+     "cues": [
+      {
+       "id": "c_17",
+       "text": "dix-sept grammes par mole"
+      },
+      {
+       "id": "c_34",
+       "text": "trente-quatre grammes"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_masse",
+       "verb": "write",
+       "at": "cue:c_17",
+       "target": "final",
+       "part": "masse"
+      },
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "start": "cue:c_34",
+       "end": "cue_end:c_34",
+       "target": "final",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "Rendement théorique = masse maximale de produit prévue par la stœchiométrie",
+     "type": "text"
+    },
+    {
+     "id": "formule",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "m_{\\text{théorique}} = n_{\\text{limitant}} \\times \\text{rapport molaire} \\times M_{\\text{produit}}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : le rendement théorique, c'est la masse maximale de produit que la stœchiométrie permet, calculée à partir du réactif limitant.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_max",
+       "text": "masse maximale de produit"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tab"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calc"
+      },
+      {
+       "id": "f_calc2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calc2"
+      },
+      {
+       "id": "f_coeffs",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "coeffs"
+      },
+      {
+       "id": "f_final",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "final"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note_n"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_max",
+       "target": "regle"
+      }
+     ]
+    },
+    {
+     "id": "formule_dite",
+     "say": "En formule : moles du réactif limitant, fois le rapport molaire, fois la masse molaire du produit.",
+     "cues": [
+      {
+       "id": "c_limitant",
+       "text": "réactif limitant"
+      },
+      {
+       "id": "c_rapport",
+       "text": "rapport molaire"
+      },
+      {
+       "id": "c_masse",
+       "text": "masse molaire du produit"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_formule",
+       "verb": "show",
+       "at": "cue:c_limitant",
+       "target": "formule"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "start": "cue:c_masse",
+       "end": "cue_end:c_masse",
+       "target": "formule",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

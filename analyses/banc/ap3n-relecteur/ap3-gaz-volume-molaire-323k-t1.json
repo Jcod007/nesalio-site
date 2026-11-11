@@ -1,0 +1,608 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "volume_molaire",
+  "title": "Le volume molaire d'un gaz par la loi des gaz parfaits",
+  "language": "fr",
+  "learning_goal": "Calculer le volume molaire d'un gaz à 323 K et 202 kPa avec pV = nRT, puis comprendre pourquoi ce volume change avec T et p."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "T": {
+     "kind": "constant",
+     "value": 323
+    },
+    "P": {
+     "kind": "constant",
+     "value": 202
+    },
+    "R": {
+     "kind": "constant",
+     "value": 8.314
+    },
+    "n": {
+     "kind": "constant",
+     "value": 1
+    }
+   },
+   "expressions": {
+    "vm": "n*R*T/P"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "liste",
+     "params": {
+      "rows": [
+       [
+        "202 kPa"
+       ],
+       [
+        "323 K"
+       ],
+       [
+        "?"
+       ]
+      ],
+      "row_labels": [
+       "pression p",
+       "température T",
+       "volume molaire V/n"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "lire",
+     "layout": {
+      "next_to": "liste",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "volume molaire = le volume occupé par 1 mole de gaz",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu cherches le volume molaire d'un gaz, c'est-à-dire le volume qu'occupe une seule mole de ce gaz.",
+     "cues": [
+      {
+       "id": "c_vm",
+       "text": "le volume molaire"
+      },
+      {
+       "id": "c_une",
+       "text": "une seule mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_liste",
+       "verb": "show",
+       "at": "cue:c_vm",
+       "target": "liste"
+      },
+      {
+       "id": "s_lire",
+       "verb": "show",
+       "at": "cue:c_une",
+       "target": "lire"
+      }
+     ]
+    },
+    {
+     "id": "deux",
+     "say": "On te donne deux nombres : une pression de deux cent deux kilo pascals et une température de trois cent vingt-trois kelvins.",
+     "cues": [
+      {
+       "id": "c_202",
+       "text": "deux cent deux kilo pascals"
+      },
+      {
+       "id": "c_323",
+       "text": "trois cent vingt-trois kelvins"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_202",
+       "verb": "highlight",
+       "at": "cue:c_202",
+       "target": "liste",
+       "role": "given",
+       "part": "r1"
+      },
+      {
+       "id": "h_323",
+       "verb": "highlight",
+       "at": "cue:c_323",
+       "target": "liste",
+       "role": "given",
+       "part": "r2"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_loi",
+   "introduces": [
+    {
+     "id": "loi",
+     "content": "pV = nRT",
+     "parts": [
+      {
+       "id": "pv",
+       "text": "pV"
+      },
+      {
+       "id": "nrt",
+       "text": "= nRT"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "isole",
+     "layout": {
+      "next_to": "loi",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\frac{V}{n} = \\frac{RT}{p}",
+     "parts": [
+      {
+       "id": "vn",
+       "text": "\\frac{V}{n}"
+      },
+      {
+       "id": "rtp",
+       "text": "= \\frac{RT}{p}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "Rnote",
+     "layout": {
+      "next_to": "loi",
+      "direction": "right",
+      "gap": "md"
+     },
+     "content": "R = 8,314 kPa·L/(mol·K)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "loi",
+     "say": "Le bon outil, c'est la loi des gaz parfaits : p V égale n R T.",
+     "cues": [
+      {
+       "id": "c_pv",
+       "text": "p V égale"
+      },
+      {
+       "id": "c_nrt",
+       "text": "n R T"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pv",
+       "verb": "write",
+       "at": "cue:c_pv",
+       "target": "loi",
+       "part": "pv"
+      },
+      {
+       "id": "w_nrt",
+       "verb": "write",
+       "at": "cue:c_nrt",
+       "target": "loi",
+       "part": "nrt"
+      },
+      {
+       "id": "h_loi",
+       "verb": "highlight",
+       "at": "after:w_nrt",
+       "target": "loi",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "isoler",
+     "say": "On ne veut pas le volume total, on veut le volume par mole : on divise les deux côtés par n, puis par p. Il reste V sur n égale R T sur p.",
+     "cues": [
+      {
+       "id": "c_divn",
+       "text": "par n"
+      },
+      {
+       "id": "c_parp",
+       "text": "par p"
+      },
+      {
+       "id": "c_reste",
+       "text": "V sur n égale R T sur p"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_isole",
+       "verb": "transform",
+       "at": "cue:c_reste",
+       "source": "loi",
+       "target": "isole"
+      },
+      {
+       "id": "h_vn",
+       "verb": "highlight",
+       "at": "after:t_isole",
+       "target": "isole",
+       "role": "accent",
+       "part": "vn"
+      },
+      {
+       "id": "s_R",
+       "verb": "show",
+       "at": "cue:c_parp",
+       "target": "Rnote"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "calc",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "vm",
+      "template": "\\frac{V}{n} = \\frac{8{,}314 \\times 323}{202} \\approx {value}\\ \\text{L/mol}",
+      "precision": 2
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "remplace",
+     "say": "On remplace R par huit virgule trois cent quatorze, T par trois cent vingt-trois et p par deux cent deux.",
+     "cues": [
+      {
+       "id": "c_R",
+       "text": "huit virgule trois cent quatorze"
+      },
+      {
+       "id": "c_T",
+       "text": "trois cent vingt-trois"
+      },
+      {
+       "id": "c_p",
+       "text": "deux cent deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_liste",
+       "verb": "dim",
+       "at": "cue:c_R",
+       "target": "liste"
+      },
+      {
+       "id": "f_lire",
+       "verb": "fade_out",
+       "at": "cue:c_R",
+       "target": "lire"
+      },
+      {
+       "id": "f_R",
+       "verb": "fade_out",
+       "at": "cue:c_R",
+       "target": "Rnote"
+      },
+      {
+       "id": "f_loi",
+       "verb": "fade_out",
+       "at": "cue:c_R",
+       "target": "loi"
+      },
+      {
+       "id": "f_isole",
+       "verb": "fade_out",
+       "at": "cue:c_R",
+       "target": "isole"
+      },
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_p",
+       "target": "calc"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "On multiplie huit virgule trois cent quatorze par trois cent vingt-trois, on divise par deux cent deux, et on obtient environ treize virgule vingt-neuf litres par mole.",
+     "cues": [
+      {
+       "id": "c_environ",
+       "text": "environ treize virgule vingt-neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:c_environ",
+       "target": "calc",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Compare avec les conditions normales : à zéro degré et cent un kilo pascals, une mole occupe vingt-deux virgule quatre litres.",
+     "cues": [
+      {
+       "id": "c_compare",
+       "text": "Compare avec les conditions normales"
+      },
+      {
+       "id": "c_224",
+       "text": "vingt-deux virgule quatre litres"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_calc",
+       "verb": "camera.focus",
+       "at": "cue:c_compare",
+       "targets": [
+        "calc"
+       ]
+      },
+      {
+       "id": "h_calc",
+       "verb": "highlight",
+       "at": "cue:c_224",
+       "target": "calc",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "Ici, moins de place : plus de pression, donc un plus petit volume ; à retenir, une mole de gaz n'a pas un volume fixe, il tombe de la loi p V égale n R T.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "à retenir"
+      },
+      {
+       "id": "c_tombe",
+       "text": "il tombe de la loi"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_final",
+       "verb": "highlight",
+       "at": "cue:c_retenir",
+       "target": "calc",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

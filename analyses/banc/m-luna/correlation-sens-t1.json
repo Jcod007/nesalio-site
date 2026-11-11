@@ -1,0 +1,751 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "coefficient_correlation",
+  "title": "Interpréter r = −0,8",
+  "language": "fr",
+  "learning_goal": "Comprendre que le signe de r indique le sens du lien linéaire et que sa valeur absolue indique à quel point le nuage suit une droite, sans prouver une causalité."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_nuage",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       0,
+       8
+      ],
+      "y": [
+       0,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "x1",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       1,
+       7
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       2,
+       8
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x3",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       3,
+       5
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x4",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       4,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x5",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       5,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x6",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       6,
+       3
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "x7",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       7,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "droite",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "-0.64*x+8.14",
+      "domain": [
+       0,
+       8
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "labelx",
+     "attachment": {
+      "parent": "axes",
+      "anchor": "bottom"
+     },
+     "content": "variable x",
+     "type": "label"
+    },
+    {
+     "id": "labely",
+     "attachment": {
+      "parent": "axes",
+      "anchor": "left"
+     },
+     "content": "variable y",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "Le coefficient de corrélation décrit à quel point les points d'un nuage suivent une droite, donc la force d'un lien linéaire.",
+     "cues": [
+      {
+       "id": "nuage",
+       "text": "les points d'un nuage"
+      },
+      {
+       "id": "droite_mot",
+       "text": "une droite"
+      }
+     ],
+     "do": [
+      {
+       "id": "montrer_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "label_x",
+       "verb": "show",
+       "at": "cue:nuage",
+       "target": "labelx"
+      },
+      {
+       "id": "label_y",
+       "verb": "show",
+       "at": "cue:nuage",
+       "target": "labely"
+      }
+     ]
+    },
+    {
+     "id": "exemple",
+     "say": "Voici un nuage où x augmente pendant que y a tendance à diminuer; la droite descend et les points restent assez près d'elle.",
+     "cues": [
+      {
+       "id": "points",
+       "text": "les points restent assez près"
+      },
+      {
+       "id": "droite_descend",
+       "text": "la droite descend"
+      }
+     ],
+     "do": [
+      {
+       "id": "tracer_points",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "x1",
+       "stagger": "quick"
+      },
+      {
+       "id": "tracer_points2",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "x2",
+       "stagger": "quick"
+      },
+      {
+       "id": "tracer_points3",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "x3",
+       "stagger": "quick"
+      },
+      {
+       "id": "tracer_points4",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "x4",
+       "stagger": "quick"
+      },
+      {
+       "id": "tracer_points5",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "x5",
+       "stagger": "quick"
+      },
+      {
+       "id": "tracer_points6",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "x6",
+       "stagger": "quick"
+      },
+      {
+       "id": "tracer_points7",
+       "verb": "show",
+       "at": "cue:points",
+       "target": "x7",
+       "stagger": "quick"
+      },
+      {
+       "id": "tracer_droite",
+       "verb": "draw",
+       "start": "cue:droite_descend",
+       "end": "cue_end:droite_descend",
+       "target": "droite"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sens",
+   "introduces": [
+    {
+     "id": "formule",
+     "content": "-1 \\le r \\le 1",
+     "type": "math"
+    },
+    {
+     "id": "negatif",
+     "content": "r = -0.8",
+     "type": "math"
+    },
+    {
+     "id": "sens",
+     "content": "négatif : quand x augmente, y tend à diminuer",
+     "type": "text"
+    },
+    {
+     "id": "force",
+     "content": "|r| = 0,8 : lien linéaire fort",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "signe",
+     "say": "Le signe négatif indique le sens : quand x augmente, y a tendance à diminuer.",
+     "cues": [
+      {
+       "id": "signe_mot",
+       "text": "Le signe négatif"
+      },
+      {
+       "id": "diminue",
+       "text": "y a tendance à diminuer"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_neg",
+       "verb": "write",
+       "at": "cue:signe_mot",
+       "target": "negatif"
+      },
+      {
+       "id": "w_sens",
+       "verb": "show",
+       "at": "cue:diminue",
+       "target": "sens"
+      },
+      {
+       "id": "h_points",
+       "verb": "highlight",
+       "start": "cue:signe_mot",
+       "end": "cue_end:diminue",
+       "target": "droite",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "force_lecture",
+     "say": "La valeur absolue, zéro virgule huit, indique la force : c'est un lien linéaire négatif fort, mais pas parfait.",
+     "cues": [
+      {
+       "id": "val_abs",
+       "text": "La valeur absolue"
+      },
+      {
+       "id": "fort",
+       "text": "négatif fort"
+      },
+      {
+       "id": "parfait",
+       "text": "pas parfait"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_force",
+       "verb": "show",
+       "at": "cue:val_abs",
+       "target": "force"
+      },
+      {
+       "id": "h_r",
+       "verb": "highlight",
+       "start": "cue:fort",
+       "end": "cue_end:parfait",
+       "target": "negatif",
+       "role": "result"
+      },
+      {
+       "id": "w_borne",
+       "verb": "write",
+       "at": "cue:parfait",
+       "target": "formule"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_limite",
+   "introduces": [
+    {
+     "id": "glace",
+     "content": "Chaleur → ventes de crème glacée et coups de soleil",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "causalite",
+     "say": "Une corrélation ne prouve pas que x cause y. Par exemple, les ventes de crème glacée et les coups de soleil augmentent souvent ensemble; la chaleur peut expliquer les deux.",
+     "cues": [
+      {
+       "id": "corr",
+       "text": "Une corrélation"
+      },
+      {
+       "id": "exemple_glace",
+       "text": "les ventes de crème glacée"
+      },
+      {
+       "id": "chaleur",
+       "text": "la chaleur"
+      }
+     ],
+     "do": [
+      {
+       "id": "diminuer",
+       "verb": "dim",
+       "at": "cue:corr",
+       "target": "axes"
+      },
+      {
+       "id": "diminuer_droite",
+       "verb": "dim",
+       "at": "cue:corr",
+       "target": "droite"
+      },
+      {
+       "id": "s_glace",
+       "verb": "show",
+       "at": "cue:exemple_glace",
+       "target": "glace"
+      }
+     ]
+    },
+    {
+     "id": "nuance",
+     "say": "Donc, pour r égal à moins zéro virgule huit, retiens : lien linéaire négatif fort, sans conclure à une cause directe.",
+     "cues": [
+      {
+       "id": "donc",
+       "text": "Donc"
+      },
+      {
+       "id": "retenir",
+       "text": "lien linéaire négatif fort"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_glace",
+       "verb": "fade_out",
+       "at": "cue:donc",
+       "target": "glace"
+      },
+      {
+       "id": "f_axes",
+       "verb": "fade_out",
+       "at": "cue:donc",
+       "target": "axes"
+      },
+      {
+       "id": "f_droite",
+       "verb": "fade_out",
+       "at": "cue:donc",
+       "target": "droite"
+      },
+      {
+       "id": "f_neg",
+       "verb": "fade_out",
+       "at": "cue:donc",
+       "target": "negatif"
+      },
+      {
+       "id": "f_sens",
+       "verb": "fade_out",
+       "at": "cue:donc",
+       "target": "sens"
+      },
+      {
+       "id": "f_force",
+       "verb": "fade_out",
+       "at": "cue:donc",
+       "target": "force"
+      },
+      {
+       "id": "f_formule",
+       "verb": "fade_out",
+       "at": "cue:donc",
+       "target": "formule"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "r=-0.8 \\Rightarrow \\text{lien linéaire négatif fort}",
+     "parts": [
+      {
+       "id": "r_part",
+       "text": "r=-0.8"
+      },
+      {
+       "id": "fleche",
+       "text": "\\Rightarrow"
+      },
+      {
+       "id": "sens_fort",
+       "text": "\\text{lien linéaire négatif fort}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "explication",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "signe : sens négatif  |r| : force forte, pas parfaite",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "conclusion",
+     "say": "À retenir : moins indique que les variables évoluent en sens inverse, et zéro virgule huit indique un lien linéaire fort, pas parfait; une corrélation ne prouve pas une cause.",
+     "cues": [
+      {
+       "id": "retenir_final",
+       "text": "À retenir"
+      },
+      {
+       "id": "moins",
+       "text": "moins indique"
+      },
+      {
+       "id": "fort_final",
+       "text": "un lien linéaire fort"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_r",
+       "verb": "write",
+       "at": "cue:moins",
+       "target": "regle",
+       "part": "r_part"
+      },
+      {
+       "id": "w_fleche",
+       "verb": "write",
+       "at": "cue:fort_final",
+       "target": "regle",
+       "part": "fleche"
+      },
+      {
+       "id": "w_sens",
+       "verb": "write",
+       "at": "cue:fort_final",
+       "target": "regle",
+       "part": "sens_fort"
+      },
+      {
+       "id": "s_exp",
+       "verb": "show",
+       "at": "cue:retenir_final",
+       "target": "explication"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,58 @@
+QUESTION (chimie-gaz-parfaits, chimie, sec 5, methode) : combien de moles de gaz il y a dans un ballon de 5,0 L à 25 °C pis 101,3 kPa?
+RÉPONSE DE RÉFÉRENCE : n = PV/RT = 101,3 × 5,0 / (8,314 × 298) ≈ 0,204 mol.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. PV = nRT, donc n = PV / RT
+  2. température en kelvins : 25 + 273 = 298 K
+  3. R = 8,314 kPa·L/(mol·K), unités cohérentes avec kPa et L
+  4. n ≈ 0,204 mol écrit
+  5. contrôle : à TPAN une mole occupe ≈ 24,5 L, et 5,0 / 24,5 ≈ 0,20
+ERREURS GRAVES À CHERCHER : température laissée en °C ; R avec des unités incohérentes
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver la quantité de gaz dans un ballon
+math_context : {"symbols":{},"expressions":{"temperature_kelvins":"25+273.15","quantite_mol":"101.3*5.0/(8.314*298.15)"}}
+=== Tranche s_donnees
+  OBJET donnees [matrix] {"rows":[["5,0 L","25 °C","101,3 kPa"]],"row_labels":["donnée"],"column_labels":["volume","température","pression"]} 
+DIT (situation) : On cherche la quantité de gaz dans un ballon de cinq virgule zéro litres, à vingt-cinq degrés Celsius et à cent un virgule trois kilopascals.
+    show donnees @cue:donnees_mot 
+DIT (modele) : Pour relier ces trois données au nombre de moles, on utilise la loi des gaz parfaits : pression fois volume égale quantité fois R fois température en kelvins.
+    dim donnees @cue:loi 
+=== Tranche s_temperature
+  OBJET temp_calc [math] "T = 25 + 273{,}15 = 298{,}15\\ \\mathrm{K}" parts=T = | 25 + 273{,}15 | = 298{,}15\ \mathrm{K}
+  OBJET loi [math] "pV = nRT" parts=pV = | nRT
+  OBJET constante [text] "R = 8,314 kPa·L/(mol·K)" 
+DIT (conversion) : La température doit être en kelvins. On ajoute deux cent soixante-treize virgule quinze à vingt-cinq degrés Celsius : on obtient deux cent quatre-vingt-dix-huit virgule quinze kelvins.
+    write temp_calc @cue:kelvins {"part":"temp_base"}
+    write temp_calc @cue:ajoute {"part":"temp_celsius"}
+    write temp_calc @cue:resultat {"part":"temp_resultat"}
+DIT (loi_gaz) : La loi des gaz parfaits s’écrit pression fois volume égale n fois R fois T. R vaut huit virgule trois cent quatorze kilopascals-litres par mole-kelvin.
+    write loi @cue:loi_mot {"part":"pv"}
+    write loi @cue:r_mot {"part":"nrt"}
+    show constante @cue:r_mot 
+=== Tranche s_calcul
+  OBJET isolement [math] "n = \\frac{pV}{RT}" parts=n = | \frac{pV}{RT}
+  OBJET substitution [math] "n = \\frac{101{,}3\\times 5{,}0}{8{,}314\\times 298{,}15}" parts=n = | \frac{101{,}3\times 5{,}0}{8{,}314\times 298{,}15}
+  OBJET resultat [math] {"kind":"computed","expression_ref":"quantite_mol","template":"n \\approx {value}\\ \\mathrm{mol}","precision":3} 
+DIT (isoler) : Pour trouver n, on divise les deux côtés de l’égalité par R fois T; ainsi, n reste seul à gauche et pression fois volume sur R fois T à droite.
+    write isolement @cue:trouver {"part":"n_egal"}
+    write isolement @cue:seul {"part":"fraction"}
+DIT (remplacer) : On remplace la pression par cent un virgule trois kilopascals, le volume par cinq virgule zéro litres, R par huit virgule trois cent quatorze, et T par deux cent quatre-vingt-dix-huit virgule quinze kelvins.
+    transform substitution @cue:pression {"source":"isolement"}
+DIT (calculer) : Le calcul donne environ zéro virgule deux cent quatre moles. Les kilopascals et les litres s’annulent avec les unités de R; il reste bien des moles.
+    write resultat @cue:donne 
+    highlight resultat @- {"start":"cue:donne","end":"cue_end:moles","role":"result"}
+=== Tranche s_retenir
+  OBJET regle_retenir [text] "Loi des gaz parfaits : n = pV ÷ (RT)" 
+  OBJET reponse_retenir [math] "n \\approx 0{,}204\\ \\mathrm{mol}" 
+  GROUPE resume = regle_retenir, reponse_retenir
+DIT (idee_centrale) : À retenir : la loi des gaz parfaits relie pression, volume, température et quantité de matière; ici, le ballon contient environ zéro virgule deux cent quatre moles de gaz.
+    fade_out donnees @cue:retenir 
+    fade_out temp_calc @cue:retenir 
+    fade_out loi @cue:retenir 
+    fade_out constante @cue:retenir 
+    fade_out isolement @cue:retenir 
+    fade_out substitution @cue:retenir 
+    fade_out resultat @cue:retenir 
+    show regle_retenir @cue:loi_retenir 
+    show reponse_retenir @cue:quantite 
+--- 4 tranches, 222 mots dits (≈ 1.5 min d'oral)

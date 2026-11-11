@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { bodyBox, makeRoomInCalc, nextCalcSlot, placeBeside, placeText, textExtent, FONT_SIZE, union } from "@/domain/board/layout";
-import { plainText } from "@/domain/board/tex";
+import { plainText } from "@/domain/nesalio/tex";
 import { isVisible, putNode, resolveTargets, type BoardState, type Reveal, type TextNode, type Vec2 } from "@/domain/board/state";
 import { BoardText, ColorName, Coord, Id, ShortText, Side, TextSize } from "../primitives";
 import { defineCommand } from "./define";

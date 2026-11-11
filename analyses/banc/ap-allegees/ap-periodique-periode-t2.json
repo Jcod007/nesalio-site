@@ -1,0 +1,629 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "periode_cycle",
+  "title": "Reconnaître la période et le cycle d'une fonction périodique",
+  "language": "fr",
+  "learning_goal": "Lire la période et le cycle sur un graphique en repérant le motif qui se répète et sa longueur en x."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_motif",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       12
+      ],
+      "y": [
+       -2,
+       2
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "sin(x)",
+      "domain": [
+       0,
+       12.566
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "t1",
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "t2",
+     "frame": "rep",
+     "params": {
+      "at": [
+       3.1416,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "t3",
+     "frame": "rep",
+     "params": {
+      "at": [
+       6.2832,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "cycle",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       6.2832,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "lbl_t1",
+     "attachment": {
+      "parent": "t1",
+      "anchor": "bottom"
+     },
+     "content": "0",
+     "type": "label"
+    },
+    {
+     "id": "lbl_t2",
+     "attachment": {
+      "parent": "t2",
+      "anchor": "bottom"
+     },
+     "content": "π",
+     "type": "label"
+    },
+    {
+     "id": "lbl_t3",
+     "attachment": {
+      "parent": "t3",
+      "anchor": "bottom"
+     },
+     "content": "2π",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Pour lire une fonction périodique, on cherche un motif qui se répète.",
+     "cues": [
+      {
+       "id": "c_motif",
+       "text": "un motif qui se répète"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_motif",
+       "end": "cue_end:c_motif",
+       "target": "courbe"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "bornes",
+     "say": "Regarde les bosses : entre zéro et deux pi, la vague monte, redescend et revient exactement au même point.",
+     "cues": [
+      {
+       "id": "c_deuxpi",
+       "text": "zéro et deux pi"
+      },
+      {
+       "id": "c_meme",
+       "text": "au même point"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_t1",
+       "verb": "show",
+       "at": "cue:c_deuxpi",
+       "target": "t1"
+      },
+      {
+       "id": "s_t2",
+       "verb": "show",
+       "at": "cue:c_deuxpi",
+       "target": "t2"
+      },
+      {
+       "id": "s_t3",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "t3"
+      },
+      {
+       "id": "s_lbl1",
+       "verb": "show",
+       "at": "cue:c_deuxpi",
+       "target": "lbl_t1"
+      },
+      {
+       "id": "s_lbl2",
+       "verb": "show",
+       "at": "cue:c_deuxpi",
+       "target": "lbl_t2"
+      },
+      {
+       "id": "s_lbl3",
+       "verb": "show",
+       "at": "cue:c_meme",
+       "target": "lbl_t3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cycle",
+   "introduces": [
+    {
+     "id": "seg",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3.1416,
+       0
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "note",
+     "size": "medium",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "Un cycle = une répétition complète du motif",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cycle_mot",
+     "say": "Une répétition complète du motif s'appelle un cycle.",
+     "cues": [
+      {
+       "id": "c_cycle",
+       "text": "un cycle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_seg",
+       "verb": "show",
+       "at": "cue:c_cycle",
+       "target": "seg"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_cycle",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "longueur",
+     "say": "La longueur de ce cycle sur l'axe des x, c'est la période. Ici, la période vaut deux pi.",
+     "cues": [
+      {
+       "id": "c_periode",
+       "text": "la période"
+      },
+      {
+       "id": "c_deuxpi2",
+       "text": "deux pi"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_seg",
+       "verb": "highlight",
+       "start": "cue:c_periode",
+       "end": "cue_end:c_deuxpi2",
+       "target": "seg",
+       "role": "accent"
+      },
+      {
+       "id": "s_cycle",
+       "verb": "show",
+       "at": "cue:c_deuxpi2",
+       "target": "cycle"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_lire",
+   "introduces": [
+    {
+     "id": "aide",
+     "size": "medium",
+     "layout": {
+      "next_to": "note",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{période} = \\text{longueur d'un cycle sur } x",
+     "type": "math"
+    },
+    {
+     "id": "aide2",
+     "size": "small",
+     "layout": {
+      "next_to": "aide",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "On repère la longueur en x entre deux points identiques.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "astuce",
+     "say": "Pour t'aider : choisis deux points identiques, par exemple deux sommets, et compte l'écart en x entre eux.",
+     "cues": [
+      {
+       "id": "c_sommets",
+       "text": "deux sommets"
+      },
+      {
+       "id": "c_ecart",
+       "text": "l'écart en x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_aide",
+       "verb": "write",
+       "at": "cue:c_ecart",
+       "target": "aide"
+      },
+      {
+       "id": "s_aide2",
+       "verb": "show",
+       "at": "cue:c_ecart",
+       "target": "aide2"
+      }
+     ]
+    },
+    {
+     "id": "verif",
+     "say": "Cet écart est toujours le même : c'est ce qui confirme que la fonction est périodique.",
+     "cues": [
+      {
+       "id": "c_toujours",
+       "text": "toujours le même"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_aide",
+       "verb": "highlight",
+       "start": "cue:c_toujours",
+       "end": "cue_end:c_toujours",
+       "target": "aide",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "size": "large",
+     "layout": {
+      "next_to": "aide2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "La période est la longueur en x d'un cycle",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fin",
+     "say": "À retenir : la période est la longueur d'un cycle sur l'axe des x, et le cycle est le motif qui se répète.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_longueur",
+       "text": "la longueur d'un cycle"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_note",
+       "verb": "dim",
+       "at": "cue:c_retenir",
+       "target": "note"
+      },
+      {
+       "id": "d_aide",
+       "verb": "dim",
+       "at": "cue:c_retenir",
+       "target": "aide"
+      },
+      {
+       "id": "d_aide2",
+       "verb": "dim",
+       "at": "cue:c_retenir",
+       "target": "aide2"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_longueur",
+       "target": "idee"
+      },
+      {
+       "id": "h_cycle",
+       "verb": "highlight",
+       "start": "cue:c_longueur",
+       "end": "cue_end:c_longueur",
+       "target": "cycle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

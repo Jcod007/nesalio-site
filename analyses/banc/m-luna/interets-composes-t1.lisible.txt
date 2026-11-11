@@ -1,0 +1,69 @@
+QUESTION (interets-composes, mathematiques, sec 5, methode) : comment je calcule combien j'vais avoir si je place 2000 $ à 4 % d'intérêt composé par année pendant 5 ans?
+RÉPONSE DE RÉFÉRENCE : 2000 × 1,04⁵ = 2433,31 $ (intérêt gagné 433,31 $).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. intérêt composé = l'intérêt s'ajoute au capital et rapporte à son tour ; ajouter 4 % = multiplier par 1,04
+  2. tableau année par année : 2080 ; 2163,20 ; 2249,73 ; 2339,72 ; 2433,31 $
+  3. formule C = C0(1 + i)^n reliée au tableau : 2000 × 1,04^5
+  4. réponse 2433,31 $ écrite (intérêt gagné 433,31 $)
+  5. valorisé : comparaison avec l'intérêt simple (2400 $)
+ERREURS GRAVES À CHERCHER : arrondi de 1,04⁵ avant la fin (2433,40 $) ; intérêt simple présenté comme composé
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Calculer un placement à intérêt composé
+math_context : {"symbols":{},"expressions":{"placement":"2000*1.04^5"}}
+=== Tranche s_repetition
+  OBJET tableau [matrix] {"rows":[[0,1,2,3,4,5],[2000,2080,2163.2,2249.73,2339.72,2433.31]],"row_labels":["année","capital ($)"],"column_labels":["valeur","0","1","2","3","4","5"]} 
+  OBJET facteur [label] "× 1,04 chaque année" attaché à tableau
+DIT (depart) : On part de deux mille dollars. Chaque année, le placement augmente de quatre pour cent, donc on multiplie le capital par un virgule zéro quatre.
+    show tableau @cue:capital_initial 
+    show facteur @cue:multiplie_capital 
+DIT (repetition) : Après un an, deux mille fois un virgule zéro quatre donne deux mille quatre-vingts dollars. On répète la multiplication chaque année, parce que les intérêts ajoutés rapportent eux aussi.
+    highlight tableau @- {"start":"cue:apres_un_an","end":"cue_end:apres_un_an","role":"accent"}
+    highlight tableau @- {"start":"cue:repete_multiplication","end":"cue_end:repete_multiplication","role":"accent"}
+=== Tranche s_formule
+  OBJET formule [math] "C = C_0(1+i)^n" parts=C = | C_0 | (1+i)^n
+  OBJET substitution [math] "2000 \\times 1{,}04^5" parts=2000 | \times | 1{,}04^5
+  OBJET calcul_final [math] {"kind":"computed","expression_ref":"placement","template":"= {value} $","precision":2} 
+DIT (signification) : La formule de l’intérêt composé est capital final égale capital initial fois un plus le taux, le tout exposant le nombre d’années. L’exposant cinq correspond aux cinq multiplications du tableau.
+    write formule @cue:formule_dite {"part":"cote_c"}
+    write formule @cue:capital_initial_dit {"part":"capital_initial"}
+    write formule @cue:cinq_multiplications {"part":"facteur_annuel"}
+DIT (remplacement) : Ici, le capital initial vaut deux mille, le taux vaut zéro virgule zéro quatre, et le nombre d’années vaut cinq. On obtient donc deux mille fois un virgule zéro quatre exposant cinq.
+    dim tableau @cue:capital_vaut 
+    transform substitution @cue:obtient {"source":"formule"}
+DIT (resultat) : Le calcul donne deux mille quatre cent trente-trois virgule trente et un dollars. On garde toute la puissance pendant le calcul et on arrondit seulement le résultat final aux cents.
+    transform calcul_final @cue:donne {"source":"substitution"}
+    highlight calcul_final @- {"start":"cue:donne","end":"cue_end:donne","role":"result"}
+=== Tranche s_interet_gagne
+  OBJET interet [math] "2433{,}31 - 2000 = 433{,}31\\ \\$" parts=2433{,}31 | - | 2000 | = | 433{,}31\ \$
+  OBJET simple [math] "2000 + 5 \\times 80 = 2400\\ \\$" parts=2000 | + | 5 \times 80 | = 2400\ \$
+DIT (gain_place) : Pour trouver l’intérêt gagné, on soustrait le capital de départ du montant final : deux mille quatre cent trente-trois virgule trente et un moins deux mille, ça fait quatre cent trente-trois virgule trente et un dollars.
+    dim calcul_final @cue:interet_gagne 
+    write interet @cue:soustrait {"part":"montant_final"}
+    write interet @cue:soustrait {"part":"moins"}
+    write interet @cue:soustrait {"part":"capital_depart"}
+    write interet @cue:gain_resultat {"part":"egal"}
+    write interet @cue:gain_resultat {"part":"gain"}
+DIT (comparaison) : À intérêt simple, on gagnerait seulement cinq fois quatre-vingts dollars, soit quatre cents dollars, pour un total de deux mille quatre cents dollars. La différence vient des intérêts qui rapportent à leur tour.
+    write simple @cue:simple {"part":"capital_simple"}
+    write simple @cue:simple {"part":"plus"}
+    write simple @cue:simple {"part":"interets_annuels"}
+    write simple @cue:total {"part":"simple_egal"}
+    fade_out tableau @cue:difference 
+    fade_out facteur @cue:difference 
+    fade_out interet @cue:difference 
+    fade_out simple @cue:difference 
+=== Tranche s_retenir
+  OBJET regle [math] "C = C_0(1+i)^n" parts=C = | C_0 | (1+i)^n
+  OBJET reponse [math] "C = 2433{,}31\\ \\$ ;\\quad I = 433{,}31\\ \\$" parts=C = 2433{,}31\ \$ | ;\quad I = 433{,}31\ \$
+  OBJET idee_centrale [text] "Chaque année, l’intérêt ajouté rapporte à son tour." 
+  GROUPE resume = regle, reponse, idee_centrale
+DIT (conclusion) : À retenir : l’intérêt composé ajoute l’intérêt au capital chaque année, puis ce nouveau montant rapporte à son tour. Deux mille dollars placés à quatre pour cent pendant cinq ans donnent deux mille quatre cent trente-trois dollars et trente et un cents, dont quatre cent trente-trois dollars et trente et un cents d’intérêt gagné.
+    write regle @cue:interet_compose_dit {"part":"regle_c"}
+    write regle @cue:interet_compose_dit {"part":"regle_c0"}
+    write regle @cue:interet_compose_dit {"part":"regle_facteur"}
+    write reponse @cue:montant_donne {"part":"montant"}
+    write reponse @cue:montant_donne {"part":"interet_gagne_final"}
+    show idee_centrale @cue:a_retenir 
+    highlight idee_centrale @- {"start":"cue:interet_compose_dit","end":"cue_end:interet_compose_dit","role":"accent"}
+--- 4 tranches, 269 mots dits (≈ 1.8 min d'oral)

@@ -1,0 +1,61 @@
+QUESTION (ap-gaz-conversion-pression, chimie, sec 5, alloprof) : Comment est-ce que je fais la conversion mm Hg -> kPa -> atm avec la logique de 760 mmHg = 101,3 kPa = 1 atm si j'ai une valeur de 78 cm Hg et 1345 Pa ? Je veux convertir en atm.
+RÉPONSE DE RÉFÉRENCE : 78 cmHg = 780 mmHg ≈ 1,03 atm ; 1345 Pa = 1,345 kPa ≈ 1,33×10⁻² atm.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Convertir 78 cm Hg et 1345 Pa en atm
+math_context : {"symbols":{},"expressions":{"atm_cmhg":"780/760","atm_pa":"1345/(101.3*1000)"}}
+=== Tranche s_ancrage
+  OBJET ancrage [math] "1\\ \\text{atm} = 760\\ \\text{mm Hg} = 101{,}3\\ \\text{kPa}" 
+  OBJET note_cm [label] "1 cm = 10 mm" 
+DIT (pont) : Pour passer d'une pression à l'atmosphère, on utilise toujours le même pont : une atmosphère vaut sept cent soixante millimètres de mercure, ou cent un virgule trois kilopascals.
+    write ancrage @cue:c_760 
+    highlight ancrage @- {"start":"cue:c_101","end":"cue_end:c_101","role":"accent"}
+DIT (regle) : Cette égalité, c'est ta règle de trois : une même pression écrite de deux façons, donc le rapport des nombres est le taux de conversion.
+    show note_cm @cue:c_regle 
+=== Tranche s_cmhg
+  OBJET eq_cm [math] "x = \\frac{780\\ \\text{mm Hg}}{760\\ \\text{mm Hg}} \\times 1\\ \\text{atm}" parts=x | = \frac{780\ \text{mm Hg}}{760\ \text{mm Hg}} | \times 1\ \text{atm}
+  OBJET res_cm [math] {"kind":"computed","expression_ref":"atm_cmhg","template":"x \\approx {value}\\ \\text{atm}","precision":2} 
+  OBJET barre [label] "les « mm Hg » se simplifient" 
+DIT (cm) : Commençons par tes soixante-dix-huit centimètres de mercure. D'abord, un centimètre vaut dix millimètres, donc soixante-dix-huit centimètres font sept cent quatre-vingts millimètres.
+    write eq_cm @cue:c_cm {"part":"tete"}
+    highlight note_cm @- {"start":"cue:c_dix","end":"cue_end:c_dix","role":"given"}
+    show barre @cue:c_780 
+DIT (pose) : Alors je divise sept cent quatre-vingts par sept cent soixante : les unités millimètres de mercure s'annulent, et je multiplie par une atmosphère.
+    write eq_cm @cue:c_divise {"part":"div"}
+    write eq_cm @cue:c_times {"part":"fois"}
+DIT (resultat) : Sept cent quatre-vingts divisé par sept cent soixante donne environ un virgule zéro trois atmosphère.
+    write res_cm @cue:c_approx 
+    highlight res_cm @after:w_res {"role":"result"}
+=== Tranche s_pascal
+  OBJET eq_pa [math] "x = \\frac{1345\\ \\text{Pa}}{101{,}3\\ \\text{kPa}} = \\frac{1{,}345\\ \\text{kPa}}{101{,}3\\ \\text{kPa}}" parts=x | = \frac{1345\ \text{Pa}}{101{,}3\ \text{kPa}} | = \frac{1{,}345\ \text{kPa}}{101{,}3\ \text{kPa}}
+  OBJET res_pa [math] {"kind":"computed","expression_ref":"atm_pa","template":"x \\approx {value}\\ \\text{atm}","precision":5} 
+  OBJET note_kpa [label] "1 kPa = 1000 Pa : je mets tout en kPa" 
+DIT (pa) : Ta deuxième valeur est en pascals, et ici le pont est en kilopascals : il faut mettre les deux unités sur la même échelle.
+    write eq_pa @cue:c_kpa {"part":"p1"}
+    fade_out ancrage @cue:c_kpa 
+    fade_out note_cm @cue:c_kpa 
+    show note_kpa @cue:c_kpa 
+DIT (mille) : Mille pascals font un kilopascal, donc treize cent quarante-cinq pascals, c'est un virgule trois quatre cinq kilopascal.
+    write eq_pa @cue:c_mille {"part":"p2"}
+    write eq_pa @cue:c_1345 {"part":"p3"}
+DIT (fin) : Je divise un virgule trois quatre cinq par cent un virgule trois : j'obtiens environ zéro virgule zéro un trois trois atmosphère.
+    write res_pa @cue:c_environ 
+    highlight res_pa @after:w_respa {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle_fin [math] "\\frac{\\text{pression donnée}}{\\text{pression équivalente à 1 atm}} = \\text{nombre d'atm}" parts=\frac{\text{pression donnée}}{\text{pression équivalente à 1 atm}} | = \text{nombre d'atm}
+  OBJET resume [text] "En mm Hg : ÷ 760      En kPa : ÷ 101,3      En Pa : ÷ 101 300" 
+DIT (idee) : À retenir : diviser ta pression par celle qui vaut une atmosphère, dans la même unité, te donne directement le nombre d'atmosphères.
+    fade_out eq_cm @beat:start 
+    fade_out res_cm @beat:start 
+    fade_out barre @beat:start 
+    fade_out eq_pa @beat:start 
+    fade_out res_pa @beat:start 
+    fade_out note_kpa @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["regle_fin","resume"],"bounds":"layout_bounds"}
+    write regle_fin @cue:c_diviser {"part":"fraction"}
+DIT (deux) : Et tes deux réponses : sept cent quatre-vingts millimètres de mercure donnent environ un virgule zéro trois atm, tandis que treize cent quarante-cinq pascals donnent seulement zéro virgule zéro un trois atm.
+    write regle_fin @cue:c_tes {"part":"egal"}
+    show resume @after:w_egal 
+--- 4 tranches, 229 mots dits (≈ 1.5 min d'oral)

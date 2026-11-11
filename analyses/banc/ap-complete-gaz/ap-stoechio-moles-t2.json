@@ -1,0 +1,694 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "mole_masse_molaire",
+  "title": "La mole : un paquet de 6,02 × 10²³ entités",
+  "language": "fr",
+  "learning_goal": "Comprendre que la mole est un paquet d'entités et que la masse molaire permet de passer des grammes aux moles en divisant."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "M_H2O": {
+     "kind": "constant",
+     "value": 18.02
+    }
+   },
+   "expressions": {
+    "n": "36/18.02"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_paquet",
+   "introduces": [
+    {
+     "id": "douzaine",
+     "content": "une douzaine = 12 objets",
+     "type": "text"
+    },
+    {
+     "id": "mole",
+     "content": "une mole = 6,02 × 10²³ entités",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "accueil",
+     "say": "Pas de problème, on va démêler ça ensemble.",
+     "cues": [],
+     "do": []
+    },
+    {
+     "id": "compare",
+     "say": "Pense à une douzaine : c'est juste un paquet de douze objets. Une mole, c'est pareil, mais un paquet gigantesque de six virgule zéro deux fois dix exposant vingt-trois entités.",
+     "cues": [
+      {
+       "id": "c_douzaine",
+       "text": "une douzaine"
+      },
+      {
+       "id": "c_mole",
+       "text": "Une mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_douzaine",
+       "verb": "show",
+       "at": "cue:c_douzaine",
+       "target": "douzaine"
+      },
+      {
+       "id": "s_mole",
+       "verb": "show",
+       "at": "cue:c_mole",
+       "target": "mole"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse_molaire",
+   "introduces": [
+    {
+     "id": "eau",
+     "content": "M(\\ce{H2O}) = 2 \\times 1{,}01 + 16{,}00 = 18{,}02 \\ \\text{g/mol}",
+     "parts": [
+      {
+       "id": "form",
+       "text": "M(\\ce{H2O})"
+      },
+      {
+       "id": "calcul",
+       "text": "= 2 \\times 1{,}01 + 16{,}00"
+      },
+      {
+       "id": "total",
+       "text": "= 18{,}02 \\ \\text{g/mol}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "unemoleeau",
+     "layout": {
+      "next_to": "eau",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "1 mole d'eau pèse 18,02 g",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "definition",
+     "say": "La masse molaire, c'est la masse d'une mole de cette substance. On la lit dans le tableau périodique en additionnant les masses des atomes.",
+     "cues": [
+      {
+       "id": "c_masse_molaire",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_addition",
+       "text": "additionnant"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_douzaine",
+       "verb": "fade_out",
+       "at": "cue:c_masse_molaire",
+       "target": "douzaine"
+      },
+      {
+       "id": "f_mole",
+       "verb": "fade_out",
+       "at": "cue:c_masse_molaire",
+       "target": "mole"
+      }
+     ]
+    },
+    {
+     "id": "eau_calcul",
+     "say": "Pour l'eau, H deux O : deux fois un virgule zéro un pour les deux hydrogènes, plus seize virgule zéro zéro pour l'oxygène. Ça donne dix-huit virgule zéro deux grammes par mole.",
+     "cues": [
+      {
+       "id": "c_form",
+       "text": "H deux O"
+      },
+      {
+       "id": "c_calcul",
+       "text": "deux fois un virgule zéro un"
+      },
+      {
+       "id": "c_total",
+       "text": "dix-huit virgule zéro deux grammes par mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_form",
+       "verb": "write",
+       "at": "cue:c_form",
+       "target": "eau",
+       "part": "form"
+      },
+      {
+       "id": "w_calcul",
+       "verb": "write",
+       "at": "cue:c_calcul",
+       "target": "eau",
+       "part": "calcul"
+      },
+      {
+       "id": "w_total",
+       "verb": "write",
+       "at": "cue:c_total",
+       "target": "eau",
+       "part": "total"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sens",
+     "say": "Donc dans une mole d'eau, il y a dix-huit virgule zéro deux grammes. C'est ça, la masse molaire.",
+     "cues": [
+      {
+       "id": "c_donc",
+       "text": "une mole d'eau"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_unemole",
+       "verb": "show",
+       "at": "cue:c_donc",
+       "target": "unemoleeau"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_proportion",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        18.02,
+        36.04,
+        9.01
+       ],
+       [
+        1,
+        2,
+        0.5
+       ]
+      ],
+      "row_labels": [
+       "masse (g)",
+       "quantité (mol)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "divise",
+     "attachment": {
+      "parent": "tab",
+      "anchor": "right"
+     },
+     "content": "÷ 18,02",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "table",
+     "say": "On peut ranger ça dans un tableau de proportionnalité. En bas, la quantité en moles ; en haut, la masse en grammes.",
+     "cues": [
+      {
+       "id": "c_tableau",
+       "text": "tableau de proportionnalité"
+      },
+      {
+       "id": "c_moles",
+       "text": "moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_tableau",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "regle",
+     "say": "Une mole pèse dix-huit virgule zéro deux grammes. Deux moles, le double : trente-six virgule zéro quatre grammes. Une demi-mole, la moitié : neuf virgule zéro un grammes.",
+     "cues": [
+      {
+       "id": "c_une",
+       "text": "Une mole"
+      },
+      {
+       "id": "c_deux",
+       "text": "Deux moles"
+      },
+      {
+       "id": "c_demi",
+       "text": "Une demi-mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_div",
+       "verb": "show",
+       "at": "cue:c_une",
+       "target": "divise"
+      },
+      {
+       "id": "h_deux",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "tab",
+       "role": "accent"
+      },
+      {
+       "id": "h_demi",
+       "verb": "highlight",
+       "start": "cue:c_demi",
+       "end": "cue_end:c_demi",
+       "target": "tab",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "passe",
+     "content": "des grammes aux moles : on divise par M",
+     "type": "text"
+    },
+    {
+     "id": "calc",
+     "layout": {
+      "next_to": "eau",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n = \\frac{36}{18{,}02} \\approx 2{,}0 \\ \\text{mol}",
+     "parts": [
+      {
+       "id": "n",
+       "text": "n ="
+      },
+      {
+       "id": "frac",
+       "text": "\\frac{36}{18{,}02}"
+      },
+      {
+       "id": "res",
+       "text": "\\approx 2{,}0 \\ \\text{mol}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "passer",
+     "say": "Pour passer des grammes aux moles, on divise la masse par la masse molaire.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "on divise"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_passe",
+       "verb": "show",
+       "at": "cue:c_divise",
+       "target": "passe"
+      }
+     ]
+    },
+    {
+     "id": "exemple",
+     "say": "Dans trente-six grammes d'eau, on écrit n égale trente-six divisé par dix-huit virgule zéro deux, environ deux virgule zéro moles.",
+     "cues": [
+      {
+       "id": "c_n",
+       "text": "n égale"
+      },
+      {
+       "id": "c_frac",
+       "text": "trente-six divisé par"
+      },
+      {
+       "id": "c_res",
+       "text": "environ deux virgule zéro moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n",
+       "verb": "write",
+       "at": "cue:c_n",
+       "target": "calc",
+       "part": "n"
+      },
+      {
+       "id": "w_frac",
+       "verb": "write",
+       "at": "cue:c_frac",
+       "target": "calc",
+       "part": "frac"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_res",
+       "target": "calc",
+       "part": "res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "une mole = 6,02 × 10²³ entités ; n = m ÷ M",
+     "type": "text"
+    },
+    {
+     "id": "rappel",
+     "content": "n = \\frac{m}{M}",
+     "parts": [
+      {
+       "id": "n2",
+       "text": "n ="
+      },
+      {
+       "id": "frac2",
+       "text": "\\frac{m}{M}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "centre",
+     "say": "À retenir : la mole est un paquet de six virgule zéro deux fois dix exposant vingt-trois entités, et sa masse est la masse molaire.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_paquet",
+       "text": "un paquet"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_passe",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "passe"
+      },
+      {
+       "id": "f_calc",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calc"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "tab"
+      },
+      {
+       "id": "f_div",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "divise"
+      },
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_paquet",
+       "target": "idee"
+      }
+     ]
+    },
+    {
+     "id": "formule",
+     "say": "Pour trouver le nombre de moles, on divise la masse par la masse molaire : n égale m sur grand M.",
+     "cues": [
+      {
+       "id": "c_formule",
+       "text": "n égale m sur grand M"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_n2",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "rappel",
+       "part": "n2"
+      },
+      {
+       "id": "w_frac2",
+       "verb": "write",
+       "at": "cue:c_formule",
+       "target": "rappel",
+       "part": "frac2"
+      },
+      {
+       "id": "h_rappel",
+       "verb": "highlight",
+       "at": "after:w_frac2",
+       "target": "rappel",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

@@ -1,9 +1,9 @@
 # Nesalio — prototype de l'application
 
 L'élève pose sa question (au clavier ou à voix haute). Nesa répond à voix haute
-en construisant l'explication au tableau, étape par étape, avec les animations
-de Manim. L'élève peut l'interrompre à tout moment (« Attends, je comprends
-pas »), lui poser une question sur ce qui est au tableau, puis reprendre.
+en construisant l'explication au tableau, tranche par tranche, avec les animations
+de Manim. Elle pose parfois une question à l'élève pour vérifier qu'il suit.
+L'élève peut mettre en pause, couper le son et revoir l'explication.
 
 - **Next.js 16 + TypeScript**, déployé sur Vercel.
 - **manim-web** pour le tableau : repère, courbes, vecteurs, `Create`,
@@ -14,8 +14,8 @@ pas »), lui poser une question sur ce qui est au tableau, puis reprendre.
   micro, appelé uniquement côté serveur. Sur Vercel, l'authentification est
   automatique (jeton OIDC) : aucune clé à gérer. OpenRouter reste possible
   pour le modèle.
-- **Repli automatique** : sans service d'IA, séances de démonstration, voix du
-  navigateur et reconnaissance vocale du navigateur.
+- **Sans service d'IA** : la page indique que Nesa est indisponible. Sans voix,
+  la leçon se joue en sous-titres.
 - **Comptes préparés** : connexion et inscription Clerk par code courriel.
   Activer l'instance Clerk et ses clés avant de déployer cette version ; voir
   [la configuration et les vérifications](docs/authentication.md). Sans configuration,
@@ -33,121 +33,68 @@ npm run check                # format et lint (Biome) ; npm run format corrige l
 npm run test:e2e             # parcours réel dans le navigateur (ordinateur + téléphone), app lancée à part
 ```
 
-Pour le parcours sans compte ni service externe, démarrer l'application avec
-`NESALIO_LOCAL_DEMO=1 DISABLE_AI=1 npm run dev`. Ce mode de démonstration est
-réservé au local, hors production et sans variable `VERCEL` ; il est refusé
-avec `npm start` et sur les déploiements Vercel.
+## Accès privé au développement
 
-Ces vérifications tournent seules sur GitHub à chaque pull request et à chaque push dans `main` (`.github/workflows/ci.yml`) : format et lint, types, tests unitaires, build, puis le parcours dans le navigateur en mode démonstration (sans IA). Ne fusionne une pull request que si elles sont vertes.
+Configurer sur le serveur `NESALIO_DEV_ACCESS_TOKEN` avec un secret aléatoire
+d'au moins 32 caractères. Le lien privé `https://app.nesalio.com/dev/access?key=<secret>`
+installe un cookie sécurisé puis ouvre `/dev`, sans compte Nesalio. Conserver ce
+lien confidentiel : il donne accès à Nesa, à la voix et à la transcription
+sans limites applicatives. Le cookie expire après 30 jours ; changer le secret
+révoque les liens et cookies précédents. Les coûts et quotas des fournisseurs
+restent applicables. Sans secret configuré, l'accès reste fermé.
+
+Ces vérifications tournent seules sur GitHub à chaque pull request et à chaque push dans `main` (`.github/workflows/ci.yml`) : format et lint, types, tests unitaires, build, puis le parcours dans le navigateur en mode démonstration (sans IA : `NESALIO_LOCAL_DEMO=1 DISABLE_AI=1 npm run dev`, réservé au local, le parcours répond lui-même à `/api/nesalio` et `/api/voice`). Ne fusionne une pull request que si elles sont vertes.
 
 ## Séances enregistrées
 
-Chaque tour (une requête à `/api/tutor`) est enregistré après la réponse dans
-le magasin Vercel Blob **privé** `nesalio-seances` (Montréal) : la question ou
-la réponse de l'élève, et exactement les événements envoyés (paroles, dessins,
-questions, lignes refusées), dans le format du flux, donc rejouable avec
-`tools/rejeu`. Ni nom, ni courriel, ni IP, ni audio. Voir `src/domain/sessionLog.ts`.
+Chaque leçon (une requête à `/api/nesalio`) est enregistrée après la réponse dans
+le magasin Vercel Blob **privé** `nesalio-seances` (Montréal) : la question de l'élève,
+le modèle, l'attente avant la première tranche, l'issue (complète, interrompue, erreur)
+et exactement le flux envoyé (en-tête, tranches, questions), donc rejouable. Ni nom,
+ni courriel, ni IP, ni audio. Voir `src/domain/sessionLog.ts` (`LessonRecord`).
+Les fichiers d'avant le 2026-11-10 sont des tours de l'ancien tuteur, gardés jusqu'à
+leur purge. Pas encore enregistré : les réponses de l'élève aux questions posées
+pendant la leçon (elles restent dans le navigateur).
+Analyse : `tools/analyse/seances.ts` ; questions des élèves : `tools/eval/questions-seances.mjs`.
+En local seulement, `NESALIO_GARDER_LECONS=1` garde chaque leçon Nesalio jouée
+(`src/server/nesalio/keepLesson.ts`).
 
-- Chemin : `production/AAAA-MM-JJ/<session courte>/<heure>-<mode>.json`
+- Chemin : `production/AAAA-MM-JJ/<session courte>/<heure>-nesalio.json` (anciens tours : `<heure>-<mode>.json`)
   (la session courte est celle des retours « Signaler un problème »).
 - Consulter : `/api/seances?jour=AAAA-MM-JJ[&session=xxxxxxxx][&env=preview]`, avec
   l'en-tête `Authorization: Bearer <SELFTEST_TOKEN>` (jamais le jeton dans l'URL).
 - Conservation : 12 mois, purge quotidienne (`vercel.json`, `/api/seances/purge`, `CRON_SECRET`).
 - Désactiver : `RECORD_SESSIONS=0` (ou sans `BLOB_READ_WRITE_TOKEN`, en local).
 
-Sans accès à AI Gateway (ni `OPENROUTER_API_KEY`), l'application joue trois séances de démonstration
-(zéros d'une quadratique, portée d'un projectile, dérivée) et l'indique par une
-étiquette « Démonstration » en haut de l'écran.
-
 ## Architecture
 
-Le principe : **le modèle ne dessine jamais**. Il décrit l'explication dans un
-petit langage de scène ; tout est validé avant d'atteindre le tableau.
+Le principe : **le modèle ne dessine jamais**. Il décrit la leçon en JSON Nesalio
+(v3.3 : tranches, temps forts, repères de voix, actions) ; tout est réparé quand
+l'écart est sans ambiguïté, puis validé avant d'atteindre le tableau.
 
 ```
-Navigateur                                           Serveur (Vercel)
-───────────                                          ─────────────────
-QuestionInput ─▶ Player ─▶ TutorSource (HTTP) ──POST /api/tutor──▶ service.ts
-   (micro)        │  ▲                                                │
-                  │  └──── étapes validées, en flux NDJSON ◀──────────┤ modelOutput.ts (validation)
-                  │                                                   │ prompt.ts (consignes + exemple)
-                  ▼                                                   ▼
-     graphe de scène (pur) ─▶ ManimRenderer (manim-web)   AI Gateway (flux SSE)
-       + moteur de placement ─▶ DiagnosticTag
-                  └─▶ Speaker (voix) · Dock (sous-titres, choix, interruption)
+Navigateur                                        Serveur (Vercel)
+───────────                                       ─────────────────
+NesalioApp ─▶ NesalioSession ──POST /api/nesalio──▶ server/nesalio/generator.ts
+                 │  ▲                                  │ prompt.ts (consignes)
+                 │  └── tranches validées, flux NDJSON ◀┤ normalize.ts + validate.ts
+                 ▼                                      │ review.ts (relecture)
+   nesalioPlayback (temps, caméra, tranchePlan)         ▼
+        ─▶ NesalioProjection (manim-web)          modèle (écriture + relecture)
+        ─▶ voix (/api/voice) · NesalioDock (sous-titres, questions)
 ```
 
-| Dossier | Rôle | Dépend de |
-|---|---|---|
-| `src/domain/` | Le cœur, sans React ni réseau : langage de scène (Zod), parseur d'expressions sûr, état du tableau, planification des tracés, validation de la sortie du modèle | rien |
-| `src/engine/` | `Player` : la machine à états qui joue les étapes, gère l'interruption et la reprise. `ports.ts` définit ce dont il a besoin (voix, source, horloge) ; `SessionMemory` retient la séance, `TurnTranscript` l'enregistre pour les signalements | `domain` |
-| `src/server/` | Routes `/api/tutor`, `/api/voice`, `/api/transcribe`, `/api/status` ; consignes du modèle, appels à AI Gateway, limites d'usage | `domain`, `content` |
-| `src/services/` | Implémentations navigateur des ports : voix, micro, client HTTP | `domain`, `engine` |
-| `src/ui/` | Écran : tableau manim-web (`ManimRenderer`, un constructeur par type de nœud dans `nodeBuilders.ts`), carte de Nesa, colonne de calculs, accueil | tout le reste |
-| `src/content/` | Séances de démonstration écrites dans le langage de scène (servent aussi d'exemple au modèle et aux tests) | `domain` |
+| Dossier | Rôle |
+|---|---|
+| `src/domain/nesalio/` | Le format Nesalio, sans React ni réseau : contrat, réparations (`normalize`), validation, placement, état de la scène, mesure des textes et formules, questions à l'élève |
+| `src/engine/` | La séance (`nesalioSession`), la lecture image par image (`nesalioPlayback`), la caméra planifiée par tranche (`tranchePlan`) |
+| `src/server/nesalio/` | Génération en flux, consignes, relecture, conservation locale des leçons |
+| `src/app/api/` | `nesalio`, `voice`, `transcribe`, `status`, `diagnostic` (POST de vérification), `feedback`, `apres-essai`, `seances` (lecture et purge des archives) |
+| `src/ui/` | Écran : tableau manim-web (`ui/board/manim`), dock, accueil, retours |
+| `src/domain/board`, `src/domain/scene` | Briques reprises de l'ancien tuteur et encore utilisées : mesures, primitives de rendu, accès aux étapes des séances archivées |
 
-### Comment les éléments communiquent
-
-1. **Question** → `Player.ask()` ouvre une « séquence » et appelle `/api/tutor`.
-2. Le serveur envoie les consignes et une séance d'exemple au modèle, lit sa
-   réponse **en flux**, repère chaque objet JSON, le corrige si l'écart est
-   sans ambiguïté (`line` → `segment`, identifiant manquant…), le valide, et le
-   renvoie aussitôt au navigateur. La première étape est jouée pendant que le
-   modèle écrit les suivantes.
-3. Pour chaque étape, `planStep()` étale les tracés sur la durée de la phrase.
-   Le lecteur applique les commandes à l'état du tableau avec leurs heures de
-   départ, puis fait parler Nesa.
-4. Le tableau est une **projection de l'état** : `ManimRenderer` compare l'état
-   reçu à ce qu'il a déjà dessiné et lance les animations manquantes avec
-   `scene.playWithTimestamps()`, aux heures prévues, ce qui synchronise le
-   tracé avec la voix.
-5. **Échange par tours** : un tour (1 à 3 étapes) se termine sur une question
-   posée à l'élève. Le serveur coupe alors l'appel au modèle et envoie
-   `{"kind":"await"}`. Dès que l'élève répond, le lecteur demande le tour
-   suivant (`mode: "continue"`, avec sa réponse et l'état du tableau) pendant
-   que Nesa réagit à voix haute ; le modèle adapte la suite (confirmation,
-   ou remédiation ciblée sur l'erreur probable). Une question sans bonne
-   réponse sert à situer l'élève (ce qu'il connaît déjà).
-6. **Interruption** : la voix se coupe, l'élève pose sa question. Le lecteur
-   empile une séquence de réponse et envoie au modèle ce qui a été dit et ce
-   qui est au tableau (`summarizeBoard`). Nesa répond en réutilisant les
-   objets du tableau, puis la séance reprend à l'étape suivante.
-
-### Le langage de scène
-
-Défini dans `src/domain/scene/schema.ts`. Une réponse du modèle est une suite
-de lignes JSON :
-
-```json
-{"kind":"lesson","title":"Les zéros d'une fonction quadratique","topic":"Fonctions · sec 4"}
-{"kind":"step","say":"Le sommet est au point 2, 3.","mood":"dessine","do":[{"type":"point","id":"s","at":[2,3],"label":"(2, 3)","ring":true}]}
-{"kind":"step","say":"À toi.","mood":"question","do":[],"check":{"prompt":"Combien de zéros ?","choices":["0","1","2"],"answer":0,"ifRight":"Bravo !","ifWrong":"Presque."}}
-{"kind":"end","summary":["Forme canonique : lire le sommet"]}
-```
-
-Commandes (registre `src/domain/scene/commands/`) : `axes`, `curve`, `stepFunction`
-(partie entière exacte, SN 4), `areaModel` (modèle d'aire, SN 4), `point`,
-`vector`, `segment`, `text` (posé à côté d'un objet avec `near`), `note`
-(ligne de calcul), `tag`, `group`, `move`, `transform`, `highlight`, `dim`,
-`undim`, `erase`, `clear`, `focus`, `resetView`.
-
-Chaque commande est un module unique : son schéma (validation), sa
-documentation pour le modèle (générée dans les consignes), sa durée et son
-effet sur le graphe de scène. Pour en ajouter une : écrire le module et
-l'inscrire dans `commands/index.ts`. Le rendu n'a pas à changer tant que la
-commande manipule des nœuds existants (il dessine des nœuds, pas des commandes).
-
-### Le graphe de scène
-
-`src/domain/board/state.ts` est la représentation abstraite du tableau : des
-nœuds (courbe, point, vecteur, segment, texte) avec leur apparition, leur
-déplacement cumulé, leur dernière transformation et leur estompage ; des
-groupes ; des relations (un texte ancré à un objet le suit et disparaît avec
-lui) ; la pile de calculs. `src/domain/board/layout.ts` est le moteur de
-placement : l'IA dit « à côté de A », il choisit la place libre (en évitant
-textes, points, courbes et axes) et range les calculs en colonne à côté de la
-figure, en faisant de la place quand elle est pleine. Le rendu Manim ne fait
-que projeter ce graphe (Create, Shift, ReplacementTransform, fondus, Indicate).
+Détails : `docs/plan-bascule-nesalio.md`, `docs/nesalio-espace-camera.md`,
+`docs/chantier-camera.md`, `docs/synchronisation-voix-tableau.md`.
 
 ## Déploiement (Vercel)
 
@@ -176,29 +123,23 @@ que projeter ce graphe (Create, Shift, ReplacementTransform, fondus, Indicate).
 
 ## Vérifier un déploiement
 
-`/api/diagnostic?ask=<question>`, avec l'en-tête `Authorization: Bearer <SELFTEST_TOKEN>`, joue une séance
-complète côté serveur avec un élève simulé : `voice=1` (micro simulé),
-`model=<id>` (autre modèle d'AI Gateway), `effort=none|low|medium|high`
-(réflexion du modèle, principal levier de latence), `answers=right|wrong`.
-Le rapport donne, tour par tour, le délai avant la première phrase, les gestes
-(objets qui bougent ou se transforment) et les phrases « dites sans montrer ».
+`POST /api/diagnostic`, avec l'en-tête `Authorization: Bearer <SELFTEST_TOKEN>`, valide
+une leçon Nesalio assemblée ou une sortie du modèle, sans appeler de fournisseur.
+(L'ancienne séance complète en GET a été retirée avec le tuteur le 2026-11-10.)
 
 ## Mesurer avant / après un changement
 
-- **Banc d'évaluation** : `tools/eval/evaluer.mjs` joue les questions de
-  `tools/eval/questions.json` contre `/api/diagnostic` et enregistre les mesures
-  dans `tools/eval/resultats/` (gestes, dit sans montrer, rejets, cibles absentes,
-  latence). À lancer avant et après chaque changement de consigne ou du moteur :
-  `NESALIO_URL=https://app.nesalio.com SELFTEST_TOKEN=… node tools/eval/evaluer.mjs`.
-  `--set=sn4` joue `questions-sn4.json` (1re étape de SN 4 : factorisation, division de
-  polynômes, expressions rationnelles, partie entière) et vérifie aussi le contenu du programme
-  (méthode de la classe, bon résultat, notation québécoise) : « Programme : n/N critères respectés ».
-- **Rejeu visuel** : `tools/rejeu/seance.py` rejoue une séance enregistrée (les
-  événements du diagnostic avec `raw=1`) dans le navigateur, sur un serveur
-  local (`npx next start -p 3100`), et capture une image par phrase ;
-  `tools/rejeu/rafale.py` prend une rafale d'images pendant un geste.
-  `tools/rejeu/partitions/` contient les moments clés de 5 vidéos de
-  3Blue1Brown écrits dans le langage de Nesa (tests du moteur).
+- **Banc Nesalio** : `BANC=1 npx vitest run tools/eval/banc-nesalio.test.mjs` génère
+  les questions de `corpus-nesalio.json` par le vrai chemin de la route et compte les
+  leçons intactes, les échecs, les délais et le coût.
+- **Captures** : `node tools/eval/captures-nesalio.mjs <travaux.json>` joue des leçons
+  sur `/dev/nesalio` et garde une image du tableau toutes les 5 secondes.
+- **Caméra** : `CAMERA=1 npx vitest run tools/eval/camera-banc.test.mjs`.
+- **Parcours navigateur** : `npm run test:e2e` (`tools/e2e/nesalio.mjs`), ordinateur
+  et téléphone, accessibilité (axe) comprise.
+- `tools/eval/questions.json`, `questions-sn4.json` et `program-check.mjs` (critères du
+  programme : méthode de la classe, notation québécoise) sont gardés : ils servaient
+  à l'ancien banc et pourront être branchés sur le banc Nesalio.
 
 ## Retours des testeurs
 
@@ -207,24 +148,7 @@ formulaire Formspree que les inscriptions du site, avec `etape` = `retour-outil`
 (ou à `FEEDBACK_ENDPOINT` si la variable est définie). Si la personne laisse la
 case cochée, le retour contient sa question, les dernières phrases de Nesa, le
 tableau, son écran, son navigateur et le champ `rejeu` : l'enregistrement exact
-de ce que le serveur lui a envoyé. Pour revoir sa séance à l'identique :
-
-```
-# coller le contenu du champ « rejeu » dans seance.json, puis
-npx next build && npx next start -p 3100
-python3 tools/rejeu/seance.py /tmp seance.json essai "[]"
-```
-
-## La boucle d'une séance
-
-1. Premier tour : Nesa fixe 2 ou 3 objectifs (le dernier est l'idée centrale),
-   montre, puis pose une question de prédiction. Chaque choix porte l'erreur de
-   raisonnement qu'il révèle (`why`).
-2. L'élève répond ; le navigateur relit le tour qui finit (gestes, phrases dites
-   sans montrer, objets absents : `domain/tutor/turnReview.ts`).
-3. Tour suivant : le modèle reçoit les objectifs, toutes les réponses de l'élève
-   avec l'erreur visée, et la relecture de son propre tour. Il se corrige sans
-   délai supplémentaire.
+de ce que le serveur lui a envoyé (vide pour une leçon Nesalio pour l'instant).
 
 ## Changer la voix de Nesa
 

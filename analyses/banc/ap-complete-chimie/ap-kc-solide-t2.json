@@ -1,0 +1,530 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "kc_expression",
+  "title": "Pourquoi Kc n'a que les produits dans certains cas",
+  "language": "fr",
+  "learning_goal": "Comprendre l'écriture générale de Kc et pourquoi un solide qui se décompose ne figure pas au dénominateur."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_generale",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "\\ce{H2 + I2 <=> 2HI}",
+     "type": "math"
+    },
+    {
+     "id": "kc",
+     "layout": {
+      "next_to": "eq",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "K_c = \\frac{[\\ce{HI}]^2}{[\\ce{H2}][\\ce{I2}]}",
+     "parts": [
+      {
+       "id": "symb",
+       "text": "K_c ="
+      },
+      {
+       "id": "haut",
+       "text": "\\frac{[\\ce{HI}]^2}{[\\ce{H2}][\\ce{I2}]}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Ta question touche le cœur de la constante d'équilibre. Regardons d'abord l'écriture générale, puis ton cas avec le chlorure d'ammonium.",
+     "cues": [
+      {
+       "id": "c_constante",
+       "text": "constante d'équilibre"
+      }
+     ],
+     "do": []
+    },
+    {
+     "id": "regle",
+     "say": "Pour une réaction comme H deux plus I deux donne deux H I, la constante K c s'écrit : les produits en haut, au carré du coefficient, divisés par les réactifs en bas.",
+     "cues": [
+      {
+       "id": "c_h_plus",
+       "text": "H deux plus I deux"
+      },
+      {
+       "id": "c_produits",
+       "text": "produits en haut"
+      },
+      {
+       "id": "c_coeff",
+       "text": "carré du coefficient"
+      },
+      {
+       "id": "c_reactifs",
+       "text": "réactifs en bas"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_h_plus",
+       "target": "eq"
+      },
+      {
+       "id": "w_prod",
+       "verb": "highlight",
+       "at": "cue:c_produits",
+       "target": "eq",
+       "role": "accent"
+      },
+      {
+       "id": "w_kc_symb",
+       "verb": "write",
+       "at": "cue:c_reactifs",
+       "target": "kc",
+       "part": "symb"
+      },
+      {
+       "id": "w_kc_haut",
+       "verb": "write",
+       "at": "cue:c_coeff",
+       "target": "kc",
+       "part": "haut"
+      }
+     ]
+    },
+    {
+     "id": "coefficient",
+     "say": "Le deux devant H I devient l'exposant deux : on surligne le coefficient et l'exposant ensemble, c'est le même nombre.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux devant H I"
+      },
+      {
+       "id": "c_exposant",
+       "text": "exposant deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_eq",
+       "verb": "highlight",
+       "start": "cue:c_deux",
+       "end": "cue_end:c_deux",
+       "target": "eq",
+       "role": "accent"
+      },
+      {
+       "id": "h_kc",
+       "verb": "highlight",
+       "start": "cue:c_exposant",
+       "end": "cue_end:c_exposant",
+       "target": "kc",
+       "role": "accent",
+       "part": "haut"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_solide",
+   "introduces": [
+    {
+     "id": "eq2",
+     "content": "\\ce{NH4Cl(s) <=> NH3(g) + HCl(g)}",
+     "type": "math"
+    },
+    {
+     "id": "kc2",
+     "layout": {
+      "next_to": "eq2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "K_c = [\\ce{NH3}][\\ce{HCl}]",
+     "parts": [
+      {
+       "id": "symb2",
+       "text": "K_c ="
+      },
+      {
+       "id": "droite",
+       "text": "[\\ce{NH3}][\\ce{HCl}]"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "kc2",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "Un solide n'a pas de concentration dans Kc",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "toncas",
+     "say": "Maintenant ton cas : le chlorure d'ammonium solide se décompose en ammoniac gazeux et chlorure d'hydrogène gazeux.",
+     "cues": [
+      {
+       "id": "c_solide",
+       "text": "chlorure d'ammonium solide"
+      },
+      {
+       "id": "c_gaz",
+       "text": "ammoniac gazeux"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_eq",
+       "verb": "fade_out",
+       "at": "cue:c_solide",
+       "target": "eq"
+      },
+      {
+       "id": "f_kc",
+       "verb": "fade_out",
+       "at": "cue:c_solide",
+       "target": "kc"
+      },
+      {
+       "id": "w_solid",
+       "verb": "write",
+       "at": "cue:c_solide",
+       "target": "eq2"
+      },
+      {
+       "id": "w_gaz",
+       "verb": "highlight",
+       "at": "cue:c_gaz",
+       "target": "eq2",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "Mais dans K c, un solide pur ne compte pas : sa concentration ne change pas, elle est fixée dans la matière. Alors il disparaît du dénominateur.",
+     "cues": [
+      {
+       "id": "c_solide_pur",
+       "text": "solide pur"
+      },
+      {
+       "id": "c_disparait",
+       "text": "disparaît du dénominateur"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_solid",
+       "verb": "highlight",
+       "start": "cue:c_solide_pur",
+       "end": "cue_end:c_solide_pur",
+       "target": "eq2",
+       "role": "secondary"
+      },
+      {
+       "id": "w_kc2",
+       "verb": "write",
+       "at": "cue:c_disparait",
+       "target": "kc2",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Il ne reste que le produit des concentrations des produits : ammoniac multiplié par chlorure d'hydrogène. C'est exactement ce que tu voyais.",
+     "cues": [
+      {
+       "id": "c_produit",
+       "text": "produit des concentrations des produits"
+      },
+      {
+       "id": "c_vois",
+       "text": "ce que tu voyais"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_produit",
+       "target": "note"
+      },
+      {
+       "id": "h_kc2",
+       "verb": "highlight",
+       "start": "cue:c_vois",
+       "end": "cue_end:c_vois",
+       "target": "kc2",
+       "role": "result",
+       "part": "droite"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "kc2",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Kc : produits en haut ÷ réactifs en bas, sans les solides et liquides purs",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : la règle est toujours produits en haut, sur réactifs en bas, mais on retire les solides et les liquides purs. Ici, il ne reste donc que les gaz.",
+     "cues": [
+      {
+       "id": "c_a_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_retire",
+       "text": "retire les solides"
+      },
+      {
+       "id": "c_reste",
+       "text": "reste donc que les gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_idee",
+       "verb": "write",
+       "at": "cue:c_a_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "h_idee",
+       "verb": "highlight",
+       "start": "cue:c_reste",
+       "end": "cue_end:c_reste",
+       "target": "idee",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

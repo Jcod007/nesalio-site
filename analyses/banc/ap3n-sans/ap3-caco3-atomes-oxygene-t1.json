@@ -1,0 +1,682 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "moles_caco3",
+  "title": "Trouver les moles de CaCO₃ à partir des atomes d'oxygène",
+  "language": "fr",
+  "learning_goal": "Passer du nombre d'atomes d'oxygène à la quantité de moles de CaCO₃, puis à la masse de l'échantillon."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_donnees",
+   "introduces": [
+    {
+     "id": "formule",
+     "layout": {
+      "center_on": "initial_viewport"
+     },
+     "content": "\\ce{CaCO3}",
+     "type": "math"
+    },
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "formule",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Dans chaque CaCO₃ : 3 atomes d'oxygène",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reformule",
+     "say": "Tu as deux virgule un fois dix exposant vingt-quatre atomes d'oxygène, et tu cherches la masse de l'échantillon de CaCO trois.",
+     "cues": [
+      {
+       "id": "c_atomes",
+       "text": "atomes d'oxygène"
+      },
+      {
+       "id": "c_masse",
+       "text": "masse de l'échantillon"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_formule",
+       "verb": "write",
+       "at": "beat:start",
+       "target": "formule"
+      }
+     ]
+    },
+    {
+     "id": "lien",
+     "say": "Avant la masse, il te faut un détour : combien de groupes de CaCO trois contiennent tous ces atomes d'oxygène. C'est là que la mole entre en jeu.",
+     "cues": [
+      {
+       "id": "c_detour",
+       "text": "un détour"
+      },
+      {
+       "id": "c_mole",
+       "text": "la mole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_detour",
+       "target": "idee"
+      },
+      {
+       "id": "h_o3",
+       "verb": "highlight",
+       "start": "cue:c_mole",
+       "end": "cue_end:c_mole",
+       "target": "formule",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles_o",
+   "introduces": [
+    {
+     "id": "const",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "N_A = 6{,}02 \\times 10^{23}\\ \\text{entités/mol}",
+     "type": "math"
+    },
+    {
+     "id": "n_o",
+     "layout": {
+      "next_to": "const",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n_O = \\frac{2{,}1 \\times 10^{24}}{6{,}02 \\times 10^{23}} \\approx 3{,}5\\ \\text{mol}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "constante",
+     "say": "La mole, c'est un paquet de six virgule zéro deux fois dix exposant vingt-trois entités, comme une douzaine est un paquet de douze. Ce nombre s'appelle le nombre d'Avogadro.",
+     "cues": [
+      {
+       "id": "c_paquet",
+       "text": "un paquet"
+      },
+      {
+       "id": "c_avogadro",
+       "text": "nombre d'Avogadro"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_const",
+       "verb": "draw",
+       "start": "cue:c_paquet",
+       "end": "cue_end:c_avogadro",
+       "target": "const"
+      }
+     ]
+    },
+    {
+     "id": "calcul",
+     "say": "Alors les atomes d'oxygène, on les divise par ce nombre : deux virgule un fois dix exposant vingt-quatre divisé par six virgule zéro deux fois dix exposant vingt-trois donne environ trois virgule cinq moles d'atomes d'oxygène.",
+     "cues": [
+      {
+       "id": "c_divise",
+       "text": "on les divise"
+      },
+      {
+       "id": "c_resultat",
+       "text": "trois virgule cinq moles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_haut",
+       "verb": "write",
+       "at": "cue:c_divise",
+       "target": "n_o"
+      },
+      {
+       "id": "w_bas",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "n_o",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_moles_caco3",
+   "introduces": [
+    {
+     "id": "rapport",
+     "layout": {
+      "next_to": "n_o",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "n_{\\ce{CaCO3}} = \\frac{n_O}{3} = \\frac{3{,}5}{3} \\approx 1{,}2\\ \\text{mol}",
+     "type": "math"
+    },
+    {
+     "id": "phrase",
+     "layout": {
+      "next_to": "rapport",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "3 atomes d'oxygène pour 1 CaCO₃",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retour",
+     "say": "Maintenant redescends au CaCO trois. Chaque CaCO trois contient trois atomes d'oxygène : le nombre de moles de CaCO trois est donc trois fois plus petit.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois atomes d'oxygène"
+      },
+      {
+       "id": "c_pluspetit",
+       "text": "trois fois plus petit"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_phrase",
+       "verb": "show",
+       "at": "cue:c_trois",
+       "target": "phrase"
+      },
+      {
+       "id": "w_div",
+       "verb": "write",
+       "at": "cue:c_pluspetit",
+       "target": "rapport"
+      }
+     ]
+    },
+    {
+     "id": "resultat",
+     "say": "Trois virgule cinq divisé par trois donne environ un virgule deux moles de CaCO trois.",
+     "cues": [
+      {
+       "id": "c_environ",
+       "text": "environ un virgule deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_val",
+       "verb": "highlight",
+       "at": "cue:c_environ",
+       "target": "rapport",
+       "role": "accent"
+      },
+      {
+       "id": "h_val",
+       "verb": "highlight",
+       "at": "after:w_val",
+       "target": "rapport",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_masse",
+   "introduces": [
+    {
+     "id": "m_tab",
+     "layout": {
+      "next_to": "phrase",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "params": {
+      "rows": [
+       [
+        40.08,
+        12.01,
+        16
+       ],
+       [
+        1,
+        1,
+        3
+       ],
+       [
+        40.08,
+        12.01,
+        48
+       ]
+      ],
+      "row_labels": [
+       "masse atomique (g/mol)",
+       "atomes dans CaCO₃",
+       "total (g/mol)"
+      ],
+      "column_labels": [
+       "Ca",
+       "C",
+       "O"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "masse",
+     "layout": {
+      "next_to": "m_tab",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "m = n \\times M = 1{,}2 \\times 100{,}09 \\approx 120\\ \\text{g}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "mtab",
+     "say": "Il faut maintenant la masse d'une mole de CaCO trois, sa masse molaire. On additionne les masses atomiques du tableau périodique : quarante virgule zéro huit pour le calcium, douze virgule zéro un pour le carbone, et trois fois seize pour l'oxygène, ce qui donne cent virgule zéro neuf grammes par mole.",
+     "cues": [
+      {
+       "id": "c_molaire",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_calcium",
+       "text": "calcium"
+      },
+      {
+       "id": "c_carbone",
+       "text": "carbone"
+      },
+      {
+       "id": "c_oxygene",
+       "text": "oxygène"
+      },
+      {
+       "id": "c_cent",
+       "text": "cent virgule zéro neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_molaire",
+       "target": "m_tab"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "at": "cue:c_calcium",
+       "target": "m_tab",
+       "role": "accent",
+       "part": "r1"
+      },
+      {
+       "id": "h_c2",
+       "verb": "highlight",
+       "at": "cue:c_carbone",
+       "target": "m_tab",
+       "role": "accent",
+       "part": "c2"
+      },
+      {
+       "id": "h_c3",
+       "verb": "highlight",
+       "at": "cue:c_oxygene",
+       "target": "m_tab",
+       "role": "accent",
+       "part": "c3"
+      },
+      {
+       "id": "h_r3",
+       "verb": "highlight",
+       "at": "cue:c_cent",
+       "target": "m_tab",
+       "role": "result",
+       "part": "r3"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "masse",
+     "say": "Et là, un virgule deux mole fois cent virgule zéro neuf grammes par mole, ça donne environ cent vingt grammes. C'est la masse de ton échantillon.",
+     "cues": [
+      {
+       "id": "c_fois",
+       "text": "fois"
+      },
+      {
+       "id": "c_resultat",
+       "text": "cent vingt grammes"
+      },
+      {
+       "id": "c_echantillon",
+       "text": "masse de ton échantillon"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_prod",
+       "verb": "write",
+       "at": "cue:c_fois",
+       "target": "masse"
+      },
+      {
+       "id": "w_valm",
+       "verb": "highlight",
+       "at": "cue:c_resultat",
+       "target": "masse",
+       "role": "accent"
+      },
+      {
+       "id": "h_valm",
+       "verb": "highlight",
+       "at": "after:w_valm",
+       "target": "masse",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : tu passes des atomes d'oxygène aux moles en divisant par le nombre d'Avogadro, tu divises par trois pour obtenir les moles de CaCO trois, puis tu multiplies par la masse molaire cent virgule zéro neuf. Il te faut donc un virgule deux mole, c'est-à-dire environ cent vingt grammes de CaCO trois.",
+     "cues": [
+      {
+       "id": "c_avogadro",
+       "text": "nombre d'Avogadro"
+      },
+      {
+       "id": "c_trois",
+       "text": "divises par trois"
+      },
+      {
+       "id": "c_molaire",
+       "text": "masse molaire"
+      },
+      {
+       "id": "c_retenir",
+       "text": "Il te faut donc"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_const",
+       "verb": "fade_out",
+       "at": "cue:c_avogadro",
+       "target": "const"
+      },
+      {
+       "id": "f_rapport",
+       "verb": "fade_out",
+       "at": "cue:c_trois",
+       "target": "rapport"
+      },
+      {
+       "id": "f_mtab",
+       "verb": "fade_out",
+       "at": "cue:c_molaire",
+       "target": "m_tab"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "formule",
+        "n_o",
+        "masse"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_n",
+       "verb": "highlight",
+       "start": "cue:c_retenir",
+       "end": "cue_end:c_retenir",
+       "target": "n_o",
+       "role": "accent"
+      },
+      {
+       "id": "h_masse",
+       "verb": "highlight",
+       "start": "cue:c_retenir",
+       "end": "cue_end:c_retenir",
+       "target": "masse",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

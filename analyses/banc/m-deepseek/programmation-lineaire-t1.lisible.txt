@@ -1,0 +1,62 @@
+QUESTION (programmation-lineaire, mathematiques, sec 5, methode) : comment je trouve le maximum de 3x + 2y si x ≥ 0, y ≥ 0, x + y ≤ 6 pis x ≤ 4 ? on fait ça avec un polygone de contraintes
+RÉPONSE DE RÉFÉRENCE : Sommets (0, 0), (4, 0), (4, 2), (0, 6) ; valeurs 0, 12, 16, 12 ; maximum 16 en (4, 2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. tracer les droites frontières et ombrer la région qui respecte toutes les contraintes
+  2. trouver les sommets du polygone : (0, 0), (4, 0), (4, 2), (0, 6)
+  3. le maximum d'une fonction à optimiser se trouve à un sommet du polygone
+  4. évaluer 3x + 2y à chaque sommet : 0, 12, 16, 12
+  5. réponse : maximum 16 en (4, 2), écrit
+ERREURS GRAVES À CHERCHER : sommet (4, 2) oublié ou mal calculé ; région ombrée fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (16(?!\d|[,.]\d)) ; issue erreur incomplete
+
+TITRE : Trouver le maximum de 3x + 2y sous contraintes
+math_context : {"symbols":{"x":{"kind":"parameter","initial":1,"min":0,"max":6},"y":{"kind":"parameter","initial":1,"min":0,"max":6}},"expressions":{"val1":"3*x + 2*y","val2":"3*x + 2*y","val3":"3*x + 2*y","val4":"3*x + 2*y","corde":"(10 - 3*x)/2"}}
+=== Tranche s_droites
+  OBJET repere [axes] {"x":[-1,7],"y":[-1,7]} 
+  OBJET d1 [line] {"from":[0,6],"to":[6,0]} 
+  OBJET d2 [line] {"from":[4,0],"to":[4,6]} 
+  OBJET eq1 [math] "x + y \\le 6" 
+  OBJET eq2 [math] "x \\le 4" 
+DIT (prem) : Chaque contrainte donne une frontière. x plus y plus petit ou égal à six devient la droite x plus y égale six : elle passe par six sur l'axe des y et six sur l'axe des x.
+    camera.focus  @beat:start {"targets":["repere"],"bounds":"layout_bounds","save_as":"vue_plan"}
+    show repere @beat:start 
+    draw d1 @- {"start":"cue:c_six","end":"cue_end:c_passe"}
+    write eq1 @cue:c_six 
+DIT (deux) : Ensuite, x plus petit ou égal à quatre, c'est la verticale qui passe par quatre.
+    draw d2 @- {"start":"cue:c_quatre","end":"cue_end:c_verticale"}
+    write eq2 @cue:c_quatre 
+=== Tranche s_polygone
+  OBJET poly [polygon] {"vertices":[[0,0],[4,0],[4,2],[2,4],[0,6]]} 
+  OBJET pA [point] {"at":[0,0]} 
+  OBJET lA [label] "A (0 ; 0)" attaché à pA
+  OBJET pB [point] {"at":[4,0]} 
+  OBJET lB [label] "B (4 ; 0)" attaché à pB
+  OBJET pC [point] {"at":[4,2]} 
+  OBJET lC [label] "C (4 ; 2)" attaché à pC
+  OBJET pD [point] {"at":[2,4]} 
+  OBJET lD [label] "D (2 ; 4)" attaché à pD
+  OBJET pE [point] {"at":[0,6]} 
+  OBJET lE [label] "E (0 ; 6)" attaché à pE
+  OBJET zone [text] "La zone qui respecte toutes les contraintes" 
+DIT (garde) : Je garde seulement les points qui respectent x plus grand ou égal à zéro et y plus grand ou égal à zéro : ça, c'est le premier quadrant, à droite et en haut des axes.
+    highlight repere @- {"start":"cue:c_premier","end":"cue_end:c_premier","role":"given"}
+DIT (zone) : Et je garde ce qui est sous la droite x plus y égale six et à gauche de la verticale x égale quatre. Les cinq contraintes se croisent et dessinent ce polygone.
+    draw poly @- {"start":"cue:c_polygone","end":"cue_end:c_polygone"}
+    show zone @cue:c_polygone 
+=== Tranche s_sommets
+  OBJET noteS [text] "Le maximum est toujours à un sommet." 
+DIT (sommetA) : Nommons les sommets. A, l'origine : zéro, zéro.
+    show pA @cue:c_A 
+    show lA @cue:c_A 
+DIT (sommetB) : B, quatre, zéro. C, quatre, deux. D, deux, quatre. Et E, zéro, six.
+    show pB @beat:start 
+    show lB @beat:start 
+    show pC @beat:start 
+    show lC @beat:start 
+    show pD @cue:c_D 
+    show lD @cue:c_D 
+    show pE @beat:start 
+    show lE @beat:start 
+DIT (pourquoi) : Pourquoi les sommets ? La fonction trois x plus deux y est une famille de droites parallèles. La plus haute touche justement un coin du polygone.
+    show noteS @cue:c_coin 
+--- 3 tranches, 166 mots dits (≈ 1.1 min d'oral)

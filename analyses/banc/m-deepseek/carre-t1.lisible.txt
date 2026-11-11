@@ -1,0 +1,81 @@
+QUESTION (carre, mathematiques, sec 4, sens) : Pourquoi (x + 5)² ce n'est pas x² + 25 ?
+RÉPONSE DE RÉFÉRENCE : (x + 5)² = x² + 10x + 25 : il manque les deux rectangles 5x.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. (x + 5)² = (x + 5)(x + 5), pas x² + 5²
+  2. modèle d'aire : carré x², deux rectangles 5x, carré 25
+  3. terme croisé 10x = 2 × 5x
+  4. résultat x² + 10x + 25 écrit
+  5. vérification numérique (ex. x = 1 : 36 ≠ 26)
+ERREURS GRAVES À CHERCHER : modèle d'aire mal découpé (pièces hors du grand carré)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi (x + 5)² n'est pas x² + 25
+=== Tranche s_intuition
+  OBJET question [math] "(x + 5)^2 = x^2 + 25\\ ?" 
+DIT (accroche) : Bonne question ! Un carré, ça se voit très bien avec des aires. Regarde.
+    show question @cue:c_carre 
+=== Tranche s_aire
+  OBJET grand [polygon] {"vertices":[[0,0],[8,0],[8,8],[0,8]]} 
+  OBJET coin_x2 [polygon] {"vertices":[[0,5],[5,5],[5,8],[0,8]]} 
+  OBJET haut5 [polygon] {"vertices":[[5,5],[8,5],[8,8],[5,8]]} 
+  OBJET cote5 [polygon] {"vertices":[[0,0],[5,0],[5,5],[0,5]]} 
+  OBJET coin25 [polygon] {"vertices":[[5,0],[8,0],[8,5],[5,5]]} 
+  OBJET lab_x [label] "x" attaché à grand
+  OBJET lab_x2 [label] "x" attaché à grand
+  OBJET lab_bas5 [label] "5" attaché à grand
+  OBJET lab_haut5 [label] "5" attaché à grand
+  OBJET lab_x2c [label] "x^2" attaché à coin_x2
+  OBJET lab_5xh [label] "5x" attaché à haut5
+  OBJET lab_5xv [label] "5x" attaché à cote5
+  OBJET lab_25 [label] "25" attaché à coin25
+  OBJET eq [math] "(x + 5)^2 = x^2 + 10x + 25" parts=(x + 5)^2 | = x^2 + 10x + 25
+DIT (trace) : Un carré de côté x plus cinq, c'est ça : un côté qui mesure x, et un morceau qui mesure cinq.
+    draw grand @cue:c_cote 
+    show lab_x @cue:c_cote 
+    show lab_x2 @cue:c_cote 
+    show lab_bas5 @cue:c_cinq 
+    show lab_haut5 @cue:c_cinq 
+DIT (pieces) : Découpons-le : un carré x par x, deux rectangles de cinq par x, et un petit carré de cinq par cinq.
+    draw coin_x2 @cue:c_un 
+    show lab_x2c @cue:c_un 
+    draw haut5 @cue:c_deux 
+    draw cote5 @cue:c_deux 
+    show lab_5xh @cue:c_deux 
+    show lab_5xv @cue:c_deux 
+    draw coin25 @cue:c_petit 
+    show lab_25 @cue:c_petit 
+DIT (surprise) : Additionnons les aires : x carré plus cinq x plus cinq x plus vingt-cinq. Les deux cinq x font dix x.
+    highlight haut5 @- {"start":"cue:c_addition","end":"cue_end:c_addition","role":"given"}
+    highlight cote5 @- {"start":"cue:c_addition","end":"cue_end:c_addition","role":"given"}
+    highlight coin25 @- {"start":"cue:c_dixx","end":"cue_end:c_dixx","role":"given"}
+    highlight lab_5xh @- {"start":"cue:c_dixx","end":"cue_end:c_dixx","role":"accent"}
+    highlight lab_5xv @- {"start":"cue:c_dixx","end":"cue_end:c_dixx","role":"accent"}
+=== Tranche s_erreur
+  OBJET mauvais [text] "x² + 25 : il manque le centre !" 
+DIT (nomme) : Donc x carré plus vingt-cinq, ça oublie les deux rectangles du milieu. C'est ça, l'erreur.
+    dim grand @cue:c_oublie 
+    dim haut5 @cue:c_oublie 
+    dim cote5 @cue:c_oublie 
+    dim coin25 @cue:c_oublie 
+    show mauvais @cue:c_oublie 
+DIT (verifie) : Vérifions à la main : x plus cinq, au carré, c'est x plus cinq fois x plus cinq.
+    fade_out mauvais @cue:c_fois 
+    write eq @cue:c_fois {"part":"gauche"}
+DIT (developpe) : On distribue : chaque terme de la première parenthèse multiplie chaque terme de la deuxième. Quatre multiplications.
+    write eq @cue:c_chaque {"part":"droite"}
+    highlight eq @after:w_eq2 {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "(a + b)^2 = a^2 + 2ab + b^2" parts=(a + b)^2 | = a^2 + 2ab + b^2
+  OBJET note [text] "2ab : les deux rectangles du milieu" 
+DIT (generalise) : À retenir : pour n'importe lequel binôme, a plus b au carré donne a carré plus deux a b plus b carré.
+    dim grand @beat:start 
+    dim haut5 @beat:start 
+    dim cote5 @beat:start 
+    dim coin25 @beat:start 
+    write regle @cue:c_retenir {"part":"g"}
+    write regle @cue:c_deuxab {"part":"d"}
+    show note @cue:c_deuxab 
+DIT (lien) : Les deux a b, ce sont exactement les deux cinq x de notre carré. C'est le terme qu'on oublie tout le temps.
+    highlight regle @- {"start":"cue:c_termes","end":"cue_end:c_termes","role":"accent","part":"d"}
+    highlight note @- {"start":"cue:c_oublie","end":"cue_end:c_oublie","role":"result"}
+--- 4 tranches, 171 mots dits (≈ 1.1 min d'oral)

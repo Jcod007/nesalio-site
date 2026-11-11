@@ -1,0 +1,54 @@
+QUESTION (programmation-lineaire, mathematiques, sec 5, methode) : comment je trouve le maximum de 3x + 2y si x ≥ 0, y ≥ 0, x + y ≤ 6 pis x ≤ 4 ? on fait ça avec un polygone de contraintes
+RÉPONSE DE RÉFÉRENCE : Sommets (0, 0), (4, 0), (4, 2), (0, 6) ; valeurs 0, 12, 16, 12 ; maximum 16 en (4, 2).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. tracer les droites frontières et ombrer la région qui respecte toutes les contraintes
+  2. trouver les sommets du polygone : (0, 0), (4, 0), (4, 2), (0, 6)
+  3. le maximum d'une fonction à optimiser se trouve à un sommet du polygone
+  4. évaluer 3x + 2y à chaque sommet : 0, 12, 16, 12
+  5. réponse : maximum 16 en (4, 2), écrit
+ERREURS GRAVES À CHERCHER : sommet (4, 2) oublié ou mal calculé ; région ombrée fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Maximiser 3x + 2y sous des contraintes
+math_context : {"symbols":{},"expressions":{"x_max":"3*4 + 2*2"}}
+=== Tranche s_region
+  OBJET ax [axes] {"x":[-1,7],"y":[-1,7]} 
+  OBJET poly [polygon] {"vertices":[[0,0],[4,0],[4,2],[0,6]]} 
+  OBJET contraintes [math] "x \\geq 0,\\; y \\geq 0,\\; x + y \\leq 6,\\; x \\leq 4" parts=x \geq 0, y \geq 0 | , x + y \leq 6 | , x \leq 4
+DIT (idee) : Chaque contrainte découpe une région du plan. Ensemble, elles forment un polygone de contraintes, où les points permis se trouvent à l'intérieur.
+    show ax @beat:start 
+    show contraintes @cue:c_contr 
+    draw poly @- {"start":"cue:c_poly","end":"cue_end:c_poly"}
+=== Tranche s_sommets
+  OBJET o [point] {"at":[0,0]} 
+  OBJET a [point] {"at":[4,0]} 
+  OBJET b [point] {"at":[4,2]} 
+  OBJET c [point] {"at":[0,6]} 
+  OBJET obj [math] "f = 3x + 2y" parts=f = | 3x + 2y
+DIT (sommets) : Le maximum se trouve toujours sur un sommet. Les sommets sont ici zéro zéro, quatre zéro, quatre deux et zéro six.
+    show o @cue:c_liste 
+    show a @cue:c_liste 
+    show b @cue:c_liste 
+    show c @cue:c_liste 
+DIT (objectif) : On évalue la fonction objectif, trois x plus deux y, à chacun de ces sommets.
+    write obj @cue:c_obj {"part":"f"}
+    write obj @cue:c_obj {"part":"expr"}
+=== Tranche s_calcul
+  OBJET val [math] "f(4;0) = 12,\\; f(4;2) = 16,\\; f(0;6) = 12,\\; f(0;0) = 0" parts=f(4;0) = 12 | , f(4;2) = 16 | , f(0;6) = 12 | , f(0;0) = 0
+  OBJET max [math] "\\max f = 16" 
+DIT (calc) : En quatre zéro, trois fois quatre donne douze. En quatre deux, douze plus quatre donne seize. En zéro six, on obtient douze. En zéro zéro, zéro.
+    write val @cue:c_40 {"part":"v1"}
+    write val @cue:c_42 {"part":"v2"}
+    write val @cue:c_06 {"part":"v3"}
+    write val @cue:c_06 {"part":"v0"}
+DIT (max_pass) : La plus grande valeur est seize, au sommet quatre deux. Le maximum de trois x plus deux y est donc seize.
+    write max @cue:c_max 
+    highlight b @cue:c_max {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Maximum : tester les sommets du polygone" 
+DIT (retenir) : À retenir : on trace le polygone, on calcule la fonction à chaque sommet, et le plus grand résultat est le maximum.
+    fade_out val @cue:c_retenir 
+    fade_out obj @cue:c_retenir 
+    write idee @cue:c_retenir 
+    highlight max @cue:c_plus_grand {"role":"result"}
+--- 4 tranches, 127 mots dits (≈ 0.8 min d'oral)

@@ -1,0 +1,79 @@
+QUESTION (proba-conditionnelle, mathematiques, sec 5, sens) : pourquoi dans une probabilité conditionnelle on divise par P(B)? je comprends pas d'où ça sort
+RÉPONSE DE RÉFÉRENCE : P(A|B) = P(A∩B)/P(B), avec P(B) ≠ 0 ; exemple du dé (A pair, B > 3) : 2/3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. savoir que B s'est réalisé réduit l'univers à B, d'où la division par P(B)
+  2. P(A|B) = P(A∩B)/P(B) = part de B où A est aussi vrai, avec P(B) ≠ 0
+  3. exemple mené au résultat (dé : A pair, B > 3, P(A|B) = 2/3 = (2/6)/(3/6))
+  4. diagramme de Venn ou tableau à double entrée où l'univers rétrécit à B
+  5. P(A|B) distinguée de P(A∩B) et de P(B|A)
+ERREURS GRAVES À CHERCHER : figure dont les aires contredisent les probabilités dites ; confusion P(A|B) et P(A∩B)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi on divise par P(B) dans P(A | B)
+=== Tranche s_univers
+  OBJET carre1 [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET carre2 [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET carre3 [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET carre4 [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET carre5 [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET carre6 [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET n1 [label] "1" attaché à carre1
+  OBJET n2 [label] "2" attaché à carre2
+  OBJET n3 [label] "3" attaché à carre3
+  OBJET n4 [label] "4" attaché à carre4
+  OBJET n5 [label] "5" attaché à carre5
+  OBJET n6 [label] "6" attaché à carre6
+  OBJET titre [text] "Un dé : six issues équiprobables" 
+DIT (poser) : Bonjour ! Ta question est excellente, et la réponse tient dans une seule image : l'univers qui rétrécit.
+    show carre1 @beat:start 
+    show carre2 @beat:start 
+    show carre3 @beat:start 
+    show carre4 @beat:start 
+    show carre5 @beat:start 
+    show carre6 @beat:start 
+    show n1 @beat:start 
+    show n2 @beat:start 
+    show n3 @beat:start 
+    show n4 @beat:start 
+    show n5 @beat:start 
+    show n6 @beat:start 
+    show titre @beat:start 
+=== Tranche s_reduire
+  OBJET formule [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" parts=P(A \mid B) | = \frac{P(A \cap B)}{P(B)}
+DIT (reduire) : Lancer un dé, six issues équiprobables. Maintenant, je te dis que B s'est produit : le résultat est plus grand que trois.
+    dim carre1 @cue:c_plus 
+    dim carre2 @cue:c_plus 
+    dim carre3 @cue:c_plus 
+DIT (nouveau) : Les issues un, deux et trois sont éliminées. L'univers n'est plus six cases, il n'en reste que trois : quatre, cinq et six.
+    highlight carre4 @- {"start":"cue:c_reste","end":"cue_end:c_reste","role":"given"}
+    highlight carre5 @- {"start":"cue:c_reste","end":"cue_end:c_reste","role":"given"}
+    highlight carre6 @- {"start":"cue:c_reste","end":"cue_end:c_reste","role":"given"}
+=== Tranche s_part
+DIT (part) : A, c'est l'événement pair. Parmi les trois cases restantes, les pairs sont quatre et six.
+    highlight carre4 @cue:c_pair {"role":"accent"}
+    highlight carre6 @cue:c_deux {"role":"accent"}
+DIT (partB) : La probabilité conditionnelle, c'est la part de B où A est aussi vrai : deux cases sur trois, donc deux tiers.
+    highlight carre4 @- {"start":"cue:c_part","end":"cue_end:c_part","role":"result"}
+    highlight carre6 @- {"start":"cue:c_part","end":"cue_end:c_part","role":"result"}
+=== Tranche s_calcul
+DIT (calcul) : Retrouvons ce deux tiers avec la formule. P de A inter B, c'est deux cases sur les six de départ : deux sixièmes. P de B, c'est trois cases sur six : trois sixièmes.
+    write formule @beat:start {"part":"gauche"}
+    highlight formule @- {"start":"cue:c_pb","end":"cue_end:c_pb","role":"given"}
+DIT (division) : On divise deux sixièmes par trois sixièmes : les six s'annulent, il reste deux divisé par trois, deux tiers.
+    write formule @cue:c_divise {"part":"droite"}
+    highlight formule @- {"start":"cue:c_tiers","end":"cue_end:c_tiers","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Savoir que B est arrivé : l'univers devient B" 
+DIT (retenir) : Voilà d'où sort la division : on divise par P de B parce que B devient le nouveau tout. On recalcule une part sur trois, pas sur six.
+    fade_out carre1 @cue:c_tout 
+    fade_out carre2 @cue:c_tout 
+    fade_out carre3 @cue:c_tout 
+    fade_out carre4 @cue:c_tout 
+    fade_out carre5 @cue:c_tout 
+    fade_out carre6 @cue:c_tout 
+    fade_out titre @cue:c_tout 
+    show idee @cue:c_part 
+    camera.focus  @cue:c_tout {"targets":["formule","idee"]}
+DIT (cond) : Et cette division n'a de sens que si P de B n'est pas zéro : on ne peut pas diviser par zéro.
+    highlight formule @- {"start":"cue:c_zero","end":"cue_end:c_zero","role":"given"}
+--- 5 tranches, 202 mots dits (≈ 1.3 min d'oral)

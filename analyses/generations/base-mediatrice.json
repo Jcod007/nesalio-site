@@ -1,0 +1,694 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "mediatrice_equation",
+  "title": "Trouver l'équation de la médiatrice d'un segment",
+  "language": "fr",
+  "learning_goal": "Déterminer l'équation de la médiatrice du segment AB avec A(1 ; 2) et B(5 ; 6), en utilisant le milieu et la perpendicularité."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "ax",
+     "params": {
+      "x": [
+       -1,
+       9
+      ],
+      "y": [
+       -1,
+       9
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "A",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       1,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labA",
+     "attachment": {
+      "parent": "A",
+      "anchor": "bottom"
+     },
+     "content": "A(1 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "B",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       5,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labB",
+     "attachment": {
+      "parent": "B",
+      "anchor": "left"
+     },
+     "content": "B(5 ; 6)",
+     "type": "label"
+    },
+    {
+     "id": "seg",
+     "params": {
+      "from": [
+       1,
+       2
+      ],
+      "to": [
+       5,
+       6
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Pour trouver l'équation de la médiatrice d'un segment, il faut d'abord comprendre ce qu'est une médiatrice.",
+     "cues": [
+      {
+       "id": "c_mediatrice",
+       "text": "médiatrice"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "ax",
+        "A",
+        "B",
+        "seg"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_figure"
+      },
+      {
+       "id": "s_ax",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "ax"
+      },
+      {
+       "id": "s_seg",
+       "verb": "draw",
+       "at": "cue:c_mediatrice",
+       "target": "seg"
+      },
+      {
+       "id": "s_A",
+       "verb": "show",
+       "at": "after:s_seg",
+       "target": "A"
+      },
+      {
+       "id": "s_labA",
+       "verb": "show",
+       "at": "after:s_seg",
+       "target": "labA"
+      },
+      {
+       "id": "s_B",
+       "verb": "show",
+       "at": "after:s_labA",
+       "target": "B"
+      },
+      {
+       "id": "s_labB",
+       "verb": "show",
+       "at": "after:s_labA",
+       "target": "labB"
+      }
+     ]
+    },
+    {
+     "id": "cest",
+     "say": "La médiatrice du segment AB, c'est la droite qui passe par le milieu du segment et qui lui est perpendiculaire.",
+     "cues": [
+      {
+       "id": "c_milieu",
+       "text": "milieu du segment"
+      },
+      {
+       "id": "c_perp",
+       "text": "perpendiculaire"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_seg",
+       "verb": "highlight",
+       "at": "cue:c_milieu",
+       "target": "seg",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_milieu",
+   "introduces": [
+    {
+     "id": "M",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       3,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "labM",
+     "attachment": {
+      "parent": "M",
+      "anchor": "bottom"
+     },
+     "content": "M(3 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "calcM",
+     "content": "M\\left(\\frac{1 + 5}{2} ; \\frac{2 + 6}{2}\\right) = M(3 ; 4)",
+     "parts": [
+      {
+       "id": "form",
+       "text": "M\\left(\\frac{1 + 5}{2} ; \\frac{2 + 6}{2}\\right)"
+      },
+      {
+       "id": "res",
+       "text": "= M(3 ; 4)"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcul",
+     "say": "Commençons par le milieu M du segment. Sa coordonnée en x est la moyenne de un et de cinq, donc trois.",
+     "cues": [
+      {
+       "id": "c_moy",
+       "text": "moyenne de un et de cinq"
+      },
+      {
+       "id": "c_trois",
+       "text": "donc trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_form",
+       "verb": "write",
+       "at": "cue:c_moy",
+       "target": "calcM",
+       "part": "form"
+      },
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_trois",
+       "target": "calcM",
+       "part": "res"
+      }
+     ]
+    },
+    {
+     "id": "y",
+     "say": "Sa coordonnée en y est la moyenne de deux et de six, donc quatre. Le point M est donc à trois et quatre.",
+     "cues": [
+      {
+       "id": "c_quatre",
+       "text": "donc quatre"
+      },
+      {
+       "id": "c_troisquatre",
+       "text": "trois et quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_M",
+       "verb": "show",
+       "at": "cue:c_quatre",
+       "target": "M"
+      },
+      {
+       "id": "s_labM",
+       "verb": "show",
+       "at": "cue:c_troisquatre",
+       "target": "labM"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_pente",
+   "introduces": [
+    {
+     "id": "mathAB",
+     "content": "m_{AB} = \\frac{6 - 2}{5 - 1} = \\frac{4}{4} = 1",
+     "parts": [
+      {
+       "id": "a",
+       "text": "m_{AB} = \\frac{6 - 2}{5 - 1}"
+      },
+      {
+       "id": "b",
+       "text": "= \\frac{4}{4}"
+      },
+      {
+       "id": "c",
+       "text": "= 1"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "ligne_perp",
+     "params": {
+      "from": [
+       3,
+       4
+      ],
+      "to": [
+       5,
+       5
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "rule",
+     "content": "m_{\\perp} = -\\frac{1}{m_{AB}} = -\\frac{1}{1} = -1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "penteAB",
+     "say": "Maintenant, la pente du segment AB : la différence des y sur la différence des x. Six moins deux donne quatre, et cinq moins un donne quatre, donc la pente vaut un.",
+     "cues": [
+      {
+       "id": "c_diffy",
+       "text": "différence des y"
+      },
+      {
+       "id": "c_quatre",
+       "text": "donne quatre"
+      },
+      {
+       "id": "c_un",
+       "text": "vaut un"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_ligne",
+       "verb": "draw",
+       "at": "cue:c_un",
+       "target": "ligne_perp"
+      },
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:c_diffy",
+       "target": "mathAB",
+       "part": "a"
+      },
+      {
+       "id": "w_b",
+       "verb": "write",
+       "at": "cue:c_quatre",
+       "target": "mathAB",
+       "part": "b"
+      },
+      {
+       "id": "w_c",
+       "verb": "write",
+       "at": "cue:c_un",
+       "target": "mathAB",
+       "part": "c"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "perpendiculaire",
+     "say": "Comme la médiatrice est perpendiculaire, sa pente est l'opposée de l'inverse : moins un sur un, donc moins un.",
+     "cues": [
+      {
+       "id": "c_opposee",
+       "text": "inverse"
+      },
+      {
+       "id": "c_moinsun",
+       "text": "moins un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_rule",
+       "verb": "write",
+       "at": "cue:c_opposee",
+       "target": "rule"
+      },
+      {
+       "id": "h_rule",
+       "verb": "highlight",
+       "at": "cue:c_moinsun",
+       "target": "rule",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_eq",
+   "introduces": [
+    {
+     "id": "eq",
+     "content": "y - 4 = -1(x - 3)",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "y - 4"
+      },
+      {
+       "id": "droite",
+       "text": "= -1(x - 3)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "eq2",
+     "content": "y = -x + 7",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Prenons la forme point-pente avec le point M et la pente moins un.",
+     "cues": [
+      {
+       "id": "c_point",
+       "text": "forme point-pente"
+      },
+      {
+       "id": "c_moinsun",
+       "text": "pente moins un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_eq",
+       "verb": "write",
+       "at": "cue:c_point",
+       "target": "eq",
+       "part": "gauche"
+      },
+      {
+       "id": "w_eq_d",
+       "verb": "write",
+       "at": "cue:c_moinsun",
+       "target": "eq",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "developpe",
+     "say": "Développons : on distribue moins un dans la parenthèse, puis on isole y en ajoutant quatre des deux côtés.",
+     "cues": [
+      {
+       "id": "c_developpe",
+       "text": "distribue"
+      },
+      {
+       "id": "c_isole",
+       "text": "isole y"
+      }
+     ],
+     "do": [
+      {
+       "id": "t_eq",
+       "verb": "transform",
+       "at": "cue:c_developpe",
+       "source": "eq",
+       "target": "eq2"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "trace",
+     "say": "Traçons cette droite : elle passe par M et elle est bien perpendiculaire au segment.",
+     "cues": [
+      {
+       "id": "c_trace",
+       "text": "Traçons"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_med",
+       "verb": "draw",
+       "at": "beat:start",
+       "target": "ligne_perp"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

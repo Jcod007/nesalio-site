@@ -1,0 +1,935 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "optimum_polygone_contraintes",
+  "title": "Trouver le maximum de 3x + 2y sous contraintes",
+  "language": "fr",
+  "learning_goal": "Trouver le maximum de la fonction 3x + 2y sur le polygone de contraintes du système x ≥ 0, y ≥ 0, x + y ≤ 6 et x ≤ 4, en évaluant les sommets."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "val_a": "3*4 + 2*2",
+    "val_b": "3*4 + 2*0",
+    "val_c": "3*2 + 2*4",
+    "val_d": "3*0 + 2*6",
+    "val_e": "3*0 + 2*0"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_zone",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       8
+      ],
+      "y": [
+       -1,
+       8
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "droite1",
+     "style": {
+      "role": "neutral"
+     },
+     "frame": "rep",
+     "params": {
+      "expression": "6 - x",
+      "domain": [
+       0,
+       6
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "poly",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        0,
+        6
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "lbl_a",
+     "attachment": {
+      "parent": "poly",
+      "anchor": "center"
+     },
+     "content": "A(0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "p_b",
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lbl_b",
+     "attachment": {
+      "parent": "p_b",
+      "anchor": "bottom"
+     },
+     "content": "B(4 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "p_c",
+     "frame": "rep",
+     "params": {
+      "at": [
+       4,
+       2
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lbl_c",
+     "attachment": {
+      "parent": "p_c",
+      "anchor": "right"
+     },
+     "content": "C(4 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "p_d",
+     "frame": "rep",
+     "params": {
+      "at": [
+       2,
+       4
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lbl_d",
+     "attachment": {
+      "parent": "p_d",
+      "anchor": "right"
+     },
+     "content": "D(2 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "p_e",
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       6
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "lbl_e",
+     "attachment": {
+      "parent": "p_e",
+      "anchor": "left"
+     },
+     "content": "E(0 ; 6)",
+     "type": "label"
+    },
+    {
+     "id": "l_vert",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "rep",
+     "params": {
+      "from": [
+       4,
+       0
+      ],
+      "to": [
+       4,
+       2
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "l_haut",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "from": [
+       4,
+       2
+      ],
+      "to": [
+       2,
+       4
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "l_gauche",
+     "style": {
+      "role": "secondary"
+     },
+     "frame": "rep",
+     "params": {
+      "from": [
+       2,
+       4
+      ],
+      "to": [
+       0,
+       6
+      ]
+     },
+     "type": "line"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cadre",
+     "say": "Pour trouver le maximum, on dessine d'abord la zone permise par les contraintes.",
+     "cues": [
+      {
+       "id": "c_zone",
+       "text": "zone permise"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_rep",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "rep"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_zone"
+      },
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_d1",
+       "verb": "draw",
+       "start": "cue:c_zone",
+       "end": "cue_end:c_zone",
+       "target": "droite1"
+      }
+     ]
+    },
+    {
+     "id": "murs",
+     "say": "x plus y plus petit ou égal à six, ça donne la droite qui descend, et x plus petit ou égal à quatre la coupe à partir de quatre.",
+     "cues": [
+      {
+       "id": "c_descend",
+       "text": "la droite qui descend"
+      },
+      {
+       "id": "c_coupe",
+       "text": "la coupe à partir de quatre"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_vert",
+       "verb": "show",
+       "at": "cue:c_coupe",
+       "target": "l_vert"
+      },
+      {
+       "id": "draw_poly",
+       "verb": "draw",
+       "at": "cue:c_coupe",
+       "target": "poly"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_sommets",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "coins",
+     "say": "Avec x et y positifs, la zone est ce polygone. Ses coins, ou sommets, sont les seuls endroits où le maximum peut se cacher.",
+     "cues": [
+      {
+       "id": "c_polygone",
+       "text": "polygone"
+      },
+      {
+       "id": "c_sommets",
+       "text": "sommets"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_poly",
+       "verb": "highlight",
+       "at": "cue:c_polygone",
+       "target": "poly",
+       "role": "accent"
+      },
+      {
+       "id": "h_poly2",
+       "verb": "highlight",
+       "at": "cue:c_sommets",
+       "target": "poly",
+       "role": "accent"
+      },
+      {
+       "id": "s_a",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lbl_a"
+      },
+      {
+       "id": "s_b",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "p_b"
+      },
+      {
+       "id": "s_lb",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lbl_b"
+      },
+      {
+       "id": "s_c",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "p_c"
+      },
+      {
+       "id": "s_lc",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lbl_c"
+      },
+      {
+       "id": "s_d",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "p_d"
+      },
+      {
+       "id": "s_ld",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lbl_d"
+      },
+      {
+       "id": "s_e",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "p_e"
+      },
+      {
+       "id": "s_le",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "lbl_e"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_tableau",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        4,
+        2,
+        16
+       ],
+       [
+        4,
+        0,
+        12
+       ],
+       [
+        2,
+        4,
+        14
+       ],
+       [
+        0,
+        6,
+        12
+       ],
+       [
+        0,
+        0,
+        0
+       ]
+      ],
+      "row_labels": [
+       "A",
+       "B",
+       "C",
+       "D",
+       "E"
+      ],
+      "column_labels": [
+       "x",
+       "y",
+       "3x + 2y"
+      ]
+     },
+     "type": "matrix"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pente",
+     "say": "Alors la réponse se trouve parmi ces coins. Regarde ce qui se passe quand on glisse la droite de la fonction vers le haut.",
+     "cues": [
+      {
+       "id": "c_coins",
+       "text": "coins"
+      },
+      {
+       "id": "c_glisse",
+       "text": "glisse"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_coins",
+       "target": "tab"
+      },
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "at": "cue:c_glisse",
+       "target": "tab",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "lire",
+     "say": "On calcule 3x plus 2y à chaque sommet : au point A, zéro ; à B, douze ; à C, seize ; à D, quatorze ; et à E, douze.",
+     "cues": [
+      {
+       "id": "c_a",
+       "text": "point A"
+      },
+      {
+       "id": "c_b",
+       "text": "B"
+      },
+      {
+       "id": "c_c",
+       "text": "C"
+      },
+      {
+       "id": "c_d",
+       "text": "D"
+      },
+      {
+       "id": "c_e",
+       "text": "E"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_a",
+       "verb": "highlight",
+       "at": "cue:c_a",
+       "target": "tab",
+       "part": "r1c3"
+      },
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "at": "cue:c_b",
+       "target": "tab",
+       "part": "r2c3"
+      },
+      {
+       "id": "h_c",
+       "verb": "highlight",
+       "at": "cue:c_c",
+       "target": "tab",
+       "part": "r3c3"
+      },
+      {
+       "id": "h_d",
+       "verb": "highlight",
+       "at": "cue:c_d",
+       "target": "tab",
+       "part": "r4c3"
+      },
+      {
+       "id": "h_e",
+       "verb": "highlight",
+       "at": "cue:c_e",
+       "target": "tab",
+       "part": "r5c3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "res",
+     "content": "3(4) + 2(2) = 16",
+     "type": "math"
+    },
+    {
+     "id": "pt",
+     "content": "Maximum au sommet C(4 ; 2)",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "reponse",
+     "say": "Le plus grand résultat est seize, et il arrive au sommet C, quand x vaut quatre et y vaut deux.",
+     "cues": [
+      {
+       "id": "c_seize",
+       "text": "seize"
+      },
+      {
+       "id": "c_c",
+       "text": "sommet C"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_res",
+       "verb": "write",
+       "at": "cue:c_seize",
+       "target": "res"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "after:w_res",
+       "target": "res",
+       "role": "result"
+      },
+      {
+       "id": "s_pt",
+       "verb": "show",
+       "at": "cue:c_c",
+       "target": "pt"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "methode",
+     "say": "Tu vérifies toujours un sommet à la fois, tu gardes le plus grand, et tu donnes le point qui l'atteint.",
+     "cues": [
+      {
+       "id": "c_verifie",
+       "text": "vérifies"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_tab",
+       "verb": "highlight",
+       "start": "cue:c_verifie",
+       "end": "cue_end:c_verifie",
+       "target": "tab",
+       "part": "c3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "Le maximum de 3x + 2y est atteint à un sommet du polygone de contraintes.",
+     "type": "text"
+    },
+    {
+     "id": "formule",
+     "content": "3(4) + 2(2) = 16",
+     "parts": [
+      {
+       "id": "left",
+       "text": "3(4) + 2(2)"
+      },
+      {
+       "id": "right",
+       "text": "= 16"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "point",
+     "content": "Maximum au sommet C(4 ; 2)",
+     "type": "text"
+    }
+   ],
+   "groups": [
+    {
+     "id": "recap",
+     "items": [
+      "regle",
+      "formule",
+      "point"
+     ],
+     "arrange": {
+      "direction": "down",
+      "align": "left"
+     }
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : pour trouver le maximum, on évalue la fonction à chaque sommet du polygone et on garde le plus grand.",
+     "cues": [
+      {
+       "id": "c_sommets",
+       "text": "sommet"
+      },
+      {
+       "id": "c_plus_grand",
+       "text": "le plus grand"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "tab"
+      },
+      {
+       "id": "f_res",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "res"
+      },
+      {
+       "id": "f_pt",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "pt"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_sommets",
+       "targets": [
+        "recap"
+       ],
+       "bounds": "layout_bounds",
+       "save_as": "vue_recap"
+      },
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_sommets",
+       "target": "regle"
+      },
+      {
+       "id": "w_left",
+       "verb": "write",
+       "at": "cue:c_plus_grand",
+       "target": "formule",
+       "part": "left"
+      },
+      {
+       "id": "w_right",
+       "verb": "write",
+       "at": "cue:c_plus_grand",
+       "target": "formule",
+       "part": "right"
+      }
+     ]
+    },
+    {
+     "id": "final",
+     "say": "Ici, ça donne seize au point C, avec x égale quatre et y égale deux.",
+     "cues": [
+      {
+       "id": "c_seize",
+       "text": "seize"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_point",
+       "verb": "show",
+       "at": "cue:c_seize",
+       "target": "point"
+      },
+      {
+       "id": "h_formule",
+       "verb": "highlight",
+       "at": "cue:c_deux",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

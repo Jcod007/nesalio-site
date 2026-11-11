@@ -1,0 +1,482 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "periode_cycle_sinusoidale",
+  "title": "Reconnaître la période et le cycle d'une fonction périodique",
+  "language": "fr",
+  "learning_goal": "Lire la période et un cycle complet sur le graphique d'une sinusoïdale, à partir de sa règle."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "content": "Période et cycle d'une fonction périodique",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Tu veux reconnaître d'un coup d'œil la période et le cycle d'une fonction périodique. Regardons une sinusoïdale, c'est la plus fréquente.",
+     "cues": [
+      {
+       "id": "p_periode",
+       "text": "la période"
+      },
+      {
+       "id": "p_cycle",
+       "text": "le cycle"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "titre"
+      },
+      {
+       "id": "h_titre",
+       "verb": "highlight",
+       "at": "cue:p_periode",
+       "target": "titre",
+       "role": "accent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_cycle",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       0,
+       7
+      ],
+      "y": [
+       -3,
+       3
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "2*sin(x)",
+      "domain": [
+       0,
+       6.2832
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "defcycle",
+     "layout": {
+      "next_to": "rep",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "\\text{un cycle : d'un point à son jumeau}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Voici f de x égale deux sinus de x. Elle monte, elle redescend, et elle recommence.",
+     "cues": [
+      {
+       "id": "p_trace",
+       "text": "deux sinus de x"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:p_trace",
+       "end": "cue_end:p_trace",
+       "target": "courbe"
+      }
+     ]
+    },
+    {
+     "id": "defcycleb",
+     "say": "Un cycle, c'est le plus petit bout de courbe qui se répète : on part d'un point, on suit la courbe, et on s'arrête quand la même forme recommence exactement.",
+     "cues": [
+      {
+       "id": "p_repetent",
+       "text": "se répète"
+      },
+      {
+       "id": "p_recommence",
+       "text": "recommence exactement"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_def",
+       "verb": "write",
+       "at": "cue:p_repetent",
+       "target": "defcycle"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_periode_lecture",
+   "introduces": [
+    {
+     "id": "p_depart",
+     "style": {
+      "role": "given"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_depart",
+     "attachment": {
+      "parent": "p_depart",
+      "anchor": "left"
+     },
+     "content": "départ x = 0",
+     "type": "label"
+    },
+    {
+     "id": "p_arrivee",
+     "style": {
+      "role": "result"
+     },
+     "frame": "rep",
+     "params": {
+      "at": [
+       6.28,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_arrivee",
+     "attachment": {
+      "parent": "p_arrivee",
+      "anchor": "right"
+     },
+     "content": "même forme : x ≈ 6,28",
+     "type": "label"
+    },
+    {
+     "id": "longueur",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       0,
+       -1.6
+      ],
+      "to": [
+       6.28,
+       -1.6
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "l_longueur",
+     "attachment": {
+      "parent": "longueur",
+      "anchor": "center"
+     },
+     "content": "une période = 6,28",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "depart",
+     "say": "Pars d'un point choisi sur la courbe : ici le point qui commence à x égale zéro.",
+     "cues": [
+      {
+       "id": "p_xzero",
+       "text": "x égale zéro"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_depart",
+       "verb": "show",
+       "at": "cue:p_xzero",
+       "target": "p_depart"
+      },
+      {
+       "id": "s_ldepart",
+       "verb": "show",
+       "at": "after:s_depart",
+       "target": "l_depart"
+      }
+     ]
+    },
+    {
+     "id": "mesure",
+     "say": "Avance le long de la courbe jusqu'à ce que la forme reprenne exactement : ce trajet horizontal, c'est une période.",
+     "cues": [
+      {
+       "id": "p_trajet",
+       "text": "trajet horizontal"
+      },
+      {
+       "id": "p_une",
+       "text": "une période"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_arrivee",
+       "verb": "show",
+       "at": "cue:p_trajet",
+       "target": "p_arrivee"
+      },
+      {
+       "id": "s_larrivee",
+       "verb": "show",
+       "at": "after:s_arrivee",
+       "target": "l_arrivee"
+      },
+      {
+       "id": "d_longueur",
+       "verb": "draw",
+       "at": "cue:p_une",
+       "target": "longueur"
+      },
+      {
+       "id": "s_llongueur",
+       "verb": "show",
+       "at": "after:d_longueur",
+       "target": "l_longueur"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,757 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "addition_vecteurs_norme",
+  "title": "Additionner deux vecteurs et trouver la norme du résultat",
+  "language": "fr",
+  "learning_goal": "Additionner les composantes de deux vecteurs, puis calculer la norme du vecteur obtenu avec le théorème de Pythagore."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "ux": {
+     "kind": "constant",
+     "value": 3
+    },
+    "uy": {
+     "kind": "constant",
+     "value": 4
+    },
+    "vx": {
+     "kind": "constant",
+     "value": -1
+    },
+    "vy": {
+     "kind": "constant",
+     "value": 2
+    }
+   },
+   "expressions": {
+    "somme_x": "ux+vx",
+    "somme_y": "uy+vy",
+    "norme": "sqrt((ux+vx)^2+(uy+vy)^2)"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_somme",
+   "introduces": [
+    {
+     "id": "axes",
+     "params": {
+      "x": [
+       -2,
+       4
+      ],
+      "y": [
+       -1,
+       7
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "u",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       3,
+       4
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "v",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       -1,
+       2
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "somme",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       2,
+       6
+      ]
+     },
+     "type": "vector"
+    },
+    {
+     "id": "u_label",
+     "attachment": {
+      "parent": "u",
+      "anchor": "top"
+     },
+     "content": "u = (3 ; 4)",
+     "type": "label"
+    },
+    {
+     "id": "v_label",
+     "attachment": {
+      "parent": "v",
+      "anchor": "left"
+     },
+     "content": "v = (−1 ; 2)",
+     "type": "label"
+    },
+    {
+     "id": "somme_label",
+     "attachment": {
+      "parent": "somme",
+      "anchor": "right"
+     },
+     "content": "u + v = (2 ; 6)",
+     "type": "label"
+    },
+    {
+     "id": "regle",
+     "content": "(3 + (-1) ; 4 + 2) = (2 ; 6)",
+     "parts": [
+      {
+       "id": "coord_x",
+       "text": "(3 + (-1)"
+      },
+      {
+       "id": "separateur",
+       "text": ";"
+      },
+      {
+       "id": "coord_y",
+       "text": "4 + 2)"
+      },
+      {
+       "id": "resultat",
+       "text": "= (2 ; 6)"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "regle_norme",
+     "content": "\\|(2;6)\\|=\\sqrt{2^2+6^2}=\\sqrt{40}=2\\sqrt{10}",
+     "parts": [
+      {
+       "id": "norme_def",
+       "text": "\\|(2;6)\\|"
+      },
+      {
+       "id": "racine",
+       "text": "=\\sqrt{2^2+6^2}"
+      },
+      {
+       "id": "quarante",
+       "text": "=\\sqrt{40}"
+      },
+      {
+       "id": "norme_res",
+       "text": "=2\\sqrt{10}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "voir_vecteurs",
+     "say": "Un vecteur décrit un déplacement : trois vers la droite et quatre vers le haut pour u, puis un vers la gauche et deux vers le haut pour v.",
+     "cues": [
+      {
+       "id": "u_mot",
+       "text": "pour u"
+      },
+      {
+       "id": "v_mot",
+       "text": "pour v"
+      }
+     ],
+     "do": [
+      {
+       "id": "show_axes",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "axes"
+      },
+      {
+       "id": "draw_u",
+       "verb": "draw",
+       "start": "cue:u_mot",
+       "end": "cue_end:u_mot",
+       "target": "u"
+      },
+      {
+       "id": "draw_v",
+       "verb": "draw",
+       "start": "cue:v_mot",
+       "end": "cue_end:v_mot",
+       "target": "v"
+      },
+      {
+       "id": "show_ul",
+       "verb": "show",
+       "at": "cue:u_mot",
+       "target": "u_label"
+      },
+      {
+       "id": "show_vl",
+       "verb": "show",
+       "at": "cue:v_mot",
+       "target": "v_label"
+      }
+     ]
+    },
+    {
+     "id": "addition_coordonnees",
+     "say": "Pour additionner les vecteurs, on additionne séparément les composantes horizontales, puis les composantes verticales, parce que ces deux directions sont indépendantes.",
+     "cues": [
+      {
+       "id": "horizontales",
+       "text": "composantes horizontales"
+      },
+      {
+       "id": "verticales",
+       "text": "composantes verticales"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_x",
+       "verb": "write",
+       "at": "cue:horizontales",
+       "target": "regle",
+       "part": "coord_x"
+      },
+      {
+       "id": "w_sep",
+       "verb": "write",
+       "at": "cue:verticales",
+       "target": "regle",
+       "part": "separateur"
+      },
+      {
+       "id": "w_y",
+       "verb": "write",
+       "at": "cue:verticales",
+       "target": "regle",
+       "part": "coord_y"
+      }
+     ]
+    },
+    {
+     "id": "calcul_somme",
+     "say": "Trois plus moins un donne deux, et quatre plus deux donne six : le vecteur résultant a donc pour coordonnées deux et six.",
+     "cues": [
+      {
+       "id": "donne_deux",
+       "text": "donne deux"
+      },
+      {
+       "id": "donne_six",
+       "text": "donne six"
+      },
+      {
+       "id": "coord_resultat",
+       "text": "coordonnées deux et six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_result",
+       "verb": "write",
+       "at": "cue:coord_resultat",
+       "target": "regle",
+       "part": "resultat"
+      },
+      {
+       "id": "draw_somme",
+       "verb": "draw",
+       "start": "cue:donne_deux",
+       "end": "cue_end:donne_six",
+       "target": "somme"
+      },
+      {
+       "id": "show_slabel",
+       "verb": "show",
+       "at": "cue:coord_resultat",
+       "target": "somme_label"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_norme",
+   "introduces": [
+    {
+     "id": "n_def",
+     "layout": {
+      "next_to": "regle_norme",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": "La norme est la longueur du vecteur.",
+     "type": "text"
+    },
+    {
+     "id": "tri",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "leg_a": 2,
+      "leg_b": 6
+     },
+     "type": "triangle_right"
+    },
+    {
+     "id": "cote2",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "side_a"
+     },
+     "content": "2",
+     "type": "label"
+    },
+    {
+     "id": "cote6",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "side_b"
+     },
+     "content": "6",
+     "type": "label"
+    },
+    {
+     "id": "hyp",
+     "attachment": {
+      "parent": "tri",
+      "anchor": "hypotenuse"
+     },
+     "content": "norme",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "sens_norme",
+     "say": "La norme, c’est la longueur du vecteur résultant. Ses composantes deux et six forment les deux côtés de l’angle droit du triangle.",
+     "cues": [
+      {
+       "id": "longueur",
+       "text": "longueur du vecteur résultant"
+      },
+      {
+       "id": "cotes",
+       "text": "deux côtés"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_tri",
+       "verb": "draw",
+       "at": "cue:cotes",
+       "target": "tri"
+      },
+      {
+       "id": "show_cotes",
+       "verb": "show",
+       "at": "cue:cotes",
+       "target": "cote2"
+      },
+      {
+       "id": "show_cote6",
+       "verb": "show",
+       "at": "cue:cotes",
+       "target": "cote6"
+      },
+      {
+       "id": "show_hyp",
+       "verb": "show",
+       "at": "cue:longueur",
+       "target": "hyp"
+      }
+     ]
+    },
+    {
+     "id": "pythagore",
+     "say": "Par le théorème de Pythagore, la longueur cherchée au carré égale deux au carré plus six au carré, donc la racine carrée de quarante.",
+     "cues": [
+      {
+       "id": "pythagore_mot",
+       "text": "théorème de Pythagore"
+      },
+      {
+       "id": "racine_mot",
+       "text": "racine carrée de quarante"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_norme_def",
+       "verb": "write",
+       "at": "cue:pythagore_mot",
+       "target": "regle_norme",
+       "part": "norme_def"
+      },
+      {
+       "id": "w_racine",
+       "verb": "write",
+       "at": "cue:racine_mot",
+       "target": "regle_norme",
+       "part": "racine"
+      }
+     ]
+    },
+    {
+     "id": "simplifier_norme",
+     "say": "Quarante vaut quatre fois dix, et la racine carrée de quatre vaut deux : la norme se simplifie donc à deux racine de dix.",
+     "cues": [
+      {
+       "id": "quarante_mot",
+       "text": "Quarante"
+      },
+      {
+       "id": "simplifie",
+       "text": "se simplifie donc"
+      },
+      {
+       "id": "deux_racine",
+       "text": "deux racine de dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_quarante",
+       "verb": "write",
+       "at": "cue:quarante_mot",
+       "target": "regle_norme",
+       "part": "quarante"
+      },
+      {
+       "id": "w_norme_res",
+       "verb": "write",
+       "at": "cue:deux_racine",
+       "target": "regle_norme",
+       "part": "norme_res"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_recap",
+   "introduces": [
+    {
+     "id": "idee_finale",
+     "layout": {
+      "to_edge": "left",
+      "gap": "md"
+     },
+     "content": "On additionne les composantes correspondantes ; la norme est la longueur obtenue avec Pythagore.",
+     "type": "text"
+    },
+    {
+     "id": "reponse_finale",
+     "layout": {
+      "next_to": "idee_finale",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "u+v=(2;6),\\qquad \\|u+v\\|=2\\sqrt{10}",
+     "parts": [
+      {
+       "id": "vec_final",
+       "text": "u+v=(2;6),"
+      },
+      {
+       "id": "norme_final",
+       "text": "\\qquad \\|u+v\\|=2\\sqrt{10}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : tu additionnes les coordonnées une par une, et la norme du résultat est deux racine de dix, soit environ six virgule trente-deux unités.",
+     "cues": [
+      {
+       "id": "retenir_mot",
+       "text": "À retenir"
+      },
+      {
+       "id": "norme_dix",
+       "text": "deux racine de dix"
+      },
+      {
+       "id": "unites",
+       "text": "unités"
+      }
+     ],
+     "do": [
+      {
+       "id": "fade_figure",
+       "verb": "fade_out",
+       "at": "cue:retenir_mot",
+       "target": "axes"
+      },
+      {
+       "id": "fade_regle",
+       "verb": "fade_out",
+       "at": "cue:retenir_mot",
+       "target": "regle"
+      },
+      {
+       "id": "fade_triangle",
+       "verb": "fade_out",
+       "at": "cue:retenir_mot",
+       "target": "tri"
+      },
+      {
+       "id": "fade_norme",
+       "verb": "fade_out",
+       "at": "cue:retenir_mot",
+       "target": "regle_norme"
+      },
+      {
+       "id": "write_idee",
+       "verb": "show",
+       "at": "cue:retenir_mot",
+       "target": "idee_finale"
+      },
+      {
+       "id": "write_final",
+       "verb": "write",
+       "at": "cue:retenir_mot",
+       "target": "reponse_finale",
+       "part": "vec_final"
+      },
+      {
+       "id": "write_norme_final",
+       "verb": "write",
+       "at": "cue:norme_dix",
+       "target": "reponse_finale",
+       "part": "norme_final"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  }
+ ]
+}

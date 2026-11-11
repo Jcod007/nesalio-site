@@ -1,0 +1,72 @@
+QUESTION (systeme-comparaison-erreur, mathematiques, sec 4, erreur) : J'essaie de résoudre y = 2x + 3 et y = -x + 9 par comparaison, j'obtiens x = 4 mais quand je vérifie ça marche pas
+RÉPONSE DE RÉFÉRENCE : x = 2, y = 7 : solution (2, 7) ; x = 4 vient de 3x = 9 + 3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. comparaison : les deux y sont égaux au point de rencontre, donc 2x + 3 = -x + 9
+  2. diagnostic : x = 4 vient de 3x = 9 + 3 ; il faut soustraire 3 des deux côtés, donc 3x = 6
+  3. réponse x = 2, y = 7, solution (2, 7) écrite
+  4. vérification dans les deux équations (7 = 7) et échec montré de x = 4 (11 contre 5)
+  5. valorisé : point d'intersection des deux droites
+ERREURS GRAVES À CHERCHER : diagnostic inventé (signe oublié) ; titre ou réponse affichée fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (y\s*=\s*7(?!\d|[,.]\d)) ; issue complète
+
+TITRE : Résoudre y = 2x + 3 et y = −x + 9 par comparaison
+=== Tranche s_erreur
+  OBJET sys [math] "y = 2x + 3 \\quad \\text{et} \\quad y = -x + 9" parts=y = 2x + 3 | \quad \text{et} \quad | y = -x + 9
+  OBJET x4 [math] "x = 4" 
+DIT (pose) : Bonne nouvelle : ton idée de départ est la bonne. Les deux y sont isolés, alors on peut les comparer.
+    write sys @beat:start {"part":"d1"}
+    write sys @cue:c_comp {"part":"et"}
+    write sys @after:w_et {"part":"d2"}
+DIT (tonx) : Avec x égale quatre, les deux équations devraient donner le même y au point de rencontre.
+    write x4 @cue:c_x4 
+=== Tranche s_verif
+  OBJET m1 [math] "\\text{Première : } 2(4) + 3 = 11" parts=\text{Première : } | 2(4) + 3 = 11
+  OBJET m2 [math] "\\text{Deuxième : } -(4) + 9 = 5" parts=\text{Deuxième : } | -(4) + 9 = 5
+DIT (prem) : Dans la première, deux fois quatre plus trois donne onze.
+    dim sys @beat:start 
+    dim x4 @beat:start 
+    write m1 @beat:start {"part":"l1"}
+    write m1 @cue:c_onze {"part":"y1"}
+DIT (deux) : Dans la deuxième, moins quatre plus neuf donne cinq.
+    write m2 @beat:start {"part":"l2"}
+    write m2 @cue:c_cinq {"part":"y2"}
+    highlight m2 @after:w_y2 {"role":"unknown","part":"y2"}
+DIT (concl) : Cinq n'est pas égal à onze : les deux équations ne donnent pas le même y, donc quatre n'est pas la solution.
+    highlight m1 @cue:c_pas {"role":"unknown","part":"y1"}
+=== Tranche s_resoudre
+  OBJET eq [math] "2x + 3 = -x + 9 \\Rightarrow 3x = 6" parts=2x + 3 = -x + 9 | \Rightarrow | 3x = 6
+  OBJET sol [math] "x = 2" 
+DIT (egale) : Reprenons proprement : au point de rencontre, les deux y sont égaux, donc on égale les deux membres de droite.
+    fade_out m1 @beat:start 
+    fade_out m2 @beat:start 
+    write eq @cue:c_egale {"part":"depart"}
+DIT (isole) : On ajoute un x de chaque côté pour faire disparaître le moins x à droite, et on enlève trois de chaque côté pour isoler les x à gauche.
+    write eq @beat:start {"part":"fleche"}
+    write eq @cue:c_isole {"part":"arrive"}
+DIT (resultat) : Donc trois x vaut six, et x vaut deux.
+    write sol @cue:c_deux 
+    highlight sol @after:w_sol {"role":"result"}
+=== Tranche s_verif_deux
+  OBJET v1 [math] "2(2) + 3 = 7" parts=2(2) + 3 | = 7
+  OBJET v2 [math] "-(2) + 9 = 7" parts=-(2) + 9 | = 7
+DIT (prem) : Vérifions : dans la première équation, deux fois deux plus trois donne sept.
+    fade_out eq @beat:start 
+    write v1 @beat:start {"part":"a1"}
+    write v1 @cue:c_sept {"part":"b1"}
+DIT (deux) : Dans la deuxième, moins deux plus neuf donne sept aussi.
+    write v2 @beat:start {"part":"a2"}
+    write v2 @cue:c_aussisept {"part":"b2"}
+DIT (ok) : Les deux équations donnent sept : le couple est bien solution du système.
+    fade_out x4 @beat:start 
+    highlight v1 @cue:c_donne7 {"role":"result"}
+    highlight v2 @after:h_v1 {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "y_1 = y_2 \\Rightarrow 2x + 3 = -x + 9" 
+  OBJET idee [text] "La solution est le couple qui vérifie les DEUX équations." 
+DIT (idee) : À retenir : au point de rencontre, les deux y sont égaux, donc on écrit deux x plus trois égale moins x plus neuf.
+    camera.focus  @cue:c_retenir {"targets":["v1","v2","regle","idee"],"bounds":"layout_bounds"}
+    write regle @beat:start 
+    highlight regle @after:w_regle {"role":"result"}
+DIT (fin) : Puis x vaut deux donne y égal sept dans les deux : le couple (2 ; 7) est la solution.
+    show idee @cue:c_couple 
+--- 5 tranches, 214 mots dits (≈ 1.4 min d'oral)

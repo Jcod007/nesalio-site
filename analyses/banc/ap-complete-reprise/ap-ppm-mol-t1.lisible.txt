@@ -1,0 +1,62 @@
+QUESTION (ap-ppm-mol, chimie, sec 4, alloprof) : Comment passer d’une concentration en ppm à une concentration en mol/L
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Passer des ppm aux moles par litre
+math_context : {"symbols":{"C_ppm":{"kind":"constant","value":40},"M":{"kind":"constant","value":58.44}},"expressions":{"litre":"C_ppm/1000","molaire":"C_ppm/1000/M"}}
+=== Tranche s_ppm_definition
+  OBJET rect [polygon] {"vertices":[[0,0],[4,0],[4,2],[0,2]]} 
+  OBJET lbl_eau [label] "1 L d'eau" attaché à rect
+  OBJET p1 [point] {"at":[0.7,1.5]} 
+  OBJET p2 [point] {"at":[1.6,0.6]} 
+  OBJET p3 [point] {"at":[2.3,1.3]} 
+  OBJET p4 [point] {"at":[3.1,0.5]} 
+  OBJET p5 [point] {"at":[3.6,1.6]} 
+  OBJET def_ppm [math] "1\\ \\text{ppm} = 1\\ \\text{mg/L}" parts=1\ \text{ppm} | = 1\ \text{mg/L}
+  GROUPE solute_pts = p1, p2, p3, p4, p5
+DIT (intro) : Pour passer des ppm aux moles par litre, il faut d'abord se rappeler ce qu'est un ppm.
+    show rect @cue:c_ppm 
+    show lbl_eau @after:s_rect 
+    show solute_pts @after:s_eau {"stagger":"quick"}
+DIT (def) : Un ppm, c'est un milligramme de soluté par litre de solution. Les points dans le litre d'eau représentent ce soluté.
+    write def_ppm @cue:c_solute {"part":"un_ppm"}
+    write def_ppm @cue:c_litre {"part":"un_mg"}
+=== Tranche s_mg_par_litre
+  OBJET conv [math] "40\\ \\text{ppm} = 40\\ \\text{mg/L} = 0{,}040\\ \\text{g/L}" parts=40\ \text{ppm} | = 40\ \text{mg/L} | = 0{,}040\ \text{g/L}
+  OBJET note_milli [text] "1 g = 1000 mg" 
+DIT (exemple) : Prenons quarante ppm de sel dans l'eau. Comme un ppm vaut un milligramme par litre, ça donne quarante milligrammes par litre.
+    dim def_ppm @cue:c_quarante 
+    write conv @cue:c_quarante {"part":"p_ppm"}
+    write conv @cue:c_quarante2 {"part":"p_mg"}
+DIT (grammes) : Pour la suite, il vaut mieux des grammes par litre : un gramme vaut mille milligrammes, donc quarante milligrammes font zéro virgule zéro quatre zéro gramme.
+    show note_milli @cue:c_gramme 
+    write conv @cue:c_zero {"part":"p_g"}
+=== Tranche s_masse_molaire
+  OBJET masse [math] "M(\\text{NaCl}) = 22{,}99 + 35{,}45 = 58{,}44\\ \\text{g/mol}" parts=M(\text{NaCl}) | = 22{,}99 + 35{,}45 | = 58{,}44\ \text{g/mol}
+DIT (molaire) : Pour transformer des grammes en moles, il faut la masse molaire du sel, NaCl.
+    dim conv @cue:c_masse 
+    write masse @cue:c_nacl {"part":"na"}
+DIT (calcul) : Le sodium pèse vingt-deux virgule quatre-vingt-dix-neuf grammes par mole, le chlore trente-cinq virgule quarante-cinq. Ensemble, cinquante-huit virgule quarante-quatre grammes par mole.
+    write masse @cue:c_somme {"part":"somme"}
+    write masse @cue:c_total {"part":"tot"}
+=== Tranche s_concentration_molaire
+  OBJET final [math] "C = \\frac{0{,}040\\ \\text{g/L}}{58{,}44\\ \\text{g/mol}} \\approx 6{,}8 \\times 10^{-4}\\ \\text{mol/L}" parts=C | = \frac{0{,}040\ \text{g/L}}{58{,}44\ \text{g/mol}} | \approx 6{,}8 \times 10^{-4}\ \text{mol/L}
+DIT (division) : On divise la concentration en grammes par litre par la masse molaire. Les grammes s'annulent, il reste des moles par litre.
+    dim masse @cue:c_divise 
+    write final @cue:c_divise {"part":"c_debut"}
+    write final @cue:c_rest {"part":"c_frac"}
+DIT (resultat) : Zéro virgule zéro quatre divisé par cinquante-huit virgule quarante-quatre donne environ six virgule huit fois dix exposant moins quatre moles par litre.
+    write final @cue:c_environ {"part":"c_res"}
+    highlight final @after:w_res {"role":"result"}
+=== Tranche s_retenir
+  OBJET resume [math] "\\text{ppm} \\xrightarrow{\\div 1000} \\text{g/L} \\xrightarrow{\\div M} \\text{mol/L}" 
+  OBJET idee [text] "1 ppm = 1 mg/L, puis on divise par la masse molaire" 
+  GROUPE recap = resume, idee
+DIT (retenir) : À retenir : un ppm, c'est un milligramme par litre. On convertit en grammes par litre, puis on divise par la masse molaire.
+    fade_out final @cue:c_retenir 
+    show resume @cue:c_retenir 
+    show idee @cue:c_divise 
+    camera.focus  @after:s_idee {"targets":["recap"],"bounds":"layout_bounds"}
+--- 5 tranches, 185 mots dits (≈ 1.2 min d'oral)

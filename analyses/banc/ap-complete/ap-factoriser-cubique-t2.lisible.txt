@@ -1,0 +1,66 @@
+QUESTION (ap-factoriser-cubique, mathematiques, sec 4, alloprof) : Comment factorise t-on 20x^3+70x^2+60x? On a pas appris à 3e degré...
+RÉPONSE DE RÉFÉRENCE : 10x(2x+3)(x+2)
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Comment factoriser 20x³ + 70x² + 60x
+math_context : {"symbols":{},"expressions":{"prod_ac":"20*3","somme_b":"70"}}
+=== Tranche s_evi
+  OBJET poly [math] "20x^3 + 70x^2 + 60x" parts=20x^3 | + 70x^2 | + 60x
+  OBJET pgcd_note [text] "20, 70 et 60 sont tous divisibles par 10" 
+  OBJET evi [math] "10x(2x^2 + 7x + 6)" parts=10x | (2x^2 + 7x + 6)
+DIT (presente) : Bon, ce polynôme a trois termes et un exposant trois : on ne connaît pas de formule pour ça directement. On va y aller par étapes.
+    write poly @cue:c_trois_termes {"part":"t1"}
+    write poly @after:w_t1 {"part":"t2"}
+    write poly @after:w_t2 {"part":"t3"}
+DIT (premiere) : Première étape, toujours la même : y a-t-il un facteur commun aux trois termes ?
+    highlight poly @- {"start":"cue:c_commun","end":"cue_end:c_trois","role":"accent"}
+    show pgcd_note @after:h_poly 
+DIT (evid) : Les coefficients vingt, soixante-dix et soixante ont tous dix en commun, et chaque terme contient au moins un x. On sort dix x.
+    fade_out pgcd_note @cue:c_dix 
+    write evi @cue:c_dix {"part":"fact"}
+    write evi @cue:c_sort {"part":"reste"}
+    highlight evi @after:w_reste {"role":"accent","part":"reste"}
+=== Tranche s_prod_somme
+  OBJET trinome [math] "2x^2 + 7x + 6" 
+  OBJET search [math] "a \\times c = 2 \\times 6 = 12 \\quad ; \\quad b = 7" parts=a \times c = 2 \times 6 = 12 | \quad ; \quad | b = 7
+  OBJET pairs [matrix] {"rows":[[1,12,13],[2,6,8],[3,4,7]],"row_labels":["paire","produit","somme"]} 
+DIT (reste) : Il reste à factoriser ce qu'il y a dans la parenthèse : deux x au carré plus sept x plus six. Ça, c'est un trinôme du second degré, et on a une méthode.
+    write trinome @cue:c_trinome 
+DIT (recherche) : On cherche deux nombres dont le produit est a fois c, soit deux fois six égale douze, et dont la somme est b, c'est-à-dire sept.
+    write search @cue:c_douze {"part":"prod"}
+    write search @cue:c_sept {"part":"som"}
+    show pairs @after:w_som 
+DIT (paire) : On essaie les paires : un et douze donnent treize. Deux et six donnent huit. Trois et quatre donnent sept — ça marche !
+    highlight pairs @- {"start":"cue:c_trois_quatre","end":"cue_end:c_trois_quatre","role":"result","part":"r3"}
+=== Tranche s_decompose
+  OBJET dec [math] "2x^2 + 3x + 4x + 6" parts=2x^2 + 3x | + 4x + 6
+  OBJET grp [math] "x(2x + 3) + 2(2x + 3)" 
+  OBJET fin [math] "(2x + 3)(x + 2)" parts=(2x + 3) | (x + 2)
+DIT (decompose) : On décompose le sept x en trois x plus quatre x, à partir de la paire trois et quatre.
+    fade_out search @cue:c_decompose 
+    fade_out pairs @cue:c_decompose 
+    fade_out trinome @cue:c_decompose 
+    transform dec @cue:c_trois_x {"source":"evi"}
+    highlight dec @- {"start":"cue:c_trois_x","end":"cue_end:c_trois_x","role":"accent","part":"d1"}
+DIT (double) : Maintenant, mise en évidence double : dans les deux premiers termes, on sort x ; dans les deux derniers, on sort deux.
+    transform grp @cue:c_double {"source":"dec"}
+DIT (facteur) : Les deux groupes partagent la même parenthèse, deux x plus trois. On la sort, et il reste x plus deux.
+    transform fin @cue:c_meme {"source":"grp"}
+=== Tranche s_verif
+  OBJET resultat [math] "20x^3 + 70x^2 + 60x = 10x(2x + 3)(x + 2)" parts=20x^3 + 70x^2 + 60x | = | 10x(2x + 3)(x + 2)
+DIT (remonte) : On remet tout ensemble : le dix x sorti au début, et les deux facteurs trouvés.
+    write resultat @cue:c_tout {"part":"g"}
+    write resultat @after:w_g {"part":"eq"}
+    write resultat @cue:c_deux_facteurs {"part":"droite"}
+DIT (verifie) : On vérifie en redéveloppant : deux x plus trois fois x plus deux donne deux x au carré plus sept x plus six, et le dix x redonne bien chaque terme de départ.
+    highlight fin @- {"start":"cue:c_redonne","end":"cue_end:c_redonne","role":"accent"}
+=== Tranche s_retenir
+  OBJET idee [text] "1. Facteur commun  2. Produit-somme  3. Vérifier en redéveloppant" 
+DIT (retenir) : À retenir : devant un polynôme à plusieurs termes, on sort toujours le facteur commun d'abord. Ensuite, pour un trinôme, la méthode produit-somme. Et on vérifie toujours en redéveloppant.
+    fade_out fin @cue:c_retenir 
+    camera.focus  @cue:c_retenir {"targets":["resultat","idee"],"bounds":"layout_bounds"}
+    show idee @cue:c_commun2 
+    highlight resultat @- {"start":"cue:c_prod2","end":"cue_end:c_prod2","role":"result","part":"droite"}
+--- 5 tranches, 285 mots dits (≈ 1.9 min d'oral)

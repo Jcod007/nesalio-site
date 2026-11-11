@@ -1,0 +1,727 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "endo_exo",
+  "title": "Comment savoir si une réaction est endothermique ou exothermique",
+  "language": "fr",
+  "learning_goal": "Relier le signe du bilan d'énergie au sens du transfert de chaleur et au sens de la réaction sur un diagramme."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_idee",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "\\Delta H < 0 \\Rightarrow \\text{exothermique}",
+     "parts": [
+      {
+       "id": "dh_neg",
+       "text": "\\Delta H < 0"
+      },
+      {
+       "id": "exo",
+       "text": "\\Rightarrow \\text{exothermique}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "regle2",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\Delta H > 0 \\Rightarrow \\text{endothermique}",
+     "parts": [
+      {
+       "id": "dh_pos",
+       "text": "\\Delta H > 0"
+      },
+      {
+       "id": "endo",
+       "text": "\\Rightarrow \\text{endothermique}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "intro",
+     "say": "Bonne question : endo ou exo, ça se lit sur le sens de la chaleur.",
+     "cues": [
+      {
+       "id": "c_question",
+       "text": "endo ou exo"
+      }
+     ],
+     "do": []
+    },
+    {
+     "id": "chaleur",
+     "say": "Regarde si la chaleur est libérée par la réaction ou absorbée par elle. La clé, c'est le signe du bilan d'énergie, delta H.",
+     "cues": [
+      {
+       "id": "c_lib",
+       "text": "libérée"
+      },
+      {
+       "id": "c_abs",
+       "text": "absorbée"
+      },
+      {
+       "id": "c_delta",
+       "text": "delta H"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_regle",
+       "verb": "show",
+       "at": "cue:c_delta",
+       "target": "regle"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_exo",
+   "introduces": [
+    {
+     "id": "niveau",
+     "params": {
+      "domain": [
+       0,
+       10
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "reactifs",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "produits",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       8,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "flech_exo",
+     "params": {
+      "from": [
+       2,
+       0
+      ],
+      "to": [
+       8,
+       0
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_react",
+     "attachment": {
+      "parent": "reactifs",
+      "anchor": "bottom"
+     },
+     "content": "CH₄ + 2 O₂",
+     "type": "label"
+    },
+    {
+     "id": "lab_prod",
+     "attachment": {
+      "parent": "produits",
+      "anchor": "bottom"
+     },
+     "content": "CO₂ + 2 H₂O",
+     "type": "label"
+    },
+    {
+     "id": "fleche_exo",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       -1,
+       0
+      ],
+      "to": [
+       -1,
+       1.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_fleche_exo",
+     "attachment": {
+      "parent": "fleche_exo",
+      "anchor": "right"
+     },
+     "content": "chaleur libérée vers le milieu",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "exemple",
+     "say": "Prenons la combustion du méthane. Elle libère de la chaleur : c'est exothermique.",
+     "cues": [
+      {
+       "id": "c_combustion",
+       "text": "combustion du méthane"
+      },
+      {
+       "id": "c_exo",
+       "text": "exothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_niveau",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "niveau"
+      },
+      {
+       "id": "s_react",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "reactifs"
+      },
+      {
+       "id": "s_prod",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "produits"
+      },
+      {
+       "id": "s_lab_r",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_react"
+      },
+      {
+       "id": "s_lab_p",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_prod"
+      },
+      {
+       "id": "h_react",
+       "verb": "highlight",
+       "at": "cue:c_combustion",
+       "target": "reactifs",
+       "role": "given"
+      },
+      {
+       "id": "h_prod",
+       "verb": "highlight",
+       "at": "cue:c_combustion",
+       "target": "produits",
+       "role": "accent"
+      },
+      {
+       "id": "d_arrow",
+       "verb": "draw",
+       "at": "after:h_prod",
+       "target": "flech_exo"
+      },
+      {
+       "id": "s_fleche",
+       "verb": "show",
+       "at": "cue:c_exo",
+       "target": "fleche_exo"
+      },
+      {
+       "id": "s_lab_fleche",
+       "verb": "show",
+       "at": "cue:c_exo",
+       "target": "lab_fleche_exo"
+      }
+     ]
+    },
+    {
+     "id": "signe",
+     "say": "Dans ce cas, delta H est négatif : la réaction envoie de l'énergie dans le milieu.",
+     "cues": [
+      {
+       "id": "c_neg",
+       "text": "delta H est négatif"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:c_neg",
+       "end": "cue_end:c_neg",
+       "target": "regle",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_endo",
+   "introduces": [
+    {
+     "id": "niveau2",
+     "params": {
+      "domain": [
+       0,
+       10
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "re2",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "pr2",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "at": [
+       8,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "flech_endo",
+     "params": {
+      "from": [
+       2,
+       0
+      ],
+      "to": [
+       8,
+       0
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_re2",
+     "attachment": {
+      "parent": "re2",
+      "anchor": "bottom"
+     },
+     "content": "CaCO₃",
+     "type": "label"
+    },
+    {
+     "id": "lab_pr2",
+     "attachment": {
+      "parent": "pr2",
+      "anchor": "bottom"
+     },
+     "content": "CaO + CO₂",
+     "type": "label"
+    },
+    {
+     "id": "fleche_endo",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "from": [
+       8.5,
+       1.5
+      ],
+      "to": [
+       4,
+       1.5
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "lab_fleche_endo",
+     "attachment": {
+      "parent": "fleche_endo",
+      "anchor": "top"
+     },
+     "content": "chaleur absorbée du milieu",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "calcination",
+     "say": "Au contraire, la décomposition du calcaire absorbe de la chaleur : c'est endothermique.",
+     "cues": [
+      {
+       "id": "c_decomp",
+       "text": "décomposition du calcaire"
+      },
+      {
+       "id": "c_endo",
+       "text": "endothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_niveau2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "niveau2"
+      },
+      {
+       "id": "s_re2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "re2"
+      },
+      {
+       "id": "s_pr2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "pr2"
+      },
+      {
+       "id": "s_lab_re2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_re2"
+      },
+      {
+       "id": "s_lab_pr2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "lab_pr2"
+      },
+      {
+       "id": "h_re2",
+       "verb": "highlight",
+       "at": "cue:c_decomp",
+       "target": "re2",
+       "role": "given"
+      },
+      {
+       "id": "d_fleche_endo",
+       "verb": "draw",
+       "at": "cue:c_endo",
+       "target": "flech_endo"
+      },
+      {
+       "id": "s_fleche_endo",
+       "verb": "show",
+       "at": "cue:c_endo",
+       "target": "fleche_endo"
+      },
+      {
+       "id": "s_lab_fleche_endo",
+       "verb": "show",
+       "at": "cue:c_endo",
+       "target": "lab_fleche_endo"
+      }
+     ]
+    },
+    {
+     "id": "signe2",
+     "say": "Ici, delta H est positif : la réaction puise de l'énergie dans le milieu.",
+     "cues": [
+      {
+       "id": "c_positif",
+       "text": "delta H est positif"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_regle2",
+       "verb": "highlight",
+       "start": "cue:c_positif",
+       "end": "cue_end:c_positif",
+       "target": "regle2",
+       "role": "result"
+      },
+      {
+       "id": "f_niveau",
+       "verb": "fade_out",
+       "at": "cue:c_positif",
+       "target": "niveau"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "bilan",
+     "say": "En bref : regarde le sens de la chaleur. Libérée, delta H négatif, exothermique ; absorbée, delta H positif, endothermique.",
+     "cues": [
+      {
+       "id": "c_lib",
+       "text": "Libérée"
+      },
+      {
+       "id": "c_abs",
+       "text": "absorbée"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_lib",
+       "targets": [
+        "regle",
+        "regle2"
+       ]
+      },
+      {
+       "id": "h1",
+       "verb": "highlight",
+       "start": "cue:c_lib",
+       "end": "cue_end:c_lib",
+       "target": "regle",
+       "role": "result"
+      },
+      {
+       "id": "h2",
+       "verb": "highlight",
+       "start": "cue:c_abs",
+       "end": "cue_end:c_abs",
+       "target": "regle2",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

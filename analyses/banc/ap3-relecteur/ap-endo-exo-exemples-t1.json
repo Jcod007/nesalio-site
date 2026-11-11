@@ -1,0 +1,672 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "exo_endo",
+  "title": "Endothermique ou exothermique, et physique ou chimique ?",
+  "language": "fr",
+  "learning_goal": "Classer une transformation selon l'énergie (endothermique ou exothermique) et selon sa nature (physique, chimique ou nucléaire)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intro",
+   "introduces": [
+    {
+     "id": "titre",
+     "size": "large",
+     "content": "Endothermique / exothermique  et  physique / chimique",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Tes six exemples mélangent deux questions différentes : est-ce que ça dégage de l'énergie, et est-ce que la substance change de nature.",
+     "cues": [
+      {
+       "id": "c_deux",
+       "text": "deux questions différentes"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_titre",
+       "verb": "show",
+       "at": "cue:c_deux",
+       "target": "titre"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_nature",
+   "introduces": [
+    {
+     "id": "q1",
+     "layout": {
+      "next_to": "titre",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{Nature : physique, chimique ou nucléaire ?}",
+     "type": "math"
+    },
+    {
+     "id": "ex_phys",
+     "layout": {
+      "next_to": "q1",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Congélation de l'eau : physique",
+     "type": "text"
+    },
+    {
+     "id": "ex_chim",
+     "layout": {
+      "next_to": "ex_phys",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Combustion, fermentation : chimique",
+     "type": "text"
+    },
+    {
+     "id": "ex_nuc",
+     "layout": {
+      "next_to": "ex_chim",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Désintégration de l'uranium : nucléaire",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "phys",
+     "say": "D'abord la nature. La congélation de l'eau est physique : l'eau liquide et la glace, c'est la même substance, H deux O, seule la forme change.",
+     "cues": [
+      {
+       "id": "c_congel",
+       "text": "congélation de l'eau"
+      },
+      {
+       "id": "c_phys",
+       "text": "physique"
+      },
+      {
+       "id": "c_meme",
+       "text": "même substance"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_q1",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "q1"
+      },
+      {
+       "id": "s_phys",
+       "verb": "show",
+       "at": "cue:c_congel",
+       "target": "ex_phys"
+      },
+      {
+       "id": "h_phys",
+       "verb": "highlight",
+       "start": "cue:c_phys",
+       "end": "cue_end:c_meme",
+       "target": "ex_phys",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "chim",
+     "say": "La combustion du bois et la fermentation du raisin sont chimiques : elles créent de nouvelles substances, comme le dioxyde de carbone, l'eau ou l'alcool.",
+     "cues": [
+      {
+       "id": "c_comb",
+       "text": "combustion du bois"
+      },
+      {
+       "id": "c_ferm",
+       "text": "fermentation du raisin"
+      },
+      {
+       "id": "c_nouv",
+       "text": "nouvelles substances"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_chim",
+       "verb": "show",
+       "at": "cue:c_comb",
+       "target": "ex_chim"
+      },
+      {
+       "id": "h_chim",
+       "verb": "highlight",
+       "start": "cue:c_ferm",
+       "end": "cue_end:c_nouv",
+       "target": "ex_chim",
+       "role": "given"
+      }
+     ]
+    },
+    {
+     "id": "nuc",
+     "say": "Attention ici : la désintégration de l'uranium n'est ni physique ni chimique, elle est nucléaire, parce que c'est le noyau lui-même qui se transforme.",
+     "cues": [
+      {
+       "id": "c_desint",
+       "text": "désintégration de l'uranium"
+      },
+      {
+       "id": "c_nuc",
+       "text": "nucléaire"
+      },
+      {
+       "id": "c_noyau",
+       "text": "noyau lui-même"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_nuc",
+       "verb": "show",
+       "at": "cue:c_desint",
+       "target": "ex_nuc"
+      },
+      {
+       "id": "h_nuc",
+       "verb": "highlight",
+       "start": "cue:c_nuc",
+       "end": "cue_end:c_noyau",
+       "target": "ex_nuc",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_energie",
+   "introduces": [
+    {
+     "id": "q2",
+     "layout": {
+      "next_to": "ex_nuc",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "\\text{Énergie : absorbe (endo) ou dégage (exo) ?}",
+     "type": "math"
+    },
+    {
+     "id": "ligne",
+     "layout": {
+      "next_to": "q2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "Changement d'état : vers plus de désordre = il faut fournir de l'énergie",
+     "type": "text"
+    },
+    {
+     "id": "ex_endo",
+     "layout": {
+      "next_to": "ligne",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "Endothermique : fusion, vaporisation, sublimation",
+     "type": "text"
+    },
+    {
+     "id": "ex_exo",
+     "layout": {
+      "next_to": "ex_endo",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "Exothermique : congélation, condensation",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "desordre",
+     "say": "Maintenant l'énergie. Pour un changement d'état, retiens la règle du désordre : aller vers un état plus désordonné demande de l'énergie, en libérer en dégage.",
+     "cues": [
+      {
+       "id": "c_energie",
+       "text": "l'énergie"
+      },
+      {
+       "id": "c_desordre",
+       "text": "règle du désordre"
+      },
+      {
+       "id": "c_demande",
+       "text": "demande de l'énergie"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_q2",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "q2"
+      },
+      {
+       "id": "s_ligne",
+       "verb": "show",
+       "at": "cue:c_desordre",
+       "target": "ligne"
+      }
+     ]
+    },
+    {
+     "id": "classer",
+     "say": "Donc la fusion de la glace et la vaporisation absorbent : c'est endothermique. Au contraire, la congélation de l'eau dégage de l'énergie : elle est exothermique.",
+     "cues": [
+      {
+       "id": "c_endotherm",
+       "text": "endothermique"
+      },
+      {
+       "id": "c_exotherm",
+       "text": "exothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_endo",
+       "verb": "show",
+       "at": "cue:c_endotherm",
+       "target": "ex_endo"
+      },
+      {
+       "id": "s_exo",
+       "verb": "show",
+       "at": "cue:c_exotherm",
+       "target": "ex_exo"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_reconnaitre",
+   "introduces": [
+    {
+     "id": "indices",
+     "layout": {
+      "next_to": "ex_exo",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Milieu qui se réchauffe = exo  •  qui se refroidit = endo",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "indice",
+     "say": "Comment le reconnaître sans tableau ? Si la chaleur ou la lumière se dégage et que le milieu se réchauffe, c'est exothermique.",
+     "cues": [
+      {
+       "id": "c_rechauffe",
+       "text": "milieu se réchauffe"
+      },
+      {
+       "id": "c_exo",
+       "text": "exothermique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_ind",
+       "verb": "show",
+       "at": "cue:c_rechauffe",
+       "target": "indices"
+      },
+      {
+       "id": "h_ind",
+       "verb": "highlight",
+       "start": "cue:c_rechauffe",
+       "end": "cue_end:c_exo",
+       "target": "indices",
+       "role": "accent"
+      }
+     ]
+    },
+    {
+     "id": "retour",
+     "say": "Alors, la combustion du bois, la fermentation et l'explosion du T.N.T. dégagent toutes de l'énergie : elles sont exothermiques et chimiques.",
+     "cues": [
+      {
+       "id": "c_tnt",
+       "text": "T.N.T."
+      },
+      {
+       "id": "c_exochim",
+       "text": "exothermiques et chimiques"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_chim2",
+       "verb": "highlight",
+       "start": "cue:c_tnt",
+       "end": "cue_end:c_exochim",
+       "target": "ex_chim",
+       "role": "given"
+      },
+      {
+       "id": "h_phys2",
+       "verb": "highlight",
+       "start": "cue:c_tnt",
+       "end": "cue_end:c_exochim",
+       "target": "ex_phys",
+       "role": "given"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "indices",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "Nature : physique (même substance), chimique (nouvelles substances), nucléaire (le noyau).",
+     "type": "text"
+    },
+    {
+     "id": "idee2",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "md"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "Énergie : dégage = exo, absorbe = endo.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "final",
+     "say": "À retenir : d'abord la nature, même substance ou nouvelle substance ou noyau, ensuite l'énergie, dégagée ou absorbée.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_degagee",
+       "text": "dégagée ou absorbée"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_q1",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "q1"
+      },
+      {
+       "id": "f_q2",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "q2"
+      },
+      {
+       "id": "f_ligne",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "ligne"
+      },
+      {
+       "id": "w_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      },
+      {
+       "id": "w_idee2",
+       "verb": "show",
+       "at": "cue:c_degagee",
+       "target": "idee2"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "beat:start",
+       "targets": [
+        "titre",
+        "idee",
+        "idee2"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

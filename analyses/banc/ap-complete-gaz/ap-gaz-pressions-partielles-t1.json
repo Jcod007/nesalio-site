@@ -1,0 +1,683 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "pression_partielle_loi",
+  "title": "Pourquoi les pressions partielles s'additionnent",
+  "language": "fr",
+  "learning_goal": "Comprendre que la pression d'un gaz ne dépend pas du nombre de moles mais du nombre de chocs sur la paroi, et que la loi de Dalton additionne les pressions partielles proportionnelles aux fractions molaires."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "p_partielle_O2": "0.25*800",
+    "p_partielle_He": "0.75*800",
+    "p_totale": "0.25*800+0.75*800"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_intuition",
+   "introduces": [
+    {
+     "id": "bonbonnes",
+     "content": "Deux bonbonnes de même volume, à 800 kPa",
+     "type": "text"
+    },
+    {
+     "id": "q_part",
+     "content": "Une pression partielle, c'est la pression qu'aurait ce gaz s'il occupait seul le récipient.",
+     "type": "callout"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouverture",
+     "say": "Ta question touche l'idée la plus importante du chapitre : la pression ne s'additionne pas selon le nombre de moles.",
+     "cues": [],
+     "do": [],
+     "pause_after": "brief"
+    },
+    {
+     "id": "image",
+     "say": "Imagine deux bonbonnes de même volume à la même pression. L'une contient deux moles de gaz, l'autre une seule. Laquelle pousse le plus fort sur ses parois ?",
+     "cues": [
+      {
+       "id": "deux_moles",
+       "text": "deux moles de gaz"
+      },
+      {
+       "id": "une_seule",
+       "text": "une seule"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_bonbonnes",
+       "verb": "show",
+       "at": "cue:deux_moles",
+       "target": "bonbonnes"
+      }
+     ]
+    },
+    {
+     "id": "reponse",
+     "say": "Aucune des deux : la pression est la même, car elle ne compte pas les moles dans une même bonbonne, mais les chocs par unité de surface sur la paroi.",
+     "cues": [
+      {
+       "id": "chocs",
+       "text": "chocs par unité de surface"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_q",
+       "verb": "show",
+       "at": "cue:chocs",
+       "target": "q_part"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_fractions",
+   "introduces": [
+    {
+     "id": "frac",
+     "content": "x_{\\mathrm{O_2}} = \\frac{1}{4} \\qquad x_{\\mathrm{He}} = \\frac{3}{4}",
+     "parts": [
+      {
+       "id": "xO2",
+       "text": "x_{\\mathrm{O_2}} = \\frac{1}{4}"
+      },
+      {
+       "id": "xHe",
+       "text": "x_{\\mathrm{He}} = \\frac{3}{4}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "dalton",
+     "content": "P_{\\text{totale}} = P_{\\mathrm{O_2}} + P_{\\mathrm{He}}",
+     "parts": [
+      {
+       "id": "ptot",
+       "text": "P_{\\text{totale}}"
+      },
+      {
+       "id": "plus",
+       "text": "= P_{\\mathrm{O_2}} + P_{\\mathrm{He}}"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "melange",
+     "say": "Mettons deux moles d'oxygène et six moles d'hélium dans la même bonbonne. Ce qui compte, c'est la part de chaque gaz dans le total des moles.",
+     "cues": [
+      {
+       "id": "deux_o",
+       "text": "deux moles d'oxygène"
+      },
+      {
+       "id": "six_he",
+       "text": "six moles d'hélium"
+      },
+      {
+       "id": "part",
+       "text": "part de chaque gaz"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_frac",
+       "verb": "show",
+       "at": "cue:part",
+       "target": "frac"
+      }
+     ]
+    },
+    {
+     "id": "fractions",
+     "say": "Oxygène : deux moles sur huit, c'est un quart. Hélium : six sur huit, c'est trois quarts.",
+     "cues": [
+      {
+       "id": "un_quart",
+       "text": "un quart"
+      },
+      {
+       "id": "trois_quart",
+       "text": "trois quarts"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_xO2",
+       "verb": "highlight",
+       "at": "cue:un_quart",
+       "target": "frac",
+       "role": "given",
+       "part": "xO2"
+      },
+      {
+       "id": "h_xHe",
+       "verb": "highlight",
+       "at": "cue:trois_quart",
+       "target": "frac",
+       "role": "given",
+       "part": "xHe"
+      }
+     ]
+    },
+    {
+     "id": "loi",
+     "say": "La loi de Dalton dit alors que la pression totale est la somme des pressions partielles : chaque gaz contribue selon sa fraction.",
+     "cues": [
+      {
+       "id": "somme",
+       "text": "somme des pressions partielles"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_dalton",
+       "verb": "write",
+       "at": "cue:somme",
+       "target": "dalton",
+       "part": "ptot"
+      },
+      {
+       "id": "w_dalton2",
+       "verb": "write",
+       "at": "after:w_dalton",
+       "target": "dalton",
+       "part": "plus"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_calcul",
+   "introduces": [
+    {
+     "id": "bonbonne_visu",
+     "params": {
+      "rows": [
+       [
+        "O₂",
+        0.25,
+        200
+       ],
+       [
+        "He",
+        0.75,
+        600
+       ],
+       [
+        "Total",
+        1,
+        800
+       ]
+      ],
+      "column_labels": [
+       "gaz",
+       "fraction",
+       "pression partielle (kPa)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "pO2",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "p_partielle_O2",
+      "template": "P_{\\mathrm{O_2}} = {value}\\ \\mathrm{kPa}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "pHe",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "p_partielle_He",
+      "template": "P_{\\mathrm{He}} = {value}\\ \\mathrm{kPa}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "pTot",
+     "content": {
+      "kind": "computed",
+      "expression_ref": "p_totale",
+      "template": "P_{\\text{totale}} = {value}\\ \\mathrm{kPa}",
+      "precision": 0
+     },
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "donnees",
+     "say": "Si la pression totale dans la bonbonne est de huit cents kilopascals, chaque gaz prend sa part : la pression partielle, c'est la fraction fois la pression totale.",
+     "cues": [
+      {
+       "id": "huit_cents",
+       "text": "huit cents kilopascals"
+      },
+      {
+       "id": "sa_part",
+       "text": "sa part"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:huit_cents",
+       "target": "bonbonne_visu"
+      }
+     ]
+    },
+    {
+     "id": "ox",
+     "say": "Pour l'oxygène, un quart de huit cents, ça donne deux cents kilopascals.",
+     "cues": [
+      {
+       "id": "deux_cents",
+       "text": "deux cents kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pO2",
+       "verb": "write",
+       "at": "cue:deux_cents",
+       "target": "pO2"
+      },
+      {
+       "id": "h_r1",
+       "verb": "highlight",
+       "start": "cue:deux_cents",
+       "end": "cue_end:deux_cents",
+       "target": "bonbonne_visu",
+       "role": "accent",
+       "part": "r1"
+      }
+     ]
+    },
+    {
+     "id": "he",
+     "say": "Pour l'hélium, trois quarts de huit cents, ça donne six cents kilopascals.",
+     "cues": [
+      {
+       "id": "six_cents",
+       "text": "six cents kilopascals"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pHe",
+       "verb": "write",
+       "at": "cue:six_cents",
+       "target": "pHe"
+      },
+      {
+       "id": "h_r2",
+       "verb": "highlight",
+       "start": "cue:six_cents",
+       "end": "cue_end:six_cents",
+       "target": "bonbonne_visu",
+       "role": "accent",
+       "part": "r2"
+      }
+     ]
+    },
+    {
+     "id": "somme",
+     "say": "Deux cents plus six cents redonne bien huit cents : les pressions partielles s'additionnent sans multiplier par les moles.",
+     "cues": [
+      {
+       "id": "additionnent",
+       "text": "s'additionnent"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_pTot",
+       "verb": "write",
+       "at": "cue:additionnent",
+       "target": "pTot"
+      },
+      {
+       "id": "h_r3",
+       "verb": "highlight",
+       "start": "cue:additionnent",
+       "end": "cue_end:additionnent",
+       "target": "bonbonne_visu",
+       "role": "result",
+       "part": "r3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "regle",
+     "layout": {
+      "to_edge": "left",
+      "gap": "lg"
+     },
+     "content": "P_i = x_i \\cdot P_{\\text{totale}}",
+     "type": "math"
+    },
+    {
+     "id": "phrase",
+     "layout": {
+      "next_to": "regle",
+      "direction": "right",
+      "gap": "lg"
+     },
+     "content": "Chaque gaz contribue selon sa fraction molaire, pas selon son nombre de moles.",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "nettoyage",
+     "say": "Rangeons tout ça pour garder l'essentiel.",
+     "cues": [
+      {
+       "id": "rangeons",
+       "text": "tout ça"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_bonbonnes",
+       "verb": "fade_out",
+       "at": "cue:rangeons",
+       "target": "bonbonnes"
+      },
+      {
+       "id": "f_q",
+       "verb": "fade_out",
+       "at": "cue:rangeons",
+       "target": "q_part"
+      },
+      {
+       "id": "f_frac",
+       "verb": "fade_out",
+       "at": "cue:rangeons",
+       "target": "frac"
+      },
+      {
+       "id": "f_tab",
+       "verb": "fade_out",
+       "at": "cue:rangeons",
+       "target": "bonbonne_visu"
+      },
+      {
+       "id": "f_pO2",
+       "verb": "fade_out",
+       "at": "cue:rangeons",
+       "target": "pO2"
+      },
+      {
+       "id": "f_pHe",
+       "verb": "fade_out",
+       "at": "cue:rangeons",
+       "target": "pHe"
+      },
+      {
+       "id": "f_pTot",
+       "verb": "fade_out",
+       "at": "cue:rangeons",
+       "target": "pTot"
+      }
+     ]
+    },
+    {
+     "id": "retenir",
+     "say": "À retenir : la pression partielle d'un gaz, c'est sa fraction molaire multipliée par la pression totale. Additionner les pressions partielles redonne la pression totale.",
+     "cues": [
+      {
+       "id": "fraction",
+       "text": "fraction molaire"
+      },
+      {
+       "id": "addition",
+       "text": "Additionner les pressions partielles"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:fraction",
+       "targets": [
+        "regle",
+        "phrase"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_regle",
+       "verb": "highlight",
+       "start": "cue:fraction",
+       "end": "cue_end:fraction",
+       "target": "regle",
+       "role": "result"
+      },
+      {
+       "id": "s_phrase",
+       "verb": "show",
+       "at": "cue:addition",
+       "target": "phrase"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

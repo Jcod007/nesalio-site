@@ -1,0 +1,93 @@
+QUESTION (ap-titrage-yamaska, chimie, sec 4, alloprof) : Suite à un déversement de NaOH, vous devez déterminer le pH d’un échantillon d’eau de la rivière Yamaska. Votre premier test montre que cette eau vire bleu le papier tournesol rouge. Vous titrez 20 ml de cette solution et le bleu de bromothymol vire vert après l’ajout de 50 ml d’une solution de H3PO4 à 0,003 mol/l. Calculez le pH de cette eau de la Yamaska.
+RÉPONSE DE RÉFÉRENCE : H3PO4 libère 3 H+ : 4,5×10⁻⁴ mol ; [NaOH] = 0,0225 mol/L ; pOH ≈ 1,65 ; pH ≈ 12,35.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète, tranches perdues : (sans identifiant)
+
+TITRE : Le pH de l'eau de la Yamaska après un déversement de NaOH
+math_context : {"symbols":{"ca":{"kind":"constant","value":0.003}},"expressions":{"nh":"ca*0.050*3","cbase":"ca*0.050*3/0.020","pOH":"-log(ca*0.050*3/0.020)","pH":"14+log(ca*0.050*3/0.020)"}}
+=== Tranche s_donnees
+  OBJET ech [matrix] {"rows":[["20 mL","solution basique (NaOH)","tournesol → bleu"],["50 mL","H₃PO₄ 0,003 mol/L","bromothymol → vert"]],"column_labels":["volumes","solutions","indicateur"]} 
+  OBJET ph_axe [number_line] {"domain":[0,14]} 
+  OBJET p_neutre [point] {"at":[7,0]} 
+  OBJET l_neutre [label] "7" attaché à p_neutre
+  OBJET p_base [point] {"at":[11,0]} 
+  OBJET l_base [label] "pH ?" attaché à p_base
+DIT (intro) : On te donne vingt millilitres d'eau de la Yamaska, une solution basique à cause du NaOH déversé.
+    show ech @beat:start 
+    show ph_axe @cue:c_vingt 
+    show p_neutre @cue:c_vingt 
+    show l_neutre @cue:c_vingt 
+    show p_base @after:s_l_neutre 
+    show l_base @cue:c_basique 
+DIT (tournesol) : Le papier tournesol rouge qui vire au bleu confirme la base ; on nous demande de trouver son pH.
+    highlight ech @cue:c_confirme {"role":"given","part":"r1c3"}
+    highlight ph_axe @- {"start":"cue:c_ph","end":"cue_end:c_ph","role":"given"}
+=== Tranche s_equation
+  OBJET eq [math] "\\ce{H3PO4 + 3NaOH -> Na3PO4 + 3H2O}" 
+DIT (ecrire) : Il faut d'abord écrire la neutralisation complète : l'acide phosphorique plus trois hydroxyde de sodium donne le phosphate de sodium plus trois eau.
+    dim ech @beat:start 
+    write eq @cue:c_acide 
+    highlight eq @cue:c_trois {"role":"accent"}
+    highlight eq @cue:c_trois {"role":"accent"}
+    highlight eq @after:w_base {"role":"accent"}
+    highlight eq @after:w_fleche {"role":"accent"}
+    highlight eq @cue:c_eau {"role":"accent"}
+DIT (coef) : Le coefficient trois devant NaOH est la clé : au point d'équivalence, une mole de H trois P O quatre neutralise trois moles d'hydroxyde.
+    highlight eq @- {"start":"cue:c_coef","end":"cue_end:c_coef","role":"accent"}
+=== Tranche s_calcul
+  OBJET nh [math] "n_{\\text{H}^+} = 3 \\times 0{,}003 \\times 0{,}050 = 4{,}5 \\times 10^{-4}\\ \\text{mol}" parts=n_{\text{H}^+} = | 3 \times 0{,}003 \times 0{,}050 | = 4{,}5 \times 10^{-4}\ \text{mol}
+  OBJET nb [math] "[\\text{NaOH}] = \\frac{4{,}5 \\times 10^{-4}}{0{,}020} = 0{,}0225\\ \\text{mol/L}" parts=[\text{NaOH}] = | \frac{4{,}5 \times 10^{-4}}{0{,}020} | = 0{,}0225\ \text{mol/L}
+DIT (moles) : L'acide versé a trois H⁺ par molécule ; on multiplie donc trois par zéro virgule zéro zéro trois moles par litre, fois cinquante millilitres, soit zéro virgule zéro cinq litre.
+    show nh @beat:start 
+    write nh @cue:c_trois {"part":"tete"}
+    write nh @cue:c_concentration {"part":"prod"}
+    write nh @cue:c_volume {"part":"res"}
+DIT (concentration) : Ça donne quatre virgule cinq fois dix exposant moins quatre moles de H⁺, qui ont neutralisé autant de OH⁻. On divise ces moles par zéro virgule zéro vingt litre : l'eau de la rivière contenait zéro virgule zéro deux deux cinq mole par litre de NaOH.
+    show nb @cue:c_moles 
+    write nb @beat:start {"part":"tete2"}
+    write nb @cue:c_litre {"part":"div"}
+    write nb @cue:c_resultat {"part":"res2"}
+=== Tranche s_ph
+  OBJET formule [math] "pH + pOH = 14" parts=pH | + pOH | = 14
+  OBJET poh_calc [math] "pOH = -\\log(0{,}0225) \\approx 1{,}65" parts=pOH = | -\log(0{,}0225) | \approx 1{,}65
+  OBJET ph_calc [math] "pH = 14 - 1{,}65 = 12{,}35" parts=pH = | 14 - 1{,}65 | = 12{,}35
+  OBJET p_final [point] {"at":[12.35,0]} 
+  OBJET l_final [label] "pH ≈ 12,35" attaché à p_final
+DIT (poh) : Notre base est NaOH, une base forte : la concentration des OH⁻ vaut donc zéro virgule zéro deux deux cinq. Son pOH est le logarithme négatif de cette concentration, environ un virgule soixante-cinq.
+    fade_out nb @beat:start 
+    show poh_calc @cue:c_poh 
+    write poh_calc @cue:c_poh {"part":"tete"}
+    write poh_calc @cue:c_log {"part":"log"}
+    write poh_calc @after:w_log {"part":"res"}
+DIT (ph14) : À vingt-cinq degrés, pH plus pOH font toujours quatorze. On enlève donc un virgule soixante-cinq de quatorze.
+    show formule @cue:c_quatorze 
+    show ph_calc @cue:c_enleve 
+    write ph_calc @beat:start {"part":"tete"}
+    write ph_calc @cue:c_enleve {"part":"soust"}
+    write ph_calc @after:w_soust {"part":"res"}
+DIT (placer) : Le pH de l'eau de la Yamaska est d'environ douze virgule trente-cinq. C'est bien au-dessus de sept : le résultat est très basique, et ça colle avec le tournesol devenu bleu.
+    show p_final @cue:c_resultat 
+    show l_final @cue:c_resultat 
+    highlight ph_calc @after:s_lfinal {"role":"result","part":"res"}
+    highlight p_final @- {"start":"cue:c_basique","end":"cue_end:c_basique","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "(\\text{H}^+\\ \\text{par acide}) \\times C_a \\times V_a = (\\text{OH}^-\\ \\text{par base}) \\times C_b \\times V_b" 
+  OBJET idee [text] "pH + pOH = 14  →  pH ≈ 12,35" 
+  GROUPE recap = regle, idee
+DIT (idee_centrale) : À retenir : au point d'équivalence, les H⁺ de l'acide égalent les OH⁻ de la base, en tenant compte des coefficients.
+    fade_out eq @beat:start 
+    fade_out formule @beat:start 
+    fade_out poh_calc @beat:start 
+    fade_out ph_calc @beat:start 
+    fade_out ech @beat:start 
+    dim ph_axe @beat:start 
+    dim p_neutre @beat:start 
+    dim l_neutre @beat:start 
+    fade_out p_base @beat:start 
+    fade_out l_base @beat:start 
+    show regle @cue:c_equivalence 
+DIT (conclusion) : Ensuite, pH plus pOH égale quatorze donne un pH d'environ douze virgule trente-cinq : une eau très basique.
+    show idee @cue:c_conclusion 
+    highlight idee @after:s_idee {"role":"result"}
+--- 5 tranches, 279 mots dits (≈ 1.9 min d'oral)

@@ -1,0 +1,61 @@
+QUESTION (inequation-erreur, mathematiques, sec 4, erreur) : j'essaie de résoudre -2x + 5 > 11 pis j'obtiens x > -3, mais mon prof dit que c'est faux, pourquoi?
+RÉPONSE DE RÉFÉRENCE : x < −3 : en divisant par −2, on inverse le sens de l'inégalité.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. −2x > 6 en enlevant 5 des deux côtés
+  2. diagnostic : diviser ou multiplier par un nombre négatif inverse le sens de l'inégalité
+  3. réponse x < −3 écrite
+  4. vérification avec une valeur (ex. x = −4 : 13 > 11 vrai ; x = 0 : 5 > 11 faux)
+  5. valorisé : ensemble-solution sur une droite numérique
+ERREURS GRAVES À CHERCHER : sens non inversé ; explication du changement de sens fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi -2x + 5 > 11 donne x < -3
+=== Tranche s_depart
+  OBJET eq [math] "-2x + 5 > 11" parts=-2x + 5 | > | 11
+  OBJET moins [math] "-2x > 6" 
+DIT (pose) : Reprenons ton inéquation : moins deux x plus cinq supérieur à onze.
+    write eq @cue:c_gauche {"part":"gauche"}
+    write eq @cue:c_sens {"part":"sens"}
+    write eq @cue:c_droite {"part":"droite"}
+DIT (isole) : On enlève cinq des deux côtés, pour garder l'équilibre : il reste moins deux x supérieur à six.
+    transform moins @cue:c_reste {"source":"eq"}
+=== Tranche s_erreur
+  OBJET faux [math] "x > -3" 
+  OBJET verif [math] "-2(0) + 5 = 5" 
+DIT (reponse) : Toi, tu divises par moins deux et tu gardes le même sens : tu obtiens x supérieur à moins trois.
+    write faux @cue:c_ton 
+DIT (test) : Vérifions avec zéro, qui est plus grand que moins trois. À gauche : moins deux fois zéro plus cinq égale cinq.
+    highlight faux @cue:c_zero {"role":"unknown"}
+    write verif @cue:c_cinq 
+DIT (echec) : Mais cinq n'est pas supérieur à onze. Ta réponse échoue : c'est le sens qui a été oublié.
+    highlight verif @- {"start":"cue:c_mais","end":"cue_end:c_echec","role":"unknown"}
+=== Tranche s_solution
+  OBJET etape [math] "\\frac{-2x}{-2} < \\frac{6}{-2}" parts=\frac{-2x}{-2} | < | \frac{6}{-2}
+  OBJET res [math] "x < -3" 
+  OBJET test2 [math] "-2(-4) + 5 = 13" 
+DIT (divise) : On divise les deux côtés par moins deux. Mais diviser par un négatif, ça renverse l'ordre : le sens de l'inégalité s'inverse.
+    fade_out moins @cue:c_divise 
+    write etape @cue:c_divise {"part":"fg"}
+    highlight etape @- {"start":"cue:c_inverse","end":"cue_end:c_inverse","role":"accent","part":"fleche"}
+DIT (resultat) : Il reste x inférieur à moins trois.
+    transform res @cue:c_resultat {"source":"etape"}
+DIT (verifie) : Prenons moins quatre : moins deux fois moins quatre plus cinq égale treize, et treize est bien supérieur à onze.
+    write test2 @cue:c_treize 
+    highlight res @after:d_test2 {"role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\text{multiplié ou divisé par un négatif} \\Rightarrow \\text{on inverse le sens}" 
+DIT (idee) : À retenir : quand tu multiplies ou divises les deux côtés par un nombre négatif, tu dois inverser le sens de l'inégalité.
+    fade_out verif @cue:c_retenir 
+    fade_out faux @cue:c_retenir 
+    fade_out test2 @cue:c_retenir 
+    write regle @cue:c_inverser 
+    highlight res @- {"start":"cue:c_inverser","end":"cue_end:c_inverser","role":"result"}
+=== Tranche s_recap
+  OBJET final [math] "-2x + 5 > 11 \\Rightarrow x < -3" parts=-2x + 5 > 11 | \Rightarrow x < -3
+DIT (recap) : Donc ton prof a raison : la bonne réponse est x inférieur à moins trois. Le piège était le sens, pas le calcul.
+    fade_out regle @beat:start 
+    fade_out res @beat:start 
+    write final @beat:start {"part":"debut"}
+    write final @cue:c_reponse {"part":"fin"}
+    highlight final @- {"start":"cue:c_piege","end":"cue_end:c_piege","role":"result"}
+--- 5 tranches, 183 mots dits (≈ 1.2 min d'oral)

@@ -1,0 +1,76 @@
+QUESTION (trigo-rectangle, mathematiques, sec 4, methode) : dans un triangle rectangle l'hypoténuse mesure 10 cm pis un des angles aigus fait 35°, comment je trouve le côté opposé à cet angle?
+RÉPONSE DE RÉFÉRENCE : opposé = 10 × sin 35° ≈ 5,74 cm.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. nommer les côtés par rapport à l'angle de 35° : opposé, adjacent, hypoténuse (figure)
+  2. choisir le sinus : sin 35° = opposé / hypoténuse
+  3. opposé = 10 × sin 35°
+  4. réponse ≈ 5,74 cm écrite avec l'unité
+  5. contrôle : plus court que l'hypoténuse ; calculatrice en mode degrés
+ERREURS GRAVES À CHERCHER : cosinus utilisé pour le côté opposé ; figure qui place l'angle au mauvais sommet
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Trouver le côté opposé avec un angle et l'hypoténuse
+math_context : {"symbols":{"angle":{"kind":"constant","value":35},"hypo":{"kind":"constant","value":10}},"expressions":{"oppose":"10*sin(35*3.141592654/180)"}}
+=== Tranche s_figure
+  OBJET tri [triangle_right] {"leg_a":8.19152,"leg_b":5.73576} 
+  OBJET lab_hyp [label] "hypoténuse : 10 cm" attaché à tri
+  OBJET lab_a [label] "8,2 cm" attaché à tri
+  OBJET lab_b [label] "?" attaché à tri
+  OBJET marque [label] "35°" 
+DIT (pose) : On a un triangle rectangle, une hypoténuse de dix centimètres, et un angle aigu de trente-cinq degrés.
+    draw tri @cue:c_tri 
+    show lab_hyp @cue:c_hyp 
+    show marque @cue:c_angle 
+DIT (cherche) : Ce qu'on cherche, c'est le côté opposé à cet angle : celui qui est en face de lui, et qui n'est pas l'hypoténuse.
+    show lab_b @cue:c_oppose 
+    highlight lab_b @- {"start":"cue:c_face","end":"cue_end:c_face","role":"unknown"}
+DIT (nomme) : Donne-lui un nom : ce côté mesure quatre-vingt-deux millimètres environ, mais on ne le sait pas encore. Le côté horizontal, à côté de l'angle, mesure huit virgule deux centimètres.
+    show lab_a @cue:c_horiz 
+    highlight lab_a @- {"start":"cue:c_voisin","end":"cue_end:c_voisin","role":"given"}
+=== Tranche s_rapport
+  OBJET soh [math] "\\sin(35^\\circ) = \\frac{\\text{opposé}}{\\text{hypoténuse}}" parts=\sin(35^\circ) | = \frac{\text{opposé}}{\text{hypoténuse}}
+  OBJET appli [math] "\\sin(35^\\circ) = \\frac{?}{10}" 
+DIT (souv) : Rappelle-toi la formule : le sinus d'un angle, c'est le côté opposé divisé par l'hypoténuse.
+    write soh @cue:c_sinus {"part":"p_sin"}
+    write soh @cue:c_oppose_div {"part":"p_frac"}
+    highlight lab_hyp @- {"start":"cue:c_hyp_div","end":"cue_end:c_hyp_div","role":"accent"}
+DIT (remplace) : On remplace par ce qu'on connaît : sinus de trente-cinq degrés égale la mesure inconnue divisée par dix.
+    write appli @cue:c_remplace 
+    write appli @cue:c_div_dix 
+=== Tranche s_calcul
+  OBJET isole [math] "? = 10 \\times \\sin(35^\\circ)" 
+  OBJET valeur [math] {"kind":"computed","expression_ref":"oppose","template":"? \\approx {value}\\ \\text{cm}","precision":1} 
+DIT (multiplie) : On multiplie les deux côtés par dix : la mesure inconnue est dix fois le sinus de trente-cinq degrés.
+    transform isole @cue:c_multiplie {"source":"appli"}
+    highlight isole @- {"start":"cue:c_dix_fois","end":"cue_end:c_dix_fois","role":"accent"}
+DIT (tasche) : À la calculatrice, en mode degrés, sinus de trente-cinq fait environ zéro virgule cinq sept cent trente-six. Alors dix fois ça donne cinq virgule sept cent trente-six cm.
+    transform valeur @cue:c_resultat {"source":"isole"}
+    highlight valeur @- {"start":"cue:c_resultat","end":"cue_end:c_resultat","role":"result"}
+=== Tranche s_verif
+  OBJET hypo_calc [math] "\\sqrt{8,2^2 + 5,736^2}" 
+  OBJET verif [text] "8,2² + 5,736² ≈ 100 = 10²" 
+DIT (verifie) : Vérifions avec Pythagore : le côté horizontal au carré plus le côté opposé au carré devrait donner dix au carré, soit cent.
+    write hypo_calc @cue:c_pyth 
+    write verif @cue:c_cent 
+DIT (coherent) : Quatre-vingt-douze virgule huit plus vingt-huit virgule neuf, ça fait à peu près cent. Notre réponse tient la route.
+    highlight verif @- {"start":"cue:c_tient","end":"cue_end:c_tient","role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "angle et hypoténuse → sinus pour trouver l'opposé" 
+  OBJET formule [math] "\\text{opposé} = \\sin(\\text{angle}) \\times \\text{hypoténuse}" 
+  GROUPE recap = idee, formule
+DIT (efface) : On garde juste l'essentiel.
+    fade_out tri @beat:start 
+    fade_out lab_hyp @beat:start 
+    fade_out lab_a @beat:start 
+    fade_out lab_b @beat:start 
+    fade_out marque @beat:start 
+    fade_out soh @beat:start 
+    fade_out hypo_calc @beat:start 
+    fade_out verif @beat:start 
+DIT (retenir) : À retenir : quand tu as un angle et l'hypoténuse, tu utilises le sinus. Le côté opposé égale le sinus de l'angle multiplié par l'hypoténuse.
+    camera.focus  @cue:c_retenir {"targets":["recap"],"bounds":"layout_bounds"}
+    show idee @cue:c_retenir 
+    write formule @cue:c_sinus 
+    highlight formule @cue:c_oppose {"role":"accent"}
+    highlight formule @- {"start":"cue:c_oppose","end":"cue_end:c_oppose","role":"result"}
+--- 5 tranches, 218 mots dits (≈ 1.5 min d'oral)

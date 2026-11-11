@@ -1,0 +1,732 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "ph_base_5",
+  "title": "Pourquoi un pH de 5 est acide, pas basique",
+  "language": "fr",
+  "learning_goal": "Situer un pH de 5 sur l'échelle 0 à 14 et comprendre l'effet d'un facteur 10 par unité de pH."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_echelle",
+   "introduces": [
+    {
+     "id": "ligne",
+     "params": {
+      "domain": [
+       0,
+       14
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "txt_gauche",
+     "attachment": {
+      "parent": "ligne",
+      "anchor": "left"
+     },
+     "content": "acide",
+     "type": "label"
+    },
+    {
+     "id": "txt_milieu",
+     "attachment": {
+      "parent": "ligne",
+      "anchor": "center"
+     },
+     "content": "neutre",
+     "type": "label"
+    },
+    {
+     "id": "txt_droite",
+     "attachment": {
+      "parent": "ligne",
+      "anchor": "right"
+     },
+     "content": "basique",
+     "type": "label"
+    },
+    {
+     "id": "citron",
+     "frame": "ligne",
+     "params": {
+      "at": [
+       2,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "citron_lab",
+     "attachment": {
+      "parent": "citron",
+      "anchor": "top"
+     },
+     "content": "jus de citron ≈ 2",
+     "type": "label"
+    },
+    {
+     "id": "eau",
+     "frame": "ligne",
+     "params": {
+      "at": [
+       7,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "eau_lab",
+     "attachment": {
+      "parent": "eau",
+      "anchor": "top"
+     },
+     "content": "eau pure = 7",
+     "type": "label"
+    },
+    {
+     "id": "javel",
+     "frame": "ligne",
+     "params": {
+      "at": [
+       12,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "javel_lab",
+     "attachment": {
+      "parent": "javel",
+      "anchor": "top"
+     },
+     "content": "eau de javel ≈ 12",
+     "type": "label"
+    },
+    {
+     "id": "p5",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "ligne",
+     "params": {
+      "at": [
+       5,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p5_lab",
+     "attachment": {
+      "parent": "p5",
+      "anchor": "top"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "pH 5",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ouvre",
+     "say": "Bonne question : le mot base porte à confusion, alors regardons l'échelle du pH ensemble.",
+     "cues": [
+      {
+       "id": "c_echelle",
+       "text": "l'échelle du pH"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_ligne",
+       "verb": "draw",
+       "at": "cue:c_echelle",
+       "target": "ligne"
+      }
+     ]
+    },
+    {
+     "id": "reperes",
+     "say": "L'échelle va de zéro à quatorze. Sous sept, c'est acide ; à sept, c'est neutre ; au-dessus de sept, c'est basique.",
+     "cues": [
+      {
+       "id": "c_gauche",
+       "text": "c'est acide"
+      },
+      {
+       "id": "c_neutre",
+       "text": "c'est neutre"
+      },
+      {
+       "id": "c_droite",
+       "text": "c'est basique"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_gauche",
+       "verb": "show",
+       "at": "cue:c_gauche",
+       "target": "txt_gauche"
+      },
+      {
+       "id": "s_neutre",
+       "verb": "show",
+       "at": "cue:c_neutre",
+       "target": "txt_milieu"
+      },
+      {
+       "id": "s_droite",
+       "verb": "show",
+       "at": "cue:c_droite",
+       "target": "txt_droite"
+      }
+     ]
+    },
+    {
+     "id": "exemples",
+     "say": "Le jus de citron est vers deux, l'eau pure à sept, l'eau de javel vers douze.",
+     "cues": [
+      {
+       "id": "c_citron",
+       "text": "jus de citron"
+      },
+      {
+       "id": "c_eau",
+       "text": "l'eau pure"
+      },
+      {
+       "id": "c_javel",
+       "text": "l'eau de javel"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_citron",
+       "verb": "show",
+       "at": "cue:c_citron",
+       "target": "citron"
+      },
+      {
+       "id": "s_citron_lab",
+       "verb": "show",
+       "at": "after:s_citron",
+       "target": "citron_lab"
+      },
+      {
+       "id": "s_eau",
+       "verb": "show",
+       "at": "cue:c_eau",
+       "target": "eau"
+      },
+      {
+       "id": "s_eau_lab",
+       "verb": "show",
+       "at": "after:s_eau",
+       "target": "eau_lab"
+      },
+      {
+       "id": "s_javel",
+       "verb": "show",
+       "at": "cue:c_javel",
+       "target": "javel"
+      },
+      {
+       "id": "s_javel_lab",
+       "verb": "show",
+       "at": "after:s_javel",
+       "target": "javel_lab"
+      }
+     ]
+    },
+    {
+     "id": "place5",
+     "say": "Alors un pH de cinq se place ici, à gauche du sept : c'est du côté acide, pas du côté basique.",
+     "cues": [
+      {
+       "id": "c_pH5",
+       "text": "pH de cinq"
+      },
+      {
+       "id": "c_gauche_du_7",
+       "text": "à gauche du sept"
+      },
+      {
+       "id": "c_acide",
+       "text": "du côté acide"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p5",
+       "verb": "show",
+       "at": "cue:c_pH5",
+       "target": "p5"
+      },
+      {
+       "id": "s_p5_lab",
+       "verb": "show",
+       "at": "after:s_p5",
+       "target": "p5_lab"
+      },
+      {
+       "id": "h_p5",
+       "verb": "highlight",
+       "start": "cue:c_gauche_du_7",
+       "end": "cue_end:c_acide",
+       "target": "p5",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_facteur10",
+   "introduces": [
+    {
+     "id": "p3",
+     "frame": "ligne",
+     "params": {
+      "at": [
+       3,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "p3_lab",
+     "attachment": {
+      "parent": "p3",
+      "anchor": "bottom"
+     },
+     "content": "pH 3",
+     "type": "label"
+    },
+    {
+     "id": "fl",
+     "params": {
+      "from": [
+       3,
+       -0.6
+      ],
+      "to": [
+       5,
+       -0.6
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "note",
+     "content": "1 unité de pH = × 10",
+     "type": "text"
+    },
+    {
+     "id": "puiss3",
+     "content": "[H^+] = 1 \\times 10^{-3} \\text{ mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "puiss5",
+     "layout": {
+      "next_to": "puiss3",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "[H^+] = 1 \\times 10^{-5} \\text{ mol/L}",
+     "type": "math"
+    },
+    {
+     "id": "groupe_calc",
+     "layout": {
+      "next_to": "ligne",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "pH 3 : 1 × 10⁻³ mol/L\\npH 5 : 1 × 10⁻⁵ mol/L",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "fleche",
+     "say": "La distance entre trois et cinq, c'est deux unités : chaque unité multiplie la concentration en ions H⁺ par dix.",
+     "cues": [
+      {
+       "id": "c_deux_unites",
+       "text": "deux unités"
+      },
+      {
+       "id": "c_par_dix",
+       "text": "par dix"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p3",
+       "verb": "show",
+       "at": "cue:c_deux_unites",
+       "target": "p3"
+      },
+      {
+       "id": "s_p3_lab",
+       "verb": "show",
+       "at": "after:s_p3",
+       "target": "p3_lab"
+      },
+      {
+       "id": "d_fl",
+       "verb": "draw",
+       "at": "cue:c_deux_unites",
+       "target": "fl"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_par_dix",
+       "target": "note"
+      }
+     ]
+    },
+    {
+     "id": "chiffres",
+     "say": "Un pH de trois, c'est une concentration de un fois dix exposant moins trois moles par litre. Un pH de cinq, c'est un fois dix exposant moins cinq.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "un fois dix exposant moins trois"
+      },
+      {
+       "id": "c_cinq",
+       "text": "un fois dix exposant moins cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p3_2",
+       "verb": "show",
+       "at": "cue:c_trois",
+       "target": "puiss3"
+      },
+      {
+       "id": "s_p5_2",
+       "verb": "show",
+       "at": "cue:c_cinq",
+       "target": "puiss5"
+      }
+     ]
+    },
+    {
+     "id": "verdict",
+     "say": "Les ions H⁺ sont donc cent fois plus rares qu'à pH trois : à cinq, la solution est encore acide, simplement moins piquante qu'à trois. Une base en chimie, c'est autre chose : c'est une substance qui capte les ions H⁺, pas un synonyme de pH au-dessus de sept.",
+     "cues": [
+      {
+       "id": "c_cent_fois",
+       "text": "cent fois plus rares"
+      },
+      {
+       "id": "c_encore_acide",
+       "text": "encore acide"
+      },
+      {
+       "id": "c_autre_chose",
+       "text": "autre chose"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_fl",
+       "verb": "highlight",
+       "start": "cue:c_cent_fois",
+       "end": "cue_end:c_cent_fois",
+       "target": "fl",
+       "role": "accent"
+      },
+      {
+       "id": "h_puiss3",
+       "verb": "highlight",
+       "start": "cue:c_encore_acide",
+       "end": "cue_end:c_encore_acide",
+       "target": "puiss3",
+       "role": "result"
+      },
+      {
+       "id": "h_puiss5",
+       "verb": "highlight",
+       "start": "cue:c_encore_acide",
+       "end": "cue_end:c_encore_acide",
+       "target": "puiss5",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : sur l'échelle de zéro à quatorze, tout pH sous sept est acide, sept est neutre, au-dessus de sept est basique. Un pH de cinq est donc acide.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_sous_sept",
+       "text": "sous sept"
+      },
+      {
+       "id": "c_cinq_acide",
+       "text": "pH de cinq est donc acide"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "ligne",
+        "p5",
+        "p5_lab"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "h_ligne",
+       "verb": "highlight",
+       "start": "cue:c_sous_sept",
+       "end": "cue_end:c_sous_sept",
+       "target": "ligne",
+       "role": "given"
+      },
+      {
+       "id": "h_p5",
+       "verb": "highlight",
+       "start": "cue:c_cinq_acide",
+       "end": "cue_end:c_cinq_acide",
+       "target": "p5",
+       "role": "result"
+      },
+      {
+       "id": "h_p5_lab",
+       "verb": "highlight",
+       "start": "cue:c_cinq_acide",
+       "end": "cue_end:c_cinq_acide",
+       "target": "p5_lab",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

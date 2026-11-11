@@ -1,0 +1,66 @@
+QUESTION (inequation-erreur, mathematiques, sec 4, erreur) : j'essaie de résoudre -2x + 5 > 11 pis j'obtiens x > -3, mais mon prof dit que c'est faux, pourquoi?
+RÉPONSE DE RÉFÉRENCE : x < −3 : en divisant par −2, on inverse le sens de l'inégalité.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. −2x > 6 en enlevant 5 des deux côtés
+  2. diagnostic : diviser ou multiplier par un nombre négatif inverse le sens de l'inégalité
+  3. réponse x < −3 écrite
+  4. vérification avec une valeur (ex. x = −4 : 13 > 11 vrai ; x = 0 : 5 > 11 faux)
+  5. valorisé : ensemble-solution sur une droite numérique
+ERREURS GRAVES À CHERCHER : sens non inversé ; explication du changement de sens fausse
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi −2x + 5 > 11 donne x < −3
+=== Tranche s_depart
+  OBJET eq_ini [math] "-2x + 5 > 11" parts=-2x + 5 | > | 11
+DIT (intuition) : Bonne nouvelle : ton isolement du x était bien parti. Ce qui cloche, c'est le sens du symbole à la fin.
+DIT (pose) : Partons de l'inéquation : moins deux x plus cinq est plus grand que onze.
+    write eq_ini @cue:c_gauche {"part":"gauche"}
+    write eq_ini @cue:c_signe {"part":"signe"}
+    write eq_ini @cue:c_droite {"part":"droite"}
+=== Tranche s_isole
+  OBJET eq2 [math] "-2x > 6" parts=-2x | > | 6
+  OBJET note_neg [text] "Le coefficient de x est négatif : le sens va basculer." 
+DIT (soustrais) : On enlève cinq des deux côtés pour garder l'inégalité vraie. À gauche, les deux cinq s'annulent ; à droite, onze moins cinq fait six.
+    dim eq_ini @cue:c_enleve 
+    transform eq2 @cue:c_enleve {"source":"eq_ini"}
+    highlight eq2 @- {"start":"cue:c_six","end":"cue_end:c_six","role":"accent","part":"d2"}
+DIT (coeff) : Devant le x, il reste moins deux : un coefficient négatif. C'est ce signe moins qui va tout changer.
+    highlight eq2 @cue:c_negatif {"role":"unknown","part":"g2"}
+    show note_neg @after:h_g2 
+=== Tranche s_sens
+  OBJET tab_sens [matrix] {"rows":[[2,1],[-4,-2]],"row_labels":["le côté gauche (−2x)","comparé à 6"]} 
+  OBJET eq3 [math] "x < -3" parts=x | < | -3
+DIT (compare) : Prenons deux exemples : quand x vaut deux, moins deux x vaut moins quatre, et moins quatre n'est pas plus grand que six. Quand x vaut un, moins deux x vaut moins deux, encore plus petit que six.
+    show tab_sens @cue:c_x_deux 
+    highlight tab_sens @- {"start":"cue:c_x_un","end":"cue_end:c_x_un","role":"given"}
+DIT (sens) : Donc pour qu'un nombre négatif dépasse six, il faut que x soit plus petit que moins trois. Le sens du symbole se renverse : plus grand devient plus petit.
+    fade_out tab_sens @cue:c_renverse 
+    transform eq3 @cue:c_deux_sym {"source":"eq2"}
+    highlight eq3 @after:t_eq3 {"role":"result"}
+=== Tranche s_verifie
+  OBJET chk [math] "-2(-4) + 5 = 13 > 11" parts=-2(-4) + 5 | = 13 | > 11
+  OBJET contre [math] "-2(0) + 5 = 5 < 11" parts=-2(0) + 5 | = 5 | < 11
+DIT (verif_ok) : Vérifions. Je choisis x égale moins quatre, qui est bien plus petit que moins trois. Moins deux fois moins quatre donne huit, plus cinq donne treize, et treize est plus grand que onze : ça marche.
+    dim eq3 @cue:c_moins_quatre 
+    write chk @cue:c_moins_quatre {"part":"sub"}
+    write chk @cue:c_treize {"part":"res"}
+    write chk @after:w_res {"part":"cmp"}
+DIT (verif_non) : Et si je prends x égale zéro, plus grand que moins trois : j'obtiens cinq, qui n'est pas plus grand que onze. C'est bien la preuve que x plus grand que moins trois était faux.
+    write contre @cue:c_zero {"part":"sub2"}
+    write contre @cue:c_cinq {"part":"res2"}
+    write contre @after:w_res2 {"part":"cmp2"}
+    highlight contre @cue:c_faux {"role":"secondary"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\text{Si on multiplie ou divise par un négatif, on renverse le sens.}" 
+  OBJET rappel [text] "Ici : −2x > 6  devient  x < −3" 
+DIT (efface) : Gardons seulement l'essentiel.
+    fade_out chk @beat:start 
+    fade_out contre @beat:start 
+    fade_out note_neg @beat:start 
+DIT (retenir) : À retenir : quand tu multiplies ou tu divises les deux côtés par un nombre négatif, tu dois renverser le sens de l'inégalité. Ici, moins deux x plus grand que six devient x plus petit que moins trois.
+    camera.focus  @cue:c_ret {"targets":["regle","rappel"],"bounds":"layout_bounds"}
+    write regle @cue:c_ret 
+    highlight regle @after:w_r1 {"role":"accent"}
+    highlight regle @after:w_r2 {"role":"accent"}
+    show rappel @cue:c_final 
+--- 5 tranches, 257 mots dits (≈ 1.7 min d'oral)

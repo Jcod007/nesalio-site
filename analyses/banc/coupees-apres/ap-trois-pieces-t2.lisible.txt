@@ -1,0 +1,79 @@
+QUESTION (ap-trois-pieces, mathematiques, sec 5, alloprof) : Comment c’est possible que ça donne 2/8 et 6/8 si on a juste trois pièce de monnaie? Je suis dans les probabilités et je comprend pas
+RÉPONSE DE RÉFÉRENCE : 8 résultats équiprobables (2×2×2) ; 2 où les trois pièces sont pareilles (PPP, FFF) = 2/8, les 6 autres = 6/8.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi des fractions comme 2/8 et 6/8
+=== Tranche s_reformule
+  OBJET univers [text] "L'univers : toutes les issues et leurs chances" 
+DIT (reformule) : Ta question, c'est : avec seulement trois pièces, d'où sortent des fractions comme deux huitièmes et six huitièmes ? La réponse : le huit du bas n'est pas le nombre de pièces. C'est le nombre de résultats possibles de l'expérience.
+    show univers @cue:c_possibles 
+=== Tranche s_cas
+  OBJET abc [polygon] {"vertices":[[0,0],[1,0],[1,1],[0,1]]} 
+  OBJET abc_lab [label] "ABC" attaché à abc
+  OBJET acb [polygon] {"vertices":[[1,0],[2,0],[2,1],[1,1]]} 
+  OBJET acb_lab [label] "ACB" attaché à acb
+  OBJET bac [polygon] {"vertices":[[2,0],[3,0],[3,1],[2,1]]} 
+  OBJET bac_lab [label] "BAC" attaché à bac
+  OBJET bca [polygon] {"vertices":[[3,0],[4,0],[4,1],[3,1]]} 
+  OBJET bca_lab [label] "BCA" attaché à bca
+  OBJET cab [polygon] {"vertices":[[4,0],[5,0],[5,1],[4,1]]} 
+  OBJET cab_lab [label] "CAB" attaché à cab
+  OBJET cba [polygon] {"vertices":[[5,0],[6,0],[6,1],[5,1]]} 
+  OBJET cba_lab [label] "CBA" attaché à cba
+  OBJET univers_fig [polygon] {"vertices":[[0,0],[6,0],[6,1],[0,1]]} 
+  OBJET R [label] "R" attaché à univers_fig   <<JAMAIS MONTRÉ>>
+  OBJET note8 [text] "six permutations des trois lettres" 
+  GROUPE cases = abc, abc_lab, acb, acb_lab, bac, bac_lab, bca, bca_lab, cab, cab_lab, cba, cba_lab
+DIT (possibles) : Imagine une expérience à deux étapes : d'abord quatre choix, puis deux choix. Quatre fois deux, ça donne huit résultats possibles en tout. Ici, on ne dessine que six cases, parce que six, c'est le nombre de cas favorables, et huit, c'est le nombre de cas possibles.
+    camera.focus  @beat:start {"targets":["univers_fig"],"bounds":"layout_bounds"}
+    show univers_fig @beat:start 
+    show cases @cue:c_huit {"stagger":"quick"}
+    show note8 @cue:c_huit 
+=== Tranche s_condition
+  OBJET cond_regle [math] "P(B) \\ne 0" 
+  OBJET cond_ex [math] "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}" 
+DIT (condition) : Mais attention : une probabilité conditionnelle n'a de sens que si l'événement B peut encore arriver. Il faut donc écrire la condition avant la formule : P de B différent de zéro.
+    write cond_regle @cue:c_cond 
+DIT (formule) : Ensuite seulement, on a la formule : P de A sachant B égale P de A et B, divisé par P de B.
+    write cond_ex @cue:c_formule 
+=== Tranche s_retrecit
+  OBJET hors_b [math] "\\text{les issues hors de } B : B^c" 
+  OBJET sous [math] "\\frac{2}{3}" 
+DIT (retrecit) : Le fait de savoir que B s'est produit réduit l'univers. Toutes les issues qui ne sont pas dans B, c'est-à-dire B exposant c en entier, sont maintenant impossibles : on les estompe.
+    highlight cases @- {"start":"cue:c_reduit","end":"cue_end:c_reduit","role":"accent"}
+    write hors_b @cue:c_estompe 
+DIT (part) : Dans cet univers réduit, la probabilité devient la part de B où A est aussi vrai. Ici, ça donne deux tiers, et non deux huitièmes. Les deux huitièmes, c'est P de A et B dans l'univers entier ; deux tiers, c'est la part de B.
+    write sous @cue:c_tiers 
+    highlight sous @after:w_sous {"role":"result"}
+=== Tranche s_comparer
+  OBJET pa [math] "P(A \\mid B) = \\frac{2}{3}" 
+  OBJET pab [math] "P(A \\cap B) = \\frac{2}{8}" 
+  OBJET pba [math] "P(B \\mid A) = \\frac{2}{6}" 
+  OBJET noms [text] "Trois quantités différentes !"   <<JAMAIS MONTRÉ>>
+  GROUPE bloc = pa, pab, pba
+DIT (separes) : Ne confonds pas ces trois quantités. P de A sachant B, c'est deux tiers : une part de B. P de A et B, c'est deux huitièmes : une part de tout l'univers. Et P de B sachant A, c'est deux sixièmes : une part de A.
+    fade_out univers_fig @beat:start 
+    fade_out cases @beat:start 
+    fade_out hors_b @beat:start 
+    fade_out sous @beat:start 
+    fade_out note8 @beat:start 
+    fade_out cond_regle @beat:start 
+    fade_out univers @beat:start 
+    write pa @cue:c_pA 
+    write pab @cue:c_pAB 
+    write pba @cue:c_pBA 
+DIT (attention) : Remarque : ici, P de A sachant B et P de B sachant A tombent toutes les deux à deux tiers, par hasard. En général, elles ne sont pas égales : c'est ce qui les rend faciles à mélanger. Mais ni l'une ni l'autre n'est deux huitièmes.
+    highlight pab @- {"start":"cue:c_jamais","end":"cue_end:c_jamais","role":"secondary"}
+=== Tranche s_retenir
+  OBJET cle [math] "\\text{une probabilité} = \\frac{\\text{cas favorables}}{\\text{cas possibles}}" 
+  OBJET cle_cond [label] "en tenant compte de l'univers courant" attaché à cle
+DIT (idee) : À retenir : le bas d'une probabilité, c'est le nombre de cas possibles dans l'univers où tu te places, pas le nombre d'objets.
+    fade_out bloc @cue:c_retenir 
+    fade_out noms @beat:start 
+    fade_out cond_ex @beat:start 
+    write cle @cue:c_univers 
+    highlight cle @after:w_cle {"role":"result"}
+    show cle_cond @after:h_cle 
+--- 6 tranches, 336 mots dits (≈ 2.2 min d'oral)

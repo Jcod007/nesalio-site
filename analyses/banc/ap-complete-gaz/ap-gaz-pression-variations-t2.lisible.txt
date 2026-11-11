@@ -1,0 +1,81 @@
+QUESTION (ap-gaz-pression-variations, chimie, sec 5, alloprof) : Que devient la pression d'un gaz si son volume est réduit de moitié tandis que la valeur de la température absolue double ? Combien y a-t-il de mol de O2 dans 20 L d'air à TPN ? Qu'arrive-t-il à la pression d'un gaz lorsque la température absolue double et le volume double lui aussi ?
+RÉPONSE DE RÉFÉRENCE : Pression × 4 ; air à 21 % de O2 : 20/22,4 × 0,21 ≈ 0,19 mol de O2 ; pression inchangée.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pression, volume et température : les lois des gaz
+math_context : {"symbols":{"R":{"kind":"constant","value":8.314}},"expressions":{"n_o2":"101.3*20/(8.314*273.15)"}}
+=== Tranche s_depart
+  OBJET eq_gaz [math] "\\frac{p_1 V_1}{n_1 T_1} = \\frac{p_2 V_2}{n_2 T_2}" parts=\frac{p_1 V_1}{n_1 T_1} | = | \frac{p_2 V_2}{n_2 T_2}
+DIT (ouvre) : Tes trois questions se répondent toutes avec la loi générale des gaz, alors on place ses deux états côte à côte.
+    write eq_gaz @cue:c_loi {"part":"etat1"}
+    write eq_gaz @after:w_etat1 {"part":"egal"}
+    write eq_gaz @cue:c_deux {"part":"etat2"}
+DIT (lire) : Chaque lettre se dit : p la pression en kilopascals, V le volume en litres, la température absolue T en kelvins, et n le nombre de moles. On travaille toujours en kelvins : la température en degrés Celsius plus deux cent soixante-treize, virgule quinze.
+    highlight eq_gaz @- {"start":"cue:c_pression","end":"cue_end:c_moles","role":"given","part":"etat1"}
+=== Tranche s_boyle
+  OBJET rep [axes] {"x":[0,3.5],"y":[0,5]} 
+  OBJET xlab [label] "pression (centaines de kPa)" attaché à rep   <<JAMAIS MONTRÉ>>
+  OBJET ylab [label] "volume (L)" attaché à rep   <<JAMAIS MONTRÉ>>
+  OBJET courbe [function_graph] {"expression":"2/x","domain":[0.4,3.5]} 
+  OBJET p1 [point] {"at":[1,2]} 
+  OBJET p1lab [label] "(1 ; 2)" attaché à p1   <<JAMAIS MONTRÉ>>
+  OBJET p2 [point] {"at":[2.5,0.8]} 
+  OBJET p2lab [label] "(2,5 ; 0,8)" attaché à p2   <<JAMAIS MONTRÉ>>
+  OBJET boyle [math] "p_1 V_1 = p_2 V_2" 
+DIT (condition) : Première question : la température et le nombre de moles ne bougent pas. Ils sont donc constants, et je peux les rayer des deux côtés. Il reste la loi de Boyle-Mariotte : pression fois volume au départ égale pression fois volume à l'arrivée.
+    fade_out eq_gaz @cue:c_constants 
+    write boyle @cue:c_depart 
+    write boyle @cue:c_arrivee 
+DIT (courbe_idee) : Cette loi se voit sur une courbe : si je comprime le volume de moitié, par exemple de deux litres à un litre, la pression doit doubler, sinon l'égalité est brisée. Le produit reste le même.
+    show rep @beat:start 
+    draw courbe @- {"start":"cue:c_comp","end":"cue_end:c_double"}
+    show p1 @cue:c_comp 
+    show p2 @cue:c_double 
+    highlight boyle @- {"start":"cue:c_produit","end":"cue_end:c_produit","role":"accent"}
+=== Tranche s_double_t
+  OBJET etape [math] "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}" parts=\frac{p_1 V_1}{T_1} | = | \frac{p_2 V_2}{T_2}
+  OBJET res1 [math] "p_2 = \\frac{p_1 V_1 T_2}{V_2 T_1}" 
+  OBJET res1b [math] "p_2 = \\frac{p_1 \\times \\frac{V_1}{2} \\times 2T_1}{V_1 \\times T_1} = p_1" 
+DIT (simplifie_n) : Deuxième question : le nombre de moles ne change pas non plus puisqu'il n'y a pas de réaction. On le raye, la loi devient pression fois volume sur température, égale pression fois volume sur température.
+    fade_out boyle @beat:start 
+    write etape @cue:c_raye {"part":"gauche"}
+    write etape @after:w_g {"part":"signe"}
+    write etape @cue:c_temp {"part":"droite"}
+DIT (isole) : On isole la pression finale p deux : elle vaut p un, fois V un, fois T deux, divisé par V deux fois T un.
+    write res1 @cue:c_vaut 
+DIT (substitue) : Le volume double : V deux vaut deux fois V un, donc V un sur V deux donne un demi. La température absolue double : T deux vaut deux T un. Le un demi et le deux s'annulent : la pression ne change pas du tout.
+    write res1b @cue:c_vol_double 
+    highlight res1b @cue:c_pas {"role":"result"}
+=== Tranche s_moles
+  OBJET formule_n [math] "n = \\frac{pV}{RT}" parts=n | = | \frac{pV}{RT}
+  OBJET calc_n [math] "n = \\frac{101,3 \\times 20}{8,314 \\times 273,15}" 
+  OBJET res_n [math] "n = 0,89 \\text{ mol}" 
+DIT (troisieme) : Troisième question : on est à TPN, température et pression normales, zéro degré Celsius et cent un virgule trois kilopascals. Le volume vaut vingt litres.
+    fade_out etape @beat:start 
+    fade_out res1 @beat:start 
+    fade_out res1b @beat:start 
+    write formule_n @cue:c_tpn {"part":"frac"}
+DIT (calcul) : La loi des gaz parfaits donne n égale p V sur R T. La température absolue vaut zéro plus deux cent soixante-treize virgule quinze, donc deux cent soixante-treize virgule quinze kelvins. R vaut huit virgule trois cent quatorze kilopascals litre par mole kelvin.
+    write calc_n @cue:c_loi_parfaits 
+    highlight calc_n @- {"start":"cue:c_kelvins","end":"cue_end:c_R","role":"given"}
+DIT (resultat) : Cent un virgule trois fois vingt divisé par huit virgule trois cent quatorze fois deux cent soixante-treize virgule quinze donne environ zéro virgule quatre-vingt-neuf mole de O deux dans ces vingt litres d'air.
+    write res_n @cue:c_donne 
+    set_style res_n @after:w_res {"role":"result"}
+    highlight res_n @- {"start":"cue:c_o2","end":"cue_end:c_o2","role":"result"}
+=== Tranche s_retenir
+  OBJET regle [math] "\\frac{p_1 V_1}{T_1} = \\frac{p_2 V_2}{T_2}" parts=\frac{p_1 V_1}{T_1} | = | \frac{p_2 V_2}{T_2}
+  OBJET note [text] "TPN : 22,4 L/mol" 
+DIT (idee) : À retenir : la pression et le volume varient en sens inverse, mais doubler la température absolue, elle aussi, annule l'effet du doublement du volume. La pression reste la même.
+    fade_out courbe @beat:start 
+    fade_out p1 @beat:start 
+    fade_out p2 @beat:start 
+    fade_out formule_n @beat:start 
+    fade_out calc_n @beat:start 
+    camera.focus  @beat:start {"targets":["regle","note"],"bounds":"layout_bounds"}
+    write regle @cue:c_inverse {"part":"g"}
+    write regle @after:w_regle {"part":"e"}
+    write regle @cue:c_temp {"part":"d"}
+    show note @cue:c_meme 
+--- 5 tranches, 381 mots dits (≈ 2.5 min d'oral)

@@ -1,0 +1,80 @@
+QUESTION (completion, mathematiques, sec 4, methode) : C'est quoi la complétion du carré ? Par exemple avec x² + 6x − 7.
+RÉPONSE DE RÉFÉRENCE : x² + 6x − 7 = (x + 3)² − 16.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. on prend la moitié du coefficient de x (3) et on ajoute puis retire son carré (9)
+  2. modèle d'aire : la bande 6x coupée en deux 3x, coin 3 × 3 qui manque
+  3. x² + 6x − 7 = (x + 3)² − 9 − 7 = (x + 3)² − 16 écrit
+  4. lien avec la forme canonique et le sommet (−3, −16)
+  5. vérification par développement
+ERREURS GRAVES À CHERCHER : coin du modèle d'aire de mauvaise taille ; règle fausse (« on ajoute la moitié du coefficient »)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi la complétion du carré
+=== Tranche s_idee
+  OBJET depart [math] "x^2 + 6x - 7" parts=x^2 | + 6x | - 7
+DIT (accueil) : La complétion du carré, c'est une façon de réécrire un trinôme comme le carré d'un binôme, plus une constante.
+    write depart @cue:c_completion 
+DIT (pourquoi) : On l'utilise quand un trinôme ne se factorise pas directement. Pense à la partie x au carré plus six x.
+    highlight depart @- {"start":"cue:c_trois","end":"cue_end:c_trois","part":"p_x2"}
+    highlight depart @- {"start":"cue:c_trois","end":"cue_end:c_trois","part":"p_6x"}
+=== Tranche s_carre
+  OBJET grand [polygon] {"vertices":[[0,0],[7,0],[7,7],[0,7]]}   <<JAMAIS MONTRÉ>>
+  OBJET carre_x [polygon] {"vertices":[[0,0],[4,0],[4,4],[0,4]]} 
+  OBJET lbl_x2 [label] "x²" attaché à carre_x
+  OBJET bande1 [polygon] {"vertices":[[4,0],[7,0],[7,4],[4,4]]} 
+  OBJET lbl_3x1 [label] "3x" attaché à bande1
+  OBJET bande2 [polygon] {"vertices":[[0,4],[4,4],[4,7],[0,7]]} 
+  OBJET lbl_3x2 [label] "3x" attaché à bande2
+  OBJET coin [polygon] {"vertices":[[4,4],[7,4],[7,7],[4,7]]} 
+  OBJET lbl_9 [label] "9" attaché à coin
+  OBJET cotes [label] "x + 3 par x + 3"   <<JAMAIS MONTRÉ>>
+DIT (dessin) : Dessine un carré de côté x, puis une bande de trois sur x sur deux de ses côtés. La bande six x s'est coupée en deux bandes de trois x.
+    camera.focus  @beat:start {"targets":["grand"],"bounds":"layout_bounds"}
+    draw carre_x @cue:c_carre 
+    show lbl_x2 @cue:c_carre 
+    draw bande1 @cue:c_bande 
+    draw bande2 @cue:c_deux 
+    show lbl_3x1 @cue:c_bande 
+    show lbl_3x2 @cue:c_deux 
+DIT (manque) : Il manque le coin en bas à droite, qui mesure trois par trois, donc neuf.
+    draw coin @cue:c_coin 
+    show lbl_9 @cue:c_neuf 
+=== Tranche s_egalite
+  OBJET calc1 [math] "x^2 + 6x = (x + 3)^2 - 9" parts=x^2 + 6x | = (x + 3)^2 - 9
+  OBJET calc2 [math] "x^2 + 6x - 7 = (x + 3)^2 - 16" parts=x^2 + 6x - 7 | = (x + 3)^2 - 16
+DIT (formule) : Pour compléter le grand carré, on ajoute neuf, puis on retire neuf pour ne rien changer : x au carré plus six x égale x plus trois, le tout au carré, moins neuf.
+    move grand @cue:c_ajoute {"to":{"next_to":"depart","direction":"right","gap":"lg"}}
+    write calc1 @cue:c_egal {"part":"lhs1"}
+    write calc1 @cue:c_retire {"part":"rhs1"}
+DIT (resultat) : Et le neuf ajouté nous donne ceci avec le moins sept de départ : x au carré plus six x moins sept égale x plus trois, le tout au carré, moins seize.
+    write calc2 @cue:c_carre3 {"part":"lhs2"}
+    write calc2 @cue:c_ete {"part":"rhs2"}
+=== Tranche s_verif
+  OBJET verif [math] "(x + 3)^2 = x^2 + 6x + 9" parts=(x + 3)^2 | = x^2 + 6x + 9
+DIT (check) : Vérifions : x plus trois au carré se développe en x au carré plus six x plus neuf.
+    move bande1 @cue:c_developpe {"to":{"next_to":"bande2","direction":"left","gap":"xs"}}
+    move bande2 @cue:c_developpe {"to":{"next_to":"bande1","direction":"right","gap":"xs"}}
+    move coin @cue:c_developpe {"to":{"next_to":"bande1","direction":"down","gap":"xs"}}
+    write verif @cue:c_developpe {"part":"vg"}
+    write verif @cue:c_neuf2 {"part":"vd"}
+=== Tranche s_retenir
+  OBJET regle [math] "x^2 + bx = (x + \\frac{b}{2})^2 - \\frac{b^2}{4}" parts=x^2 + bx | = (x + \frac{b}{2})^2 - \frac{b^2}{4}
+  OBJET mot [text] "On ajoute et on retire le carré de la moitié de b" 
+  GROUPE bilan = regle, mot
+DIT (finit) : À retenir : pour compléter le carré, on prend la moitié du coefficient du terme x, on l'ajoute et on la retire au carré.
+    dim depart @beat:start 
+    fade_out calc1 @beat:start 
+    fade_out calc2 @beat:start 
+    fade_out grand @beat:start 
+    fade_out carre_x @beat:start 
+    fade_out bande1 @beat:start 
+    fade_out bande2 @beat:start 
+    fade_out coin @beat:start 
+    fade_out verif @beat:start 
+    write regle @cue:c_moitie {"part":"r_g"}
+    write regle @cue:c_carre {"part":"r_d"}
+DIT (final) : Avec un moins sept, ça donne x plus trois, le tout au carré, moins seize.
+    show mot @beat:start 
+    move depart @cue:c_moins16 {"to":{"next_to":"bilan","direction":"down","gap":"lg"}}
+    highlight depart @after:m_depart {"role":"result"}
+--- 5 tranches, 206 mots dits (≈ 1.4 min d'oral)

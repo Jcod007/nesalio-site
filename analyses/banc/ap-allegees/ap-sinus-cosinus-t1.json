@@ -1,0 +1,592 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "sinus_cosinus_lien",
+  "title": "Quel lien entre la fonction sinus et la fonction cosinus",
+  "language": "fr",
+  "learning_goal": "Comprendre que la courbe du cosinus est celle du sinus décalée d'un quart de tour, et que cos x = sin(x + 90°)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "phi": {
+     "kind": "parameter",
+     "initial": 0,
+     "min": 0,
+     "max": 90
+    }
+   },
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_base",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -90,
+       450
+      ],
+      "y": [
+       -1.5,
+       1.5
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "sinus",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "sin(x*3.141592653/180)",
+      "domain": [
+       -90,
+       450
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "etiquette",
+     "attachment": {
+      "parent": "sinus",
+      "anchor": "center",
+      "placement": "outside"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "sin x",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "pose",
+     "say": "Pour comparer les deux fonctions, je trace d'abord la courbe du sinus, en degrés, de moins quatre-vingt-dix à quatre cent cinquante.",
+     "cues": [
+      {
+       "id": "c_sinus",
+       "text": "la courbe du sinus"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_sinus",
+       "verb": "draw",
+       "start": "cue:c_sinus",
+       "end": "cue_end:c_sinus",
+       "target": "sinus"
+      },
+      {
+       "id": "s_etq",
+       "verb": "show",
+       "at": "after:d_sinus",
+       "target": "etiquette"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_decalage",
+   "introduces": [
+    {
+     "id": "cosinus",
+     "style": {
+      "role": "result"
+     },
+     "params": {
+      "expression": "sin((x+90)*3.141592653/180)",
+      "domain": [
+       -90,
+       450
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "etq_cos",
+     "attachment": {
+      "parent": "cosinus",
+      "anchor": "center",
+      "placement": "outside"
+     },
+     "style": {
+      "role": "result"
+     },
+     "content": "cos x",
+     "type": "label"
+    },
+    {
+     "id": "fleche",
+     "style": {
+      "role": "accent"
+     },
+     "frame": "rep",
+     "params": {
+      "from": [
+       0,
+       1
+      ],
+      "to": [
+       90,
+       1
+      ]
+     },
+     "type": "arrow"
+    },
+    {
+     "id": "ecart",
+     "attachment": {
+      "parent": "fleche",
+      "anchor": "center"
+     },
+     "style": {
+      "role": "accent"
+     },
+     "content": "90°",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "superpose",
+     "say": "Maintenant, la même courbe de sinus, mais décalée de quatre-vingt-dix degrés vers la gauche : elle se pose exactement sur le cosinus.",
+     "cues": [
+      {
+       "id": "c_decalee",
+       "text": "décalée de quatre-vingt-dix degrés"
+      },
+      {
+       "id": "c_laisse",
+       "text": "vers la gauche"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_cos",
+       "verb": "draw",
+       "start": "cue:c_decalee",
+       "end": "cue_end:c_laisse",
+       "target": "cosinus"
+      },
+      {
+       "id": "s_etq2",
+       "verb": "show",
+       "at": "after:d_cos",
+       "target": "etq_cos"
+      }
+     ]
+    },
+    {
+     "id": "fleche",
+     "say": "Ce décalage, c'est un quart de tour, quatre-vingt-dix degrés. Voilà la vraie différence : ce n'est pas deux courbes séparées, c'est la même, glissée.",
+     "cues": [
+      {
+       "id": "c_quart",
+       "text": "un quart de tour"
+      },
+      {
+       "id": "c_glissee",
+       "text": "glissée"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_fleche",
+       "verb": "show",
+       "at": "cue:c_quart",
+       "target": "fleche"
+      },
+      {
+       "id": "s_ecart",
+       "verb": "show",
+       "at": "cue:c_quart",
+       "target": "ecart"
+      },
+      {
+       "id": "h_sinus",
+       "verb": "highlight",
+       "at": "cue:c_glissee",
+       "target": "sinus",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "verif",
+     "say": "Regarde plutôt sur les sommets : le sinus atteint son maximum en quatre-vingt-dix ; le cosinus l'atteint en zéro, soit quatre-vingt-dix degrés plus tôt. Le même sommet, décalé.",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "les sommets"
+      },
+      {
+       "id": "c_plus_tot",
+       "text": "plus tôt"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_cos",
+       "verb": "highlight",
+       "start": "cue:c_sommet",
+       "end": "cue_end:c_plus_tot",
+       "target": "cosinus",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_lien",
+   "introduces": [
+    {
+     "id": "lien",
+     "content": "\\cos x = \\sin(x + 90^\\circ)",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "\\cos x"
+      },
+      {
+       "id": "droite",
+       "text": "= \\sin(x + 90^\\circ)"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "formule",
+     "say": "On peut l'écrire en une ligne : cosinus de x égale sinus de x plus quatre-vingt-dix degrés.",
+     "cues": [
+      {
+       "id": "c_gauche",
+       "text": "cosinus de x"
+      },
+      {
+       "id": "c_droite",
+       "text": "sinus de x plus quatre-vingt-dix degrés"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_rep",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "f_dec",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "fleche"
+      },
+      {
+       "id": "f_ecart",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ecart"
+      },
+      {
+       "id": "w_gauche",
+       "verb": "write",
+       "at": "cue:c_gauche",
+       "target": "lien",
+       "part": "gauche"
+      },
+      {
+       "id": "w_droite",
+       "verb": "write",
+       "at": "cue:c_droite",
+       "target": "lien",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "sens",
+     "say": "Et c'est réciproque : si tu décales le cosinus de quatre-vingt-dix degrés vers la droite, tu retrouves le sinus.",
+     "cues": [
+      {
+       "id": "c_reciproque",
+       "text": "réciproque"
+      },
+      {
+       "id": "c_retrouve",
+       "text": "retrouves le sinus"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_lien",
+       "verb": "highlight",
+       "start": "cue:c_reciproque",
+       "end": "cue_end:c_retrouve",
+       "target": "lien",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Les deux courbes sont identiques, séparées d'un quart de tour (90°).",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee_fin",
+     "say": "À retenir : sinus et cosinus ne sont pas deux fonctions différentes ; c'est la même vague, et le cosinus a simplement quatre-vingt-dix degrés d'avance.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_avance",
+       "text": "quatre-vingt-dix degrés d'avance"
+      }
+     ],
+     "do": [
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "lien",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "w_idee",
+       "verb": "show",
+       "at": "cue:c_avance",
+       "target": "idee"
+      },
+      {
+       "id": "h_lien2",
+       "verb": "highlight",
+       "start": "cue:c_avance",
+       "end": "cue_end:c_avance",
+       "target": "lien",
+       "role": "result"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

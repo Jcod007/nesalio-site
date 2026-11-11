@@ -1,0 +1,636 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "majorite_seuil",
+  "title": "Majorité : diviser par 2 ou (diviser par 2) + 1 ?",
+  "language": "fr",
+  "learning_goal": "Comprendre que la majorité absolue demande PLUS de la moitié, donc le premier entier strictement plus grand que n/2."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {
+    "seuil9": "floor(9/2)+1",
+    "seuil10": "10/2+1"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_regle",
+   "introduces": [
+    {
+     "id": "regle",
+     "content": "majorit\\acute{e} : > \\frac{n}{2}",
+     "parts": [
+      {
+       "id": "gauche",
+       "text": "majorit\\acute{e} :"
+      },
+      {
+       "id": "droite",
+       "text": "> \\frac{n}{2}"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "note",
+     "layout": {
+      "next_to": "regle",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "n = nombre de votes exprimés",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "recap",
+     "say": "Ta question porte sur la majorité absolue : faut-il juste diviser par deux, ou diviser par deux puis ajouter un ?",
+     "cues": [
+      {
+       "id": "c_maj",
+       "text": "majorité absolue"
+      },
+      {
+       "id": "c_div",
+       "text": "diviser par deux"
+      },
+      {
+       "id": "c_plus",
+       "text": "ajouter un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:c_maj",
+       "target": "regle",
+       "part": "gauche"
+      },
+      {
+       "id": "w_d",
+       "verb": "write",
+       "at": "cue:c_div",
+       "target": "regle",
+       "part": "droite"
+      }
+     ]
+    },
+    {
+     "id": "pourquoi",
+     "say": "La majorité, c'est avoir plus de la moitié des votes. Pas exactement la moitié : strictement plus.",
+     "cues": [
+      {
+       "id": "c_moitie",
+       "text": "plus de la moitié"
+      },
+      {
+       "id": "c_strict",
+       "text": "strictement plus"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_d",
+       "verb": "highlight",
+       "start": "cue:c_moitie",
+       "end": "cue_end:c_strict",
+       "target": "regle",
+       "role": "accent",
+       "part": "droite"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:c_strict",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_paire",
+   "introduces": [
+    {
+     "id": "axe",
+     "params": {
+      "domain": [
+       0,
+       10
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "seuil10",
+     "layout": {
+      "next_to": "axe",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "seuil10",
+      "template": "seuil = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "calc10",
+     "layout": {
+      "next_to": "seuil10",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "\\frac{10}{2} + 1 = 5 + 1 = 6",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cas10",
+     "say": "Prenons dix votes : la moitié, c'est cinq. Mais cinq votes, ce n'est que la moitié, pas la majorité.",
+     "cues": [
+      {
+       "id": "c_dix",
+       "text": "dix votes"
+      },
+      {
+       "id": "c_cinq",
+       "text": "c'est cinq"
+      },
+      {
+       "id": "c_pas",
+       "text": "pas la majorité"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axe",
+       "verb": "show",
+       "at": "cue:c_dix",
+       "target": "axe"
+      },
+      {
+       "id": "h_cinq",
+       "verb": "highlight",
+       "start": "cue:c_cinq",
+       "end": "cue_end:c_pas",
+       "target": "axe",
+       "role": "unknown"
+      }
+     ]
+    },
+    {
+     "id": "seuil10b",
+     "say": "Il faut donc un vote de plus : dix divisé par deux donne cinq, plus un donne six.",
+     "cues": [
+      {
+       "id": "c_plusun",
+       "text": "plus un"
+      },
+      {
+       "id": "c_six",
+       "text": "six"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_calc",
+       "verb": "write",
+       "at": "cue:c_plusun",
+       "target": "calc10"
+      },
+      {
+       "id": "w_seuil",
+       "verb": "write",
+       "at": "cue:c_six",
+       "target": "seuil10"
+      },
+      {
+       "id": "s_seuil",
+       "verb": "set_style",
+       "at": "after:w_seuil",
+       "target": "seuil10",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_impaire",
+   "introduces": [
+    {
+     "id": "axe9",
+     "params": {
+      "domain": [
+       0,
+       9
+      ]
+     },
+     "type": "number_line"
+    },
+    {
+     "id": "seuil9",
+     "layout": {
+      "next_to": "axe9",
+      "direction": "up",
+      "gap": "md"
+     },
+     "content": {
+      "kind": "computed",
+      "expression_ref": "seuil9",
+      "template": "seuil = {value}",
+      "precision": 0
+     },
+     "type": "math"
+    },
+    {
+     "id": "calc9",
+     "layout": {
+      "next_to": "seuil9",
+      "direction": "down",
+      "gap": "sm"
+     },
+     "content": "\\lfloor \\frac{9}{2} \\rfloor + 1 = \\lfloor 4{,}5 \\rfloor + 1 = 5",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "cas9",
+     "say": "Avec neuf votes, la moitié vaut quatre et demi. Un vote, ça ne se coupe pas en deux.",
+     "cues": [
+      {
+       "id": "c_neuf",
+       "text": "neuf votes"
+      },
+      {
+       "id": "c_demi",
+       "text": "quatre et demi"
+      },
+      {
+       "id": "c_coupe",
+       "text": "ne se coupe pas"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_axe9",
+       "verb": "show",
+       "at": "cue:c_neuf",
+       "target": "axe9"
+      },
+      {
+       "id": "h_demi",
+       "verb": "highlight",
+       "start": "cue:c_demi",
+       "end": "cue_end:c_coupe",
+       "target": "axe9",
+       "role": "unknown"
+      }
+     ]
+    },
+    {
+     "id": "seuil9b",
+     "say": "Le premier entier au-dessus, c'est cinq. Neuf divisé par deux, arrondi vers le bas, plus un : cinq.",
+     "cues": [
+      {
+       "id": "c_premier",
+       "text": "premier entier"
+      },
+      {
+       "id": "c_cinq",
+       "text": "c'est cinq"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_c9",
+       "verb": "write",
+       "at": "cue:c_premier",
+       "target": "calc9"
+      },
+      {
+       "id": "w_s9",
+       "verb": "write",
+       "at": "cue:c_cinq",
+       "target": "seuil9"
+      },
+      {
+       "id": "s_s9",
+       "verb": "set_style",
+       "at": "after:w_s9",
+       "target": "seuil9",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "content": "Majorité absolue : le premier entier plus grand que n ÷ 2",
+     "type": "text"
+    },
+    {
+     "id": "formule",
+     "layout": {
+      "next_to": "idee",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "\\text{pair : } \\frac{n}{2} + 1 \\qquad \\text{impair : } \\frac{n+1}{2}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : ce n'est pas seulement diviser par deux.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_axe",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "axe"
+      },
+      {
+       "id": "f_axe9",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "axe9"
+      },
+      {
+       "id": "f_c10",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calc10"
+      },
+      {
+       "id": "f_c9",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "calc9"
+      },
+      {
+       "id": "f_note",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "note"
+      },
+      {
+       "id": "f_regle",
+       "verb": "fade_out",
+       "at": "cue:c_retenir",
+       "target": "regle"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_retenir",
+       "target": "idee"
+      }
+     ]
+    },
+    {
+     "id": "final",
+     "say": "Il faut plus de la moitié : sur un nombre pair, la moitié plus un ; sur un nombre impair, on arrondit vers le bas puis on ajoute un.",
+     "cues": [
+      {
+       "id": "c_pair",
+       "text": "nombre pair"
+      },
+      {
+       "id": "c_impair",
+       "text": "nombre impair"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_f",
+       "verb": "show",
+       "at": "cue:c_pair",
+       "target": "formule"
+      },
+      {
+       "id": "h_f",
+       "verb": "highlight",
+       "start": "cue:c_impair",
+       "end": "cue_end:c_impair",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

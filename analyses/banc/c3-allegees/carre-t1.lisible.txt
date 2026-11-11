@@ -1,0 +1,71 @@
+QUESTION (carre, mathematiques, sec 4, sens) : Pourquoi (x + 5)² ce n'est pas x² + 25 ?
+RÉPONSE DE RÉFÉRENCE : (x + 5)² = x² + 10x + 25 : il manque les deux rectangles 5x.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. (x + 5)² = (x + 5)(x + 5), pas x² + 5²
+  2. modèle d'aire : carré x², deux rectangles 5x, carré 25
+  3. terme croisé 10x = 2 × 5x
+  4. résultat x² + 10x + 25 écrit
+  5. vérification numérique (ex. x = 1 : 36 ≠ 26)
+ERREURS GRAVES À CHERCHER : modèle d'aire mal découpé (pièces hors du grand carré)
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Pourquoi (x + 5)² n'est pas x² + 25
+=== Tranche s_intro
+  OBJET carre [polygon] {"vertices":[[0,0],[3,0],[3,3],[0,3]]} 
+DIT (ouvre) : Bonne question : l'erreur x carré plus vingt-cinq vient d'un raccourci qu'on prend sans le voir.
+    draw carre @cue:c_erreur 
+=== Tranche s_aire
+  OBJET p_x2 [polygon] {"vertices":[[0,0],[3,0],[3,3],[0,3]]} 
+  OBJET p_5x_haut [polygon] {"vertices":[[0,3],[3,3],[3,4.8],[0,4.8]]} 
+  OBJET p_5x_droite [polygon] {"vertices":[[3,0],[4.8,0],[4.8,3],[3,3]]} 
+  OBJET p_25 [polygon] {"vertices":[[3,3],[4.8,3],[4.8,4.8],[3,4.8]]} 
+  OBJET lab_x2 [label] "x²" attaché à p_x2
+  OBJET lab_5x_haut [label] "5x" attaché à p_5x_haut
+  OBJET lab_5x_droite [label] "5x" attaché à p_5x_droite
+  OBJET lab_25 [label] "25" attaché à p_25
+  OBJET lab_x_h [label] "x" attaché à p_x2
+  OBJET lab_x_v [label] "x" attaché à p_x2
+  OBJET lab_5_h [label] "5" attaché à p_5x_haut
+  OBJET lab_5_v [label] "5" attaché à p_5x_droite
+DIT (figure) : Regarde un carré de côté x plus cinq. Sa largeur, c'est x plus cinq ; sa hauteur aussi, x plus cinq.
+    draw p_x2 @cue:c_cote 
+    show lab_x2 @cue:c_cote 
+    show lab_x_h @cue:c_largeur 
+    show lab_x_v @cue:c_hauteur 
+DIT (pieces) : On découpe ce grand carré en quatre pièces : un carré x par x, deux rectangles cinq par x, et un petit carré de cinq par cinq.
+    draw p_5x_haut @cue:c_quatre 
+    show lab_5x_haut @cue:c_deux 
+    show lab_5_h @cue:c_deux 
+    draw p_5x_droite @cue:c_deux 
+    show lab_5x_droite @cue:c_deux 
+    show lab_5_v @cue:c_deux 
+    draw p_25 @cue:c_petit 
+    show lab_25 @cue:c_petit 
+=== Tranche s_somme
+  OBJET total [math] "x^2 + 5x + 5x + 25" parts=x^2 | + 5x | + 5x | + 25
+DIT (aires) : Pour trouver l'aire totale, on additionne les quatre pièces : x carré, plus cinq x, plus cinq x, plus vingt-cinq.
+    write total @cue:c_xcarre {"part":"x2"}
+    write total @cue:c_5x1 {"part":"cinq_un"}
+    write total @cue:c_5x2 {"part":"cinq_deux"}
+    write total @cue:c_25 {"part":"vinqc"}
+DIT (manque) : Les deux cinq x sont les pièces du haut et de droite : c'est le dix x qu'on oublie quand on écrit x carré plus vingt-cinq.
+    highlight lab_5x_haut @- {"start":"cue:c_deux5x","end":"cue_end:c_deux5x","role":"accent"}
+    highlight lab_5x_droite @after:h_haut {"role":"accent"}
+    highlight total @- {"start":"cue:c_dixx","end":"cue_end:c_oublie","role":"accent","part":"cinq_un"}
+    highlight total @- {"start":"cue:c_dixx","end":"cue_end:c_oublie","role":"accent","part":"cinq_deux"}
+=== Tranche s_developpe
+  OBJET etape2 [math] "x^2 + 10x + 25" parts=x^2 | + 10x | + 25
+  OBJET regle [text] "(x + 5)² = x² + 10x + 25"   <<JAMAIS MONTRÉ>>
+DIT (reduis) : Les deux cinq x se réduisent en dix x, et il reste x carré plus dix x plus vingt-cinq.
+    transform etape2 @cue:c_reduisent {"source":"total"}
+    highlight etape2 @- {"start":"cue:c_reduisent","end":"cue_end:c_reduisent","role":"result","part":"dix"}
+DIT (derive) : On peut aussi développer directement : x plus cinq au carré, c'est x plus cinq fois x plus cinq, et en distribuant on retrouve les mêmes termes.
+    highlight etape2 @- {"start":"cue:c_retrouve","end":"cue_end:c_retrouve","role":"accent"}
+=== Tranche s_retenir
+DIT (idee) : À retenir : un carré de binôme, c'est un carré, deux rectangles et un petit carré. Le double produit est toujours là.
+    fade_out total @cue:c_requate 
+    fade_out carre @cue:c_requate 
+    fade_out regle @cue:c_requate 
+    camera.focus  @cue:c_double {"targets":["etape2"],"bounds":"layout_bounds"}
+    highlight etape2 @cue:c_double {"role":"result"}
+--- 5 tranches, 178 mots dits (≈ 1.2 min d'oral)

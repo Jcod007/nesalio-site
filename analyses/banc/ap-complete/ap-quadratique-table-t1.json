@@ -1,0 +1,1011 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "fonction_quadratique_table",
+  "title": "Fonction quadratique : trouver sa règle et ses différences",
+  "language": "fr",
+  "learning_goal": "Trouver la règle d'une fonction quadratique à partir d'une table de valeurs, et comprendre les différences première et seconde."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {
+    "a": {
+     "kind": "parameter",
+     "initial": 1,
+     "min": 0.5,
+     "max": 2
+    }
+   },
+   "expressions": {
+    "haut": "a*2^2"
+   }
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_motif",
+   "introduces": [
+    {
+     "id": "tab",
+     "params": {
+      "rows": [
+       [
+        0,
+        1,
+        2,
+        3,
+        4
+       ],
+       [
+        1,
+        4,
+        9,
+        16,
+        25
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "f(x)"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "regle",
+     "layout": {
+      "next_to": "tab",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "f(x) = x^2",
+     "parts": [
+      {
+       "id": "nom",
+       "text": "f(x) ="
+      },
+      {
+       "id": "carre",
+       "text": "x^2"
+      }
+     ],
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "arrive",
+     "say": "La fonction quadratique, c'est une relation où chaque entrée donne une seule sortie, et sa courbe est une parabole.",
+     "cues": [
+      {
+       "id": "c_quad",
+       "text": "quadratique"
+      },
+      {
+       "id": "c_parabole",
+       "text": "parabole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab",
+       "verb": "show",
+       "at": "cue:c_quad",
+       "target": "tab"
+      }
+     ]
+    },
+    {
+     "id": "carre",
+     "say": "Voici un exemple simple : la fonction x au carré. En zéro elle vaut un, en deux elle vaut quatre, en trois elle vaut neuf.",
+     "cues": [
+      {
+       "id": "c_carre",
+       "text": "x au carré"
+      },
+      {
+       "id": "c_neuf",
+       "text": "neuf"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_nom",
+       "verb": "write",
+       "at": "cue:c_carre",
+       "target": "regle",
+       "part": "nom"
+      },
+      {
+       "id": "w_carre",
+       "verb": "write",
+       "at": "cue:c_neuf",
+       "target": "regle",
+       "part": "carre"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diff1",
+   "introduces": [
+    {
+     "id": "tab2",
+     "params": {
+      "rows": [
+       [
+        0,
+        1,
+        2,
+        3,
+        4
+       ],
+       [
+        1,
+        4,
+        9,
+        16,
+        25
+       ],
+       [
+        3,
+        5,
+        7,
+        9,
+        null
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "f(x)",
+       "différence 1"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note1",
+     "layout": {
+      "next_to": "tab2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "différence 1 = différence entre deux f(x) voisins",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "regarde",
+     "say": "Maintenant, ajoutons une ligne : la différence première. C'est la différence entre deux sorties voisines.",
+     "cues": [
+      {
+       "id": "c_premiere",
+       "text": "différence première"
+      },
+      {
+       "id": "c_voisines",
+       "text": "sorties voisines"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab2",
+       "verb": "show",
+       "at": "cue:c_premiere",
+       "target": "tab2"
+      },
+      {
+       "id": "s_note1",
+       "verb": "show",
+       "at": "cue:c_voisines",
+       "target": "note1"
+      }
+     ]
+    },
+    {
+     "id": "calcule",
+     "say": "De un à quatre, ça fait trois. De quatre à neuf, ça fait cinq. De neuf à seize, ça fait sept.",
+     "cues": [
+      {
+       "id": "c_trois",
+       "text": "trois"
+      },
+      {
+       "id": "c_cinq",
+       "text": "cinq"
+      },
+      {
+       "id": "c_sept",
+       "text": "sept"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_ligne1",
+       "verb": "highlight",
+       "at": "cue:c_trois",
+       "target": "tab2",
+       "part": "r3c1"
+      },
+      {
+       "id": "h_ligne2",
+       "verb": "highlight",
+       "at": "cue:c_cinq",
+       "target": "tab2",
+       "part": "r3c2"
+      },
+      {
+       "id": "h_ligne3",
+       "verb": "highlight",
+       "at": "cue:c_sept",
+       "target": "tab2",
+       "part": "r3c3"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_diff2",
+   "introduces": [
+    {
+     "id": "tab3",
+     "params": {
+      "rows": [
+       [
+        0,
+        1,
+        2,
+        3,
+        4
+       ],
+       [
+        1,
+        4,
+        9,
+        16,
+        25
+       ],
+       [
+        3,
+        5,
+        7,
+        9,
+        null
+       ],
+       [
+        2,
+        2,
+        2,
+        null,
+        null
+       ]
+      ],
+      "row_labels": [
+       "x",
+       "f(x)",
+       "différence 1",
+       "différence 2"
+      ]
+     },
+     "type": "matrix"
+    },
+    {
+     "id": "note2",
+     "layout": {
+      "next_to": "tab3",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "différence 2 constante = fonction quadratique",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "ajoute",
+     "say": "La différence seconde, c'est la différence entre deux différences premières. Trois à cinq, ça fait deux. Cinq à sept, ça fait deux aussi.",
+     "cues": [
+      {
+       "id": "c_seconde",
+       "text": "différence seconde"
+      },
+      {
+       "id": "c_deux",
+       "text": "deux"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_tab3",
+       "verb": "show",
+       "at": "cue:c_seconde",
+       "target": "tab3"
+      },
+      {
+       "id": "h_r4c1",
+       "verb": "highlight",
+       "at": "cue:c_deux",
+       "target": "tab3",
+       "part": "r4c1"
+      },
+      {
+       "id": "h_r4c2",
+       "verb": "highlight",
+       "at": "after:h_r4c1",
+       "target": "tab3",
+       "part": "r4c2"
+      }
+     ]
+    },
+    {
+     "id": "conclus",
+     "say": "Et cette différence seconde reste toujours la même : elle vaut deux partout. C'est la signature d'une fonction quadratique.",
+     "cues": [
+      {
+       "id": "c_signature",
+       "text": "signature"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_note2",
+       "verb": "show",
+       "at": "cue:c_signature",
+       "target": "note2"
+      },
+      {
+       "id": "h_tab3",
+       "verb": "highlight",
+       "at": "after:s_note2",
+       "target": "tab3",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_graphique",
+   "introduces": [
+    {
+     "id": "rep",
+     "params": {
+      "x": [
+       -1,
+       5
+      ],
+      "y": [
+       -1,
+       27
+      ]
+     },
+     "type": "axes"
+    },
+    {
+     "id": "courbe",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "expression": "x^2",
+      "domain": [
+       -1,
+       5
+      ]
+     },
+     "type": "function_graph"
+    },
+    {
+     "id": "p_sommet",
+     "frame": "rep",
+     "params": {
+      "at": [
+       0,
+       0
+      ]
+     },
+     "type": "point"
+    },
+    {
+     "id": "l_sommet",
+     "attachment": {
+      "parent": "p_sommet",
+      "anchor": "right"
+     },
+     "content": "sommet (0 ; 0)",
+     "type": "label"
+    },
+    {
+     "id": "axe",
+     "style": {
+      "role": "secondary"
+     },
+     "params": {
+      "from": [
+       0,
+       -1
+      ],
+      "to": [
+       0,
+       27
+      ]
+     },
+     "type": "line"
+    },
+    {
+     "id": "l_axe",
+     "attachment": {
+      "parent": "axe",
+      "anchor": "top"
+     },
+     "content": "x = 0",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "trace",
+     "say": "Ces couples deviennent des points : zéro un, un un, deux quatre, trois neuf. Reliés, ils forment la parabole.",
+     "cues": [
+      {
+       "id": "c_points",
+       "text": "points"
+      },
+      {
+       "id": "c_parabole",
+       "text": "parabole"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_rep",
+       "verb": "show",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "draw",
+       "start": "cue:c_points",
+       "end": "cue_end:c_parabole",
+       "target": "courbe"
+      }
+     ]
+    },
+    {
+     "id": "sommet",
+     "say": "Le point le plus bas, ici zéro zéro, c'est le sommet. La parabole est symétrique autour de la verticale qui passe par le sommet.",
+     "cues": [
+      {
+       "id": "c_sommet",
+       "text": "sommet"
+      },
+      {
+       "id": "c_verticale",
+       "text": "verticale"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_p",
+       "verb": "show",
+       "at": "cue:c_sommet",
+       "target": "p_sommet"
+      },
+      {
+       "id": "s_l",
+       "verb": "show",
+       "at": "after:s_p",
+       "target": "l_sommet"
+      },
+      {
+       "id": "d_axe",
+       "verb": "draw",
+       "start": "cue:c_verticale",
+       "end": "cue_end:c_verticale",
+       "target": "axe"
+      },
+      {
+       "id": "s_la",
+       "verb": "show",
+       "at": "after:d_axe",
+       "target": "l_axe"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_regle_gen",
+   "introduces": [
+    {
+     "id": "forme",
+     "content": "f(x) = a(x-h)^2 + k",
+     "parts": [
+      {
+       "id": "f",
+       "text": "f(x) ="
+      },
+      {
+       "id": "ax",
+       "text": "a(x-h)^2"
+      },
+      {
+       "id": "k",
+       "text": "+ k"
+      }
+     ],
+     "type": "math"
+    },
+    {
+     "id": "sommet_note",
+     "attachment": {
+      "parent": "forme",
+      "anchor": "bottom"
+     },
+     "content": "le sommet est S(h ; k)",
+     "type": "text"
+    },
+    {
+     "id": "ex",
+     "layout": {
+      "next_to": "forme",
+      "direction": "down",
+      "gap": "lg"
+     },
+     "content": "f(x) = x^2 - 4x + 3",
+     "type": "math"
+    },
+    {
+     "id": "excan",
+     "layout": {
+      "next_to": "ex",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "f(x) = (x-2)^2 - 1",
+     "type": "math"
+    },
+    {
+     "id": "exsom",
+     "attachment": {
+      "parent": "excan",
+      "anchor": "right"
+     },
+     "content": "S(2 ; -1)",
+     "type": "label"
+    }
+   ],
+   "beats": [
+    {
+     "id": "canonique",
+     "say": "Pour trouver la règle d'une fonction quadratique, on l'écrit en forme canonique : f de x égale a fois x moins h au carré, plus k. Le sommet est le point h, k.",
+     "cues": [
+      {
+       "id": "c_canonique",
+       "text": "forme canonique"
+      },
+      {
+       "id": "c_sommet",
+       "text": "sommet"
+      },
+      {
+       "id": "c_hk",
+       "text": "h, k"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_f",
+       "verb": "write",
+       "at": "cue:c_canonique",
+       "target": "forme",
+       "part": "f"
+      },
+      {
+       "id": "w_ax",
+       "verb": "write",
+       "at": "after:w_f",
+       "target": "forme",
+       "part": "ax"
+      },
+      {
+       "id": "w_k",
+       "verb": "write",
+       "at": "after:w_ax",
+       "target": "forme",
+       "part": "k"
+      },
+      {
+       "id": "s_sommet_note",
+       "verb": "show",
+       "at": "cue:c_hk",
+       "target": "sommet_note"
+      }
+     ]
+    },
+    {
+     "id": "exemple",
+     "say": "Par exemple, la règle x au carré moins quatre x plus trois se réécrit x moins deux au carré, moins un. Le sommet est donc S deux, moins un.",
+     "cues": [
+      {
+       "id": "c_ex",
+       "text": "x au carré moins quatre x plus trois"
+      },
+      {
+       "id": "c_excan",
+       "text": "x moins deux au carré, moins un"
+      },
+      {
+       "id": "c_S",
+       "text": "S deux, moins un"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_forme",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "forme"
+      },
+      {
+       "id": "h_sn",
+       "verb": "dim",
+       "at": "beat:start",
+       "target": "sommet_note"
+      },
+      {
+       "id": "w_ex",
+       "verb": "write",
+       "at": "cue:c_ex",
+       "target": "ex"
+      },
+      {
+       "id": "w_excan",
+       "verb": "write",
+       "at": "cue:c_excan",
+       "target": "excan"
+      },
+      {
+       "id": "s_exsom",
+       "verb": "show",
+       "at": "cue:c_S",
+       "target": "exsom"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [
+    {
+     "id": "idee",
+     "layout": {
+      "next_to": "note2",
+      "direction": "down",
+      "gap": "md"
+     },
+     "content": "différence 2 constante ⇒ quadratique ; différence 1 constante ⇒ droite",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "retenir",
+     "say": "À retenir : si la différence seconde est constante et non nulle, la fonction est quadratique. Si c'est la différence première qui est constante, c'est une droite.",
+     "cues": [
+      {
+       "id": "c_retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "c_diff2",
+       "text": "différence seconde"
+      },
+      {
+       "id": "c_diff1",
+       "text": "différence première"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_graph",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "rep"
+      },
+      {
+       "id": "d_courbe",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "courbe"
+      },
+      {
+       "id": "d_p",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "p_sommet"
+      },
+      {
+       "id": "d_l",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "l_sommet"
+      },
+      {
+       "id": "d_axe",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "axe"
+      },
+      {
+       "id": "d_la",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "l_axe"
+      },
+      {
+       "id": "d_ex",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "ex"
+      },
+      {
+       "id": "d_excan",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "excan"
+      },
+      {
+       "id": "d_exsom",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "exsom"
+      },
+      {
+       "id": "d_forme",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "forme"
+      },
+      {
+       "id": "d_sn",
+       "verb": "fade_out",
+       "at": "beat:start",
+       "target": "sommet_note"
+      },
+      {
+       "id": "cadre",
+       "verb": "camera.focus",
+       "at": "cue:c_retenir",
+       "targets": [
+        "tab3",
+        "note2",
+        "idee"
+       ],
+       "bounds": "layout_bounds"
+      },
+      {
+       "id": "s_idee",
+       "verb": "show",
+       "at": "cue:c_diff2",
+       "target": "idee"
+      },
+      {
+       "id": "h_tab3b",
+       "verb": "highlight",
+       "start": "cue:c_diff2",
+       "end": "cue_end:c_diff2",
+       "target": "tab3",
+       "part": "r4"
+      },
+      {
+       "id": "h_diff1",
+       "verb": "highlight",
+       "start": "cue:c_diff1",
+       "end": "cue_end:c_diff1",
+       "target": "tab3",
+       "part": "r3"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

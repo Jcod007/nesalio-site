@@ -1,0 +1,68 @@
+QUESTION (nombre-derive, mathematiques, sec 5, sens) : C'est quoi le nombre dérivé, sur un graphique ?
+RÉPONSE DE RÉFÉRENCE : La pente de la tangente à la courbe au point d'abscisse a.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. sécante entre A et P, pente = taux de variation moyen
+  2. P se rapproche de A : la sécante tend vers la tangente
+  3. nombre dérivé = pente de la tangente en A
+  4. exemple chiffré (ex. y = x² en x = 1 : 2)
+  5. lecture de la pente sur le graphique
+ERREURS GRAVES À CHERCHER : sécante tracée qui ne passe pas par P ; pente dite ≠ pente tracée
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : C'est quoi le nombre dérivé, sur un graphique ?
+math_context : {"symbols":{"q":{"kind":"parameter","initial":3,"min":1,"max":3}},"expressions":{"pente":"q+1"}}
+=== Tranche s_secante
+  OBJET rep [axes] {"x":[-1,4],"y":[-1,9]} 
+  OBJET courbe [function_graph] {"expression":"x^2","domain":[-1,3]} 
+  OBJET A [point] {"at":[1,1]} 
+  OBJET lblA [label] "A" attaché à A
+  OBJET P [point] {"at":[3,9]} 
+  OBJET lblP [label] "P" attaché à P
+  OBJET secante [function_graph] {"expression":"(q+1)*(x-1)+1","domain":[-1,3]} 
+DIT (intro) : Le nombre dérivé, c'est la pente de la tangente à la courbe à cet endroit-là.
+    show rep @beat:start 
+    draw courbe @- {"start":"cue:c_pente","end":"cue_end:c_pente"}
+DIT (secante) : Pour le voir, partons d'une sécante : une droite qui coupe la parabole en deux points. Le point A est fixe à x égale un, le point P se promène.
+    show A @cue:c_fixe 
+    show lblA @after:s_A 
+    show P @cue:c_fixe 
+    show lblP @after:s_P 
+    draw secante @- {"start":"cue:c_secante","end":"cue_end:c_secante"}
+=== Tranche s_pentes
+  OBJET tri_h [line] {"from":[1,1],"to":[3,1]} 
+  OBJET tri_v [line] {"from":[3,1],"to":[3,9]} 
+  OBJET lbl_av [label] "2" attaché à tri_h
+  OBJET lbl_mont [label] "8" attaché à tri_v
+  OBJET calc [math] "\\dfrac{9-1}{3-1} = \\dfrac{8}{2} = 4" parts=\dfrac{9-1}{3-1} | = \dfrac{8}{2} | = 4
+DIT (pente) : La pente, c'est la montée divisée par l'avancée. D'ici à P, on avance de deux et on monte de huit.
+    draw tri_h @cue:c_avance 
+    show lbl_av @after:d_h 
+    draw tri_v @cue:c_monte 
+    show lbl_mont @after:d_v 
+DIT (calcul) : Donc la pente de cette sécante, c'est neuf moins un sur trois moins un : huit sur deux, quatre.
+    write calc @cue:c_neuf {"part":"fraction"}
+    write calc @cue:c_huit {"part":"deux"}
+    write calc @cue:c_quatre {"part":"quatre"}
+    highlight calc @after:w_quatre {"role":"result"}
+=== Tranche s_limite
+  OBJET pente_lbl [math] {"kind":"computed","expression_ref":"pente","template":"\\text{pente} = {value}","precision":1}   <<JAMAIS MONTRÉ>>
+  OBJET tangente [function_graph] {"expression":"2*(x-1)+1","domain":[-1,3]} 
+DIT (rapproche) : Maintenant, faisons glisser P vers A le long de la courbe. La sécante pivote, et sa pente diminue.
+    fade_out tri_h @cue:c_glisser 
+    fade_out tri_v @cue:c_glisser 
+    fade_out lbl_av @cue:c_glisser 
+    fade_out lbl_mont @cue:c_glisser 
+    animate_parameter  @- {"start":"cue:c_glisser","end":"cue_end:c_diminue","parameter":"q","from":3,"to":1}
+    highlight pente_lbl @- {"start":"cue:c_glisser","end":"cue_end:c_diminue","role":"accent"}
+DIT (tangente) : Quand P arrive tout près de A, la sécante devient la tangente. Sa pente vaut deux : voilà le nombre dérivé de x au carré en x égale un.
+    fade_out secante @cue:c_tangente 
+    draw tangente @cue:c_tangente 
+    fade_out pente_lbl @cue:c_deux 
+    highlight tangente @cue:c_nombre {"role":"result"}
+=== Tranche s_retenir
+  OBJET idee [text] "Le nombre dérivé = la pente de la tangente au point" 
+DIT (retenir) : À retenir : le nombre dérivé en un point, c'est la pente de la tangente à la courbe en ce point. C'est aussi un taux de variation instantané.
+    camera.focus  @cue:c_retenir {"targets":["rep","tangente","idee"],"bounds":"layout_bounds"}
+    show idee @cue:c_pente 
+    highlight tangente @- {"start":"cue:c_taux","end":"cue_end:c_taux","role":"result"}
+--- 4 tranches, 159 mots dits (≈ 1.1 min d'oral)

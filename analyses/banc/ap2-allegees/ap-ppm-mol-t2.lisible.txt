@@ -1,0 +1,63 @@
+QUESTION (ap-ppm-mol, chimie, sec 4, alloprof) : Comment passer d’une concentration en ppm à une concentration en mol/L
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Passer d'une concentration en ppm à des mol/L
+math_context : {"symbols":{},"expressions":{"m_glucose":"10/0.250","n_glucose":"(10/0.250)/(180.16)"}}
+=== Tranche s_ppm
+  OBJET entete [math] "1\\ \\text{ppm} = 1\\ \\text{mg/L}" parts=1\ \text{ppm} | = | 1\ \text{mg/L}
+  OBJET donnee [label] "10 ppm de glucose dans l'eau" 
+DIT (reformule) : Tu veux transformer dix parties par million de glucose en moles par litre.
+    show entete @cue:c_dix 
+    show donnee @cue:c_moles 
+DIT (ppm) : Un ppm, c'est une part de soluté par million de parts de solution. Dans l'eau, ça revient à un milligramme par litre.
+    highlight entete @- {"start":"cue:c_part","end":"cue_end:c_part","part":"un"}
+    highlight entete @- {"start":"cue:c_revient","end":"cue_end:c_revient","role":"accent","part":"mgl"}
+=== Tranche s_mgl
+  OBJET dix_mgl [math] "10\\ \\text{ppm} = 10\\ \\text{mg/L}" parts=10\ \text{ppm} | = 10\ \text{mg/L}
+DIT (applique) : Appliquons-le à ta donnée : dix ppm, c'est dix milligrammes de glucose par litre.
+    fade_out donnee @beat:start 
+    write dix_mgl @cue:c_dixmgl {"part":"gauche"}
+    write dix_mgl @cue:c_parlitre {"part":"droite"}
+DIT (attention) : Attention : dix mg par litre, ce n'est pas encore des moles par litre. Ça, c'est une masse ; il nous faut un nombre de moles.
+    highlight dix_mgl @- {"start":"cue:c_pasencore","end":"cue_end:c_pasencore","role":"secondary","part":"droite"}
+    highlight dix_mgl @- {"start":"cue:c_masse","end":"cue_end:c_masse","role":"unknown","part":"droite"}
+=== Tranche s_masse_molaire
+  OBJET masse [math] "M(\\text{C}_6\\text{H}_{12}\\text{O}_6) = 6(12{,}01) + 12(1{,}01) + 6(16{,}00)" parts=M(\text{C}_6\text{H}_{12}\text{O}_6) | = 6(12{,}01) + 12(1{,}01) + 6(16{,}00)
+  OBJET masse2 [math] "M = 180{,}16\\ \\text{g/mol}" 
+DIT (calcule) : Il nous manque la masse molaire du glucose. Six carbones, douze hydrogènes, six oxygènes.
+    fade_out entete @cue:c_glucose 
+    write masse @cue:c_glucose {"part":"formule"}
+    write masse @cue:c_atomes {"part":"detail"}
+DIT (resultat) : En additionnant, ça donne cent quatre-vingts virgule seize grammes par mole. Une mole de glucose pèse donc environ cent quatre-vingts grammes.
+    transform masse2 @cue:c_180 {"source":"masse"}
+    highlight masse2 @- {"start":"cue:c_pese","end":"cue_end:c_pese","role":"given"}
+=== Tranche s_conversion
+  OBJET n [math] "n = \\frac{m}{M} = \\frac{0{,}010\\ \\text{g}}{180{,}16\\ \\text{g/mol}}" 
+  OBJET c [math] "C = \\frac{n}{V} = \\frac{5{,}5 \\times 10^{-5}\\ \\text{mol}}{1\\ \\text{L}}" 
+DIT (nb_moles) : Dix milligrammes, c'est zéro virgule zéro dix gramme. Divisons par la masse molaire : ça donne environ cinq virgule cinq fois dix exposant moins cinq moles.
+    dim masse2 @beat:start 
+    write n @cue:c_division 
+    highlight n @cue:c_010 {"role":"accent"}
+    highlight n @cue:c_molesnb {"role":"accent"}
+DIT (concentration) : On a un litre de solution, donc la concentration, c'est ce nombre de moles divisé par un litre : cinq virgule cinq fois dix exposant moins cinq mole par litre.
+    fade_out n @beat:start 
+    write c @cue:c_parlitre 
+    highlight c @cue:c_parlitre {"role":"accent"}
+    highlight c @cue:c_final {"role":"accent"}
+=== Tranche s_retenir
+  OBJET regle [math] "C = \\frac{10\\ \\text{mg/L}}{M}\\times 10^{-3}" parts=C = | \frac{10\ \text{mg/L}}{M} | \times 10^{-3}
+  OBJET idee [text] "ppm → mg/L → g/L → mol/L" 
+DIT (retenir) : À retenir : un ppm vaut un milligramme par litre, puis on convertit les grammes en moles avec la masse molaire.
+    fade_out c @beat:start 
+    fade_out masse2 @beat:start 
+    camera.focus  @cue:c_retenir {"targets":["regle","idee"],"bounds":"layout_bounds"}
+    write regle @cue:c_convertit {"part":"frac"}
+    write regle @cue:c_convertit {"part":"mille"}
+DIT (final) : Ton dix ppm de glucose devient cinq virgule cinq fois dix exposant moins cinq mole par litre.
+    show idee @beat:start 
+    highlight regle @- {"start":"cue:c_dixppm","end":"cue_end:c_dixppm","role":"accent","part":"frac"}
+    highlight regle @- {"start":"cue:c_reponse","end":"cue_end:c_reponse","role":"result","part":"mille"}
+--- 5 tranches, 204 mots dits (≈ 1.4 min d'oral)

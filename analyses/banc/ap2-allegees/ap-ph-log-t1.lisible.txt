@@ -1,0 +1,59 @@
+QUESTION (ap-ph-log, chimie, sec 4, alloprof) : J’étudie présentement La concentration molaire des ions H+ et le pH et je n’y comprend absolument rien. Je ne comprend pas comment pH = -log[H+] devient [H+] = 10^-pH Ensuite, 0.01 mol de H+ est bien égal à un pH de 1 mais j’aimerais avoir une explication plus profonde à ce sujet.
+RÉPONSE DE RÉFÉRENCE : [H+] = 0,01 mol/L donne pH 2, pas 1 (l'élève se trompe).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Pourquoi [H⁺] = 10^(−pH)
+=== Tranche s_idee
+  OBJET lien [math] "\\text{pH} = -\\log[\\text{H}^+]" parts=\text{pH} | = -\log | [\text{H}^+]
+DIT (accroche) : Le pH, ce n'est pas une concentration, c'est un exposant caché : c'est le logarithme de la concentration des ions H plus.
+    write lien @cue:c_exposant {"part":"gauche"}
+    write lien @cue:c_log {"part":"log"}
+DIT (antilog) : Comme c'est un logarithme, on le défait avec la puissance de dix : les deux écritures disent exactement la même chose sur la concentration.
+    write lien @cue:c_puissance {"part":"conc"}
+    highlight lien @- {"start":"cue:c_meme","end":"cue_end:c_meme","role":"result"}
+=== Tranche s_defait
+  OBJET et1 [math] "\\text{pH}" 
+  OBJET et2 [math] "[\\text{H}^+] = 10^{-\\text{pH}}" parts=[\text{H}^+] = | 10^{-\text{pH}}
+  OBJET note [text] "10^{\\log a} = a  \\text{ pour tout } a > 0" 
+  GROUPE etapes = et1, et2, note
+DIT (defaire) : Reprenons pH égale moins log de H plus. On multiplie les deux côtés par moins un : moins pH égale log de H plus.
+    show et1 @cue:c_moinsun 
+    transform et2 @cue:c_log {"source":"et1"}
+DIT (expose) : Maintenant on met dix à l'exposant des deux côtés : dix puissance moins pH égale dix puissance log de H plus.
+    highlight et2 @- {"start":"cue:c_dix","end":"cue_end:c_dix","role":"accent","part":"conc2"}
+    highlight et2 @- {"start":"cue:c_puiss","end":"cue_end:c_puiss","role":"accent","part":"p10"}
+DIT (simplifie) : Or dix puissance log de a redonne a : le logarithme et la puissance dix s'annulent. Il reste donc H plus égale dix puissance moins pH.
+    show note @cue:c_annulent 
+    highlight et2 @- {"start":"cue:c_reste","end":"cue_end:c_reste","role":"result"}
+=== Tranche s_verif
+  OBJET tab [matrix] {"rows":[[1,2,3],[0.1,0.01,0.001]],"row_labels":["pH","[H⁺] (mol/L)"]} 
+  OBJET calc [math] "[\\text{H}^+] = 10^{-1} = 0{,}1 \\ \\text{mol/L}" parts=[\text{H}^+] = 10^{-1} | = 0{,}1 \ \text{mol/L}
+  OBJET note0 [text] "Un pH en moins, c'est 10 fois plus de H⁺" 
+  GROUPE resume = calc, note0
+DIT (tableau) : Vérifions avec ton exemple : un pH de un, deux, trois. À pH un, dix puissance moins un vaut zéro virgule un mole par litre.
+    show tab @cue:c_pH1 
+    write calc @cue:c_pH1 {"part":"form"}
+    write calc @cue:c_zero {"part":"val"}
+DIT (facteur) : À chaque unité de pH, la concentration est divisée par dix : pH deux donne zéro virgule zéro un, pH trois donne zéro virgule zéro zéro un.
+    highlight tab @- {"start":"cue:c_divisee","end":"cue_end:c_divisee","role":"accent"}
+DIT (toncas) : Ton zéro virgule zéro un mole par litre correspond bien à pH deux et non à pH un, car dix puissance moins deux vaut zéro virgule zéro un.
+    show note0 @cue:c_toncas 
+    highlight tab @- {"start":"cue:c_corrige","end":"cue_end:c_corrige","role":"accent"}
+=== Tranche s_retenir
+  OBJET regle [math] "[\\text{H}^+] = 10^{-\\text{pH}}" 
+  OBJET cle [text] "pH petit = beaucoup de H⁺" 
+  GROUPE final = regle, cle
+DIT (central) : L'idée centrale : le pH est le logarithme de la concentration des ions H plus.
+    fade_out lien @cue:c_central 
+    fade_out et2 @cue:c_central 
+    fade_out tab @cue:c_central 
+    fade_out calc @cue:c_central 
+    fade_out note @cue:c_central 
+    fade_out note0 @cue:c_central 
+    write regle @cue:c_central 
+DIT (consequence) : La conséquence pratique : pH égale moins log de H plus, et pour retrouver la concentration, on fait dix puissance moins pH.
+    show cle @cue:c_retour 
+    highlight regle @- {"start":"cue:c_retour","end":"cue_end:c_retour","role":"result"}
+--- 4 tranches, 234 mots dits (≈ 1.6 min d'oral)

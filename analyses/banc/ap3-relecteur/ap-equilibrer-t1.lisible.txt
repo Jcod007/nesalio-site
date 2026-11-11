@@ -1,0 +1,65 @@
+QUESTION (ap-equilibrer, chimie, sec 4, alloprof) : comment on fais pour équilibrer des réactions chimiques.
+RÉPONSE DE RÉFÉRENCE : —
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Comment équilibrer une réaction chimique
+=== Tranche s_depart
+  OBJET eq [math] "\\ce{C3H8 + O2 -> CO2 + H2O}" 
+DIT (ouvre) : Équilibrer une réaction, c'est compter les atomes : ils ne se créent pas, ils ne disparaissent pas, ils se réarrangent.
+    write eq @cue:c_compt 
+    highlight eq @after:w_eq {"role":"accent"}
+DIT (exemple) : Prenons la combustion du propane : C trois H huit plus O deux donne C O deux plus H deux O.
+    show eq @cue:c_c3h8 
+    show eq @cue:c_o2 
+    show eq @cue:c_donne 
+    show eq @cue:c_h2o 
+=== Tranche s_compter
+  OBJET tab [matrix] {"rows":[[3,8,2],[1,2,3]],"row_labels":["réactifs","produits"],"column_labels":["C","H","O"]} 
+  OBJET note [text] "On change les coefficients, jamais les indices." 
+DIT (reac) : Du côté des réactifs, il y a trois carbones, huit hydrogènes et deux oxygènes.
+    show tab @cue:c_trois 
+    highlight tab @- {"start":"cue:c_trois","end":"cue_end:c_deux","role":"given","part":"r1"}
+DIT (prod) : Du côté des produits, un carbone, deux hydrogènes et trois oxygènes : ça ne marche pas.
+    highlight tab @- {"start":"beat:start","end":"cue_end:c_pas","role":"unknown","part":"r2"}
+DIT (avert) : Attention : on ajoute des nombres devant les formules, mais on ne touche jamais aux indices, sinon on change la substance.
+    show note @cue:c_indices 
+=== Tranche s_carbone
+  OBJET eq2 [math] "\\ce{C3H8 + O2 -> 3CO2 + H2O}" 
+DIT (carb) : On commence par le carbone, présent dans une seule substance de chaque côté. Trois carbones à gauche : il faut trois C O deux.
+    dim eq @cue:c_carbone 
+    transform eq2 @cue:c_trois {"source":"eq"}
+    highlight tab @- {"start":"cue:c_trois","end":"cue_end:c_trois","role":"accent","part":"c1"}
+DIT (maj) : Le décompte devient : carbone trois contre trois, c'est réglé.
+    highlight tab @beat:start {"role":"neutral","part":"r1"}
+    highlight tab @cue:c_regle {"role":"result","part":"r2c1"}
+=== Tranche s_hydrogene
+  OBJET eq3 [math] "\\ce{C3H8 + O2 -> 3CO2 + 4H2O}" 
+DIT (hyd) : Ensuite l'hydrogène : huit à gauche, mais seulement deux à droite, donc on met un quatre devant H deux O.
+    transform eq3 @cue:c_hyd {"source":"eq2"}
+    highlight tab @- {"start":"cue:c_hyd","end":"cue_end:c_quatre","role":"accent","part":"c2"}
+    highlight tab @after:t_eq2 {"role":"result","part":"r2c2"}
+DIT (maj2) : Maintenant : C trois contre trois, H huit contre huit.
+    highlight tab @- {"start":"beat:start","end":"cue_end:c_huit","role":"given","part":"r1"}
+=== Tranche s_oxygene
+  OBJET eq4 [math] "\\ce{C3H8 + 5O2 -> 3CO2 + 4H2O}" 
+  OBJET verif [text] "C : 3 = 3   H : 8 = 8   O : 10 = 6 + 4" 
+DIT (oxy) : Reste l'oxygène, qu'on garde pour la fin, car O deux est seul : son coefficient ne change que l'oxygène.
+    transform eq4 @cue:c_oxy {"source":"eq3"}
+    highlight tab @- {"start":"cue:c_oxy","end":"cue_end:c_oxy","role":"accent","part":"c3"}
+DIT (droite) : À droite : trois fois deux oxygènes, six, plus quatre fois un, quatre : dix en tout.
+    highlight tab @- {"start":"beat:start","end":"cue_end:c_dix","role":"given","part":"r2c3"}
+DIT (gauche) : À gauche, il faut donc cinq O deux, car cinq fois deux fait dix.
+    highlight tab @- {"start":"beat:start","end":"cue_end:c_cinq","role":"accent","part":"r1c3"}
+=== Tranche s_verifier
+DIT (compte) : Vérifions en recomptant chaque atome des deux côtés : carbone trois égale trois, hydrogène huit égale huit, oxygène dix égale six plus quatre.
+    fade_out tab @cue:c_verif 
+    fade_out note @cue:c_verif 
+    show verif @cue:c_o 
+DIT (conclu) : La masse est conservée : il y a autant de chaque atome des deux côtés. L'équation est équilibrée.
+    fade_out eq4 @cue:c_equilibre 
+    fade_out eq @cue:c_equilibre 
+    show verif @cue:c_equilibre 
+    highlight verif @- {"start":"cue:c_equilibre","end":"cue_end:c_equilibre","role":"result"}
+--- 6 tranches, 247 mots dits (≈ 1.6 min d'oral)

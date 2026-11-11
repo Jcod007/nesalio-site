@@ -1,0 +1,628 @@
+{
+ "version": "3.3",
+ "lesson": {
+  "id": "prob_cond_pourquoi",
+  "title": "Pourquoi on divise par P(B) dans une probabilité conditionnelle",
+  "language": "fr",
+  "learning_goal": "Comprendre que P(A sachant B) est la part de A dans B : on se restreint à l'univers B, donc on divise par P(B)."
+ },
+ "scene": {
+  "board": {
+   "type": "infinite",
+   "coordinate_system": "world",
+   "object_persistence": "until_explicitly_removed"
+  },
+  "viewport": {
+   "aspect": "auto",
+   "safe_margin": "md"
+  },
+  "layout_rules": {
+   "attachments": {
+    "graph": "acyclic",
+    "position_reference": "parent_geometry",
+    "position_pass": "top_down",
+    "bounds_pass": "bottom_up",
+    "reserve_all_declared_attachments": true,
+    "declaration_rule": "declare_all_currently_planned_attachments_in_parent_slice",
+    "allow_late_attachments": true
+   },
+   "bounds": {
+    "layout_bounds": "geometry_plus_all_declared_attached_descendants_including_hidden",
+    "render_bounds": "visible_geometry_plus_visible_attached_descendants",
+    "group_bounds": "union_of_member_bounds",
+    "next_to_uses": "layout_bounds",
+    "dynamic_policy": "recompute_during_parameter_change"
+   },
+   "placement": {
+    "solve": "on_introduction_or_explicit_reflow",
+    "preserve_resolved_world_positions": true,
+    "avoid_unintended_overlap": true,
+    "min_gap": "sm",
+    "on_new_object_conflict": [
+     "try_alternative_valid_placement",
+     "reposition_new_object",
+     "defer_introduction",
+     "report_unresolved"
+    ],
+    "dynamic_conflict_policy": "reserve_parameter_range_or_report_unresolved"
+   },
+   "late_attachment_policy": {
+    "never_reposition_existing_objects_automatically": true,
+    "allow_explicit_reflow": true,
+    "on_conflict": [
+     "try_alternative_attachment_placement",
+     "reposition_new_attachment",
+     "use_leader_line",
+     "report_unresolved"
+    ]
+   }
+  },
+  "camera_policy": {
+   "mode": "intent_driven",
+   "default_focus_bounds": "render_bounds",
+   "allow_focus_on_layout_bounds_for_unrevealed_targets": true,
+   "focus_padding": "md",
+   "keep_text_readable": true,
+   "default_transition": "smooth",
+   "camera_coordinates_are_runtime_only": true,
+   "dynamic_focus_policy": "fit_declared_parameter_range_if_available"
+  },
+  "math_context": {
+   "symbols": {},
+   "expressions": {}
+  },
+  "math_engine": {
+   "grammar": "restricted_math_ast_v1",
+   "arbitrary_code_execution": false,
+   "operators": [
+    "+",
+    "-",
+    "*",
+    "/",
+    "^"
+   ],
+   "functions": [
+    "sqrt",
+    "abs",
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "log"
+   ],
+   "validation": {
+    "parse_before_render": true,
+    "reject_unknown_identifiers": true,
+    "reject_unsupported_functions": true,
+    "check_declared_parameter_ranges": true,
+    "domain_checks": "static_when_possible_and_runtime_always",
+    "on_undefined": "render_gap_and_report_diagnostic",
+    "on_non_finite": "render_gap_and_report_diagnostic",
+    "max_ast_nodes": 64,
+    "max_ast_depth": 12,
+    "max_abs_constant": 1000000000,
+    "max_abs_exponent": 32,
+    "max_expression_length": 256
+   }
+  },
+  "validation_policy": {
+   "structural": {
+    "owner": "schema_validator",
+    "stage": "before_render"
+   },
+   "mathematical": {
+    "owner": "restricted_math_engine",
+    "stage": "before_and_during_render"
+   },
+   "geometry_and_timing": {
+    "owner": "layout_engine_and_scheduler",
+    "stage": "before_and_during_render"
+   },
+   "pedagogical": {
+    "owner": "evaluation_pipeline",
+    "stage": "separate_quality_evaluation_not_automatically_proven"
+   }
+  },
+  "semantic_styles": {
+   "roles": [
+    "neutral",
+    "given",
+    "unknown",
+    "accent",
+    "result",
+    "secondary"
+   ],
+   "theme_resolves_role_to_visual_style": true,
+   "raw_colors_in_llm_commands": false,
+   "color_only_meaning_forbidden": true,
+   "default_role": "neutral"
+  },
+  "scheduler": {
+   "clock": "audio_playhead",
+   "cue_default_boundary": "start",
+   "cue_end_syntax": "cue_end:<cue_id>",
+   "triggers": [
+    "beat:start",
+    "cue:<cue_id>",
+    "cue_end:<cue_id>",
+    "after:<action_id>"
+   ],
+   "animation_interval": {
+    "start_field": "start",
+    "end_field": "end"
+   },
+   "numeric_duration_from_llm": false,
+   "pace_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "pause_after_values": [
+    "brief",
+    "normal",
+    "long"
+   ],
+   "stagger_values": [
+    "quick",
+    "normal",
+    "slow"
+   ],
+   "independent_sequence_parallel_verbs": false,
+   "on_timing_conflict": [
+    "adapt_pace_within_limits",
+    "add_silence_to_audio_timeline",
+    "report_unresolved"
+   ],
+   "playback_pause_behavior": "freeze_all_audio_bound_animations"
+  }
+ },
+ "contract": {
+  "kind": "assembled_lesson_document",
+  "llm_writable_sections": [
+   "lesson",
+   "scene.math_context",
+   "slices"
+  ],
+  "engine_owned_sections": [
+   "scene.board",
+   "scene.viewport",
+   "scene.layout_rules",
+   "scene.camera_policy",
+   "scene.math_engine",
+   "scene.semantic_styles",
+   "scene.scheduler",
+   "scene.validation_policy"
+  ],
+  "vocabulary_version": "3.3",
+  "vocabulary_total_terms": 80,
+  "vocabulary_file": "nesalio_vocabulary_v3_3.json",
+  "runtime_state_is_engine_owned": true,
+  "coordinates_generated_by_llm": false
+ },
+ "slices": [
+  {
+   "slice_id": "s_part",
+   "introduces": [
+    {
+     "id": "univ",
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        6,
+        0
+       ],
+       [
+        6,
+        4
+       ],
+       [
+        0,
+        4
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "b_zone",
+     "style": {
+      "role": "accent"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        0,
+        2
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "a_zone",
+     "style": {
+      "role": "given"
+     },
+     "params": {
+      "vertices": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "type": "polygon"
+    },
+    {
+     "id": "note",
+     "attachment": {
+      "parent": "univ",
+      "anchor": "top",
+      "gap": "sm"
+     },
+     "content": "l'univers entier a une surface de 1",
+     "type": "text"
+    }
+   ],
+   "beats": [
+    {
+     "id": "univers",
+     "say": "Imagine que toutes les issues possibles forment ce grand carré, dont l'aire vaut un. C'est tout l'univers des possibles.",
+     "cues": [
+      {
+       "id": "carre",
+       "text": "grand carré"
+      },
+      {
+       "id": "aire",
+       "text": "aire vaut un"
+      },
+      {
+       "id": "univ_mot",
+       "text": "univers des possibles"
+      }
+     ],
+     "do": [
+      {
+       "id": "d_univ",
+       "verb": "draw",
+       "at": "cue:carre",
+       "target": "univ"
+      },
+      {
+       "id": "s_note",
+       "verb": "show",
+       "at": "cue:aire",
+       "target": "note"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "evenement",
+     "say": "L'événement B, c'est une partie de ce carré : ici, sa zone à gauche vaut zéro virgule trois.",
+     "cues": [
+      {
+       "id": "partie",
+       "text": "une partie de ce carré"
+      },
+      {
+       "id": "trois",
+       "text": "zéro virgule trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "s_b",
+       "verb": "show",
+       "at": "cue:partie",
+       "target": "b_zone"
+      },
+      {
+       "id": "h_b",
+       "verb": "highlight",
+       "at": "cue:trois",
+       "target": "b_zone",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "sachant",
+     "say": "Quand on dit « sachant B », on jette tout le reste : on ne regarde plus que cette zone-là.",
+     "cues": [
+      {
+       "id": "sachant_b",
+       "text": "sachant B"
+      },
+      {
+       "id": "zone",
+       "text": "cette zone-là"
+      }
+     ],
+     "do": [
+      {
+       "id": "dim_univ",
+       "verb": "dim",
+       "at": "cue:sachant_b",
+       "target": "univ"
+      },
+      {
+       "id": "focus_b",
+       "verb": "camera.focus",
+       "at": "cue:zone",
+       "targets": [
+        "b_zone"
+       ],
+       "bounds": "layout_bounds"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_renorm",
+   "introduces": [
+    {
+     "id": "b_avant",
+     "layout": {
+      "to_edge": "left"
+     },
+     "content": "\\text{aire de } B = 0{,}3",
+     "type": "math"
+    },
+    {
+     "id": "b_apres",
+     "layout": {
+      "to_edge": "left"
+     },
+     "content": "\\text{aire de } B = 1",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "probleme",
+     "say": "Mais là, il y a un problème : la zone de B ne vaut plus un, elle vaut zéro virgule trois au départ.",
+     "cues": [
+      {
+       "id": "probleme_mot",
+       "text": "un problème"
+      },
+      {
+       "id": "zero_trois",
+       "text": "zéro virgule trois au départ"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_avant",
+       "verb": "write",
+       "at": "cue:zero_trois",
+       "target": "b_avant"
+      }
+     ]
+    },
+    {
+     "id": "renorm",
+     "say": "Pour en refaire un univers complet, on la remet à l'échelle : on divise par sa propre aire, par la probabilité de B.",
+     "cues": [
+      {
+       "id": "divise",
+       "text": "on divise par sa propre aire"
+      },
+      {
+       "id": "proba_b",
+       "text": "probabilité de B"
+      }
+     ],
+     "do": [
+      {
+       "id": "f_avant",
+       "verb": "fade_out",
+       "at": "cue:divise",
+       "target": "b_avant"
+      },
+      {
+       "id": "w_apres",
+       "verb": "write",
+       "at": "cue:proba_b",
+       "target": "b_apres"
+      },
+      {
+       "id": "h_apres",
+       "verb": "highlight",
+       "at": "after:w_apres",
+       "target": "b_apres",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_fraction",
+   "introduces": [
+    {
+     "id": "a_dans_b",
+     "layout": {
+      "to_edge": "left"
+     },
+     "content": "\\text{aire de } A \\text{ dans } B = 0{,}1",
+     "type": "math"
+    },
+    {
+     "id": "formule",
+     "content": "P(A \\mid B) = \\frac{P(A \\cap B)}{P(B)}",
+     "type": "math"
+    }
+   ],
+   "beats": [
+    {
+     "id": "part_de_a",
+     "say": "Maintenant, la part de A qui se trouve dans B a une aire de zéro virgule un.",
+     "cues": [
+      {
+       "id": "aire_a",
+       "text": "zéro virgule un"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_a",
+       "verb": "write",
+       "at": "cue:aire_a",
+       "target": "a_dans_b"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "rapport",
+     "say": "La probabilité conditionnelle, c'est simplement ce rapport : la part des deux divisée par la part de B.",
+     "cues": [
+      {
+       "id": "rapport_mot",
+       "text": "rapport"
+      },
+      {
+       "id": "part_deux",
+       "text": "part des deux"
+      },
+      {
+       "id": "part_b",
+       "text": "part de B"
+      }
+     ],
+     "do": [
+      {
+       "id": "w_g",
+       "verb": "write",
+       "at": "cue:rapport_mot",
+       "target": "formule"
+      },
+      {
+       "id": "w_h",
+       "verb": "highlight",
+       "at": "cue:part_deux",
+       "target": "formule",
+       "role": "accent"
+      },
+      {
+       "id": "w_b",
+       "verb": "highlight",
+       "at": "cue:part_b",
+       "target": "formule",
+       "role": "accent"
+      }
+     ],
+     "pause_after": "normal"
+    },
+    {
+     "id": "calcul",
+     "say": "Ici : zéro virgule un divisé par zéro virgule trois donne environ zéro virgule trente-trois.",
+     "cues": [
+      {
+       "id": "calc_mot",
+       "text": "zéro virgule un divisé par zéro virgule trois"
+      },
+      {
+       "id": "resultat",
+       "text": "zéro virgule trente-trois"
+      }
+     ],
+     "do": [
+      {
+       "id": "h_f",
+       "verb": "highlight",
+       "at": "cue:calc_mot",
+       "target": "formule",
+       "role": "accent"
+      },
+      {
+       "id": "h_res",
+       "verb": "highlight",
+       "at": "cue:resultat",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "normal"
+    }
+   ]
+  },
+  {
+   "slice_id": "s_retenir",
+   "introduces": [],
+   "beats": [
+    {
+     "id": "idee",
+     "say": "À retenir : diviser par la probabilité de B, c'est juste remettre B à l'échelle pour qu'elle redevienne un univers complet.",
+     "cues": [
+      {
+       "id": "retenir",
+       "text": "À retenir"
+      },
+      {
+       "id": "remettre",
+       "text": "remettre B à l'échelle"
+      },
+      {
+       "id": "monde",
+       "text": "univers complet"
+      }
+     ],
+     "do": [
+      {
+       "id": "c_form",
+       "verb": "camera.focus",
+       "at": "cue:retenir",
+       "targets": [
+        "formule"
+       ]
+      },
+      {
+       "id": "h_form",
+       "verb": "highlight",
+       "at": "cue:remettre",
+       "target": "formule",
+       "role": "result"
+      }
+     ],
+     "pause_after": "long"
+    }
+   ]
+  }
+ ]
+}

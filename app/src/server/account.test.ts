@@ -5,6 +5,7 @@ vi.mock("@clerk/nextjs/server", () => ({ auth: session }));
 
 import { requireAccount } from "./account";
 import { accountOrigins, localAccountDemo } from "./authConfig";
+import { devCookieValue } from "./devAccess";
 import { createSessionLimits } from "./rateLimit";
 
 const request = (headers: Record<string, string> = {}) =>
@@ -79,6 +80,14 @@ describe("API account boundary", () => {
     expect(localAccountDemo({ ...demo, VERCEL: "1" })).toBe(false);
     expect(localAccountDemo({ ...demo, NODE_ENV: "production" })).toBe(false);
     expect(localAccountDemo({ ...demo, DISABLE_AI: "0" })).toBe(false);
+  });
+
+  it("permet l'accès de développement avec le cookie privé uniquement", async () => {
+    vi.stubEnv("NESALIO_DEV_ACCESS_TOKEN", "a".repeat(48));
+    expect(await requireAccount(request({ cookie: `nesalio_dev=${devCookieValue()}` }))).toEqual({ ok: true, userId: "development-guest" });
+    expect(session).not.toHaveBeenCalled();
+    session.mockResolvedValue({ userId: null });
+    expect((await requireAccount(request({ cookie: "nesalio_dev=invalid" }))).ok).toBe(false);
   });
 
   it("does not trust wildcard or malformed origin settings", () => {

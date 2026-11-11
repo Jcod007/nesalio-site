@@ -1,0 +1,77 @@
+QUESTION (chimie-boyle-erreur, chimie, sec 5, erreur) : un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L
+RÉPONSE DE RÉFÉRENCE : P₁V₁ = P₂V₂ : V₂ = 100 × 2,0 / 250 = 0,80 L ; 5 L est impossible (la pression augmente, le volume diminue).
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. à température constante, pression et volume sont inversement proportionnels : P₁V₁ = P₂V₂
+  2. diagnostic : 5 L vient du rapport des pressions inversé ; comprimer ne peut pas augmenter le volume
+  3. V₂ = 100 × 2,0 / 250 = 0,80 L écrit
+  4. explication particulaire : moins d'espace, plus de collisions sur les parois
+  5. valorisé : graphique P en fonction de V (hyperbole)
+ERREURS GRAVES À CHERCHER : volume qui augmente avec la pression ; relation dite proportionnelle
+CONTRÔLE AUTOMATIQUE : réponse trouvée ; issue complète
+
+TITRE : Comprimer un gaz à température constante
+math_context : {"symbols":{"V2":{"kind":"constant","value":0.8},"k":{"kind":"constant","value":200}},"expressions":{"boyle":"100*2.0/250"}}
+=== Tranche s_erreur
+  OBJET tab [matrix] {"rows":[[100,2],[250,5]],"row_labels":["pression (kPa)","volume (L)"],"column_labels":["état 1","état 2 (erreur)"]} 
+  OBJET note_error [text] "Pression × 10, mais volume × 2,5 : impossible" 
+DIT (constat) : Bon réflexe de poser tes données : pression un, cent kilopascals ; volume un, deux litres. Pression deux, deux cent cinquante kilopascals.
+    show tab @beat:start 
+    highlight tab @cue:c_p1 {"role":"given","part":"r1c1"}
+    highlight tab @cue:c_v1 {"role":"given","part":"r2c1"}
+    highlight tab @cue:c_p2 {"role":"unknown","part":"r1c2"}
+DIT (erreur) : Ton calcul donne cinq litres. Mais comprimer, c'est pousser : le gaz doit prendre moins de place, pas plus. Cinq litres est plus grand que deux litres.
+    highlight tab @cue:c_cinq {"role":"secondary","part":"r2c2"}
+    show note_error @cue:c_moins 
+=== Tranche s_boyle
+  OBJET loi [math] "p_1 V_1 = p_2 V_2" parts=p_1 V_1 | = p_2 V_2
+  OBJET calc [math] "100 \\times 2{,}0 = 250 \\times V_2" parts=100 \times 2{,}0 | = 250 \times V_2
+  OBJET final [math] "V_2 = 0{,}80\\ \\text{L}" 
+DIT (regle) : La bonne règle s'appelle la loi de Boyle-Mariotte : à température constante, p un fois V un égale p deux fois V deux.
+    fade_out note_error @cue:c_boyle 
+    write loi @cue:c_pv {"part":"left"}
+    write loi @after:w_left {"part":"right"}
+DIT (calcul) : Remplace : cent fois deux donne deux cents, et deux cents divisé par deux cent cinquante donne zéro virgule quatre-vingts.
+    write calc @cue:c_centfoi {"part":"l"}
+    write calc @cue:c_deuxcent {"part":"r"}
+    write final @cue:c_quatrevingt 
+    highlight final @after:w_final {"role":"result"}
+=== Tranche s_courbe
+  OBJET ax [axes] {"x":[0,3.5],"y":[0,5]} 
+  OBJET lbl_x [label] "pression (centaines de kPa)" attaché à ax
+  OBJET lbl_y [label] "volume (L)" attaché à ax
+  OBJET courbe [function_graph] {"expression":"2/x","domain":[0.4,3.5]} 
+  OBJET pA [point] {"at":[1,2]} 
+  OBJET lblA [label] "p = 100 kPa : V = 2 L" attaché à pA
+  OBJET pB [point] {"at":[2.5,0.8]} 
+  OBJET lblB [label] "p = 250 kPa : V = 0,80 L" attaché à pB
+DIT (graphe) : Regarde la forme : si la pression augmente, le volume descend. C'est une variation en sens inverse.
+    show ax @beat:start 
+    show lbl_x @beat:start 
+    show lbl_y @beat:start 
+    draw courbe @- {"start":"cue:c_pression","end":"cue_end:c_sens"}
+DIT (points) : Ton état de départ, c'est le point à un centaine pour deux litres. Après compression, on glisse au point à deux virgule cinq centaines pour zéro virgule quatre-vingts litre.
+    show pA @cue:c_depart 
+    show lblA @after:s_pA 
+    show pB @cue:c_apres 
+    show lblB @after:s_pB 
+=== Tranche s_retenir
+  OBJET idee [text] "À température constante : pression et volume varient en sens inverse" 
+  OBJET formule [math] "p_1 V_1 = p_2 V_2" 
+  GROUPE recap = idee, formule
+DIT (retenir) : À retenir : à température constante, quand la pression monte, le volume descend, et leur produit reste deux cents.
+    fade_out courbe @cue:c_retenir 
+    fade_out pA @cue:c_retenir 
+    fade_out lblA @cue:c_retenir 
+    fade_out pB @cue:c_retenir 
+    fade_out lblB @cue:c_retenir 
+    fade_out ax @cue:c_retenir 
+    fade_out lbl_x @cue:c_retenir 
+    fade_out lbl_y @cue:c_retenir 
+    fade_out tab @cue:c_retenir 
+    fade_out loi @cue:c_retenir 
+    fade_out calc @cue:c_retenir 
+    fade_out final @cue:c_retenir 
+    show idee @cue:c_monte 
+    show formule @cue:c_descend 
+    highlight formule @after:s_formule {"role":"accent"}
+--- 4 tranches, 157 mots dits (≈ 1.0 min d'oral)

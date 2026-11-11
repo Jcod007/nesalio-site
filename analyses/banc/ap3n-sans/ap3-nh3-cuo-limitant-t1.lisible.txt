@@ -1,0 +1,60 @@
+QUESTION (ap3-nh3-cuo-limitant, chimie, sec 5, alloprof) : Est-ce que quelqu’un peut m’expliquer comment trouver le réactif limitant et le réactif en excès en démarche plus détaillée, car j’ai de la difficulté par rapport aux calculs de proportions stœchiométriques pour les trouver, il y a trop de moles, ce qui me mélange.
+Voici le problème: « Si on fait réagir 18,1g de NH3 avec 90,4g de CuO, quel est le réactif limitant? Quelle est la masse du composé en excès? »
+RÉPONSE DE RÉFÉRENCE : Avec 2 NH3 + 3 CuO → 3 Cu + N2 + 3 H2O : 1,063 mol NH3 et 1,136 mol CuO ; CuO est limitant (il ne consomme que 0,758 mol NH3) ; il reste 0,305 mol de NH3, soit environ 5,20 g en excès.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Trouver le réactif limitant : de la masse aux moles
+math_context : {"symbols":{},"expressions":{"n_NH3":"1.063","n_CuO":"1.137","ratio_NH3":"1.063/2","ratio_CuO":"1.137/3","m_exces":"0.608*79.55","verif":"0.304*2*17.04+0.608*79.55"}}
+=== Tranche s_analyser
+  OBJET eq [math] "\\ce{2NH3 + 3CuO -> N2 + 3Cu + 3H2O}" 
+  OBJET donnees [text] "18,1 g de NH₃ ; 90,4 g de CuO" 
+  OBJET note [callout] "La question est posée en grammes, mais l'équation se lit en moles."   <<JAMAIS MONTRÉ>>
+DIT (pose) : Ton problème, c'est que tout est donné en grammes : dix-huit virgule un gramme d'ammoniac et quatre-vingt-dix virgule quatre grammes d'oxyde de cuivre deux.
+    write eq @beat:start 
+    write donnees @cue:c_dix 
+    highlight donnees @- {"start":"cue:c_quatre","end":"cue_end:c_quatre","role":"given"}
+DIT (piege) : Or, comparer des grammes directement, c'est le piège qui mélange tout : les coefficients comptent des moles, jamais des grammes.
+    highlight eq @- {"start":"cue:c_coeff","end":"cue_end:c_jamais","role":"accent"}
+    highlight note @- {"start":"cue:c_jamais","end":"cue_end:c_jamais","role":"accent"}
+=== Tranche s_moles
+  OBJET M_nh3 [math] "M(\\ce{NH3}) = 14{,}01 + 3 \\times 1{,}01 = 17{,}04 \\text{ g/mol}" 
+  OBJET M_cuo [math] "M(\\ce{CuO}) = 63{,}55 + 16{,}00 = 79{,}55 \\text{ g/mol}" 
+  OBJET n_nh3 [math] {"kind":"computed","expression_ref":"n_NH3","template":"n(\\ce{NH3}) = \\frac{18{,}1}{17{,}04} \\approx {value} \\text{ mol}","precision":3} 
+  OBJET n_cuo [math] {"kind":"computed","expression_ref":"n_CuO","template":"n(\\ce{CuO}) = \\frac{90{,}4}{79{,}55} \\approx {value} \\text{ mol}","precision":3} 
+DIT (masse_molaire) : Première étape : convertir les grammes en moles. Pour l'ammoniac, la masse molaire est dix-sept virgule zéro quatre grammes par mole.
+    write M_nh3 @cue:c_dixsept 
+DIT (diviser) : On divise la masse par sa masse molaire : dix-huit virgule un divisé par dix-sept virgule zéro quatre donne environ un virgule zéro six moles d'ammoniac.
+    write n_nh3 @cue:c_un06 
+DIT (cuo) : Même chose pour l'oxyde de cuivre : sa masse molaire est soixante-dix-neuf virgule cinquante-cinq, donc quatre-vingt-dix virgule quatre divisé par soixante-dix-neuf virgule cinquante-cinq donne environ un virgule un quatre moles.
+    write M_cuo @cue:c_soixante 
+    write n_cuo @cue:c_un14 
+=== Tranche s_comparer
+  OBJET comp [matrix] {"rows":[["2","3"],["1,063","1,137"],["0,532","0,379"]],"row_labels":["coefficient","quantité (mol)","quantité ÷ coefficient"],"column_labels":["NH3","CuO"]} 
+  OBJET concl [math] "0{,}379 < 0{,}532 \\Rightarrow \\text{CuO est le limitant}" 
+  OBJET nh3reste [math] "n(\\ce{NH3})_{\\text{restant}} = 1{,}063 - 2 \\times 0{,}379 = 0{,}305 \\text{ mol}" 
+  OBJET m_exces [math] {"kind":"computed","expression_ref":"m_exces","template":"m(\\ce{NH3})_{\\text{exces}} = 0{,}305 \\times 17{,}04 \\approx {value} \\text{ g}","precision":1} 
+DIT (comparer) : Pour trouver le limitant, on divise chaque quantité par son coefficient dans l'équation : un virgule zéro six trois divisé par deux, et un virgule un trois sept divisé par trois.
+    show comp @cue:c_parcoef 
+    highlight comp @- {"start":"cue:c_deux","end":"cue_end:c_trois","role":"given","part":"r1"}
+DIT (resultat) : Zéro virgule trois sept neuf pour l'oxyde de cuivre, contre zéro virgule cinq trois deux pour l'ammoniac : le plus petit taux désigne le limitant, c'est donc l'oxyde de cuivre qui s'épuise en premier.
+    write concl @cue:c_limitant 
+    highlight comp @- {"start":"cue:c_oxyde","end":"cue_end:c_oxyde","role":"result","part":"c2"}
+DIT (exces) : L'ammoniac est donc en excès. On calcule combien il en reste : deux fois zéro virgule trois sept neuf moles ont réagi, ce qui laisse environ zéro virgule trois zéro cinq moles, soit à peu près cinq virgule deux grammes d'ammoniac en excès.
+    write nh3reste @cue:c_reste 
+    write m_exces @cue:c_cinq 
+=== Tranche s_retenir
+  OBJET chemin [math] "\\text{masse} \\xrightarrow{\\div M} \\text{mol} \\xrightarrow{\\div \\text{coefficient}} \\text{comparer}" 
+DIT (idee) : À retenir : on convertit toujours les grammes en moles en divisant par la masse molaire, puis on divise chaque quantité par son coefficient. Le plus petit résultat est le réactif limitant, l'autre est en excès.
+    write chemin @cue:c_retenir 
+    highlight chemin @- {"start":"cue:c_pluspetit","end":"cue_end:c_pluspetit","role":"result"}
+    fade_out donnees @beat:start 
+    fade_out note @beat:start 
+    fade_out M_nh3 @beat:start 
+    fade_out M_cuo @beat:start 
+    fade_out n_nh3 @beat:start 
+    fade_out n_cuo @beat:start 
+    fade_out nh3reste @beat:start 
+    fade_out m_exces @beat:start 
+--- 4 tranches, 265 mots dits (≈ 1.8 min d'oral)

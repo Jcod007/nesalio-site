@@ -1,0 +1,71 @@
+QUESTION (systeme-comparaison-erreur, mathematiques, sec 4, erreur) : J'essaie de résoudre y = 2x + 3 et y = -x + 9 par comparaison, j'obtiens x = 4 mais quand je vérifie ça marche pas
+RÉPONSE DE RÉFÉRENCE : x = 2, y = 7 : solution (2, 7) ; x = 4 vient de 3x = 9 + 3.
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+  1. comparaison : les deux y sont égaux au point de rencontre, donc 2x + 3 = -x + 9
+  2. diagnostic : x = 4 vient de 3x = 9 + 3 ; il faut soustraire 3 des deux côtés, donc 3x = 6
+  3. réponse x = 2, y = 7, solution (2, 7) écrite
+  4. vérification dans les deux équations (7 = 7) et échec montré de x = 4 (11 contre 5)
+  5. valorisé : point d'intersection des deux droites
+ERREURS GRAVES À CHERCHER : diagnostic inventé (signe oublié) ; titre ou réponse affichée fausse
+CONTRÔLE AUTOMATIQUE : réponse absente (y\s*=\s*7(?!\d|[,.]\d)) ; issue complète
+
+TITRE : Comparer y = 2x + 3 et y = -x + 9
+=== Tranche s_droites
+  OBJET rep [axes] {"x":[-2,6],"y":[-1,10]} 
+  OBJET d1 [function_graph] {"expression":"2*x+3","domain":[-2,6]} 
+  OBJET d1n [label] "y = 2x + 3" 
+  OBJET d2 [function_graph] {"expression":"-x+9","domain":[-2,6]} 
+  OBJET d2n [label] "y = -x + 9" 
+DIT (salut) : Bonne idée de vérifier : c'est là qu'on attrape l'erreur. Regardons ce que ces deux équations racontent vraiment.
+    show rep @beat:start 
+    draw d1 @- {"start":"cue:c_verifier","end":"cue_end:c_verifier"}
+    show d1n @after:d_d1 
+DIT (deuxdroites) : La première, y égale deux x plus trois, est une droite qui monte. La deuxième, y égale moins x plus neuf, descend.
+    draw d2 @- {"start":"cue:c_deuxieme","end":"cue_end:c_deuxieme"}
+    show d2n @after:d_d2 
+=== Tranche s_solution
+  OBJET p [point] {"at":[2,7]} 
+  OBJET pl [label] "(2 ; 7)" attaché à p
+  OBJET idee [text] "La solution : le point que les deux droites ont en commun" 
+DIT (rencontre) : La solution du système, c'est le point où les deux droites se croisent : là, les deux y sont égaux.
+    show p @cue:c_croisent 
+    write idee @cue:c_point 
+DIT (coords) : Ici, c'est le point deux, sept. Deux x plus trois donne sept, et moins deux plus neuf donne aussi sept.
+    show pl @cue:c_deux 
+    highlight p @- {"start":"cue:c_deux","end":"cue_end:c_deux","role":"result"}
+=== Tranche s_erreur
+  OBJET test [math] "y_1 = 2\\times 4 + 3 = 11 \\qquad y_2 = -4 + 9 = 5" 
+DIT (verifie) : Quand tu vérifies avec x égale quatre, la première droite donne onze, mais la deuxième donne cinq. Deux y différents : ce n'est pas le point de rencontre.
+    write test @cue:c_quatre 
+    highlight test @- {"start":"cue:c_cinq","end":"cue_end:c_cinq","role":"unknown"}
+DIT (ou) : Quatre vient d'une petite erreur de signe : en comparant, on doit écrire deux x plus trois égale moins x plus neuf.
+    dim idee @cue:c_erreur 
+    fade_out test @cue:c_erreur 
+=== Tranche s_calcul
+  OBJET e1 [math] "2x + 3 = -x + 9" parts=2x + 3 | = -x + 9
+  OBJET e2 [math] "3x + 3 = 9" 
+  OBJET e3 [math] "3x = 6" 
+  OBJET e4 [math] "x = 2" 
+DIT (egale) : On égale les deux y : deux x plus trois égale moins x plus neuf.
+    write e1 @cue:c_gauche {"part":"g"}
+    write e1 @cue:c_droite {"part":"d"}
+DIT (rassemble) : On ajoute un x des deux côtés pour rassembler les x : trois x plus trois égale neuf.
+    transform e2 @cue:c_ajoute {"source":"e1"}
+DIT (enleve) : On enlève trois des deux côtés : trois x égale six.
+    transform e3 @cue:c_enleve {"source":"e2"}
+DIT (divise) : On divise par trois : x égale deux. Voilà la vraie valeur.
+    transform e4 @cue:c_divise {"source":"e3"}
+    highlight e4 @cue:c_deux {"role":"result"}
+=== Tranche s_final
+  OBJET sol [math] "S\\,(2\\,;\\,7)" 
+  OBJET regle [text] "Comparer : poser les deux expressions égales, puis vérifier dans les deux équations" 
+DIT (y) : Il reste à trouver y : dans la première, deux fois deux plus trois égale sept. Le point de rencontre est donc deux, sept.
+    fade_out rep @beat:start 
+    fade_out d1n @beat:start 
+    fade_out d2n @beat:start 
+    fade_out pl @beat:start 
+    write sol @cue:c_sept 
+DIT (retenir) : À retenir : la solution est le couple qui marche dans les deux équations à la fois. La vérification dans les deux, c'est ton filet de sécurité.
+    highlight sol @- {"start":"cue:c_retenir","end":"cue_end:c_retenir","role":"result"}
+    write regle @cue:c_filet 
+--- 5 tranches, 237 mots dits (≈ 1.6 min d'oral)

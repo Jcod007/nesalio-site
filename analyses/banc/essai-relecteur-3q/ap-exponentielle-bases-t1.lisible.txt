@@ -1,0 +1,63 @@
+QUESTION (ap-exponentielle-bases, mathematiques, sec 5, alloprof) : Quelles sont les étapes pour déterminer la valeur de x? 7 exposant 2x−3= 5 exposant x
+RÉPONSE DE RÉFÉRENCE : x = 3 log 7 / (2 log 7 − log 5) ≈ 2,56
+ATTENDUS À COCHER (présent / partiel / absent, avec citation) :
+ERREURS GRAVES À CHERCHER : —
+CONTRÔLE AUTOMATIQUE : réponse non vérifiée ; issue complète
+
+TITRE : Résoudre 7^(2x−3) = 5^x
+=== Tranche s_idee
+  OBJET eq [math] "7^{2x-3} = 5^{x}" parts=7^{2x-3} | = 5^{x}
+  OBJET regle [math] "\\log\\left(a^{u}\\right) = u \\cdot \\log a" 
+DIT (demande) : Tu veux trouver x dans sept exposant deux x moins trois égale cinq exposant x.
+    write eq @cue:c_sept {"part":"gauche"}
+    write eq @cue:c_cinq {"part":"droite"}
+DIT (pourquoi) : Ici les bases sont différentes, sept et cinq : on ne peut pas égaler les exposants directement. La clé, c'est de faire descendre l'exposant avec un logarithme.
+    highlight eq @- {"start":"cue:c_bases","end":"cue_end:c_bases","role":"unknown","part":"droite"}
+    write regle @cue:c_descendre 
+    highlight regle @after:w_regle {"role":"accent"}
+=== Tranche s_log
+  OBJET eq2 [math] "(2x-3)\\log 7 = x\\log 5" parts=(2x-3)\log 7 | = x\log 5
+  OBJET eq3 [math] "2x\\log 7 - 3\\log 7 = x\\log 5" 
+  OBJET eq4 [math] "2x\\log 7 - x\\log 5 = 3\\log 7" 
+DIT (applique) : On prend le logarithme des deux côtés. À gauche, l'exposant deux x moins trois descend devant le log de sept.
+    dim regle @cue:c_logdec 
+    transform eq2 @cue:c_descend {"source":"eq"}
+    highlight eq2 @after:t_eq2 {"role":"accent","part":"p1"}
+DIT (developpe) : On développe à gauche : deux x log de sept moins trois log de sept. À droite, ça reste x log de cinq.
+    transform eq3 @cue:c_dev {"source":"eq2"}
+    highlight eq3 @- {"start":"cue:c_droite","end":"cue_end:c_droite","role":"neutral"}
+DIT (regroupe) : On regroupe les termes en x à gauche : les x d'un côté, les constantes de l'autre.
+    transform eq4 @cue:c_regroupe {"source":"eq3"}
+=== Tranche s_isole
+  OBJET eq5 [math] "x\\left(2\\log 7 - \\log 5\\right) = 3\\log 7" 
+  OBJET eq6 [math] "x = \\frac{3\\log 7}{2\\log 7 - \\log 5} \\approx 2{,}56" parts=x | = \frac{3\log 7}{2\log 7 - \log 5} | \approx 2{,}56
+DIT (factorise) : À gauche, x est commun aux deux termes : on le met en évidence.
+    transform eq5 @cue:c_commun {"source":"eq4"}
+DIT (isole) : On divise les deux côtés par la parenthèse : x égale trois log de sept sur deux log de sept moins log de cinq.
+    transform eq6 @cue:c_divise {"source":"eq5"}
+    highlight eq6 @- {"start":"cue:c_frac","end":"cue_end:c_frac","role":"accent","part":"frac"}
+DIT (calcule) : Avec la calculatrice, ça donne environ deux virgule cinquante-six.
+    write eq6 @cue:c_deuxcinquantesix {"part":"res"}
+    highlight eq6 @after:w_res {"role":"result","part":"res"}
+=== Tranche s_verifie
+  OBJET ver_g [math] "7^{2 \\times 2{,}56 - 3} = 7^{2{,}12}" parts=7^{2 \times 2{,}56 - 3} | = 7^{2{,}12}
+  OBJET ver_d [math] "5^{2{,}56}" 
+DIT (verifie) : Vérifions en remplaçant x par deux virgule cinquante-six. À gauche : deux fois deux virgule cinquante-six moins trois, ça fait deux virgule douze, donc sept exposant deux virgule douze.
+    dim eq6 @cue:c_remplace 
+    write ver_g @cue:c_remplace {"part":"exp"}
+    write ver_g @cue:c_deuxdouze {"part":"val"}
+DIT (droite) : À droite : cinq exposant deux virgule cinquante-six. Les deux valeurs sont presque égales : la solution tient.
+    write ver_d @cue:c_droite_cinq 
+    highlight ver_d @after:w_ver_d {"role":"given"}
+=== Tranche s_retenir
+  OBJET methode [text] "1. Log des deux côtés  2. L'exposant descend  3. Regrouper les x  4. Isoler x" 
+  OBJET formule [math] "x = \\frac{3\\log 7}{2\\log 7 - \\log 5} \\approx 2{,}56" 
+DIT (mettre_en_evidence) : À retenir : quand les bases sont différentes, on prend le logarithme des deux côtés pour faire descendre l'exposant.
+    fade_out ver_g @cue:c_retenir 
+    fade_out ver_d @cue:c_retenir 
+    fade_out eq6 @cue:c_retenir 
+    show methode @cue:c_logarithme 
+DIT (conclusion) : Ensuite on regroupe les termes en x, on isole, et on obtient x environ deux virgule cinquante-six.
+    show formule @cue:c_environ 
+    highlight formule @after:s_formule {"role":"result"}
+--- 5 tranches, 232 mots dits (≈ 1.5 min d'oral)
