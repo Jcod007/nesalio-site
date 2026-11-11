@@ -92,6 +92,7 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
     <form
       className={styles.form}
       data-size={size}
+      data-photo={photo ? "true" : undefined}
       onSubmit={(event) => {
         event.preventDefault();
         submit(text);

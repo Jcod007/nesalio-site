@@ -99,9 +99,10 @@ voir le journal) ; seuls restent les outils de lecture des séances déjà enreg
   Playwright n'est pas installé) et un serveur `next dev -p 3100` (config `photos` dans `.claude/launch.json`).
   Turbopack refuse un `node_modules` lié par jonction : `npm ci` fait dans le worktree. Captures regardées.
 - Pas vérifié : vraies photos de téléphone et écriture manuscrite avec le vrai modèle.
-- Remarque d'ergonomie (non corrigée, à proposer) : le bouton « Demander à Nesa » est au-dessus du bloc photo ;
-  après correction du texte, l'élève doit remonter pour envoyer.
-- Rien commité ni déployé. Prochaine étape : commit sur la branche, puis essai avec de vraies photos d'élèves.
+- Commité (`6bfeb7c`). Puis, accord de l'utilisateur : avec une photo jointe, « Demander à Nesa » passe **sous** le
+  bloc photo (`order` CSS via `data-photo` sur le formulaire), pour envoyer sans remonter après correction. Parcours
+  `tools/e2e/photo.mjs` relancé, vert à 1 366 et 390 px ; captures regardées.
+- Ni poussé ni déployé. Prochaine étape : essai avec de vraies photos d'élèves (téléphone, manuscrit).
 
 ### 2026-11-10 — Photos d'exercices, recherche et intégration (Codex, en cours)
 - L'utilisateur demande recherche et intégration, avec priorité au rapport qualité-prix. Catalogue AI Gateway et sources officielles consultés. Haiku 5.5 lit les images, tous ses fournisseurs du catalogue annoncent ZDR et interdiction d'entraînement ; tarifs 0,10 $/M en entrée et 0,50 $/M en sortie pour notre taille de requête. Aucune nouvelle clé nécessaire avec le Gateway déjà utilisé. Qualité sur photos scolaires pas encore mesurée.
