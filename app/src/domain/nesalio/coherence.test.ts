@@ -8,13 +8,22 @@ import { validateLesson, validateModelOutput } from "./validate";
 
 const noMath = { symbols: {}, expressions: {} };
 type Item = Record<string, unknown>;
-const slice = (id: string, introduces: Item[], actions: Item[] = []) => Slice.parse({
-  slice_id: id, introduces,
-  beats: [{ id: `${id}_b`, say: "Regarde.", cues: [], do: [
-    ...introduces.map((item, i) => ({ id: `${id}_a${i}`, verb: "show", target: item.id, at: "beat:start" })),
-    ...actions.map((action, i) => ({ id: `${id}_x${i}`, at: "beat:start", ...action })),
-  ] }],
-});
+const slice = (id: string, introduces: Item[], actions: Item[] = []) =>
+  Slice.parse({
+    slice_id: id,
+    introduces,
+    beats: [
+      {
+        id: `${id}_b`,
+        say: "Regarde.",
+        cues: [],
+        do: [
+          ...introduces.map((item, i) => ({ id: `${id}_a${i}`, verb: "show", target: item.id, at: "beat:start" })),
+          ...actions.map((action, i) => ({ id: `${id}_x${i}`, at: "beat:start", ...action })),
+        ],
+      },
+    ],
+  });
 const check = (introduces: Item[], math = noMath, actions: Item[] = []) => checkCoherence([slice("s1", introduces, actions)], MathContext.parse(math));
 const rules = (alerts: CoherenceAlert[]) => alerts.map((alert) => `${alert.outcome}/${alert.rule}`);
 const axes = (x: [number, number], y: [number, number]) => ({ id: "ax", type: "axes", params: { x, y } });
@@ -28,8 +37,12 @@ describe("point sur une courbe", () => {
     expect(result.slices[0]!.introduces[2]).toMatchObject({ params: { at: [3, 9] } });
   });
   it("signale seulement (sans corriger) quand une étiquette écrit l'ancien y", () => {
-    const result = check([axes([-1, 4], [-1, 10]), parabola, { id: "P", type: "point", params: { at: [3, 8.6] } },
-      { id: "lP", type: "label", content: "P (3 ; 8,6)", attachment: { parent: "P", anchor: "right" } }]);
+    const result = check([
+      axes([-1, 4], [-1, 10]),
+      parabola,
+      { id: "P", type: "point", params: { at: [3, 8.6] } },
+      { id: "lP", type: "label", content: "P (3 ; 8,6)", attachment: { parent: "P", anchor: "right" } },
+    ]);
     expect(rules(result.alerts)).toEqual(["noted/point_on_curve"]);
     expect(result.slices[0]!.introduces[2]).toMatchObject({ params: { at: [3, 8.6] } });
     expect(result.alerts[0]!.message).toContain("vaut 9");
@@ -39,34 +52,46 @@ describe("point sur une courbe", () => {
     const roots = { id: "c", type: "function_graph", params: { expression: "x^2-4*x+1" } };
     expect(check([axes([-1, 5], [-4, 6]), roots, { id: "z", type: "point", params: { at: [0.27, 0] } }]).alerts).toEqual([]);
     const line = { id: "d", type: "function_graph", params: { expression: "-1.2*x+10.4" } };
-    const cloud = [[1, 9.4], [2, 7.7], [3, 6.9], [4, 5.3]].map((at, i) => ({ id: `p${i}`, type: "point", params: { at } }));
+    const cloud = [
+      [1, 9.4],
+      [2, 7.7],
+      [3, 6.9],
+      [4, 5.3],
+    ].map((at, i) => ({ id: `p${i}`, type: "point", params: { at } }));
     expect(check([axes([0, 7], [0, 11]), line, ...cloud]).alerts).toEqual([]);
   });
 });
 
 describe("droites", () => {
   it("pose l'extrémité d'un segment sur le point qu'il relie", () => {
-    const result = check([axes([0, 10], [0, 10]), { id: "A", type: "point", params: { at: [1, 2] } },
-      { id: "seg", type: "line", params: { from: [1.05, 2], to: [5, 6] } }]);
+    const result = check([
+      axes([0, 10], [0, 10]),
+      { id: "A", type: "point", params: { at: [1, 2] } },
+      { id: "seg", type: "line", params: { from: [1.05, 2], to: [5, 6] } },
+    ]);
     expect(rules(result.alerts)).toEqual(["corrected/line_endpoint"]);
     expect(result.slices[0]!.introduces[2]).toMatchObject({ params: { from: [1, 2] } });
   });
 
   it("refuse une pente annoncée par l'étiquette qui ne correspond pas au tracé", () => {
-    const tangent = (expression: string, text: string) => check([{ id: "t", type: "function_graph", params: { expression } },
-      { id: "lt", type: "label", content: text, attachment: { parent: "t", anchor: "right" } }]);
+    const tangent = (expression: string, text: string) =>
+      check([
+        { id: "t", type: "function_graph", params: { expression } },
+        { id: "lt", type: "label", content: text, attachment: { parent: "t", anchor: "right" } },
+      ]);
     expect(tangent("2*x-1", "tangente : pente 2").alerts).toEqual([]);
     expect(rules(tangent("2.4*x-1", "tangente : pente 2").alerts)).toEqual(["refused/slope"]);
   });
 
   // base-nombre-derive: the secant AP drawn with slope 3, said to have slope 4.
   it("refuse une sécante dont la pente contredit la formule de la tranche", () => {
-    const tranche = (expression: string) => check([
-      { id: "secante", type: "function_graph", params: { expression, domain: [-1, 3.2] } },
-      { id: "montee", type: "line", params: { from: [3, 1], to: [3, 9] } },
-      { id: "avancee", type: "line", params: { from: [1, 1], to: [3, 1] } },
-      math("frac_pente", String.raw`\text{pente} = \frac{9 - 1}{3 - 1} = \frac{8}{2} = 4`),
-    ]);
+    const tranche = (expression: string) =>
+      check([
+        { id: "secante", type: "function_graph", params: { expression, domain: [-1, 3.2] } },
+        { id: "montee", type: "line", params: { from: [3, 1], to: [3, 9] } },
+        { id: "avancee", type: "line", params: { from: [1, 1], to: [3, 1] } },
+        math("frac_pente", String.raw`\text{pente} = \frac{9 - 1}{3 - 1} = \frac{8}{2} = 4`),
+      ]);
     const wrong = tranche("3*(x-1)+1");
     expect(rules(wrong.alerts)).toEqual(["refused/slope"]);
     expect(wrong.alerts[0]!.message).toContain("pente 3");
@@ -75,9 +100,12 @@ describe("droites", () => {
 
   // base-mediatrice: the « perpendicular » bisector drawn with slope 1/2.
   it("refuse une droite dite perpendiculaire qui ne l'est pas, et donne la pente attendue", () => {
-    const figure = (to: [number, number]) => check([axes([-1, 9], [-1, 9]),
-      { id: "seg", type: "line", params: { from: [1, 2], to: [5, 6] } },
-      { id: "ligne_perp", type: "line", params: { from: [3, 4], to } }]);
+    const figure = (to: [number, number]) =>
+      check([
+        axes([-1, 9], [-1, 9]),
+        { id: "seg", type: "line", params: { from: [1, 2], to: [5, 6] } },
+        { id: "ligne_perp", type: "line", params: { from: [3, 4], to } },
+      ]);
     const wrong = figure([5, 5]);
     expect(rules(wrong.alerts)).toEqual(["refused/perpendicular"]);
     expect(wrong.alerts[0]!.message).toContain("−1");
@@ -93,8 +121,11 @@ describe("droites", () => {
 describe("axes", () => {
   // base-portee: landing point at x = 18 on axes going to 14.
   it("refuse un objet tracé hors des axes, pas une courbe (coupée par le moteur)", () => {
-    const result = check([axes([0, 14], [0, 3]), { id: "arc", type: "function_graph", params: { expression: "x*(18-x)/10" } },
-      { id: "arrivee", type: "point", params: { at: [18, 0] } }]);
+    const result = check([
+      axes([0, 14], [0, 3]),
+      { id: "arc", type: "function_graph", params: { expression: "x*(18-x)/10" } },
+      { id: "arrivee", type: "point", params: { at: [18, 0] } },
+    ]);
     expect(rules(result.alerts)).toEqual(["refused/outside_axes"]);
     expect(result.alerts[0]!.message).toContain("x va de 0 à 14");
   });
@@ -102,7 +133,10 @@ describe("axes", () => {
 
 describe("formules", () => {
   it("refuse une égalité numérique fausse et donne la bonne valeur", () => {
-    for (const [content, value] of [[String.raw`\frac{8}{2} = 3`, "4"], [String.raw`B = \frac{6}{24} = 0{,}3`, "0,25"]] as const) {
+    for (const [content, value] of [
+      [String.raw`\frac{8}{2} = 3`, "4"],
+      [String.raw`B = \frac{6}{24} = 0{,}3`, "0,25"],
+    ] as const) {
       const result = check([math("f", content)]);
       expect(rules(result.alerts), content).toEqual(["refused/false_equality"]);
       expect(result.alerts[0]!.message).toContain(`vaut ${value}`);
@@ -112,13 +146,22 @@ describe("formules", () => {
 
   it("lit « × 100 ≈ 84,3 % » comme l'écrit l'école, et refuse encore un pourcentage faux", () => {
     // Banc Alloprof (rendement-theorique) : refusé trois fois, la leçon s'arrêtait.
-    for (const content of [String.raw`\frac{35{,}0}{41{,}5} \times 100 \approx 84{,}3 \%`, String.raw`\frac{35{,}0}{41{,}5} \approx 84{,}3 \%`,
-      String.raw`0{,}843 = 84{,}3\%`]) expect(rules(check([math("f", content)]).alerts), content).toEqual([]);
+    for (const content of [
+      String.raw`\frac{35{,}0}{41{,}5} \times 100 \approx 84{,}3 \%`,
+      String.raw`\frac{35{,}0}{41{,}5} \approx 84{,}3 \%`,
+      String.raw`0{,}843 = 84{,}3\%`,
+    ])
+      expect(rules(check([math("f", content)]).alerts), content).toEqual([]);
     expect(rules(check([math("f", String.raw`\frac{35}{41{,}5} \times 100 < 90 \%`)]).alerts)).toEqual([]);
     expect(rules(check([math("f", String.raw`\frac{35}{41{,}5} \times 100 > 90 \%`)]).alerts)).toEqual(["refused/false_inequality"]);
     // Without « × 100 », the percent keeps its value: these are still errors (relecture du code).
-    for (const content of [String.raw`\frac{35{,}0}{41{,}5} \times 100 \approx 80 \%`, String.raw`25 = 25\%`, String.raw`0{,}25 = 0{,}25\%`,
-      String.raw`\frac{1}{4} = 0{,}25 \%`, String.raw`\frac{35}{41{,}5} \approx 0{,}843 \%`]) {
+    for (const content of [
+      String.raw`\frac{35{,}0}{41{,}5} \times 100 \approx 80 \%`,
+      String.raw`25 = 25\%`,
+      String.raw`0{,}25 = 0{,}25\%`,
+      String.raw`\frac{1}{4} = 0{,}25 \%`,
+      String.raw`\frac{35}{41{,}5} \approx 0{,}843 \%`,
+    ]) {
       expect(rules(check([math("f", content)]).alerts), content).toEqual(["refused/false_equality"]);
     }
   });
@@ -131,10 +174,16 @@ describe("formules", () => {
 
   it("laisse les égalités justes, les conversions d'unités et les erreurs montrées exprès", () => {
     for (const content of [
-      String.raw`\text{pente} = \frac{9 - 1}{3 - 1} = \frac{8}{2} = 4`, String.raw`C_5 = 2000 \times 1{,}2167 = 2433{,}40\ \$`,
-      String.raw`1\ \text{mol} = 6{,}02 \times 10^{23}`, String.raw`90^\circ = \frac{\pi}{2}`, String.raw`b \approx 13{,}47\ \text{cm}`,
-      String.raw`A : \; y = -x + 7 \Rightarrow 2 = -1 + 7 = 6 \;\times`, String.raw`M(3 ; 4) = M(3 ; 4)`, "x = 4",
-    ]) expect(check([math("f", content)]).alerts, content).toEqual([]);
+      String.raw`\text{pente} = \frac{9 - 1}{3 - 1} = \frac{8}{2} = 4`,
+      String.raw`C_5 = 2000 \times 1{,}2167 = 2433{,}40\ \$`,
+      String.raw`1\ \text{mol} = 6{,}02 \times 10^{23}`,
+      String.raw`90^\circ = \frac{\pi}{2}`,
+      String.raw`b \approx 13{,}47\ \text{cm}`,
+      String.raw`A : \; y = -x + 7 \Rightarrow 2 = -1 + 7 = 6 \;\times`,
+      String.raw`M(3 ; 4) = M(3 ; 4)`,
+      "x = 4",
+    ])
+      expect(check([math("f", content)]).alerts, content).toEqual([]);
     expect(check([math("faux", String.raw`\frac{8}{2} = 3`)]).alerts).toEqual([]);
   });
 
@@ -176,10 +225,15 @@ describe("dit sans montrer", () => {
   });
 
   it("signale une formule réécrite et un surlignage sur un objet effacé", () => {
-    const repeated = check([math("formule", "I = U/R")], noMath, [{ verb: "write", target: "formule" }, { verb: "write", target: "formule" }]);
+    const repeated = check([math("formule", "I = U/R")], noMath, [
+      { verb: "write", target: "formule" },
+      { verb: "write", target: "formule" },
+    ]);
     expect(rules(repeated.alerts)).toEqual(["noted/repeated_write", "noted/repeated_write"]);
-    const faded = check([{ id: "d", type: "line", params: { from: [0, 0], to: [1, 1] } }], noMath,
-      [{ verb: "fade_out", target: "d" }, { verb: "highlight", target: "d" }]);
+    const faded = check([{ id: "d", type: "line", params: { from: [0, 0], to: [1, 1] } }], noMath, [
+      { verb: "fade_out", target: "d" },
+      { verb: "highlight", target: "d" },
+    ]);
     expect(rules(faded.alerts)).toEqual(["noted/highlight_hidden"]);
   });
 });
@@ -187,8 +241,13 @@ describe("dit sans montrer", () => {
 describe("branché dans validate.ts", () => {
   const output = (introduces: Item[]) => ({ slices: [slice("s2", introduces)] });
   it("rend la tranche corrigée et ses alertes", () => {
-    const result = validateModelOutput(output([axes([-1, 4], [-1, 10]),
-      { id: "c", type: "function_graph", params: { expression: "x^2" } }, { id: "P", type: "point", params: { at: [3, 8.6] } }]));
+    const result = validateModelOutput(
+      output([
+        axes([-1, 4], [-1, 10]),
+        { id: "c", type: "function_graph", params: { expression: "x^2" } },
+        { id: "P", type: "point", params: { at: [3, 8.6] } },
+      ]),
+    );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.slices[0]!.introduces[2]).toMatchObject({ params: { at: [3, 9] } });
@@ -219,7 +278,10 @@ const corpus = path.resolve(__dirname, "../../../../analyses/generations");
 describe.skipIf(!fs.existsSync(corpus))("leçons réelles", () => {
   const refusals: string[] = [];
   let lessons = 0;
-  for (const file of fs.readdirSync(fs.existsSync(corpus) ? corpus : ".").filter((name) => name.endsWith(".json") && !name.endsWith(".rapport.json")).sort()) {
+  for (const file of fs
+    .readdirSync(fs.existsSync(corpus) ? corpus : ".")
+    .filter((name) => name.endsWith(".json") && !name.endsWith(".rapport.json"))
+    .sort()) {
     const document = JSON.parse(fs.readFileSync(path.join(corpus, file), "utf8"));
     if (!Array.isArray(document.slices)) continue;
     lessons++;
@@ -256,15 +318,24 @@ describe("relecture : aucune fausse alerte", () => {
   });
 
   it("2. ne déplace pas sur la parabole un point juste posé sur la tangente", () => {
-    const result = check([axes([-1, 4], [-2, 10]), { id: "f", type: "function_graph", params: { expression: "x^2" } },
-      { id: "tan", type: "line", params: { from: [1, 0], to: [3, 8] } }, { id: "q", type: "point", params: { at: [2.5, 6] } }]);
+    const result = check([
+      axes([-1, 4], [-2, 10]),
+      { id: "f", type: "function_graph", params: { expression: "x^2" } },
+      { id: "tan", type: "line", params: { from: [1, 0], to: [3, 8] } },
+      { id: "q", type: "point", params: { at: [2.5, 6] } },
+    ]);
     expect(result.alerts).toEqual([]);
     expect(result.slices[0]!.introduces[3]).toMatchObject({ params: { at: [2.5, 6] } });
   });
 
   it("3. lit le texte au-dessus d'une flèche de réaction comme une condition, pas un produit", () => {
-    for (const content of [String.raw`\ce{NaCl(s) ->[H2O] Na+(aq) + Cl-(aq)}`, String.raw`\ce{CaCO3 ->[chaleur] CaO + CO2 ^}`,
-      String.raw`\ce{N2 + 3H2 <=>[Fe][450 °C] 2NH3}`, String.raw`NaCl \xrightarrow{H_2O} Na^+ + Cl^-`, String.raw`\ce{Ag+ + Cl- -> AgCl v}`]) {
+    for (const content of [
+      String.raw`\ce{NaCl(s) ->[H2O] Na+(aq) + Cl-(aq)}`,
+      String.raw`\ce{CaCO3 ->[chaleur] CaO + CO2 ^}`,
+      String.raw`\ce{N2 + 3H2 <=>[Fe][450 °C] 2NH3}`,
+      String.raw`NaCl \xrightarrow{H_2O} Na^+ + Cl^-`,
+      String.raw`\ce{Ag+ + Cl- -> AgCl v}`,
+    ]) {
       expect(check([math("eq_finale", content)]).alerts, content).toEqual([]);
     }
   });
@@ -272,13 +343,24 @@ describe("relecture : aucune fausse alerte", () => {
   it("4. ne corrige pas le point faux de l'élève montré exprès", () => {
     const parabola = { id: "c", type: "function_graph", params: { expression: "x^2" } };
     expect(check([axes([-1, 4], [-1, 10]), parabola, { id: "p_eleve", type: "point", params: { at: [2, 4.4] } }]).alerts).toEqual([]);
-    expect(check([axes([-1, 4], [-1, 10]), parabola, { id: "p", type: "point", params: { at: [2, 4.4] } },
-      { id: "lab_faux", type: "label", content: "P (2 ; 4,4)", attachment: { parent: "p", anchor: "right" } }]).alerts).toEqual([]);
+    expect(
+      check([
+        axes([-1, 4], [-1, 10]),
+        parabola,
+        { id: "p", type: "point", params: { at: [2, 4.4] } },
+        { id: "lab_faux", type: "label", content: "P (2 ; 4,4)", attachment: { parent: "p", anchor: "right" } },
+      ]).alerts,
+    ).toEqual([]);
   });
 
   it("5. a = 2 d'une forme canonique n'est pas une pente", () => {
-    expect(check([{ id: "par", type: "function_graph", params: { expression: "2*x^2" } }, math("coef", "a = 2"),
-      { id: "sec", type: "function_graph", params: { expression: "4*x-2" } }]).alerts).toEqual([]);
+    expect(
+      check([
+        { id: "par", type: "function_graph", params: { expression: "2*x^2" } },
+        math("coef", "a = 2"),
+        { id: "sec", type: "function_graph", params: { expression: "4*x-2" } },
+      ]).alerts,
+    ).toEqual([]);
   });
 
   it("6. une flèche entre deux lettres n'est pas une équation chimique", () => {
@@ -288,25 +370,39 @@ describe("relecture : aucune fausse alerte", () => {
   });
 
   it("8. compte les axes comme droites pour la perpendicularité", () => {
-    expect(check([axes([-1, 9], [-1, 9]), { id: "seg", type: "line", params: { from: [1, 2], to: [5, 6] } },
-      { id: "perp_x", type: "line", params: { from: [3, 0], to: [3, 8] } }]).alerts).toEqual([]);
+    expect(
+      check([
+        axes([-1, 9], [-1, 9]),
+        { id: "seg", type: "line", params: { from: [1, 2], to: [5, 6] } },
+        { id: "perp_x", type: "line", params: { from: [3, 0], to: [3, 8] } },
+      ]).alerts,
+    ).toEqual([]);
   });
 
   it("9. une flèche qui s'arrête juste avant un point n'y est pas recollée", () => {
-    expect(check([axes([0, 10], [0, 10]), { id: "A", type: "point", params: { at: [1, 2] } },
-      { id: "fl", type: "arrow", params: { from: [5, 6], to: [1.1, 2.1] } }]).alerts).toEqual([]);
+    expect(
+      check([axes([0, 10], [0, 10]), { id: "A", type: "point", params: { at: [1, 2] } }, { id: "fl", type: "arrow", params: { from: [5, 6], to: [1.1, 2.1] } }])
+        .alerts,
+    ).toEqual([]);
   });
 
   it("10. ne corrige pas un point d'un petit nuage autour d'une droite d'ajustement", () => {
     const fit = { id: "ajustement", type: "function_graph", params: { expression: "x+1" } };
-    const cloud = [[1, 2], [2, 3], [3, 4.3]].map((at, i) => ({ id: `n${i}`, type: "point", params: { at } }));
+    const cloud = [
+      [1, 2],
+      [2, 3],
+      [3, 4.3],
+    ].map((at, i) => ({ id: `n${i}`, type: "point", params: { at } }));
     expect(check([axes([0, 6], [0, 7]), fit, ...cloud]).alerts).toEqual([]);
   });
 });
 
 describe("relecture : leçons enregistrées", () => {
   it("7. validateLesson charge une leçon enregistrée et rend ses alertes en signalement", () => {
-    const header = lessonHeader({ id: "l", title: "Intérêts", language: "fr", learning_goal: "Calculer." }, { symbols: {}, expressions: { expr5: "2000*1.04^5" } });
+    const header = lessonHeader(
+      { id: "l", title: "Intérêts", language: "fr", learning_goal: "Calculer." },
+      { symbols: {}, expressions: { expr5: "2000*1.04^5" } },
+    );
     const result = validateLesson({ ...header, slices: [slice("s1", [math("valeur", String.raw`C_5 = 2000 \times 1{,}2167 = 2433{,}40\ \$`)])] });
     expect(result.ok).toBe(true);
     if (result.ok) expect(rules(result.alerts)).toEqual(["noted/math_context"]);

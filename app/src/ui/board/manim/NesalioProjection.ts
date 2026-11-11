@@ -1,9 +1,16 @@
-import {
-  Axes, Create, FadeIn, MathTex, NumberLine, TransformMatchingTex, VGroup, VMobject, Write, type Animation, type Mobject, type Scene,
-} from "manim-web";
+import { Axes, Create, FadeIn, MathTex, NumberLine, TransformMatchingTex, VGroup, VMobject, Write, type Animation, type Mobject, type Scene } from "manim-web";
 import { FONT_SIZE, niceStep, TICK_FONT } from "@/domain/nesalio/textMetrics";
 import {
-  axisNumbers, computedFormula, isTable, writtenText, measureSceneObject, sampleSceneCurve, sceneText, tableCellParts, tableLayout, tableRows,
+  axisNumbers,
+  computedFormula,
+  isTable,
+  writtenText,
+  measureSceneObject,
+  sampleSceneCurve,
+  sceneText,
+  tableCellParts,
+  tableLayout,
+  tableRows,
 } from "@/domain/nesalio/measurement";
 import type { MathContext, SceneObject, Slice } from "@/domain/nesalio/contract";
 import type { Box, Point } from "@/domain/nesalio/placement";
@@ -19,7 +26,12 @@ const palette = { neutral: BRAND.ink, given: "#2563a6", unknown: "#a55316", acce
 type Vec3 = [number, number, number];
 type PartState = { opacity?: number; reveal?: string; animation?: Animation; color?: string };
 type Content = {
-  key: string; items: Mobject[]; animation?: Animation[]; reveal?: string; color: string; parts?: Map<string, PartState>;
+  key: string;
+  items: Mobject[];
+  animation?: Animation[];
+  reveal?: string;
+  color: string;
+  parts?: Map<string, PartState>;
   /** Opacity last applied outside a reveal animation; undefined forces it to be applied again. */
   opacity?: number;
   /** World position the items are drawn at: a `move` shifts them instead of rebuilding them. */
@@ -58,8 +70,9 @@ function measurable(item: Mobject): boolean {
 function dimensions(item: Mobject): Measurement {
   item.getThreeObject();
   // Math.max(0.01, NaN) is NaN: a size manim-web cannot give is never passed on to the placement.
-  const finite = (value: number) => Number.isFinite(value) ? Math.max(0.01, value) : 0.01;
-  const width = finite(item.getWidth()), height = finite(item.getHeight());
+  const finite = (value: number) => (Number.isFinite(value) ? Math.max(0.01, value) : 0.01);
+  const width = finite(item.getWidth()),
+    height = finite(item.getHeight());
   return { body: { x0: -width / 2, y0: -height / 2, x1: width / 2, y1: height / 2 } };
 }
 
@@ -94,50 +107,70 @@ export class NesalioProjection {
   /** `math`, `values`: the lesson's context, to draw a computed formula as a formula too (computedFormula). */
   async prepareSlice(slice: Slice, signal: AbortSignal, math?: MathContext, values?: ReadonlyMap<string, number>): Promise<void> {
     const digit = await this.measureDigit();
-    await Promise.all(slice.introduces.map(async (definition) => {
-      if (definition.type !== "math") return;
-      let content: string;
-      if (typeof definition.content === "string") content = definition.content;
-      else {
-        let computed: string | null = null;
-        try { computed = math && values ? computedFormula(definition, values, math) : null; } catch { computed = null; }
-        if (computed === null) return;
-        content = computed;
-      }
-      // Same font size for every formula: a digit is as tall as a one-line formula used to be,
-      // so a fraction simply grows taller instead of being squeezed into one line's height.
-      const target = fontSize(definition) / 80;
-      const options = digit > 0 ? { fontSize: target / digit, color: palette.neutral } : { height: target, color: palette.neutral };
-      // manim-web lays out the whole formula once, then splits its glyphs between the parts.
-      const formula = definition.parts && typeof definition.content === "string"
-        ? boardFormulaParts(partsWithSpacing(content, definition.parts.map((part) => part.text)), options)
-        : boardFormula(`$${content}$`, options);
-      await formula.waitForRender().catch(() => undefined);
-      if (signal.aborted) { formula.dispose(); return; }
-      // A formula manim-web draws with NaN dimensions (seen: the letter p) would stop the whole lesson
-      // (« Dimensions de scène invalides ») : it is handled like a formula that did not render.
-      const error = formula.getRenderError() ?? (measurable(formula) ? undefined : "dimensions invalides");
-      // The student never sees raw LaTeX: an unrenderable formula is written as plain text, and logged.
-      if (error) console.warn(`nesalio: formule non rendue « ${definition.id} » (${content}) :`, error);
-      const item = error ? boardText(readableFormula(content), palette.neutral, fontSize(definition)) : formula;
-      if (item !== formula) formula.dispose();
-      const measurement = dimensions(item);
-      // Where each part stands in the drawn formula: a label can be attached to one of them (attachment.part).
-      if (item === formula && definition.parts && formula.getPartCount() === definition.parts.length) {
-        const [cx, cy] = formula.getCenter();
-        const parts: Record<string, Box> = {};
-        definition.parts.forEach((part, index) => {
+    await Promise.all(
+      slice.introduces.map(async (definition) => {
+        if (definition.type !== "math") return;
+        let content: string;
+        if (typeof definition.content === "string") content = definition.content;
+        else {
+          let computed: string | null = null;
           try {
-            const glyphs = formula.getPart(index);
-            const [px, py] = glyphs.getCenter();
-            const w = glyphs.getWidth(), h = glyphs.getHeight();
-            if ([px, py, w, h].every(Number.isFinite) && w > 0) parts[part.id] = { x0: px - cx - w / 2, y0: py - cy - h / 2, x1: px - cx + w / 2, y1: py - cy + h / 2 };
-          } catch { /* a part manim-web cannot measure: the label goes against the whole formula */ }
-        });
-        if (Object.keys(parts).length) measurement.parts = parts;
-      }
-      this.formulas.set(definition.id, { item, measurement });
-    }));
+            computed = math && values ? computedFormula(definition, values, math) : null;
+          } catch {
+            computed = null;
+          }
+          if (computed === null) return;
+          content = computed;
+        }
+        // Same font size for every formula: a digit is as tall as a one-line formula used to be,
+        // so a fraction simply grows taller instead of being squeezed into one line's height.
+        const target = fontSize(definition) / 80;
+        const options = digit > 0 ? { fontSize: target / digit, color: palette.neutral } : { height: target, color: palette.neutral };
+        // manim-web lays out the whole formula once, then splits its glyphs between the parts.
+        const formula =
+          definition.parts && typeof definition.content === "string"
+            ? boardFormulaParts(
+                partsWithSpacing(
+                  content,
+                  definition.parts.map((part) => part.text),
+                ),
+                options,
+              )
+            : boardFormula(`$${content}$`, options);
+        await formula.waitForRender().catch(() => undefined);
+        if (signal.aborted) {
+          formula.dispose();
+          return;
+        }
+        // A formula manim-web draws with NaN dimensions (seen: the letter p) would stop the whole lesson
+        // (« Dimensions de scène invalides ») : it is handled like a formula that did not render.
+        const error = formula.getRenderError() ?? (measurable(formula) ? undefined : "dimensions invalides");
+        // The student never sees raw LaTeX: an unrenderable formula is written as plain text, and logged.
+        if (error) console.warn(`nesalio: formule non rendue « ${definition.id} » (${content}) :`, error);
+        const item = error ? boardText(readableFormula(content), palette.neutral, fontSize(definition)) : formula;
+        if (item !== formula) formula.dispose();
+        const measurement = dimensions(item);
+        // Where each part stands in the drawn formula: a label can be attached to one of them (attachment.part).
+        if (item === formula && definition.parts && formula.getPartCount() === definition.parts.length) {
+          const [cx, cy] = formula.getCenter();
+          const parts: Record<string, Box> = {};
+          definition.parts.forEach((part, index) => {
+            try {
+              const glyphs = formula.getPart(index);
+              const [px, py] = glyphs.getCenter();
+              const w = glyphs.getWidth(),
+                h = glyphs.getHeight();
+              if ([px, py, w, h].every(Number.isFinite) && w > 0)
+                parts[part.id] = { x0: px - cx - w / 2, y0: py - cy - h / 2, x1: px - cx + w / 2, y1: py - cy + h / 2 };
+            } catch {
+              /* a part manim-web cannot measure: the label goes against the whole formula */
+            }
+          });
+          if (Object.keys(parts).length) measurement.parts = parts;
+        }
+        this.formulas.set(definition.id, { item, measurement });
+      }),
+    );
   }
 
   readonly measure: MeasureObject = (definition, values, math, window, scale) => {
@@ -145,8 +178,12 @@ export class NesalioProjection {
     if (!isText(definition) || (definition.type === "matrix" && isTable(definition.params))) return measureSceneObject(definition, values, math, window, scale);
     const formula = this.formulas.get(definition.id);
     if (formula) return formula.measurement;
-    const text = definition.type === "matrix" ? definition.params.rows.map((row) => row.join("   ")).join("\n")
-      : definition.type === "math" ? readableFormula(writtenText(definition, values, math)) : writtenText(definition, values, math);
+    const text =
+      definition.type === "matrix"
+        ? definition.params.rows.map((row) => row.join("   ")).join("\n")
+        : definition.type === "math"
+          ? readableFormula(writtenText(definition, values, math))
+          : writtenText(definition, values, math);
     const key = JSON.stringify([fontSize(definition), text]);
     const cached = this.textSizes.get(key);
     if (cached) return cached;
@@ -156,7 +193,9 @@ export class NesalioProjection {
       if (this.textSizes.size >= 256) this.textSizes.clear();
       this.textSizes.set(key, measured);
       return measured;
-    } finally { item.dispose(); }
+    } finally {
+      item.dispose();
+    }
   };
 
   draw(frame: NesalioFrame): void {
@@ -171,12 +210,14 @@ export class NesalioProjection {
       if (!object.visible) continue;
       const { definition, measurement, position, leader } = object;
       // A matrix written as plain text cannot show one cell: a part highlight colours it whole.
-      const plainMatrixPart = definition.type === "matrix" && !isTable(definition.params)
-        ? frame.partHighlights.get(id)?.values().next().value?.role : undefined;
+      const plainMatrixPart =
+        definition.type === "matrix" && !isTable(definition.params) ? frame.partHighlights.get(id)?.values().next().value?.role : undefined;
       const color = palette[frame.highlights.get(id)?.role ?? plainMatrixPart ?? frame.styles.get(id) ?? definition.style?.role ?? "neutral"];
       // A computed formula that follows a parameter stays plain text: readable, never its raw LaTeX.
-      const text = !("content" in definition) ? undefined
-        : definition.type === "math" && typeof definition.content !== "string" ? readableFormula(writtenText(definition, values, scene.math))
+      const text = !("content" in definition)
+        ? undefined
+        : definition.type === "math" && typeof definition.content !== "string"
+          ? readableFormula(writtenText(definition, values, scene.math))
           : writtenText(definition, values, scene.math);
       const dynamic = definition.type === "function_graph" || definition.type === "parametric_curve" ? parameters : undefined;
       // The shape alone decides a rebuild; the leader is compared relative to the object.
@@ -187,7 +228,7 @@ export class NesalioProjection {
         if (rendered) this.remove(id, rendered);
         const table: TableState = { cells: [], grid: new Set(), marks: this.tableMarks() };
         const items = this.build(object, values, color, text, table);
-        rendered = { key, items, color, position, ...table.cells.length ? { table } : {} };
+        rendered = { key, items, color, position, ...(table.cells.length ? { table } : {}) };
         this.content.set(id, rendered);
         this.scene.add(...items);
       } else if (rendered.position[0] !== position[0] || rendered.position[1] !== position[1]) {
@@ -201,8 +242,8 @@ export class NesalioProjection {
         if (rendered.reveal !== reveal.key) {
           rendered.reveal = reveal.key;
           rendered.animation = rendered.items.map((item) => {
-            const animation = reveal.verb === "draw" ? new Create(item)
-              : reveal.verb === "write" && item instanceof MathTex ? new Write(item) : new FadeIn(item);
+            const animation =
+              reveal.verb === "draw" ? new Create(item) : reveal.verb === "write" && item instanceof MathTex ? new Write(item) : new FadeIn(item);
             animation.begin();
             return animation;
           });
@@ -215,10 +256,15 @@ export class NesalioProjection {
       }
       // Dimmed, fading out, or coming back from dim. A formula written by parts sets its glyphs itself.
       const opacity = frame.opacity.get(id) ?? (object.dimmed ? DIM_OPACITY : 1);
-      const byParts = definition.type === "math" && definition.parts !== undefined && rendered.items[0] instanceof MathTex
-        && rendered.items[0].getPartCount() === definition.parts.length;
+      const byParts =
+        definition.type === "math" &&
+        definition.parts !== undefined &&
+        rendered.items[0] instanceof MathTex &&
+        rendered.items[0].getPartCount() === definition.parts.length;
       if (!rendered.animation && rendered.opacity !== opacity) {
-        rendered.items.forEach((item, index) => { if (!(byParts && index === 0)) item.opacity = opacity; });
+        rendered.items.forEach((item, index) => {
+          if (!(byParts && index === 0)) item.opacity = opacity;
+        });
         rendered.opacity = opacity;
       }
       if (rendered.color !== color) {
@@ -235,10 +281,13 @@ export class NesalioProjection {
 
   /** A highlighted cell, row or column takes the highlight colour and is outlined while it lasts. */
   private drawTable(
-    rendered: Content, table: TableState, color: string, opacity: number,
+    rendered: Content,
+    table: TableState,
+    color: string,
+    opacity: number,
     highlights?: ReadonlyMap<string, { role: keyof typeof palette; progress: number }>,
   ): void {
-    const active = new Map([...highlights ?? []].map(([part, { role }]) => [part, palette[role]]));
+    const active = new Map([...(highlights ?? [])].map(([part, { role }]) => [part, palette[role]]));
     for (const cell of table.cells) {
       const hit = cell.parts.find((part) => active.has(part));
       const cellColor = hit ? active.get(hit)! : color;
@@ -252,9 +301,17 @@ export class NesalioProjection {
 
   private tableMarks(): TableMarks<Mobject> {
     return new TableMarks<Mobject>({
-      create: (box, color) => polygonMark({
-        vertices: [[box.x0, box.y0, 0], [box.x1, box.y0, 0], [box.x1, box.y1, 0], [box.x0, box.y1, 0]], color, strokeWidth: 4,
-      }),
+      create: (box, color) =>
+        polygonMark({
+          vertices: [
+            [box.x0, box.y0, 0],
+            [box.x1, box.y0, 0],
+            [box.x1, box.y1, 0],
+            [box.x0, box.y1, 0],
+          ],
+          color,
+          strokeWidth: 4,
+        }),
       add: (mark) => this.scene.add(mark),
       remove: (mark) => this.scene.remove(mark),
     });
@@ -300,15 +357,19 @@ export class NesalioProjection {
 
   /** Unwritten parts keep their place in the layout but stay invisible. */
   private drawParts(
-    object: PlacedObject, rendered: Content, color: string, opacity: number,
+    object: PlacedObject,
+    rendered: Content,
+    color: string,
+    opacity: number,
     writes?: ReadonlyMap<string, { key: string; progress: number }>,
     highlights?: ReadonlyMap<string, { role: keyof typeof palette; progress: number }>,
   ): void {
     const formula = rendered.items[0];
-    const parts = object.definition.type === "math" ? object.definition.parts ?? [] : [];
+    const parts = object.definition.type === "math" ? (object.definition.parts ?? []) : [];
     // A formula that fell back to plain text cannot be split: it is shown whole.
     if (!(formula instanceof MathTex) || formula.getPartCount() !== parts.length) return;
-    const states = rendered.parts ??= new Map();
+    // biome-ignore lint/suspicious/noAssignInExpressions: états des parties créés au premier passage
+    const states = (rendered.parts ??= new Map());
     parts.forEach((part, index) => {
       const glyphs = formula.getPart(index);
       // A fresh state (first draw, or a rebuilt entry) always applies the opacity once.
@@ -351,18 +412,34 @@ export class NesalioProjection {
   }
 
   private build(object: PlacedObject, values: ReadonlyMap<string, number>, color: string, text?: string, table?: TableState): Mobject[] {
-    const { definition: def, position: [dx, dy], measurement, leader, scale } = object;
+    const {
+      definition: def,
+      position: [dx, dy],
+      measurement,
+      leader,
+      scale,
+    } = object;
     // On axes too large for the board, the frame's units are scaled down (axesScale).
     const world = ([x, y]: Point): Vec3 => [x * (scale?.x ?? 1) + dx, y * (scale?.y ?? 1) + dy, 0];
     const stroke = { color, strokeWidth: 3 };
     const items: Mobject[] = [];
     switch (def.type) {
-      case "point": items.push(...pointMark(world(def.params.at), color)); break;
-      case "line": items.push(segmentMark(world(def.params.from), world(def.params.to), color)); break;
+      case "point":
+        items.push(...pointMark(world(def.params.at), color));
+        break;
+      case "line":
+        items.push(segmentMark(world(def.params.from), world(def.params.to), color));
+        break;
       case "arrow":
-      case "vector": items.push(arrowMark(world(def.params.from), world(def.params.to), color)); break;
-      case "circle": items.push(circleMark(world(def.params.center), def.params.radius * Math.min(scale?.x ?? 1, scale?.y ?? 1), color)); break;
-      case "polygon": items.push(polygonMark({ ...stroke, vertices: def.params.vertices.map(world) })); break;
+      case "vector":
+        items.push(arrowMark(world(def.params.from), world(def.params.to), color));
+        break;
+      case "circle":
+        items.push(circleMark(world(def.params.center), def.params.radius * Math.min(scale?.x ?? 1, scale?.y ?? 1), color));
+        break;
+      case "polygon":
+        items.push(polygonMark({ ...stroke, vertices: def.params.vertices.map(world) }));
+        break;
       case "triangle_right": {
         const { x1, y1 } = measurement.body;
         items.push(polygonMark({ ...stroke, vertices: [world([0, 0]), world([x1, 0]), world([0, y1])] }));
@@ -384,10 +461,16 @@ export class NesalioProjection {
         break;
       }
       case "axes": {
-        const { x: [x0, x1], y: [y0, y1] } = def.params ?? { x: [-6, 6], y: [-4, 4] };
+        const {
+          x: [x0, x1],
+          y: [y0, y1],
+        } = def.params ?? { x: [-6, 6], y: [-4, 4] };
         const axes = new Axes({
-          color, xRange: [x0, x1, niceStep(x1 - x0)], yRange: [y0, y1, niceStep(y1 - y0)],
-          xLength: (x1 - x0) * (scale?.x ?? 1), yLength: (y1 - y0) * (scale?.y ?? 1),
+          color,
+          xRange: [x0, x1, niceStep(x1 - x0)],
+          yRange: [y0, y1, niceStep(y1 - y0)],
+          xLength: (x1 - x0) * (scale?.x ?? 1),
+          yLength: (y1 - y0) * (scale?.y ?? 1),
         });
         const at = axes.coordsToPoint(0, 0);
         axes.shift([dx - at[0], dy - at[1], 0]);
@@ -400,6 +483,7 @@ export class NesalioProjection {
         }
         break;
       }
+      // biome-ignore lint/suspicious/noFallthroughSwitchClause: une matrice de nombres sans titres s'écrit comme un texte (cas par défaut)
       case "matrix":
         if (isTable(def.params)) {
           const layout = tableLayout(tableRows(def.params), fontSize(def));
@@ -422,7 +506,7 @@ export class NesalioProjection {
       // falls through: a matrix of numbers only, without titles, is written as text
       default: {
         const formula = this.formulas.get(def.id);
-        const textContent = def.type === "matrix" ? def.params.rows.map((row) => row.join("   ")).join("\n") : text ?? "";
+        const textContent = def.type === "matrix" ? def.params.rows.map((row) => row.join("   ")).join("\n") : (text ?? "");
         const item = formula?.item ?? boardText(textContent, color, fontSize(def));
         item.setColor(color);
         item.moveTo([dx, dy, 0]);
@@ -442,7 +526,10 @@ export class NesalioProjection {
   }
 
   dispose(): void {
-    for (const { group } of this.morphing.values()) { this.scene.remove(group); group.dispose(); }
+    for (const { group } of this.morphing.values()) {
+      this.scene.remove(group);
+      group.dispose();
+    }
     this.morphing.clear();
     for (const [id, entry] of this.content) this.remove(id, entry);
     for (const { item } of this.formulas.values()) item.dispose();

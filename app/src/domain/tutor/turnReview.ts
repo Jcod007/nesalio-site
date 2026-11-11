@@ -112,6 +112,7 @@ export function reviewNotes(review: TurnReview, rejected: readonly string[] = []
     const { a, b } = review.textOverlap;
     notes.push(`Les textes « ${a} » et « ${b} » se chevauchent au tableau. Sépare-les pour les rendre lisibles.`);
   }
-  if (review.longSentences > 0) notes.push(`${review.longSentences} phrase(s) chargée(s) : découpe les idées sans supprimer les définitions ni les raisons nécessaires.`);
+  if (review.longSentences > 0)
+    notes.push(`${review.longSentences} phrase(s) chargée(s) : découpe les idées sans supprimer les définitions ni les raisons nécessaires.`);
   return notes.slice(0, 4).map((n) => n.slice(0, 240));
 }

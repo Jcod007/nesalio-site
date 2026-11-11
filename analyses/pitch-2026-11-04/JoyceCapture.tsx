@@ -1,15 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ManimBoard } from "@/ui/board/ManimBoard";
-import { LessonBoard } from "@/ui/board/LessonBoard";
-import { DiagnosticTag } from "@/ui/board/DiagnosticTag";
-import { Dock, type DockActions } from "@/ui/Dock";
-import { useTutor } from "./useTutor";
-import { StartScreen } from "@/ui/StartScreen";
-import { AfterTrialQuestions } from "@/ui/AfterTrial";
-import { FeedbackButton } from "@/ui/Feedback";
-import { TopBar } from "@/ui/TopBar";
+import { ManimBoard } from "./board/ManimBoard";
+import { DiagnosticTag } from "./board/DiagnosticTag";
+import { Dock, type DockActions } from "./Dock";
+import { useTutor } from "./hooks/useTutor";
+import { StartScreen } from "./StartScreen";
+import { AfterTrialQuestions } from "./AfterTrial";
+import { FeedbackButton } from "./Feedback";
+import { TopBar } from "./TopBar";
+import { TrialGateProvider, useTrialAccess } from "./TrialGate";
+import { ACCOUNT_READY } from "@/services/trialEvents";
 
 const TOP_BAR = 60;
 const WIDE = 900;
@@ -19,10 +20,27 @@ const WIDE = 900;
  * étiquette de diagnostic, et la carte de Nesa. Toute la logique de séance vit dans le
  * lecteur (engine/player.ts) ; ce composant ne fait que la brancher.
  */
-export function JoyceCapture() {
-  const { player, speaker, snapshot: liveSnapshot } = useTutor();
-  const [frozen, setFrozen] = useState<typeof liveSnapshot | null>(null);
-  const snapshot = frozen ?? liveSnapshot;
+export function TutorApp() {
+  return (
+    <TrialGateProvider>
+      <TutorSession />
+    </TrialGateProvider>
+  );
+}
+
+function TutorSession() {
+  const trial = useTrialAccess();
+  const { player, speaker, snapshot } = useTutor();
+  // Account prompts are interruptions: stop narration and board playback while
+  // preserving the lesson. A suspended HTTP turn resumes only on explicit consent.
+  useEffect(() => {
+    if (trial.accountOpen) player.interrupt();
+  }, [trial.accountOpen, player]);
+  useEffect(() => {
+    const resume = () => player.resume();
+    window.addEventListener(ACCOUNT_READY, resume);
+    return () => window.removeEventListener(ACCOUNT_READY, resume);
+  }, [player]);
   const [lastAsked, setLastAsked] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -40,6 +58,7 @@ export function JoyceCapture() {
 
   const idle = snapshot.status === "idle";
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: le dock change d'élément avec `idle` ; il faut l'observer de nouveau.
   useEffect(() => {
     const dock = dockRef.current;
     if (!dock) {
@@ -52,28 +71,32 @@ export function JoyceCapture() {
   }, [idle]);
 
   const ask = useCallback(
-    (question: string) => {
-      setLastAsked(question);
-      player.ask(question);
-    },
-    [player],
+    (question: string) =>
+      trial.run(() => {
+        setLastAsked(question);
+        player.ask(question);
+      }),
+    [player, trial.run],
   );
 
   const actions = useMemo<DockActions>(
     () => ({
       interrupt: () => player.interrupt(),
       resume: () => player.resume(),
-      followUp: (text) => {
-        setLastAsked(text);
-        player.followUp(text);
-      },
+      followUp: (text) =>
+        trial.run(() => {
+          setLastAsked(text);
+          player.followUp(text);
+        }),
       answer: (choice) => player.answer(choice),
       answerText: (text) => player.answerText(text),
-      retry: () => {
-        const question = player.getSnapshot().question;
-        if (question) player.ask(question);
-      },
+      retry: () =>
+        trial.run(() => {
+          const question = player.getSnapshot().question;
+          if (question) player.ask(question);
+        }),
       newTopic: () => {
+        trial.cancelPending();
         setLastAsked(null);
         player.stop();
       },
@@ -83,7 +106,7 @@ export function JoyceCapture() {
         setListening(value);
       },
     }),
-    [player],
+    [player, trial.run, trial.cancelPending],
   );
 
   const wide = width >= WIDE;
@@ -101,10 +124,7 @@ export function JoyceCapture() {
 
   return (
     <main style={{ position: "fixed", inset: 0, overflow: "hidden" }}>
-      {!frozen ? <button type="button" style={{position:"absolute",left:12,top:72,zIndex:30}} onClick={() => setFrozen(liveSnapshot)}>Figer cette explication</button> : null}
-      {snapshot.lessonBoard
-        ? <LessonBoard layout={snapshot.lessonBoard} insets={insets} />
-        : <ManimBoard board={snapshot.board} insets={insets} />}
+      <ManimBoard board={snapshot.board} insets={insets} />
       <DiagnosticTag board={snapshot.board} compact={!wide} onBottomChange={setTagBottom} />
       <TopBar
         title={snapshot.title}
@@ -116,9 +136,11 @@ export function JoyceCapture() {
           setMuted(!muted);
         }}
         onHome={idle ? null : actions.newTopic}
-        feedback={<span className="joyce-profile"><span className="joyce-avatar">J</span>Joyce</span>}
+        feedback={<FeedbackButton player={player} />}
       />
-      
+      {trial.authenticated || !trial.enabled ? (
+        <AfterTrialQuestions sessionDone={snapshot.status === "done" && snapshot.summary.length > 0} question={snapshot.question} />
+      ) : null}
       {idle ? (
         <StartScreen onAsk={ask} listening={listening} onListeningChange={setListening} />
       ) : (
@@ -127,5 +149,3 @@ export function JoyceCapture() {
     </main>
   );
 }
-
-

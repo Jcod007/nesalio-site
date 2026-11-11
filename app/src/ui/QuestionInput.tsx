@@ -55,6 +55,7 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
           onChange={(event) => setText(event.target.value)}
           placeholder={placeholderNow}
           maxLength={MAX_QUESTION_LENGTH}
+          // biome-ignore lint/a11y/noAutofocus: le focus n'est donné que lorsque le parent le demande (écran d'accueil).
           autoFocus={autoFocus}
           autoComplete="off"
           enterKeyHint="send"
@@ -64,6 +65,7 @@ export function QuestionInput({ placeholder, onSubmit, onListeningChange, autoFo
       <button type="submit" className="cta" disabled={!text.trim()}>
         {submitLabel}
       </button>
+      {voice.ready && !voice.supported ? <p className={styles.hint}>Écris ta question pour essayer.</p> : null}
       {voice.error ? <p className={styles.error}>{voice.error}</p> : null}
     </form>
   );

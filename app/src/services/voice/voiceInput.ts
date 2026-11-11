@@ -45,8 +45,7 @@ export function createVoiceInput(): VoiceInput {
 /* ------------------------- enregistrement + serveur ------------------------- */
 
 function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
-  const supported =
-    typeof window !== "undefined" && typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
+  const supported = typeof window !== "undefined" && typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
   let stopRecording: ((send: boolean) => void) | null = null;
   let operation = 0;
   let transcription: AbortController | null = null;
@@ -61,7 +60,11 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
       void record(handlers, operation);
     },
     stop: () => stopRecording?.(true),
-    cancel: () => { operation++; transcription?.abort(); stopRecording?.(false); },
+    cancel: () => {
+      operation++;
+      transcription?.abort();
+      stopRecording?.(false);
+    },
   };
 
   async function record(handlers: VoiceInputHandlers, id: number) {
@@ -81,11 +84,12 @@ function createRecorderInput(endpoint = "/api/transcribe"): VoiceInput {
       return;
     }
 
-    if (id !== operation) { stream.getTracks().forEach((track) => track.stop()); return; }
+    if (id !== operation) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
 
-    const mimeType = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"].find((type) =>
-      MediaRecorder.isTypeSupported?.(type),
-    );
+    const mimeType = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"].find((type) => MediaRecorder.isTypeSupported?.(type));
     const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
     const chunks: Blob[] = [];
     mediaRecorder.ondataavailable = (event) => event.data.size > 0 && chunks.push(event.data);

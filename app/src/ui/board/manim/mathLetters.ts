@@ -16,7 +16,11 @@ export function drawableMathLetters(latex: string): string {
     const char = latex[i]!;
     if (char === "\\") {
       const name = /^\\([a-zA-Z]+)/.exec(latex.slice(i))?.[1];
-      if (!name) { out += latex.slice(i, i + 2); i++; continue; }
+      if (!name) {
+        out += latex.slice(i, i + 2);
+        i++;
+        continue;
+      }
       out += `\\${name}`;
       i += name.length;
       // A text-like command: its braced argument is copied as is.

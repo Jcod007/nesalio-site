@@ -9,7 +9,7 @@
  * évoluer : le coin manquant de la complétion du carré se remplit.
  */
 import { z } from "zod";
-import { type BoardNode, type Vec2 } from "@/domain/board/state";
+import type { BoardNode, Vec2 } from "@/domain/board/state";
 import { ColorName } from "../primitives";
 import { base } from "./figure";
 import { defineCommand } from "./define";
@@ -70,7 +70,7 @@ export const areaModelCommand = defineCommand({
   }),
   doc:
     '{"type":"areaModel","id":"am","rows":["x","2"],"cols":["x","3"]} : MODÈLE D\'AIRE de (x + 2)(x + 3) : un rectangle\n' +
-    '  découpé, une pièce par produit (x², 3x, 2x, 6) écrit DANS la pièce, calculé par le moteur ; les termes le long des\n' +
+    "  découpé, une pièce par produit (x², 3x, 2x, 6) écrit DANS la pièce, calculé par le moteur ; les termes le long des\n" +
     '  côtés. Termes de degré 0 ou 1 (« 2x », « −4 »). "empty":[[1,1]] laisse une pièce vide en pointillé (« ? ») : le\n' +
     '  coin à compléter du carré ; redemande le même id sans "empty" pour la remplir. Parties : am-p00, am-p01… (pièce\n' +
     '  ligne, colonne), am-r0… et am-c0… (termes des côtés). Pour assembler des pièces en rectangle : "move" des pièces.',

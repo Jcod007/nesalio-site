@@ -6,9 +6,7 @@ export function jsonError(status: number, message: string, extra: Record<string,
 }
 
 /** Coupe la lecture à la limite réelle en octets, même sans Content-Length. */
-export async function readBoundedText(request: Request, maxBytes: number): Promise<
-  { ok: true; text: string } | { ok: false; status: 400 | 413 }
-> {
+export async function readBoundedText(request: Request, maxBytes: number): Promise<{ ok: true; text: string } | { ok: false; status: 400 | 413 }> {
   if (!request.body) return { ok: true, text: "" };
   const reader = request.body.getReader();
   const decoder = new TextDecoder("utf-8", { fatal: true });
@@ -29,7 +27,9 @@ export async function readBoundedText(request: Request, maxBytes: number): Promi
   } catch {
     await reader.cancel().catch(() => undefined);
     return { ok: false, status: 400 };
-  } finally { reader.releaseLock(); }
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 /** Lit un corps JSON en refusant ce qui dépasse `maxBytes`. */

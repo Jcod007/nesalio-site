@@ -4,8 +4,9 @@ import { drawableAccents } from "./mathAccents";
 describe("lettres accentuées dans une formule", () => {
   // Leçons réelles du 2026-11-10 : « à TPN », « entités » dans une formule → « MathJax retry », formule non rendue.
   it("écrit la lettre accentuée d'un texte avec l'accent de la police de base", () => {
-    expect(drawableAccents(String.raw`V_m = 22{,}4\ \text{L/mol} \text{ à TPN}`))
-      .toBe(String.raw`V_m = 22{,}4\ \text{L/mol} \text{ }\grave{\text{a}}\text{ TPN}`);
+    expect(drawableAccents(String.raw`V_m = 22{,}4\ \text{L/mol} \text{ à TPN}`)).toBe(
+      String.raw`V_m = 22{,}4\ \text{L/mol} \text{ }\grave{\text{a}}\text{ TPN}`,
+    );
     expect(drawableAccents(String.raw`\text{entités}`)).toBe(String.raw`\text{entit}\acute{\text{e}}\text{s}`);
     expect(drawableAccents(String.raw`\mathrm{Énergie}`)).toBe(String.raw`\mathrm{}\acute{\mathrm{E}}\mathrm{nergie}`);
   });

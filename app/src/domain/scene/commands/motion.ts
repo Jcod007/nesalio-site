@@ -6,16 +6,7 @@
  */
 import { z } from "zod";
 import { bodyBox, boxCenter, boxExtent, followAnchors, makeWay, nodeBox, placeBeside, placeLabel, placeText, reflowCalc, union } from "@/domain/board/layout";
-import {
-  anchoredTo,
-  isVisible,
-  moveNodes,
-  putNode,
-  resolveTargets,
-  type BoardNode,
-  type BoardState,
-  type Vec2,
-} from "@/domain/board/state";
+import { anchoredTo, isVisible, moveNodes, putNode, resolveTargets, type BoardNode, type BoardState, type Vec2 } from "@/domain/board/state";
 import { BoardText, ColorName, Coord, Expression, finite, Id, Range, Side } from "../primitives";
 import { sampleParametric } from "@/domain/board/geometry";
 import { rotate } from "@/domain/board/shapes";
@@ -83,7 +74,7 @@ export const moveCommand = defineCommand({
     '{"type":"move","target":"w","onto":"v"} : la queue de w glisse sur la pointe de v (bout à bout, sans calcul ;\n' +
     '  "ontoPart":"tail|tip|center" pour viser la queue ou le centre). Ou "by":[dx,dy], "to":[x,y] (nouveau centre),\n' +
     '  "near":"B","side":"left". Marche pour un objet ou un groupe ; ses textes ancrés suivent.\n' +
-    '  Plusieurs move du même objet dans une étape s\'enchaînent (aller, puis retour).',
+    "  Plusieurs move du même objet dans une étape s'enchaînent (aller, puis retour).",
   duration: 900,
   aliases: ["shift", "translate", "slide"],
   apply(state, action, reveal) {
@@ -111,8 +102,8 @@ export const copyCommand = defineCommand({
     .refine(oneDestination, { message: "copy : indiquer un seul de to, by, near ou onto" }),
   doc:
     '{"type":"copy","target":"lx","id":"lx2","near":"eq","side":"left"} : une copie se détache de l\'objet et glisse\n' +
-    '  jusqu\'à sa destination (mêmes destinations que move) ; l\'original reste. Pour faire voir d\'où vient un nombre\n' +
-    '  (la composante −2 part dans l\'équation) ou dupliquer un vecteur avant de le déplacer. Sans destination,\n' +
+    "  jusqu'à sa destination (mêmes destinations que move) ; l'original reste. Pour faire voir d'où vient un nombre\n" +
+    "  (la composante −2 part dans l'équation) ou dupliquer un vecteur avant de le déplacer. Sans destination,\n" +
     '  la copie reste sur l\'original (pour la faire tourner ensuite avec "rotate").',
   duration: 900,
   aliases: ["duplicate", "clone"],
@@ -120,7 +111,9 @@ export const copyCommand = defineCommand({
     if (isVisible(state.nodes[action.id])) return state; // identifiant déjà pris
     const sources = resolveTargets(state, action.target);
     if (sources.length === 0) return state;
-    const delta = [action.to, action.by, action.near, action.onto].every((v) => v === undefined) ? ([0, 0] as Vec2) : destinationDelta(state, sources, action, []);
+    const delta = [action.to, action.by, action.near, action.onto].every((v) => v === undefined)
+      ? ([0, 0] as Vec2)
+      : destinationDelta(state, sources, action, []);
     if (!delta) return state;
 
     // La copie apparaît d'un coup sur l'original (invisible), puis s'en détache.
@@ -190,8 +183,8 @@ export const rotateCommand = defineCommand({
   schema: z.object({ type: z.literal("rotate"), target: Id, about: Pivot, angle: finite.refine((a) => Math.abs(a) <= 720) }),
   doc:
     '{"type":"rotate","target":"corde","about":"O","angle":-30} : fait tourner un objet ou un groupe autour d\'un point\n' +
-    '  (nom d\'un point, ou [x,y]) ; angle en degrés, positif = sens antihoraire. Plusieurs rotate du même objet dans une\n' +
-    '  étape s\'enchaînent : un pendule qui oscille, un vecteur qui tourne, une figure qu\'on retourne.',
+    "  (nom d'un point, ou [x,y]) ; angle en degrés, positif = sens antihoraire. Plusieurs rotate du même objet dans une\n" +
+    "  étape s'enchaînent : un pendule qui oscille, un vecteur qui tourne, une figure qu'on retourne.",
   duration: (action) => Math.min(2200, 500 + Math.abs(action.angle) * 8),
   aliases: ["turn", "spin", "swing"],
   apply(state, action, reveal) {
@@ -232,7 +225,11 @@ const TransformSchema = z
     type: z.literal("transform"),
     target: Id,
     text: BoardText.optional(),
-    rows: z.array(z.array(z.string().trim().min(1).max(12)).min(1).max(4)).min(1).max(4).optional(),
+    rows: z
+      .array(z.array(z.string().trim().min(1).max(12)).min(1).max(4))
+      .min(1)
+      .max(4)
+      .optional(),
     fn: Expression.optional(),
     at: Coord.optional(),
     from: Coord.optional(),

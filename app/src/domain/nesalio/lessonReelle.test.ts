@@ -11,7 +11,14 @@ import { normalizeSlice } from "./normalize";
 import { sceneBounds, visibleArea, type SceneState } from "./sceneState";
 import { validateLesson, validateModelOutput, type ValidationState } from "./validate";
 
-const clip: NesalioClip = { durationMs: 2_000, cues: new Map(), async play(draw) { draw(2_000); }, dispose() {} };
+const clip: NesalioClip = {
+  durationMs: 2_000,
+  cues: new Map(),
+  async play(draw) {
+    draw(2_000);
+  },
+  dispose() {},
+};
 
 /** The tranches as the generator would accept them (normalized one by one), played to the end of the last one. */
 async function play(count: number): Promise<SceneState> {
@@ -28,14 +35,20 @@ async function play(count: number): Promise<SceneState> {
   if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues.slice(0, 2)));
   let last: NesalioFrame | undefined;
   await playNesalioLesson(lesson.value, {
-    viewport: { x0: -8, y0: -4.5, x1: 8, y1: 4.5 }, signal: new AbortController().signal, wait: async () => {},
-    openClip: async () => clip, onFrame: (frame) => { last = frame; },
+    viewport: { x0: -8, y0: -4.5, x1: 8, y1: 4.5 },
+    signal: new AbortController().signal,
+    wait: async () => {},
+    openClip: async () => clip,
+    onFrame: (frame) => {
+      last = frame;
+    },
   });
   return last!.scene;
 }
 
 const inside = (scene: SceneState, id: string) => {
-  const view = visibleArea(scene), box = sceneBounds(scene, [id], "render_bounds")!;
+  const view = visibleArea(scene),
+    box = sceneBounds(scene, [id], "render_bounds")!;
   return box.x0 >= view.x0 - 1e-6 && box.x1 <= view.x1 + 1e-6 && box.y0 >= view.y0 - 1e-6 && box.y1 <= view.y1 + 1e-6;
 };
 
@@ -50,7 +63,8 @@ describe("leçon réelle « zéros de f(x) = −(x − 2)² + 3 »", () => {
 
   it("pose l'étiquette d'un zéro à côté de son point quand un côté est libre", async () => {
     const scene = await play(3);
-    const label = sceneBounds(scene, ["lab_z2"], "render_bounds")!, point = sceneBounds(scene, ["z2"], "render_bounds")!;
+    const label = sceneBounds(scene, ["lab_z2"], "render_bounds")!,
+      point = sceneBounds(scene, ["z2"], "render_bounds")!;
     expect(scene.objects.get("lab_z2")!.leader).toBeUndefined();
     const distance = Math.max(label.x0 - point.x1, point.x0 - label.x1, label.y0 - point.y1, point.y0 - label.y1, 0);
     expect(distance).toBeLessThan(0.5);

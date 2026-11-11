@@ -18,8 +18,13 @@ const BANC = new URL("../../../analyses/banc/", import.meta.url);
 function lessons() {
   const root = fileURLToPath(BANC);
   if (!existsSync(root)) return [];
-  return readdirSync(root).filter((dir) => /^(c3|ap|m)-/.test(dir)).flatMap((dir) =>
-    readdirSync(join(root, dir)).filter((file) => /-t\d+\.json$/.test(file)).map((file) => ({ id: `${dir}/${file}`, path: join(root, dir, file) })));
+  return readdirSync(root)
+    .filter((dir) => /^(c3|ap|m)-/.test(dir))
+    .flatMap((dir) =>
+      readdirSync(join(root, dir))
+        .filter((file) => /-t\d+\.json$/.test(file))
+        .map((file) => ({ id: `${dir}/${file}`, path: join(root, dir, file) })),
+    );
 }
 
 describe.skipIf(!process.env.CONTROLES)("contrôles de justesse rejoués sur le banc", () => {
@@ -29,14 +34,22 @@ describe.skipIf(!process.env.CONTROLES)("contrôles de justesse rejoués sur le 
     let invalid = 0;
     for (const { id, path } of lessons()) {
       let lesson;
-      try { lesson = JSON.parse(readFileSync(path, "utf8")); } catch { continue; }
+      try {
+        lesson = JSON.parse(readFileSync(path, "utf8"));
+      } catch {
+        continue;
+      }
       if (!Array.isArray(lesson?.slices) || !lesson.slices.length) continue;
       // The saved lesson must keep loading as it is.
       const saved = validateLesson(lesson);
-      if (!saved.ok) { invalid++; detail.push({ id, invalid: saved.issues.slice(0, 3) }); continue; }
+      if (!saved.ok) {
+        invalid++;
+        detail.push({ id, invalid: saved.issues.slice(0, 3) });
+        continue;
+      }
       // Tranche by tranche, as the generator checks them.
       const alerts = [];
-      let state = undefined;
+      let state;
       for (const slice of saved.value.slices) {
         const result = checkCoherence([slice], saved.state.math, state);
         state = result.state;
@@ -45,11 +58,18 @@ describe.skipIf(!process.env.CONTROLES)("contrôles de justesse rejoués sur le 
       for (const alert of alerts) {
         const key = `${alert.rule}:${alert.outcome}`;
         counts[key] = (counts[key] ?? 0) + 1;
-        if (alert.outcome !== "noted" || process.env.NOTES) detail.push({ id, rule: alert.rule, outcome: alert.outcome, object: alert.object, message: alert.message });
+        if (alert.outcome !== "noted" || process.env.NOTES)
+          detail.push({ id, rule: alert.rule, outcome: alert.outcome, object: alert.object, message: alert.message });
       }
     }
-    const lines = [JSON.stringify({ lecons: lessons().length, invalides: invalid, compte: counts }, null, 1),
-      ...detail.map((entry) => entry.invalid ? `INVALIDE ${entry.id} ${JSON.stringify(entry.invalid)}` : `${entry.outcome.padEnd(9)} ${entry.rule.padEnd(18)} ${entry.id} — ${entry.message}`)];
+    const lines = [
+      JSON.stringify({ lecons: lessons().length, invalides: invalid, compte: counts }, null, 1),
+      ...detail.map((entry) =>
+        entry.invalid
+          ? `INVALIDE ${entry.id} ${JSON.stringify(entry.invalid)}`
+          : `${entry.outcome.padEnd(9)} ${entry.rule.padEnd(18)} ${entry.id} — ${entry.message}`,
+      ),
+    ];
     console.log(lines.join("\n"));
     if (process.env.SORTIE) writeFileSync(process.env.SORTIE, lines.join("\n"));
   });

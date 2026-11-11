@@ -3,7 +3,14 @@
 Cette intégration utilise le SDK officiel Clerk 7.9.24. Les comptes et leurs
 courriels sont gérés par Clerk. L'application ne fabrique pas les codes, ne
 stocke pas de mots de passe et ne reçoit pas les clés secrètes dans le navigateur.
-Le site vitrine reste public. Le tuteur et ses API exigent un compte connecté.
+Le site vitrine et Nesalio sont accessibles sans compte. Les trois premières
+leçons (`/api/nesalio`, une leçon = une demande) forment un essai borné ; un compte
+connecté est ensuite requis. La transcription reste réservée aux comptes ; les invités
+écrivent leur question (la reconnaissance vocale du navigateur n'est plus utilisée :
+elle enverrait la voix de l'élève à Google, Apple ou Microsoft).
+
+Depuis la fusion du 2026-11-10, « le tuteur » désigne Nesalio : l'ancien tuteur
+(`/api/tutor`) est retiré ; l'essai, ses plafonds et la voix s'appliquent à Nesalio.
 
 ## Activation
 
@@ -37,14 +44,15 @@ Le site vitrine reste public. Le tuteur et ses API exigent un compte connecté.
 
 ## Contrôles mis en place
 
-- Vérification de session côté serveur sur la page du tuteur et **chaque**
-  opération `/api/tutor`, `/api/voice`, `/api/transcribe`, `/api/feedback`,
-  `/api/apres-essai`, avant lecture du corps et avant appel payant.
+- Vérification de session et de l’origine avant lecture du corps. Un invité
+  dispose de trois demandes valides au tuteur ; les réservations persistantes
+  sont faites après validation et avant génération. `/api/transcribe` reste
+  strictement réservé aux comptes. Les diagnostics et données privées restent protégés.
 - Seuls les jetons de session sont acceptés ; aucune identité transmise dans
   les données ou en-têtes du navigateur n'est utilisée comme preuve de connexion.
 - Rejet des origines non autorisées et des requêtes signalées `cross-site`.
 - Refus sans configuration ou en cas d'erreur du fournisseur (503) ; une session
-  absente donne 401. Le tuteur garde son protocole d'erreurs NDJSON.
+  absente sans essai disponible donne 401. Le tuteur garde son protocole d'erreurs NDJSON.
 - Limites locales rattachées à l'identité vérifiée : changer l'identifiant
   de navigation ne remet plus le quota du compte à zéro.
 - Réponses de refus non mises en cache. Redirection après connexion imposée
@@ -60,7 +68,10 @@ Le site vitrine reste public. Le tuteur et ses API exigent un compte connecté.
 - Inscription d'un véritable compte de test, réception et validation d'un code.
 - Rejet d'un code incorrect, expiré ou réutilisé ; protection des renvois répétés.
 - Connexion, déconnexion, session expirée puis reconnexion.
-- Requêtes API anonymes ou expirées refusées sans appel aux fournisseurs payants.
+- Trois réponses invitées acceptées, quatrième refusée avant génération ;
+  limite conservée au rafraîchissement et sous requêtes concurrentes.
+- Rejet des témoins falsifiés, des origines étrangères et des erreurs de stockage.
+- Compte connecté autorisé à continuer sans remettre les compteurs invités à zéro.
 - Une séance réelle, micro, voix, tableau et reprise après interruption, connecté.
 - Un compte de test distinct pour vérifier les permissions si un historique est ajouté.
 - Pas d'ouverture d'accès aux séances par l'identifiant de navigation ou le paramètre `ref`.
@@ -70,11 +81,43 @@ Les tests locaux couvrent les refus, la configuration absente, les origines,
 les identités forgées et les cinq opérations protégées. Le parcours complet
 par courriel doit être testé avec une instance Clerk réellement configurée.
 
+## Essai sans compte
+
+Définir `TRIAL_COOKIE_SECRET` (au moins 32 octets aléatoires, secret serveur)
+et conserver le magasin Blob privé existant. Les compteurs utilisent des lectures
+sans cache et des écritures conditionnelles par ETag : aucune limite en mémoire
+n’autorise les appels d’essai. Les espaces production, preview et développement
+sont isolés. Une panne du magasin refuse les appels payants.
+
+Le témoin `__Host-nesalio_trial` est signé, `HttpOnly`, `Secure`, `SameSite=Lax`,
+sans domaine explicite, avec une durée de 30 jours. La limite porte sur trois
+demandes valides réservées avant génération : une génération interrompue peut
+consommer une réponse ; les entrées invalides ne la consomment pas. Après la
+limite, le tableau reste monté ; l’élève se connecte dans la fenêtre Clerk,
+puis choisit explicitement « Continuer ma séance ». Aucun appel payant n’est
+relancé automatiquement après connexion.
+
+Autres plafonds invités : 48 synthèses vocales de 400 caractères au plus, dans
+les 10 minutes suivant une réponse, et 4 envois de commentaires. La voix du
+navigateur reste le secours. La transcription serveur reste réservée aux comptes.
+Les plafonds journaliers limitent aussi les nouveaux essais et les appels par
+empreinte IP HMAC et au total (100 réservations de tuteur par environnement).
+L’IP brute n’est jamais écrite dans ces compteurs. Les identifiants fournis par
+le navigateur ne remplacent pas le témoin signé.
+
+Ces plafonds rendent le coût invité borné mais ne constituent pas une mesure
+exacte des dépenses du fournisseur. Les écritures et lectures Blob consomment
+le quota de stockage existant. Effacer les témoins ou changer de réseau peut
+permettre un nouvel essai sous les plafonds globaux : ce n’est pas une identité.
+Le nettoyage quotidien supprime les compteurs journaliers anciens (7 jours)
+et les enregistrements d’essai anciens (31 jours depuis leur dernière écriture).
+
 ## Limites qui restent à traiter
 
-Le limiteur d'usage est encore **en mémoire par instance serveur**. Avant une
-ouverture large, utiliser un compteur partagé avec quota par compte et plafond
-global de dépense, plus une limite de concurrence. Un compte ne suffit pas
+Les limites des comptes connectés restent **en mémoire par instance serveur**.
+Les invités ont maintenant leurs compteurs partagés ; avant une ouverture large,
+étendre les quotas partagés et le budget global aux comptes connectés, avec
+une limite de concurrence. Un compte ne suffit pas
 à empêcher les abus ou la création de comptes multiples.
 
 Cette première intégration ne crée pas d'historique personnel ni de lien

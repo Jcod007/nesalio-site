@@ -12,7 +12,7 @@ import { recordEnv, saveTurn } from "@/server/sessionStore";
 import { encodeLine } from "@/domain/tutor/ndjson";
 import { readAiConfig, readReviewer } from "@/server/config";
 import { readBoundedText } from "@/server/http";
-import { requireAccount } from "@/server/account";
+import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess";
 import { createSessionLimits } from "@/server/rateLimit";
 import { generateNesalio, type NesalioEvent } from "@/server/nesalio/generator";
 import { createSliceReviewer } from "@/server/nesalio/review";
@@ -38,22 +38,31 @@ function single(event: NesalioEvent | { kind: "error"; code: string; message: st
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const access = await requireAccount(request, true);
+  // Signed-in student, or a guest within the bounded trial: one lesson is one trial turn (usageAccess.ts).
+  const access = await identifyUsage(request, true);
   if (!access.ok) return access.response;
   const limit = limiter.check(request.headers, undefined, access.userId);
   if (!limit.allowed) {
-    return single({ kind: "error", code: "rate_limited", message: "Tu as posé beaucoup de questions d'un coup. Réessaie dans quelques minutes." },
-      429, { "Retry-After": String(limit.retryAfterSeconds) });
+    return single({ kind: "error", code: "rate_limited", message: "Tu as posé beaucoup de questions d'un coup. Réessaie dans quelques minutes." }, 429, {
+      "Retry-After": String(limit.retryAfterSeconds),
+    });
   }
   const raw = await readBoundedText(request, 4_000);
   if (!raw.ok) return single({ kind: "error", code: "bad_request", message: "Question trop longue ou illisible." }, raw.status);
   let body: unknown;
-  try { body = JSON.parse(raw.text); } catch { body = null; }
+  try {
+    body = JSON.parse(raw.text);
+  } catch {
+    body = null;
+  }
   const parsed = Body.safeParse(body);
   if (!parsed.success) return single({ kind: "error", code: "bad_request", message: "Question invalide." }, 400);
 
   const config = readAiConfig(request.headers);
   if (!config.chat) return single({ kind: "error", code: "upstream", message: "Le modèle n'est pas configuré." }, 503);
+  // Reserved only now: a refused or invalid question does not use up a trial turn.
+  const permit = await reserveUsage(request, access, "tutor", true);
+  if (!permit.ok) return permit.response;
 
   // Reviewer of substance (review.ts): on by default, NESALIO_RELECTEUR=0 turns it off.
   const reviewer = readReviewer(request.headers);
@@ -111,5 +120,5 @@ export async function POST(request: Request): Promise<Response> {
       await keeper?.finish("élève parti avant la fin");
     },
   });
-  return new Response(stream, { status: 200, headers: NDJSON_HEADERS });
+  return usageResponse(new Response(stream, { status: 200, headers: NDJSON_HEADERS }), permit);
 }

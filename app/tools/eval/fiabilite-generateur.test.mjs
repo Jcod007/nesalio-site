@@ -46,21 +46,33 @@ async function run(question, round, out, label) {
   const completion = (options) => {
     const index = calls.push("") - 1;
     return (async function* () {
-      for await (const chunk of streamChatCompletion(options)) { calls[index] += chunk; yield chunk; }
+      for await (const chunk of streamChatCompletion(options)) {
+        calls[index] += chunk;
+        yield chunk;
+      }
     })();
   };
   const provider = {
-    name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
-    apiKey: gatewayToken(), model: process.env.TUTOR_MODEL?.trim() || DEFAULTS.gatewayModel,
-    reasoningEffort: "low", firstTurnEffort: DEFAULTS.firstTurnEffort,
+    name: "gateway",
+    protocol: "openai",
+    endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
+    apiKey: gatewayToken(),
+    model: process.env.TUTOR_MODEL?.trim() || DEFAULTS.gatewayModel,
+    reasoningEffort: "low",
+    firstTurnEffort: DEFAULTS.firstTurnEffort,
   };
   let thrown;
   try {
     for await (const event of generateNesalio(question.ask, {
-      provider, completion,
-      log: (message, detail) => logs.push(`${message} ${typeof detail === "string" ? detail : detail instanceof Error ? `${detail.name}: ${detail.message}` : JSON.stringify(detail)}`),
-    })) events.push(event.kind === "slice" ? { kind: "slice", id: event.slice.slice_id } : event.kind === "lesson" ? { kind: "lesson" } : event);
-  } catch (error) { thrown = String(error); }
+      provider,
+      completion,
+      log: (message, detail) =>
+        logs.push(`${message} ${typeof detail === "string" ? detail : detail instanceof Error ? `${detail.name}: ${detail.message}` : JSON.stringify(detail)}`),
+    }))
+      events.push(event.kind === "slice" ? { kind: "slice", id: event.slice.slice_id } : event.kind === "lesson" ? { kind: "lesson" } : event);
+  } catch (error) {
+    thrown = String(error);
+  }
   calls.forEach((raw, i) => writeFileSync(join(out, `${label}-${question.id}-${round}-appel${i + 1}.brut.txt`), raw));
   const last = events.at(-1);
   const slices = events.filter((e) => e.kind === "slice").length;
@@ -69,7 +81,15 @@ async function run(question, round, out, label) {
   const normalized = logs.filter((l) => l.startsWith("nesalio: tranche réparée sans appel"));
   // The generator logs when it gives up. (The « avant » run predates that log: there, two refusals meant a stop.)
   const stoppedOnRefusal = logs.some((l) => l.startsWith("nesalio: leçon arrêtée"));
-  const outcome = thrown ? "exception" : last?.kind === "error" ? `erreur ${last.code}` : stoppedOnRefusal ? "arrêtée sur refus" : last?.kind === "end" ? "complète" : "sans fin";
+  const outcome = thrown
+    ? "exception"
+    : last?.kind === "error"
+      ? `erreur ${last.code}`
+      : stoppedOnRefusal
+        ? "arrêtée sur refus"
+        : last?.kind === "end"
+          ? "complète"
+          : "sans fin";
   return { id: question.id, round, outcome, slices, calls: calls.length, ms: Date.now() - started, refusals, unreadable, normalized, logs, events, thrown };
 }
 
@@ -85,14 +105,18 @@ describe.runIf(process.env.FIABILITE === "1")("fiabilité du générateur Nesali
     for (let round = 1; round <= rounds; round++) for (const q of QUESTIONS) if (!only || only.includes(q.id)) jobs.push([q, round]);
     const results = [];
     let next = 0;
-    await Promise.all(Array.from({ length: parallel }, async () => {
-      while (next < jobs.length) {
-        const [q, round] = jobs[next++];
-        const result = await run(q, round, out, label);
-        results.push(result);
-        console.log(`${q.id}#${round} : ${result.outcome}, ${result.slices} tranches, ${result.refusals.length} refus, ${result.unreadable.length} illisibles, ${result.normalized.length} réparées sans appel`);
-      }
-    }));
+    await Promise.all(
+      Array.from({ length: parallel }, async () => {
+        while (next < jobs.length) {
+          const [q, round] = jobs[next++];
+          const result = await run(q, round, out, label);
+          results.push(result);
+          console.log(
+            `${q.id}#${round} : ${result.outcome}, ${result.slices} tranches, ${result.refusals.length} refus, ${result.unreadable.length} illisibles, ${result.normalized.length} réparées sans appel`,
+          );
+        }
+      }),
+    );
     results.sort((a, b) => a.id.localeCompare(b.id) || a.round - b.round);
     const outcomes = {};
     const causes = {};
@@ -103,8 +127,14 @@ describe.runIf(process.env.FIABILITE === "1")("fiabilité du générateur Nesali
         for (const c of new Set(line.split(" | ").map(cause))) causes[c] = (causes[c] ?? 0) + 1;
       }
     }
-    const summary = { label, model: process.env.TUTOR_MODEL?.trim() || DEFAULTS.gatewayModel, total: results.length,
-      complete: outcomes["complète"] ?? 0, outcomes, causes };
+    const summary = {
+      label,
+      model: process.env.TUTOR_MODEL?.trim() || DEFAULTS.gatewayModel,
+      total: results.length,
+      complete: outcomes["complète"] ?? 0,
+      outcomes,
+      causes,
+    };
     writeFileSync(join(out, `${label}.json`), JSON.stringify({ summary, results }, null, 2));
     console.log(JSON.stringify(summary, null, 2));
   });

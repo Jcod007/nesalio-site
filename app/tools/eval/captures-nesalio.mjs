@@ -36,7 +36,9 @@ async function play(job) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(String(error)));
-  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
   await page.goto(url.href, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.waitForSelector("#nesalio-lesson:not([disabled])", { timeout: 60_000 });
   await page.waitForTimeout(1500);
@@ -50,11 +52,21 @@ async function play(job) {
   const started = Date.now();
   const passages = [];
   const shots = [];
-  let caption = "", nextShot = 0, status = "";
+  let caption = "",
+    nextShot = 0,
+    status = "";
   const limit = started + 8 * 60_000;
   for (;;) {
-    status = (await page.getByRole("status").textContent().catch(() => "")) ?? "";
-    const text = (await page.locator("main p[aria-live=polite]").textContent().catch(() => "")) ?? "";
+    status =
+      (await page
+        .getByRole("status")
+        .textContent()
+        .catch(() => "")) ?? "";
+    const text =
+      (await page
+        .locator("main p[aria-live=polite]")
+        .textContent()
+        .catch(() => "")) ?? "";
     const elapsed = Date.now() - started;
     if (text && text !== caption) {
       caption = text;
@@ -74,16 +86,30 @@ async function play(job) {
     await page.waitForTimeout(100);
   }
   const alert = (await page.locator("main p[role=alert]").count()) ? await page.locator("main p[role=alert]").textContent() : null;
-  const warnings = await page.locator("ul[aria-label='Avertissements de lecture'] li").allTextContents().catch(() => []);
-  writeFileSync(join(out, "passages.json"), JSON.stringify({ job, status, alert, warnings, errors, seconds: Math.round((Date.now() - started) / 1000), passages, shots }, null, 1));
+  const warnings = await page
+    .locator("ul[aria-label='Avertissements de lecture'] li")
+    .allTextContents()
+    .catch(() => []);
+  writeFileSync(
+    join(out, "passages.json"),
+    JSON.stringify({ job, status, alert, warnings, errors, seconds: Math.round((Date.now() - started) / 1000), passages, shots }, null, 1),
+  );
   await context.close();
-  console.log(`${job.name} : ${status}${alert ? ` — ALERTE ${alert}` : ""} (${shots.length} captures, ${warnings.length} avertissements, ${errors.length} erreurs)`);
+  console.log(
+    `${job.name} : ${status}${alert ? ` — ALERTE ${alert}` : ""} (${shots.length} captures, ${warnings.length} avertissements, ${errors.length} erreurs)`,
+  );
 }
 
 const queue = [...jobs];
-await Promise.all(Array.from({ length: Number(process.env.PARALLELE ?? 3) }, async () => {
-  for (let job = queue.shift(); job; job = queue.shift()) {
-    try { await play(job); } catch (error) { console.log(`${job.name} : ÉCHEC ${String(error).slice(0, 200)}`); }
-  }
-}));
+await Promise.all(
+  Array.from({ length: Number(process.env.PARALLELE ?? 3) }, async () => {
+    for (let job = queue.shift(); job; job = queue.shift()) {
+      try {
+        await play(job);
+      } catch (error) {
+        console.log(`${job.name} : ÉCHEC ${String(error).slice(0, 200)}`);
+      }
+    }
+  }),
+);
 await browser.close();

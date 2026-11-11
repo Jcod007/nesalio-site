@@ -14,7 +14,10 @@ describe.runIf(process.env.PROMPT_EXPORT === "1")("export du prompt Nesalio", ()
     const prompt = buildNesalioSystemPrompt();
     const out = process.env.PROMPT_EXPORT_SORTIE ?? join(process.cwd(), "../analyses/prompt-nesalio.md");
     const words = prompt.split(/\s+/).length;
-    writeFileSync(out, `<!-- Généré depuis app/src/server/nesalio/prompt.ts — ${prompt.length} caractères, ${words} mots, environ ${Math.round(prompt.length / 3.5)} tokens -->\n\n${prompt}\n`);
+    writeFileSync(
+      out,
+      `<!-- Généré depuis app/src/server/nesalio/prompt.ts — ${prompt.length} caractères, ${words} mots, environ ${Math.round(prompt.length / 3.5)} tokens -->\n\n${prompt}\n`,
+    );
     console.log(out, prompt.length, words);
   });
 });

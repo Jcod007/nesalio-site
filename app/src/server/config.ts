@@ -89,7 +89,11 @@ export function readReviewer(headers: Headers, env: NodeJS.ProcessEnv = process.
   if (!gatewayToken) return null;
   const model = env.NESALIO_RELECTEUR_MODELE?.trim() || DEFAULT_REVIEWER_MODEL;
   return {
-    name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: gatewayToken, model,
+    name: "gateway",
+    protocol: "openai",
+    endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
+    apiKey: gatewayToken,
+    model,
     // Claude relit sans réflexion (2,5 s par leçon) ; un autre modèle prend NESALIO_RELECTEUR_EFFORT (ex. low).
     ...(parseEffort(env.NESALIO_RELECTEUR_EFFORT) ? { reasoningEffort: parseEffort(env.NESALIO_RELECTEUR_EFFORT) } : {}),
   };
@@ -102,8 +106,7 @@ export function parseEffort(value: string | null | undefined): ReasoningEffort |
 
 /** Lit la configuration pour une requête (le jeton OIDC arrive dans ses en-têtes). */
 export function readAiConfig(headers: Headers, env: NodeJS.ProcessEnv = process.env): AiConfig {
-  const gatewayToken =
-    env.AI_GATEWAY_API_KEY?.trim() || headers.get("x-vercel-oidc-token") || env.VERCEL_OIDC_TOKEN?.trim() || null;
+  const gatewayToken = env.AI_GATEWAY_API_KEY?.trim() || headers.get("x-vercel-oidc-token") || env.VERCEL_OIDC_TOKEN?.trim() || null;
   const openRouterKey = env.OPENROUTER_API_KEY?.trim();
   const anthropicKey = env.ANTHROPIC_API_KEY?.trim();
   const modelOverride = env.TUTOR_MODEL?.trim() || env.OPENROUTER_MODEL?.trim();

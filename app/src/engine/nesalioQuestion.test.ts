@@ -11,10 +11,14 @@ const frame = { scene: { objects: new Map() } } as unknown as NesalioFrame;
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const question: LessonQuestion = {
-  id: "q1", after: "s1",
+  id: "q1",
+  after: "s1",
   check: {
-    prompt: "Avec 2 mol de N₂ et 3 mol de H₂, lequel s'épuise en premier ?", choices: ["N₂", "H₂"], answer: 1,
-    ifRight: "Oui : 3 ÷ 3 = 1, c'est le plus petit.", ifWrong: "Pas tout à fait.",
+    prompt: "Avec 2 mol de N₂ et 3 mol de H₂, lequel s'épuise en premier ?",
+    choices: ["N₂", "H₂"],
+    answer: 1,
+    ifRight: "Oui : 3 ÷ 3 = 1, c'est le plus petit.",
+    ifWrong: "Pas tout à fait.",
     why: ["tu as comparé les quantités sans les diviser par les coefficients", ""],
   },
 };
@@ -23,7 +27,14 @@ const question: LessonQuestion = {
 function session() {
   const played: string[] = [];
   const deps: SessionDeps = {
-    open: async () => ({ header, slices: (async function* () { yield slice("s1"); yield slice("s2"); })(), questions: new Map([["s1", question]]) }),
+    open: async () => ({
+      header,
+      slices: (async function* () {
+        yield slice("s1");
+        yield slice("s2");
+      })(),
+      questions: new Map([["s1", question]]),
+    }),
     async play(_header, slices, play) {
       for await (const s of slices) {
         play.onFrame(frame, s.beats[0]!);
@@ -40,7 +51,8 @@ describe("questions à l'élève pendant une leçon", () => {
   it("arrête la leçon après la tranche, attend la réponse, puis continue", async () => {
     const { session: s, played } = session();
     const done = s.ask("C'est quoi le réactif limitant ?");
-    await tick(); await tick();
+    await tick();
+    await tick();
     expect(played).toEqual(["s1"]);
     expect(s.getSnapshot().asking).toMatchObject({ prompt: question.check.prompt, choices: ["N₂", "H₂"], solved: null });
     s.continueLesson(); // Not answered yet: nothing moves.
@@ -57,10 +69,15 @@ describe("questions à l'élève pendant une leçon", () => {
   it("nomme l'erreur d'un mauvais choix, laisse une seconde chance, puis montre la réponse", async () => {
     const { session: s } = session();
     void s.ask("Question");
-    await tick(); await tick();
+    await tick();
+    await tick();
     s.answer(0);
-    expect(s.getSnapshot().asking).toMatchObject({ wrong: [0], solved: null, right: false,
-      feedback: "Pas tout à fait. Tu as comparé les quantités sans les diviser par les coefficients." });
+    expect(s.getSnapshot().asking).toMatchObject({
+      wrong: [0],
+      solved: null,
+      right: false,
+      feedback: "Pas tout à fait. Tu as comparé les quantités sans les diviser par les coefficients.",
+    });
     s.answer(0); // Already tried: ignored.
     expect(s.getSnapshot().asking!.wrong).toEqual([0]);
     s.answer(1);
@@ -71,7 +88,8 @@ describe("questions à l'élève pendant une leçon", () => {
   it("libère la lecture quand l'élève quitte pendant la question", async () => {
     const { session: s } = session();
     const done = s.ask("Question");
-    await tick(); await tick();
+    await tick();
+    await tick();
     s.stop();
     await done;
     expect(s.getSnapshot()).toMatchObject({ status: "idle", asking: null });

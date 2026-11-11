@@ -27,12 +27,17 @@ export function simulatedTimings(beat: Pick<Beat, "say" | "cues">): { durationMs
 export async function openSimulatedClip(beat: Beat): Promise<NesalioClip> {
   const { durationMs, cues } = simulatedTimings(beat);
   return {
-    durationMs, cues, dispose() {},
+    durationMs,
+    cues,
+    dispose() {},
     play(draw, signal) {
       return new Promise((resolve, reject) => {
         const begin = performance.now();
         const tick = () => {
-          if (signal.aborted) { reject(signal.reason ?? new Error("arrêté")); return; }
+          if (signal.aborted) {
+            reject(signal.reason ?? new Error("arrêté"));
+            return;
+          }
           const playhead = Math.min(durationMs, performance.now() - begin);
           draw(playhead);
           if (playhead >= durationMs) resolve();

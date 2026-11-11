@@ -7,9 +7,33 @@ import type { LessonDocument, LessonHeader } from "@/domain/nesalio/lesson";
 import { parametersOf } from "@/domain/nesalio/measurement";
 import { sampleBeat, scheduleBeat, type BeatSchedule, type CueTiming, type ScheduledAction } from "@/domain/nesalio/scheduler";
 import {
-  beginBeat, cameraView, clearTarget, clearedObjects, createScene, currentId, inside, keptInView, moveShift, shiftObjects, fitSceneCamera, introduceSlice, partVisible, revealPart, sceneBounds, setDimmed,
-  setParameter, setVisibility, symbolValues,
-  CAMERA_ZOOM, targetObjects, withCameraState, withMathContext, type CameraFrame, type MeasureObject, type SavedCameraFrame, type SceneState,
+  beginBeat,
+  cameraView,
+  clearTarget,
+  clearedObjects,
+  createScene,
+  currentId,
+  inside,
+  keptInView,
+  moveShift,
+  shiftObjects,
+  fitSceneCamera,
+  introduceSlice,
+  partVisible,
+  revealPart,
+  sceneBounds,
+  setDimmed,
+  setParameter,
+  setVisibility,
+  symbolValues,
+  CAMERA_ZOOM,
+  targetObjects,
+  withCameraState,
+  withMathContext,
+  type CameraFrame,
+  type MeasureObject,
+  type SavedCameraFrame,
+  type SceneState,
 } from "@/domain/nesalio/sceneState";
 import type { Box } from "@/domain/nesalio/placement";
 
@@ -52,7 +76,21 @@ export interface NesalioClip {
 /** What this player can execute. The generator's prompt and checks offer nothing beyond it. */
 export const PLAYABLE: Capabilities = {
   objects: schemaCapabilities.objects,
-  actions: new Set(["show", "draw", "write", "highlight", "set_style", "dim", "fade_out", "remove", "transform", "move", "camera.focus", "camera.restore", "animate_parameter"]),
+  actions: new Set([
+    "show",
+    "draw",
+    "write",
+    "highlight",
+    "set_style",
+    "dim",
+    "fade_out",
+    "remove",
+    "transform",
+    "move",
+    "camera.focus",
+    "camera.restore",
+    "animate_parameter",
+  ]),
 };
 const playable = PLAYABLE;
 
@@ -94,7 +132,7 @@ function frameAt(before: NesalioFrame, timeline: readonly ScheduledAction[], pla
   const styles = new Map(before.styles);
   const opacity = new Map<string, number>();
   const morphs = new Map<string, { key: string; target: string; progress: number }>();
-  const restingOpacity = (id: string) => before.scene.objects.get(id)?.dimmed ? DIM_OPACITY : 1;
+  const restingOpacity = (id: string) => (before.scene.objects.get(id)?.dimmed ? DIM_OPACITY : 1);
   for (const { action: written, progress } of sampleBeat(timeline, playhead)) {
     // A formula replaced by a transform is designated by its old name: the gesture goes to the one standing there now.
     const action = redirect(written, scene);
@@ -121,7 +159,7 @@ function frameAt(before: NesalioFrame, timeline: readonly ScheduledAction[], pla
         const lag = action.verb === "show" && action.stagger ? 0.6 : 0;
         ids.forEach((id, index) => {
           if (before.scene.objects.get(id)?.visible || reveals.has(id)) return;
-          const delay = ids.length > 1 ? lag * index / (ids.length - 1) : 0;
+          const delay = ids.length > 1 ? (lag * index) / (ids.length - 1) : 0;
           reveals.set(id, { key: action.id, verb: action.verb, progress: Math.max(0, (progress - delay) / (1 - delay)) });
         });
         break;
@@ -131,9 +169,10 @@ function frameAt(before: NesalioFrame, timeline: readonly ScheduledAction[], pla
           const parts = partHighlights.get(action.target) ?? new Map();
           parts.set(action.part, { role: action.role ?? "accent", progress });
           partHighlights.set(action.target, parts);
-        } else if (progress < 1) for (const id of targetObjects(scene, action.target)) {
-          highlights.set(id, { role: action.role ?? "accent", progress });
-        }
+        } else if (progress < 1)
+          for (const id of targetObjects(scene, action.target)) {
+            highlights.set(id, { role: action.role ?? "accent", progress });
+          }
         break;
       case "set_style":
         for (const id of targetObjects(scene, action.target)) styles.set(id, action.role);
@@ -167,7 +206,8 @@ function frameAt(before: NesalioFrame, timeline: readonly ScheduledAction[], pla
         scene = shiftObjects(scene, planned.ids, [planned.shift[0] * t, planned.shift[1] * t]);
         // Set aside on an edge or in a corner: to be kept in view. Moved elsewhere: an ordinary object again.
         const kept = new Set(scene.kept);
-        if ("to_edge" in action.to || "to_corner" in action.to) kept.add(action.target); else kept.delete(action.target);
+        if ("to_edge" in action.to || "to_corner" in action.to) kept.add(action.target);
+        else kept.delete(action.target);
         scene = { ...scene, kept };
         break;
       }
@@ -200,12 +240,14 @@ function frameAt(before: NesalioFrame, timeline: readonly ScheduledAction[], pla
         if (move.hidden.length) ctx.framing?.set(action.id, `Hors champ pour garder le texte lisible : ${move.hidden.join(", ")}.`);
         const state = progress < 1 ? move.path?.(progress) : undefined;
         scene = withCameraState(scene, {
-          is_animating: state !== undefined, target_state: state ? move.state : null,
+          is_animating: state !== undefined,
+          target_state: state ? move.state : null,
           state: state ?? move.state,
         });
         break;
       }
-      default: throw new Error(`Action inexécutable « ${action.verb} ».`);
+      default:
+        throw new Error(`Action inexécutable « ${action.verb} ».`);
     }
   }
   return { scene, styles, reveals, partReveals, highlights, partHighlights, opacity, morphs };
@@ -218,7 +260,10 @@ function focusPriority(scene: SceneState, targets: readonly string[], timeline: 
   for (const { action: written } of timeline) {
     const action = redirect(written, scene);
     switch (action.verb) {
-      case "show": case "draw": case "write": case "transform":
+      case "show":
+      case "draw":
+      case "write":
+      case "transform":
         for (const id of targetObjects(scene, action.target)) revealed.add(id);
         break;
       case "highlight":
@@ -269,13 +314,17 @@ export const ENGINE_ZOOM_MAX = 1;
 export const FOCUS_PADDING = { xs: 0.97, sm: 0.94, md: 0.9, lg: 0.85, xl: 0.8 } as const;
 
 function planFocus(
-  scene: SceneState, intent: FramingIntent, timing: CameraTiming, priority: readonly string[],
-  { layoutFallback, padding }: Pick<FrameContext, "layoutFallback" | "padding">, fallback?: CameraState, maxZoom = Infinity,
+  scene: SceneState,
+  intent: FramingIntent,
+  timing: CameraTiming,
+  priority: readonly string[],
+  { layoutFallback, padding }: Pick<FrameContext, "layoutFallback" | "padding">,
+  fallback?: CameraState,
+  maxZoom = Infinity,
   leaving: ReadonlySet<string> = new Set(),
 ) {
   // Nothing shown yet: frame the space reserved for what is about to appear.
-  const bounds = intent.bounds
-    ?? (layoutFallback && !sceneBounds(scene, intent.targets, "render_bounds") ? "layout_bounds" : "render_bounds");
+  const bounds = intent.bounds ?? (layoutFallback && !sceneBounds(scene, intent.targets, "render_bounds") ? "layout_bounds" : "render_bounds");
   // What this passage erases is not kept in the frame: framing it would leave the rest small in a blank screen.
   const kept = keptInView(scene).filter((id) => !leaving.has(id));
   const outside = (id: string, state: CameraState) => {
@@ -306,8 +355,9 @@ function planFocus(
   const current = scene.camera.state;
   const destination = scene.camera.target_state ?? current;
   const width = scene.initialViewport.x1 - scene.initialViewport.x0;
-  const close = Math.hypot(target.state.x - destination.x, target.state.y - destination.y) <= 0.02 * width / destination.zoom
-    && Math.abs(Math.log(target.state.zoom / destination.zoom)) <= Math.log(1.03);
+  const close =
+    Math.hypot(target.state.x - destination.x, target.state.y - destination.y) <= (0.02 * width) / destination.zoom &&
+    Math.abs(Math.log(target.state.zoom / destination.zoom)) <= Math.log(1.03);
   if (close && !target.hidden.length && ![...intent.targets, ...kept].some((id) => outside(id, destination))) {
     return { target, duration: 0 };
   }
@@ -338,8 +388,12 @@ type MakeSchedule = (duration: (action: Action) => number) => BeatSchedule;
  * at a readable size (the following then frames each object as before).
  */
 function anticipate(
-  before: NesalioFrame, timeline: readonly ScheduledAction[], sliceObjects: readonly string[], clipEnd: number,
-  ctx: FrameContext, quiet: FrameContext,
+  before: NesalioFrame,
+  timeline: readonly ScheduledAction[],
+  sliceObjects: readonly string[],
+  clipEnd: number,
+  ctx: FrameContext,
+  quiet: FrameContext,
   add: (follow: Focus, entry: ScheduledAction, plan: { move: CameraMove; duration: number }) => void,
 ): void {
   if (clipEnd <= 0 || timeline.some(({ action }) => action.verb === "camera.focus" || action.verb === "camera.restore")) return;
@@ -380,7 +434,9 @@ function anticipate(
   const shownBox = (state: CameraState) => {
     const seen = cameraView(scene, state);
     const boxes = [...onBoard, ...ids].map((id) => sceneBounds(scene, [id], "layout_bounds")).filter((b): b is Box => b !== null && overlaps(b, seen));
-    return boxes.length ? boxes.reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) })) : null;
+    return boxes.length
+      ? boxes.reduce((a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) }))
+      : null;
   };
   /** How far the picture is from a good composition (0 when it is good). */
   const flaw = (state: CameraState) => {
@@ -406,16 +462,30 @@ function anticipate(
   const wholeTranche = [...new Set([...passage, ...later, ...graphsOf(later)])];
   // In order of preference: the rest of the tranche framed ahead (it saves the next movements), then the passage
   // alone; each first with what the passage erases still kept in frame (the framing before 2026-11-10), then without.
-  const plans = [[wholeTranche, false], [passage, false], [wholeTranche, true], [passage, true]].flatMap(([targets, dropLeaving]) => {
-    const follow: Focus = { id: `anticipe_${before.scene.currentBeat ?? "passage"}`, verb: "camera.focus", at: "beat:start", targets: targets as string[], bounds: "layout_bounds" };
+  const plans = [
+    [wholeTranche, false],
+    [passage, false],
+    [wholeTranche, true],
+    [passage, true],
+  ].flatMap(([targets, dropLeaving]) => {
+    const follow: Focus = {
+      id: `anticipe_${before.scene.currentBeat ?? "passage"}`,
+      verb: "camera.focus",
+      at: "beat:start",
+      targets: targets as string[],
+      bounds: "layout_bounds",
+    };
     const plan = planFocus(scene, follow, follow, ids, ctx, undefined, maxZoom, dropLeaving ? leaving : undefined);
     return plan?.move && !plan.target.hidden.some((id) => follow.targets.includes(id))
-      ? [{ follow, plan, flaw: flaw(plan.target.state), cut: cutBy(plan.target.state) }] : [];
+      ? [{ follow, plan, flaw: flaw(plan.target.state), cut: cutBy(plan.target.state) }]
+      : [];
   });
   // The first choice gives way only to a framing that cuts fewer objects, or cuts no more and is clearly better
   // composed (camera audit: off-centre 13.1 % → 7 % of the time). Never one that cuts more.
-  const chosen = plans.reduce<(typeof plans)[number] | undefined>((best, candidate) =>
-    !best || candidate.cut < best.cut || (candidate.cut === best.cut && candidate.flaw < best.flaw - 0.05) ? candidate : best, undefined);
+  const chosen = plans.reduce<(typeof plans)[number] | undefined>(
+    (best, candidate) => (!best || candidate.cut < best.cut || (candidate.cut === best.cut && candidate.flaw < best.flaw - 0.05) ? candidate : best),
+    undefined,
+  );
   for (const candidate of chosen ? [chosen] : []) {
     const { follow, plan } = candidate;
     // Recomposing a picture already in frame: only for a clear gain, never a small shift (smallReframing),
@@ -432,7 +502,11 @@ const REVEAL_VERBS = new Set(["show", "draw", "write", "transform"]);
 
 /** The passage's part of the tranche's plan: hold the view, or one gentle movement that ends as the first object appears. */
 function planned(
-  before: NesalioFrame, scene: SceneState, timeline: readonly ScheduledAction[], clipEnd: number, ctx: FrameContext,
+  before: NesalioFrame,
+  scene: SceneState,
+  timeline: readonly ScheduledAction[],
+  clipEnd: number,
+  ctx: FrameContext,
   add: (follow: Focus, entry: ScheduledAction, plan: { move: CameraMove; duration: number }) => void,
 ): void {
   if (ctx.planned === "hold" || !ctx.planned) return;
@@ -443,7 +517,9 @@ function planned(
     if ((action.verb === "fade_out" || action.verb === "remove") && "target" in action) for (const id of targetObjects(scene, action.target)) leaving.add(id);
   }
   const follow: Focus = { id: `plan_${before.scene.currentBeat ?? "passage"}`, verb: "camera.focus", at: "beat:start", targets, bounds: "layout_bounds" };
-  const coming = timeline.filter(({ action }) => REVEAL_VERBS.has(action.verb) && "target" in action).flatMap(({ action }) => targetObjects(scene, (action as { target: string }).target));
+  const coming = timeline
+    .filter(({ action }) => REVEAL_VERBS.has(action.verb) && "target" in action)
+    .flatMap(({ action }) => targetObjects(scene, (action as { target: string }).target));
   const plan = planFocus(scene, follow, follow, coming, ctx, undefined, ENGINE_ZOOM_MAX, leaving);
   if (!plan?.move) return;
   const firstReveal = Math.min(...timeline.filter(({ action }) => REVEAL_VERBS.has(action.verb)).map(({ start }) => start));
@@ -531,11 +607,18 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
         intent = { targets: action.targets.map((id) => currentId(current, id)), bounds: action.bounds };
       }
       let plan = planFocus(scene, intent, action, focusPriority(scene, intent.targets, scheduled.timeline), ctx, fallback);
-      if (plan?.move && action.verb === "camera.focus" && action.save_as === undefined && action.transition !== "instant"
-        && smallReframing(scene, intent, plan.target.state)) plan = null;
-      const memory = action.verb === "camera.focus" && action.save_as !== undefined
-        ? { targets: action.targets, bounds: action.bounds, state: plan?.target.state ?? current.camera.state }
-        : undefined;
+      if (
+        plan?.move &&
+        action.verb === "camera.focus" &&
+        action.save_as === undefined &&
+        action.transition !== "instant" &&
+        smallReframing(scene, intent, plan.target.state)
+      )
+        plan = null;
+      const memory =
+        action.verb === "camera.focus" && action.save_as !== undefined
+          ? { targets: action.targets, bounds: action.bounds, state: plan?.target.state ?? current.camera.state }
+          : undefined;
       cameras.set(action, { move: plan?.move, saved: memory });
       if (plan?.move) ctx.onCameraPlan?.({ action: action.id, origin: "lesson", durationMs: plan.duration, from: current.camera.state, to: plan.target.state });
       if (action.at && plan && plan.duration > 0) {
@@ -543,9 +626,14 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
         scheduled = schedule();
         entries = new Map(scheduled.timeline.map((item) => [item.action, item]));
       }
-    } else if (action.verb === "show" || action.verb === "draw" || action.verb === "write" || action.verb === "transform"
+    } else if (
+      action.verb === "show" ||
+      action.verb === "draw" ||
+      action.verb === "write" ||
+      action.verb === "transform" ||
       // A highlight the student cannot see is lost too (camera audit, 2026-11-09: 22 lessons out of 238).
-      || action.verb === "highlight") {
+      action.verb === "highlight"
+    ) {
       const scene = frameAt(before, prefix(), start, quiet).scene;
       const target = currentId(scene, action.target);
       const box = sceneBounds(scene, [target], "layout_bounds");
@@ -556,12 +644,16 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
       // along, axes included. Camera audit (2026-11-09): following a point alone left its axes cut for up to 100 s.
       const highlight = action.verb === "highlight";
       const frame = scene.objects.get(target)?.frame;
-      const graph = frame && !highlight
-        ? [...scene.objects].filter(([, item]) => item.frame === frame && item.definition.type === "axes" && item.visible && !item.removed).map(([id]) => id)
-        : [];
+      const graph =
+        frame && !highlight
+          ? [...scene.objects].filter(([, item]) => item.frame === frame && item.definition.type === "axes" && item.visible && !item.removed).map(([id]) => id)
+          : [];
       const follow: Focus = {
-        id: `suivi_${action.id}`, verb: "camera.focus", at: "beat:start",
-        targets: [...new Set([...shown, ...graph, target])], bounds: "layout_bounds",
+        id: `suivi_${action.id}`,
+        verb: "camera.focus",
+        at: "beat:start",
+        targets: [...new Set([...shown, ...graph, target])],
+        bounds: "layout_bounds",
       };
       const plan = planFocus(scene, follow, follow, [target], ctx, undefined, ENGINE_ZOOM_MAX);
       if (!plan?.move) continue;
@@ -574,8 +666,9 @@ function planPassage(before: NesalioFrame, makeSchedule: MakeSchedule, sliceObje
     } else if (action.verb === "animate_parameter") {
       // dynamic_focus_policy: the whole area the animated objects will cover is framed before they move.
       const scene = frameAt(before, prefix(), start, quiet).scene;
-      const dependents = [...scene.objects].filter(([, item]) => item.visible && !item.removed
-        && parametersOf(item.definition, scene.math).includes(action.parameter)).map(([id]) => id);
+      const dependents = [...scene.objects]
+        .filter(([, item]) => item.visible && !item.removed && parametersOf(item.definition, scene.math).includes(action.parameter))
+        .map(([id]) => id);
       if (!dependents.length) continue;
       // Their axes come along, so the curve is seen in its frame.
       const frames = new Set(dependents.map((id) => scene.objects.get(id)!.frame).filter(Boolean));
@@ -630,7 +723,7 @@ function anchorTime(action: Action, cues: ReadonlyMap<string, CueTiming>): numbe
  * (camera audit: the model often fades everything out a few words before the new line appears).
  */
 export function clearWithFirstReveal(beat: Beat, cues: ReadonlyMap<string, CueTiming>): Beat {
-  const referenced = new Set(beat.do.flatMap((action) => action.at?.startsWith("after:") ? [action.at.slice(6)] : []));
+  const referenced = new Set(beat.do.flatMap((action) => (action.at?.startsWith("after:") ? [action.at.slice(6)] : [])));
   const reveals = beat.do.flatMap((action) => {
     if (!REVEALS.has(action.verb)) return [];
     const start = anchorTime(action, cues);
@@ -657,18 +750,28 @@ export function clearWithFirstReveal(beat: Beat, cues: ReadonlyMap<string, CueTi
  * its first new object: otherwise the board stays empty for a whole sentence (camera audit, recap passages).
  */
 export function holdClearingsForNextBeat(slice: Slice): Slice {
-  const referenced = new Set(slice.beats.flatMap((beat) => beat.do.flatMap((action) => action.at?.startsWith("after:") ? [action.at.slice(6)] : [])));
+  const referenced = new Set(slice.beats.flatMap((beat) => beat.do.flatMap((action) => (action.at?.startsWith("after:") ? [action.at.slice(6)] : []))));
   const beats = slice.beats.map((beat) => ({ ...beat, do: [...beat.do] }));
   let changed = false;
   for (let index = 0; index < beats.length - 1; index += 1) {
     const beat = beats[index]!;
     const next = beats[index + 1]!;
     if (beat.do.some((action) => REVEALS.has(action.verb)) || !next.do.some((action) => REVEALS.has(action.verb))) continue;
-    const touched = new Set(next.do.flatMap((action) => [
-      ..."target" in action ? [action.target] : [], ..."source" in action ? [action.source] : [], ..."targets" in action ? action.targets : [],
-    ]));
-    const moved = beat.do.filter((action) => CLEARINGS.has(action.verb) && action.at !== undefined && !action.at.startsWith("after:")
-      && !referenced.has(action.id) && !touched.has((action as { target: string }).target));
+    const touched = new Set(
+      next.do.flatMap((action) => [
+        ...("target" in action ? [action.target] : []),
+        ...("source" in action ? [action.source] : []),
+        ...("targets" in action ? action.targets : []),
+      ]),
+    );
+    const moved = beat.do.filter(
+      (action) =>
+        CLEARINGS.has(action.verb) &&
+        action.at !== undefined &&
+        !action.at.startsWith("after:") &&
+        !referenced.has(action.id) &&
+        !touched.has((action as { target: string }).target),
+    );
     if (!moved.length || next.do.length + moved.length > 64) continue;
     beat.do = beat.do.filter((action) => !moved.includes(action));
     next.do = [...moved.map((action) => ({ ...action, at: "beat:start" }) as Action), ...next.do];
@@ -755,7 +858,10 @@ function beatQueue(source: AsyncIterable<Slice>, signal: AbortSignal) {
   let done = false;
   let failure: unknown;
   const waiters = new Set<() => void>();
-  const notify = () => { for (const wake of waiters) wake(); waiters.clear(); };
+  const notify = () => {
+    for (const wake of waiters) wake();
+    waiters.clear();
+  };
   signal.addEventListener("abort", notify, { once: true });
   void (async () => {
     try {
@@ -795,7 +901,13 @@ export async function playNesalioLesson(lesson: LessonDocument, options: Nesalio
   // A complete document is refused before anything plays, as before streaming existed.
   const unsupported = lesson.slices.map(unsupportedIn).find(Boolean);
   if (unsupported) throw unsupported;
-  await playNesalioStream(lesson, (async function* () { yield* lesson.slices; })(), options);
+  await playNesalioStream(
+    lesson,
+    (async function* () {
+      yield* lesson.slices;
+    })(),
+    options,
+  );
 }
 
 /**
@@ -805,7 +917,13 @@ export async function playNesalioLesson(lesson: LessonDocument, options: Nesalio
 export async function playNesalioStream(header: LessonHeader, slices: AsyncIterable<Slice>, options: NesalioPlaybackOptions): Promise<void> {
   const scene = withMathContext(createScene(options.viewport, header.scene.layout_rules.placement.min_gap), header.scene.math_context);
   let frame: NesalioFrame = {
-    scene, styles: new Map(), reveals: new Map(), partReveals: new Map(), highlights: new Map(), partHighlights: new Map(), opacity: new Map(),
+    scene,
+    styles: new Map(),
+    reveals: new Map(),
+    partReveals: new Map(),
+    highlights: new Map(),
+    partHighlights: new Map(),
+    opacity: new Map(),
     morphs: new Map(),
   };
   const work = new AbortController();
@@ -814,10 +932,11 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
   const queue = beatQueue(slices, signal);
   const layoutFallback = header.scene.camera_policy.allow_focus_on_layout_bounds_for_unrevealed_targets;
   const padding = FOCUS_PADDING[header.scene.camera_policy.focus_padding];
-  const prepare = (beat: Beat) => options.openClip(beat, signal).then(
-    (clip) => ({ ok: true as const, clip }),
-    (error: unknown) => ({ ok: false as const, error }),
-  );
+  const prepare = (beat: Beat) =>
+    options.openClip(beat, signal).then(
+      (clip) => ({ ok: true as const, clip }),
+      (error: unknown) => ({ ok: false as const, error }),
+    );
   type Prepared = Awaited<ReturnType<typeof prepare>>;
   let next: Promise<Prepared | null> | undefined;
   try {
@@ -839,7 +958,11 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
       previousSlice = slice.slice_id;
       const sliceObjects = slice.introduces.map(({ id }) => id);
       // Prepares the following passage's voice as soon as its tranche has arrived.
-      const following = () => queue.at(index + 1).then((item) => item ? prepare(item.beat) : null, () => null);
+      const following = () =>
+        queue.at(index + 1).then(
+          (item) => (item ? prepare(item.beat) : null),
+          () => null,
+        );
       if (first) {
         await options.prepareSlice?.(slice, signal, frame.scene.math, symbolValues(frame.scene));
         signal.throwIfAborted();
@@ -851,15 +974,21 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
       }
       const before = { ...frame, scene: beginBeat(frame.scene, slice.slice_id, beat.id) };
       const framing = new Map<string, string>();
-      const ctx: FrameContext = { measure: options.measure, layoutFallback, padding, framing, planned: tranchePlan.get(beat.id),
-        onCameraPlan: options.onCameraPlan && ((plan) => options.onCameraPlan!({ ...plan, beat: beat.id })) };
+      const ctx: FrameContext = {
+        measure: options.measure,
+        layoutFallback,
+        padding,
+        framing,
+        planned: tranchePlan.get(beat.id),
+        onCameraPlan: options.onCameraPlan && ((plan) => options.onCameraPlan!({ ...plan, beat: beat.id })),
+      };
       // Reported once per camera action, at the end of the passage, not on every frame.
       const reportFraming = () => {
         for (const [action, reason] of framing) {
           options.onWarning?.({ beat: beat.id, kind: "framing", action, reason });
         }
       };
-      let prepared = (next ? await next : null) ?? await prepare(beat);
+      let prepared = (next ? await next : null) ?? (await prepare(beat));
       next = undefined;
       // One more attempt before giving up on the voice of this passage.
       if (!prepared.ok && !signal.aborted) prepared = await prepare(beat);
@@ -885,10 +1014,14 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
         next = following();
         let interrupted = false;
         try {
-          await clip.play((playhead) => {
-            frame = frameAt(before, timeline, playhead, context);
-            options.onFrame(frame, beat, playhead);
-          }, signal, options.control);
+          await clip.play(
+            (playhead) => {
+              frame = frameAt(before, timeline, playhead, context);
+              options.onFrame(frame, beat, playhead);
+            },
+            signal,
+            options.control,
+          );
         } catch (error) {
           if (signal.aborted) throw error;
           interrupted = true;
@@ -899,7 +1032,16 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
           const end = clip.durationMs;
           frame = frameAt(before, timeline, end, context);
           if (deferred.length) {
-            const final = planPassage(frame, immediateSchedule(deferred.map(({ action }) => action), end), sliceObjects, end, ctx);
+            const final = planPassage(
+              frame,
+              immediateSchedule(
+                deferred.map(({ action }) => action),
+                end,
+              ),
+              sliceObjects,
+              end,
+              ctx,
+            );
             frame = frameAt(frame, final.timeline, end, final.context);
           }
           options.onFrame(frame, beat, end);
@@ -913,6 +1055,9 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
     }
   } finally {
     work.abort();
-    if (next) void next.then((prepared) => { if (prepared?.ok) prepared.clip.dispose(); });
+    if (next)
+      void next.then((prepared) => {
+        if (prepared?.ok) prepared.clip.dispose();
+      });
   }
 }

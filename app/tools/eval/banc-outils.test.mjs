@@ -12,11 +12,20 @@ const corpus = readCorpus();
 const FIXTURE = new URL("../e2e/fixtures/lecon-equation.ndjson", import.meta.url);
 
 function fixtureLesson() {
-  const events = readFileSync(FIXTURE, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+  const events = readFileSync(FIXTURE, "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line));
   const header = events.find((e) => e.kind === "lesson");
-  return { events, lesson: { ...shell, lesson: header.lesson,
-    scene: { ...shell.scene, math_context: header.math_context ?? { symbols: {}, expressions: {} } },
-    slices: events.filter((e) => e.kind === "slice").map((e) => e.slice) } };
+  return {
+    events,
+    lesson: {
+      ...shell,
+      lesson: header.lesson,
+      scene: { ...shell.scene, math_context: header.math_context ?? { symbols: {}, expressions: {} } },
+      slices: events.filter((e) => e.kind === "slice").map((e) => e.slice),
+    },
+  };
 }
 
 describe("corpus de mesure Nesalio", () => {
@@ -51,8 +60,15 @@ describe("corpus de mesure Nesalio", () => {
   it("reconnaît chaque réponse de référence écrite telle quelle", () => {
     // The reference text, written on the board, must satisfy its own patterns.
     for (const q of corpus.questions) {
-      const lesson = { slices: [{ slice_id: "s", introduces: [{ id: "r", type: "math", content: q.reponse.texte }],
-        beats: [{ id: "b", say: "", do: [{ id: "w", verb: "write", target: "r" }] }] }] };
+      const lesson = {
+        slices: [
+          {
+            slice_id: "s",
+            introduces: [{ id: "r", type: "math", content: q.reponse.texte }],
+            beats: [{ id: "b", say: "", do: [{ id: "w", verb: "write", target: "r" }] }],
+          },
+        ],
+      };
       expect(checkAnswer(q, lesson), q.id).toMatchObject({ ok: true });
     }
   });
@@ -81,8 +97,7 @@ describe("outils du banc", () => {
 
   it("distingue une réponse seulement dite d'une réponse écrite", () => {
     const q = { reponse: { texte: "x = 4", motifs: ["x\\s*=\\s*4"], ou: "tableau" } };
-    const said = { slices: [{ slice_id: "s", introduces: [{ id: "a", type: "math", content: "x = 4" }],
-      beats: [{ id: "b", say: "x = 4", do: [] }] }] };
+    const said = { slices: [{ slice_id: "s", introduces: [{ id: "a", type: "math", content: "x = 4" }], beats: [{ id: "b", say: "x = 4", do: [] }] }] };
     expect(checkAnswer(q, said)).toEqual({ ok: false, missing: ["x\\s*=\\s*4"], saidOnly: true });
     expect(lessonText(said).neverShown).toEqual(["a"]);
   });
@@ -104,12 +119,37 @@ describe("outils du banc", () => {
   });
 
   it("résume délais, refus, causes et coût", () => {
-    const r = (over) => ({ outcome: "complète", lost: [], valid: true, refusals: [], unreadable: [], repairs: [], calls: 1,
-      firstSliceMs: 2000, ms: 8000, inputChars: 7000, outputChars: 3500, answer: { ok: true, saidOnly: false }, ...over });
-    const summary = summarize([r({}), r({ firstSliceMs: 4000, refusals: ["nesalio: tranche refusée s1 — Repère absent | Unrecognized key"] }),
-      r({ outcome: "erreur invalid", firstSliceMs: null, answer: null })], { input: 1, output: 2 });
-    expect(summary).toMatchObject({ lessons: 3, intact: 2, refusals: 1, firstSlice: { medianMs: 3000, maxMs: 4000 },
-      causes: { "repère absent": 1, "clé inconnue": 1 }, answers: { checked: 2, written: 2 } });
+    const r = (over) => ({
+      outcome: "complète",
+      lost: [],
+      valid: true,
+      refusals: [],
+      unreadable: [],
+      repairs: [],
+      calls: 1,
+      firstSliceMs: 2000,
+      ms: 8000,
+      inputChars: 7000,
+      outputChars: 3500,
+      answer: { ok: true, saidOnly: false },
+      ...over,
+    });
+    const summary = summarize(
+      [
+        r({}),
+        r({ firstSliceMs: 4000, refusals: ["nesalio: tranche refusée s1 — Repère absent | Unrecognized key"] }),
+        r({ outcome: "erreur invalid", firstSliceMs: null, answer: null }),
+      ],
+      { input: 1, output: 2 },
+    );
+    expect(summary).toMatchObject({
+      lessons: 3,
+      intact: 2,
+      refusals: 1,
+      firstSlice: { medianMs: 3000, maxMs: 4000 },
+      causes: { "repère absent": 1, "clé inconnue": 1 },
+      answers: { checked: 2, written: 2 },
+    });
     expect(summary.costUsd).toBeCloseTo((6000 * 1 + 3000 * 2) / 1e6);
   });
 });

@@ -9,7 +9,15 @@ describe("lettres que manim-web ne dessine pas en mode math", () => {
   });
 
   it("ne touche ni les noms de commandes ni le texte", () => {
-    for (const latex of ["\\pi r^2", "x \\approx 3{,}73", "\\pm\\sqrt{3}", "101\\ \\text{kPa}", "\\text{pression}", "\\mathrm{pH} = 7", "\\operatorname{sup}"]) {
+    for (const latex of [
+      "\\pi r^2",
+      "x \\approx 3{,}73",
+      "\\pm\\sqrt{3}",
+      "101\\ \\text{kPa}",
+      "\\text{pression}",
+      "\\mathrm{pH} = 7",
+      "\\operatorname{sup}",
+    ]) {
       expect(drawableMathLetters(latex), latex).toBe(latex);
     }
   });

@@ -5,11 +5,16 @@ import { TableMarks, type MarkHandle } from "./tableMarks";
 class FakeMark implements MarkHandle {
   opacity = 1;
   disposed = false;
-  constructor(public box: Box, public color: string) {}
+  constructor(
+    public box: Box,
+    public color: string,
+  ) {}
   shift([x, y]: [number, number, number]) {
     this.box = { x0: this.box.x0 + x, y0: this.box.y0 + y, x1: this.box.x1 + x, y1: this.box.y1 + y };
   }
-  dispose() { this.disposed = true; }
+  dispose() {
+    this.disposed = true;
+  }
 }
 
 function setup() {

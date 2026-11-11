@@ -22,10 +22,13 @@ export default function NesalioPlaybackPage() {
   const [error, setError] = useState("");
   const [warnings, setWarnings] = useState<NesalioWarning[]>([]);
 
-  useEffect(() => () => {
-    run.current?.abort();
-    renderer.current?.dispose();
-  }, []);
+  useEffect(
+    () => () => {
+      run.current?.abort();
+      renderer.current?.dispose();
+    },
+    [],
+  );
 
   /** Loads a lesson file, or asks the generator: both end in the same player. */
   async function start(source: "file" | "question") {
@@ -45,7 +48,12 @@ export default function NesalioPlaybackPage() {
         if (file!.size > 128_000) throw new Error("Le document dépasse 128 Ko.");
         const parsed = validateLesson(JSON.parse(await file!.text()));
         if (!parsed.ok) throw new Error(parsed.issues.map(({ path, message }) => `${path.join(".")} — ${message}`).join("\n"));
-        lesson = { header: parsed.value, slices: (async function* () { yield* parsed.value.slices; })() };
+        lesson = {
+          header: parsed.value,
+          slices: (async function* () {
+            yield* parsed.value.slices;
+          })(),
+        };
       } else {
         lesson = await openNesalioStream(question, active.signal);
       }
@@ -76,7 +84,8 @@ export default function NesalioPlaybackPage() {
           setStatus(firstSound === null ? "Lecture en cours" : `Lecture en cours — premier son après ${(firstSound / 1000).toFixed(1)} s`);
         },
       });
-      if (!active.signal.aborted) setStatus(firstSound === null ? "Explication terminée" : `Explication terminée — premier son après ${(firstSound / 1000).toFixed(1)} s`);
+      if (!active.signal.aborted)
+        setStatus(firstSound === null ? "Explication terminée" : `Explication terminée — premier son après ${(firstSound / 1000).toFixed(1)} s`);
     } catch (failure) {
       if (!active.signal.aborted) {
         setStatus("");
@@ -91,24 +100,48 @@ export default function NesalioPlaybackPage() {
   return (
     <main style={{ maxWidth: 1200, margin: "auto", padding: 24 }}>
       <h1>Lecture Nesalio v3.3</h1>
-      <form onSubmit={(event) => { event.preventDefault(); void start("question"); }}>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void start("question");
+        }}
+      >
         <label htmlFor="nesalio-question">Question</label>{" "}
-        <input id="nesalio-question" type="text" maxLength={500} size={50} value={question} disabled={busy}
-          placeholder="Explique-moi une fonction logarithme" onChange={(event) => setQuestion(event.currentTarget.value)} />{" "}
-        <button type="submit" disabled={busy || !question.trim()}>Générer et lire</button>
+        <input
+          id="nesalio-question"
+          type="text"
+          maxLength={500}
+          size={50}
+          value={question}
+          disabled={busy}
+          placeholder="Explique-moi une fonction logarithme"
+          onChange={(event) => setQuestion(event.currentTarget.value)}
+        />{" "}
+        <button type="submit" disabled={busy || !question.trim()}>
+          Générer et lire
+        </button>
       </form>
       <p>
         <label htmlFor="nesalio-lesson">Leçon JSON</label>{" "}
         <input id="nesalio-lesson" type="file" accept=".json,application/json" disabled={busy} onChange={(event) => setFile(event.currentTarget.files?.[0])} />{" "}
-        <button type="button" disabled={busy || !file} onClick={() => void start("file")}>Lire la leçon</button>
+        <button type="button" disabled={busy || !file} onClick={() => void start("file")}>
+          Lire la leçon
+        </button>
       </p>
       <p role="status">{status}</p>
-      {error ? <p role="alert" style={{ whiteSpace: "pre-wrap" }}>{error}</p> : null}
+      {error ? (
+        <p role="alert" style={{ whiteSpace: "pre-wrap" }}>
+          {error}
+        </p>
+      ) : null}
       {warnings.length ? (
         <ul aria-label="Avertissements de lecture">
           {warnings.map((warning, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: liste d'avertissements en ajout seul, jamais réordonnée
             <li key={index}>
-              {warning.beat} — {warning.kind === "silent" ? "sans voix" : `${warning.kind === "framing" ? "cadrage" : "reporté"}${warning.action ? ` (${warning.action})` : ""}`} : {warning.reason}
+              {warning.beat} —{" "}
+              {warning.kind === "silent" ? "sans voix" : `${warning.kind === "framing" ? "cadrage" : "reporté"}${warning.action ? ` (${warning.action})` : ""}`}{" "}
+              : {warning.reason}
             </li>
           ))}
         </ul>

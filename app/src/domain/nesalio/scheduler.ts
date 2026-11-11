@@ -40,7 +40,9 @@ export function scheduleBeat(
   if (!Number.isFinite(clipDuration) || clipDuration < 0) throw new Error("Durée audio invalide.");
   const cueIds = new Set(beat.cues.map((cue) => cue.id));
   const actions = new Map(beat.do.map((action) => [action.id, action]));
-  const saves = new Map(beat.do.flatMap((action) => action.verb === "camera.focus" && action.save_as !== undefined ? [[action.save_as, action]] as const : []));
+  const saves = new Map(
+    beat.do.flatMap((action) => (action.verb === "camera.focus" && action.save_as !== undefined ? ([[action.save_as, action]] as const) : [])),
+  );
   if (actions.size !== beat.do.length) throw new Error("Identifiant d’action en double.");
   const pending = new Set<string>();
   const resolved = new Map<string, ScheduledAction | DeferredAction>();
@@ -83,8 +85,7 @@ export function scheduleBeat(
     else if (end && end.at <= start.at) result = { action, reason: `Intervalle vide pour « ${action.id} ».` };
     else if (save && saved && ("reason" in saved || start.at < saved.start)) {
       result = { action, reason: `Attend la sauvegarde du cadrage « ${save.save_as} ».` };
-    }
-    else {
+    } else {
       // A gesture may not outlast its clip: the audio clock stops at the end.
       const finish = Math.min(clipDuration, end ? end.at : start.at + durationOf(action));
       result = { action, start: start.at, end: Math.max(start.at, finish) };
@@ -98,7 +99,8 @@ export function scheduleBeat(
   const timeline: ScheduledAction[] = [];
   const deferred: DeferredAction[] = [];
   for (const entry of resolved.values()) {
-    if ("reason" in entry) deferred.push(entry); else timeline.push(entry);
+    if ("reason" in entry) deferred.push(entry);
+    else timeline.push(entry);
   }
   return { timeline: timeline.sort((a, b) => a.start - b.start), deferred };
 }

@@ -18,7 +18,10 @@ const questions = [
   { id: "urne", text: "Dans un sac, il y a 5 boules rouges et 3 bleues. J’en tire 2 sans remise. Quelle est la probabilité d’avoir exactement une rouge ?" },
   { id: "sommet", text: "Peux-tu compléter le carré de x² + 6x − 7 et me montrer comment lire le sommet de la parabole ?" },
   { id: "aluminium", text: "Comment j’équilibre l’équation Al + O₂ → Al₂O₃ ? Je ne comprends pas pourquoi on change les chiffres devant." },
-  { id: "dilution", text: "Je prends 25 mL d’une solution à 0,60 mol/L et j’ajoute de l’eau jusqu’à un volume total de 150 mL. Quelle est la nouvelle concentration, et pourquoi ?" },
+  {
+    id: "dilution",
+    text: "Je prends 25 mL d’une solution à 0,60 mol/L et j’ajoute de l’eau jusqu’à un volume total de 150 mL. Quelle est la nouvelle concentration, et pourquoi ?",
+  },
 ];
 
 const variants = ["complet", "allege", "deux-appels"];
@@ -33,7 +36,8 @@ function provider() {
   const { AI_GATEWAY_API_KEY } = parseEnv(readFileSync(".env.local", "utf8"));
   if (!AI_GATEWAY_API_KEY) throw new Error("Ce banc exige la clé AI Gateway dédiée dans .env.local.");
   return readAiConfig(new Headers(), {
-    AI_GATEWAY_API_KEY, TUTOR_MODEL: process.env.FOND_FORME_MODELE ?? DEFAULTS.gatewayModel,
+    AI_GATEWAY_API_KEY,
+    TUTOR_MODEL: process.env.FOND_FORME_MODELE ?? DEFAULTS.gatewayModel,
     TUTOR_FIRST_TURN_EFFORT: "none",
   }).chat;
 }
@@ -44,8 +48,10 @@ function messagesFor(options, variant, question, teacher) {
   const [user, ...rest] = options.messages.slice(1);
   if (variant !== "deux-appels") return [system, user, ...rest];
   const guide = guideSection(question);
-  const content = (guide ? user.content.replace(`\n\n${guide}\n\n`, "\n\n") : user.content)
-    .replace("SCRIPT DE L'ENSEIGNANT (déjà vérifié) :", "SCRIPT DE L'ENSEIGNANT :");
+  const content = (guide ? user.content.replace(`\n\n${guide}\n\n`, "\n\n") : user.content).replace(
+    "SCRIPT DE L'ENSEIGNANT (déjà vérifié) :",
+    "SCRIPT DE L'ENSEIGNANT :",
+  );
   return [system, { ...user, content }, ...rest];
 }
 
@@ -57,23 +63,42 @@ function compareSpeech(script, lesson) {
   let matchedInOrder = 0;
   for (const say of expected) {
     const index = actual.indexOf(say, lastMatch + 1);
-    if (index >= 0) { matchedInOrder++; lastMatch = index; }
+    if (index >= 0) {
+      matchedInOrder++;
+      lastMatch = index;
+    }
   }
-  return { expected: expected.length, actual: actual.length, matchedInOrder,
-    exact: expected.length > 0 && expected.length === actual.length && matchedInOrder === expected.length };
+  return {
+    expected: expected.length,
+    actual: actual.length,
+    matchedInOrder,
+    exact: expected.length > 0 && expected.length === actual.length && matchedInOrder === expected.length,
+  };
 }
 
 async function run(question, variant, round, chat) {
   const twoStage = variant === "deux-appels";
-  const calls = [], logs = [], events = [], slices = [];
+  const calls = [],
+    logs = [],
+    events = [],
+    slices = [];
   const started = performance.now();
   const elapsed = () => Math.round(performance.now() - started);
-  let script = "", header, firstSliceMs = null, teacherMs = null, thrown, upstreamStatus;
+  let script = "",
+    header,
+    firstSliceMs = null,
+    teacherMs = null,
+    thrown,
+    upstreamStatus;
   async function* completion(options) {
     const teacher = twoStage && calls.length === 0;
     const messages = messagesFor(options, variant, question.text, teacher);
-    const call = { role: teacher ? "fond" : twoStage ? "forme" : "ensemble",
-      promptChars: messages.reduce((n, m) => n + m.content.length, 0), ms: 0, output: "" };
+    const call = {
+      role: teacher ? "fond" : twoStage ? "forme" : "ensemble",
+      promptChars: messages.reduce((n, m) => n + m.content.length, 0),
+      ms: 0,
+      output: "",
+    };
     const begin = elapsed();
     calls.push(call);
     try {
@@ -86,35 +111,63 @@ async function run(question, variant, round, chat) {
       throw error;
     } finally {
       call.ms = elapsed() - begin;
-      if (teacher) { script = call.output; teacherMs = elapsed(); }
+      if (teacher) {
+        script = call.output;
+        teacherMs = elapsed();
+      }
     }
   }
   try {
     for await (const event of generateNesalio(question.text, {
-      provider: chat, completion, twoStage, signal: AbortSignal.timeout(170_000),
+      provider: chat,
+      completion,
+      twoStage,
+      signal: AbortSignal.timeout(170_000),
       log: (message, detail) => {
         if (message !== "nesalio: script de l'enseignant") {
           logs.push(`${message} ${detail instanceof Error ? detail.message : typeof detail === "string" ? detail : JSON.stringify(detail)}`);
         }
       },
     })) {
-      if (event.kind === "lesson") { header = event; events.push({ kind: "lesson" }); }
-      else if (event.kind === "slice") {
+      if (event.kind === "lesson") {
+        header = event;
+        events.push({ kind: "lesson" });
+      } else if (event.kind === "slice") {
         firstSliceMs ??= elapsed();
         slices.push(event.slice);
         events.push({ kind: "slice", id: event.slice.slice_id });
       } else events.push(event);
     }
-  } catch (error) { thrown = String(error); }
-  const lesson = { ...shell, lesson: header?.lesson ?? shell.lesson,
-    scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } }, slices };
+  } catch (error) {
+    thrown = String(error);
+  }
+  const lesson = {
+    ...shell,
+    lesson: header?.lesson ?? shell.lesson,
+    scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } },
+    slices,
+  };
   const validation = slices.length > 0 && validateLesson(lesson).ok;
-  const result = { question: question.id, variant, round, outcome: outcomeOf({ events, logs, thrown }),
-    slices: slices.length, lost: lostSlices(logs, slices.map((slice) => slice.slice_id)), valid: validation,
-    firstSliceMs, teacherMs, ms: elapsed(), upstreamStatus, calls: calls.length,
+  const result = {
+    question: question.id,
+    variant,
+    round,
+    outcome: outcomeOf({ events, logs, thrown }),
+    slices: slices.length,
+    lost: lostSlices(
+      logs,
+      slices.map((slice) => slice.slice_id),
+    ),
+    valid: validation,
+    firstSliceMs,
+    teacherMs,
+    ms: elapsed(),
+    upstreamStatus,
+    calls: calls.length,
     refusals: logs.filter((line) => line.startsWith("nesalio: tranche refusée")).length,
     repairs: logs.filter((line) => / réparée? sans appel/.test(line)).length,
-    speech: twoStage ? compareSpeech(script, lesson) : null };
+    speech: twoStage ? compareSpeech(script, lesson) : null,
+  };
   return { result: { ...result, intact: isIntact(result) }, lesson, script, calls, events, logs };
 }
 
@@ -132,26 +185,34 @@ describe.runIf(process.env.FOND_FORME === "1")("banc fond et forme", () => {
       expect(rounds).toBeGreaterThan(0);
       const out = join(process.cwd(), "../analyses/banc", process.env.FOND_FORME_SORTIE ?? "fond-forme-2026-11-09");
       mkdirSync(out, { recursive: true });
-      writeFileSync(join(out, "protocole.json"), JSON.stringify({ model: chat.model, rounds, corpus,
-        prompts: { ...prompts, enseignant: teacherPrompt, metteurEnForme: formatterPrompt } }, null, 2));
+      writeFileSync(
+        join(out, "protocole.json"),
+        JSON.stringify({ model: chat.model, rounds, corpus, prompts: { ...prompts, enseignant: teacherPrompt, metteurEnForme: formatterPrompt } }, null, 2),
+      );
       const results = [];
-      const jobs = Array.from({ length: rounds }, (_, i) => corpus.flatMap((question, j) =>
-        variants.map((_, k) => ({ question, round: i + 1, variant: variants[(i + j + k) % variants.length] })))).flat();
-      let next = 0, stop = false;
-      await Promise.all(Array.from({ length: 3 }, async () => {
-        while (!stop && next < jobs.length) {
-          const { question, round, variant } = jobs[next++];
-          const output = await run(question, variant, round, chat);
-          const result = output.result;
-          results.push(result);
-          writeFileSync(join(out, `${question.id}-${round}-${variant}.json`), JSON.stringify(output));
-          console.log(`${question.id}#${round} ${variant} : ${result.outcome}, ${result.slices} tranches, ${result.calls} appels`);
-          stop ||= [401, 402, 403].includes(result.upstreamStatus);
-        }
-      }));
+      const jobs = Array.from({ length: rounds }, (_, i) =>
+        corpus.flatMap((question, j) => variants.map((_, k) => ({ question, round: i + 1, variant: variants[(i + j + k) % variants.length] }))),
+      ).flat();
+      let next = 0,
+        stop = false;
+      await Promise.all(
+        Array.from({ length: 3 }, async () => {
+          while (!stop && next < jobs.length) {
+            const { question, round, variant } = jobs[next++];
+            const output = await run(question, variant, round, chat);
+            const result = output.result;
+            results.push(result);
+            writeFileSync(join(out, `${question.id}-${round}-${variant}.json`), JSON.stringify(output));
+            console.log(`${question.id}#${round} ${variant} : ${result.outcome}, ${result.slices} tranches, ${result.calls} appels`);
+            stop ||= [401, 402, 403].includes(result.upstreamStatus);
+          }
+        }),
+      );
       writeFileSync(join(out, "resultats.json"), JSON.stringify({ model: chat.model, rounds, planned: jobs.length, results }, null, 2));
       expect(stop, "Le Gateway a refusé la clé, le quota ou la politique de données.").toBe(false);
       expect(results).toHaveLength(jobs.length);
-    } finally { vi.unstubAllEnvs(); }
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

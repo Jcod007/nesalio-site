@@ -80,8 +80,13 @@ export async function GET(request: Request): Promise<Response> {
   if (config.gatewayToken) {
     let sample: { audio: Uint8Array; mediaType: string } | null = null;
     try {
-      const { audio, mediaType, alignment } = await synthesizeSpeech(
-        { token: config.gatewayToken, model: voice.model, speed: DEFAULTS.nesalioVoiceSpeed, withTimestamps: true, text: "Bonjour, je suis Nesa." });
+      const { audio, mediaType, alignment } = await synthesizeSpeech({
+        token: config.gatewayToken,
+        model: voice.model,
+        speed: DEFAULTS.nesalioVoiceSpeed,
+        withTimestamps: true,
+        text: "Bonjour, je suis Nesa.",
+      });
       // Nesalio times its gestures on the word timings: a voice without them plays, but late.
       results.voice = `ok : ${audio.byteLength} octets (${mediaType}), horodatage : ${alignment ? "oui" : "non"}`;
       sample = { audio, mediaType };

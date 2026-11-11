@@ -118,8 +118,10 @@ type MathSpec = ReturnType<typeof MathContext.parse>;
 function check(slice: unknown, mathContext: MathSpec | undefined, state: ValidationState | undefined) {
   const result = validateModelOutput({ ...(state ? {} : { math_context: mathContext }), slices: [slice] }, state);
   if (!result.ok) return result;
-  const unplayable: ContractIssue[] = negotiateCapabilities(slice, PLAYABLE)
-    .map(({ path, name }) => ({ path: ["slices", 0, ...path], message: `Capacité non exécutable « ${name} » : utilise seulement le langage décrit.` }));
+  const unplayable: ContractIssue[] = negotiateCapabilities(slice, PLAYABLE).map(({ path, name }) => ({
+    path: ["slices", 0, ...path],
+    message: `Capacité non exécutable « ${name} » : utilise seulement le langage décrit.`,
+  }));
   return unplayable.length ? { ok: false as const, issues: unplayable } : result;
 }
 
@@ -138,8 +140,8 @@ export function closeJsonLine(line: string): string | undefined {
     const char = line[index];
     if (inString) {
       if (char === "\\") index++;
-      else if (char === "\"") inString = false;
-    } else if (char === "\"") inString = true;
+      else if (char === '"') inString = false;
+    } else if (char === '"') inString = true;
     else if (char === "{") open.push("}");
     else if (char === "[") open.push("]");
     else if ((char === "}" || char === "]") && open.pop() !== char) return;
@@ -158,8 +160,8 @@ export function topLevelObjects(line: string): string[] {
     const char = line[index];
     if (inString) {
       if (char === "\\") index++;
-      else if (char === "\"") inString = false;
-    } else if (char === "\"") inString = true;
+      else if (char === '"') inString = false;
+    } else if (char === '"') inString = true;
     else if (char === "{") depth++;
     else if (char === "}" && --depth === 0) {
       objects.push(line.slice(start, index + 1).trim());
@@ -192,7 +194,7 @@ function escapeInnerQuotes(line: string): string {
   for (let index = 0; index < line.length; index++) {
     const char = line[index]!;
     if (!inString) {
-      if (char === "\"") {
+      if (char === '"') {
         inString = true;
         key = last === "{" || last === ",";
       }
@@ -201,17 +203,17 @@ function escapeInnerQuotes(line: string): string {
     } else if (char === "\\") {
       out += char + (line[index + 1] ?? "");
       index++;
-    } else if (char !== "\"") out += char;
+    } else if (char !== '"') out += char;
     else {
       const rest = line.slice(index + 1).trimStart();
       const next = rest[0];
-      const closes = next === undefined || next === "}" || next === "]" || (next === ":" && key)
-        || (next === "," && /^,\s*(?:["{[\]}\d-]|true|false|null)/.test(rest));
+      const closes =
+        next === undefined || next === "}" || next === "]" || (next === ":" && key) || (next === "," && /^,\s*(?:["{[\]}\d-]|true|false|null)/.test(rest));
       if (closes) {
         inString = false;
         last = char;
         out += char;
-      } else out += "\\\"";
+      } else out += '\\"';
     }
   }
   return out;
@@ -225,7 +227,11 @@ function escapeInnerQuotes(line: string): string {
  */
 function leniently(line: string): string | undefined {
   if (!/[}\]][\s,]*$/.test(line)) return;
-  try { return jsonrepair(line); } catch { return; }
+  try {
+    return jsonrepair(line);
+  } catch {
+    return;
+  }
 }
 
 /**
@@ -236,14 +242,19 @@ function leniently(line: string): string | undefined {
 type Parsed = { value: Record<string, unknown>; lenient?: unknown } | { error: unknown };
 
 function parseLine(line: string): Parsed {
-  try { return { value: JSON.parse(line) as Record<string, unknown> }; }
-  catch (error) {
+  try {
+    return { value: JSON.parse(line) as Record<string, unknown> };
+  } catch (error) {
     // Safe repairs only, each still fully validated: closing braces, a comma or bracket left after the object
     // (tranches written as a JSON array), then lone LaTeX backslashes.
     const escaped = escapeLatex(line);
     for (const candidate of [closeJsonLine(line), line.replace(/\}[\s,\]]+$/, "}"), escaped, closeJsonLine(escaped)]) {
       if (candidate === undefined || candidate === line) continue;
-      try { return { value: JSON.parse(candidate) as Record<string, unknown> }; } catch { /* reported below */ }
+      try {
+        return { value: JSON.parse(candidate) as Record<string, unknown> };
+      } catch {
+        /* reported below */
+      }
     }
     // Straight quotes in a sentence escaped first, then the LaTeX-escaped line: `\frac` would otherwise stay a form feed.
     const quoted = escapeLatex(escapeInnerQuotes(line));
@@ -252,7 +263,9 @@ function parseLine(line: string): Parsed {
       try {
         const value = JSON.parse(candidate) as unknown;
         if (value && typeof value === "object" && !Array.isArray(value)) return { value: value as Record<string, unknown>, lenient: error };
-      } catch { /* reported below */ }
+      } catch {
+        /* reported below */
+      }
     }
     return { error };
   }
@@ -288,8 +301,8 @@ function jsonDepth(text: string): number {
     const char = text[index];
     if (inString) {
       if (char === "\\") index++;
-      else if (char === "\"") inString = false;
-    } else if (char === "\"") inString = true;
+      else if (char === '"') inString = false;
+    } else if (char === '"') inString = true;
     else if (char === "{" || char === "[") depth++;
     else if (char === "}" || char === "]") depth--;
   }
@@ -348,7 +361,9 @@ async function* untilIdle(stream: AsyncIterable<string>, ms: number, firstMs = m
       let timer: ReturnType<typeof setTimeout> | undefined;
       const next = iterator.next();
       const wait = first ? firstMs : ms;
-      const silence = new Promise<"idle">((resolve) => { timer = setTimeout(() => resolve("idle"), wait); });
+      const silence = new Promise<"idle">((resolve) => {
+        timer = setTimeout(() => resolve("idle"), wait);
+      });
       const result = await Promise.race([next, silence]).finally(() => clearTimeout(timer));
       if (result === "idle") {
         idle = true;
@@ -368,15 +383,16 @@ async function* untilIdle(stream: AsyncIterable<string>, ms: number, firstMs = m
 
 /** An error that the same call would only repeat (a refused key, a bad request). */
 function permanent(error: unknown): boolean {
-  return error instanceof UpstreamError && error.status !== undefined && error.status >= 400 && error.status < 500
-    && error.status !== 408 && error.status !== 429;
+  return (
+    error instanceof UpstreamError && error.status !== undefined && error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429
+  );
 }
 
 /** Sent when a call went silent in the middle of a lesson: the model goes on after the last accepted tranche. */
 function resumeMessage(acceptedIds: readonly string[], seconds: number): string {
   return [
     `Ta réponse s'est arrêtée en route (plus rien reçu pendant ${seconds} s). Tranches déjà acceptées : ${acceptedIds.join(", ") || "aucune"}.`,
-    "Continue : écris les tranches suivantes, une par ligne {\"slice\": …}, jusqu'au récapitulatif, sans réécrire celles-ci ;",
+    'Continue : écris les tranches suivantes, une par ligne {"slice": …}, jusqu\'au récapitulatif, sans réécrire celles-ci ;',
     "si la leçon était déjà finie, n'écris rien.",
   ].join("\n");
 }
@@ -404,17 +420,27 @@ function unreadableIssue(line: string, error: unknown): ContractIssue {
   const advice = SPREAD.test(line)
     ? "une tranche = un objet JSON complet sur UNE seule ligne, sans retour à la ligne"
     : "vérifie que chaque { a son }, chaque [ son ], et que chaque élément est suivi d'une virgule";
-  return { path: ["ligne"], message: `Ligne JSON illisible (${reason}) : ${advice}. Début de la ligne : ${line.slice(0, 160)} … Fin de la ligne : ${line.slice(-240)}` };
+  return {
+    path: ["ligne"],
+    message: `Ligne JSON illisible (${reason}) : ${advice}. Début de la ligne : ${line.slice(0, 160)} … Fin de la ligne : ${line.slice(-240)}`,
+  };
 }
 
 /** The teacher's script: the whole lesson as plain text, before any syntax. */
 async function writeScript(question: string, { provider, completion, signal }: GeneratorConfig): Promise<string> {
   let script = "";
   for await (const chunk of completion({
-    protocol: provider.protocol, endpoint: provider.endpoint, apiKey: provider.apiKey, model: provider.model,
-    extraHeaders: provider.extraHeaders, messages: buildTeacherMessages(question), signal, maxTokens: MAX_TOKENS,
+    protocol: provider.protocol,
+    endpoint: provider.endpoint,
+    apiKey: provider.apiKey,
+    model: provider.model,
+    extraHeaders: provider.extraHeaders,
+    messages: buildTeacherMessages(question),
+    signal,
+    maxTokens: MAX_TOKENS,
     reasoningEffort: provider.firstTurnEffort ?? provider.reasoningEffort,
-  })) script += chunk;
+  }))
+    script += chunk;
   return script.trim();
 }
 
@@ -425,8 +451,9 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
   let messages: ChatMessage[] = buildNesalioMessages(question);
   if (config.twoStage) {
     let script: string;
-    try { script = await writeScript(question, config); }
-    catch (error) {
+    try {
+      script = await writeScript(question, config);
+    } catch (error) {
       if (signal?.aborted) return;
       log?.("nesalio: échec de l'appel à l'enseignant", error);
       script = "";
@@ -476,25 +503,38 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       }, reviewTimeoutMs);
     });
     try {
-      const review = await Promise.race([config.review!({
-        question, previous: [...shown], slice: candidate.result.value.slices[0]!, math: header?.math_context,
-        signal: signal ? AbortSignal.any([signal, timer.signal]) : timer.signal,
-      }), late]);
-      for (const { alert, reason } of review.dropped) log?.("nesalio: alerte du relecteur écartée", `${candidate.id} — ${reason} : « ${alert.citation} » → ${alert.correction}`);
+      const review = await Promise.race([
+        config.review!({
+          question,
+          previous: [...shown],
+          slice: candidate.result.value.slices[0]!,
+          math: header?.math_context,
+          signal: signal ? AbortSignal.any([signal, timer.signal]) : timer.signal,
+        }),
+        late,
+      ]);
+      for (const { alert, reason } of review.dropped)
+        log?.("nesalio: alerte du relecteur écartée", `${candidate.id} — ${reason} : « ${alert.citation} » → ${alert.correction}`);
       log?.("nesalio: relecture", `${candidate.id} — ${review.alerts.length} alerte(s) gardée(s), ${review.dropped.length} écartée(s), ${review.ms} ms`);
       for (const { citation, correction } of review.alerts) log?.("nesalio: alerte du relecteur", `${candidate.id} — « ${citation} » → ${correction}`);
       return review.alerts;
     } catch (error) {
-      if (!signal?.aborted) log?.("nesalio: relecture impossible, tranche montrée sans relecture", `${candidate.id} — ${error instanceof Error ? error.message : String(error)}`);
+      if (!signal?.aborted)
+        log?.("nesalio: relecture impossible, tranche montrée sans relecture", `${candidate.id} — ${error instanceof Error ? error.message : String(error)}`);
       return [];
     } finally {
       clearTimeout(timeout);
     }
   };
   /** A lesson stopped with a tranche missing: what was played stays, the student is told the rest is missing. */
-  const stopped = (): NesalioEvent => slices
-    ? { kind: "error", code: "incomplete", message: "L'explication s'est arrêtée en route : Nesa n'a pas réussi à écrire la suite. Tu peux réessayer ou poser une autre question." }
-    : { kind: "error", code: "invalid", message: "Nesa n'a pas réussi à construire une explication valide. Reformule ta question ?" };
+  const stopped = (): NesalioEvent =>
+    slices
+      ? {
+          kind: "error",
+          code: "incomplete",
+          message: "L'explication s'est arrêtée en route : Nesa n'a pas réussi à écrire la suite. Tu peux réessayer ou poser une autre question.",
+        }
+      : { kind: "error", code: "invalid", message: "Nesa n'a pas réussi à construire une explication valide. Reformule ta question ?" };
 
   for (;;) {
     const call = new AbortController();
@@ -523,19 +563,34 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
     const waitFor = (id: string): boolean => {
       const waiting = [...missing].find((other) => other !== UNKNOWN_ID && other !== id);
       if (waiting === undefined) return false;
-      refused = { id: waiting, issues: [{ path: ["slice_id"], message:
-        `Tranche « ${id} » écrite avant la tranche refusée « ${waiting} » : réécris d'abord « ${waiting} » corrigée, avec le même slice_id, puis la suite.` }] };
+      refused = {
+        id: waiting,
+        issues: [
+          {
+            path: ["slice_id"],
+            message: `Tranche « ${id} » écrite avant la tranche refusée « ${waiting} » : réécris d'abord « ${waiting} » corrigée, avec le même slice_id, puis la suite.`,
+          },
+        ],
+      };
       return true;
     };
 
     const refuseUnreadable = (line: string, error: unknown) => {
       const kind = unreadableKind(line);
-      log?.("nesalio: ligne JSON illisible", `${error instanceof Error ? error.message : String(error)} — début : ${line.slice(0, 160)} — fin : ${line.slice(-240)}`);
+      log?.(
+        "nesalio: ligne JSON illisible",
+        `${error instanceof Error ? error.message : String(error)} — début : ${line.slice(0, 160)} — fin : ${line.slice(-240)}`,
+      );
       if (kind === undefined || (kind === "header" && header)) return;
       if (kind === "header" || !header) {
-        refused = { id: HEADER, header: "missing", issues: [
-          ...(kind === "header" ? [] : [{ path: [], message: `La ligne lesson doit venir avant la première tranche (« ${kind.slice} »).` }]),
-          unreadableIssue(line, error)] };
+        refused = {
+          id: HEADER,
+          header: "missing",
+          issues: [
+            ...(kind === "header" ? [] : [{ path: [], message: `La ligne lesson doit venir avant la première tranche (« ${kind.slice} »).` }]),
+            unreadableIssue(line, error),
+          ],
+        };
         return;
       }
       // After a repair the model may rewrite tranches already played: skip them, as when they are readable.
@@ -585,8 +640,7 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
         const tidied = normalizeMathContext(value.math_context);
         if (tidied.fixes.length) log?.("nesalio: en-tête réparé sans appel", tidied.fixes.join(" | "));
         const math = tidied.math === undefined ? undefined : MathContext.safeParse(tidied.math);
-        const issues = [...(lesson.error?.issues ?? []), ...(math?.error?.issues ?? []),
-          ...(math?.success ? validateMathContext(math.data) : [])];
+        const issues = [...(lesson.error?.issues ?? []), ...(math?.error?.issues ?? []), ...(math?.success ? validateMathContext(math.data) : [])];
         if (!lesson.success || (math && !math.success) || issues.length) {
           if ("lenient" in parsed) refuseUnreadable(line, parsed.lenient);
           else refused = { id: HEADER, issues, header: "invalid" };
@@ -605,8 +659,13 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
         const id = typeof raw?.id === "string" ? raw.id : `q${asked.size + 1}`;
         const { id: _id, after: _after, ...check } = raw ?? {};
         const question = LessonQuestion.safeParse({ id, after, check });
-        if (!after || asked.has(after) || asked.size >= MAX_QUESTIONS) log?.("nesalio: question ignorée", `${id} — ${!after ? "avant toute tranche" : asked.has(after) ? "deuxième question après la même tranche" : "trop de questions"}`);
-        else if (!question.success) log?.("nesalio: question refusée", `${id} — ${question.error.issues.map((issue) => `${issue.path.join(".")} : ${issue.message}`).join(" | ")}`);
+        if (!after || asked.has(after) || asked.size >= MAX_QUESTIONS)
+          log?.(
+            "nesalio: question ignorée",
+            `${id} — ${!after ? "avant toute tranche" : asked.has(after) ? "deuxième question après la même tranche" : "trop de questions"}`,
+          );
+        else if (!question.success)
+          log?.("nesalio: question refusée", `${id} — ${question.error.issues.map((issue) => `${issue.path.join(".")} : ${issue.message}`).join(" | ")}`);
         else {
           asked.add(after);
           accepted.push(line);
@@ -618,7 +677,11 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       // After a repair the model may rewrite tranches already played: skip them, do not refuse them.
       if (acceptedIds.has(sliceId(value.slice))) return;
       if (!header) {
-        refused = { id: HEADER, header: "missing", issues: [{ path: [], message: `La ligne lesson doit venir avant la première tranche (« ${sliceId(value.slice)} »).` }] };
+        refused = {
+          id: HEADER,
+          header: "missing",
+          issues: [{ path: [], message: `La ligne lesson doit venir avant la première tranche (« ${sliceId(value.slice)} »).` }],
+        };
         return;
       }
       if (waitFor(sliceId(value.slice))) return;
@@ -638,8 +701,7 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       const candidate: Candidate = { id: sliceId(value.slice), line, lenient: "lenient" in parsed, normalized, fixes, result };
       // A plain opening is shown at once (the student is waiting); a first tranche with data is reviewed first.
       const opening = slices === 0 && isPlainOpening(result.value.slices[0]!);
-      if (config.review && !opening && !reviewed.has(candidate.id) && reviewFixes < MAX_REVIEW_FIXES
-        && header.lesson.id !== OUT_OF_SCOPE_LESSON) {
+      if (config.review && !opening && !reviewed.has(candidate.id) && reviewFixes < MAX_REVIEW_FIXES && header.lesson.id !== OUT_OF_SCOPE_LESSON) {
         pending = candidate;
         return;
       }
@@ -662,8 +724,9 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       }
       state = result.state;
       // The repaired and corrected form, the one played, is what the model sees again if a later tranche has to be corrected.
-      accepted.push(corrected.length ? JSON.stringify({ slice: result.value.slices[0] })
-        : fixes.length || lenient ? JSON.stringify({ slice: normalized }) : line);
+      accepted.push(
+        corrected.length ? JSON.stringify({ slice: result.value.slices[0] }) : fixes.length || lenient ? JSON.stringify({ slice: normalized }) : line,
+      );
       acceptedIds.add(id);
       slices++;
       shown.push(result.value.slices[0]!);
@@ -689,8 +752,11 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       if (signal?.aborted) return;
       if (alerts.length) {
         reviewFixes++;
-        refused = { id: candidate.id, review: alerts, issues: alerts.map(({ citation, correction, type }) =>
-          ({ path: ["relecteur", type || "fond"], message: `« ${citation} » → ${correction}` })) };
+        refused = {
+          id: candidate.id,
+          review: alerts,
+          issues: alerts.map(({ citation, correction, type }) => ({ path: ["relecteur", type || "fond"], message: `« ${citation} » → ${correction}` })),
+        };
         refusedLines.set(candidate.id, JSON.stringify({ slice: candidate.result.value.slices[0] }));
         missing.add(candidate.id);
         return;
@@ -704,8 +770,14 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
 
     try {
       const stream = completion({
-        protocol: provider.protocol, endpoint: provider.endpoint, apiKey: provider.apiKey, model: provider.model,
-        extraHeaders: provider.extraHeaders, messages: [...messages], signal: callSignal, maxTokens: MAX_TOKENS,
+        protocol: provider.protocol,
+        endpoint: provider.endpoint,
+        apiKey: provider.apiKey,
+        model: provider.model,
+        extraHeaders: provider.extraHeaders,
+        messages: [...messages],
+        signal: callSignal,
+        maxTokens: MAX_TOKENS,
         // The student is waiting for the first sentence: no hidden reasoning before it, as for the tutor's first turn.
         reasoningEffort: provider.firstTurnEffort ?? provider.reasoningEffort,
       });
@@ -718,10 +790,11 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
           }
         }
       }
-      if (!refused && !finished) for (const whole of [...splitter.flush().flatMap((line) => spread.push(line)), ...spread.flush()]) {
-        yield* processLine(whole);
-        if (refused || finished) break;
-      }
+      if (!refused && !finished)
+        for (const whole of [...splitter.flush().flatMap((line) => spread.push(line)), ...spread.flush()]) {
+          yield* processLine(whole);
+          if (refused || finished) break;
+        }
     } catch (error) {
       if (signal?.aborted) return;
       log?.("nesalio: échec de l'appel au modèle", error);
@@ -741,21 +814,29 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       // A silent call is resumed as a missing tranche, within the same correction budget.
       const stall: ContractIssue = { path: [], message: `Ta réponse s'est arrêtée en route (${error.message}).` };
       const waiting = [...missing][0];
-      refused = !header ? { id: HEADER, header: "missing", issues: [stall] }
-        : waiting !== undefined ? { id: waiting, issues: [stall] }
-        : { id: STALLED, issues: [stall] };
+      refused = !header
+        ? { id: HEADER, header: "missing", issues: [stall] }
+        : waiting !== undefined
+          ? { id: waiting, issues: [stall] }
+          : { id: STALLED, issues: [stall] };
     } finally {
       call.abort();
     }
 
     if (refused) {
       // As text: the server log drops object contents, and the reasons are what a refusal is diagnosed from.
-      log?.("nesalio: tranche refusée", `${refused.id} — ${refused.issues.slice(0, 8)
-        .map(({ path, message }) => `${path.map(String).join(".")} : ${message}`).join(" | ")}`);
+      log?.(
+        "nesalio: tranche refusée",
+        `${refused.id} — ${refused.issues
+          .slice(0, 8)
+          .map(({ path, message }) => `${path.map(String).join(".")} : ${message}`)
+          .join(" | ")}`,
+      );
       // The refused tranche itself, as sent back: the reasons alone did not show why a refusal came back (diagnosis
       // of the lessons stopped on the Alloprof bench).
       const shownLine = refused.header ? undefined : refusedLines.get(refused.id);
-      if (shownLine) log?.("nesalio: ligne refusée", `${refused.id} — ${shownLine.length > MAX_LOGGED_LINE ? `${shownLine.slice(0, MAX_LOGGED_LINE)}…` : shownLine}`);
+      if (shownLine)
+        log?.("nesalio: ligne refusée", `${refused.id} — ${shownLine.length > MAX_LOGGED_LINE ? `${shownLine.slice(0, MAX_LOGGED_LINE)}…` : shownLine}`);
       // A review correction has its own budget (MAX_REVIEW_FIXES): it never stops the lesson.
       let simplify = false;
       if (!refused.review && ((repaired.get(refused.id) ?? 0) >= MAX_ATTEMPTS || repairs >= MAX_REPAIRS)) {
@@ -779,14 +860,21 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
       // The refused line goes after the accepted ones, in its repaired form: the model edits that line instead of
       // rewriting the tranche from memory, which brought a new fault 11 times out of 15 on the bench.
       const refusedLine = refused.header ? undefined : refusedLines.get(refused.id);
-      messages.push({ role: "assistant", content: [...accepted, ...(refusedLine ? [refusedLine] : [])].join("\n") || "(rien)" }, {
-        role: "user",
-        content: simplify ? simplifyMessage(refused.id, refused.issues)
-          : refused.review ? reviewFixMessage(refused.id, refused.review)
-          : refused.header ? repairHeaderMessage(refused.header, refused.issues)
-          : refused.id === STALLED ? resumeMessage([...acceptedIds], Math.round(idleMs / 1000))
-          : repairMessage(refused.id, refused.issues, refusedLine !== undefined),
-      });
+      messages.push(
+        { role: "assistant", content: [...accepted, ...(refusedLine ? [refusedLine] : [])].join("\n") || "(rien)" },
+        {
+          role: "user",
+          content: simplify
+            ? simplifyMessage(refused.id, refused.issues)
+            : refused.review
+              ? reviewFixMessage(refused.id, refused.review)
+              : refused.header
+                ? repairHeaderMessage(refused.header, refused.issues)
+                : refused.id === STALLED
+                  ? resumeMessage([...acceptedIds], Math.round(idleMs / 1000))
+                  : repairMessage(refused.id, refused.issues, refusedLine !== undefined),
+        },
+      );
       continue;
     }
     if (missing.size) {

@@ -24,9 +24,13 @@ export function expandChemistry(tex: string): string {
   COMMAND.lastIndex = 0;
   for (let match = COMMAND.exec(tex); match; match = COMMAND.exec(tex)) {
     const open = match.index + match[0].length - 1;
-    let depth = 0, end = open;
+    let depth = 0,
+      end = open;
     for (; end < tex.length; end++) {
-      if (tex[end] === "\\") { end++; continue; }
+      if (tex[end] === "\\") {
+        end++;
+        continue;
+      }
       if (tex[end] === "{") depth++;
       else if (tex[end] === "}" && --depth === 0) break;
     }
@@ -53,6 +57,8 @@ export function expandChemistry(tex: string): string {
  */
 function bareArrows(tex: string): string {
   if (!tex.includes("->") && !tex.includes("<=>")) return tex;
-  return tex.split(/(\\(?:text|mathrm|textrm|mbox)\s*\{[^{}]*\})/).map((piece, index) => index % 2 ? piece
-    : piece.replace(/<=>/g, "\\rightleftharpoons ").replace(/(?<![<-])-+>/g, "\\longrightarrow ")).join("");
+  return tex
+    .split(/(\\(?:text|mathrm|textrm|mbox)\s*\{[^{}]*\})/)
+    .map((piece, index) => (index % 2 ? piece : piece.replace(/<=>/g, "\\rightleftharpoons ").replace(/(?<![<-])-+>/g, "\\longrightarrow ")))
+    .join("");
 }

@@ -5,6 +5,7 @@
  * « Authorization: Bearer <CRON_SECRET> » ; sans lui, 404.
  */
 import { purgeOld } from "@/server/sessionStore";
+import { purgeExpiredTrials } from "@/server/trial";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,5 +15,6 @@ export async function GET(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) return new Response("Not found", { status: 404 });
   const deleted = await purgeOld(new Date());
-  return Response.json({ deleted }, { headers: { "Cache-Control": "no-store" } });
+  const expiredTrials = await purgeExpiredTrials(new Date());
+  return Response.json({ deleted, expiredTrials }, { headers: { "Cache-Control": "no-store" } });
 }

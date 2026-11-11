@@ -17,12 +17,28 @@ export function createPlaybackControl(): PlaybackControl {
   let paused = false;
   let muted = false;
   const listeners = new Set<() => void>();
-  const notify = () => { for (const listener of [...listeners]) listener(); };
+  const notify = () => {
+    for (const listener of [...listeners]) listener();
+  };
   return {
-    get paused() { return paused; },
-    get muted() { return muted; },
-    setPaused(value) { if (value !== paused) { paused = value; notify(); } },
-    setMuted(value) { if (value !== muted) { muted = value; notify(); } },
+    get paused() {
+      return paused;
+    },
+    get muted() {
+      return muted;
+    },
+    setPaused(value) {
+      if (value !== paused) {
+        paused = value;
+        notify();
+      }
+    },
+    setMuted(value) {
+      if (value !== muted) {
+        muted = value;
+        notify();
+      }
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
@@ -34,10 +50,24 @@ export function createPlaybackControl(): PlaybackControl {
 export function whenRunning(control: PlaybackControl | undefined, signal: AbortSignal): Promise<void> {
   if (!control?.paused) return signal.aborted ? Promise.reject(signal.reason) : Promise.resolve();
   return new Promise((resolve, reject) => {
-    const stop = control.subscribe(() => { if (!control.paused) { finish(); resolve(); } });
-    const abort = () => { finish(); reject(signal.reason); };
-    function finish() { stop(); signal.removeEventListener("abort", abort); }
-    if (signal.aborted) { abort(); return; }
+    const stop = control.subscribe(() => {
+      if (!control.paused) {
+        finish();
+        resolve();
+      }
+    });
+    const abort = () => {
+      finish();
+      reject(signal.reason);
+    };
+    function finish() {
+      stop();
+      signal.removeEventListener("abort", abort);
+    }
+    if (signal.aborted) {
+      abort();
+      return;
+    }
     signal.addEventListener("abort", abort, { once: true });
   });
 }
@@ -51,7 +81,10 @@ export function pausableSleep(ms: number, signal: AbortSignal, control?: Playbac
     const run = () => {
       if (timer !== undefined || control?.paused) return;
       startedAt = Date.now();
-      timer = setTimeout(() => { finish(); resolve(); }, left);
+      timer = setTimeout(() => {
+        finish();
+        resolve();
+      }, left);
     };
     const hold = () => {
       if (timer === undefined) return;
@@ -59,14 +92,23 @@ export function pausableSleep(ms: number, signal: AbortSignal, control?: Playbac
       timer = undefined;
       left = Math.max(0, left - (Date.now() - startedAt));
     };
-    const stop = control?.subscribe(() => { if (control.paused) hold(); else run(); });
-    const abort = () => { finish(); reject(signal.reason); };
+    const stop = control?.subscribe(() => {
+      if (control.paused) hold();
+      else run();
+    });
+    const abort = () => {
+      finish();
+      reject(signal.reason);
+    };
     function finish() {
       if (timer !== undefined) clearTimeout(timer);
       stop?.();
       signal.removeEventListener("abort", abort);
     }
-    if (signal.aborted) { abort(); return; }
+    if (signal.aborted) {
+      abort();
+      return;
+    }
     signal.addEventListener("abort", abort, { once: true });
     run();
   });

@@ -24,7 +24,10 @@ export const UNIFORM_RATIO = 3;
 
 /** The scale of a frame whose axes have these ranges; undefined when they fit at their natural size. */
 export function axesScale(params: { x: readonly [number, number]; y: readonly [number, number] } | undefined): FrameScale | undefined {
-  const { x: [x0, x1], y: [y0, y1] } = params ?? { x: [-6, 6], y: [-4, 4] };
+  const {
+    x: [x0, x1],
+    y: [y0, y1],
+  } = params ?? { x: [-6, 6], y: [-4, 4] };
   const x = Math.min(1, AXES_MAX.width / (x1 - x0));
   const y = Math.min(1, AXES_MAX.height / (y1 - y0));
   if (x === 1 && y === 1) return undefined;
@@ -88,7 +91,9 @@ function clipToWindow(pieces: Point[][], window: Box): Point[][] {
 }
 
 export function sampleSceneCurve(
-  object: Extract<SceneObject, { type: "function_graph" | "parametric_curve" }>, values: ReadonlyMap<string, number>, window?: Box,
+  object: Extract<SceneObject, { type: "function_graph" | "parametric_curve" }>,
+  values: ReadonlyMap<string, number>,
+  window?: Box,
 ): Point[][] {
   const isGraph = object.type === "function_graph";
   const independent = isGraph ? "x" : "t";
@@ -115,9 +120,11 @@ export function sampleSceneCurve(
 
 /** Declared parameters (math_context, kind "parameter") that an object's geometry depends on. */
 export function parametersOf(object: SceneObject, math: MathContext): string[] {
-  const parameters = Object.entries(math.symbols).filter(([, symbol]) => symbol.kind === "parameter").map(([name]) => name);
+  const parameters = Object.entries(math.symbols)
+    .filter(([, symbol]) => symbol.kind === "parameter")
+    .map(([name]) => name);
   if (object.type === "triangle_right") {
-    return [object.params.leg_a, object.params.leg_b].flatMap((leg) => typeof leg !== "number" && "parameter" in leg ? [leg.parameter] : []);
+    return [object.params.leg_a, object.params.leg_b].flatMap((leg) => (typeof leg !== "number" && "parameter" in leg ? [leg.parameter] : []));
   }
   if (object.type !== "function_graph" && object.type !== "parametric_curve") return [];
   const sources = object.type === "function_graph" ? [object.params.expression] : [object.params.x, object.params.y];
@@ -127,7 +134,11 @@ export function parametersOf(object: SceneObject, math: MathContext): string[] {
 /** Union of a curve's box over a grid of its parameters' values (current values included). */
 function parameterReserve(
   object: Extract<SceneObject, { type: "function_graph" | "parametric_curve" }>,
-  values: ReadonlyMap<string, number>, math: MathContext, window: Box | undefined, body: Box, scale?: FrameScale,
+  values: ReadonlyMap<string, number>,
+  math: MathContext,
+  window: Box | undefined,
+  body: Box,
+  scale?: FrameScale,
 ): Box | undefined {
   const parameters = parametersOf(object, math);
   if (!parameters.length) return undefined;
@@ -136,18 +147,21 @@ function parameterReserve(
   for (const name of parameters) {
     const symbol = math.symbols[name];
     if (symbol?.kind !== "parameter") continue;
-    grids = grids.flatMap((grid) => Array.from({ length: steps + 1 }, (_, i) =>
-      new Map(grid).set(name, symbol.min + (symbol.max - symbol.min) * (i / steps))));
+    grids = grids.flatMap((grid) => Array.from({ length: steps + 1 }, (_, i) => new Map(grid).set(name, symbol.min + (symbol.max - symbol.min) * (i / steps))));
   }
   const boxes = grids.map((grid) => {
-    const points = sampleSceneCurve(object, grid, window).flat().map((point) => scaled(point, scale));
+    const points = sampleSceneCurve(object, grid, window)
+      .flat()
+      .map((point) => scaled(point, scale));
     return points.length ? enclosing(points, 0.03) : null;
   });
   return union([body, ...boxes]) ?? undefined;
 }
 
 export function triangleMeasurement(
-  object: Extract<SceneObject, { type: "triangle_right" }>, values: ReadonlyMap<string, number>, math: MathContext,
+  object: Extract<SceneObject, { type: "triangle_right" }>,
+  values: ReadonlyMap<string, number>,
+  math: MathContext,
 ): Measurement {
   function length(value: typeof object.params.leg_a): number {
     if (typeof value === "number") return value;
@@ -157,8 +171,8 @@ export function triangleMeasurement(
     return resolved;
   }
   function largest(value: typeof object.params.leg_a): number {
-    const parameter = typeof value !== "number" && "parameter" in value && Object.hasOwn(math.symbols, value.parameter)
-      ? math.symbols[value.parameter] : undefined;
+    const parameter =
+      typeof value !== "number" && "parameter" in value && Object.hasOwn(math.symbols, value.parameter) ? math.symbols[value.parameter] : undefined;
     return parameter && parameter.kind === "parameter" ? parameter.max : length(value);
   }
   const { leg_a, leg_b } = object.params;
@@ -184,14 +198,21 @@ export function triangleMeasurement(
 export function computedFormula(object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext): string | null {
   if (object.type !== "math" || typeof object.content === "string") return null;
   const source = Object.hasOwn(math.expressions, object.content.expression_ref) ? math.expressions[object.content.expression_ref]! : "";
-  const follows = Object.entries(math.symbols).some(([name, symbol]) => symbol.kind === "parameter"
-    && new RegExp(`(^|[^A-Za-z0-9_])${name}($|[^A-Za-z0-9_])`).test(source));
+  const follows = Object.entries(math.symbols).some(
+    ([name, symbol]) => symbol.kind === "parameter" && new RegExp(`(^|[^A-Za-z0-9_])${name}($|[^A-Za-z0-9_])`).test(source),
+  );
   if (follows) return null;
   // In LaTeX the decimal comma is written {,} (no space after it) and the minus sign is the plain one.
-  return sceneText(object, values, math).replace(/(\d),(?=\d)/g, "$1{,}").replaceAll("−", "-");
+  return sceneText(object, values, math)
+    .replace(/(\d),(?=\d)/g, "$1{,}")
+    .replaceAll("−", "-");
 }
 
-export function sceneText(object: Extract<SceneObject, { type: "text" | "label" | "callout" | "math" }>, values: ReadonlyMap<string, number>, math: MathContext): string {
+export function sceneText(
+  object: Extract<SceneObject, { type: "text" | "label" | "callout" | "math" }>,
+  values: ReadonlyMap<string, number>,
+  math: MathContext,
+): string {
   if (typeof object.content === "string") return object.content;
   const { expression_ref: id, template, precision } = object.content;
   if (!Object.hasOwn(math.expressions, id)) throw new Error(`Expression indisponible « ${id} ».`);
@@ -213,38 +234,44 @@ export const BOARD_LINE_CHARS = 48;
 /** Prose cut into lines at word boundaries, for the board only; formulas and inline LaTeX are left whole. */
 export function boardLines(text: string): string {
   if (/[$\\]/.test(text)) return text;
-  return text.split("\n").map((paragraph) => {
-    if (Array.from(paragraph).length <= BOARD_LINE_CHARS) return paragraph;
-    // French punctuation never starts a line (« Dilution / : C₁V₁ » seen on 2026-11-10), an opening quote never ends one.
-    const words = paragraph.split(" ").reduce<string[]>((list, word) => {
-      const previous = list.at(-1);
-      // « T = 298,15 K »: a relation stays with what it relates (seen 2026-11-10: « T » alone at a line's end).
-      const relation = (text: string) => /^[=≈<>≤≥×+−]+$/.test(text);
-      const last = previous?.split(" ").at(-1);
-      if (previous !== undefined && (/^[:;?!»]/.test(word) || previous === "«" || relation(word) || (last !== undefined && relation(last)))) {
-        list[list.length - 1] = `${previous} ${word}`;
+  return text
+    .split("\n")
+    .map((paragraph) => {
+      if (Array.from(paragraph).length <= BOARD_LINE_CHARS) return paragraph;
+      // French punctuation never starts a line (« Dilution / : C₁V₁ » seen on 2026-11-10), an opening quote never ends one.
+      const words = paragraph.split(" ").reduce<string[]>((list, word) => {
+        const previous = list.at(-1);
+        // « T = 298,15 K »: a relation stays with what it relates (seen 2026-11-10: « T » alone at a line's end).
+        const relation = (text: string) => /^[=≈<>≤≥×+−]+$/.test(text);
+        const last = previous?.split(" ").at(-1);
+        if (previous !== undefined && (/^[:;?!»]/.test(word) || previous === "«" || relation(word) || (last !== undefined && relation(last)))) {
+          list[list.length - 1] = `${previous} ${word}`;
+        } else list.push(word);
+        return list;
+      }, []);
+      const total = Array.from(paragraph).length;
+      // Lines of even length rather than one full line and a short end.
+      const width = Math.ceil(total / Math.ceil(total / BOARD_LINE_CHARS));
+      const lines: string[] = [];
+      let line = "";
+      for (const word of words) {
+        if (line && Array.from(`${line} ${word}`).length > width + 6) {
+          lines.push(line);
+          line = word;
+        } else line = line ? `${line} ${word}` : word;
       }
-      else list.push(word);
-      return list;
-    }, []);
-    const total = Array.from(paragraph).length;
-    // Lines of even length rather than one full line and a short end.
-    const width = Math.ceil(total / Math.ceil(total / BOARD_LINE_CHARS));
-    const lines: string[] = [];
-    let line = "";
-    for (const word of words) {
-      if (line && Array.from(`${line} ${word}`).length > width + 6) {
-        lines.push(line);
-        line = word;
-      } else line = line ? `${line} ${word}` : word;
-    }
-    if (line) lines.push(line);
-    return lines.join("\n");
-  }).join("\n");
+      if (line) lines.push(line);
+      return lines.join("\n");
+    })
+    .join("\n");
 }
 
 /** What a text object writes on the board: its words, prose cut into lines (boardLines). */
-export function writtenText(object: Extract<SceneObject, { type: "text" | "label" | "callout" | "math" }>, values: ReadonlyMap<string, number>, math: MathContext): string {
+export function writtenText(
+  object: Extract<SceneObject, { type: "text" | "label" | "callout" | "math" }>,
+  values: ReadonlyMap<string, number>,
+  math: MathContext,
+): string {
   const content = sceneText(object, values, math);
   return object.type === "math" ? content : boardLines(content);
 }
@@ -269,19 +296,16 @@ function strokeBoxes(points: readonly Point[], closed = false, thickness = 0.06)
 
 /** A matrix is drawn as a grid table as soon as it has titles or a non-numeric cell. */
 export function isTable(params: MatrixParams): boolean {
-  return params.row_labels !== undefined || params.column_labels !== undefined
-    || params.rows.some((row) => row.some((cell) => typeof cell !== "number"));
+  return params.row_labels !== undefined || params.column_labels !== undefined || params.rows.some((row) => row.some((cell) => typeof cell !== "number"));
 }
 
 /** Header row (if any), then each row: its title first, numbers in French, blank cells empty. */
 export function tableRows(params: MatrixParams): string[][] {
-  const write = (value: number | string | null) => typeof value === "number"
-    ? String(value).replace(".", ",").replace("-", "−") : value ?? "";
+  const write = (value: number | string | null) => (typeof value === "number" ? String(value).replace(".", ",").replace("-", "−") : (value ?? ""));
   const titled = params.row_labels !== undefined;
   const columns = params.rows[0]?.length ?? 0;
-  const header = params.column_labels
-    ? [[...titled && params.column_labels.length === columns ? [""] : [], ...params.column_labels]] : [];
-  return [...header, ...params.rows.map((row, i) => [...titled ? [params.row_labels![i] ?? ""] : [], ...row.map(write)])];
+  const header = params.column_labels ? [[...(titled && params.column_labels.length === columns ? [""] : []), ...params.column_labels]] : [];
+  return [...header, ...params.rows.map((row, i) => [...(titled ? [params.row_labels![i] ?? ""] : []), ...row.map(write)])];
 }
 
 /**
@@ -309,15 +333,43 @@ export function tableLayout(rows: readonly (readonly string[])[], fontSize: numb
   const rowHeight = lineHeight + 0.25;
   const width = columns.reduce((a, b) => a + b, 0);
   const height = rowHeight * rows.length;
-  const left = -width / 2, top = height / 2;
+  const left = -width / 2,
+    top = height / 2;
   const starts = columns.map((_, j) => left + columns.slice(0, j).reduce((a, b) => a + b, 0));
-  const cells = rows.flatMap((row, i) => row.map((text, j) => ({ text, row: i, column: j,
-    at: [starts[j]! + columns[j]! / 2, top - (i + 0.5) * rowHeight] as Point,
-    box: { x0: starts[j]!, y0: top - (i + 1) * rowHeight, x1: starts[j]! + columns[j]!, y1: top - i * rowHeight } as Box })));
+  const cells = rows.flatMap((row, i) =>
+    row.map((text, j) => ({
+      text,
+      row: i,
+      column: j,
+      at: [starts[j]! + columns[j]! / 2, top - (i + 0.5) * rowHeight] as Point,
+      box: { x0: starts[j]!, y0: top - (i + 1) * rowHeight, x1: starts[j]! + columns[j]!, y1: top - i * rowHeight } as Box,
+    })),
+  );
   const lines: [Point, Point][] = [
-    [[left, top], [-left, top]], [[left, -top], [-left, -top]], [[left, top], [left, -top]], [[-left, top], [-left, -top]],
-    ...rows.slice(1).map((_, i): [Point, Point] => [[left, top - (i + 1) * rowHeight], [-left, top - (i + 1) * rowHeight]]),
-    ...starts.slice(1).map((x): [Point, Point] => [[x, top], [x, -top]]),
+    [
+      [left, top],
+      [-left, top],
+    ],
+    [
+      [left, -top],
+      [-left, -top],
+    ],
+    [
+      [left, top],
+      [left, -top],
+    ],
+    [
+      [-left, top],
+      [-left, -top],
+    ],
+    ...rows.slice(1).map((_, i): [Point, Point] => [
+      [left, top - (i + 1) * rowHeight],
+      [-left, top - (i + 1) * rowHeight],
+    ]),
+    ...starts.slice(1).map((x): [Point, Point] => [
+      [x, top],
+      [x, -top],
+    ]),
   ];
   return { cells, lines, width, height };
 }
@@ -332,17 +384,22 @@ const NUMBER_ROOM = 0.6;
  * French writing: decimal comma, minus sign.
  */
 export function axisNumbers(
-  params: { x: readonly [number, number]; y: readonly [number, number] } | undefined, scale?: FrameScale,
+  params: { x: readonly [number, number]; y: readonly [number, number] } | undefined,
+  scale?: FrameScale,
 ): { axis: "x" | "y"; text: string; at: Point }[] {
   const { x, y } = params ?? { x: [-6, 6] as const, y: [-4, 4] as const };
-  const write = (value: number) => String(Number(value.toFixed(6))).replace(".", ",").replace("-", "−");
+  const write = (value: number) =>
+    String(Number(value.toFixed(6)))
+      .replace(".", ",")
+      .replace("-", "−");
   const ticks = ([a, b]: readonly [number, number]) => {
     const step = niceStep(b - a);
     const values: number[] = [];
     for (let k = Math.ceil(a / step - 1e-9); k * step <= b + 1e-9; k++) if (k !== 0) values.push(Number((k * step).toFixed(9)));
     return values;
   };
-  const sx = scale?.x ?? 1, sy = scale?.y ?? 1;
+  const sx = scale?.x ?? 1,
+    sy = scale?.y ?? 1;
   const oy = Math.min(Math.max(0, y[0]), y[1]) * sy;
   const ox = Math.min(Math.max(0, x[0]), x[1]) * sx;
   return [
@@ -356,7 +413,8 @@ export const measureSceneObject: MeasureObject = (object, values, math, window, 
   const at = (point: readonly [number, number]) => scaled(point, scale);
   const fontSize = FONT_SIZE[object.size === "medium" || object.size === undefined ? "normal" : object.size];
   switch (object.type) {
-    case "point": return { body: enclosing([at(object.params.at)], 0.08) };
+    case "point":
+      return { body: enclosing([at(object.params.at)], 0.08) };
     case "line":
     case "arrow":
     case "vector": {
@@ -383,7 +441,8 @@ export const measureSceneObject: MeasureObject = (object, values, math, window, 
       const [y0, y1] = [ranges.y[0] * (scale?.y ?? 1), ranges.y[1] * (scale?.y ?? 1)];
       // The two axis lines and their ticks; the empty quadrants stay free for labels.
       // Each axis keeps the strip where its numbers are written (axisNumbers).
-      const oy = Math.min(Math.max(0, y0), y1), ox = Math.min(Math.max(0, x0), x1);
+      const oy = Math.min(Math.max(0, y0), y1),
+        ox = Math.min(Math.max(0, x0), x1);
       const collision: Box[] = [
         { x0: x0 - 0.2, y0: oy - NUMBER_GAP - NUMBER_ROOM / 2, x1: x1 + 0.2, y1: oy + 0.12 },
         { x0: ox - NUMBER_GAP - NUMBER_ROOM / 2, y0: y0 - 0.2, x1: ox + 0.12, y1: y1 + 0.2 },
@@ -399,13 +458,17 @@ export const measureSceneObject: MeasureObject = (object, values, math, window, 
       const reserve = parameterReserve(object, values, math, window, body, scale);
       return { body, ...(reserve ? { reserve } : {}), allowOverlap: true, collision: pieces.flatMap((piece) => strokeBoxes(piece)) };
     }
-    case "triangle_right": return triangleMeasurement(object, values, math);
+    case "triangle_right":
+      return triangleMeasurement(object, values, math);
     case "matrix": {
       if (isTable(object.params)) {
         const { width, height } = tableLayout(tableRows(object.params), fontSize);
         return { body: centered(width, height) };
       }
-      const { width, height } = matrixLayout(object.params.rows.map((row) => row.map(String)), fontSize);
+      const { width, height } = matrixLayout(
+        object.params.rows.map((row) => row.map(String)),
+        fontSize,
+      );
       return { body: centered(width, height) };
     }
     case "text":
@@ -430,7 +493,12 @@ export const measureSceneObject: MeasureObject = (object, values, math, window, 
         return { body, parts };
       }
       const lines = content.split("\n").map((line) => textWorldExtent(line, fontSize));
-      return { body: centered(Math.max(...lines.map((line) => line.w)), lines.reduce((sum, line) => sum + line.h, 0)) };
+      return {
+        body: centered(
+          Math.max(...lines.map((line) => line.w)),
+          lines.reduce((sum, line) => sum + line.h, 0),
+        ),
+      };
     }
   }
 };

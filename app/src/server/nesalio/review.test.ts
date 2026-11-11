@@ -8,23 +8,40 @@ const slice = {
   slice_id: "s2",
   introduces: [
     { id: "eq", type: "math", content: "x = \\frac{3\\log 7}{2\\log 7 - \\log 5} \\approx 2{,}17" },
-    { id: "t", type: "matrix", params: { rows: [[1, 4], [2, 9]], column_labels: ["x", "f(x)"] } },
+    {
+      id: "t",
+      type: "matrix",
+      params: {
+        rows: [
+          [1, 4],
+          [2, 9],
+        ],
+        column_labels: ["x", "f(x)"],
+      },
+    },
     { id: "n", type: "label", content: "l’égalité tient", attachment: { parent: "eq" } },
   ],
-  beats: [{ id: "b", say: "Ce quotient vaut environ deux virgule dix-sept.", cues: [], do: [
-    { id: "a1", verb: "show", target: "eq", at: "beat:start" },
-    { id: "a2", verb: "transform", target: "eq", at: "beat:start", to: "x \\approx 2{,}56" },
-  ] }],
+  beats: [
+    {
+      id: "b",
+      say: "Ce quotient vaut environ deux virgule dix-sept.",
+      cues: [],
+      do: [
+        { id: "a1", verb: "show", target: "eq", at: "beat:start" },
+        { id: "a2", verb: "transform", target: "eq", at: "beat:start", to: "x \\approx 2{,}56" },
+      ],
+    },
+  ],
 } as unknown as Slice;
 
 describe("relecteur de fond", () => {
   it("rend la tranche lisible : objets, étiquettes attachées, voix, gestes qui changent le tableau seulement", () => {
     const text = sliceText(slice);
     expect(text).toContain("OBJET eq [math] x = \\frac{3\\log 7}");
-    expect(text).toContain("OBJET t [matrix] {\"rows\":[[1,4],[2,9]]");
+    expect(text).toContain('OBJET t [matrix] {"rows":[[1,4],[2,9]]');
     expect(text).toContain("attaché à eq");
     expect(text).toContain("DIT : Ce quotient vaut environ deux virgule dix-sept.");
-    expect(text).toContain("transform eq {\"to\":\"x \\\\approx 2{,}56\"}");
+    expect(text).toContain('transform eq {"to":"x \\\\approx 2{,}56"}');
     expect(text).not.toContain("show eq");
   });
 
@@ -37,21 +54,25 @@ describe("relecteur de fond", () => {
   });
 
   it("lit le DERNIER objet JSON quand le relecteur se dédit", () => {
-    const raw = "{\"erreurs\":[{\"citation\":\"2{,}17\",\"correction\":\"c'est 2,56\",\"type\":\"calcul\"}]}\nAprès vérification, je retire.\n{\"erreurs\":[]}";
+    const raw = '{"erreurs":[{"citation":"2{,}17","correction":"c\'est 2,56","type":"calcul"}]}\nAprès vérification, je retire.\n{"erreurs":[]}';
     expect(parseReview(raw)).toEqual([]);
-    expect(parseReview("```json\n{\"erreurs\":[{\"citation\":\"a\",\"correction\":\"b\",\"type\":\"fait\"}]}\n```"))
-      .toEqual([{ citation: "a", correction: "b", type: "fait" }]);
+    expect(parseReview('```json\n{"erreurs":[{"citation":"a","correction":"b","type":"fait"}]}\n```')).toEqual([
+      { citation: "a", correction: "b", type: "fait" },
+    ]);
     expect(parseReview("je ne sais pas")).toBeUndefined();
   });
 
   it("garde une alerte seulement si sa citation est dans la tranche, mot pour mot", () => {
-    const { alerts, dropped } = screenAlerts([
-      { citation: "environ deux virgule dix-sept", correction: "c'est 2,56", type: "calcul" },
-      { citation: "\\approx 2{,}17", correction: "2,56", type: "calcul" },
-      { citation: "l'égalité tient", correction: "elle ne tient pas", type: "raisonnement" },
-      { citation: "vaut environ trois", correction: "inventé", type: "calcul" },
-      { citation: "deux virgule", correction: "Pas d'erreur ici.", type: "calcul" },
-    ], slice);
+    const { alerts, dropped } = screenAlerts(
+      [
+        { citation: "environ deux virgule dix-sept", correction: "c'est 2,56", type: "calcul" },
+        { citation: "\\approx 2{,}17", correction: "2,56", type: "calcul" },
+        { citation: "l'égalité tient", correction: "elle ne tient pas", type: "raisonnement" },
+        { citation: "vaut environ trois", correction: "inventé", type: "calcul" },
+        { citation: "deux virgule", correction: "Pas d'erreur ici.", type: "calcul" },
+      ],
+      slice,
+    );
     expect(alerts.map((a) => a.citation)).toEqual(["environ deux virgule dix-sept", "\\approx 2{,}17", "l'égalité tient"]);
     expect(dropped.map((d) => d.reason)).toEqual(["citation introuvable dans la tranche", "correction qui se dédit"]);
   });
@@ -63,34 +84,44 @@ describe("relecteur de fond", () => {
 
   it("lit une réponse dont le LaTeX n'a qu'une barre oblique", () => {
     // `\sqrt` rend le JSON illisible ; `\frac` et `\times` sont lus comme des caractères de contrôle.
-    expect(parseReview("{\"erreurs\":[{\"citation\":\"\\sqrt{48}\",\"correction\":\"\\frac{1}{2} \\times 3\",\"type\":\"calcul\"}]}"))
-      .toEqual([{ citation: "\\sqrt{48}", correction: "\\frac{1}{2} \\times 3", type: "calcul" }]);
+    expect(parseReview('{"erreurs":[{"citation":"\\sqrt{48}","correction":"\\frac{1}{2} \\times 3","type":"calcul"}]}')).toEqual([
+      { citation: "\\sqrt{48}", correction: "\\frac{1}{2} \\times 3", type: "calcul" },
+    ]);
   });
 
   it("garde une vraie alerte dont la correction commence par un dédit partiel", () => {
-    const { alerts, dropped } = screenAlerts([
-      { citation: "dix-sept", correction: "Il n'y a pas d'erreur de signe, mais le quotient vaut 2,56.", type: "calcul" },
-      { citation: "quotient vaut", correction: "Déjà correcte pour le log, mais 2,17 doit être 2,56.", type: "calcul" },
-      { citation: "deux virgule", correction: "En fait c'est correct.", type: "calcul" },
-    ], slice);
+    const { alerts, dropped } = screenAlerts(
+      [
+        { citation: "dix-sept", correction: "Il n'y a pas d'erreur de signe, mais le quotient vaut 2,56.", type: "calcul" },
+        { citation: "quotient vaut", correction: "Déjà correcte pour le log, mais 2,17 doit être 2,56.", type: "calcul" },
+        { citation: "deux virgule", correction: "En fait c'est correct.", type: "calcul" },
+      ],
+      slice,
+    );
     expect(alerts).toHaveLength(2);
     expect(dropped.map((d) => d.reason)).toEqual(["correction qui se dédit"]);
   });
 
   it("retrouve une citation malgré les guillemets français et la virgule {,}, refuse une citation trop courte ou prise au JSON", () => {
     const quoted = { ...slice, beats: [{ ...slice.beats[0]!, say: "Elle dit « trois quarts » et 2,17." }] } as Slice;
-    const { alerts, dropped } = screenAlerts([
-      { citation: "\"trois quarts\"", correction: "c'est deux tiers", type: "calcul" },
-      { citation: "2,17", correction: "2,56", type: "calcul" },
-      { citation: "0,", correction: "x", type: "calcul" },
-      { citation: "expression_ref", correction: "x", type: "calcul" },
-    ], quoted);
-    expect(alerts.map((a) => a.citation)).toEqual(["\"trois quarts\"", "2,17"]);
+    const { alerts, dropped } = screenAlerts(
+      [
+        { citation: '"trois quarts"', correction: "c'est deux tiers", type: "calcul" },
+        { citation: "2,17", correction: "2,56", type: "calcul" },
+        { citation: "0,", correction: "x", type: "calcul" },
+        { citation: "expression_ref", correction: "x", type: "calcul" },
+      ],
+      quoted,
+    );
+    expect(alerts.map((a) => a.citation)).toEqual(['"trois quarts"', "2,17"]);
     expect(dropped).toHaveLength(2);
   });
 
   it("montre au relecteur la valeur calculée telle que l'élève la voit, pas le modèle {value}", () => {
-    const computed = { ...slice, introduces: [{ id: "c", type: "math", content: { kind: "computed", expression_ref: "aire", template: "A = {value}", precision: 2 } }] } as unknown as Slice;
+    const computed = {
+      ...slice,
+      introduces: [{ id: "c", type: "math", content: { kind: "computed", expression_ref: "aire", template: "A = {value}", precision: 2 } }],
+    } as unknown as Slice;
     const math = { symbols: {}, expressions: { aire: "3*4.5" } } as never;
     expect(sliceText(computed, math)).toContain("A = 13,50 (valeur calculée)");
     expect(sliceText(computed)).toContain("A = {value}");
@@ -107,9 +138,24 @@ describe("relecteur de fond", () => {
 
   it("appelle le modèle relecteur sans réflexion et rejette une réponse illisible", async () => {
     const calls: CompletionOptions[] = [];
-    const answer = (text: string) => (options: CompletionOptions) => { calls.push(options); return (async function* () { yield text; })(); };
-    const provider: ChatProvider = { name: "gateway", protocol: "openai", endpoint: "https://ai-gateway.vercel.sh/v1/chat/completions", apiKey: "k", model: DEFAULT_REVIEWER_MODEL };
-    const ok = await createSliceReviewer({ provider, completion: answer("{\"erreurs\":[{\"citation\":\"dix-sept\",\"correction\":\"2,56\",\"type\":\"calcul\"}]}") })({ question: "q", previous: [], slice });
+    const answer = (text: string) => (options: CompletionOptions) => {
+      calls.push(options);
+      return (async function* () {
+        yield text;
+      })();
+    };
+    const provider: ChatProvider = {
+      name: "gateway",
+      protocol: "openai",
+      endpoint: "https://ai-gateway.vercel.sh/v1/chat/completions",
+      apiKey: "k",
+      model: DEFAULT_REVIEWER_MODEL,
+    };
+    const ok = await createSliceReviewer({ provider, completion: answer('{"erreurs":[{"citation":"dix-sept","correction":"2,56","type":"calcul"}]}') })({
+      question: "q",
+      previous: [],
+      slice,
+    });
     expect(ok.alerts).toHaveLength(1);
     expect(calls[0]).toMatchObject({ model: "anthropic/claude-sonnet-5.5", endpoint: "https://ai-gateway.vercel.sh/v1/chat/completions" });
     expect(calls[0]!.reasoningEffort).toBeUndefined();
@@ -124,10 +170,16 @@ describe("relecteur de fond", () => {
     expect(readReviewer(headers, env({ NESALIO_RELECTEUR: "1" }))).toBeNull();
     expect(readReviewer(headers, env({ NESALIO_RELECTEUR: "1", AI_GATEWAY_API_KEY: "k", DISABLE_AI: "1" }))).toBeNull();
     expect(readReviewer(headers, env({ NESALIO_RELECTEUR: "1", AI_GATEWAY_API_KEY: "k" }))).toMatchObject({
-      endpoint: "https://ai-gateway.vercel.sh/v1/chat/completions", model: DEFAULT_REVIEWER_MODEL, apiKey: "k",
+      endpoint: "https://ai-gateway.vercel.sh/v1/chat/completions",
+      model: DEFAULT_REVIEWER_MODEL,
+      apiKey: "k",
     });
-    expect(readReviewer(headers, env({ NESALIO_RELECTEUR: "1", AI_GATEWAY_API_KEY: "k", NESALIO_RELECTEUR_MODELE: "deepseek/deepseek-v4.1-flash", NESALIO_RELECTEUR_EFFORT: "low" })))
-      .toMatchObject({ model: "deepseek/deepseek-v4.1-flash", reasoningEffort: "low" });
+    expect(
+      readReviewer(
+        headers,
+        env({ NESALIO_RELECTEUR: "1", AI_GATEWAY_API_KEY: "k", NESALIO_RELECTEUR_MODELE: "deepseek/deepseek-v4.1-flash", NESALIO_RELECTEUR_EFFORT: "low" }),
+      ),
+    ).toMatchObject({ model: "deepseek/deepseek-v4.1-flash", reasoningEffort: "low" });
   });
 });
 

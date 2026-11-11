@@ -55,18 +55,32 @@ export interface SessionSnapshot {
 
 export interface SessionDeps {
   open(question: string, signal: AbortSignal): Promise<{ header: LessonHeader; slices: AsyncIterable<Slice>; questions?: Map<string, LessonQuestion> }>;
-  play(header: LessonHeader, slices: AsyncIterable<Slice>, options: {
-    signal: AbortSignal; control: PlaybackControl;
-    onFrame(frame: NesalioFrame, beat: Beat): void;
-    onWaiting(): void;
-    afterSlice(sliceId: string, signal: AbortSignal): Promise<void>;
-  }): Promise<void>;
+  play(
+    header: LessonHeader,
+    slices: AsyncIterable<Slice>,
+    options: {
+      signal: AbortSignal;
+      control: PlaybackControl;
+      onFrame(frame: NesalioFrame, beat: Beat): void;
+      onWaiting(): void;
+      afterSlice(sliceId: string, signal: AbortSignal): Promise<void>;
+    },
+  ): Promise<void>;
   board: { reset(): void; draw(frame: NesalioFrame): void };
 }
 
 export const INITIAL_SESSION: SessionSnapshot = {
-  status: "idle", question: null, title: null, caption: null, waiting: false, paused: false, muted: false, error: null, canReplay: false,
-  lastFinished: null, asking: null,
+  status: "idle",
+  question: null,
+  title: null,
+  caption: null,
+  waiting: false,
+  paused: false,
+  muted: false,
+  error: null,
+  canReplay: false,
+  lastFinished: null,
+  asking: null,
 };
 
 const OFFLINE = "Je n'arrive pas à joindre Nesalio. Vérifie ta connexion, puis réessaie.";
@@ -95,7 +109,9 @@ export class NesalioSession {
 
   readonly subscribe = (listener: () => void) => {
     this.listeners.add(listener);
-    return () => { this.listeners.delete(listener); };
+    return () => {
+      this.listeners.delete(listener);
+    };
   };
 
   readonly getSnapshot = () => this.snapshot;
@@ -160,7 +176,14 @@ export class NesalioSession {
     const recorded = this.recorded;
     if (!recorded?.complete) return;
     const run = this.begin({ question: this.snapshot.question, title: this.snapshot.title });
-    await this.run(run, recorded.header, (async function* () { yield* recorded.slices; })(), recorded.questions);
+    await this.run(
+      run,
+      recorded.header,
+      (async function* () {
+        yield* recorded.slices;
+      })(),
+      recorded.questions,
+    );
   }
 
   /** Back to the start screen, board cleared. */
@@ -175,15 +198,25 @@ export class NesalioSession {
     this.set({ ...INITIAL_SESSION, muted: this.control.muted, lastFinished: this.snapshot.lastFinished });
   }
 
-  setPaused(paused: boolean): void { this.control.setPaused(paused); }
+  setPaused(paused: boolean): void {
+    this.control.setPaused(paused);
+  }
 
-  setMuted(muted: boolean): void { this.control.setMuted(muted); }
+  setMuted(muted: boolean): void {
+    this.control.setMuted(muted);
+  }
 
   /** What the feedback form joins to a report (same format as the tutor's). */
   recentContext(): { question: string | null; title: string | null; status: string; recent: string[]; board: string[]; replay: string } {
     const { question, title, status } = this.snapshot;
-    return { question: question?.slice(0, 500) ?? null, title: title?.slice(0, 120) ?? null, status,
-      recent: this.said.slice(-6).map((line) => line.slice(0, 320)), board: [], replay: "" };
+    return {
+      question: question?.slice(0, 500) ?? null,
+      title: title?.slice(0, 120) ?? null,
+      status,
+      recent: this.said.slice(-6).map((line) => line.slice(0, 320)),
+      board: [],
+      replay: "",
+    };
   }
 
   private releaseQuestion(): void {
@@ -214,13 +247,18 @@ export class NesalioSession {
           const question = questions.get(sliceId);
           if (!question || this.current !== run || signal.aborted) return Promise.resolve();
           return new Promise<void>((resolve) => {
-            const release = () => { signal.removeEventListener("abort", release); resolve(); };
+            const release = () => {
+              signal.removeEventListener("abort", release);
+              resolve();
+            };
             signal.addEventListener("abort", release, { once: true });
             this.pending = { question, release };
             this.set({ asking: { prompt: question.check.prompt, choices: question.check.choices, wrong: [], solved: null, feedback: null, right: null } });
           });
         },
-        onWaiting: () => { if (this.current === run && played) this.set({ waiting: true }); },
+        onWaiting: () => {
+          if (this.current === run && played) this.set({ waiting: true });
+        },
         onFrame: (frame, beat) => {
           if (this.current !== run) return;
           this.deps.board.draw(frame);
@@ -232,14 +270,21 @@ export class NesalioSession {
         },
       });
       if (this.current !== run) return;
-      this.set({ status: played ? "done" : "error", waiting: false, canReplay: Boolean(this.recorded?.complete),
-        error: played ? null : FAILED, ...(played ? { lastFinished: this.snapshot.question } : {}) });
+      this.set({
+        status: played ? "done" : "error",
+        waiting: false,
+        canReplay: Boolean(this.recorded?.complete),
+        error: played ? null : FAILED,
+        ...(played ? { lastFinished: this.snapshot.question } : {}),
+      });
     } catch (error) {
       if (run.signal.aborted || this.current !== run) return;
       // What was explained stays on the board; the student is told the rest is missing.
-      this.set(played
-        ? { status: "done", waiting: false, canReplay: false, error: STOPPED, lastFinished: this.snapshot.question }
-        : { status: "error", waiting: false, canReplay: false, error: forStudent(error) });
+      this.set(
+        played
+          ? { status: "done", waiting: false, canReplay: false, error: STOPPED, lastFinished: this.snapshot.question }
+          : { status: "error", waiting: false, canReplay: false, error: forStudent(error) },
+      );
     }
   }
 

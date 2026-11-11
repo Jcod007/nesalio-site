@@ -51,8 +51,6 @@ describe("relecture d'un tour", () => {
     const overlapping = putNode(state, { ...state.nodes.a!, id: "b" });
     const steps: Step[] = [{ say: "Voici les deux libellés.", do: [] }];
     expect(reviewNotes(reviewTurn(steps, state))).toEqual([]);
-    expect(reviewNotes(reviewTurn(steps, overlapping))).toEqual([
-      "Les textes « a » et « b » se chevauchent au tableau. Sépare-les pour les rendre lisibles.",
-    ]);
+    expect(reviewNotes(reviewTurn(steps, overlapping))).toEqual(["Les textes « a » et « b » se chevauchent au tableau. Sépare-les pour les rendre lisibles."]);
   });
 });

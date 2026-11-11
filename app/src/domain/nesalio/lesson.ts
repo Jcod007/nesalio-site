@@ -105,11 +105,20 @@ const EngineScene = z.strictObject({
 
 const modelSections = ["lesson", "scene.math_context", "slices"] as const;
 const engineSections = [
-  "scene.board", "scene.viewport", "scene.layout_rules", "scene.camera_policy",
-  "scene.math_engine", "scene.semantic_styles", "scene.scheduler", "scene.validation_policy",
+  "scene.board",
+  "scene.viewport",
+  "scene.layout_rules",
+  "scene.camera_policy",
+  "scene.math_engine",
+  "scene.semantic_styles",
+  "scene.scheduler",
+  "scene.validation_policy",
 ] as const;
 const sectionList = <const T extends readonly [string, ...string[]]>(entries: T) =>
-  z.array(z.enum(entries)).length(entries.length).refine((values) => new Set(values).size === entries.length);
+  z
+    .array(z.enum(entries))
+    .length(entries.length)
+    .refine((values) => new Set(values).size === entries.length);
 
 export const LessonDocument = z.strictObject({
   version: z.literal(NESALIO_FORMAT_VERSION),

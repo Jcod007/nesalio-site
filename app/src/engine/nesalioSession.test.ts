@@ -7,7 +7,8 @@ import type { NesalioFrame } from "./nesalioPlayback";
 
 const header = lessonHeader({ id: "l", title: "Le sommet", language: "fr", learning_goal: "But" });
 const slice = (id: string): Slice => ({
-  slice_id: id, introduces: [],
+  slice_id: id,
+  introduces: [],
   beats: [{ id: `b_${id}`, say: `Phrase de ${id}.`, cues: [], do: [] }],
 });
 const frame = { scene: { objects: new Map() } } as unknown as NesalioFrame;
@@ -17,10 +18,18 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 function fake(options: { open?: SessionDeps["open"]; failAfter?: number } = {}) {
   const calls = { open: 0, play: 0, reset: 0, drawn: 0, signals: [] as AbortSignal[] };
   const deps: SessionDeps = {
-    open: options.open ?? (async () => {
-      calls.open++;
-      return { header, slices: (async function* () { yield slice("s1"); yield slice("s2"); })() };
-    }),
+    open:
+      options.open ??
+      (async () => {
+        calls.open++;
+        return {
+          header,
+          slices: (async function* () {
+            yield slice("s1");
+            yield slice("s2");
+          })(),
+        };
+      }),
     async play(_header, slices, play) {
       calls.play++;
       calls.signals.push(play.signal);
@@ -34,7 +43,14 @@ function fake(options: { open?: SessionDeps["open"]; failAfter?: number } = {}) 
         await tick();
       }
     },
-    board: { reset() { calls.reset++; }, draw() { calls.drawn++; } },
+    board: {
+      reset() {
+        calls.reset++;
+      },
+      draw() {
+        calls.drawn++;
+      },
+    },
   };
   return { deps, calls };
 }
@@ -47,7 +63,14 @@ describe("séance d'explication Nesalio (page élève)", () => {
     session.subscribe(() => statuses.push(session.getSnapshot().status));
     await session.ask("Comment trouver le sommet ?");
     const snapshot = session.getSnapshot();
-    expect(snapshot).toMatchObject({ status: "done", question: "Comment trouver le sommet ?", title: "Le sommet", caption: "Phrase de s2.", canReplay: true, error: null });
+    expect(snapshot).toMatchObject({
+      status: "done",
+      question: "Comment trouver le sommet ?",
+      title: "Le sommet",
+      caption: "Phrase de s2.",
+      canReplay: true,
+      error: null,
+    });
     expect(statuses[0]).toBe("preparing");
     expect(statuses).toContain("playing");
     expect(calls).toMatchObject({ open: 1, play: 1, drawn: 2 });
@@ -66,10 +89,22 @@ describe("séance d'explication Nesalio (page élève)", () => {
   });
 
   it("dit pourquoi l'explication n'a pas pu commencer, avec un message pour l'élève", async () => {
-    const refused = new NesalioSession(fake({ open: async () => { throw new Error("Nesa n'arrive pas à répondre pour le moment."); } }).deps);
+    const refused = new NesalioSession(
+      fake({
+        open: async () => {
+          throw new Error("Nesa n'arrive pas à répondre pour le moment.");
+        },
+      }).deps,
+    );
     await refused.ask("Q");
     expect(refused.getSnapshot()).toMatchObject({ status: "error", error: "Nesa n'arrive pas à répondre pour le moment.", canReplay: false });
-    const offline = new NesalioSession(fake({ open: async () => { throw new TypeError("Failed to fetch"); } }).deps);
+    const offline = new NesalioSession(
+      fake({
+        open: async () => {
+          throw new TypeError("Failed to fetch");
+        },
+      }).deps,
+    );
     await offline.ask("Q");
     expect(offline.getSnapshot().error).toMatch(/connexion/i);
   });
@@ -122,7 +157,13 @@ describe("séance d'explication Nesalio (page élève)", () => {
     stopped.stop();
     await playing;
     expect(stopped.getSnapshot().lastFinished).toBeNull();
-    const refused = new NesalioSession(fake({ open: async () => { throw new Error("Non."); } }).deps);
+    const refused = new NesalioSession(
+      fake({
+        open: async () => {
+          throw new Error("Non.");
+        },
+      }).deps,
+    );
     await refused.ask("Q");
     expect(refused.getSnapshot().lastFinished).toBeNull();
   });

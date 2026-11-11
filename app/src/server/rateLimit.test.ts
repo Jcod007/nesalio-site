@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { SESSION_HEADER } from "@/domain/session";
 import { createSessionLimits } from "./rateLimit";
 
-const headers = (ip: string, session?: string) =>
-  new Headers({ "x-forwarded-for": ip, ...(session ? { [SESSION_HEADER]: session } : {}) });
+const headers = (ip: string, session?: string) => new Headers({ "x-forwarded-for": ip, ...(session ? { [SESSION_HEADER]: session } : {}) });
 
 afterEach(() => vi.unstubAllEnvs());
 

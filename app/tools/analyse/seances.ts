@@ -98,9 +98,28 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
     let s = sessions.get(key);
     if (!s) {
       s = {
-        session: key, ref: turn.ref ?? null, start: turn.at, turns: [], overlaps: new Map(), wanted: new Map(), imagesOnFigure: [], images: 0, uncued: 0, shifted: 0, drawn: 0, replayErrors: [],
-        unshown: [], missingTargets: new Set(), longSentences: 0, gestures: 0, steps: 0, rejected: [], checks: { right: 0, total: 0 },
-        firstStepMs: [], cancelled: 0, errors: [],
+        session: key,
+        ref: turn.ref ?? null,
+        start: turn.at,
+        turns: [],
+        overlaps: new Map(),
+        wanted: new Map(),
+        imagesOnFigure: [],
+        images: 0,
+        uncued: 0,
+        shifted: 0,
+        drawn: 0,
+        replayErrors: [],
+        unshown: [],
+        missingTargets: new Set(),
+        longSentences: 0,
+        gestures: 0,
+        steps: 0,
+        rejected: [],
+        checks: { right: 0, total: 0 },
+        firstStepMs: [],
+        cancelled: 0,
+        errors: [],
       };
       sessions.set(key, s);
     }
@@ -131,7 +150,8 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
               const a = covered(original, image);
               const b = covered(image, original);
               const itself = Math.min(a, b) > 0.95;
-              if (!itself && Math.max(a, b) > 0.05) s.imagesOnFigure.push({ image: action.id, ratio: Math.round(Math.max(a, b) * 100) / 100, say: stepText(step).slice(0, 90) });
+              if (!itself && Math.max(a, b) > 0.05)
+                s.imagesOnFigure.push({ image: action.id, ratio: Math.round(Math.max(a, b) * 100) / 100, say: stepText(step).slice(0, 90) });
             }
           }
         } catch (error) {
@@ -141,7 +161,10 @@ export function analyse(turns: readonly TurnRecord[]): SessionReport[] {
       const created = Object.keys(board.nodes).filter((id) => !before.has(id) && board.nodes[id]?.type !== "text");
       s.drawn += created.length;
       s.uncued += created.filter((id) => !(step.cues && id in step.cues)).length;
-      const groupsOf = (id: string) => Object.values(board.groups).filter((g) => g.members.includes(id)).map((g) => g.id);
+      const groupsOf = (id: string) =>
+        Object.values(board.groups)
+          .filter((g) => g.members.includes(id))
+          .map((g) => g.id);
       // « A·étiquette » : l'étiquette du point A, qui bouge avec lui.
       const intended = (raw: string) => {
         const id = raw.split("·")[0]!;
@@ -194,11 +217,18 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
   lines.push(`- Images posées sur leur original (englobée comprise) : ${sum((s) => s.imagesOnFigure.length)} sur ${sum((s) => s.images)} transformations`);
   lines.push(`- Déplacements imposés par le moteur (objets déjà au tableau) : ${sum((s) => s.shifted)}`);
   lines.push(`- Objets dessinés sans repère dans la phrase : ${sum((s) => s.uncued)} sur ${sum((s) => s.drawn)}`);
-  lines.push(`- « Dit sans montrer » : ${sum((s) => s.unshown.length)} · cibles absentes : ${sum((s) => s.missingTargets.size)} · phrases trop longues : ${sum((s) => s.longSentences)}`);
-  lines.push(`- Commandes refusées : ${sum((s) => s.rejected.length)} · erreurs au rejeu : ${sum((s) => s.replayErrors.length)} · erreurs envoyées : ${sum((s) => s.errors.length)}`);
+  lines.push(
+    `- « Dit sans montrer » : ${sum((s) => s.unshown.length)} · cibles absentes : ${sum((s) => s.missingTargets.size)} · phrases trop longues : ${sum((s) => s.longSentences)}`,
+  );
+  lines.push(
+    `- Commandes refusées : ${sum((s) => s.rejected.length)} · erreurs au rejeu : ${sum((s) => s.replayErrors.length)} · erreurs envoyées : ${sum((s) => s.errors.length)}`,
+  );
   lines.push(`- Vérifications réussies : ${sum((s) => s.checks.right)} / ${sum((s) => s.checks.total)} · tours interrompus : ${sum((s) => s.cancelled)}`);
   for (const s of sessions) {
-    lines.push("", `## Séance ${s.session.replace(/-/g, "").slice(0, 8)}${s.ref ? ` (inscription ${s.ref})` : ""} · ${s.start.slice(11, 16)} UTC · ${s.turns.length} tours`);
+    lines.push(
+      "",
+      `## Séance ${s.session.replace(/-/g, "").slice(0, 8)}${s.ref ? ` (inscription ${s.ref})` : ""} · ${s.start.slice(11, 16)} UTC · ${s.turns.length} tours`,
+    );
     lines.push(
       `Attente médiane ${sec(median(s.firstStepMs))} · ${s.steps} phrases, ${s.gestures} gestes · sans repère ${s.uncued}/${s.drawn} · vérifications ${s.checks.right}/${s.checks.total} · interrompus ${s.cancelled}`,
     );
@@ -215,10 +245,13 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
     if (!withTranscript) continue;
     lines.push("");
     for (const t of s.turns) {
-      const head = t.mode === "continue" && t.answer
-        ? `**Élève répond** « ${t.answer.picked} » à « ${t.answer.prompt} » (${t.answer.correct === null ? "sans bonne réponse" : t.answer.correct ? "juste" : "faux"}${t.answer.misconception ? `, erreur : ${t.answer.misconception}` : ""})`
-        : `**Élève (${t.mode})** : ${t.question}`;
-      lines.push(`${head} · ${t.outcome}, 1re phrase ${t.latencyMs.firstStep !== undefined ? sec(t.latencyMs.firstStep) : "—"}, tour ${sec(t.latencyMs.total)}`);
+      const head =
+        t.mode === "continue" && t.answer
+          ? `**Élève répond** « ${t.answer.picked} » à « ${t.answer.prompt} » (${t.answer.correct === null ? "sans bonne réponse" : t.answer.correct ? "juste" : "faux"}${t.answer.misconception ? `, erreur : ${t.answer.misconception}` : ""})`
+          : `**Élève (${t.mode})** : ${t.question}`;
+      lines.push(
+        `${head} · ${t.outcome}, 1re phrase ${t.latencyMs.firstStep !== undefined ? sec(t.latencyMs.firstStep) : "—"}, tour ${sec(t.latencyMs.total)}`,
+      );
       for (const e of t.events) {
         if (e.kind === "lesson") lines.push(`  - Leçon « ${e.title} »${e.goals?.length ? ` · objectifs : ${e.goals.join(" / ")}` : ""}`);
         if (e.kind === "step") {
@@ -228,7 +261,9 @@ export function report(sessions: readonly SessionReport[], withTranscript = true
         }
         if (e.kind === "diagnosis") {
           const gaps = e.gaps.map((g) => `${g.notion}${g.level ? ` (${g.level})` : ""} : ${g.status}${g.evidence ? ` [${g.evidence}]` : ""}`);
-          lines.push(`    🩺 ${gaps.length ? gaps.join(" ; ") : "aucune lacune"}${e.strengths.length ? ` · forces : ${e.strengths.join(" ; ")}` : ""}${e.next ? ` · suite : ${e.next}` : ""}`);
+          lines.push(
+            `    🩺 ${gaps.length ? gaps.join(" ; ") : "aucune lacune"}${e.strengths.length ? ` · forces : ${e.strengths.join(" ; ")}` : ""}${e.next ? ` · suite : ${e.next}` : ""}`,
+          );
         }
         if (e.kind === "end") {
           lines.push(`  - Fin : ${e.summary.join(" / ")}`);
@@ -244,7 +279,8 @@ if (process.argv[2]) {
   const raw = JSON.parse(readFileSync(process.argv[2], "utf8")) as Input;
   const records = Array.isArray(raw) ? raw : (raw.turns ?? []);
   const turns = records.filter((r): r is TurnRecord => !isLessonRecord(r));
-  if (turns.length < records.length) process.stderr.write(`${records.length - turns.length} leçon(s) Nesalio ignorée(s) : à rejouer sur /dev/nesalio.
+  if (turns.length < records.length)
+    process.stderr.write(`${records.length - turns.length} leçon(s) Nesalio ignorée(s) : à rejouer sur /dev/nesalio.
 `);
   process.stdout.write(report(analyse(turns), !process.argv.includes("--sans-transcription")) + "\n");
 }

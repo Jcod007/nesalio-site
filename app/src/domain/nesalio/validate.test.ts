@@ -2,14 +2,35 @@ import { describe, expect, it } from "vitest";
 import { validateModelOutput } from "./validate";
 
 const table = {
-  id: "tab", type: "matrix",
-  params: { rows: [[1, 16, 18], ["2 g", "?", null]], row_labels: ["M (g/mol)", "masse"], column_labels: ["espèce", "H", "O", "H₂O"] },
+  id: "tab",
+  type: "matrix",
+  params: {
+    rows: [
+      [1, 16, 18],
+      ["2 g", "?", null],
+    ],
+    row_labels: ["M (g/mol)", "masse"],
+    column_labels: ["espèce", "H", "O", "H₂O"],
+  },
 };
 const output = (action: Record<string, unknown>) => ({
-  slices: [{
-    slice_id: "s1", introduces: [table],
-    beats: [{ id: "b1", say: "Regarde la case.", cues: [], do: [{ id: "a0", verb: "show", target: "tab", at: "beat:start" }, { id: "a1", at: "after:a0", ...action }] }],
-  }],
+  slices: [
+    {
+      slice_id: "s1",
+      introduces: [table],
+      beats: [
+        {
+          id: "b1",
+          say: "Regarde la case.",
+          cues: [],
+          do: [
+            { id: "a0", verb: "show", target: "tab", at: "beat:start" },
+            { id: "a1", at: "after:a0", ...action },
+          ],
+        },
+      ],
+    },
+  ],
 });
 
 describe("parties d'un tableau", () => {

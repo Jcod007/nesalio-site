@@ -25,12 +25,19 @@ const CANDIDATES = ZDR_TRANSCRIPTION_MODELS;
 const MEDIA_TYPES = { ".webm": "audio/webm", ".ogg": "audio/ogg", ".mp4": "audio/mp4", ".m4a": "audio/x-m4a", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
 
 /** Words compared without case, apostrophe variants or punctuation. */
-export function words(text) {
-  return text.toLowerCase().normalize("NFC").replace(/[’']/g, " ").replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(/\s+/).filter(Boolean);
+function words(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFC")
+    .replace(/[’']/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 }
 
 /** Word error rate: word-level edit distance divided by the reference length. */
-export function wordErrorRate(reference, hypothesis) {
+function wordErrorRate(reference, hypothesis) {
   const ref = words(reference);
   const hyp = words(hypothesis);
   if (!ref.length) return hyp.length ? 1 : 0;
@@ -67,9 +74,13 @@ describe.runIf(process.env.TRANSCRIPTION_REELLE === "1")("transcription réelle 
     if (!folder || !existsSync(folder)) throw new Error("TRANSCRIPTION_ENREGISTREMENTS doit nommer un dossier d'enregistrements.");
     const token = gatewayToken();
     if (!token) throw new Error("Aucun jeton du Gateway (AI_GATEWAY_API_KEY ou VERCEL_OIDC_TOKEN).");
-    const models = process.env.TRANSCRIPTION_MODELES?.split(",").map((m) => m.trim()).filter(Boolean) ?? CANDIDATES;
-    const recordings = readdirSync(folder)
-      .filter((file) => extname(file).toLowerCase() in MEDIA_TYPES && existsSync(join(folder, `${basename(file, extname(file))}.txt`)));
+    const models =
+      process.env.TRANSCRIPTION_MODELES?.split(",")
+        .map((m) => m.trim())
+        .filter(Boolean) ?? CANDIDATES;
+    const recordings = readdirSync(folder).filter(
+      (file) => extname(file).toLowerCase() in MEDIA_TYPES && existsSync(join(folder, `${basename(file, extname(file))}.txt`)),
+    );
     expect(recordings.length, "aucun enregistrement accompagné de son .txt").toBeGreaterThan(0);
 
     const rows = [];
@@ -79,7 +90,9 @@ describe.runIf(process.env.TRANSCRIPTION_REELLE === "1")("transcription réelle 
         const started = performance.now();
         try {
           const text = await transcribeAudio({
-            token, model, mediaType: MEDIA_TYPES[extname(file).toLowerCase()],
+            token,
+            model,
+            mediaType: MEDIA_TYPES[extname(file).toLowerCase()],
             audioBase64: readFileSync(join(folder, file)).toString("base64"),
             signal: AbortSignal.timeout(30_000),
           });

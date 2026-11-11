@@ -20,7 +20,12 @@ const SPENDING_LABELS: Record<(typeof SPENDING)[number], string> = {
   "Je ne sais pas": "Je ne sais pas",
 };
 
-export function AfterTrialQuestions({ sessionDone, question, atHome = false, delayMs = 4000 }: {
+export function AfterTrialQuestions({
+  sessionDone,
+  question,
+  atHome = false,
+  delayMs = 4000,
+}: {
   sessionDone: boolean;
   question: string | null;
   /** Back on the start screen after a finished lesson: the questions open at once. */

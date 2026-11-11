@@ -30,8 +30,7 @@ export interface Collision {
 }
 
 const area = (b: Box) => Math.max(0, b.x1 - b.x0) * Math.max(0, b.y1 - b.y0);
-const overlap = (a: Box, b: Box) =>
-  area({ x0: Math.max(a.x0, b.x0), y0: Math.max(a.y0, b.y0), x1: Math.min(a.x1, b.x1), y1: Math.min(a.y1, b.y1) });
+const overlap = (a: Box, b: Box) => area({ x0: Math.max(a.x0, b.x0), y0: Math.max(a.y0, b.y0), x1: Math.min(a.x1, b.x1), y1: Math.min(a.y1, b.y1) });
 const shrink = (b: Box, k: number): Box => {
   const dx = ((b.x1 - b.x0) * k) / 2;
   const dy = ((b.y1 - b.y0) * k) / 2;
@@ -83,7 +82,9 @@ export function collisions(state: BoardState): Collision[] {
   if (state.axes) {
     const labels = tickLabels(state.axes.frame);
     for (const axis of ["x", "y"] as const) {
-      const row = labels.filter((l) => l.axis === axis).map((l) => ({ x0: l.at[0] - l.size.w / 2, x1: l.at[0] + l.size.w / 2, y0: l.at[1] - l.size.h / 2, y1: l.at[1] + l.size.h / 2 }));
+      const row = labels
+        .filter((l) => l.axis === axis)
+        .map((l) => ({ x0: l.at[0] - l.size.w / 2, x1: l.at[0] + l.size.w / 2, y0: l.at[1] - l.size.h / 2, y1: l.at[1] + l.size.h / 2 }));
       const touching = row.filter((b, k) => k > 0 && intersects(row[k - 1]!, b)).length;
       if (touching > 0) out.push({ a: `${AXES_OWNER}-${axis}`, b: `${AXES_OWNER}-${axis}`, kind: "graduations", ratio: touching });
     }
@@ -175,7 +176,9 @@ function shapeOverlaps(state: BoardState): Collision[] {
   const shapes = closedShapes(state);
   // Deux parties d'une même figure (un groupe), ou une figure et l'une de ses parties, se touchent exprès.
   const together = (a: string, b: string) =>
-    state.groups[a]?.members.includes(b) || state.groups[b]?.members.includes(a) || Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));
+    state.groups[a]?.members.includes(b) ||
+    state.groups[b]?.members.includes(a) ||
+    Object.values(state.groups).some((g) => g.members.includes(a) && g.members.includes(b));
   const out: Collision[] = [];
   for (let i = 0; i < shapes.length; i++) {
     for (let j = i + 1; j < shapes.length; j++) {

@@ -10,7 +10,12 @@ const imageBox = (points: Vec2[]): Box => ({
   x1: Math.max(...points.map((p) => p[0])),
   y1: Math.max(...points.map((p) => p[1])),
 });
-const corners = (b: Box): Vec2[] => [[b.x0, b.y0], [b.x1, b.y0], [b.x1, b.y1], [b.x0, b.y1]];
+const corners = (b: Box): Vec2[] => [
+  [b.x0, b.y0],
+  [b.x1, b.y0],
+  [b.x1, b.y1],
+  [b.x0, b.y1],
+];
 /** L'image est séparée de la figure d'au moins l'écart, à gauche ou à droite. */
 const apart = (b: Box, image: Box, gap: number) => image.x0 >= b.x1 + gap - 1e-9 || image.x1 <= b.x0 - gap + 1e-9 || image.y1 <= b.y0 - gap + 1e-9;
 

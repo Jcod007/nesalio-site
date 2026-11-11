@@ -8,17 +8,71 @@ export type Atoms = Map<string, number>;
 
 /** Atomic masses with two decimals, as in school tables. */
 export const MASSES: Readonly<Record<string, number>> = {
-  H: 1.01, He: 4.0, Li: 6.94, Be: 9.01, B: 10.81, C: 12.01, N: 14.01, O: 16.0, F: 19.0, Ne: 20.18,
-  Na: 22.99, Mg: 24.31, Al: 26.98, Si: 28.09, P: 30.97, S: 32.07, Cl: 35.45, Ar: 39.95, K: 39.1, Ca: 40.08,
-  Sc: 44.96, Ti: 47.87, V: 50.94, Cr: 52.0, Mn: 54.94, Fe: 55.85, Co: 58.93, Ni: 58.69, Cu: 63.55, Zn: 65.38,
-  Ga: 69.72, Ge: 72.63, As: 74.92, Se: 78.97, Br: 79.9, Kr: 83.8, Rb: 85.47, Sr: 87.62, Ag: 107.87, Cd: 112.41,
-  Sn: 118.71, Sb: 121.76, I: 126.9, Xe: 131.29, Cs: 132.91, Ba: 137.33, Pt: 195.08, Au: 196.97, Hg: 200.59,
-  Pb: 207.2, U: 238.03,
+  H: 1.01,
+  He: 4.0,
+  Li: 6.94,
+  Be: 9.01,
+  B: 10.81,
+  C: 12.01,
+  N: 14.01,
+  O: 16.0,
+  F: 19.0,
+  Ne: 20.18,
+  Na: 22.99,
+  Mg: 24.31,
+  Al: 26.98,
+  Si: 28.09,
+  P: 30.97,
+  S: 32.07,
+  Cl: 35.45,
+  Ar: 39.95,
+  K: 39.1,
+  Ca: 40.08,
+  Sc: 44.96,
+  Ti: 47.87,
+  V: 50.94,
+  Cr: 52.0,
+  Mn: 54.94,
+  Fe: 55.85,
+  Co: 58.93,
+  Ni: 58.69,
+  Cu: 63.55,
+  Zn: 65.38,
+  Ga: 69.72,
+  Ge: 72.63,
+  As: 74.92,
+  Se: 78.97,
+  Br: 79.9,
+  Kr: 83.8,
+  Rb: 85.47,
+  Sr: 87.62,
+  Ag: 107.87,
+  Cd: 112.41,
+  Sn: 118.71,
+  Sb: 121.76,
+  I: 126.9,
+  Xe: 131.29,
+  Cs: 132.91,
+  Ba: 137.33,
+  Pt: 195.08,
+  Au: 196.97,
+  Hg: 200.59,
+  Pb: 207.2,
+  U: 238.03,
 };
 
-export interface Formula { atoms: Atoms; charge: number }
-export interface Term { coefficient: number; formula: string }
-export interface Equation { left: Term[]; right: Term[] }
+export interface Formula {
+  atoms: Atoms;
+  charge: number;
+}
+export interface Term {
+  coefficient: number;
+  formula: string;
+}
+export interface Equation {
+  left: Term[];
+  right: Term[];
+}
 
 function add(into: Atoms, from: Atoms, factor: number): void {
   for (const [element, count] of from) into.set(element, (into.get(element) ?? 0) + count * factor);
@@ -56,7 +110,8 @@ function group(text: string): Atoms {
 
 /** « Ca(OH)2 », « CuSO4·5H2O », « SO4^{2-} », « NH4+ » → atoms and charge. Throws when unreadable. */
 export function parseFormula(text: string): Formula {
-  let s = text.replace(/\s+/g, "")
+  let s = text
+    .replace(/\s+/g, "")
     .replace(/\\mathrm\{([^{}]*)\}|\\text\{([^{}]*)\}/g, (_m, a?: string, b?: string) => a ?? b ?? "")
     .replace(/_\{?(\d+)\}?/g, "$1")
     .replace(/\((?:aq|s|l|g)\)$/, "");
@@ -99,7 +154,8 @@ export function readChemicalEquation(text: string): Equation | null {
   const several = pieces > 1 || (pieces === 1 && !/^\\ce\s*\{[\s\S]*\}$/.test(trimmed));
   if (several) trimmed = `\\ce{${trimmed.replace(/\\ce\s*\{([^{}]*)\}/g, "$1")}}`;
   const mhchem = /^\\ce\s*\{[\s\S]*\}$/.test(trimmed);
-  const source = trimmed.replace(/^\\ce\s*\{([\s\S]*)\}$/, "$1")
+  const source = trimmed
+    .replace(/^\\ce\s*\{([\s\S]*)\}$/, "$1")
     // A condition written over the arrow (->[H2O], <=>[Fe][450 °C], \xrightarrow{chaleur}) is not a species.
     .replace(/\\x(?:long)?(?:rightarrow|rightleftharpoons)\s*(?:\[[^\]]*\])?\s*(?:\{[^{}]*\})?/g, " -> ")
     .replace(/(<=>>?|<<=>|<->|->|→|⇌)\s*(?:\[[^\]]*\]\s*){1,2}/g, "$1 ")
@@ -111,9 +167,12 @@ export function readChemicalEquation(text: string): Equation | null {
   try {
     const [left, right] = sides.map((side) => {
       // An addition « + » stands between spaces or before a coefficient; « Na+ » stays a charge.
-      const terms = side.trim().split(/\s+\+\s+|(?<=[A-Za-z0-9)\]}])\s*\+\s+(?=\d*\s*[A-Z(\[])/)
+      const terms = side
+        .trim()
+        .split(/\s+\+\s+|(?<=[A-Za-z0-9)\]}])\s*\+\s+(?=\d*\s*[A-Z([])/)
         // mhchem marks a gas (^) or a precipitate (v) after a space: not part of the formula.
-        .map((term) => term.replace(/\s+[v^](?=\s|$)/g, "").trim()).filter((term) => term && term !== "^" && term !== "v");
+        .map((term) => term.replace(/\s+[v^](?=\s|$)/g, "").trim())
+        .filter((term) => term && term !== "^" && term !== "v");
       return terms.map((term) => {
         const m = /^(\d+)\s*(.+)$/.exec(term.trim());
         const formula = (m ? m[2]! : term).trim();
@@ -147,10 +206,12 @@ function total(side: readonly Term[]): Formula {
 
 /** Differences of atoms and charge between the two sides; empty when the equation is balanced. */
 export function balanceIssues(equation: Equation): string[] {
-  const a = total(equation.left), b = total(equation.right);
+  const a = total(equation.left),
+    b = total(equation.right);
   const issues: string[] = [];
   for (const element of new Set([...a.atoms.keys(), ...b.atoms.keys()])) {
-    const x = a.atoms.get(element) ?? 0, y = b.atoms.get(element) ?? 0;
+    const x = a.atoms.get(element) ?? 0,
+      y = b.atoms.get(element) ?? 0;
     if (x !== y) issues.push(`${element} : ${x} à gauche, ${y} à droite`);
   }
   if (a.charge !== b.charge) issues.push(`charge : ${a.charge} à gauche, ${b.charge} à droite`);
@@ -159,6 +220,7 @@ export function balanceIssues(equation: Equation): string[] {
 
 /** Elements present on one side only: wrong species, whatever the coefficients. */
 export function missingElements(equation: Equation): string[] {
-  const a = total(equation.left).atoms, b = total(equation.right).atoms;
+  const a = total(equation.left).atoms,
+    b = total(equation.right).atoms;
   return [...new Set([...a.keys(), ...b.keys()])].filter((element) => !a.has(element) || !b.has(element));
 }

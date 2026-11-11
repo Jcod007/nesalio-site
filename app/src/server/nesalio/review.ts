@@ -44,7 +44,8 @@ export type SliceReviewer = (input: ReviewInput) => Promise<ReviewResult>;
 /** Objects that only carry words: an opening made of them has nothing a reviewer could find wrong. */
 const WORD_TYPES: ReadonlySet<string> = new Set(["text", "label", "callout"]);
 /** Digits (also sub/superscript, as in N₂) and spelled-out numbers: data a reviewer must check. "un" is left out (« un exemple »). */
-const DATA = /[0-9₀-₉⁰¹²³⁴-⁹=%]|(?<![\p{L}])(deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|quarante|cinquante|soixante|cent|cents|mille|million|milliard|moitié|demi|tiers|quart|double|triple)s?(?![\p{L}])/iu;
+const DATA =
+  /[0-9₀-₉⁰¹²³⁴-⁹=%]|(?<![\p{L}])(deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|quarante|cinquante|soixante|cent|cents|mille|million|milliard|moitié|demi|tiers|quart|double|triple)s?(?![\p{L}])/iu;
 
 /**
  * The first tranche is shown at once only when it is a plain opening (2026-11-10, choice of the user):
@@ -97,8 +98,11 @@ function shownContent(object: Loose, math: MathContext | undefined): string {
   if (!content || typeof content !== "object") return text(content);
   const computed = content as Loose;
   if (math && typeof computed.expression_ref === "string") {
-    try { return `${sceneText(object as unknown as Extract<SceneObject, { type: "math" }>, new Map(), math)} (valeur calculée)`; }
-    catch { /* expression with a parameter: the template is shown instead */ }
+    try {
+      return `${sceneText(object as unknown as Extract<SceneObject, { type: "math" }>, new Map(), math)} (valeur calculée)`;
+    } catch {
+      /* expression with a parameter: the template is shown instead */
+    }
   }
   return typeof computed.template === "string" ? computed.template : text(content);
 }
@@ -133,7 +137,10 @@ export function reviewMessages(input: Pick<ReviewInput, "question" | "previous" 
   const context = input.previous.length ? input.previous.map((s) => sliceText(s, input.math)).join("\n") : "(aucune)";
   return [
     { role: "system" as const, content: REVIEW_SYSTEM },
-    { role: "user" as const, content: `QUESTION DE L'ÉLÈVE :\n${input.question}\n\nCONTEXTE (tranches déjà montrées) :\n${context}\n\nNOUVELLE TRANCHE À RELIRE :\n${sliceText(input.slice, input.math)}` },
+    {
+      role: "user" as const,
+      content: `QUESTION DE L'ÉLÈVE :\n${input.question}\n\nCONTEXTE (tranches déjà montrées) :\n${context}\n\nNOUVELLE TRANCHE À RELIRE :\n${sliceText(input.slice, input.math)}`,
+    },
   ];
 }
 
@@ -147,8 +154,8 @@ function jsonObjects(raw: string): unknown[] {
       const char = raw[index];
       if (inString) {
         if (char === "\\") index++;
-        else if (char === "\"") inString = false;
-      } else if (char === "\"") inString = true;
+        else if (char === '"') inString = false;
+      } else if (char === '"') inString = true;
       else if (char === "{") depth++;
       else if (char === "}" && --depth === 0) {
         const candidate = raw.slice(start, index + 1);
@@ -158,7 +165,9 @@ function jsonObjects(raw: string): unknown[] {
             found.push(JSON.parse(attempt));
             start = index;
             break;
-          } catch { /* réparation suivante, puis accolade suivante */ }
+          } catch {
+            /* réparation suivante, puis accolade suivante */
+          }
         }
         break;
       }
@@ -173,8 +182,9 @@ function jsonObjects(raw: string): unknown[] {
  * (4 réponses sur 90 dans l'essai hors ligne). `undefined` : aucune réponse lisible.
  */
 export function parseReview(raw: string): ReviewAlert[] | undefined {
-  const answers = jsonObjects(raw).filter((value): value is { erreurs: unknown[] } =>
-    !!value && typeof value === "object" && Array.isArray((value as Loose).erreurs));
+  const answers = jsonObjects(raw).filter(
+    (value): value is { erreurs: unknown[] } => !!value && typeof value === "object" && Array.isArray((value as Loose).erreurs),
+  );
   const last = answers.at(-1);
   if (!last) return;
   return last.erreurs.flatMap((item) => {
@@ -189,20 +199,23 @@ export function parseReview(raw: string): ReviewAlert[] | undefined {
 
 /** Pour comparer une citation au texte : espaces, apostrophes, guillemets et barres obliques unifiés. */
 export function comparable(value: string): string {
-  return value
-    .normalize("NFC")
-    .replace(/[‘’ʼ`´]/g, "'")
-    // Guillemets retirés : « trois quarts » (espaces insécables) contre "trois quarts", ou \"…\" dans un tableau.
-    .replace(/\\"|[“”«»"]/g, " ")
-    .replace(/\{,\}/g, ",")
-    .replace(/\\\\/g, "\\")
-    .replace(/[\s  ]+/g, " ")
-    .trim()
-    .toLowerCase();
+  return (
+    value
+      .normalize("NFC")
+      .replace(/[‘’ʼ`´]/g, "'")
+      // Guillemets retirés : « trois quarts » (espaces insécables) contre "trois quarts", ou \"…\" dans un tableau.
+      .replace(/\\"|[“”«»"]/g, " ")
+      .replace(/\{,\}/g, ",")
+      .replace(/\\\\/g, "\\")
+      .replace(/[\s  ]+/g, " ")
+      .trim()
+      .toLowerCase()
+  );
 }
 
 /** Une correction qui se dédit (« c'est correct », « aucune vraie erreur ») : vu 5 fois dans l'essai hors ligne. */
-const RETRACTION = /^(en fait,? )?(il n'y a )?(pas d'erreur|aucune (vraie |réelle )?erreur|ce n'est pas une erreur|rien à corriger|c'est (bien |donc )?(correct|juste)\b|(c'est )?déjà (juste|correct))/i;
+const RETRACTION =
+  /^(en fait,? )?(il n'y a )?(pas d'erreur|aucune (vraie |réelle )?erreur|ce n'est pas une erreur|rien à corriger|c'est (bien |donc )?(correct|juste)\b|(c'est )?déjà (juste|correct))/i;
 /** Une correction qui continue après le dédit (« pas d'erreur de signe, mais le produit vaut 1,5 ») reste une alerte. */
 const GOES_ON = /\bmais\b|\bpar contre\b|\bcependant\b/i;
 /** Une citation plus courte se retrouve presque toujours dans une tranche. */
@@ -232,10 +245,17 @@ export function createSliceReviewer({ provider, completion }: { provider: ChatPr
     const started = Date.now();
     let raw = "";
     for await (const chunk of completion({
-      protocol: provider.protocol, endpoint: provider.endpoint, apiKey: provider.apiKey, model: provider.model,
-      extraHeaders: provider.extraHeaders, messages: reviewMessages(input), signal, maxTokens: MAX_TOKENS,
+      protocol: provider.protocol,
+      endpoint: provider.endpoint,
+      apiKey: provider.apiKey,
+      model: provider.model,
+      extraHeaders: provider.extraHeaders,
+      messages: reviewMessages(input),
+      signal,
+      maxTokens: MAX_TOKENS,
       ...(provider.reasoningEffort ? { reasoningEffort: provider.reasoningEffort } : {}),
-    })) raw += chunk;
+    }))
+      raw += chunk;
     const parsed = parseReview(raw);
     if (parsed === undefined) throw new Error(`réponse du relecteur illisible : ${raw.slice(0, 160)}`);
     return { ...screenAlerts(parsed, input.slice, input.math), ms: Date.now() - started };

@@ -4,9 +4,7 @@ import { Action, SceneObject } from "./contract";
 
 export const NESALIO_VOCABULARY = vocabulary;
 
-const categories = new Map(vocabulary.categories.map((category) => [
-  category.id, new Set(category.terms.map((term) => term.name)),
-]));
+const categories = new Map(vocabulary.categories.map((category) => [category.id, new Set(category.terms.map((term) => term.name))]));
 const objectCategories = ["graphical_objects", "mathematical_objects"];
 const actionCategories = ["visibility_and_style_verbs", "transformation_verbs", "camera_verbs", "dynamic_terms", "interaction_verbs"];
 
@@ -28,7 +26,10 @@ export interface UnsupportedCapability {
 }
 
 const CapabilityUse = z.object({
-  introduces: z.array(z.object({ type: z.string() })).max(64).default([]),
+  introduces: z
+    .array(z.object({ type: z.string() }))
+    .max(64)
+    .default([]),
   groups: z.array(z.object({})).max(32).optional(),
   beats: z.array(z.object({ do: z.array(z.object({ verb: z.string() })).max(64) })).max(32),
 });
@@ -48,7 +49,6 @@ export function negotiateCapabilities(input: unknown, available: Capabilities): 
   }
   slice.introduces.forEach((item, i) => check(item.type, available.objects, objectCategories, ["introduces", i, "type"]));
   slice.groups?.forEach((_, i) => check("group", available.objects, objectCategories, ["groups", i]));
-  slice.beats.forEach((beat, i) => beat.do.forEach((action, j) =>
-    check(action.verb, available.actions, actionCategories, ["beats", i, "do", j, "verb"])));
+  slice.beats.forEach((beat, i) => beat.do.forEach((action, j) => check(action.verb, available.actions, actionCategories, ["beats", i, "do", j, "verb"])));
   return missing;
 }

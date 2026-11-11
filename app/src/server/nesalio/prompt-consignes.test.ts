@@ -29,7 +29,9 @@ const FULL_PROMPT_LENGTH = 37_474;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 
-afterEach(() => { vi.unstubAllEnvs(); });
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
   it("le prompt complet, demandé par NESALIO_CONSIGNES=completes, est inchangé à l'octet près", () => {
@@ -80,7 +82,8 @@ describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
       "n'est jamais coupé entre deux parts",
       "un de plus titre les",
       "from et to restent dans les bornes",
-    ]) expect(light, removed).not.toContain(removed);
+    ])
+      expect(light, removed).not.toContain(removed);
   });
 
   it("les deux versions portent les consignes de justesse et annoncent floor", () => {
@@ -88,9 +91,17 @@ describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
     // answered by a general rule, the partial integer function drawn without steps.
     for (const version of ["completes", "allegees"] as const) {
       const prompt = buildNesalioSystemPrompt(version);
-      for (const rule of ["UN CALCUL ET SON RÉSULTAT DANS LA MÊME FORMULE", "VÉRIFIE LA RÉPONSE AU TABLEAU", "REFORMULER les données",
-        "réponds d'abord à SON cas", "dis-le clairement et corrige-le", "floor, ceil (partie entière [x] = floor(x))",
-        "Contrôlé par le moteur : table « x » / « f(x) »", "lignes « réactifs » et « produits »", "id sommet1, creux1, zero1"]) {
+      for (const rule of [
+        "UN CALCUL ET SON RÉSULTAT DANS LA MÊME FORMULE",
+        "VÉRIFIE LA RÉPONSE AU TABLEAU",
+        "REFORMULER les données",
+        "réponds d'abord à SON cas",
+        "dis-le clairement et corrige-le",
+        "floor, ceil (partie entière [x] = floor(x))",
+        "Contrôlé par le moteur : table « x » / « f(x) »",
+        "lignes « réactifs » et « produits »",
+        "id sommet1, creux1, zero1",
+      ]) {
         expect(prompt, `${version} : ${rule}`).toContain(rule);
       }
       expect(prompt.length, version).toBeLessThan(37_500);
@@ -100,7 +111,10 @@ describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
   it("la version allégée garde la pédagogie, le fond, la mise en page de jugement et tous les exemples", () => {
     const light = buildNesalioSystemPrompt("allegees");
     for (const kept of [
-      TEACHING, VISUAL_DICTIONARY, languageReference(), exampleLessonText(),
+      TEACHING,
+      VISUAL_DICTIONARY,
+      languageReference(),
+      exampleLessonText(),
       ...PROMPT_EXAMPLES.map(({ slice }) => JSON.stringify({ slice })),
       "ce passage dit POURQUOI",
       "le tableau montre ce que dit ce passage",
@@ -116,6 +130,7 @@ describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
       "au plus 24 unités de large",
       "sans $ autour",
       "jamais des label séparés",
-    ]) expect(light, kept.slice(0, 60)).toContain(kept);
+    ])
+      expect(light, kept.slice(0, 60)).toContain(kept);
   });
 });

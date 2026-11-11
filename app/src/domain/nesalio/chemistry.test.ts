@@ -39,9 +39,7 @@ describe("équations", () => {
 
   it("donne les écarts d'atomes et de charge, rien pour une équation équilibrée", () => {
     expect(balanceIssues(readChemicalEquation(String.raw`C_3H_8 + 5\,O_2 \rightarrow 3\,CO_2 + 4\,H_2O`)!)).toEqual([]);
-    expect(balanceIssues(readChemicalEquation("C3H8 + O2 -> 3 CO2 + H2O")!)).toEqual([
-      "H : 8 à gauche, 2 à droite", "O : 2 à gauche, 7 à droite",
-    ]);
+    expect(balanceIssues(readChemicalEquation("C3H8 + O2 -> 3 CO2 + H2O")!)).toEqual(["H : 8 à gauche, 2 à droite", "O : 2 à gauche, 7 à droite"]);
     expect(balanceIssues(readChemicalEquation(String.raw`\ce{Fe^{3+} + e^- -> Fe}`)!)).toEqual(["charge : 2 à gauche, 0 à droite"]);
     expect(balanceIssues(readChemicalEquation("NaCl -> Na+ + Cl-")!)).toEqual([]);
   });

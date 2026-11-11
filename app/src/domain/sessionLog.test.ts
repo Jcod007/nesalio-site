@@ -37,8 +37,12 @@ describe("createTurnRecorder", () => {
   });
   it("conserve les observations pédagogiques pour rejouer les décisions sans réécrire les anciens tours", () => {
     const learning = { v: 1 as const, concepts: [{ id: "fractions.parts", presented: ["worked-example" as const], observations: [] }] };
-    const { rec } = recorder({ mode: "continue", question: "Fractions", context: { spoken: [], board: [], learning },
-      answer: { prompt: "Le 4 ?", choices: ["Partage", "Prises"], picked: "Je ne sais pas", correct: null, concept: "fractions.parts", support: "guided" } });
+    const { rec } = recorder({
+      mode: "continue",
+      question: "Fractions",
+      context: { spoken: [], board: [], learning },
+      answer: { prompt: "Le 4 ?", choices: ["Partage", "Prises"], picked: "Je ne sais pas", correct: null, concept: "fractions.parts", support: "guided" },
+    });
     const record = rec.record();
     expect(record.learning).toEqual(learning);
     expect(record.answer).toMatchObject({ correct: null, concept: "fractions.parts", support: "guided" });
@@ -124,11 +128,20 @@ describe("isOlderThan", () => {
 
 describe("référence d'inscription et résumé par séance", () => {
   const base = { v: 1, env: "production", source: "model", latencyMs: { total: 10 }, events: [] } as const;
-  const turn = (over: Partial<TurnRecord>): TurnRecord => ({ ...base, session: "aaaa1111-0000", at: "2026-10-18T14:00:00.000Z", mode: "question", question: "", outcome: "complete", ...over }) as TurnRecord;
+  const turn = (over: Partial<TurnRecord>): TurnRecord =>
+    ({ ...base, session: "aaaa1111-0000", at: "2026-10-18T14:00:00.000Z", mode: "question", question: "", outcome: "complete", ...over }) as TurnRecord;
 
   it("garde la référence de l'inscription dans le tour, et rien sans inscription", () => {
     const make = (ref: string | null) =>
-      createTurnRecorder({ request: question, session: "s-12345678", ref, env: "production", source: "model", startedAt: new Date(), clock: { now: () => 0 } }).record();
+      createTurnRecorder({
+        request: question,
+        session: "s-12345678",
+        ref,
+        env: "production",
+        source: "model",
+        startedAt: new Date(),
+        clock: { now: () => 0 },
+      }).record();
     expect(make("k3x9a1b2c3d4").ref).toBe("k3x9a1b2c3d4");
     expect(make(null)).not.toHaveProperty("ref");
   });
@@ -141,8 +154,24 @@ describe("référence d'inscription et résumé par séance", () => {
       turn({ session: "bbbb2222-0000", question: "Un vecteur ?" }),
     ]);
     expect(summaries).toEqual([
-      { session: "aaaa1111", ref: "k3x9a1b2c3d4", debut: "2026-10-18T14:00:00.000Z", tours: 3, questions: ["C'est quoi une dérivée ?", "Et pour x² ?"], verifications: { bonnes: 1, total: 1 }, interrompus: 1 },
-      { session: "bbbb2222", ref: null, debut: "2026-10-18T14:00:00.000Z", tours: 1, questions: ["Un vecteur ?"], verifications: { bonnes: 0, total: 0 }, interrompus: 0 },
+      {
+        session: "aaaa1111",
+        ref: "k3x9a1b2c3d4",
+        debut: "2026-10-18T14:00:00.000Z",
+        tours: 3,
+        questions: ["C'est quoi une dérivée ?", "Et pour x² ?"],
+        verifications: { bonnes: 1, total: 1 },
+        interrompus: 1,
+      },
+      {
+        session: "bbbb2222",
+        ref: null,
+        debut: "2026-10-18T14:00:00.000Z",
+        tours: 1,
+        questions: ["Un vecteur ?"],
+        verifications: { bonnes: 0, total: 0 },
+        interrompus: 0,
+      },
     ]);
   });
 });
@@ -195,8 +224,18 @@ describe("createLessonRecorder (leçons Nesalio)", () => {
   it("résume une séance qui mélange anciens tours et leçons", () => {
     const { rec } = lesson();
     rec.finish("complete");
-    const old: TurnRecord = { v: 1, env: "production", session: "3f9c2e1a-7b44-4c1d-9e0f-aa11bb22cc33", at: "2026-11-10T19:00:00.000Z",
-      mode: "question", question: "Une somme ?", source: "model", latencyMs: { total: 1 }, outcome: "complete", events: [] };
+    const old: TurnRecord = {
+      v: 1,
+      env: "production",
+      session: "3f9c2e1a-7b44-4c1d-9e0f-aa11bb22cc33",
+      at: "2026-11-10T19:00:00.000Z",
+      mode: "question",
+      question: "Une somme ?",
+      source: "model",
+      latencyMs: { total: 1 },
+      outcome: "complete",
+      events: [],
+    };
     const [summary] = summarizeSessions([old, rec.record()]);
     expect(summary).toMatchObject({ tours: 2, questions: ["Une somme ?", "C'est quoi le réactif limitant ?"], interrompus: 0, ref: "abc123" });
   });

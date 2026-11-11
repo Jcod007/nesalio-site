@@ -45,23 +45,29 @@ describe("règles d’espace Nesalio (spécification §1 et §7)", () => {
   });
 
   it("pose un texte sans relation sous la composition précédente, jamais par-dessus", () => {
-    const first = introduceSlice(createScene(viewport), slice("s1", [
-      { id: "eq", type: "math", content: "2x + 3 = 7" },
-      { id: "why", type: "text", content: "But : trouver x", layout: { next_to: "eq", direction: "right" } },
-    ]));
+    const first = introduceSlice(
+      createScene(viewport),
+      slice("s1", [
+        { id: "eq", type: "math", content: "2x + 3 = 7" },
+        { id: "why", type: "text", content: "But : trouver x", layout: { next_to: "eq", direction: "right" } },
+      ]),
+    );
     const second = introduceSlice(first, slice("s2", [{ id: "general", type: "math", content: "ax + b = c" }]));
     expect(box(second, "general").y1).toBeLessThanOrEqual(box(second, "eq", "why").y0);
     expect(second.objects.get("eq")).toBe(first.objects.get("eq"));
   });
 
   it("écarte l’étiquette d’un point posé sur l’axe, et une formule posée sur une courbe", () => {
-    const scene = introduceSlice(createScene(viewport), slice("s1", [
-      { id: "axes", type: "axes", params: { x: [-1, 5], y: [-1, 4] } },
-      { id: "curve", type: "function_graph", params: { expression: "x", domain: [0, 4] } },
-      { id: "p", type: "point", params: { at: [1, 0] } },
-      { id: "p_label", type: "label", content: "(1 ; 0)", attachment: { parent: "p", anchor: "right" } },
-      { id: "rule", type: "math", content: "y = x", layout: { center_on: "curve" } },
-    ]));
+    const scene = introduceSlice(
+      createScene(viewport),
+      slice("s1", [
+        { id: "axes", type: "axes", params: { x: [-1, 5], y: [-1, 4] } },
+        { id: "curve", type: "function_graph", params: { expression: "x", domain: [0, 4] } },
+        { id: "p", type: "point", params: { at: [1, 0] } },
+        { id: "p_label", type: "label", content: "(1 ; 0)", attachment: { parent: "p", anchor: "right" } },
+        { id: "rule", type: "math", content: "y = x", layout: { center_on: "curve" } },
+      ]),
+    );
     const label = box(scene, "p_label");
     for (const stroke of strokes(scene, "axes")) expect(intersects(label, stroke)).toBe(false);
     // The label stays next to its point: a small shift off the axis, not a jump across the board.
@@ -74,20 +80,35 @@ describe("règles d’espace Nesalio (spécification §1 et §7)", () => {
       const result = validateModelOutput({ slices: [{ slice_id: "s", introduces, beats: [{ id: "b", say: "Voici.", cues: [], do: [] }] }] });
       return result.ok ? [] : result.issues.map(({ message }) => message);
     };
-    expect(issues([{ id: "a", type: "axes" }, { id: "t", type: "text", content: "x", frame: "a" }])).toEqual([expect.stringContaining("Seule une figure")]);
+    expect(
+      issues([
+        { id: "a", type: "axes" },
+        { id: "t", type: "text", content: "x", frame: "a" },
+      ]),
+    ).toEqual([expect.stringContaining("Seule une figure")]);
     expect(issues([{ id: "p", type: "point", params: { at: [0, 0] }, frame: "nowhere" }])).toEqual([expect.stringContaining("introuvable")]);
-    expect(issues([
-      { id: "a", type: "axes" },
-      { id: "p", type: "point", params: { at: [0, 0] }, frame: "a", layout: { next_to: "a", direction: "right" } },
-    ])).toEqual([expect.stringContaining("pas de layout")]);
-    expect(issues([{ id: "a", type: "axes" }, { id: "p", type: "point", params: { at: [0, 0] }, frame: "a" }])).toEqual([]);
+    expect(
+      issues([
+        { id: "a", type: "axes" },
+        { id: "p", type: "point", params: { at: [0, 0] }, frame: "a", layout: { next_to: "a", direction: "right" } },
+      ]),
+    ).toEqual([expect.stringContaining("pas de layout")]);
+    expect(
+      issues([
+        { id: "a", type: "axes" },
+        { id: "p", type: "point", params: { at: [0, 0] }, frame: "a" },
+      ]),
+    ).toEqual([]);
   });
 
   it("arrête une courbe aux bords de ses axes, et la caméra ne cadre pas ce qui dépasse", () => {
-    const scene = introduceSlice(createScene(viewport), slice("s1", [
-      { id: "axes", type: "axes", params: { x: [-3, 3], y: [-1, 4] } },
-      { id: "curve", type: "function_graph", params: { expression: "x^2", domain: [-3, 3] } },
-    ]));
+    const scene = introduceSlice(
+      createScene(viewport),
+      slice("s1", [
+        { id: "axes", type: "axes", params: { x: [-3, 3], y: [-1, 4] } },
+        { id: "curve", type: "function_graph", params: { expression: "x^2", domain: [-3, 3] } },
+      ]),
+    );
     const curve = scene.objects.get("curve")!;
     // x² reaches 9 at x = ±3; on these axes it stops near y = 4.
     expect(curve.measurement.body.y1).toBeLessThan(4.3);
@@ -98,18 +119,22 @@ describe("règles d’espace Nesalio (spécification §1 et §7)", () => {
   });
 
   it("met les calculs à côté du graphique plutôt qu’en colonne trop haute pour l’écran", () => {
-    const scene = introduceSlice(createScene(viewport), slice("s1", [
-      { id: "eq", type: "math", content: "y = x^2 - 4x + 1" },
-      { id: "axes", type: "axes", params: { x: [-1, 5], y: [-4, 4] } },
-      { id: "curve", type: "function_graph", params: { expression: "x^2 - 4*x + 1", domain: [-1, 5] } },
-      { id: "xs", type: "math", content: "x_S = 2" },
-      { id: "ys", type: "math", content: "y_S = -3" },
-    ]));
+    const scene = introduceSlice(
+      createScene(viewport),
+      slice("s1", [
+        { id: "eq", type: "math", content: "y = x^2 - 4x + 1" },
+        { id: "axes", type: "axes", params: { x: [-1, 5], y: [-4, 4] } },
+        { id: "curve", type: "function_graph", params: { expression: "x^2 - 4*x + 1", domain: [-1, 5] } },
+        { id: "xs", type: "math", content: "x_S = 2" },
+        { id: "ys", type: "math", content: "y_S = -3" },
+      ]),
+    );
     const all = box(scene, "eq", "axes", "curve", "xs", "ys");
     // Wider than tall, like the screen: the camera can show everything at a readable zoom.
     expect(all.x1 - all.x0).toBeGreaterThan(all.y1 - all.y0);
-    for (const id of ["eq", "axes", "xs", "ys"]) for (const other of ["eq", "axes", "xs", "ys"]) {
-      if (id < other) expect(intersects(box(scene, id), box(scene, other))).toBe(false);
-    }
+    for (const id of ["eq", "axes", "xs", "ys"])
+      for (const other of ["eq", "axes", "xs", "ys"]) {
+        if (id < other) expect(intersects(box(scene, id), box(scene, other))).toBe(false);
+      }
   });
 });

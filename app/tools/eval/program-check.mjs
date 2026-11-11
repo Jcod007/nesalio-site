@@ -7,8 +7,9 @@ function strings(value) {
 }
 
 export function sessionText(report) {
-  return [...(report.steps ?? []).flatMap((step) => strings([step.say, step.do, step.segments, step.check])),
-    ...strings(report.lesson?.summary ?? [])].join("\n").normalize("NFC");
+  return [...(report.steps ?? []).flatMap((step) => strings([step.say, step.do, step.segments, step.check])), ...strings(report.lesson?.summary ?? [])]
+    .join("\n")
+    .normalize("NFC");
 }
 
 export function programCheck(q, report) {

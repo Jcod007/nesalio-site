@@ -8,7 +8,9 @@ vi.mock("@/server/ai/audio", () => ({
   transcriptionPrivacy: () => ({ gateway: { disallowPromptTraining: true } }),
 }));
 vi.mock("@/server/tutor/chatCompletions", () => ({
-  streamChatCompletion: async function* () { yield "bonjour"; },
+  streamChatCompletion: async function* () {
+    yield "bonjour";
+  },
 }));
 
 const { GET } = await import("./route");
@@ -49,7 +51,11 @@ describe("GET /api/status", () => {
     const body = await (await GET(request("secret-de-test"))).json();
     expect(synthesizeSpeech).toHaveBeenCalledTimes(1);
     expect(transcribeAudio).toHaveBeenCalledTimes(1);
-    expect(transcribeAudio.mock.calls[0]![0]).toMatchObject({ model: DEFAULTS.transcriptionModel, mediaType: "audio/mpeg", audioBase64: Buffer.from(new Uint8Array(1200)).toString("base64") });
+    expect(transcribeAudio.mock.calls[0]![0]).toMatchObject({
+      model: DEFAULTS.transcriptionModel,
+      mediaType: "audio/mpeg",
+      audioBase64: Buffer.from(new Uint8Array(1200)).toString("base64"),
+    });
     expect(body.transcription).toMatchObject({ model: DEFAULTS.transcriptionModel, privacy: { disallowPromptTraining: true } });
     expect(body.check.transcription).toBe("ok : Bonjour, je suis Nesa.");
   });

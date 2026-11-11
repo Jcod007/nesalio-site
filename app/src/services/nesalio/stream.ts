@@ -41,7 +41,8 @@ export interface NesalioStream {
 /** Resolves once the lesson header has arrived; the tranches then follow as they are validated. */
 export async function openNesalioStream(question: string, signal: AbortSignal, endpoint = "/api/nesalio"): Promise<NesalioStream> {
   const response = await fetch(endpoint, {
-    method: "POST", signal,
+    method: "POST",
+    signal,
     headers: { "Content-Type": "application/json", ...sessionHeaders() },
     body: JSON.stringify({ question }),
   });

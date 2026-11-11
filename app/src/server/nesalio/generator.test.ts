@@ -7,11 +7,15 @@ const provider: ChatProvider = { name: "gateway", protocol: "openai", endpoint: 
 const header = JSON.stringify({ lesson: { id: "l", title: "Titre", language: "fr", learning_goal: "But" }, math_context: { symbols: {}, expressions: {} } });
 
 function slice(id: string, objectId = `o_${id}`, cueText = "point") {
-  return JSON.stringify({ slice: {
-    slice_id: id,
-    introduces: [{ id: objectId, type: "point", params: { at: [0, 0] } }],
-    beats: [{ id: `b_${id}`, say: "Voici un point.", cues: [{ id: "c", text: cueText }], do: [{ id: `a_${id}`, verb: "show", target: objectId, at: "cue:c" }] }],
-  } });
+  return JSON.stringify({
+    slice: {
+      slice_id: id,
+      introduces: [{ id: objectId, type: "point", params: { at: [0, 0] } }],
+      beats: [
+        { id: `b_${id}`, say: "Voici un point.", cues: [{ id: "c", text: cueText }], do: [{ id: `a_${id}`, verb: "show", target: objectId, at: "cue:c" }] },
+      ],
+    },
+  });
 }
 
 /** A fake model: one scripted answer per call, delivered in small uneven chunks. */
@@ -32,12 +36,22 @@ async function run(completion: ReturnType<typeof scripted>["completion"], option
   for await (const event of generateNesalio("Explique-moi un point", { provider, completion, ...options })) events.push(event);
   return events;
 }
-const kinds = (events: NesalioEvent[]) => events.map((event) => event.kind === "slice" ? `slice:${event.slice.slice_id}` : event.kind);
+const kinds = (events: NesalioEvent[]) => events.map((event) => (event.kind === "slice" ? `slice:${event.slice.slice_id}` : event.kind));
 
 describe("générateur Nesalio", () => {
   it("transmet une question à l'élève après la tranche qui la précède, et écarte une question mal formée", async () => {
-    const question = (id: string, extra: Record<string, unknown> = {}) => JSON.stringify({ question: {
-      id, prompt: "Combien de points ?", choices: ["un", "deux"], answer: 0, ifRight: "Oui.", ifWrong: "Non.", ...extra } });
+    const question = (id: string, extra: Record<string, unknown> = {}) =>
+      JSON.stringify({
+        question: {
+          id,
+          prompt: "Combien de points ?",
+          choices: ["un", "deux"],
+          answer: 0,
+          ifRight: "Oui.",
+          ifWrong: "Non.",
+          ...extra,
+        },
+      });
     const model = scripted([header, slice("s1"), question("q1"), slice("s2"), question("q2", { answer: 5 }), slice("s3")].join("\n"));
     const events = await run(model.completion);
     expect(kinds(events)).toEqual(["lesson", "slice:s1", "question", "slice:s2", "slice:s3", "end"]);
@@ -45,7 +59,6 @@ describe("générateur Nesalio", () => {
     // A wrong question never stops the lesson, nor asks the model again.
     expect(model.calls).toHaveLength(1);
   });
-
 
   it("transmet chaque tranche validée dès qu’elle est complète, sans réflexion avant la première", async () => {
     const model = scripted(["```json", header, slice("s1"), slice("s2"), "```"].join("\n"));
@@ -99,7 +112,12 @@ describe("générateur Nesalio", () => {
     const model = scripted([header, slice("s1"), bad].join("\n"), bad, bad, [slice("s2"), slice("s3")].join("\n"));
     const logs: string[] = [];
     const events: NesalioEvent[] = [];
-    for await (const event of generateNesalio("Explique-moi un point", { provider, completion: model.completion, log: (m, d) => logs.push(`${m} ${String(d)}`) })) events.push(event);
+    for await (const event of generateNesalio("Explique-moi un point", {
+      provider,
+      completion: model.completion,
+      log: (m, d) => logs.push(`${m} ${String(d)}`),
+    }))
+      events.push(event);
     expect(kinds(events)).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
     expect(model.calls).toHaveLength(2 + MAX_ATTEMPTS);
     expect(model.calls.at(-1)!.messages.at(-1)!.content).toContain("Dernier essai : réécris-la PLUS SIMPLE");
@@ -119,10 +137,18 @@ describe("générateur Nesalio", () => {
   });
 
   it("refuse un geste que le lecteur ne sait pas jouer, même s’il est dans le contrat", async () => {
-    const transform = JSON.stringify({ slice: {
-      slice_id: "s1", introduces: [{ id: "a", type: "math", content: "x" }, { id: "b", type: "math", content: "y" }],
-      beats: [{ id: "b1", say: "On réorganise.", cues: [], do: [{ id: "r", verb: "layout.reflow", targets: ["a", "b"], intent: "aligner", at: "beat:start" }] }],
-    } });
+    const transform = JSON.stringify({
+      slice: {
+        slice_id: "s1",
+        introduces: [
+          { id: "a", type: "math", content: "x" },
+          { id: "b", type: "math", content: "y" },
+        ],
+        beats: [
+          { id: "b1", say: "On réorganise.", cues: [], do: [{ id: "r", verb: "layout.reflow", targets: ["a", "b"], intent: "aligner", at: "beat:start" }] },
+        ],
+      },
+    });
     const model = scripted([header, transform].join("\n"), slice("s1"));
     const events = await run(model.completion);
     expect(kinds(events)).toEqual(["lesson", "slice:s1", "end"]);
@@ -131,7 +157,11 @@ describe("générateur Nesalio", () => {
 
   it("signale une réponse sans tranche, une coupure du modèle et une explication jamais valide", async () => {
     expect(await run(scripted("Je ne sais pas.").completion)).toMatchObject([{ kind: "error", code: "empty" }]);
-    const failing = () => (async function* () { yield [header, slice("s1"), ""].join("\n"); throw new Error("coupure"); })();
+    const failing = () =>
+      (async function* () {
+        yield [header, slice("s1"), ""].join("\n");
+        throw new Error("coupure");
+      })();
     expect(kinds(await run(failing))).toEqual(["lesson", "slice:s1", "error"]);
     const neverValid = scripted([header, slice("s1", "o", "trian")].join("\n"), slice("s1", "o", "trian"), slice("s1", "o", "trian"));
     expect(await run(neverValid.completion)).toMatchObject([{ kind: "lesson" }, { kind: "error", code: "invalid" }]);
@@ -159,9 +189,9 @@ describe("générateur Nesalio", () => {
   });
 
   it("redemande la ligne lesson quand l’en-tête manquait avant la tranche refusée", async () => {
-    const model = scripted(["{\"lesson\": oups", slice("s1")].join("\n"), [header, slice("s1")].join("\n"));
+    const model = scripted(['{"lesson": oups', slice("s1")].join("\n"), [header, slice("s1")].join("\n"));
     expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "end"]);
-    expect(model.calls[1]!.messages.at(-1)!.content).toContain("ligne {\"lesson\"");
+    expect(model.calls[1]!.messages.at(-1)!.content).toContain('ligne {"lesson"');
   });
 
   it("corrige chaque tranche refusée une fois, pas seulement la première de la leçon", async () => {
@@ -175,8 +205,10 @@ describe("générateur Nesalio", () => {
   });
 
   it("borne le nombre total de corrections d’une leçon", async () => {
-    const answers = [[header, slice("s1", "o1", "trian")].join("\n"),
-      ...Array.from({ length: MAX_REPAIRS + 2 }, (_, i) => [slice(`s${i + 1}`, `o${i + 1}`), slice(`s${i + 2}`, `o${i + 2}`, "trian")].join("\n"))];
+    const answers = [
+      [header, slice("s1", "o1", "trian")].join("\n"),
+      ...Array.from({ length: MAX_REPAIRS + 2 }, (_, i) => [slice(`s${i + 1}`, `o${i + 1}`), slice(`s${i + 2}`, `o${i + 2}`, "trian")].join("\n")),
+    ];
     const model = scripted(...answers);
     const events = await run(model.completion);
     expect(model.calls).toHaveLength(MAX_REPAIRS + 2);
@@ -184,18 +216,23 @@ describe("générateur Nesalio", () => {
   });
 
   it("refuse un en-tête dont le contexte mathématique est faux et ne redemande que la ligne lesson", async () => {
-    const badHeader = JSON.stringify({ lesson: { id: "l", title: "Titre", language: "fr", learning_goal: "But" },
-      math_context: { symbols: { a: { kind: "parameter", initial: 9, min: 0, max: 2 } }, expressions: {} } });
+    const badHeader = JSON.stringify({
+      lesson: { id: "l", title: "Titre", language: "fr", learning_goal: "But" },
+      math_context: { symbols: { a: { kind: "parameter", initial: 9, min: 0, max: 2 } }, expressions: {} },
+    });
     const model = scripted([badHeader, slice("s1")].join("\n"), [header, slice("s1")].join("\n"));
     expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "end"]);
     const repair = model.calls[1]!.messages.at(-1)!.content;
-    expect(repair).toContain("ligne {\"lesson\"");
+    expect(repair).toContain('ligne {"lesson"');
     expect(repair).toContain("intervalle déclaré");
   });
 
   it("retire sans appel de l’en-tête une expression écrite en x", async () => {
     // Seen in real generations: the curve's formula put in math_context.expressions, where only symbols exist.
-    const withCurve = JSON.stringify({ lesson: { id: "l", title: "Titre", language: "fr", learning_goal: "But" }, math_context: { symbols: {}, expressions: { f: "log(x)" } } });
+    const withCurve = JSON.stringify({
+      lesson: { id: "l", title: "Titre", language: "fr", learning_goal: "But" },
+      math_context: { symbols: {}, expressions: { f: "log(x)" } },
+    });
     const model = scripted([withCurve, slice("s1")].join("\n"));
     const events = await run(model.completion);
     expect(kinds(events)).toEqual(["lesson", "slice:s1", "end"]);
@@ -205,11 +242,7 @@ describe("générateur Nesalio", () => {
 
   it("demande une fois la suite quand le modèle s’arrête avant le nombre minimal de tranches", async () => {
     // Seen in real generations: the first tranche corrected, then nothing more.
-    const model = scripted(
-      [header, slice("s1", "o1", "trian")].join("\n"),
-      slice("s1", "o1"),
-      [slice("s2", "o2"), slice("s3", "o3")].join("\n"),
-    );
+    const model = scripted([header, slice("s1", "o1", "trian")].join("\n"), slice("s1", "o1"), [slice("s2", "o2"), slice("s3", "o3")].join("\n"));
     expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
     expect(model.calls).toHaveLength(3);
     expect(model.calls[2]!.messages.at(-1)!.content).toContain("Continue");
@@ -238,14 +271,27 @@ describe("générateur Nesalio", () => {
   });
 
   it("répare sans appel un part visant une formule non découpée déclarée dans une tranche précédente", async () => {
-    const formula = JSON.stringify({ slice: {
-      slice_id: "s1", introduces: [{ id: "eq", type: "math", content: "3x = 12" }],
-      beats: [{ id: "b1", say: "Voici l'équation.", cues: [{ id: "c", text: "équation" }], do: [{ id: "w", verb: "write", target: "eq", at: "cue:c" }] }],
-    } });
-    const withPart = JSON.stringify({ slice: {
-      slice_id: "s2", introduces: [],
-      beats: [{ id: "b2", say: "Regarde le résultat.", cues: [{ id: "c", text: "résultat" }], do: [{ id: "h", verb: "highlight", target: "eq", part: "droite", role: "accent", at: "cue:c" }] }],
-    } });
+    const formula = JSON.stringify({
+      slice: {
+        slice_id: "s1",
+        introduces: [{ id: "eq", type: "math", content: "3x = 12" }],
+        beats: [{ id: "b1", say: "Voici l'équation.", cues: [{ id: "c", text: "équation" }], do: [{ id: "w", verb: "write", target: "eq", at: "cue:c" }] }],
+      },
+    });
+    const withPart = JSON.stringify({
+      slice: {
+        slice_id: "s2",
+        introduces: [],
+        beats: [
+          {
+            id: "b2",
+            say: "Regarde le résultat.",
+            cues: [{ id: "c", text: "résultat" }],
+            do: [{ id: "h", verb: "highlight", target: "eq", part: "droite", role: "accent", at: "cue:c" }],
+          },
+        ],
+      },
+    });
     const model = scripted([header, formula, withPart].join("\n"));
     expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
     expect(model.calls).toHaveLength(1);
@@ -305,8 +351,11 @@ describe("générateur Nesalio", () => {
 
     it("ne joue pas la suite tant que la tranche refusée n’est pas rendue : il la redemande", async () => {
       // The correction skips s2: s3 is not played before it (the student would see s1 s3 s2), s2 is asked again.
-      const model = scripted([header, slice("s1"), unreadable("s2")].join("\n"), [slice("s3"), slice("s4")].join("\n"),
-        [slice("s2"), slice("s3"), slice("s4")].join("\n"));
+      const model = scripted(
+        [header, slice("s1"), unreadable("s2")].join("\n"),
+        [slice("s3"), slice("s4")].join("\n"),
+        [slice("s2"), slice("s3"), slice("s4")].join("\n"),
+      );
       expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "slice:s4", "end"]);
       expect(model.calls).toHaveLength(3);
       expect(model.calls[2]!.messages.at(-1)!.content).toContain("réécris d'abord « s2 »");
@@ -327,7 +376,10 @@ describe("générateur Nesalio", () => {
 
     it("garde l’ordre quand la tranche refusée est suivie d’une valide sur la même ligne", async () => {
       // A1 (unreadable) and A2 (readable, refused): s3 was played before s2.
-      for (const [s2, reason] of [[unreadable("s2"), "JSON illisible"], [slice("s2", "o_s2", "trian"), "mots entiers"]] as const) {
+      for (const [s2, reason] of [
+        [unreadable("s2"), "JSON illisible"],
+        [slice("s2", "o_s2", "trian"), "mots entiers"],
+      ] as const) {
         const model = scripted([header, slice("s1"), s2 + slice("s3")].join("\n"), [slice("s2"), slice("s3"), slice("s4")].join("\n"));
         expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "slice:s4", "end"]);
         expect(model.calls).toHaveLength(2);
@@ -338,8 +390,11 @@ describe("générateur Nesalio", () => {
 
     it("redemande le même identifiant quand la correction renomme la tranche, sans finir « incomplète » à tort", async () => {
       // B: s2 corrected as « s2bis »: asked again under its own id, then the whole lesson ends normally.
-      const model = scripted([header, slice("s1"), unreadable("s2")].join("\n"), [slice("s2bis"), slice("s3")].join("\n"),
-        [slice("s2"), slice("s3")].join("\n"));
+      const model = scripted(
+        [header, slice("s1"), unreadable("s2")].join("\n"),
+        [slice("s2bis"), slice("s3")].join("\n"),
+        [slice("s2"), slice("s3")].join("\n"),
+      );
       expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
       expect(model.calls[2]!.messages.at(-1)!.content).toContain("même slice_id");
     });
@@ -353,8 +408,10 @@ describe("générateur Nesalio", () => {
 
     it("ignore un en-tête réécrit illisible après son acceptation", async () => {
       // H
-      const model = scripted([header, slice("s1"), slice("s2", "o_s2", "trian")].join("\n"),
-        [header.replace('"title"', ']"title"'), slice("s2"), slice("s3")].join("\n"));
+      const model = scripted(
+        [header, slice("s1"), slice("s2", "o_s2", "trian")].join("\n"),
+        [header.replace('"title"', ']"title"'), slice("s2"), slice("s3")].join("\n"),
+      );
       expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
       expect(model.calls).toHaveLength(2);
     });
@@ -367,7 +424,7 @@ describe("générateur Nesalio", () => {
       expect(model.calls[1]!.messages.at(-1)!.content).toContain("identifiant illisible");
     });
 
-    it("ne coupe pas le flux pour une phrase qui cite \"slice\":, mais refuse une tranche étalée sur plusieurs lignes", async () => {
+    it('ne coupe pas le flux pour une phrase qui cite "slice":, mais refuse une tranche étalée sur plusieurs lignes', async () => {
       // I
       const remark = 'Remarque : chaque ligne a la forme "slice": {...}';
       const model = scripted([header, slice("s1"), remark, slice("s2"), slice("s3")].join("\n"));
@@ -385,9 +442,19 @@ describe("générateur Nesalio", () => {
       expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
       expect(model.calls).toHaveLength(1);
       // With LaTeX written with one backslash (`\sqrt`), read with the same repairs as a one-line tranche (relecture du code).
-      const latex = JSON.stringify({ slice: { slice_id: "s2", introduces: [{ id: "r", type: "math", content: "\\sqrt{2}" }],
-        beats: [{ id: "b", say: "Voici racine de deux.", cues: [{ id: "c", text: "racine" }], do: [{ id: "w", verb: "write", target: "r", at: "cue:c" }] }] } }, null, 2)
-        .replace("\\\\sqrt", "\\sqrt").split("\n");
+      const latex = JSON.stringify(
+        {
+          slice: {
+            slice_id: "s2",
+            introduces: [{ id: "r", type: "math", content: "\\sqrt{2}" }],
+            beats: [{ id: "b", say: "Voici racine de deux.", cues: [{ id: "c", text: "racine" }], do: [{ id: "w", verb: "write", target: "r", at: "cue:c" }] }],
+          },
+        },
+        null,
+        2,
+      )
+        .replace("\\\\sqrt", "\\sqrt")
+        .split("\n");
       const withLatex = scripted([header, slice("s1"), ...latex].join("\n"));
       expect(kinds(await run(withLatex.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
       expect(withLatex.calls).toHaveLength(1);
@@ -395,7 +462,10 @@ describe("générateur Nesalio", () => {
 
     it("lit sans appel une ligne JSON terminée par une virgule ou un crochet (sortie en tableau)", async () => {
       // C1 and C2
-      for (const lines of [[header, `${slice("s1")},`, `${slice("s2")},`], [header, `[${slice("s1")},${slice("s2")}]`]]) {
+      for (const lines of [
+        [header, `${slice("s1")},`, `${slice("s2")},`],
+        [header, `[${slice("s1")},${slice("s2")}]`],
+      ]) {
         const model = scripted(lines.join("\n"));
         expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
         expect(model.calls).toHaveLength(1);
@@ -406,7 +476,7 @@ describe("générateur Nesalio", () => {
       const model = scripted([header.replace('"title"', ']"title"'), slice("s1")].join("\n"), [header, slice("s1")].join("\n"));
       expect(kinds(await run(model.completion))).toEqual(["lesson", "slice:s1", "end"]);
       const repair = model.calls[1]!.messages.at(-1)!.content;
-      expect(repair).toContain("ligne {\"lesson\"");
+      expect(repair).toContain('ligne {"lesson"');
       expect(repair).toContain('{"lesson":{"id":"l",]"title"');
     });
 
@@ -417,10 +487,14 @@ describe("générateur Nesalio", () => {
     });
 
     it("lit sans appel une formule dont les commandes LaTeX n’ont qu’une barre oblique", async () => {
-      const formula = (content: string) => JSON.stringify({ slice: {
-        slice_id: "s1", introduces: [{ id: "eq", type: "math", content }],
-        beats: [{ id: "b1", say: "Voici la formule.", cues: [{ id: "c", text: "formule" }], do: [{ id: "w", verb: "write", target: "eq", at: "cue:c" }] }],
-      } }).replaceAll("\\\\", "\\");
+      const formula = (content: string) =>
+        JSON.stringify({
+          slice: {
+            slice_id: "s1",
+            introduces: [{ id: "eq", type: "math", content }],
+            beats: [{ id: "b1", say: "Voici la formule.", cues: [{ id: "c", text: "formule" }], do: [{ id: "w", verb: "write", target: "eq", at: "cue:c" }] }],
+          },
+        }).replaceAll("\\\\", "\\");
       for (const content of [String.raw`x = 2 \pm \sqrt{3}`, String.raw`x = \frac{1}{2} \times 4`]) {
         const model = scripted([header, formula(content)].join("\n"));
         const events = await run(model.completion);
@@ -436,10 +510,14 @@ describe("générateur Nesalio", () => {
   });
 
   describe("justesse (lot 2) : corrections, refus et alertes notées", () => {
-    const formula = (id: string, content: string, verb = "write", declare = true) => JSON.stringify({ slice: {
-      slice_id: id, introduces: declare ? [{ id: "eq", type: "math", content }] : [],
-      beats: [{ id: `b_${id}`, say: "Voici le calcul.", cues: [{ id: "c", text: "calcul" }], do: [{ id: `w_${id}`, verb, target: "eq", at: "cue:c" }] }],
-    } });
+    const formula = (id: string, content: string, verb = "write", declare = true) =>
+      JSON.stringify({
+        slice: {
+          slice_id: id,
+          introduces: declare ? [{ id: "eq", type: "math", content }] : [],
+          beats: [{ id: `b_${id}`, say: "Voici le calcul.", cues: [{ id: "c", text: "calcul" }], do: [{ id: `w_${id}`, verb, target: "eq", at: "cue:c" }] }],
+        },
+      });
 
     it("joue la tranche corrigée par la validation et la rejoue ainsi au modèle", async () => {
       // « = » written for a rounding: the validation writes ≈; the model must see that version, not its own.
@@ -465,7 +543,12 @@ describe("générateur Nesalio", () => {
       const logs: string[] = [];
       const model = scripted([header, formula("s1", "x = 4"), formula("s2", "x = 4", "write", false), slice("s3")].join("\n"));
       const events: NesalioEvent[] = [];
-      for await (const event of generateNesalio("Explique", { provider, completion: model.completion, log: (message, detail) => logs.push(`${message} ${String(detail)}`) })) events.push(event);
+      for await (const event of generateNesalio("Explique", {
+        provider,
+        completion: model.completion,
+        log: (message, detail) => logs.push(`${message} ${String(detail)}`),
+      }))
+        events.push(event);
       expect(kinds(events)).toEqual(["lesson", "slice:s1", "slice:s2", "slice:s3", "end"]);
       expect(logs).toContainEqual(expect.stringMatching(/^nesalio: alerte de justesse notée s2 — repeated_write/));
     });
@@ -507,7 +590,11 @@ describe("générateur Nesalio", () => {
       expect(await run(refusedKey.completion)).toMatchObject([{ kind: "error", code: "upstream" }]);
       expect(refusedKey.seen).toHaveLength(1);
       // Cut after the first tranche: the student saw it, the call is not replayed.
-      const cut = () => (async function* () { yield [header, slice("s1"), ""].join("\n"); throw new TypeError("fetch failed"); })();
+      const cut = () =>
+        (async function* () {
+          yield [header, slice("s1"), ""].join("\n");
+          throw new TypeError("fetch failed");
+        })();
       expect(kinds(await run(cut))).toEqual(["lesson", "slice:s1", "error"]);
     });
 
@@ -537,10 +624,11 @@ describe("générateur Nesalio", () => {
 
     it("attend plus longtemps le premier octet que le silence en cours de route (relecteur)", async () => {
       // Bench: healthy DeepSeek calls sent their header after up to 24.9 s; the 20 s idle limit would have cut them.
-      const slowStart = () => (async function* () {
-        await new Promise((resolve) => setTimeout(resolve, 80));
-        yield [header, slice("s1"), ""].join("\n");
-      })();
+      const slowStart = () =>
+        (async function* () {
+          await new Promise((resolve) => setTimeout(resolve, 80));
+          yield [header, slice("s1"), ""].join("\n");
+        })();
       const events: NesalioEvent[] = [];
       for await (const event of generateNesalio("q", { provider, completion: slowStart, idleTimeoutMs: 20, firstByteTimeoutMs: 500 })) events.push(event);
       expect(kinds(events)).toEqual(["lesson", "slice:s1", "end"]);

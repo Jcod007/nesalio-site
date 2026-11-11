@@ -25,8 +25,7 @@ const accountLocalization = {
 
 export const metadata: Metadata = {
   title: "Nesalio · Essaie Nesalio",
-  description:
-    "Pose ta question de mathématiques : Nesa te répond à voix haute en dessinant l'explication au tableau. Secondaire 4 et 5.",
+  description: "Pose ta question de mathématiques : Nesa te répond à voix haute en dessinant l'explication au tableau. Secondaire 4 et 5.",
   icons: { icon: "/favicon.svg", apple: "/apple-touch-icon.png" },
   robots: { index: false },
 };
@@ -53,7 +52,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           >
             {children}
           </ClerkProvider>
-        ) : children}
+        ) : (
+          children
+        )}
         {/* Nesa, la mascotte du site, partagée telle quelle (élément <nesa-mascot>). */}
         <Script src="/nesa.js" strategy="afterInteractive" />
       </body>

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { planSequence, TeachingPlan } from "./plan";
 
 const plan = {
-  goal: "Comprendre une idée nouvelle", target: "objectif-inédit",
+  goal: "Comprendre une idée nouvelle",
+  target: "objectif-inédit",
   concepts: [
     { id: "objectif-inédit", label: "Objectif", prerequisites: ["outil"] },
     { id: "hors-parcours", label: "Autre idée", prerequisites: [] },
@@ -29,12 +30,16 @@ describe("plan de séance construit à la demande", () => {
   });
 
   it("partage un prérequis sans le présenter deux fois et borne le graphe", () => {
-    const diamond = TeachingPlan.parse({ goal: "Relier", target: "fin", concepts: [
-      { id: "fin", label: "Fin", prerequisites: ["a", "b"] },
-      { id: "a", label: "A", prerequisites: ["base"] },
-      { id: "b", label: "B", prerequisites: ["base"] },
-      { id: "base", label: "Base" },
-    ] });
+    const diamond = TeachingPlan.parse({
+      goal: "Relier",
+      target: "fin",
+      concepts: [
+        { id: "fin", label: "Fin", prerequisites: ["a", "b"] },
+        { id: "a", label: "A", prerequisites: ["base"] },
+        { id: "b", label: "B", prerequisites: ["base"] },
+        { id: "base", label: "Base" },
+      ],
+    });
     expect(planSequence(diamond).map((c) => c.id)).toEqual(["base", "a", "b", "fin"]);
     expect(TeachingPlan.safeParse({ ...plan, concepts: Array.from({ length: 17 }, (_, i) => ({ id: `${i}`, label: `${i}` })) }).success).toBe(false);
   });

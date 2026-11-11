@@ -70,9 +70,42 @@ describe("chevauchements observés", () => {
   it("Pythagore : les étiquettes des côtés restent hors des carrés construits ensuite, près de leur côté", () => {
     const board = run([
       { type: "triangle", id: "tri", base: 4, height: 3, at: [-1, -1], names: ["A", "B", "C"], sides: { base: "4", height: "3", hyp: "5" } },
-      { type: "polygon", id: "c4", points: [[-1, -1], [3, -1], [3, -5], [-1, -5]], fill: true, label: "16" },
-      { type: "polygon", id: "c3", points: [[3, -1], [6, -1], [6, 2], [3, 2]], fill: true, label: "9" },
-      { type: "polygon", id: "c5", points: [[-1, -1], [3, 2], [0, 6], [-4, 3]], fill: true, label: "25" },
+      {
+        type: "polygon",
+        id: "c4",
+        points: [
+          [-1, -1],
+          [3, -1],
+          [3, -5],
+          [-1, -5],
+        ],
+        fill: true,
+        label: "16",
+      },
+      {
+        type: "polygon",
+        id: "c3",
+        points: [
+          [3, -1],
+          [6, -1],
+          [6, 2],
+          [3, 2],
+        ],
+        fill: true,
+        label: "9",
+      },
+      {
+        type: "polygon",
+        id: "c5",
+        points: [
+          [-1, -1],
+          [3, 2],
+          [0, 6],
+          [-4, 3],
+        ],
+        fill: true,
+        label: "25",
+      },
     ]);
     expect(kinds(board, "texte", "surface", "point")).toEqual([]);
     // L'étiquette « 4 » reste près du milieu de la base (pas exilée sous le carré).
@@ -82,8 +115,30 @@ describe("chevauchements observés", () => {
 
   it("aires écrites sur des polygones voisins : elles ne se superposent pas", () => {
     const board = run([
-      { type: "polygon", id: "a", points: [[0, 0], [1, 0], [1, 1], [0, 1]], fill: true, label: "aire = 1 cm²" },
-      { type: "polygon", id: "b", points: [[1, 0], [2, 0], [2, 1], [1, 1]], fill: true, label: "aire = 1 cm²" },
+      {
+        type: "polygon",
+        id: "a",
+        points: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+        ],
+        fill: true,
+        label: "aire = 1 cm²",
+      },
+      {
+        type: "polygon",
+        id: "b",
+        points: [
+          [1, 0],
+          [2, 0],
+          [2, 1],
+          [1, 1],
+        ],
+        fill: true,
+        label: "aire = 1 cm²",
+      },
     ]);
     expect(kinds(board, "texte")).toEqual([]);
   });

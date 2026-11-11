@@ -14,7 +14,7 @@ import { normalFormula, sameFormula, standaloneTex, type ValidationState } from 
 
 type Json = Record<string, unknown>;
 const isObject = (value: unknown): value is Json => typeof value === "object" && value !== null && !Array.isArray(value);
-const objects = (value: unknown): Json[] => Array.isArray(value) ? value.filter(isObject) : [];
+const objects = (value: unknown): Json[] => (Array.isArray(value) ? value.filter(isObject) : []);
 
 /** Operators a model forgets between the parts of a formula; text stripped of spaces, as `normalFormula` gives. */
 const OPERATORS = /^(?:[+\-=<>,;:]|\\(?:times|cdot|div|pm|leq?|geq?|neq|approx|Rightarrow|iff))*$/;
@@ -22,7 +22,13 @@ const OPERATORS = /^(?:[+\-=<>,;:]|\\(?:times|cdot|div|pm|leq?|geq?|neq|approx|R
 const ID = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/;
 /** One character for one character (so positions stay the same): lower case, no accent, one apostrophe. */
 const fold = (text: string) => Array.from(text, (char) => char.normalize("NFD")[0]!.toLowerCase().replace(/[’ʼ`]/, "'")).join("");
-const slug = (text: string) => text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+const slug = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
 
 /**
  * A cue id with an accent or another character the contract refuses (« c_libère », seen on
@@ -40,10 +46,11 @@ function renameCueIds(cues: Json[], actions: Json[], fixes: string[]): void {
     const old = cue.id;
     taken.add(id);
     cue.id = id;
-    for (const action of actions) for (const field of ["at", "start", "end"] as const) {
-      if (action[field] === `cue:${old}`) action[field] = `cue:${id}`;
-      if (action[field] === `cue_end:${old}`) action[field] = `cue_end:${id}`;
-    }
+    for (const action of actions)
+      for (const field of ["at", "start", "end"] as const) {
+        if (action[field] === `cue:${old}`) action[field] = `cue:${id}`;
+        if (action[field] === `cue_end:${old}`) action[field] = `cue_end:${id}`;
+      }
     fixes.push(`repère « ${old} » renommé « ${id} »`);
   }
 }
@@ -63,9 +70,11 @@ function orderInterval(action: Json, say: string, cues: Json[], fixes: string[])
   };
   // With `at`, the interval is not what times the gesture: nothing to put in order.
   if (action.at !== undefined) return;
-  const start = at(action.start), end = at(action.end);
+  const start = at(action.start),
+    end = at(action.end);
   if (!start || !end) return;
-  const from = start.kind === "cue" ? start.start : start.end, to = end.kind === "cue" ? end.start : end.end;
+  const from = start.kind === "cue" ? start.start : start.end,
+    to = end.kind === "cue" ? end.start : end.end;
   // In order, or the same words named twice (`cue_end:x` to `cue:x`): left to the validation.
   if (to > from || end.start >= start.start) return;
   action.start = `cue:${end.id}`;
@@ -80,9 +89,11 @@ function orderInterval(action: Json, say: string, cues: Json[], fixes: string[])
  */
 function resolveCue(reference: string, cues: Json[]): string | undefined {
   // `slug(id)`: a cue already renamed without its accent (renameCueIds), cited with it (`{"cue": "c_libère"}`).
-  const matches = cues.filter(({ id, text }) => typeof id === "string"
-    && (id.endsWith(`_${reference}`) || id === slug(reference) || (typeof text === "string" && slug(text) === slug(reference))));
-  return matches.length === 1 ? matches[0]!.id as string : undefined;
+  const matches = cues.filter(
+    ({ id, text }) =>
+      typeof id === "string" && (id.endsWith(`_${reference}`) || id === slug(reference) || (typeof text === "string" && slug(text) === slug(reference))),
+  );
+  return matches.length === 1 ? (matches[0]!.id as string) : undefined;
 }
 
 /** Parts whose only defect is operators left out between them, completed so that they give back the formula. */
@@ -101,7 +112,7 @@ function joinOperators(content: string, parts: Json[]): string[] | undefined {
   }
   const trailing = whole.slice(at);
   if (![...gaps, trailing].every((gap) => OPERATORS.test(gap))) return;
-  const fixed = texts.map((text, i) => gaps[i] ? `${gaps[i]} ${text}` : text);
+  const fixed = texts.map((text, i) => (gaps[i] ? `${gaps[i]} ${text}` : text));
   if (trailing) fixed[fixed.length - 1] = `${fixed.at(-1)} ${trailing}`;
   return fixed;
 }
@@ -137,9 +148,9 @@ export function escapeLatex(line: string): string {
   for (let index = 0; index < line.length; index++) {
     const char = line[index]!;
     if (!inString) {
-      if (char === "\"") inString = true;
+      if (char === '"') inString = true;
       out += char;
-    } else if (char === "\"") {
+    } else if (char === '"') {
       inString = false;
       out += char;
     } else if (char === "\\") {
@@ -166,8 +177,7 @@ const CONTROLS: Record<string, string> = { "\f": "f", "\b": "b", "\t": "t", "\r"
  */
 export function restoreLatex(text: unknown): string | undefined {
   if (typeof text !== "string") return;
-  const fixed = text.replace(/[\f\b\t\r](?=[a-zA-Z])|\n(?=(?:eq?|abla|otin|ot|u|i|eg|ewline)(?![a-zA-Z]))/g,
-    (char) => `\\${CONTROLS[char]}`);
+  const fixed = text.replace(/[\f\b\t\r](?=[a-zA-Z])|\n(?=(?:eq?|abla|otin|ot|u|i|eg|ewline)(?![a-zA-Z]))/g, (char) => `\\${CONTROLS[char]}`);
   return fixed === text ? undefined : fixed;
 }
 
@@ -251,16 +261,17 @@ function renameRedeclared(slice: Json, beats: readonly Json[], before: Validatio
     if (!ID.test(fresh)) continue;
     taken.add(fresh);
     holder.id = fresh;
-    const swap = (container: Json, field: string) => { if (container[field] === old) container[field] = fresh; };
+    const swap = (container: Json, field: string) => {
+      if (container[field] === old) container[field] = fresh;
+    };
     for (const other of holders) {
       if (isObject(other.layout)) for (const field of LAYOUT_REFERENCES) swap(other.layout, field);
       if (isObject(other.attachment)) swap(other.attachment, "parent");
       swap(other, "frame");
-      if (Array.isArray(other.items)) other.items = other.items.map((id) => id === old ? fresh : id);
+      if (Array.isArray(other.items)) other.items = other.items.map((id) => (id === old ? fresh : id));
     }
     const located = beats.flatMap((beat, beatIndex) => objects(beat.do).map((action) => ({ action, beatIndex })));
-    const appears = located.findIndex(({ action }) => action.target === old
-      && (APPEARING_VERBS.has(action.verb as string) || action.verb === "transform"));
+    const appears = located.findIndex(({ action }) => action.target === old && (APPEARING_VERBS.has(action.verb as string) || action.verb === "transform"));
     located.forEach(({ action, beatIndex }, index) => {
       // Array order is not time order inside a passage: a gesture at beat:start of the passage where the new
       // object appears (or of an earlier one) comes before it, wherever it is written (relecteur, cycle 2).
@@ -268,7 +279,7 @@ function renameRedeclared(slice: Json, beats: readonly Json[], before: Validatio
       const precedes = appears < 0 || index < appears || (atStart && beatIndex <= located[appears]!.beatIndex);
       if (OLD_OBJECT_VERBS.has(action.verb as string) && precedes) return;
       swap(action, "target");
-      if (Array.isArray(action.targets)) action.targets = action.targets.map((id) => id === old ? fresh : id);
+      if (Array.isArray(action.targets)) action.targets = action.targets.map((id) => (id === old ? fresh : id));
       if (isObject(action.to)) for (const field of LAYOUT_REFERENCES) swap(action.to, field);
     });
     fixes.push(`« ${old} » déjà déclaré dans une tranche précédente : l'objet de cette tranche renommé « ${fresh} »`);
@@ -328,8 +339,14 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
     }
     const labels = params.column_labels;
     const columns = Array.isArray(params.rows) && Array.isArray(params.rows[0]) ? params.rows[0].length : undefined;
-    if (Array.isArray(labels) && titled && columns !== undefined && labels.length === columns + 1 && blank(labels[0])
-      && (!Array.isArray(params.row_labels) || labels.slice(1).every((label) => typeof label === "string" && !blank(label)))) {
+    if (
+      Array.isArray(labels) &&
+      titled &&
+      columns !== undefined &&
+      labels.length === columns + 1 &&
+      blank(labels[0]) &&
+      (!Array.isArray(params.row_labels) || labels.slice(1).every((label) => typeof label === "string" && !blank(label)))
+    ) {
       // The empty corner above the row titles: the contract places the titles' column without a header.
       params.column_labels = labels.slice(1);
       fixes.push(`${String(item.id)} : en-tête vide du coin du tableau retiré`);
@@ -337,18 +354,19 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
   }
 
   // Placed next to a formula a transform replaced in an earlier tranche: the formula standing there now.
-  if (before) for (const holder of [...objects(slice.introduces), ...objects(slice.groups)]) {
-    if (!isObject(holder.layout)) continue;
-    for (const field of LAYOUT_REFERENCES) {
-      const reference = holder.layout[field];
-      if (typeof reference !== "string" || !before.replacedBy.has(reference)) continue;
-      let now = reference;
-      for (let i = 0; i < 64 && before.replacedBy.has(now); i++) now = before.replacedBy.get(now)!;
-      if (!before.objects.has(now) || before.removed.has(now)) continue;
-      holder.layout[field] = now;
-      fixes.push(`${String(holder.id)} : placé par rapport à « ${reference} », remplacée par transform, donc à « ${now} »`);
+  if (before)
+    for (const holder of [...objects(slice.introduces), ...objects(slice.groups)]) {
+      if (!isObject(holder.layout)) continue;
+      for (const field of LAYOUT_REFERENCES) {
+        const reference = holder.layout[field];
+        if (typeof reference !== "string" || !before.replacedBy.has(reference)) continue;
+        let now = reference;
+        for (let i = 0; i < 64 && before.replacedBy.has(now); i++) now = before.replacedBy.get(now)!;
+        if (!before.objects.has(now) || before.removed.has(now)) continue;
+        holder.layout[field] = now;
+        fixes.push(`${String(holder.id)} : placé par rapport à « ${reference} », remplacée par transform, donc à « ${now} »`);
+      }
     }
-  }
 
   // Parts belong to a fixed formula: a computed value is written whole.
   for (const item of objects(slice.introduces)) {
@@ -373,19 +391,22 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
     const joined = parts.map((part) => part.text).join("");
     const texts = parts.length > 1 && !sameFormula(joined, item.content) ? joinOperators(item.content, parts) : undefined;
     if (texts) {
-      parts.forEach((part, i) => { part.text = texts[i]; });
+      parts.forEach((part, i) => {
+        part.text = texts[i];
+      });
       fixes.push(`${String(item.id)} : opérateurs rattachés aux parties`);
-    } else if (parts.length < 2 || !sameFormula(joined, item.content)
-      || parts.some((part) => typeof part.text !== "string" || !standaloneTex(part.text))) {
+    } else if (parts.length < 2 || !sameFormula(joined, item.content) || parts.some((part) => typeof part.text !== "string" || !standaloneTex(part.text))) {
       // Parts that cannot be written one by one: the declared formula is written whole on the first part's word,
       // the later steps highlight it. What the student sees is the declared formula; only the piece-by-piece writing is lost.
       delete item.parts;
       writeWhole(item, new Set(parts.map((part) => part.id)), actions);
-      fixes.push(parts.length === 1 && typeof parts[0]!.text === "string" && sameFormula(parts[0]!.text, item.content)
-        ? `${String(item.id)} : découpe en une seule partie retirée`
-        : fractionArguments(item.content, parts)
-          ? `${String(item.id)} : fraction découpée en numérateur et dénominateur, écrite d'un coup`
-          : `${String(item.id)} : parties qui ne redonnent pas la formule, formule écrite d'un coup`);
+      fixes.push(
+        parts.length === 1 && typeof parts[0]!.text === "string" && sameFormula(parts[0]!.text, item.content)
+          ? `${String(item.id)} : découpe en une seule partie retirée`
+          : fractionArguments(item.content, parts)
+            ? `${String(item.id)} : fraction découpée en numérateur et dénominateur, écrite d'un coup`
+            : `${String(item.id)} : parties qui ne redonnent pas la formule, formule écrite d'un coup`,
+      );
     }
   }
 
@@ -497,8 +518,14 @@ export function normalizeSlice(raw: unknown, before?: ValidationState): { slice:
   for (const beat of beats) {
     if (!Array.isArray(beat.do)) continue;
     beat.do = beat.do.filter((action) => {
-      if (!isObject(action) || action.verb !== "camera.restore" || typeof action.frame !== "string"
-        || saved.has(action.frame) || awaited.has(action.id as string)) return true;
+      if (
+        !isObject(action) ||
+        action.verb !== "camera.restore" ||
+        typeof action.frame !== "string" ||
+        saved.has(action.frame) ||
+        awaited.has(action.id as string)
+      )
+        return true;
       fixes.push(`${String(action.id)} : retour au cadrage « ${action.frame} », jamais sauvegardé, retiré`);
       return false;
     });
@@ -524,12 +551,18 @@ function writeForgottenParts(slice: Json, beats: Json[], fixes: string[]): void 
   const taken = new Set(beats.flatMap((beat) => objects(beat.do).map(({ id }) => id)));
   const actions = () => beats.flatMap((beat) => objects(beat.do));
   for (const item of objects(slice.introduces)) {
-    const parts = objects(item.parts).map((part) => part.id).filter((id): id is string => typeof id === "string");
+    const parts = objects(item.parts)
+      .map((part) => part.id)
+      .filter((id): id is string => typeof id === "string");
     if (item.type !== "math" || parts.length < 2) continue;
     const writes = actions().filter((action) => action.verb === "write" && action.target === item.id);
     // Written whole, replaced by a transform, or not written here at all: nothing is missing.
-    if (!writes.length || writes.some((action) => action.part === undefined)
-      || actions().some((action) => action.verb === "transform" && action.target === item.id)) continue;
+    if (
+      !writes.length ||
+      writes.some((action) => action.part === undefined) ||
+      actions().some((action) => action.verb === "transform" && action.target === item.id)
+    )
+      continue;
     const written = new Set(writes.map((action) => action.part));
     const missing = parts.filter((part) => !written.has(part));
     if (!missing.length) continue;
@@ -537,7 +570,10 @@ function writeForgottenParts(slice: Json, beats: Json[], fixes: string[]): void 
     for (const part of [...missing].reverse()) {
       const index = parts.indexOf(part);
       const next = parts.slice(index + 1).find((other) => written.has(other));
-      const previous = parts.slice(0, index).reverse().find((other) => written.has(other));
+      const previous = parts
+        .slice(0, index)
+        .reverse()
+        .find((other) => written.has(other));
       const neighbour = next ?? previous;
       if (neighbour === undefined) continue;
       for (const beat of beats) {
@@ -549,9 +585,8 @@ function writeForgottenParts(slice: Json, beats: Json[], fixes: string[]): void 
         for (let n = 2; taken.has(id); n++) id = `auto_write_${String(item.id)}_${part}_${n}`;
         taken.add(id);
         // With the next part (same moment, just before it); after the previous one when it is the last part.
-        const timing = next !== undefined
-          ? (typeof model.at === "string" ? { at: model.at } : { start: model.start, end: model.end })
-          : { at: `after:${String(model.id)}` };
+        const timing =
+          next !== undefined ? (typeof model.at === "string" ? { at: model.at } : { start: model.start, end: model.end }) : { at: `after:${String(model.id)}` };
         list.splice(next !== undefined ? at : at + 1, 0, { id, verb: "write", target: item.id, part, ...timing });
         written.add(part);
         fixes.push(`${String(item.id)} : partie « ${part} » jamais écrite, écrite avec « ${neighbour} »`);
@@ -596,9 +631,15 @@ function showForgotten(slice: Json, beats: Json[], fixes: string[]): void {
     let id = `auto_show_${item.id}`;
     for (let n = 2; taken.has(id); n++) id = `auto_show_${item.id}_${n}`;
     taken.add(id);
-    const sibling = item.type === "point" ? beats.flatMap((beat) => (Array.isArray(beat.do) ? beat.do : []).map((action, index) => ({ beat, action, index })))
-      .find(({ action }) => isObject(action) && action.verb === "show"
-        && objects(slice.introduces).some((other) => other.id === action.target && other.type === "point")) : undefined;
+    const sibling =
+      item.type === "point"
+        ? beats
+            .flatMap((beat) => (Array.isArray(beat.do) ? beat.do : []).map((action, index) => ({ beat, action, index })))
+            .find(
+              ({ action }) =>
+                isObject(action) && action.verb === "show" && objects(slice.introduces).some((other) => other.id === action.target && other.type === "point"),
+            )
+        : undefined;
     if (sibling && isObject(sibling.action)) {
       (sibling.beat.do as unknown[]).splice(sibling.index + 1, 0, { id, verb: "show", target: item.id, at: `after:${String(sibling.action.id)}` });
       fixes.push(`${item.id} : point jamais montré, montré avec « ${String(sibling.action.target)} »`);
@@ -621,13 +662,22 @@ function showForgotten(slice: Json, beats: Json[], fixes: string[]): void {
 function fixComputedResult(slice: Json, beats: Json[], math: MathContext, fixes: string[]): void {
   const values = new Map<string, number>();
   for (const [name, symbol] of Object.entries(math.symbols)) if (symbol.kind === "constant") values.set(name, symbol.value);
-  const results = new Set(beats.flatMap((beat) => objects(beat.do)).filter((action) => action.verb === "highlight" && action.role === "result").map((action) => action.target));
+  const results = new Set(
+    beats
+      .flatMap((beat) => objects(beat.do))
+      .filter((action) => action.verb === "highlight" && action.role === "result")
+      .map((action) => action.target),
+  );
   for (const item of objects(slice.introduces)) {
     if (item.type !== "math" || !isObject(item.content) || item.parts !== undefined || !results.has(item.id)) continue;
     // Only a result given as approximate (≈): « = 25,32 » for 25,325 would be refused as false once written out.
     if (typeof item.content.template !== "string" || !/(?:\\approx|≈)\s*\{value\}/.test(item.content.template)) continue;
     let fixed: string | null = null;
-    try { fixed = computedFormula(item as never, values, math); } catch { fixed = null; }
+    try {
+      fixed = computedFormula(item as never, values, math);
+    } catch {
+      fixed = null;
+    }
     if (fixed === null) continue;
     item.content = fixed;
     fixes.push(`${String(item.id)} : valeur calculée écrite en clair (${fixed.slice(-24)}) pour écrire son résultat quand il est dit`);
@@ -642,7 +692,7 @@ function fixComputedResult(slice: Json, beats: Json[], math: MathContext, fixes:
  */
 function headerRowAsColumnLabels(slice: Json, beats: Json[], fixes: string[]): void {
   const actions = beats.flatMap((beat) => objects(beat.do));
-  const row = (part: unknown) => typeof part === "string" ? /^r(\d+)(c\d+)?$/.exec(part) : null;
+  const row = (part: unknown) => (typeof part === "string" ? /^r(\d+)(c\d+)?$/.exec(part) : null);
   for (const item of objects(slice.introduces)) {
     if (item.type !== "matrix" || !isObject(item.params)) continue;
     const aiming = actions.filter((action) => action.target === item.id && row(action.part));
@@ -669,7 +719,8 @@ const RELATION_SEPARATOR = /^(?:\\q?quad\s*(?:\\text\{\s*(?:et|puis|donc)\s*\}\s
 /** A formula cut at its top-level separators: the pieces in order, separators kept as their own pieces. */
 function relationPieces(content: string): { text: string; relation: boolean }[] | null {
   const pieces: { text: string; relation: boolean }[] = [];
-  let depth = 0, start = 0;
+  let depth = 0,
+    start = 0;
   for (let i = 0; i < content.length; i++) {
     const char = content[i];
     if (char === "{") depth++;
@@ -705,10 +756,13 @@ function splitRelations(slice: Json, beats: Json[], fixes: string[]): void {
     if (!pieces) continue;
     const relations = pieces.filter(({ relation }) => relation);
     if (highlights.length !== relations.length || normalFormula(pieces.map(({ text }) => text).join(" ")) !== normalFormula(item.content)) continue;
-    let r = 0, s = 0;
+    let r = 0,
+      s = 0;
     const parts = pieces.map(({ text, relation }) => ({ id: relation ? `relation${++r}` : `lien${++s}`, text }));
     item.parts = parts;
-    highlights.forEach((action, i) => { action.part = `relation${i + 1}`; });
+    highlights.forEach((action, i) => {
+      action.part = `relation${i + 1}`;
+    });
     fixes.push(`${String(item.id)} : ${relations.length} relations dans une formule surlignée ${highlights.length} fois, une part chacune`);
   }
 }
@@ -724,15 +778,24 @@ const ITEM_SEPARATOR = /\s{2,}|\s*;\s+|\s+\|\s+/;
  */
 function textItemsAsBlock(slice: Json, beats: Json[], fixes: string[]): void {
   const introduces = Array.isArray(slice.introduces) ? slice.introduces : [];
+  // biome-ignore lint/suspicious/noAssignInExpressions: crée la liste des groupes sur la tranche réparée
   const groups = Array.isArray(slice.groups) ? slice.groups : (slice.groups = []);
   const taken = new Set<unknown>([...objects(introduces), ...objects(groups)].map(({ id }) => id));
   for (const item of objects(introduces).slice()) {
     if (item.type !== "text" || typeof item.content !== "string" || item.attachment !== undefined || item.frame !== undefined) continue;
     // Bullets written between the items (« • ») are the separator, not items.
-    const pieces = item.content.split(ITEM_SEPARATOR).map((piece) => piece.replace(/^[•·–-]\s*|\s*[•·]$/g, "").trim()).filter((piece) => /[\p{L}\p{N}]/u.test(piece));
+    const pieces = item.content
+      .split(ITEM_SEPARATOR)
+      .map((piece) => piece.replace(/^[•·–-]\s*|\s*[•·]$/g, "").trim())
+      .filter((piece) => /[\p{L}\p{N}]/u.test(piece));
     if (pieces.length < 2 || pieces.length > 6 || pieces.some((piece) => piece.length > 60)) continue;
     const id = String(item.id);
-    const ids = pieces.map((_, i) => { let next = `${id}_${i + 1}`; for (let n = 2; taken.has(next); n++) next = `${id}_${i + 1}_${n}`; taken.add(next); return next; });
+    const ids = pieces.map((_, i) => {
+      let next = `${id}_${i + 1}`;
+      for (let n = 2; taken.has(next); n++) next = `${id}_${i + 1}_${n}`;
+      taken.add(next);
+      return next;
+    });
     const { id: _id, content: _content, layout, ...shared } = item;
     introduces.splice(introduces.indexOf(item), 1, ...pieces.map((content, i) => ({ ...shared, id: ids[i], content })));
     groups.push({ id, items: ids, arrange: { direction: "down", align: "left", gap: "sm" }, ...(layout !== undefined ? { layout } : {}) });
@@ -767,18 +830,25 @@ function lastRelation(content: string): number {
  * formula were removed earlier (the formula is written whole): the result keeps its own colour this way too.
  */
 function highlightResultOnly(slice: Json, beats: Json[], fixes: string[]): void {
-  const formulas = new Map(objects(slice.introduces).filter((item) => item.type === "math" && typeof item.content === "string" && item.parts === undefined)
-    .map((item) => [item.id, item]));
+  const formulas = new Map(
+    objects(slice.introduces)
+      .filter((item) => item.type === "math" && typeof item.content === "string" && item.parts === undefined)
+      .map((item) => [item.id, item]),
+  );
   for (const action of beats.flatMap((beat) => objects(beat.do))) {
     if (action.verb !== "highlight" || action.role !== "result" || action.part !== undefined) continue;
     const formula = formulas.get(action.target);
     if (!formula) continue;
     const content = formula.content as string;
     const at = lastRelation(content);
-    const left = content.slice(0, at).trim(), right = content.slice(at).trim();
+    const left = content.slice(0, at).trim(),
+      right = content.slice(at).trim();
     if (at <= 0 || !left || right.length < 2 || normalFormula(left + right) !== normalFormula(content)) continue;
     if (formula.parts === undefined) {
-      formula.parts = [{ id: "membre_calcul", text: left }, { id: "membre_resultat", text: right }];
+      formula.parts = [
+        { id: "membre_calcul", text: left },
+        { id: "membre_resultat", text: right },
+      ];
       fixes.push(`${String(formula.id)} : découpée au dernier « = » pour surligner le résultat seul`);
     }
     action.part = "membre_resultat";
@@ -844,7 +914,11 @@ const REVEALING = new Set(["show", "write", "draw"]);
  * object shown here (below).
  */
 function revealTargeted(slice: Json, beats: Json[], fixes: string[]): void {
-  const introduced = new Map(objects(slice.introduces).filter(({ id }) => typeof id === "string").map((item) => [item.id as string, item]));
+  const introduced = new Map(
+    objects(slice.introduces)
+      .filter(({ id }) => typeof id === "string")
+      .map((item) => [item.id as string, item]),
+  );
   const members = new Map(objects(slice.groups).map(({ id, items }) => [id, Array.isArray(items) ? items : []]));
   const revealed = new Set<unknown>();
   const reveal = (id: unknown) => {
@@ -886,8 +960,12 @@ function revealTargeted(slice: Json, beats: Json[], fixes: string[]): void {
     const parent = item.attachment.parent;
     for (const beat of beats) {
       const list = Array.isArray(beat.do) ? beat.do : [];
-      const index = list.findIndex((action) => isObject(action) && (REVEALING.has(String(action.verb)) || action.verb === "transform")
-        && (action.target === parent || (members.get(action.target) ?? []).includes(parent)));
+      const index = list.findIndex(
+        (action) =>
+          isObject(action) &&
+          (REVEALING.has(String(action.verb)) || action.verb === "transform") &&
+          (action.target === parent || (members.get(action.target) ?? []).includes(parent)),
+      );
       if (index < 0) continue;
       const first = list[index] as Json;
       let actionId = `auto_show_${id}`;

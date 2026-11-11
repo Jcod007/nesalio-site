@@ -12,7 +12,11 @@ import { DEFAULTS } from "@/server/config";
 import { alignBeatCues } from "@/domain/nesalio/alignment";
 
 const SAY = "Prenons l'équation trois x plus cinq égale dix-sept. Pour isoler x, on enlève cinq des deux côtés : il reste trois x égale douze.";
-const CUES = [{ id: "eq", text: "trois x plus cinq" }, { id: "isoler", text: "isoler" }, { id: "douze", text: "douze" }];
+const CUES = [
+  { id: "eq", text: "trois x plus cinq" },
+  { id: "isoler", text: "isoler" },
+  { id: "douze", text: "douze" },
+];
 
 function gatewayToken() {
   const fromEnv = process.env.AI_GATEWAY_API_KEY?.trim() || process.env.VERCEL_OIDC_TOKEN?.trim();
@@ -27,13 +31,19 @@ describe.runIf(process.env.VOIX_VITESSE === "1")("vitesse de la voix Nesalio", (
     const rows = [];
     for (const speed of [undefined, 0.9, 0.85, 0.8]) {
       const { audio, alignment } = await synthesizeSpeech({
-        token: gatewayToken(), model: DEFAULTS.nesalioVoiceModel, text: SAY, withTimestamps: true, speed,
+        token: gatewayToken(),
+        model: DEFAULTS.nesalioVoiceModel,
+        text: SAY,
+        withTimestamps: true,
+        speed,
       });
       const name = `vitesse-${speed ?? "1.0"}.mp3`;
       writeFileSync(join(out, name), audio);
       const timings = alignment ? alignBeatCues({ say: SAY, cues: CUES }, alignment) : new Map();
       rows.push({
-        speed: speed ?? 1, file: name, durationMs: alignment ? Math.round(alignment.characterEndTimesSeconds.at(-1) * 1000) : null,
+        speed: speed ?? 1,
+        file: name,
+        durationMs: alignment ? Math.round(alignment.characterEndTimesSeconds.at(-1) * 1000) : null,
         sameText: alignment ? alignment.characters.join("") === SAY : false,
         cues: Object.fromEntries([...timings].map(([id, t]) => [id, t.start])),
       });

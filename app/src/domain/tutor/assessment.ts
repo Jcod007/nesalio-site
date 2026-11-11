@@ -17,15 +17,25 @@ interface AssessableCheck {
   verification?: ArithmeticVerification;
 }
 
-interface Rational { numerator: bigint; denominator: bigint }
+interface Rational {
+  numerator: bigint;
+  denominator: bigint;
+}
 
 /** Fractions exactes bornées : l'arrondi IEEE-754 ne doit pas transformer une erreur en réussite. */
 function fraction(numerator: bigint, denominator: bigint): Rational | null {
   if (denominator === 0n || numerator.toString(2).length > 512 || denominator.toString(2).length > 512) return null;
-  if (denominator < 0n) { numerator = -numerator; denominator = -denominator; }
+  if (denominator < 0n) {
+    numerator = -numerator;
+    denominator = -denominator;
+  }
   let a = numerator < 0n ? -numerator : numerator;
   let b = denominator;
-  while (b) { const remainder = a % b; a = b; b = remainder; }
+  while (b) {
+    const remainder = a % b;
+    a = b;
+    b = remainder;
+  }
   return { numerator: numerator / a, denominator: denominator / a };
 }
 
@@ -46,14 +56,21 @@ function evaluate(node: ExprNode): Rational | null {
   const left = evaluate(node.left);
   const right = evaluate(node.right);
   if (!left || !right) return null;
-  const a = left.numerator, b = left.denominator, c = right.numerator, d = right.denominator;
+  const a = left.numerator,
+    b = left.denominator,
+    c = right.numerator,
+    d = right.denominator;
   switch (node.op) {
-    case "+": return fraction(a * d + c * b, b * d);
-    case "-": return fraction(a * d - c * b, b * d);
-    case "*": return fraction(a * c, b * d);
-    case "/": return fraction(a * d, b * c);
+    case "+":
+      return fraction(a * d + c * b, b * d);
+    case "-":
+      return fraction(a * d - c * b, b * d);
+    case "*":
+      return fraction(a * c, b * d);
+    case "/":
+      return fraction(a * d, b * c);
     case "^": {
-      if (d !== 1n || c < -128n || c > 128n || a === 0n && c <= 0n) return null;
+      if (d !== 1n || c < -128n || c > 128n || (a === 0n && c <= 0n)) return null;
       const exponent = c < 0n ? -c : c;
       // Borne avant l'exponentiation, y compris pour les données hostiles.
       if (Math.max(a.toString(2).length, b.toString(2).length) * Number(exponent) > 512) return null;
@@ -78,7 +95,9 @@ function numericFraction(text: string): Rational | null {
   if (tokens.join("") !== source.replace(/\s/g, "")) return null;
   try {
     return evaluate(parseExpression(source));
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export function numericValue(text: string): number | null {
@@ -94,7 +113,7 @@ export function arithmeticCheckViolation(check: AssessableCheck): string | null 
   const values = check.choices.map(numericFraction);
   if (expected === null || values.some((value) => value === null))
     return "La vérification arithmétique exige un calcul constant fini et des choix numériques exacts. Corrige le calcul ou utilise une question sans ce contrat si elle porte sur autre chose.";
-  const matching = values.flatMap((value, index) => value !== null && equal(value, expected) ? [index] : []);
+  const matching = values.flatMap((value, index) => (value !== null && equal(value, expected) ? [index] : []));
   if (matching.length !== 1 || matching[0] !== check.answer)
     return "Le calcul vérifié ne correspond pas à une unique bonne réponse du QCM. Recalcule les choix et leur index avant de poser cette question.";
   return null;
@@ -109,10 +128,9 @@ export interface AnswerAssessment {
 export function assessAnswer(check: AssessableCheck, reply: number | string): AnswerAssessment {
   if (check.verification) {
     if (arithmeticCheckViolation(check)) return { correct: null, method: "ungraded" };
-    const actual = numericFraction(typeof reply === "number" ? check.choices[reply] ?? "" : reply);
+    const actual = numericFraction(typeof reply === "number" ? (check.choices[reply] ?? "") : reply);
     const expected = numericFraction(check.verification.expression);
-    return actual === null || expected === null ? { correct: null, method: "ungraded" }
-      : { correct: equal(actual, expected), method: "arithmetic" };
+    return actual === null || expected === null ? { correct: null, method: "ungraded" } : { correct: equal(actual, expected), method: "arithmetic" };
   }
   if (typeof reply !== "number" || check.answer === undefined || !Number.isInteger(reply) || !check.choices[reply])
     return { correct: null, method: "ungraded" };

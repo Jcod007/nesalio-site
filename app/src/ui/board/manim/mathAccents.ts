@@ -12,11 +12,30 @@
  * as before, rather than being misspelt.
  */
 const ACCENTS: Record<string, [accent: string, base: string]> = {
-  é: ["acute", "e"], É: ["acute", "E"],
-  è: ["grave", "e"], à: ["grave", "a"], ù: ["grave", "u"], È: ["grave", "E"], À: ["grave", "A"], Ù: ["grave", "U"],
-  ê: ["hat", "e"], â: ["hat", "a"], î: ["hat", "i"], ô: ["hat", "o"], û: ["hat", "u"],
-  Ê: ["hat", "E"], Â: ["hat", "A"], Î: ["hat", "I"], Ô: ["hat", "O"], Û: ["hat", "U"],
-  ë: ["ddot", "e"], ï: ["ddot", "i"], ü: ["ddot", "u"], Ë: ["ddot", "E"], Ï: ["ddot", "I"], Ü: ["ddot", "U"],
+  é: ["acute", "e"],
+  É: ["acute", "E"],
+  è: ["grave", "e"],
+  à: ["grave", "a"],
+  ù: ["grave", "u"],
+  È: ["grave", "E"],
+  À: ["grave", "A"],
+  Ù: ["grave", "U"],
+  ê: ["hat", "e"],
+  â: ["hat", "a"],
+  î: ["hat", "i"],
+  ô: ["hat", "o"],
+  û: ["hat", "u"],
+  Ê: ["hat", "E"],
+  Â: ["hat", "A"],
+  Î: ["hat", "I"],
+  Ô: ["hat", "O"],
+  Û: ["hat", "U"],
+  ë: ["ddot", "e"],
+  ï: ["ddot", "i"],
+  ü: ["ddot", "u"],
+  Ë: ["ddot", "E"],
+  Ï: ["ddot", "I"],
+  Ü: ["ddot", "U"],
 };
 const TEXT_ACCENTS: Record<string, string> = { "'": "acute", "`": "grave", "^": "hat", '"': "ddot" };
 const COMPOSED = new Map(Object.entries(ACCENTS).map(([letter, [accent, base]]) => [`${accent}:${base}`, letter]));
@@ -25,8 +44,10 @@ const NEEDS_WORK = /[À-ÿ]|\\['`^"]/;
 
 /** `\'e`, `` \`a ``, `\^{o}`, `\"i` (text accents) as the accented letter itself. */
 function composeTextAccents(latex: string): string {
-  return latex.replace(/\\(['`^"])\s*(?:\{([a-zA-Z])\}|([a-zA-Z]))/g, (whole, mark: string, braced?: string, bare?: string) =>
-    COMPOSED.get(`${TEXT_ACCENTS[mark]}:${braced ?? bare}`) ?? whole);
+  return latex.replace(
+    /\\(['`^"])\s*(?:\{([a-zA-Z])\}|([a-zA-Z]))/g,
+    (whole, mark: string, braced?: string, bare?: string) => COMPOSED.get(`${TEXT_ACCENTS[mark]}:${braced ?? bare}`) ?? whole,
+  );
 }
 
 export function drawableAccents(latex: string): string {
@@ -40,17 +61,35 @@ export function drawableAccents(latex: string): string {
     const char = source[i]!;
     if (char === "\\") {
       const name = /^\\([a-zA-Z]+)/.exec(source.slice(i))?.[1];
-      if (!name) { out += source.slice(i, i + 2); i++; pending = undefined; continue; }
+      if (!name) {
+        out += source.slice(i, i + 2);
+        i++;
+        pending = undefined;
+        continue;
+      }
       out += `\\${name}`;
       i += name.length;
       pending = TEXT_LIKE.has(name) ? name : undefined;
       continue;
     }
-    if (char === "{") { braces.push(pending); pending = undefined; out += char; continue; }
-    if (char === "}") { braces.pop(); pending = undefined; out += char; continue; }
+    if (char === "{") {
+      braces.push(pending);
+      pending = undefined;
+      out += char;
+      continue;
+    }
+    if (char === "}") {
+      braces.pop();
+      pending = undefined;
+      out += char;
+      continue;
+    }
     if (char !== " ") pending = undefined;
     const accent = ACCENTS[char];
-    if (!accent) { out += char; continue; }
+    if (!accent) {
+      out += char;
+      continue;
+    }
     const [mark, base] = accent;
     const text = braces.at(-1);
     // In a text: the text closes, the accented letter stands alone, the text opens again.

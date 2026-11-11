@@ -21,7 +21,8 @@ describe("écritures chimiques au tableau", () => {
   it("fournit les macros des flèches d'équilibre absentes du LaTeX de base", () => {
     for (const source of ["N2 + 3H2 <=> 2NH3", "A <=>> B", "A <<=> B", "A <--> B"]) {
       const tex = expandChemistry(`\\ce{${source}}`);
-      const used = [...tex.matchAll(/\\(long[A-Za-z]+)/g)].map((match) => match[1]!)
+      const used = [...tex.matchAll(/\\(long[A-Za-z]+)/g)]
+        .map((match) => match[1]!)
         .filter((name) => !["longrightarrow", "longleftarrow", "longleftrightarrow"].includes(name));
       expect(used.length).toBeGreaterThan(0);
       for (const name of used) expect(CHEM_MACROS).toHaveProperty(name);
@@ -48,7 +49,7 @@ describe("écritures chimiques au tableau", () => {
     expect(expandChemistry(String.raw`\pu{99{,}3 kPa}`)).toBe(expandChemistry(String.raw`\pu{99,3 kPa}`));
   });
 
-  it("dessine une vraie flèche pour « -> » tapé entre deux \ce (leçon réelle : « − > » au tableau)", () => {
+  it("dessine une vraie flèche pour « -> » tapé entre deux ce (leçon réelle : « − > » au tableau)", () => {
     const tex = expandChemistry(String.raw`4\ce{FeS2} + 11\ce{O2} -> 2\ce{Fe2O3}`);
     expect(tex).toContain(String.raw`\longrightarrow`);
     expect(tex).not.toContain("->");
@@ -73,7 +74,8 @@ describe("taille estimée d'une écriture chimique", () => {
       ["\\ce{NaCl(s) -> Na+(aq) + Cl-(aq)}", "NaCl(s) \\longrightarrow Na^{+}(aq) + Cl^{-}(aq)"],
     ];
     for (const [chemistry, manual] of cases) {
-      const a = textWorldExtent(`$${chemistry}$`, 40), b = textWorldExtent(`$${manual}$`, 40);
+      const a = textWorldExtent(`$${chemistry}$`, 40),
+        b = textWorldExtent(`$${manual}$`, 40);
       expect(a.w).toBeGreaterThanOrEqual(b.w * 0.95);
       expect(a.w).toBeLessThan(b.w * 1.6);
       // Height is not compared: board/tex.ts reads "H2" as one line (indices not seen), about 0.2 line too short.

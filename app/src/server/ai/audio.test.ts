@@ -39,12 +39,17 @@ describe("vie privée de la transcription (voix de l'élève)", () => {
 
 describe("transcription refusée faute de fournisseur ZDR", () => {
   it("devient « indisponible » (403) pour que le micro passe à la reconnaissance du navigateur", async () => {
-    const fetchImpl = (async () => new Response(JSON.stringify({ error: "No ZDR providers…", type: "no_zdr_providers_available", statusCode: 400 }), { status: 400 })) as unknown as typeof fetch;
-    await expect(transcribeAudio({ token: "t", model: "openai/whisper-1", audioBase64: "AAAA", mediaType: "audio/webm", fetchImpl }))
-      .rejects.toMatchObject({ status: 403 });
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ error: "No ZDR providers…", type: "no_zdr_providers_available", statusCode: 400 }), {
+        status: 400,
+      })) as unknown as typeof fetch;
+    await expect(transcribeAudio({ token: "t", model: "openai/whisper-1", audioBase64: "AAAA", mediaType: "audio/webm", fetchImpl })).rejects.toMatchObject({
+      status: 403,
+    });
     const other = (async () => new Response("format invalide", { status: 400 })) as unknown as typeof fetch;
-    await expect(transcribeAudio({ token: "t", model: "openai/whisper-1", audioBase64: "AAAA", mediaType: "audio/webm", fetchImpl: other }))
-      .rejects.toMatchObject({ status: 400 });
+    await expect(
+      transcribeAudio({ token: "t", model: "openai/whisper-1", audioBase64: "AAAA", mediaType: "audio/webm", fetchImpl: other }),
+    ).rejects.toMatchObject({ status: 400 });
   });
 });
 

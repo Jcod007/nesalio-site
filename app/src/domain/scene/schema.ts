@@ -16,8 +16,18 @@ import { Action } from "./commands";
 import { TeachingAnnotation } from "@/domain/tutor/learning";
 import { AwaitEvent, Check, DiagnosisEvent, EndEvent, ErrorEvent, PlanEvent, SourceEvent } from "@/domain/tutor/dialogue";
 export {
-  AwaitEvent, Check, Diagnosis, DiagnosisEvent, EndEvent, ErrorEvent, Gap, GapStatus, Noticed, PlanEvent,
-  SourceEvent, SourceKind,
+  AwaitEvent,
+  Check,
+  Diagnosis,
+  DiagnosisEvent,
+  EndEvent,
+  ErrorEvent,
+  Gap,
+  GapStatus,
+  Noticed,
+  PlanEvent,
+  SourceEvent,
+  SourceKind,
 } from "@/domain/tutor/dialogue";
 
 export { ColorName } from "./primitives";
@@ -45,17 +55,26 @@ export const LegacyStep = z.object({
 export type LegacyStep = z.infer<typeof LegacyStep>;
 
 const Segment = z.object({
-  say: z.string().trim().min(1).max(320).refine((text) => !/\{[A-Za-z][\w-]{0,31}\}/.test(text), "Repère interdit dans un segment"),
+  say: z
+    .string()
+    .trim()
+    .min(1)
+    .max(320)
+    .refine((text) => !/\{[A-Za-z][\w-]{0,31}\}/.test(text), "Repère interdit dans un segment"),
   do: z.array(Action).max(12).default([]),
 });
 
-export const SegmentedStep = z.object({
-  segments: z.array(Segment).min(1).max(6),
-  say: z.never().optional(), do: z.never().optional(), cues: z.never().optional(),
-  mood: Mood.optional(),
-  check: Check.optional(),
-  teaching: TeachingAnnotation.optional(),
-}).refine((step) => step.segments.reduce((n, segment) => n + segment.do.length, 0) <= 12, "12 actions au maximum par étape");
+export const SegmentedStep = z
+  .object({
+    segments: z.array(Segment).min(1).max(6),
+    say: z.never().optional(),
+    do: z.never().optional(),
+    cues: z.never().optional(),
+    mood: Mood.optional(),
+    check: Check.optional(),
+    teaching: TeachingAnnotation.optional(),
+  })
+  .refine((step) => step.segments.reduce((n, segment) => n + segment.do.length, 0) <= 12, "12 actions au maximum par étape");
 export type SegmentedStep = z.infer<typeof SegmentedStep>;
 
 export const Step = z.union([LegacyStep, SegmentedStep]);
@@ -77,16 +96,7 @@ export const StepEvent = z.union([LegacyStep.extend({ kind: z.literal("step") })
 export const ModelEvent = z.union([LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, PlanEvent]);
 export type ModelEvent = z.infer<typeof ModelEvent>;
 
-export const StreamEvent = z.union([
-  LessonHeaderEvent,
-  StepEvent,
-  EndEvent,
-  DiagnosisEvent,
-  ErrorEvent,
-  SourceEvent,
-  PlanEvent,
-  AwaitEvent,
-]);
+export const StreamEvent = z.union([LessonHeaderEvent, StepEvent, EndEvent, DiagnosisEvent, ErrorEvent, SourceEvent, PlanEvent, AwaitEvent]);
 export type StreamEvent = z.infer<typeof StreamEvent>;
 export type LessonHeader = z.infer<typeof LessonHeaderEvent>;
 export type StepEventT = z.infer<typeof StepEvent>;

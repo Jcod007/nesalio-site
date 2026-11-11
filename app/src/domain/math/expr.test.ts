@@ -96,7 +96,19 @@ describe("readLatexNumber", () => {
 
   it("ne lit pas ce qui n'est pas purement numérique", async () => {
     const { readLatexNumber } = await import("./expr");
-    for (const tex of ["x + 1", "C_5", String.raw`\text{pente}`, "M(3 ; 4)", String.raw`a \sin B`, "2 3", String.raw`\pm 2`, "f(2)", String.raw`3\text{ cm} + 2`, "e^2", ""]) {
+    for (const tex of [
+      "x + 1",
+      "C_5",
+      String.raw`\text{pente}`,
+      "M(3 ; 4)",
+      String.raw`a \sin B`,
+      "2 3",
+      String.raw`\pm 2`,
+      "f(2)",
+      String.raw`3\text{ cm} + 2`,
+      "e^2",
+      "",
+    ]) {
       expect(readLatexNumber(tex), tex).toBeNull();
     }
   });
@@ -115,8 +127,7 @@ describe("splitLatexChains", () => {
     expect(chain!.members.map((m) => m.tex.trim())).toEqual([String.raw`\text{pente}`, String.raw`\frac{9 - 1}{3 - 1}`, String.raw`\frac{8}{2}`, "4"]);
     expect(chain!.relations.map((r) => r.symbol)).toEqual(["=", "=", "="]);
     expect(splitLatexChains(String.raw`a = 1 \quad b \approx 2`)).toHaveLength(2);
-    expect(splitLatexChains(String.raw`\frac{a=b}{2} < 3 \Rightarrow x = 4`).map((c) => c.relations.map((r) => r.symbol)))
-      .toEqual([["other"], ["="]]);
+    expect(splitLatexChains(String.raw`\frac{a=b}{2} < 3 \Rightarrow x = 4`).map((c) => c.relations.map((r) => r.symbol))).toEqual([["other"], ["="]]);
     // Coordinates keep their semicolon.
     expect(splitLatexChains("M(3 ; 4) = M(3 ; 4)")).toHaveLength(1);
   });
@@ -147,7 +158,14 @@ describe("crochets : parenthèses ou partie entière (P5)", () => {
     expect(plain!(at(-1.5))).toBe(0.5);
     expect(floor!(at(-1.5))).toBe(0);
     expect(readLatexFunction(String.raw`\frac{1}{2}x^2 - 4x + 3`, ["x"])![0]!(at(2))).toBe(-3);
-    expect(readLatexFunction("3x + 2y", ["x", "y"])![0]!(new Map([["x", 4], ["y", 2]]))).toBe(16);
+    expect(
+      readLatexFunction("3x + 2y", ["x", "y"])![0]!(
+        new Map([
+          ["x", 4],
+          ["y", 2],
+        ]),
+      ),
+    ).toBe(16);
     expect(readLatexFunction("a(x - h)^2", ["x"])).toBeNull();
     expect(orderOf(String.raw`\leq`)).toEqual({ direction: -1, strict: false });
     expect(orderOf("=")).toBeNull();

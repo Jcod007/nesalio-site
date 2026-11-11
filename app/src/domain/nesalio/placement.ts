@@ -26,18 +26,21 @@ export function union(boxes: Iterable<Box | null>): Box | null {
   let result: Box | null = null;
   for (const box of boxes) {
     if (!box) continue;
-    result = result ? {
-      x0: Math.min(result.x0, box.x0), y0: Math.min(result.y0, box.y0),
-      x1: Math.max(result.x1, box.x1), y1: Math.max(result.y1, box.y1),
-    } : box;
+    result = result
+      ? {
+          x0: Math.min(result.x0, box.x0),
+          y0: Math.min(result.y0, box.y0),
+          x1: Math.max(result.x1, box.x1),
+          y1: Math.max(result.y1, box.y1),
+        }
+      : box;
   }
   return result;
 }
 
 export function intersects(a: Box, b: Box): boolean {
   const epsilon = 1e-9;
-  return a.x1 > b.x0 + epsilon && a.x0 < b.x1 - epsilon
-    && a.y1 > b.y0 + epsilon && a.y0 < b.y1 - epsilon;
+  return a.x1 > b.x0 + epsilon && a.x0 < b.x1 - epsilon && a.y1 > b.y0 + epsilon && a.y0 < b.y1 - epsilon;
 }
 
 export function beside(box: Box, reference: Box, direction: Direction, gap: number, align?: Align): Point {
@@ -82,23 +85,27 @@ export function positionFor(box: Box, reference: Box, layout: Layout, gap: numbe
   const [rx, ry] = center(reference);
   if ("center_on" in layout) return [rx - x, ry - y];
   switch (layout.align) {
-    case "left": return [reference.x0 - box.x0, 0];
-    case "right": return [reference.x1 - box.x1, 0];
-    case "top": return [0, reference.y1 - box.y1];
-    case "bottom": return [0, reference.y0 - box.y0];
-    case "center": return [rx - x, 0];
+    case "left":
+      return [reference.x0 - box.x0, 0];
+    case "right":
+      return [reference.x1 - box.x1, 0];
+    case "top":
+      return [0, reference.y1 - box.y1];
+    case "bottom":
+      return [0, reference.y0 - box.y0];
+    case "center":
+      return [rx - x, 0];
   }
 }
 
 /** Move along the given axis while preserving the other coordinate. */
-export function avoidOverlap(
-  box: Box, position: Point, obstacles: readonly Box[], axis: 0 | 1, gap: number, direction = 0,
-): Point {
+export function avoidOverlap(box: Box, position: Point, obstacles: readonly Box[], axis: 0 | 1, gap: number, direction = 0): Point {
   const placed = translate(box, position);
   if (!obstacles.some((obstacle) => intersects(placed, obstacle))) return position;
-  const shifts = obstacles.flatMap((obstacle) => axis === 0
-    ? [obstacle.x0 - placed.x1 - gap, obstacle.x1 - placed.x0 + gap]
-    : [obstacle.y0 - placed.y1 - gap, obstacle.y1 - placed.y0 + gap])
+  const shifts = obstacles
+    .flatMap((obstacle) =>
+      axis === 0 ? [obstacle.x0 - placed.x1 - gap, obstacle.x1 - placed.x0 + gap] : [obstacle.y0 - placed.y1 - gap, obstacle.y1 - placed.y0 + gap],
+    )
     .filter((shift) => direction === 0 || shift * direction > 0)
     .sort((a, b) => Math.abs(a) - Math.abs(b));
   for (const shift of shifts) {

@@ -16,7 +16,7 @@ L'élève peut mettre en pause, couper le son et revoir l'explication.
   pour le modèle.
 - **Sans service d'IA** : la page indique que Nesa est indisponible. Sans voix,
   la leçon se joue en sous-titres.
-- **Comptes préparés** : connexion et inscription Clerk par courriel et mot de passe.
+- **Comptes préparés** : connexion et inscription Clerk par code courriel.
   Activer l'instance Clerk et ses clés avant de déployer cette version ; voir
   [la configuration et les vérifications](docs/authentication.md). Sans configuration,
   les API privées refusent les requêtes. Aucun fournisseur n'est créé implicitement.
@@ -29,6 +29,7 @@ vercel env pull .env.local   # jeton OIDC pour AI Gateway (ou voir .env.example)
 npm run dev                  # http://localhost:3000
 npm test                     # tests unitaires (moteur, langage de scène, serveur)
 npm run typecheck
+npm run check                # format et lint (Biome) ; npm run format corrige le format
 npm run test:e2e             # parcours réel dans le navigateur (ordinateur + téléphone), app lancée à part
 ```
 
@@ -41,6 +42,8 @@ lien confidentiel : il donne accès à Nesa, à la voix et à la transcription
 sans limites applicatives. Le cookie expire après 30 jours ; changer le secret
 révoque les liens et cookies précédents. Les coûts et quotas des fournisseurs
 restent applicables. Sans secret configuré, l'accès reste fermé.
+
+Ces vérifications tournent seules sur GitHub à chaque pull request et à chaque push dans `main` (`.github/workflows/ci.yml`) : format et lint, types, tests unitaires, build, puis le parcours dans le navigateur en mode démonstration (sans IA : `NESALIO_LOCAL_DEMO=1 DISABLE_AI=1 npm run dev`, réservé au local, le parcours répond lui-même à `/api/nesalio` et `/api/voice`). Ne fusionne une pull request que si elles sont vertes.
 
 ## Séances enregistrées
 
@@ -155,3 +158,12 @@ de ce que le serveur lui a envoyé (vide pour une leçon Nesalio pour l'instant)
   écrit) : créer la voix chez ElevenLabs ou Cartesia, puis remplacer l'appel
   de `src/server/ai/audio.ts > synthesizeSpeech` par l'API du fournisseur. La
   route `/api/voice` et le lecteur côté navigateur restent identiques.
+
+
+## Essai avant connexion
+
+Le tuteur offre trois reponses sans compte avant la connexion par code courriel.
+Le serveur utilise un temoin signe et les compteurs prives partages du magasin Blob.
+Configurer TRIAL_COOKIE_SECRET ; voir docs/authentication.md pour les limites et controles.
+La transcription cloud reste reservee aux comptes ; les invites peuvent utiliser
+la dictee du navigateur si elle est disponible, ou le clavier.

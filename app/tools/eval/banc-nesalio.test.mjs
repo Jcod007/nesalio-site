@@ -49,7 +49,9 @@ function provider() {
       const file = readFileSync(new URL("../../.env.local", import.meta.url), "utf8");
       const token = file.match(/^(?:AI_GATEWAY_API_KEY|VERCEL_OIDC_TOKEN)="?([^"\r\n]+)/m)?.[1];
       if (token) env.AI_GATEWAY_API_KEY = token;
-    } catch { /* No local file: readAiConfig reports the missing model below. */ }
+    } catch {
+      /* No local file: readAiConfig reports the missing model below. */
+    }
   }
   const chat = readAiConfig(new Headers(), env).chat;
   if (!chat) throw new Error("Aucun modèle configuré (AI_GATEWAY_API_KEY, VERCEL_OIDC_TOKEN, OPENROUTER_API_KEY ou ANTHROPIC_API_KEY).");
@@ -59,11 +61,13 @@ function provider() {
 }
 
 function selectQuestions(corpus) {
-  const only = process.env.QUESTIONS?.split(",").map((s) => s.trim()).filter(Boolean);
+  const only = process.env.QUESTIONS?.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const discipline = process.env.DISCIPLINE?.trim();
-  return corpus.questions.filter((q) =>
-    (only ? only.includes(q.id) : !q.horsPerimetre || process.env.HORS_PERIMETRE === "1")
-    && (!discipline || q.discipline === discipline));
+  return corpus.questions.filter(
+    (q) => (only ? only.includes(q.id) : !q.horsPerimetre || process.env.HORS_PERIMETRE === "1") && (!discipline || q.discipline === discipline),
+  );
 }
 
 function chars(messages) {
@@ -78,17 +82,28 @@ async function generate(question, round, chat) {
     counters.calls++;
     counters.inputChars += chars(options.messages);
     return (async function* () {
-      for await (const chunk of streamChatCompletion(options)) { counters.outputChars += chunk.length; yield chunk; }
+      for await (const chunk of streamChatCompletion(options)) {
+        counters.outputChars += chunk.length;
+        yield chunk;
+      }
     })();
   };
   const reviewCounters = { calls: 0, inputChars: 0, outputChars: 0 };
-  const review = chat.reviewer ? createSliceReviewer({ provider: chat.reviewer, completion: (options) => {
-    reviewCounters.calls++;
-    reviewCounters.inputChars += chars(options.messages);
-    return (async function* () {
-      for await (const chunk of streamChatCompletion(options)) { reviewCounters.outputChars += chunk.length; yield chunk; }
-    })();
-  } }) : undefined;
+  const review = chat.reviewer
+    ? createSliceReviewer({
+        provider: chat.reviewer,
+        completion: (options) => {
+          reviewCounters.calls++;
+          reviewCounters.inputChars += chars(options.messages);
+          return (async function* () {
+            for await (const chunk of streamChatCompletion(options)) {
+              reviewCounters.outputChars += chunk.length;
+              yield chunk;
+            }
+          })();
+        },
+      })
+    : undefined;
   /** When each tranche reached the student, and its spoken words: the student's wait is estimated from them. */
   const sliceTimes = [];
   const started = Date.now();
@@ -99,43 +114,77 @@ async function generate(question, round, chat) {
   let thrown;
   try {
     for await (const event of generateNesalio(question.question, {
-      provider: chat, completion, twoStage: process.env.NESALIO_DEUX_ETAPES === "1", ...(review ? { review } : {}),
-      log: (message, detail) => logs.push(`${message} ${typeof detail === "string" ? detail : detail instanceof Error ? `${detail.name}: ${detail.message}` : JSON.stringify(detail)}`),
+      provider: chat,
+      completion,
+      twoStage: process.env.NESALIO_DEUX_ETAPES === "1",
+      ...(review ? { review } : {}),
+      log: (message, detail) =>
+        logs.push(`${message} ${typeof detail === "string" ? detail : detail instanceof Error ? `${detail.name}: ${detail.message}` : JSON.stringify(detail)}`),
     })) {
-      if (event.kind === "lesson") { header = event; headerMs ??= Date.now() - started; events.push({ kind: "lesson" }); }
-      else if (event.kind === "slice") {
-        slices.push(event.slice); firstSliceMs ??= Date.now() - started; events.push({ kind: "slice", id: event.slice.slice_id });
-        sliceTimes.push({ id: event.slice.slice_id, ms: Date.now() - started,
-          words: event.slice.beats.map((b) => b.say).join(" ").split(/\s+/).filter(Boolean).length });
-      }
-      else events.push(event);
+      if (event.kind === "lesson") {
+        header = event;
+        headerMs ??= Date.now() - started;
+        events.push({ kind: "lesson" });
+      } else if (event.kind === "slice") {
+        slices.push(event.slice);
+        firstSliceMs ??= Date.now() - started;
+        events.push({ kind: "slice", id: event.slice.slice_id });
+        sliceTimes.push({
+          id: event.slice.slice_id,
+          ms: Date.now() - started,
+          words: event.slice.beats
+            .map((b) => b.say)
+            .join(" ")
+            .split(/\s+/)
+            .filter(Boolean).length,
+        });
+      } else events.push(event);
     }
-  } catch (error) { thrown = String(error); }
-  const lesson = { ...shell, lesson: header?.lesson ?? shell.lesson,
-    scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } }, slices };
+  } catch (error) {
+    thrown = String(error);
+  }
+  const lesson = {
+    ...shell,
+    lesson: header?.lesson ?? shell.lesson,
+    scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } },
+    slices,
+  };
   const validation = slices.length ? validateLesson(lesson) : { ok: false, issues: [{ message: "aucune tranche" }] };
   const text = lessonText(lesson);
   const result = {
-    id: question.id, discipline: question.discipline, niveau: question.niveau, round,
+    id: question.id,
+    discipline: question.discipline,
+    niveau: question.niveau,
+    round,
     outcome: outcomeOf({ events, logs, thrown }),
     slices: slices.length,
-    lost: lostSlices(logs, slices.map((s) => s.slice_id)),
+    lost: lostSlices(
+      logs,
+      slices.map((s) => s.slice_id),
+    ),
     valid: validation.ok,
     invalidity: validation.ok ? [] : (validation.issues ?? []).slice(0, 5).map((i) => i.message),
     refusals: logs.filter((l) => l.startsWith("nesalio: tranche refusée")),
     unreadable: logs.filter((l) => l.startsWith("nesalio: ligne JSON illisible")),
     repairs: logs.filter((l) => / réparée? sans appel/.test(l)),
-    headerMs, firstSliceMs, ms: Date.now() - started,
+    headerMs,
+    firstSliceMs,
+    ms: Date.now() - started,
     ...counters,
     sliceTimes,
-    review: review ? {
-      ...reviewCounters,
-      alerts: logs.filter((l) => l.startsWith("nesalio: alerte du relecteur ") && !l.startsWith("nesalio: alerte du relecteur écartée")).length,
-      dropped: logs.filter((l) => l.startsWith("nesalio: alerte du relecteur écartée")).length,
-      fixes: logs.filter((l) => l.startsWith("nesalio: tranche refusée") && l.includes("relecteur.")).length,
-      failed: logs.filter((l) => l.startsWith("nesalio: relecture impossible")).length,
-      ms: logs.filter((l) => l.startsWith("nesalio: relecture ")).map((l) => Number(/, (\d+) ms$/.exec(l)?.[1])).filter(Number.isFinite),
-    } : null,
+    review: review
+      ? {
+          ...reviewCounters,
+          alerts: logs.filter((l) => l.startsWith("nesalio: alerte du relecteur ") && !l.startsWith("nesalio: alerte du relecteur écartée")).length,
+          dropped: logs.filter((l) => l.startsWith("nesalio: alerte du relecteur écartée")).length,
+          fixes: logs.filter((l) => l.startsWith("nesalio: tranche refusée") && l.includes("relecteur.")).length,
+          failed: logs.filter((l) => l.startsWith("nesalio: relecture impossible")).length,
+          ms: logs
+            .filter((l) => l.startsWith("nesalio: relecture "))
+            .map((l) => Number(/, (\d+) ms$/.exec(l)?.[1]))
+            .filter(Number.isFinite),
+        }
+      : null,
     answer: slices.length ? checkAnswer(question, lesson) : null,
     neverShown: text.neverShown,
     words: text.words,
@@ -149,30 +198,36 @@ async function generate(question, round, chat) {
 function writeLesson(out, question, { result, lesson, logs }) {
   const base = join(out, `${question.id}-t${result.round}`);
   writeFileSync(`${base}.json`, JSON.stringify(lesson, null, 1));
-  writeFileSync(`${base}.journal.txt`, [
-    `Question : ${question.question}`,
-    `Issue : ${result.outcome}${result.lost.length ? ` — tranches perdues : ${result.lost.join(", ")}` : ""} — intacte : ${isIntact(result) ? "oui" : "non"}`,
-    `Fin : ${JSON.stringify(result.ending)}${result.thrown ? ` — exception : ${result.thrown}` : ""}`,
-    `Tranches : ${result.slices} — en-tête après ${result.headerMs} ms, première tranche après ${result.firstSliceMs} ms, total ${result.ms} ms — ${result.calls} appel(s)`,
-    `Validation de la leçon entière : ${result.valid ? "ok" : result.invalidity.join(" | ")}`,
-    ...logs,
-  ].join("\n"));
+  writeFileSync(
+    `${base}.journal.txt`,
+    [
+      `Question : ${question.question}`,
+      `Issue : ${result.outcome}${result.lost.length ? ` — tranches perdues : ${result.lost.join(", ")}` : ""} — intacte : ${isIntact(result) ? "oui" : "non"}`,
+      `Fin : ${JSON.stringify(result.ending)}${result.thrown ? ` — exception : ${result.thrown}` : ""}`,
+      `Tranches : ${result.slices} — en-tête après ${result.headerMs} ms, première tranche après ${result.firstSliceMs} ms, total ${result.ms} ms — ${result.calls} appel(s)`,
+      `Validation de la leçon entière : ${result.valid ? "ok" : result.invalidity.join(" | ")}`,
+      ...logs,
+    ].join("\n"),
+  );
   // The graded file: question, reference and expectations, then what is said and shown. No model name (blind grading).
   let readable = "(aucune tranche jouable)";
   if (result.slices) {
     execFileSync(process.execPath, [LISIBLE, `${base}.json`, `${base}.lisible.tmp`]);
     readable = readFileSync(`${base}.lisible.tmp`, "utf8");
   }
-  writeFileSync(`${base}.lisible.txt`, [
-    `QUESTION (${question.id}, ${question.discipline}, ${question.niveau}, ${question.type}) : ${question.question}`,
-    `RÉPONSE DE RÉFÉRENCE : ${question.reponse?.texte ?? "—"}`,
-    "ATTENDUS À COCHER (présent / partiel / absent, avec citation) :",
-    ...question.attendus.map((a, i) => `  ${i + 1}. ${a}`),
-    `ERREURS GRAVES À CHERCHER : ${(question.erreursGravesPrevues ?? []).join(" ; ") || "—"}`,
-    `CONTRÔLE AUTOMATIQUE : réponse ${result.answer == null ? "non vérifiée" : result.answer.ok ? "trouvée" : `absente (${result.answer.missing.join(", ")})${result.answer.saidOnly ? ", dite mais pas écrite" : ""}`} ; issue ${result.outcome}${result.lost.length ? `, tranches perdues : ${result.lost.join(", ")}` : ""}`,
-    "",
-    readable,
-  ].join("\n"));
+  writeFileSync(
+    `${base}.lisible.txt`,
+    [
+      `QUESTION (${question.id}, ${question.discipline}, ${question.niveau}, ${question.type}) : ${question.question}`,
+      `RÉPONSE DE RÉFÉRENCE : ${question.reponse?.texte ?? "—"}`,
+      "ATTENDUS À COCHER (présent / partiel / absent, avec citation) :",
+      ...question.attendus.map((a, i) => `  ${i + 1}. ${a}`),
+      `ERREURS GRAVES À CHERCHER : ${(question.erreursGravesPrevues ?? []).join(" ; ") || "—"}`,
+      `CONTRÔLE AUTOMATIQUE : réponse ${result.answer == null ? "non vérifiée" : result.answer.ok ? "trouvée" : `absente (${result.answer.missing.join(", ")})${result.answer.saidOnly ? ", dite mais pas écrite" : ""}`} ; issue ${result.outcome}${result.lost.length ? `, tranches perdues : ${result.lost.join(", ")}` : ""}`,
+      "",
+      readable,
+    ].join("\n"),
+  );
   rmSync(`${base}.lisible.tmp`, { force: true });
 }
 
@@ -194,21 +249,32 @@ describe.runIf(process.env.BANC === "1")("banc de mesure Nesalio", () => {
     for (let round = 1; round <= rounds; round++) for (const q of questions) jobs.push([q, round]);
     const results = [];
     let next = 0;
-    await Promise.all(Array.from({ length: Math.min(parallel, jobs.length) }, async () => {
-      while (next < jobs.length) {
-        const [q, round] = jobs[next++];
-        const generated = await generate(q, round, chat);
-        writeLesson(out, q, generated);
-        const r = generated.result;
-        results.push(r);
-        console.log(`${q.id}#${round} : ${r.outcome}${r.lost.length ? " (tranche perdue)" : ""}, ${r.slices} tranches, 1re après ${r.firstSliceMs} ms, ${r.refusals.length} refus, ${r.repairs.length} réparées, réponse ${r.answer?.ok ? "écrite" : "absente"}`);
-      }
-    }));
+    await Promise.all(
+      Array.from({ length: Math.min(parallel, jobs.length) }, async () => {
+        while (next < jobs.length) {
+          const [q, round] = jobs[next++];
+          const generated = await generate(q, round, chat);
+          writeLesson(out, q, generated);
+          const r = generated.result;
+          results.push(r);
+          console.log(
+            `${q.id}#${round} : ${r.outcome}${r.lost.length ? " (tranche perdue)" : ""}, ${r.slices} tranches, 1re après ${r.firstSliceMs} ms, ${r.refusals.length} refus, ${r.repairs.length} réparées, réponse ${r.answer?.ok ? "écrite" : "absente"}`,
+          );
+        }
+      }),
+    );
     results.sort((a, b) => a.discipline.localeCompare(b.discipline) || a.id.localeCompare(b.id) || a.round - b.round);
     const prices = { input: Number(process.env.PRIX_ENTREE), output: Number(process.env.PRIX_SORTIE) };
     const summary = summarize(results, prices);
-    const byDiscipline = Object.fromEntries([...new Set(results.map((r) => r.discipline))]
-      .map((d) => [d, summarize(results.filter((r) => r.discipline === d), prices)]));
+    const byDiscipline = Object.fromEntries(
+      [...new Set(results.map((r) => r.discipline))].map((d) => [
+        d,
+        summarize(
+          results.filter((r) => r.discipline === d),
+          prices,
+        ),
+      ]),
+    );
     const report = { label, model: chat.model, provider: chat.name, rounds, startedAt, corpusVersion: corpus.version, summary, byDiscipline, results };
     writeFileSync(join(out, "rapport.json"), JSON.stringify(report, null, 2));
     writeFileSync(join(out, "rapport.md"), reportMarkdown(report));

@@ -6,32 +6,70 @@ function browser(options: { recorder: boolean }) {
   const recognitions: unknown[] = [];
   const window = {
     location: { search: "" },
-    SpeechRecognition: class { constructor() { recognitions.push(this); } start() {} abort() {} stop() {} },
+    SpeechRecognition: class {
+      constructor() {
+        recognitions.push(this);
+      }
+      start() {}
+      abort() {}
+      stop() {}
+    },
   };
   vi.stubGlobal("window", window);
   vi.stubGlobal("navigator", { mediaDevices: options.recorder ? { getUserMedia: async () => ({ getTracks: () => [{ stop() {} }] }) } : undefined });
   if (options.recorder) {
-    vi.stubGlobal("MediaRecorder", class {
-      static isTypeSupported() { return true; }
-      state = "inactive";
-      mimeType = "audio/webm";
-      ondataavailable?: (event: { data: Blob }) => void;
-      onstop?: () => void;
-      start() { this.state = "recording"; this.ondataavailable?.({ data: new Blob(["son"]) }); }
-      stop() { this.state = "inactive"; void this.onstop?.(); }
-    });
+    vi.stubGlobal(
+      "MediaRecorder",
+      class {
+        static isTypeSupported() {
+          return true;
+        }
+        state = "inactive";
+        mimeType = "audio/webm";
+        ondataavailable?: (event: { data: Blob }) => void;
+        onstop?: () => void;
+        start() {
+          this.state = "recording";
+          this.ondataavailable?.({ data: new Blob(["son"]) });
+        }
+        stop() {
+          this.state = "inactive";
+          void this.onstop?.();
+        }
+      },
+    );
     // Loud from the start: speech is heard at the first meter tick.
-    vi.stubGlobal("AudioContext", class {
-      state = "running";
-      createAnalyser() { return { fftSize: 1024, getFloatTimeDomainData(samples: Float32Array) { samples.fill(0.5); } }; }
-      createMediaStreamSource() { return { connect() {} }; }
-      close() { return Promise.resolve(); }
-    });
-    vi.stubGlobal("FileReader", class {
-      result = "";
-      onload?: () => void;
-      readAsDataURL() { this.result = "data:audio/webm;base64,AAAA"; this.onload?.(); }
-    });
+    vi.stubGlobal(
+      "AudioContext",
+      class {
+        state = "running";
+        createAnalyser() {
+          return {
+            fftSize: 1024,
+            getFloatTimeDomainData(samples: Float32Array) {
+              samples.fill(0.5);
+            },
+          };
+        }
+        createMediaStreamSource() {
+          return { connect() {} };
+        }
+        close() {
+          return Promise.resolve();
+        }
+      },
+    );
+    vi.stubGlobal(
+      "FileReader",
+      class {
+        result = "";
+        onload?: () => void;
+        readAsDataURL() {
+          this.result = "data:audio/webm;base64,AAAA";
+          this.onload?.();
+        }
+      },
+    );
   }
   return { recognitions };
 }
@@ -46,7 +84,10 @@ async function speak(input: ReturnType<typeof createVoiceInput>) {
   return told;
 }
 
-afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
 
 describe("micro de l'élève sans repli vers la reconnaissance du navigateur", () => {
   it("ne propose pas le micro du navigateur quand l'enregistrement n'est pas possible", () => {

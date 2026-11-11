@@ -25,6 +25,10 @@ export function devCookieValue(env: NodeJS.ProcessEnv = process.env): string | u
 
 export function validDevCookie(cookie: string | null, env: NodeJS.ProcessEnv = process.env): boolean {
   const expected = devCookieValue(env);
-  const value = cookie?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${DEV_COOKIE}=`))?.slice(DEV_COOKIE.length + 1);
+  const value = cookie
+    ?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${DEV_COOKIE}=`))
+    ?.slice(DEV_COOKIE.length + 1);
   return Boolean(expected && value && equals(value, expected));
 }

@@ -182,7 +182,11 @@ export function solveTriangle(given: TriangleMeasures, obtuse = false): SolvedTr
     else if (C !== undefined && a !== undefined && b !== undefined) c = cosLaw(a, b, C);
     else {
       // CCA : un angle opposé à un côté connu.
-      const pairs: Array<["a" | "b" | "c", "A" | "B" | "C"]> = [["a", "A"], ["b", "B"], ["c", "C"]];
+      const pairs: Array<["a" | "b" | "c", "A" | "B" | "C"]> = [
+        ["a", "A"],
+        ["b", "B"],
+        ["c", "C"],
+      ];
       const known = { a, b, c, A, B, C } as Record<string, number | undefined>;
       const pair = pairs.find(([s, ang]) => known[s] !== undefined && known[ang] !== undefined);
       if (!pair) return null;

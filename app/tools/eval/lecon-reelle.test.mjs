@@ -23,15 +23,22 @@ function gatewayToken() {
 }
 
 describe.runIf(process.env.LECONS_REELLES === "1")("leçons réelles Nesalio", () => {
-  const lessons = (process.env.LECONS ?? "").split(";").filter(Boolean).map((entry) => {
-    const at = entry.indexOf("=");
-    return { name: entry.slice(0, at).trim(), question: entry.slice(at + 1).trim() };
-  });
+  const lessons = (process.env.LECONS ?? "")
+    .split(";")
+    .filter(Boolean)
+    .map((entry) => {
+      const at = entry.indexOf("=");
+      return { name: entry.slice(0, at).trim(), question: entry.slice(at + 1).trim() };
+    });
   it.each(lessons)("$name", { timeout: 300_000 }, async ({ name, question }) => {
     const provider = {
-      name: "gateway", protocol: "openai", endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
-      apiKey: gatewayToken(), model: process.env.TUTOR_MODEL?.trim() || DEFAULTS.gatewayModel,
-      reasoningEffort: "low", firstTurnEffort: DEFAULTS.firstTurnEffort,
+      name: "gateway",
+      protocol: "openai",
+      endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
+      apiKey: gatewayToken(),
+      model: process.env.TUTOR_MODEL?.trim() || DEFAULTS.gatewayModel,
+      reasoningEffort: "low",
+      firstTurnEffort: DEFAULTS.firstTurnEffort,
     };
     const journal = [];
     let header;
@@ -40,17 +47,36 @@ describe.runIf(process.env.LECONS_REELLES === "1")("leçons réelles Nesalio", (
     const started = Date.now();
     let firstSliceMs = null;
     const twoStage = process.env.DEUX_ETAPES === "1";
-    for await (const event of generateNesalio(question, { provider, completion: streamChatCompletion, twoStage, log: (m, d) => journal.push(`${m} ${typeof d === "string" ? d : String(d)}`) })) {
+    for await (const event of generateNesalio(question, {
+      provider,
+      completion: streamChatCompletion,
+      twoStage,
+      log: (m, d) => journal.push(`${m} ${typeof d === "string" ? d : String(d)}`),
+    })) {
       if (event.kind === "lesson") header = event;
-      else if (event.kind === "slice") { slices.push(event.slice); firstSliceMs ??= Date.now() - started; }
-      else ending = event;
+      else if (event.kind === "slice") {
+        slices.push(event.slice);
+        firstSliceMs ??= Date.now() - started;
+      } else ending = event;
     }
-    const lesson = { ...shell, lesson: header?.lesson ?? shell.lesson,
-      scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } }, slices };
+    const lesson = {
+      ...shell,
+      lesson: header?.lesson ?? shell.lesson,
+      scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } },
+      slices,
+    };
     const out = join(process.cwd(), "../analyses/generations");
     writeFileSync(join(out, `${name}.json`), JSON.stringify(lesson, null, 1));
-    writeFileSync(join(out, `${name}.journal.txt`), [`Question : ${question}`, `Fin : ${JSON.stringify(ending)}`, `Tranches : ${slices.length}`,
-      `Mode : ${twoStage ? "deux temps" : "un appel"} — première tranche après ${firstSliceMs} ms, total ${Date.now() - started} ms`, ...journal].join("\n"));
+    writeFileSync(
+      join(out, `${name}.journal.txt`),
+      [
+        `Question : ${question}`,
+        `Fin : ${JSON.stringify(ending)}`,
+        `Tranches : ${slices.length}`,
+        `Mode : ${twoStage ? "deux temps" : "un appel"} — première tranche après ${firstSliceMs} ms, total ${Date.now() - started} ms`,
+        ...journal,
+      ].join("\n"),
+    );
     console.log(`${name} : ${slices.length} tranches, ${JSON.stringify(ending)}`);
     expect(validateLesson(lesson).ok).toBe(true);
   });

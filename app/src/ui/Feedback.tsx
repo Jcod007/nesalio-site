@@ -121,7 +121,14 @@ export function FeedbackButton({ player }: { player: FeedbackContextSource }) {
             </label>
             <label className={styles.field} htmlFor="feedback-email">
               Ton courriel <span className={styles.opt}>(facultatif, si on peut te poser une question)</span>
-              <input id="feedback-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="toi@exemple.com" />
+              <input
+                id="feedback-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="toi@exemple.com"
+              />
             </label>
             <label className={styles.check}>
               <input type="checkbox" checked={withContext} onChange={(e) => setWithContext(e.target.checked)} />

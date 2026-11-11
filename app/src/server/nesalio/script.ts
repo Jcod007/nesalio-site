@@ -37,8 +37,10 @@ TRANCHE 2 — …
 export function buildTeacherMessages(question: string): ChatMessage[] {
   return [
     { role: "system", content: [TEACHING, BOARD, SCRIPT_FORMAT].join("\n\n") },
-    { role: "user", content: [`Question de l'élève : « ${question.trim()} »`, guideSection(question), "Écris le script de la leçon."]
-      .filter(Boolean).join("\n\n") },
+    {
+      role: "user",
+      content: [`Question de l'élève : « ${question.trim()} »`, guideSection(question), "Écris le script de la leçon."].filter(Boolean).join("\n\n"),
+    },
   ];
 }
 
@@ -57,5 +59,7 @@ export function layoutRequest(question: string, script: string): string {
       "- ce que dit TABLEAU devient des objets (introduces) et des gestes (do), chacun sur le repère du mot qui le nomme ;",
       "- n'ajoute aucune phrase, n'en retire aucune, ne change aucun nombre.",
     ].join("\n"),
-  ].filter(Boolean).join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }

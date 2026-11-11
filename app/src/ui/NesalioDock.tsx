@@ -31,91 +31,128 @@ function nesaState({ status, paused, waiting, asking }: SessionSnapshot, listeni
  * La carte de Nesa pendant une explication Nesalio : la phrase dite, la pause,
  * et à la fin une autre question, « Revoir l'explication » ou une nouvelle notion.
  */
-export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; listening: boolean; actions: NesalioDockActions }>(
-  function NesalioDock({ snapshot, listening, actions }, ref) {
-    const { status, caption, paused, waiting, error, question, canReplay, asking } = snapshot;
-    return (
-      <section ref={ref} className={styles.dock} aria-label="Nesa">
-        {question ? (
-          <p className={styles.asked}>
-            <span className="sr-only">Ta question : </span>
-            {question}
-          </p>
+export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; listening: boolean; actions: NesalioDockActions }>(function NesalioDock(
+  { snapshot, listening, actions },
+  ref,
+) {
+  const { status, caption, paused, waiting, error, question, canReplay, asking } = snapshot;
+  return (
+    <section ref={ref} className={styles.dock} aria-label="Nesa">
+      {question ? (
+        <p className={styles.asked}>
+          <span className="sr-only">Ta question : </span>
+          {question}
+        </p>
+      ) : null}
+
+      <div className={styles.card}>
+        <div className={styles.row}>
+          <Nesa state={nesaState(snapshot, listening)} size={60} className={styles.nesa} />
+          <div className={styles.text} aria-live="polite">
+            {asking ? (
+              <>
+                <p className={styles.caption}>{asking.prompt}</p>
+                {asking.feedback ? (
+                  <p className={styles.notice} data-right={asking.right === true}>
+                    {asking.feedback}
+                  </p>
+                ) : null}
+              </>
+            ) : status === "preparing" ? (
+              <p className={styles.caption}>
+                Je prépare l&apos;explication
+                <span className={styles.dots} aria-hidden="true" />
+              </p>
+            ) : status === "error" ? (
+              <p className={styles.caption}>{error}</p>
+            ) : status === "done" ? (
+              <>
+                <p className={styles.caption}>{error ? "Voilà ce que j'ai pu t'expliquer." : "Voilà pour l'explication. Tu as une autre question ?"}</p>
+                {error ? <p className={styles.notice}>{error}</p> : null}
+              </>
+            ) : (
+              <>
+                <p className={styles.caption}>{caption}</p>
+                {paused ? <p className={styles.notice}>En pause.</p> : null}
+                {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: points d'attente, nommés pour les lecteurs d'écran */}
+                {waiting && !paused ? <span className={styles.dots} aria-label="Nesa écrit la suite" /> : null}
+              </>
+            )}
+          </div>
+        </div>
+
+        {asking ? (
+          // biome-ignore lint/a11y/useSemanticElements: groupe de boutons de réponse, pas un formulaire
+          <div className={styles.choices} role="group" aria-label="Choisis ta réponse">
+            {asking.choices.map((choice, index) => {
+              const state = asking.solved === index ? "right" : asking.wrong.includes(index) ? "wrong" : asking.solved !== null ? "idle" : undefined;
+              return (
+                <button
+                  // biome-ignore lint/suspicious/noArrayIndexKey: les choix d'une question ne changent pas d'ordre
+                  key={index}
+                  type="button"
+                  className={styles.choice}
+                  data-state={state}
+                  disabled={asking.solved !== null || asking.wrong.includes(index)}
+                  onClick={() => actions.answer(index)}
+                >
+                  {choice}
+                </button>
+              );
+            })}
+          </div>
         ) : null}
 
-        <div className={styles.card}>
-          <div className={styles.row}>
-            <Nesa state={nesaState(snapshot, listening)} size={60} className={styles.nesa} />
-            <div className={styles.text} aria-live="polite">
-              {asking ? (
+        <div className={styles.controls}>
+          {asking && asking.solved !== null ? (
+            <button type="button" className="cta" onClick={actions.continueLesson}>
+              Continuer
+            </button>
+          ) : null}
+          {status === "playing" && !asking ? (
+            <button type="button" className="btn-line" onClick={() => actions.setPaused(!paused)}>
+              {paused ? (
                 <>
-                  <p className={styles.caption}>{asking.prompt}</p>
-                  {asking.feedback ? <p className={styles.notice} data-right={asking.right === true}>{asking.feedback}</p> : null}
-                </>
-              ) : status === "preparing" ? (
-                <p className={styles.caption}>Je prépare l&apos;explication<span className={styles.dots} aria-hidden="true" /></p>
-              ) : status === "error" ? (
-                <p className={styles.caption}>{error}</p>
-              ) : status === "done" ? (
-                <>
-                  <p className={styles.caption}>{error ? "Voilà ce que j'ai pu t'expliquer." : "Voilà pour l'explication. Tu as une autre question ?"}</p>
-                  {error ? <p className={styles.notice}>{error}</p> : null}
+                  <PlayIcon /> Reprendre
                 </>
               ) : (
                 <>
-                  <p className={styles.caption}>{caption}</p>
-                  {paused ? <p className={styles.notice}>En pause.</p> : null}
-                  {waiting && !paused ? <span className={styles.dots} aria-label="Nesa écrit la suite" /> : null}
+                  <PauseIcon /> Pause
                 </>
               )}
-            </div>
-          </div>
+            </button>
+          ) : null}
+          {/* « Nouvelle question » during the explanation is in the top bar: not repeated here. */}
 
-          {asking ? (
-            <div className={styles.choices} role="group" aria-label="Choisis ta réponse">
-              {asking.choices.map((choice, index) => {
-                const state = asking.solved === index ? "right" : asking.wrong.includes(index) ? "wrong" : asking.solved !== null ? "idle" : undefined;
-                return (
-                  <button key={index} type="button" className={styles.choice} data-state={state}
-                    disabled={asking.solved !== null || asking.wrong.includes(index)} onClick={() => actions.answer(index)}>
-                    {choice}
-                  </button>
-                );
-              })}
-            </div>
+          {status === "done" ? (
+            <>
+              <QuestionInput placeholder="Une autre question ?" onSubmit={actions.ask} onListeningChange={actions.setListening} submitLabel="Demander" />
+              {canReplay ? (
+                <button type="button" className="btn-line" onClick={actions.replay}>
+                  <PlayIcon /> Revoir l&apos;explication
+                </button>
+              ) : null}
+              <button type="button" className="btn-line" onClick={actions.newTopic}>
+                Nouvelle notion
+              </button>
+            </>
           ) : null}
 
-          <div className={styles.controls}>
-            {asking && asking.solved !== null ? (
-              <button type="button" className="cta" onClick={actions.continueLesson}>Continuer</button>
-            ) : null}
-            {status === "playing" && !asking ? (
-              <button type="button" className="btn-line" onClick={() => actions.setPaused(!paused)}>
-                {paused ? <><PlayIcon /> Reprendre</> : <><PauseIcon /> Pause</>}
+          {status === "error" ? (
+            <>
+              <button type="button" className="cta" onClick={actions.retry}>
+                Réessayer
               </button>
-            ) : null}
-            {/* « Nouvelle question » during the explanation is in the top bar: not repeated here. */}
-
-            {status === "done" ? (
-              <>
-                <QuestionInput placeholder="Une autre question ?" onSubmit={actions.ask} onListeningChange={actions.setListening} submitLabel="Demander" />
-                {canReplay ? <button type="button" className="btn-line" onClick={actions.replay}><PlayIcon /> Revoir l&apos;explication</button> : null}
-                <button type="button" className="btn-line" onClick={actions.newTopic}>Nouvelle notion</button>
-              </>
-            ) : null}
-
-            {status === "error" ? (
-              <>
-                <button type="button" className="cta" onClick={actions.retry}>Réessayer</button>
-                <button type="button" className="btn-line" onClick={actions.newTopic}>Autre question</button>
-              </>
-            ) : null}
-          </div>
+              <button type="button" className="btn-line" onClick={actions.newTopic}>
+                Autre question
+              </button>
+            </>
+          ) : null}
         </div>
-      </section>
-    );
-  },
-);
+      </div>
+    </section>
+  );
+});
 
 function PauseIcon() {
   return (

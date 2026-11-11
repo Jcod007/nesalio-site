@@ -13,8 +13,7 @@ export function lessonToNdjson(lesson) {
   const header = { kind: "lesson", lesson: lesson.lesson };
   const context = lesson.scene?.math_context;
   if (context && (Object.keys(context.symbols ?? {}).length || Object.keys(context.expressions ?? {}).length)) header.math_context = context;
-  return [header, ...lesson.slices.map((slice) => ({ kind: "slice", slice })), { kind: "end" }]
-    .map((event) => JSON.stringify(event)).join("\n") + "\n";
+  return [header, ...lesson.slices.map((slice) => ({ kind: "slice", slice })), { kind: "end" }].map((event) => JSON.stringify(event)).join("\n") + "\n";
 }
 
 if (process.argv[1]?.endsWith("fixture-nesalio.mjs")) {

@@ -8,7 +8,6 @@ const WRITTEN_TYPES = new Set(["text", "math", "label", "callout", "matrix"]);
 const SCALED_TYPES = new Set(["point", "line", "arrow", "vector", "polygon", "circle", "axes", "function_graph", "parametric_curve"]);
 import { avoidOverlap, beside, center, gapSize, intersects, positionFor, translate, union, type Box, type Gap, type Layout, type Point } from "./placement";
 
-
 export interface Measurement {
   /** Geometry in local world units, with y increasing upwards. */
   body: Box;
@@ -28,9 +27,7 @@ export interface Measurement {
 
 /** `window`: for a curve on axes, the axes' area in the frame's coordinates; the curve stops at its edges. */
 /** `scale`: for a figure on axes too large for the board, world units per unit of its frame (axesScale). */
-export type MeasureObject = (
-  object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext, window?: Box, scale?: FrameScale,
-) => Measurement;
+export type MeasureObject = (object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext, window?: Box, scale?: FrameScale) => Measurement;
 
 export interface PlacedObject {
   readonly definition: SceneObject;
@@ -115,12 +112,21 @@ export function createScene(initialViewport: Box, minGap: Gap = "sm"): SceneStat
   checkBox(initialViewport);
   const [x, y] = center(initialViewport);
   return {
-    objects: new Map(), groups: new Map(), slices: new Map(),
-    math: { symbols: {}, expressions: {} }, parameters: new Map(),
-    initialViewport, minGap, currentSlice: null, currentBeat: null,
+    objects: new Map(),
+    groups: new Map(),
+    slices: new Map(),
+    math: { symbols: {}, expressions: {} },
+    parameters: new Map(),
+    initialViewport,
+    minGap,
+    currentSlice: null,
+    currentBeat: null,
     camera: { state: { x, y, zoom: 1 }, is_animating: false },
     savedCamera: new Map(),
-    frames: new Map(), lastComposition: null, replacedBy: new Map(), kept: new Set(),
+    frames: new Map(),
+    lastComposition: null,
+    replacedBy: new Map(),
+    kept: new Set(),
   };
 }
 
@@ -167,7 +173,7 @@ function descendants(id: string, groups: ReadonlyMap<string, Group>, children: R
 
 type Bounds = "layout_bounds" | "render_bounds";
 function body(object: PlacedObject, mode: Bounds): Box {
-  return translate(mode === "layout_bounds" ? object.measurement.reserve ?? object.measurement.body : object.measurement.body, object.position);
+  return translate(mode === "layout_bounds" ? (object.measurement.reserve ?? object.measurement.body) : object.measurement.body, object.position);
 }
 
 /** Hidden objects reserve space but contribute no visible geometry. */
@@ -178,34 +184,49 @@ export function sceneBounds(state: SceneState, targets: readonly string[], mode:
 
 function boundsFor(state: SceneState, targets: readonly string[], mode: Bounds, children: ReadonlyMap<string, string[]>): Box | null {
   const ids = new Set(targets.flatMap((id) => [...descendants(id, state.groups, children)]));
-  return union([...ids].map((id) => {
-    const object = state.objects.get(id);
-    return object && !object.removed && (mode === "layout_bounds" || object.visible) ? body(object, mode) : null;
-  }));
+  return union(
+    [...ids].map((id) => {
+      const object = state.objects.get(id);
+      return object && !object.removed && (mode === "layout_bounds" || object.visible) ? body(object, mode) : null;
+    }),
+  );
 }
 
 function anchorOn(box: Box, name: string): NonNullable<Measurement["anchors"]>[string] | undefined {
   const [x, y] = center(box);
   switch (name) {
-    case "left": return { point: [box.x0, y], outward: "left" };
-    case "right": return { point: [box.x1, y], outward: "right" };
-    case "top": return { point: [x, box.y1], outward: "up" };
-    case "bottom": return { point: [x, box.y0], outward: "down" };
-    case "center": return { point: [x, y], outward: "up" };
-    default: return undefined;
+    case "left":
+      return { point: [box.x0, y], outward: "left" };
+    case "right":
+      return { point: [box.x1, y], outward: "right" };
+    case "top":
+      return { point: [x, box.y1], outward: "up" };
+    case "bottom":
+      return { point: [x, box.y0], outward: "down" };
+    case "center":
+      return { point: [x, y], outward: "up" };
+    default:
+      return undefined;
   }
 }
 
 function attachmentPosition(
-  object: SceneObject, local: Box, parent: PlacedObject | undefined, parentBox: Box, defaultGap: Gap,
+  object: SceneObject,
+  local: Box,
+  parent: PlacedObject | undefined,
+  parentBox: Box,
+  defaultGap: Gap,
 ): { position: Point; axis: 0 | 1; anchor: Point } {
   const { anchor, placement, gap } = object.attachment!;
   const measured = object.attachment?.part === undefined ? parent?.measurement.anchors : undefined;
   const named = measured && Object.hasOwn(measured, anchor) ? measured[anchor] : undefined;
-  const resolved = named && parent ? {
-    point: [named.point[0] + parent.position[0], named.point[1] + parent.position[1]] as Point,
-    outward: named.outward,
-  } : anchorOn(parentBox, anchor);
+  const resolved =
+    named && parent
+      ? {
+          point: [named.point[0] + parent.position[0], named.point[1] + parent.position[1]] as Point,
+          outward: named.outward,
+        }
+      : anchorOn(parentBox, anchor);
   if (!resolved) throw new Error(`Ancre indisponible « ${anchor} » pour « ${object.id} ».`);
   const [x, y] = resolved.point;
   const axis = resolved.outward === "up" || resolved.outward === "down" ? 0 : 1;
@@ -226,19 +247,28 @@ const SMALL_PARENT = 0.6;
  */
 function besideSmallParent(local: Box, parent: Box, gap: number, anchor: string, obstacles: readonly Box[]): Point | undefined {
   if (Math.max(parent.x1 - parent.x0, parent.y1 - parent.y0) > SMALL_PARENT) return;
-  const w = local.x1 - local.x0, h = local.y1 - local.y0;
+  const w = local.x1 - local.x0,
+    h = local.y1 - local.y0;
   const [cx, cy] = center(parent);
   // Lower-left corner of the label for each side and corner.
   const corners: Record<string, Point> = {
-    top: [cx - w / 2, parent.y1 + gap], bottom: [cx - w / 2, parent.y0 - gap - h],
-    left: [parent.x0 - gap - w, cy - h / 2], right: [parent.x1 + gap, cy - h / 2],
-    top_right: [parent.x1 + gap, parent.y1 + gap], top_left: [parent.x0 - gap - w, parent.y1 + gap],
-    bottom_right: [parent.x1 + gap, parent.y0 - gap - h], bottom_left: [parent.x0 - gap - w, parent.y0 - gap - h],
+    top: [cx - w / 2, parent.y1 + gap],
+    bottom: [cx - w / 2, parent.y0 - gap - h],
+    left: [parent.x0 - gap - w, cy - h / 2],
+    right: [parent.x1 + gap, cy - h / 2],
+    top_right: [parent.x1 + gap, parent.y1 + gap],
+    top_left: [parent.x0 - gap - w, parent.y1 + gap],
+    bottom_right: [parent.x1 + gap, parent.y0 - gap - h],
+    bottom_left: [parent.x0 - gap - w, parent.y0 - gap - h],
   };
-  const order = anchor === "top" ? ["top_right", "top_left", "right", "left", "bottom_right", "bottom_left", "bottom"]
-    : anchor === "left" ? ["top_left", "bottom_left", "top", "bottom", "top_right", "bottom_right", "right"]
-    : anchor === "right" ? ["top_right", "bottom_right", "top", "bottom", "top_left", "bottom_left", "left"]
-    : ["bottom_right", "bottom_left", "right", "left", "top_right", "top_left", "top"];
+  const order =
+    anchor === "top"
+      ? ["top_right", "top_left", "right", "left", "bottom_right", "bottom_left", "bottom"]
+      : anchor === "left"
+        ? ["top_left", "bottom_left", "top", "bottom", "top_right", "bottom_right", "right"]
+        : anchor === "right"
+          ? ["top_right", "bottom_right", "top", "bottom", "top_left", "bottom_left", "left"]
+          : ["bottom_right", "bottom_left", "right", "left", "top_right", "top_left", "top"];
   for (const side of order) {
     const [x, y] = corners[side]!;
     const position: Point = [x - local.x0, y - local.y0];
@@ -259,7 +289,12 @@ function checkBox(box: Box): void {
 }
 
 function measureValid(
-  measure: MeasureObject, object: SceneObject, values: ReadonlyMap<string, number>, math: MathContext, window?: Box, scale?: FrameScale,
+  measure: MeasureObject,
+  object: SceneObject,
+  values: ReadonlyMap<string, number>,
+  math: MathContext,
+  window?: Box,
+  scale?: FrameScale,
 ): Measurement {
   const measurement = measure(object, values, math, window, scale);
   checkBox(measurement.body);
@@ -306,12 +341,13 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
   // A formula produced by `transform` takes its source's place: a calculation stays where it is.
   const morphSource = new Map<string, string>();
   const givesPlace = new Set<string>();
-  for (const beat of slice.beats) for (const action of beat.do) {
-    if (action.verb === "transform") morphSource.set(action.target, action.source);
-    // What this tranche erases or replaces: a new object may take its place.
-    if (action.verb === "fade_out" || action.verb === "remove") givesPlace.add(action.target);
-    if (action.verb === "transform") givesPlace.add(action.source);
-  }
+  for (const beat of slice.beats)
+    for (const action of beat.do) {
+      if (action.verb === "transform") morphSource.set(action.target, action.source);
+      // What this tranche erases or replaces: a new object may take its place.
+      if (action.verb === "fade_out" || action.verb === "remove") givesPlace.add(action.target);
+      if (action.verb === "transform") givesPlace.add(action.source);
+    }
   // The latest composition placed without a relation: the next one goes below or beside it.
   let cursor: Box | null = state.lastComposition;
 
@@ -326,7 +362,7 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
 
   /** Whole areas already used on the board, for a new block that has no relation. */
   function occupied(excluded: ReadonlySet<string>): Box[] {
-    return [...objects.entries()].flatMap(([id, item]) => excluded.has(id) || item.removed || item.faded ? [] : [body(item, "layout_bounds")]);
+    return [...objects.entries()].flatMap(([id, item]) => (excluded.has(id) || item.removed || item.faded ? [] : [body(item, "layout_bounds")]));
   }
 
   /**
@@ -344,10 +380,12 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     if (cursor) candidates.push([cursor.x0 - box.x0, cursor.y1 - box.y1]);
     // Within a tranche, below or beside: whichever keeps the tranche closest to the screen's shape,
     // so the camera can show it whole at a readable size (a graph with its calculations beside it).
-    const tranche = union([...added.keys()].flatMap((id) => {
-      const item = objects.get(id);
-      return item && !excluded.has(id) ? [body(item, "layout_bounds")] : [];
-    }));
+    const tranche = union(
+      [...added.keys()].flatMap((id) => {
+        const item = objects.get(id);
+        return item && !excluded.has(id) ? [body(item, "layout_bounds")] : [];
+      }),
+    );
     // A new tranche whose place the lesson has just cleared in front of the student (fade_out, remove,
     // move to a corner): it goes right there, in the middle of what is seen, next to what was kept aside.
     if (!tranche && cursor) {
@@ -355,8 +393,7 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
       const [sx, sy] = center(screen);
       const [bx, by] = center(box);
       const middle: Point = [sx - bx, sy - by];
-      const shown = [...objects.entries()].flatMap(([id, item]) =>
-        excluded.has(id) || item.removed || item.faded ? [] : [body(item, "layout_bounds")]);
+      const shown = [...objects.entries()].flatMap(([id, item]) => (excluded.has(id) || item.removed || item.faded ? [] : [body(item, "layout_bounds")]));
       const placed = translate(box, middle);
       if (inside(screen, placed) && !shown.some((other) => intersects(placed, other))) return middle;
       // The middle is taken: next to what the lesson keeps in view, so the camera can show both at a readable size.
@@ -365,14 +402,17 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
         return item ? [body(item, "layout_bounds")] : [];
       });
       if (keptBoxes.length) {
-        const width = state.initialViewport.x1 - state.initialViewport.x0, height = state.initialViewport.y1 - state.initialViewport.y0;
+        const width = state.initialViewport.x1 - state.initialViewport.x0,
+          height = state.initialViewport.y1 - state.initialViewport.y0;
         const score = (position: Point) => {
           const all = union([...keptBoxes, translate(box, position)])!;
           return Math.min(width / Math.max(all.x1 - all.x0, 0.1), height / Math.max(all.y1 - all.y0, 0.1));
         };
         // Free places on a grid around what is kept; the best is the one the camera can show with it at the largest zoom.
         const around = union(keptBoxes)!;
-        const w = box.x1 - box.x0, h = box.y1 - box.y0, step = 0.5;
+        const w = box.x1 - box.x0,
+          h = box.y1 - box.y0,
+          step = 0.5;
         let best: Point | undefined;
         let bestScore = -1;
         for (let x = around.x0 - w - blockGap; x <= around.x1 + blockGap; x += step) {
@@ -380,7 +420,10 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
             const position: Point = [x - box.x0, y - box.y1];
             if (!fits(position)) continue;
             const value = score(position);
-            if (value > bestScore + 1e-9) { best = position; bestScore = value; }
+            if (value > bestScore + 1e-9) {
+              best = position;
+              bestScore = value;
+            }
           }
         }
         if (best) return best;
@@ -427,8 +470,9 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     if (definition.type === "axes") return definition;
     const key = frameOf(definition);
     if (key === undefined) return undefined;
-    const axes = [...added.values()].find((item) => item.type === "axes" && frameOf(item) === key)
-      ?? [...objects.values()].find((item) => item.definition.type === "axes" && item.frame === key && !item.removed)?.definition;
+    const axes =
+      [...added.values()].find((item) => item.type === "axes" && frameOf(item) === key) ??
+      [...objects.values()].find((item) => item.definition.type === "axes" && item.frame === key && !item.removed)?.definition;
     return axes?.type === "axes" ? axes : undefined;
   }
 
@@ -444,8 +488,12 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     if (definition.type !== "function_graph" && definition.type !== "parametric_curve") return undefined;
     const axes = axesOf(definition);
     if (!axes) return undefined;
-    const { x: [x0, x1], y: [y0, y1] } = axes.params ?? { x: [-6, 6], y: [-4, 4] };
-    const mx = (x1 - x0) * 0.03, my = (y1 - y0) * 0.03;
+    const {
+      x: [x0, x1],
+      y: [y0, y1],
+    } = axes.params ?? { x: [-6, 6], y: [-4, 4] };
+    const mx = (x1 - x0) * 0.03,
+      my = (y1 - y0) * 0.03;
     return { x0: x0 - mx, x1: x1 + mx, y0: y0 - my, y1: y1 + my };
   }
 
@@ -455,10 +503,12 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     if (known) return known;
     if (added.has(key) || objects.has(key)) return placeObject(key).position;
     const members = [...added.values()].filter((definition) => frameOf(definition) === key);
-    const box = union(members.map((definition) => {
-      const measured = measureValid(measure, definition, values, state.math, windowOf(definition), scaleOf(definition));
-      return measured.reserve ?? measured.body;
-    }));
+    const box = union(
+      members.map((definition) => {
+        const measured = measureValid(measure, definition, values, state.math, windowOf(definition), scaleOf(definition));
+        return measured.reserve ?? measured.body;
+      }),
+    );
     if (!box) return origin;
     const position = freeSpot(box, new Set(members.map(({ id }) => id)));
     frames.set(key, position);
@@ -527,10 +577,16 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
       // A label asked « inside » a text, a formula or a table would be written over it (seen 2026-11-10:
       // « 4,40 mol » over the cells of a table): it goes beside it instead, under it when asked at its centre.
       const overWritten = placement === "inside" && parent !== undefined && WRITTEN_TYPES.has(parent.definition.type);
-      const attached = overWritten ? {
-        ...definition,
-        attachment: { ...definition.attachment, placement: "outside" as const, anchor: definition.attachment.anchor === "center" ? "bottom" : definition.attachment.anchor },
-      } : definition;
+      const attached = overWritten
+        ? {
+            ...definition,
+            attachment: {
+              ...definition.attachment,
+              placement: "outside" as const,
+              anchor: definition.attachment.anchor === "center" ? "bottom" : definition.attachment.anchor,
+            },
+          }
+        : definition;
       const anchored = attachmentPosition(attached, local, parent, parentBox, state.minGap);
       const excluded = new Set([id, parentId]);
       if (placement === "inside" && !overWritten) for (const target of descendants(parentId, groups, new Map())) excluded.add(target);
@@ -571,7 +627,16 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
     }
     // A figure placed by a relation roots a frame that later figures may join.
     if (frame === id) frames.set(id, position);
-    const placed = { definition, position, measurement, visible: false, leader, ...(frame ? { frame } : {}), ...(window ? { window } : {}), ...(scale ? { scale } : {}) };
+    const placed = {
+      definition,
+      position,
+      measurement,
+      visible: false,
+      leader,
+      ...(frame ? { frame } : {}),
+      ...(window ? { window } : {}),
+      ...(scale ? { scale } : {}),
+    };
     checkBox(body(placed, "layout_bounds"));
     objects.set(id, placed);
     positioning.delete(id);
@@ -588,7 +653,8 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
       if (parent && !ids.has(parent)) throw new Error(`Le groupe détacherait « ${id} » de son parent.`);
       const move = ([px, py]: Point): Point => [px + x, py + y];
       const moved = {
-        ...object, position: move(object.position),
+        ...object,
+        position: move(object.position),
         leader: object.leader && { from: move(object.leader.from), to: move(object.leader.to) },
       };
       checkBox(body(moved, "layout_bounds"));
@@ -636,14 +702,16 @@ export function introduceSlice(state: SceneState, slice: Slice, measure = measur
   for (const id of added.keys()) complete(id);
   for (const group of slice.groups ?? []) complete(group.id);
   const kept = new Set(state.kept);
-  for (const item of [...slice.introduces, ...slice.groups ?? []]) {
+  for (const item of [...slice.introduces, ...(slice.groups ?? [])]) {
     if (item.layout && ("to_edge" in item.layout || "to_corner" in item.layout)) kept.add(item.id);
   }
   const slices = new Map(state.slices).set(slice.slice_id, new Set(slice.beats.map(({ id }) => id)));
-  const placedNow = union([...added.keys()].map((id) => {
-    const object = objects.get(id);
-    return object ? body(object, "layout_bounds") : null;
-  }));
+  const placedNow = union(
+    [...added.keys()].map((id) => {
+      const object = objects.get(id);
+      return object ? body(object, "layout_bounds") : null;
+    }),
+  );
   return { ...next, slices, frames, kept, lastComposition: placedNow ?? state.lastComposition };
 }
 
@@ -657,7 +725,12 @@ export function visibleArea(state: SceneState): Box {
  * yet starts from the centre of the view; on an edge it slides along it if something is there.
  */
 function placeOnScreen(
-  state: SceneState, box: Box, layout: Extract<Layout, { to_edge: unknown } | { to_corner: unknown }>, taken: readonly Box[], gap: number, from?: Point,
+  state: SceneState,
+  box: Box,
+  layout: Extract<Layout, { to_edge: unknown } | { to_corner: unknown }>,
+  taken: readonly Box[],
+  gap: number,
+  from?: Point,
 ): Point {
   const view = visibleArea(state);
   const [vx, vy] = center(view);
@@ -695,10 +768,12 @@ export function movedObjects(state: SceneState, target: string): string[] {
 /** Total shift of a `move`, computed once from the board as it is when the gesture starts. */
 export function moveShift(state: SceneState, target: string, to: Layout): { ids: string[]; shift: Point } {
   const ids = movedObjects(state, target);
-  const box = union(ids.map((id) => {
-    const item = state.objects.get(id)!;
-    return body(item, "layout_bounds");
-  }));
+  const box = union(
+    ids.map((id) => {
+      const item = state.objects.get(id)!;
+      return body(item, "layout_bounds");
+    }),
+  );
   if (!box) return { ids, shift: [0, 0] };
   const gap = gapSize(state.minGap);
   const taken = boardObstacles(state, new Set(ids));
@@ -706,9 +781,10 @@ export function moveShift(state: SceneState, target: string, to: Layout): { ids:
     const placed = placeOnScreen(state, box, to, taken, gap, [0, 0]);
     return { ids, shift: placed };
   }
-  const reference = "center_on" in to && to.center_on === "initial_viewport"
-    ? visibleArea(state)
-    : sceneBounds(state, ["next_to" in to ? to.next_to : "align_to" in to ? to.align_to : to.center_on], "layout_bounds");
+  const reference =
+    "center_on" in to && to.center_on === "initial_viewport"
+      ? visibleArea(state)
+      : sceneBounds(state, ["next_to" in to ? to.next_to : "align_to" in to ? to.align_to : to.center_on], "layout_bounds");
   if (!reference) return { ids, shift: [0, 0] };
   const wanted = positionFor(box, reference, to, gap);
   const axis = "next_to" in to ? (to.direction === "left" || to.direction === "right" ? 1 : 0) : 1;
@@ -790,9 +866,7 @@ export function revealPart(state: SceneState, target: string, part: string): Sce
   revealed.add(part);
   const objects = new Map(state.objects);
   const { revealedParts: _, ...whole } = item;
-  objects.set(target, revealed.size === item.definition.parts.length
-    ? { ...whole, visible: true }
-    : { ...whole, visible: true, revealedParts: revealed });
+  objects.set(target, revealed.size === item.definition.parts.length ? { ...whole, visible: true } : { ...whole, visible: true, revealedParts: revealed });
   return { ...state, objects };
 }
 
@@ -840,7 +914,13 @@ export function setParameter(state: SceneState, id: string, value: number, measu
         const beforeBounds = beforeParent ? body(beforeParent, "render_bounds") : boundsFor(state, members, "layout_bounds", children);
         const afterBounds = afterParent ? body(afterParent, "render_bounds") : boundsFor(next, members, "layout_bounds", children);
         if (!beforeBounds || !afterBounds) throw new Error(`Encombrement indisponible « ${parentId} ».`);
-        const before = attachmentPosition(definition, previous.measurement.reserve ?? previous.measurement.body, beforeParent, beforeBounds, state.minGap).position;
+        const before = attachmentPosition(
+          definition,
+          previous.measurement.reserve ?? previous.measurement.body,
+          beforeParent,
+          beforeBounds,
+          state.minGap,
+        ).position;
         const after = attachmentPosition(definition, measurement.reserve ?? measurement.body, afterParent, afterBounds, state.minGap);
         position = [position[0] + after.position[0] - before[0], position[1] + after.position[1] - before[1]];
         if (leader) leader = leaderFor(after.anchor, translate(measurement.body, position));
@@ -858,13 +938,14 @@ export function setParameter(state: SceneState, id: string, value: number, measu
     for (const b of placed.slice(index + 1)) {
       const previousA = state.objects.get(a.definition.id)!;
       const previousB = state.objects.get(b.definition.id)!;
-      if (intersects(body(a, "render_bounds"), body(b, "render_bounds"))
-        && !intersects(body(previousA, "render_bounds"), body(previousB, "render_bounds"))) {
+      if (intersects(body(a, "render_bounds"), body(b, "render_bounds")) && !intersects(body(previousA, "render_bounds"), body(previousB, "render_bounds"))) {
         const attached = (item: PlacedObject, parent: PlacedObject) => {
           const attachment = item.definition.attachment;
-          return attachment && (attachment.parent === parent.definition.id
-            || (attachment.placement === "inside"
-              && descendants(attachment.parent, state.groups, new Map()).has(parent.definition.id)));
+          return (
+            attachment &&
+            (attachment.parent === parent.definition.id ||
+              (attachment.placement === "inside" && descendants(attachment.parent, state.groups, new Map()).has(parent.definition.id)))
+          );
         };
         if (!attached(a, b) && !attached(b, a)) {
           throw new Error(`Conflit dynamique entre « ${a.definition.id} » et « ${b.definition.id} ».`);
@@ -916,8 +997,17 @@ export function cameraView(state: SceneState, camera: RuntimeState["camera"]["st
  * Kept objects join the chosen frame when they fit. Report what is left out.
  */
 export function fitSceneCamera(
-  state: SceneState, targets: readonly string[], mode: Bounds = "render_bounds",
-  options: { padding?: number; priority?: readonly string[]; kept?: readonly string[]; avoidCutting?: boolean; leaving?: ReadonlySet<string>; maxZoom?: number } = {},
+  state: SceneState,
+  targets: readonly string[],
+  mode: Bounds = "render_bounds",
+  options: {
+    padding?: number;
+    priority?: readonly string[];
+    kept?: readonly string[];
+    avoidCutting?: boolean;
+    leaving?: ReadonlySet<string>;
+    maxZoom?: number;
+  } = {},
 ): CameraFrame | null {
   const padding = options.padding ?? 0.9;
   const kept = (options.kept ?? []).filter((id) => !targets.includes(id));
@@ -926,7 +1016,12 @@ export function fitSceneCamera(
   }
   // Axes are framed with what they carry (curves, points) and their labels (spec §10).
   const withFrames = (ids: readonly string[]) => {
-    const frames = new Set(ids.map((id) => state.objects.get(id)).filter((item) => item?.definition.type === "axes").map((item) => item!.frame));
+    const frames = new Set(
+      ids
+        .map((id) => state.objects.get(id))
+        .filter((item) => item?.definition.type === "axes")
+        .map((item) => item!.frame),
+    );
     // A figure is framed with the points drawn on it (same frame, inside its area) and so with their labels:
     // a curve's point keeps its label in view. A single point does not pull in the whole figure.
     const onFigures = ids.flatMap((id) => {
@@ -934,8 +1029,12 @@ export function fitSceneCamera(
       if (!figure?.frame || !FIGURE_TYPES.has(figure.definition.type) || figure.definition.type === "point") return [];
       const area = body(figure, "layout_bounds");
       const margin = { x0: area.x0 - 0.1, y0: area.y0 - 0.1, x1: area.x1 + 0.1, y1: area.y1 + 0.1 };
-      return [...state.objects].filter(([other, item]) => other !== id && item.frame === figure.frame && item.definition.type === "point"
-        && !item.removed && inside(margin, body(item, "layout_bounds"))).map(([other]) => other);
+      return [...state.objects]
+        .filter(
+          ([other, item]) =>
+            other !== id && item.frame === figure.frame && item.definition.type === "point" && !item.removed && inside(margin, body(item, "layout_bounds")),
+        )
+        .map(([other]) => other);
     });
     return [...new Set([...ids, ...onFigures, ...[...state.objects].filter(([, item]) => item.frame && frames.has(item.frame)).map(([id]) => id)])];
   };
@@ -956,7 +1055,8 @@ export function fitSceneCamera(
   if (fit(box) < minZoom && options.priority?.length) {
     framed = sceneBounds(state, options.priority, "layout_bounds") ?? box;
     // A graph keeps its whole frame when it is among the priorities.
-    if (graphBox && fit(graphBox) >= GRAPH_ZOOM_MIN && graphs.some((id) => withFrames(options.priority!).includes(id))) framed = union([framed, graphBox]) ?? framed;
+    if (graphBox && fit(graphBox) >= GRAPH_ZOOM_MIN && graphs.some((id) => withFrames(options.priority!).includes(id)))
+      framed = union([framed, graphBox]) ?? framed;
   }
   for (const id of kept) {
     const candidate = union([framed, sceneBounds(state, withFrames([id]), mode)]);
@@ -971,16 +1071,22 @@ export function fitSceneCamera(
     // Seen in real generations: framing what appears cut a figure or formula still on the board in half.
     // An object the frame would cut joins it when everything stays readable; one left wholly outside stays out.
     // Not the figure a detail is taken from: zooming on a curve's point leaves the rest of the curve out.
-    const targetFrames = new Set(withFrames(targets).map((id) => state.objects.get(id)?.frame).filter(Boolean));
+    const targetFrames = new Set(
+      withFrames(targets)
+        .map((id) => state.objects.get(id)?.frame)
+        .filter(Boolean),
+    );
     const shown = withFrames([...targets, ...kept]);
     // What the passage erases is not worth keeping whole: it is about to leave.
-    const context = [...state.objects].filter(([id, item]) => item.visible && !item.removed && !shown.includes(id) && !options.leaving?.has(id)
-      && !(item.frame && targetFrames.has(item.frame)));
+    const context = [...state.objects].filter(
+      ([id, item]) => item.visible && !item.removed && !shown.includes(id) && !options.leaving?.has(id) && !(item.frame && targetFrames.has(item.frame)),
+    );
     // What still speaks first, then what was dimmed.
     for (const group of [context.filter(([, item]) => !item.dimmed), context.filter(([, item]) => item.dimmed)]) {
       for (let pass = 0; pass < 4; pass++) {
         const { view } = viewOf(framed);
-        const cut = group.map(([id]) => sceneBounds(state, [id], "render_bounds"))
+        const cut = group
+          .map(([id]) => sceneBounds(state, [id], "render_bounds"))
           .filter((box): box is Box => box !== null && box.x1 > view.x0 && box.x0 < view.x1 && box.y1 > view.y0 && box.y0 < view.y1 && !inside(view, box));
         let grew = false;
         for (const box of cut) {
@@ -1008,14 +1114,14 @@ export function fitSceneCamera(
  * the view slides just enough to leave it wholly out, as long as what is framed stays in. Camera audit (2026-11-09):
  * a new graph drawn beside the previous one left half of the old graph on the edge of the screen for up to 100 s.
  */
-function pushOutCut(
-  state: SceneState, framed: Box, at: { x: number; y: number; view: Box }, shown: readonly string[],
-): { x: number; y: number; view: Box } {
+function pushOutCut(state: SceneState, framed: Box, at: { x: number; y: number; view: Box }, shown: readonly string[]): { x: number; y: number; view: Box } {
   let { x, y, view } = at;
   const margin = 0.05;
-  const cutBy = (seen: Box) => [...state.objects].filter(([id, item]) => item.visible && !item.removed && !item.faded && !shown.includes(id))
-    .map(([id]) => sceneBounds(state, [id], "render_bounds"))
-    .filter((box): box is Box => box !== null && box.x1 > seen.x0 && box.x0 < seen.x1 && box.y1 > seen.y0 && box.y0 < seen.y1 && !inside(seen, box));
+  const cutBy = (seen: Box) =>
+    [...state.objects]
+      .filter(([id, item]) => item.visible && !item.removed && !item.faded && !shown.includes(id))
+      .map(([id]) => sceneBounds(state, [id], "render_bounds"))
+      .filter((box): box is Box => box !== null && box.x1 > seen.x0 && box.x0 < seen.x1 && box.y1 > seen.y0 && box.y0 < seen.y1 && !inside(seen, box));
   for (let pass = 0; pass < 3; pass++) {
     const cut = cutBy(view);
     if (!cut.length) break;
@@ -1023,14 +1129,17 @@ function pushOutCut(
     for (const box of cut) {
       // The shift that takes the box out on each side, and the room the framed content leaves on that side.
       const options: [number, number][] = [
-        [box.x1 - view.x0 + margin, 0], [-(view.x1 - box.x0 + margin), 0],
-        [0, box.y1 - view.y0 + margin], [0, -(view.y1 - box.y0 + margin)],
+        [box.x1 - view.x0 + margin, 0],
+        [-(view.x1 - box.x0 + margin), 0],
+        [0, box.y1 - view.y0 + margin],
+        [0, -(view.y1 - box.y0 + margin)],
       ];
-      const fits = ([dx, dy]: [number, number]) => framed.x0 >= view.x0 + dx - 1e-9 && framed.x1 <= view.x1 + dx + 1e-9
-        && framed.y0 >= view.y0 + dy - 1e-9 && framed.y1 <= view.y1 + dy + 1e-9;
+      const fits = ([dx, dy]: [number, number]) =>
+        framed.x0 >= view.x0 + dx - 1e-9 && framed.x1 <= view.x1 + dx + 1e-9 && framed.y0 >= view.y0 + dy - 1e-9 && framed.y1 <= view.y1 + dy + 1e-9;
       // Never a slide that cuts another object in turn (seen 2026-11-10: sliding off a formula at the bottom cut
       // the dimmed data at the top for 8 s).
-      const fewer = ([dx, dy]: [number, number]) => cutBy({ x0: view.x0 + dx, x1: view.x1 + dx, y0: view.y0 + dy, y1: view.y1 + dy }).length < cutBy(view).length;
+      const fewer = ([dx, dy]: [number, number]) =>
+        cutBy({ x0: view.x0 + dx, x1: view.x1 + dx, y0: view.y0 + dy, y1: view.y1 + dy }).length < cutBy(view).length;
       const best = options.filter((option) => fits(option) && fewer(option)).sort((a, b) => Math.hypot(...a) - Math.hypot(...b))[0];
       if (!best) continue;
       x += best[0];
@@ -1048,10 +1157,14 @@ export function runtimeState(state: SceneState): RuntimeState {
     current_slice: state.currentSlice,
     current_beat: state.currentBeat,
     visible_objects: [...state.objects].filter(([, item]) => item.visible).map(([id]) => id),
-    objects: [...state.objects].filter(([, item]) => !item.removed).map(([id, item]) => ({
-      id, type: item.definition.type, visible: item.visible,
-      ...(item.revealedParts ? { visible_parts: [...item.revealedParts] } : {}),
-    })),
+    objects: [...state.objects]
+      .filter(([, item]) => !item.removed)
+      .map(([id, item]) => ({
+        id,
+        type: item.definition.type,
+        visible: item.visible,
+        ...(item.revealedParts ? { visible_parts: [...item.revealedParts] } : {}),
+      })),
     groups: [...state.groups.values()].map(({ id, items }) => ({ id, items: [...items] })),
     camera: state.camera,
     parameters: Object.fromEntries(state.parameters),

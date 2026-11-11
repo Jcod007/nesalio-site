@@ -18,7 +18,13 @@ describe("figures paramétriques", () => {
   });
   it("résout un triangle rectangle à partir de deux mesures quelconques", () => {
     const expected = { base: Math.sqrt(3), height: 1 };
-    for (const spec of [{ angle: 30, hyp: 2 }, { angle: 30, base: Math.sqrt(3) }, { angle: 30, height: 1 }, { base: Math.sqrt(3), hyp: 2 }, { height: 1, hyp: 2 }]) {
+    for (const spec of [
+      { angle: 30, hyp: 2 },
+      { angle: 30, base: Math.sqrt(3) },
+      { angle: 30, height: 1 },
+      { base: Math.sqrt(3), hyp: 2 },
+      { height: 1, hyp: 2 },
+    ]) {
       const solved = solveRightTriangle(spec)!;
       expect(solved.base).toBeCloseTo(expected.base, 9);
       expect(solved.height).toBeCloseTo(expected.height, 9);
@@ -54,7 +60,15 @@ describe("figures paramétriques", () => {
   it("construit les carrés de Pythagore sur les côtés, à l'extérieur, avec l'aire au centre", () => {
     const board = applyAction(
       emptyBoard(),
-      { type: "triangle", id: "tri", base: 4, height: 3, at: [0, 0], sides: { base: "4", height: "3", hyp: "5" }, squares: { base: "16", height: "9", hyp: "25" } },
+      {
+        type: "triangle",
+        id: "tri",
+        base: 4,
+        height: 3,
+        at: [0, 0],
+        sides: { base: "4", height: "3", hyp: "5" },
+        squares: { base: "16", height: "9", hyp: "25" },
+      },
       t,
     );
     const base = board.nodes["tri-carre-base"] as PolygonNode;
@@ -81,7 +95,7 @@ describe("figures paramétriques", () => {
     expect(resolveTargets(board, "tri")).toContain("tri-carre-hyp");
   });
 
-  it("fait glisser les longueurs déjà écrites à l'intérieur quand on ajoute les carrés sans redonner \"sides\"", () => {
+  it('fait glisser les longueurs déjà écrites à l\'intérieur quand on ajoute les carrés sans redonner "sides"', () => {
     // Séance observée : le modèle redemande le triangle avec "squares" seulement ; les longueurs restaient dans les carrés.
     const spec = { type: "triangle" as const, id: "tri", base: 4, height: 3, at: [0, 0] as [number, number] };
     let board = applyAction(emptyBoard(), { ...spec, sides: { base: "4", height: "3", hyp: "5" } }, t);
@@ -97,7 +111,12 @@ describe("figures paramétriques", () => {
 
   it("marque un angle entre deux points nommés", () => {
     let board = emptyBoard();
-    for (const [id, at] of [["A", [0, 0]], ["B", [2, 0]], ["C", [0, 2]]] as const) board = applyAction(board, { type: "point", id, at: [...at] }, t);
+    for (const [id, at] of [
+      ["A", [0, 0]],
+      ["B", [2, 0]],
+      ["C", [0, 2]],
+    ] as const)
+      board = applyAction(board, { type: "point", id, at: [...at] }, t);
     board = applyAction(board, { type: "angle", id: "a", at: "A", from: "B", to: "C", label: "90°" }, t);
     const arc = board.nodes.a as ArcNode;
     expect(arc.end - arc.start).toBeCloseTo(90, 6);
@@ -199,7 +218,20 @@ describe("géométrie des séances du 19 octobre", () => {
   });
 
   it("prolonge le côté quand le pied de la hauteur tombe en dehors (triangle obtus)", () => {
-    const board = applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [2, 0], [4, 2]], altitude: "C" }, t);
+    const board = applyAction(
+      emptyBoard(),
+      {
+        type: "triangle",
+        id: "tri",
+        points: [
+          [0, 0],
+          [2, 0],
+          [4, 2],
+        ],
+        altitude: "C",
+      },
+      t,
+    );
     const h = board.nodes["tri-hauteur"] as SegmentNode;
     close([...h.from, ...h.to], [4, 2, 4, 0]);
     expect(board.nodes["tri-prolongement"]).toMatchObject({ type: "segment", dashed: true });
@@ -207,7 +239,19 @@ describe("géométrie des séances du 19 octobre", () => {
 
   it("vise les sommets d'un triangle par leur nom, même sans points nommés", () => {
     // Séance observée : angle "at":"A" sur un triangle donné par ses points ne dessinait rien.
-    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [5, 0], [1.5, 3]] }, t);
+    let board = applyAction(
+      emptyBoard(),
+      {
+        type: "triangle",
+        id: "tri",
+        points: [
+          [0, 0],
+          [5, 0],
+          [1.5, 3],
+        ],
+      },
+      t,
+    );
     board = applyAction(board, { type: "angle", id: "a1", at: "A", from: "B", to: "C", label: "1" }, t);
     expect((board.nodes["a1"] as ArcNode).center).toEqual([0, 0]);
     board = applyAction(board, { type: "triangle", id: "r", base: 4, height: 3, at: [10, 0], names: ["P", "Q", "R"], altitude: "Q" }, t);
@@ -238,7 +282,11 @@ describe("géométrie des séances du 19 octobre", () => {
 
 describe("tableau sans repère (séances du 19 octobre)", () => {
   it("agrandit le cadre pour une grande figure, sans repère : le texte reste lisible", () => {
-    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", base: 6, height: 8, at: [0, 0], names: ["A", "B", "C"], sides: { base: "6", height: "8" } }, t);
+    let board = applyAction(
+      emptyBoard(),
+      { type: "triangle", id: "tri", base: 6, height: 8, at: [0, 0], names: ["A", "B", "C"], sides: { base: "6", height: "8" } },
+      t,
+    );
     expect(board.frame.y[1]).toBeGreaterThan(8);
     board = applyAction(board, { type: "triangle", id: "tri", base: 6, height: 8, names: ["A", "B", "C"], squares: { base: "36", height: "64", hyp: "?" } }, t);
     // Les carrés débordent de partout : le cadre les contient tous.
@@ -262,19 +310,76 @@ describe("tableau sans repère (séances du 19 octobre)", () => {
 
   it("pose à côté un exemple dessiné par-dessus la figure", () => {
     // Séance observée : un carré de côté 3 tombé sur le carré de l'hypoténuse.
-    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", base: 6, height: 8, at: [0, 0], squares: { base: "36", height: "64", hyp: "100" } }, t);
-    board = applyAction(board, { type: "polygon", id: "sq3", points: [[-6, -3], [-3, -3], [-3, 0], [-6, 0]], label: "9" }, t);
+    let board = applyAction(
+      emptyBoard(),
+      { type: "triangle", id: "tri", base: 6, height: 8, at: [0, 0], squares: { base: "36", height: "64", hyp: "100" } },
+      t,
+    );
+    board = applyAction(
+      board,
+      {
+        type: "polygon",
+        id: "sq3",
+        points: [
+          [-6, -3],
+          [-3, -3],
+          [-3, 0],
+          [-6, 0],
+        ],
+        label: "9",
+      },
+      t,
+    );
     expect(collisions(board).filter((c) => c.kind === "dessins")).toEqual([]);
     // Il grandit plus tard avec les coordonnées du modèle : il reste à l'écart.
-    board = applyAction(board, { type: "transform", target: "sq3", points: [[-8, -5], [-3, -5], [-3, 0], [-8, 0]] }, t);
+    board = applyAction(
+      board,
+      {
+        type: "transform",
+        target: "sq3",
+        points: [
+          [-8, -5],
+          [-3, -5],
+          [-3, 0],
+          [-8, 0],
+        ],
+      },
+      t,
+    );
     expect(collisions(board).filter((c) => c.kind === "dessins")).toEqual([]);
     // Une partie coloriée dans la figure, elle, reste où elle est.
-    board = applyAction(board, { type: "polygon", id: "part", points: [[0, 0], [3, 0], [3, 4]], fill: true }, t);
+    board = applyAction(
+      board,
+      {
+        type: "polygon",
+        id: "part",
+        points: [
+          [0, 0],
+          [3, 0],
+          [3, 4],
+        ],
+        fill: true,
+      },
+      t,
+    );
     expect((board.nodes["part"] as PolygonNode).points[0]).toEqual([0, 0]);
   });
 
   it("efface une figure sans repère quand un premier repère arrive, garde les calculs", () => {
-    let board = applyAction(emptyBoard(), { type: "polygon", id: "para", points: [[4, 2], [10, 2], [12, -2], [6, -2]] }, t);
+    let board = applyAction(
+      emptyBoard(),
+      {
+        type: "polygon",
+        id: "para",
+        points: [
+          [4, 2],
+          [10, 2],
+          [12, -2],
+          [6, -2],
+        ],
+      },
+      t,
+    );
     board = applyAction(board, { type: "note", id: "n", text: "aire = 24" }, t);
     board = applyAction(board, { type: "axes", x: [-1, 11], y: [-1, 7] }, t);
     expect(board.nodes["para"]!.erased).toBeDefined();
@@ -327,7 +432,7 @@ describe("triangle quelconque par ses mesures", () => {
     expect(Action.safeParse({ type: "triangle", id: "t", lengths: { ab: 1, bc: 1, ca: 5 } }).success).toBe(false);
     expect(Action.safeParse({ type: "triangle", id: "t", angles: { A: 30, B: 40 } }).success).toBe(false);
     const board = applyAction(emptyBoard(), { type: "triangle", id: "t", lengths: { bc: 4, ab: 5 }, angles: { A: 40 } }, t);
-    expect((board.nodes["t-angle-C"] as ArcNode | undefined)).toBeUndefined();
+    expect(board.nodes["t-angle-C"] as ArcNode | undefined).toBeUndefined();
     const sides = ["t-ab", "t-bc", "t-ca"].map((k) => len(board.nodes[k] as SegmentNode));
     expect(sides[0]).toBeCloseTo(5, 9);
     expect(sides[1]).toBeCloseTo(4, 9);
@@ -351,13 +456,61 @@ describe("triangle quelconque par ses mesures", () => {
 describe("un nouveau triangle ne se pose pas à moitié sur une autre figure", () => {
   const overlapping = (board: ReturnType<typeof emptyBoard>) => collisions(board).filter((c) => c.kind === "dessins");
   it("glisse juste à côté s'il tombe en partie sur un triangle", () => {
-    let board = applyAction(emptyBoard(), { type: "triangle", id: "t1", points: [[0, 0], [4, 0], [0, 3]] }, t);
-    board = applyAction(board, { type: "triangle", id: "t2", points: [[1, 0], [5, 0], [1, 3]] }, t);
+    let board = applyAction(
+      emptyBoard(),
+      {
+        type: "triangle",
+        id: "t1",
+        points: [
+          [0, 0],
+          [4, 0],
+          [0, 3],
+        ],
+      },
+      t,
+    );
+    board = applyAction(
+      board,
+      {
+        type: "triangle",
+        id: "t2",
+        points: [
+          [1, 0],
+          [5, 0],
+          [1, 3],
+        ],
+      },
+      t,
+    );
     expect(overlapping(board)).toEqual([]);
   });
   it("reste en place s'il est dessiné dans l'autre (petit triangle dans le grand) ou redessiné", () => {
-    let board = applyAction(emptyBoard(), { type: "triangle", id: "grand", points: [[0, 0], [6, 0], [0, 6]] }, t);
-    board = applyAction(board, { type: "triangle", id: "petit", points: [[0.5, 0.5], [2, 0.5], [0.5, 2]] }, t);
+    let board = applyAction(
+      emptyBoard(),
+      {
+        type: "triangle",
+        id: "grand",
+        points: [
+          [0, 0],
+          [6, 0],
+          [0, 6],
+        ],
+      },
+      t,
+    );
+    board = applyAction(
+      board,
+      {
+        type: "triangle",
+        id: "petit",
+        points: [
+          [0.5, 0.5],
+          [2, 0.5],
+          [0.5, 2],
+        ],
+      },
+      t,
+    );
     expect((board.nodes["petit-ab"] as SegmentNode).from).toEqual([0.5, 0.5]);
     const before = (board.nodes["petit-ab"] as SegmentNode).from;
     board = applyAction(board, { type: "triangle", id: "petit", marks: { ab: 1 } }, t);

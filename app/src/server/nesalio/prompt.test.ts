@@ -57,7 +57,7 @@ describe("prompt système Nesalio", () => {
 
   it("prépare un récapitulatif court et libère sa place dans la tranche précédente", () => {
     const prompt = buildNesalioSystemPrompt();
-    const rule = prompt.match(/^- RÉCAPITULATIF FINAL[^\n]*(?:\n  [^\n]*)*/m)?.[0] ?? "";
+    const rule = prompt.match(/^- RÉCAPITULATIF FINAL[^\n]*(?:\n {2}[^\n]*)*/m)?.[0] ?? "";
     expect(rule).toMatch(/composition courte\b/);
     expect(rule).toContain("visible jusqu'à la fin");
     expect(rule).toMatch(/camera\.focus[\s\S]*objets du\s+récapitulatif/);
@@ -113,8 +113,9 @@ describe("prompt système Nesalio", () => {
   });
 
   it("écrit une notation compacte et lisible", () => {
-    expect(describeSchema({ type: "object", properties: { a: { type: "number" }, b: { enum: ["x", "y"] } }, required: ["a"] }))
-      .toBe('{ a: nombre, b?: "x" | "y" }');
+    expect(describeSchema({ type: "object", properties: { a: { type: "number" }, b: { enum: ["x", "y"] } }, required: ["a"] })).toBe(
+      '{ a: nombre, b?: "x" | "y" }',
+    );
     expect(describeSchema({ type: "array", items: { type: "string", pattern: "^a" }, minItems: 1, maxItems: 4 })).toBe("id[] (1 à 4)");
   });
 

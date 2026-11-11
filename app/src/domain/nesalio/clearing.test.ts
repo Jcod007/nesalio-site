@@ -3,7 +3,16 @@ import shell from "./engineShell.json";
 import { Slice } from "./contract";
 import { clearTarget, createScene, introduceSlice, sceneBounds, setDimmed, setVisibility } from "./sceneState";
 import { validateLesson, validateModelOutput } from "./validate";
-import { DIM_OPACITY, MIN_HIGHLIGHT_MS, clearWithFirstReveal, holdClearingsForNextBeat, lastingHighlight, playNesalioLesson, type NesalioClip, type NesalioFrame } from "@/engine/nesalioPlayback";
+import {
+  DIM_OPACITY,
+  MIN_HIGHLIGHT_MS,
+  clearWithFirstReveal,
+  holdClearingsForNextBeat,
+  lastingHighlight,
+  playNesalioLesson,
+  type NesalioClip,
+  type NesalioFrame,
+} from "@/engine/nesalioPlayback";
 
 const viewport = { x0: -8, y0: -4.5, x1: 8, y1: 4.5 };
 const beat = (id: string, say: string, cues: unknown[], todo: unknown[]) => ({ id, say, cues, do: todo });
@@ -20,21 +29,33 @@ describe("dégager le tableau : dim, fade_out, remove", () => {
     ],
     groups: [{ id: "texts", items: ["eq", "note"] }],
     beats: [
-      beat("b1", "Voici le point.", [{ id: "point", text: "point" }], [
-        { id: "s_axes", verb: "show", target: "axes", at: "beat:start" },
-        { id: "s_p", verb: "show", target: "p", at: "cue:point" },
-        { id: "s_l", verb: "show", target: "p_label", at: "cue:point" },
-      ]),
-      beat("b2", "On passe à autre chose.", [{ id: "autre", text: "autre" }], [
-        { id: "r_p", verb: "remove", target: "p", at: "cue:autre" },
-        { id: "r_texts", verb: "remove", target: "texts", at: "cue:autre" },
-      ]),
+      beat(
+        "b1",
+        "Voici le point.",
+        [{ id: "point", text: "point" }],
+        [
+          { id: "s_axes", verb: "show", target: "axes", at: "beat:start" },
+          { id: "s_p", verb: "show", target: "p", at: "cue:point" },
+          { id: "s_l", verb: "show", target: "p_label", at: "cue:point" },
+        ],
+      ),
+      beat(
+        "b2",
+        "On passe à autre chose.",
+        [{ id: "autre", text: "autre" }],
+        [
+          { id: "r_p", verb: "remove", target: "p", at: "cue:autre" },
+          { id: "r_texts", verb: "remove", target: "texts", at: "cue:autre" },
+        ],
+      ),
     ],
   };
 
   it("refuse d’utiliser un objet effacé dans un passage suivant, avec ses étiquettes et les membres de son groupe", () => {
-    const later = (target: string) => validateModelOutput({ slices: [{ ...graph, beats: [...graph.beats,
-      beat("b3", "Encore.", [], [{ id: "again", verb: "show", target, at: "beat:start" }])] }] });
+    const later = (target: string) =>
+      validateModelOutput({
+        slices: [{ ...graph, beats: [...graph.beats, beat("b3", "Encore.", [], [{ id: "again", verb: "show", target, at: "beat:start" }])] }],
+      });
     for (const target of ["p", "p_label", "eq", "note", "texts"]) {
       expect(later(target)).toMatchObject({ ok: false, issues: [{ message: expect.stringContaining("effacé") }] });
     }
@@ -44,11 +65,18 @@ describe("dégager le tableau : dim, fade_out, remove", () => {
   it("garde la trace des objets effacés d’une tranche à l’autre, y compris comme référence de placement", () => {
     const first = validateModelOutput({ slices: [graph] });
     if (!first.ok) throw new Error(JSON.stringify(first.issues));
-    const next = validateModelOutput({ slices: [{
-      slice_id: "s2",
-      introduces: [{ id: "c", type: "text", content: "Commentaire", layout: { next_to: "eq", direction: "right" } }],
-      beats: [beat("c1", "Bien.", [], [])],
-    }] }, first.state);
+    const next = validateModelOutput(
+      {
+        slices: [
+          {
+            slice_id: "s2",
+            introduces: [{ id: "c", type: "text", content: "Commentaire", layout: { next_to: "eq", direction: "right" } }],
+            beats: [beat("c1", "Bien.", [], [])],
+          },
+        ],
+      },
+      first.state,
+    );
     expect(next).toMatchObject({ ok: false, issues: [{ message: expect.stringContaining("effacé") }] });
   });
 
@@ -64,8 +92,12 @@ describe("dégager le tableau : dim, fade_out, remove", () => {
   });
 
   it("fade_out et remove libèrent la place ; seul remove interdit de réutiliser l’objet", () => {
-    const words = (id: string) => Slice.parse({ slice_id: id, introduces: [{ id: `${id}_t`, type: "text", content: "Une étape de calcul" }],
-      beats: [beat(`${id}_b`, "Ensuite.", [], [])] });
+    const words = (id: string) =>
+      Slice.parse({
+        slice_id: id,
+        introduces: [{ id: `${id}_t`, type: "text", content: "Une étape de calcul" }],
+        beats: [beat(`${id}_b`, "Ensuite.", [], [])],
+      });
     const base = introduceSlice(createScene(viewport), words("a"));
     const place = base.objects.get("a_t")!.position;
 
@@ -82,26 +114,59 @@ describe("dégager le tableau : dim, fade_out, remove", () => {
   });
 
   it("anime l’opacité pendant dim et remove, puis retire l’objet à la fin du fondu", async () => {
-    const lesson = validateLesson({ ...shell, slices: [{
-      slice_id: "s",
-      introduces: [{ id: "a", type: "point", params: { at: [0, 0] } }, { id: "b", type: "point", params: { at: [2, 0] } }],
-      beats: [
-        beat("one", "Deux points.", [], [{ id: "sa", verb: "show", target: "a", at: "beat:start" }, { id: "sb", verb: "show", target: "b", at: "beat:start" }]),
-        beat("two", "On estompe le premier, on efface le second.", [{ id: "est", text: "estompe" }, { id: "eff", text: "efface" }], [
-          { id: "da", verb: "dim", target: "a", at: "cue:est" }, { id: "rb", verb: "remove", target: "b", at: "cue:eff" },
-        ]),
+    const lesson = validateLesson({
+      ...shell,
+      slices: [
+        {
+          slice_id: "s",
+          introduces: [
+            { id: "a", type: "point", params: { at: [0, 0] } },
+            { id: "b", type: "point", params: { at: [2, 0] } },
+          ],
+          beats: [
+            beat(
+              "one",
+              "Deux points.",
+              [],
+              [
+                { id: "sa", verb: "show", target: "a", at: "beat:start" },
+                { id: "sb", verb: "show", target: "b", at: "beat:start" },
+              ],
+            ),
+            beat(
+              "two",
+              "On estompe le premier, on efface le second.",
+              [
+                { id: "est", text: "estompe" },
+                { id: "eff", text: "efface" },
+              ],
+              [
+                { id: "da", verb: "dim", target: "a", at: "cue:est" },
+                { id: "rb", verb: "remove", target: "b", at: "cue:eff" },
+              ],
+            ),
+          ],
+        },
       ],
-    }] });
+    });
     if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues));
     const frames: NesalioFrame[] = [];
     const clip = (cues: Record<string, [number, number]>, playheads: number[]): NesalioClip => ({
-      durationMs: 3_000, cues: new Map(Object.entries(cues).map(([id, [start, end]]) => [id, { start, end }])),
-      async play(draw) { for (const playhead of playheads) draw(playhead); }, dispose() {},
+      durationMs: 3_000,
+      cues: new Map(Object.entries(cues).map(([id, [start, end]]) => [id, { start, end }])),
+      async play(draw) {
+        for (const playhead of playheads) draw(playhead);
+      },
+      dispose() {},
     });
     await playNesalioLesson(lesson.value, {
-      viewport, signal: new AbortController().signal, wait: async () => {},
-      openClip: async (b) => b.id === "one" ? clip({}, [0]) : clip({ est: [100, 300], eff: [1_000, 1_200] }, [325, 1_225, 2_000]),
-      onFrame: (frame, b) => { if (b.id === "two") frames.push(frame); },
+      viewport,
+      signal: new AbortController().signal,
+      wait: async () => {},
+      openClip: async (b) => (b.id === "one" ? clip({}, [0]) : clip({ est: [100, 300], eff: [1_000, 1_200] }, [325, 1_225, 2_000])),
+      onFrame: (frame, b) => {
+        if (b.id === "two") frames.push(frame);
+      },
     });
     const [middle, fading, end] = frames as [NesalioFrame, NesalioFrame, NesalioFrame];
     expect(middle.opacity.get("a")).toBeCloseTo(1 - (1 - DIM_OPACITY) * 0.5, 5);
@@ -119,13 +184,18 @@ describe("effacement au début d'un passage", () => {
   const passage = (todo: unknown[]) => beat("b", say, [{ id: "c_formule", text: "formule" }], todo) as never;
 
   it("attend le premier nouvel objet du passage (audit caméra : écran vide pendant que Nesa parle)", () => {
-    const timed = clearWithFirstReveal(passage([
-      { id: "f_tab", verb: "fade_out", at: "beat:start", target: "tab" },
-      { id: "r_old", verb: "remove", at: "beat:start", target: "old" },
-      { id: "s_form", verb: "show", at: "cue:c_formule", target: "form" },
-    ]), cues);
+    const timed = clearWithFirstReveal(
+      passage([
+        { id: "f_tab", verb: "fade_out", at: "beat:start", target: "tab" },
+        { id: "r_old", verb: "remove", at: "beat:start", target: "old" },
+        { id: "s_form", verb: "show", at: "cue:c_formule", target: "form" },
+      ]),
+      cues,
+    );
     expect(timed.do.map((action) => [action.id, "at" in action ? action.at : undefined])).toEqual([
-      ["f_tab", "cue:c_formule"], ["r_old", "cue:c_formule"], ["s_form", "cue:c_formule"],
+      ["f_tab", "cue:c_formule"],
+      ["r_old", "cue:c_formule"],
+      ["s_form", "cue:c_formule"],
     ]);
   });
 
@@ -141,38 +211,59 @@ describe("effacement au début d'un passage", () => {
 });
 
 describe("effacement en cours de passage ou au passage suivant", () => {
-  const cues = new Map([["c_kelvin", { start: 400, end: 700 }], ["c_reponse", { start: 2_000, end: 2_400 }]]);
+  const cues = new Map([
+    ["c_kelvin", { start: 400, end: 700 }],
+    ["c_reponse", { start: 2_000, end: 2_400 }],
+  ]);
 
   it("un effacement à un mot attend le prochain objet écrit après lui (leçon ballons, passage réponse)", () => {
-    const timed = clearWithFirstReveal(beat("b", "En kelvins puis la réponse.", [], [
-      { id: "f_old", verb: "fade_out", at: "cue:c_kelvin", target: "old" },
-      { id: "w_rep", verb: "write", at: "cue:c_reponse", target: "rep" },
-    ]) as never, cues);
-    expect(timed.do.map((action) => "at" in action ? action.at : undefined)).toEqual(["cue:c_reponse", "cue:c_reponse"]);
+    const timed = clearWithFirstReveal(
+      beat(
+        "b",
+        "En kelvins puis la réponse.",
+        [],
+        [
+          { id: "f_old", verb: "fade_out", at: "cue:c_kelvin", target: "old" },
+          { id: "w_rep", verb: "write", at: "cue:c_reponse", target: "rep" },
+        ],
+      ) as never,
+      cues,
+    );
+    expect(timed.do.map((action) => ("at" in action ? action.at : undefined))).toEqual(["cue:c_reponse", "cue:c_reponse"]);
   });
 
   it("un passage qui ne fait qu'effacer laisse ses effacements au passage suivant (leçon ballons, récapitulatif)", () => {
     const slice = {
-      slice_id: "s", beats: [
+      slice_id: "s",
+      beats: [
         beat("recap", "Retenons.", [], [{ id: "f_all", verb: "fade_out", at: "beat:start", target: "old" }]),
         beat("rapport", "Le rapport.", [], [{ id: "w_r", verb: "write", at: "beat:start", target: "rapport" }]),
       ],
     } as never;
     const held = holdClearingsForNextBeat(slice) as { beats: { do: { id: string; at?: string }[] }[] };
     expect(held.beats[0]!.do).toEqual([]);
-    expect(held.beats[1]!.do.map((action) => [action.id, action.at])).toEqual([["f_all", "beat:start"], ["w_r", "beat:start"]]);
+    expect(held.beats[1]!.do.map((action) => [action.id, action.at])).toEqual([
+      ["f_all", "beat:start"],
+      ["w_r", "beat:start"],
+    ]);
   });
 
   it("garde l'effacement en place s'il est attendu par une autre action ou si le passage suivant revise l'objet", () => {
-    const waited = { slice_id: "s", beats: [
-      beat("a", "x", [], [{ id: "f", verb: "fade_out", at: "beat:start", target: "old" }]),
-      beat("b", "y", [], [{ id: "w", verb: "write", at: "after:f", target: "neuf" }]),
-    ] } as never;
+    const waited = {
+      slice_id: "s",
+      beats: [
+        beat("a", "x", [], [{ id: "f", verb: "fade_out", at: "beat:start", target: "old" }]),
+        beat("b", "y", [], [{ id: "w", verb: "write", at: "after:f", target: "neuf" }]),
+      ],
+    } as never;
     expect(holdClearingsForNextBeat(waited)).toBe(waited);
-    const revived = { slice_id: "s", beats: [
-      beat("a", "x", [], [{ id: "f", verb: "fade_out", at: "beat:start", target: "old" }]),
-      beat("b", "y", [], [{ id: "s", verb: "show", at: "beat:start", target: "old" }]),
-    ] } as never;
+    const revived = {
+      slice_id: "s",
+      beats: [
+        beat("a", "x", [], [{ id: "f", verb: "fade_out", at: "beat:start", target: "old" }]),
+        beat("b", "y", [], [{ id: "s", verb: "show", at: "beat:start", target: "old" }]),
+      ],
+    } as never;
     expect(holdClearingsForNextBeat(revived)).toBe(revived);
   });
 });

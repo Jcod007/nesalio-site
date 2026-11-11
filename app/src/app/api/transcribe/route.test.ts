@@ -7,11 +7,12 @@ vi.mock("@/server/account", () => ({ requireAccount: async () => ({ ok: true, us
 
 const { POST } = await import("./route");
 
-const request = () => new Request("https://app.nesalio.com/api/transcribe", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ audio: "A".repeat(200), mediaType: "audio/webm;codecs=opus" }),
-});
+const request = () =>
+  new Request("https://app.nesalio.com/api/transcribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ audio: "A".repeat(200), mediaType: "audio/webm;codecs=opus" }),
+  });
 
 beforeEach(() => {
   vi.stubEnv("AI_GATEWAY_API_KEY", "cle");

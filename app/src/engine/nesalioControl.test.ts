@@ -6,13 +6,19 @@ import { playNesalioLesson, type NesalioClip } from "./nesalioPlayback";
 
 const viewport = { x0: -8, y0: -4.5, x1: 8, y1: 4.5 };
 const lesson = () => {
-  const parsed = validateLesson({ ...shell, slices: [{
-    slice_id: "s", introduces: [{ id: "t", type: "text", content: "Bonjour" }],
-    beats: [
-      { id: "b1", say: "Premier passage.", cues: [], do: [{ id: "w", verb: "write", target: "t", at: "beat:start" }] },
-      { id: "b2", say: "Deuxième passage.", cues: [], do: [] },
+  const parsed = validateLesson({
+    ...shell,
+    slices: [
+      {
+        slice_id: "s",
+        introduces: [{ id: "t", type: "text", content: "Bonjour" }],
+        beats: [
+          { id: "b1", say: "Premier passage.", cues: [], do: [{ id: "w", verb: "write", target: "t", at: "beat:start" }] },
+          { id: "b2", say: "Deuxième passage.", cues: [], do: [] },
+        ],
+      },
     ],
-  }] });
+  });
   if (!parsed.ok) throw new Error(JSON.stringify(parsed.issues));
   return parsed.value;
 };
@@ -24,7 +30,9 @@ describe("pause et son coupé du lecteur Nesalio", () => {
     vi.useFakeTimers();
     const control = createPlaybackControl();
     let done = false;
-    void pausableSleep(1_000, new AbortController().signal, control).then(() => { done = true; });
+    void pausableSleep(1_000, new AbortController().signal, control).then(() => {
+      done = true;
+    });
     await vi.advanceTimersByTimeAsync(400);
     control.setPaused(true);
     await vi.advanceTimersByTimeAsync(5_000);
@@ -41,7 +49,9 @@ describe("pause et son coupé du lecteur Nesalio", () => {
     const started: string[] = [];
     const controls: unknown[] = [];
     const clip = (id: string): NesalioClip => ({
-      durationMs: 1_000, cues: new Map(), dispose() {},
+      durationMs: 1_000,
+      cues: new Map(),
+      dispose() {},
       async play(draw, _signal, given) {
         started.push(id);
         controls.push(given);
@@ -51,8 +61,12 @@ describe("pause et son coupé du lecteur Nesalio", () => {
       },
     });
     const playing = playNesalioLesson(lesson(), {
-      viewport, signal: new AbortController().signal, control, wait: async () => {},
-      openClip: async (beat) => clip(beat.id), onFrame() {},
+      viewport,
+      signal: new AbortController().signal,
+      control,
+      wait: async () => {},
+      openClip: async (beat) => clip(beat.id),
+      onFrame() {},
     });
     await new Promise((resolve) => setTimeout(resolve, 30));
     expect(started).toEqual(["b1"]);

@@ -65,11 +65,11 @@ export function screenToWorld(view: View, viewport: Viewport, x: number, y: numb
 
 /** Interpolation douce entre deux vues (zoom géométrique, plus naturel). */
 export function lerpView(a: View, b: View, t: number): View {
-  const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const e = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
   return {
     cx: a.cx + (b.cx - a.cx) * e,
     cy: a.cy + (b.cy - a.cy) * e,
-    s: a.s * Math.pow(b.s / a.s, e),
+    s: a.s * (b.s / a.s) ** e,
   };
 }
 

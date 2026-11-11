@@ -48,15 +48,19 @@ export function describeSchema(schema: JsonSchema): string {
       return `{ ${fields.join(", ")} }`;
     }
     case "array": {
-      const bounds = schema.minItems !== undefined || schema.maxItems !== undefined
-        ? ` (${schema.minItems ?? 0} à ${schema.maxItems ?? "∞"})` : "";
+      const bounds = schema.minItems !== undefined || schema.maxItems !== undefined ? ` (${schema.minItems ?? 0} à ${schema.maxItems ?? "∞"})` : "";
       return `${describeSchema(schema.items ?? {})}[]${bounds}`;
     }
-    case "string": return schema.pattern ? "id" : "texte";
-    case "integer": return "entier";
-    case "number": return "nombre";
-    case "boolean": return "booléen";
-    default: return "valeur";
+    case "string":
+      return schema.pattern ? "id" : "texte";
+    case "integer":
+      return "entier";
+    case "number":
+      return "nombre";
+    case "boolean":
+      return "booléen";
+    default:
+      return "valeur";
   }
 }
 
@@ -69,24 +73,29 @@ const COMMON_ACTION_FIELDS = new Set(["id", "verb", "at", "pace", "start", "end"
 
 /** One line per object type and per verb, read from the contract itself, limited to what the player executes. */
 export function languageReference(): string {
-  const objects = SceneObject.options.filter((option) => PLAYABLE.objects.has(option.shape.type.value)).map((option) => {
-    const schema = jsonSchema(option);
-    const own = Object.fromEntries(Object.entries(schema.properties ?? {}).filter(([key]) => !COMMON_OBJECT_FIELDS.has(key)));
-    return `- ${option.shape.type.value} ${describeSchema({ type: "object", properties: own, required: schema.required })}`;
-  });
+  const objects = SceneObject.options
+    .filter((option) => PLAYABLE.objects.has(option.shape.type.value))
+    .map((option) => {
+      const schema = jsonSchema(option);
+      const own = Object.fromEntries(Object.entries(schema.properties ?? {}).filter(([key]) => !COMMON_OBJECT_FIELDS.has(key)));
+      return `- ${option.shape.type.value} ${describeSchema({ type: "object", properties: own, required: schema.required })}`;
+    });
   const common = jsonSchema(SceneObject.options[0]!).properties ?? {};
-  const commonFields = [...COMMON_OBJECT_FIELDS].filter((key) => key !== "type" && !HIDDEN_FIELDS.has(key) && common[key])
+  const commonFields = [...COMMON_OBJECT_FIELDS]
+    .filter((key) => key !== "type" && !HIDDEN_FIELDS.has(key) && common[key])
     .map((key) => `${key}${key === "id" ? "" : "?"}: ${describeSchema(common[key]!)}${common[key]!.description ? ` « ${common[key]!.description} »` : ""}`);
-  const actions = Action.options.filter((option) => PLAYABLE.actions.has(option.shape.verb.value)).map((option) => {
-    const schema = jsonSchema(option);
-    const own = Object.fromEntries(Object.entries(schema.properties ?? {}).filter(([key]) => !COMMON_ACTION_FIELDS.has(key)));
-    return `- ${option.shape.verb.value} ${describeSchema({ type: "object", properties: own, required: schema.required })}`;
-  });
+  const actions = Action.options
+    .filter((option) => PLAYABLE.actions.has(option.shape.verb.value))
+    .map((option) => {
+      const schema = jsonSchema(option);
+      const own = Object.fromEntries(Object.entries(schema.properties ?? {}).filter(([key]) => !COMMON_ACTION_FIELDS.has(key)));
+      return `- ${option.shape.verb.value} ${describeSchema({ type: "object", properties: own, required: schema.required })}`;
+    });
   return [
     "OBJETS (champs communs à tous : " + commonFields.join(", ") + ")",
     ...objects,
     "",
-    "VERBES (chaque action a un id, et soit at, soit start + end ; pace? : \"quick\" | \"normal\" | \"slow\" avec at)",
+    'VERBES (chaque action a un id, et soit at, soit start + end ; pace? : "quick" | "normal" | "slow" avec at)',
     ...actions,
   ].join("\n");
 }
@@ -206,15 +215,39 @@ export const PROMPT_EXAMPLES = [
     slice: {
       slice_id: "s_equation",
       introduces: [
-        { id: "eq", type: "math", content: "2x + 3 = 7", parts: [{ id: "left", text: "2x + 3" }, { id: "right", text: "= 7" }] },
+        {
+          id: "eq",
+          type: "math",
+          content: "2x + 3 = 7",
+          parts: [
+            { id: "left", text: "2x + 3" },
+            { id: "right", text: "= 7" },
+          ],
+        },
         { id: "eq2", type: "math", content: "2x = 4" },
       ],
       beats: [
-        { id: "pose", say: "Prenons deux x plus trois égale sept.", cues: [{ id: "lhs", text: "deux x plus trois" }, { id: "rhs", text: "égale sept" }],
-          do: [{ id: "w_left", verb: "write", target: "eq", part: "left", at: "cue:lhs" }, { id: "w_right", verb: "write", target: "eq", part: "right", at: "cue:rhs" }] },
-        { id: "retire", say: "On enlève trois des deux côtés : il reste deux x égale quatre.", cues: [{ id: "reste", text: "reste" }],
-          do: [{ id: "t_eq", verb: "transform", source: "eq", target: "eq2", at: "cue:reste" },
-            { id: "h_eq2", verb: "highlight", target: "eq2", role: "result", at: "after:t_eq" }] },
+        {
+          id: "pose",
+          say: "Prenons deux x plus trois égale sept.",
+          cues: [
+            { id: "lhs", text: "deux x plus trois" },
+            { id: "rhs", text: "égale sept" },
+          ],
+          do: [
+            { id: "w_left", verb: "write", target: "eq", part: "left", at: "cue:lhs" },
+            { id: "w_right", verb: "write", target: "eq", part: "right", at: "cue:rhs" },
+          ],
+        },
+        {
+          id: "retire",
+          say: "On enlève trois des deux côtés : il reste deux x égale quatre.",
+          cues: [{ id: "reste", text: "reste" }],
+          do: [
+            { id: "t_eq", verb: "transform", source: "eq", target: "eq2", at: "cue:reste" },
+            { id: "h_eq2", verb: "highlight", target: "eq2", role: "result", at: "after:t_eq" },
+          ],
+        },
       ],
     },
   },
@@ -229,15 +262,38 @@ export const PROMPT_EXAMPLES = [
         { id: "p1_label", type: "label", content: "(1 ; 1)", attachment: { parent: "p1", anchor: "right" } },
       ],
       beats: [
-        { id: "trace", say: "Voici la courbe de x au carré, une parabole.", cues: [{ id: "courbe", text: "courbe" }, { id: "parabole_mot", text: "parabole" }],
-          do: [{ id: "cadre", verb: "camera.focus", targets: ["axes"], bounds: "layout_bounds", save_as: "vue_courbe", at: "beat:start" },
+        {
+          id: "trace",
+          say: "Voici la courbe de x au carré, une parabole.",
+          cues: [
+            { id: "courbe", text: "courbe" },
+            { id: "parabole_mot", text: "parabole" },
+          ],
+          do: [
+            { id: "cadre", verb: "camera.focus", targets: ["axes"], bounds: "layout_bounds", save_as: "vue_courbe", at: "beat:start" },
             { id: "a_axes", verb: "show", target: "axes", at: "beat:start" },
-            { id: "d_parabole", verb: "draw", target: "parabole", start: "cue:courbe", end: "cue_end:parabole_mot" }] },
-        { id: "point", say: "Quand x vaut un, x au carré vaut aussi un.", cues: [{ id: "x_un", text: "x vaut un" }, { id: "aussi_un", text: "vaut aussi un" }],
-          do: [{ id: "detail", verb: "camera.focus", targets: ["p1"], bounds: "layout_bounds", at: "cue:x_un" },
-            { id: "s_p1", verb: "show", target: "p1", at: "cue:x_un" }, { id: "s_label", verb: "show", target: "p1_label", at: "cue:aussi_un" }] },
-        { id: "ensemble", say: "Puis revenons à la courbe entière.", cues: [{ id: "retour", text: "revenons" }],
-          do: [{ id: "retablir", verb: "camera.restore", frame: "vue_courbe", at: "cue:retour" }] },
+            { id: "d_parabole", verb: "draw", target: "parabole", start: "cue:courbe", end: "cue_end:parabole_mot" },
+          ],
+        },
+        {
+          id: "point",
+          say: "Quand x vaut un, x au carré vaut aussi un.",
+          cues: [
+            { id: "x_un", text: "x vaut un" },
+            { id: "aussi_un", text: "vaut aussi un" },
+          ],
+          do: [
+            { id: "detail", verb: "camera.focus", targets: ["p1"], bounds: "layout_bounds", at: "cue:x_un" },
+            { id: "s_p1", verb: "show", target: "p1", at: "cue:x_un" },
+            { id: "s_label", verb: "show", target: "p1_label", at: "cue:aussi_un" },
+          ],
+        },
+        {
+          id: "ensemble",
+          say: "Puis revenons à la courbe entière.",
+          cues: [{ id: "retour", text: "revenons" }],
+          do: [{ id: "retablir", verb: "camera.restore", frame: "vue_courbe", at: "cue:retour" }],
+        },
       ],
     },
   },
@@ -246,20 +302,55 @@ export const PROMPT_EXAMPLES = [
     slice: {
       slice_id: "s_angles",
       introduces: [
-        { id: "tri", type: "polygon", params: { vertices: [[0, 0], [4, 0], [1, 3]] } },
-        { id: "rule", type: "math", content: "\\alpha + \\beta + \\gamma = 180^\\circ",
-          parts: [{ id: "angles", text: "\\alpha + \\beta + \\gamma" }, { id: "total", text: "= 180^\\circ" }] },
+        {
+          id: "tri",
+          type: "polygon",
+          params: {
+            vertices: [
+              [0, 0],
+              [4, 0],
+              [1, 3],
+            ],
+          },
+        },
+        {
+          id: "rule",
+          type: "math",
+          content: "\\alpha + \\beta + \\gamma = 180^\\circ",
+          parts: [
+            { id: "angles", text: "\\alpha + \\beta + \\gamma" },
+            { id: "total", text: "= 180^\\circ" },
+          ],
+        },
         { id: "note", type: "text", content: "Pour tout triangle" },
       ],
-      groups: [{ id: "facts", items: ["rule", "note"], arrange: { direction: "down", align: "left" }, layout: { next_to: "tri", direction: "right", gap: "lg" } }],
+      groups: [
+        { id: "facts", items: ["rule", "note"], arrange: { direction: "down", align: "left" }, layout: { next_to: "tri", direction: "right", gap: "lg" } },
+      ],
       beats: [
-        { id: "regle", say: "Dans un triangle, les trois angles additionnés font toujours cent quatre-vingts degrés.",
-          cues: [{ id: "triangle", text: "triangle" }, { id: "angles_mot", text: "trois angles" }, { id: "degres", text: "cent quatre-vingts degrés" }],
-          do: [{ id: "d_tri", verb: "draw", target: "tri", at: "cue:triangle" },
+        {
+          id: "regle",
+          say: "Dans un triangle, les trois angles additionnés font toujours cent quatre-vingts degrés.",
+          cues: [
+            { id: "triangle", text: "triangle" },
+            { id: "angles_mot", text: "trois angles" },
+            { id: "degres", text: "cent quatre-vingts degrés" },
+          ],
+          do: [
+            { id: "d_tri", verb: "draw", target: "tri", at: "cue:triangle" },
             { id: "w_angles", verb: "write", target: "rule", part: "angles", at: "cue:angles_mot" },
-            { id: "w_total", verb: "write", target: "rule", part: "total", at: "cue:degres" }] },
-        { id: "toujours", say: "Et ça marche pour tous les triangles, peu importe leur forme.", cues: [{ id: "tous", text: "tous les triangles" }],
-          do: [{ id: "s_note", verb: "show", target: "note", at: "cue:tous" }, { id: "h_rule", verb: "highlight", target: "rule", role: "accent", at: "after:s_note" }] },
+            { id: "w_total", verb: "write", target: "rule", part: "total", at: "cue:degres" },
+          ],
+        },
+        {
+          id: "toujours",
+          say: "Et ça marche pour tous les triangles, peu importe leur forme.",
+          cues: [{ id: "tous", text: "tous les triangles" }],
+          do: [
+            { id: "s_note", verb: "show", target: "note", at: "cue:tous" },
+            { id: "h_rule", verb: "highlight", target: "rule", role: "accent", at: "after:s_note" },
+          ],
+        },
       ],
     },
   },
@@ -296,7 +387,10 @@ export function consignesFromEnv(env: Readonly<Record<string, string | undefined
 const LIGHT_REMOVALS: Readonly<Record<"FORMAT" | "SYNC_RULES" | "LAYOUT_RULES" | "MATH_RULES" | "CHECKLIST", readonly (readonly [string, string])[]>> = {
   FORMAT: [],
   SYNC_RULES: [
-    ["\n   Une fraction ne se découpe JAMAIS en numérateur et dénominateur : \\frac{3}{4} est une seule partie ; pour parler du\n   numérateur puis du dénominateur, écris la fraction entière puis surligne-la (highlight).", ""],
+    [
+      "\n   Une fraction ne se découpe JAMAIS en numérateur et dénominateur : \\frac{3}{4} est une seule partie ; pour parler du\n   numérateur puis du dénominateur, écris la fraction entière puis surligne-la (highlight).",
+      "",
+    ],
     [" sans les intitulés (highlight seulement).", " sans les intitulés."],
   ],
   LAYOUT_RULES: [
@@ -312,22 +406,33 @@ const LIGHT_REMOVALS: Readonly<Record<"FORMAT" | "SYNC_RULES" | "LAYOUT_RULES" |
 
 function lighten(section: keyof typeof LIGHT_REMOVALS, text: string): string {
   return LIGHT_REMOVALS[section].reduce((current, [removed, replacement]) => {
-    if (current.split(removed).length !== 2) throw new Error(`Consignes allégées : passage introuvable ou ambigu dans ${section} : « ${removed.trim().slice(0, 60)}… »`);
+    if (current.split(removed).length !== 2)
+      throw new Error(`Consignes allégées : passage introuvable ou ambigu dans ${section} : « ${removed.trim().slice(0, 60)}… »`);
     return current.replace(removed, () => replacement);
   }, text);
 }
 
 export function buildNesalioSystemPrompt(consignes: Consignes = consignesFromEnv()): string {
   const light = consignes === "allegees";
-  const section = (name: keyof typeof LIGHT_REMOVALS, text: string) => light ? lighten(name, text) : text;
+  const section = (name: keyof typeof LIGHT_REMOVALS, text: string) => (light ? lighten(name, text) : text);
   const examples = PROMPT_EXAMPLES.map(({ title, slice }) => `Exemple — ${title} :\n${JSON.stringify({ slice })}`);
   return [
-    ROLE, VISUAL_DICTIONARY, section("FORMAT", FORMAT), "LANGAGE NESALIO (généré depuis le contrat)", languageReference(),
-    section("SYNC_RULES", SYNC_RULES), section("LAYOUT_RULES", LAYOUT_RULES), section("MATH_RULES", MATH_RULES),
-    "EXEMPLES DE TRANCHES (des mécanismes à reprendre, pas des leçons à copier)", ...examples,
-    "EXEMPLE DE LEÇON COMPLÈTE (pour le fil, la justification et le ton ; ne copie pas son sujet)", exampleLessonText(),
-    "EXEMPLE DE LEÇON OÙ LA FIGURE BOUGE (un paramètre animé, une valeur calculée qui suit, des points calculés)", lessonText(MOVING_EXAMPLE_LESSON),
-    "EXEMPLE DE LEÇON DE REFUS (question hors périmètre : une seule tranche)", lessonText(REFUSAL_EXAMPLE),
+    ROLE,
+    VISUAL_DICTIONARY,
+    section("FORMAT", FORMAT),
+    "LANGAGE NESALIO (généré depuis le contrat)",
+    languageReference(),
+    section("SYNC_RULES", SYNC_RULES),
+    section("LAYOUT_RULES", LAYOUT_RULES),
+    section("MATH_RULES", MATH_RULES),
+    "EXEMPLES DE TRANCHES (des mécanismes à reprendre, pas des leçons à copier)",
+    ...examples,
+    "EXEMPLE DE LEÇON COMPLÈTE (pour le fil, la justification et le ton ; ne copie pas son sujet)",
+    exampleLessonText(),
+    "EXEMPLE DE LEÇON OÙ LA FIGURE BOUGE (un paramètre animé, une valeur calculée qui suit, des points calculés)",
+    lessonText(MOVING_EXAMPLE_LESSON),
+    "EXEMPLE DE LEÇON DE REFUS (question hors périmètre : une seule tranche)",
+    lessonText(REFUSAL_EXAMPLE),
     section("CHECKLIST", CHECKLIST),
   ].join("\n\n");
 }
@@ -336,8 +441,10 @@ export function buildNesalioMessages(question: string): ChatMessage[] {
   return [
     { role: "system", content: buildNesalioSystemPrompt() },
     // The guide of the question's notion goes with the question: the system prompt stays the same for every question.
-    { role: "user", content: [`Question de l'élève : « ${question.trim()} »`, guideSection(question), "Écris l'explication au format Nesalio."]
-      .filter(Boolean).join("\n\n") },
+    {
+      role: "user",
+      content: [`Question de l'élève : « ${question.trim()} »`, guideSection(question), "Écris l'explication au format Nesalio."].filter(Boolean).join("\n\n"),
+    },
   ];
 }
 
@@ -351,14 +458,15 @@ const REFUSAL_SLICE = REFUSAL_EXAMPLE.slices[0].slice_id;
 export function repairMessage(sliceId: string, issues: readonly { path: readonly PropertyKey[]; message: string }[], lineShown = false): string {
   const lines = issues.slice(0, 12).map(({ path, message }) => `- ${path.map(String).join(".")} : ${message}`);
   const rewrite = lineShown
-    ? "Ta ligne refusée est ci-dessus : recopie-la en ne changeant que les champs cités, sur une ligne {\"slice\": …}"
-    : "Réécris cette tranche corrigée, sur une ligne {\"slice\": …}";
+    ? 'Ta ligne refusée est ci-dessus : recopie-la en ne changeant que les champs cités, sur une ligne {"slice": …}'
+    : 'Réécris cette tranche corrigée, sur une ligne {"slice": …}';
   // The refusal lesson has one tranche by design (pedagogy.ts, REFUSAL_EXAMPLE): nothing follows it.
-  if (sliceId === REFUSAL_SLICE) return [
-    `La tranche « ${sliceId} » a été refusée par le moteur :`,
-    ...lines,
-    `${rewrite} : c'est la seule tranche de la leçon de refus, n'écris rien après.`,
-  ].join("\n");
+  if (sliceId === REFUSAL_SLICE)
+    return [
+      `La tranche « ${sliceId} » a été refusée par le moteur :`,
+      ...lines,
+      `${rewrite} : c'est la seule tranche de la leçon de refus, n'écris rien après.`,
+    ].join("\n");
   return [
     `La tranche « ${sliceId} » a été refusée par le moteur :`,
     ...lines,
@@ -377,7 +485,7 @@ export function simplifyMessage(sliceId: string, issues: readonly { path: readon
   return [
     `La tranche « ${sliceId} » est refusée, et les corrections permises pour cette leçon sont épuisées :`,
     ...issues.slice(0, 6).map(({ path, message }) => `- ${path.map(String).join(".")} : ${message}`),
-    "Dernier essai : réécris-la PLUS SIMPLE, même slice_id, sur une ligne {\"slice\": …}. Garde ce que tu expliques,",
+    'Dernier essai : réécris-la PLUS SIMPLE, même slice_id, sur une ligne {"slice": …}. Garde ce que tu expliques,',
     "mais retire ou remplace l'objet ou le geste fautif : un tableau devient une formule ou une phrase, un surlignage",
     "difficile est retiré, une valeur calculée est écrite comme une formule ordinaire.",
     "Puis écris toutes les tranches qui devaient la suivre, jusqu'à la fin de la leçon.",
@@ -392,7 +500,7 @@ export function reviewFixMessage(sliceId: string, alerts: readonly { citation: s
   return [
     `Un relecteur a trouvé des erreurs de fond dans la tranche « ${sliceId} » (pas encore montrée à l'élève) :`,
     ...alerts.map(({ citation, correction }) => `- « ${citation} » → ${correction}`),
-    "Refais d'abord toi-même chaque calcul cité. Ta tranche est ci-dessus : recopie-la sur une ligne {\"slice\": …}, même slice_id,",
+    'Refais d\'abord toi-même chaque calcul cité. Ta tranche est ci-dessus : recopie-la sur une ligne {"slice": …}, même slice_id,',
     "en corrigeant ces erreurs partout où elles apparaissent (voix, formules, tableaux, figures, étiquettes) et rien d'autre.",
     "Puis écris TOUTES les tranches qui devaient la suivre, jusqu'à la fin de la leçon, cohérentes avec la correction ;",
     "ne t'arrête après elle que si c'était la dernière.",
@@ -404,7 +512,7 @@ export function continueMessage(accepted: readonly string[]): string {
   if (accepted.includes(REFUSAL_SLICE)) return "La leçon de refus n'a qu'une seule tranche : elle est complète, n'écris rien de plus.";
   return [
     `La leçon n'a que ${accepted.length} tranche(s) (${accepted.join(", ")}) : il en faut 3 à 5.`,
-    "Continue : écris les tranches suivantes, une par ligne {\"slice\": …}, jusqu'au récapitulatif, sans réécrire celles-ci.",
+    'Continue : écris les tranches suivantes, une par ligne {"slice": …}, jusqu\'au récapitulatif, sans réécrire celles-ci.',
   ].join("\n");
 }
 
@@ -415,9 +523,9 @@ export function continueMessage(accepted: readonly string[]): string {
 export function repairHeaderMessage(reason: "invalid" | "missing", issues: readonly { path: readonly PropertyKey[]; message: string }[]): string {
   const lines = issues.slice(0, 12).map(({ path, message }) => `- ${path.length ? `${path.map(String).join(".")} : ` : ""}${message}`);
   return [
-    reason === "invalid" ? "La ligne {\"lesson\": …} a été refusée par le moteur :" : "La ligne {\"lesson\": …} manque ou est illisible :",
+    reason === "invalid" ? 'La ligne {"lesson": …} a été refusée par le moteur :' : 'La ligne {"lesson": …} manque ou est illisible :',
     ...lines,
-    "Écris d'abord la ligne {\"lesson\": …, \"math_context\": …} corrigée, en un seul objet JSON complet sur une ligne (vérifie que chaque { a son }),",
+    'Écris d\'abord la ligne {"lesson": …, "math_context": …} corrigée, en un seul objet JSON complet sur une ligne (vérifie que chaque { a son }),',
     "puis toutes les tranches, une par ligne.",
   ].join("\n");
 }

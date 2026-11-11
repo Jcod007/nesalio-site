@@ -44,7 +44,30 @@ export function normalizeText(text) {
   out = out.replace(/\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "($1)/($2)");
   out = out.replace(/\\sqrt\s*\{([^{}]*)\}/g, "√$1");
   out = out.replace(/\\(?:mathrm|text|textbf|mathbf|operatorname|ce|mbox)\s*\{([^{}]*)\}/g, "$1");
-  const symbols = { times: "×", cdot: "·", pm: "±", pi: "π", mid: "|", approx: "≈", le: "≤", leq: "≤", ge: "≥", geq: "≥", to: "→", rightarrow: "→", longrightarrow: "→", rightleftharpoons: "⇌", Delta: "Δ", theta: "θ", degree: "°", circ: "°", lt: "<", gt: ">", neq: "≠", ne: "≠" };
+  const symbols = {
+    times: "×",
+    cdot: "·",
+    pm: "±",
+    pi: "π",
+    mid: "|",
+    approx: "≈",
+    le: "≤",
+    leq: "≤",
+    ge: "≥",
+    geq: "≥",
+    to: "→",
+    rightarrow: "→",
+    longrightarrow: "→",
+    rightleftharpoons: "⇌",
+    Delta: "Δ",
+    theta: "θ",
+    degree: "°",
+    circ: "°",
+    lt: "<",
+    gt: ">",
+    neq: "≠",
+    ne: "≠",
+  };
   out = out.replace(/\\([A-Za-z]+)/g, (whole, name) => symbols[name] ?? whole);
   out = out.replace(/\\[,;:! ]|~/g, " ");
   out = out.replace(/\^\s*\{?\s*°\s*\}?/g, "°");
@@ -89,19 +112,31 @@ export function lessonText(lesson) {
     for (const object of slice.introduces ?? []) declared.set(object.id, object);
   }
   for (const slice of slices) {
-    for (const beat of slice.beats ?? []) for (const action of beat.do ?? []) {
-      if (!REVEALING.has(action.verb) || !action.target) continue;
-      reveal(action.target);
-      if (action.verb === "transform") {
-        const { id, verb, target, at, ...rest } = action;
-        transforms.push(...strings(rest));
+    for (const beat of slice.beats ?? [])
+      for (const action of beat.do ?? []) {
+        if (!REVEALING.has(action.verb) || !action.target) continue;
+        reveal(action.target);
+        if (action.verb === "transform") {
+          const { id, verb, target, at, ...rest } = action;
+          transforms.push(...strings(rest));
+        }
       }
-    }
   }
   const shown = [];
   for (const [id, object] of declared) {
     if (!revealed.has(id)) continue;
-    shown.push(...strings([object.content, object.parts?.map((p) => p.text), object.params, object.label, object.text, object.rows, object.row_labels, object.column_labels]));
+    shown.push(
+      ...strings([
+        object.content,
+        object.parts?.map((p) => p.text),
+        object.params,
+        object.label,
+        object.text,
+        object.rows,
+        object.row_labels,
+        object.column_labels,
+      ]),
+    );
   }
   const said = slices.flatMap((s) => (s.beats ?? []).map((b) => b.say ?? ""));
   return {
@@ -123,8 +158,7 @@ export function checkAnswer(question, lesson) {
   const where = expected.ou === "tableau" ? text.shown : `${text.shown}\n${text.said}`;
   const missing = expected.motifs.filter((pattern) => !new RegExp(pattern, "iu").test(where));
   // When the answer is only said, the report says so: the rule is « résultat écrit ».
-  const saidOnly = expected.ou === "tableau" && missing.length > 0
-    && missing.every((pattern) => new RegExp(pattern, "iu").test(text.said));
+  const saidOnly = expected.ou === "tableau" && missing.length > 0 && missing.every((pattern) => new RegExp(pattern, "iu").test(text.said));
   return { ok: missing.length === 0, missing, saidOnly };
 }
 
@@ -210,8 +244,8 @@ export function summarize(results, prices = {}) {
   };
 }
 
-const pct = (value) => value == null ? "—" : `${(100 * value).toFixed(1)} %`;
-const sec = (ms) => ms == null ? "—" : `${(ms / 1000).toFixed(1)} s`;
+const pct = (value) => (value == null ? "—" : `${(100 * value).toFixed(1)} %`);
+const sec = (ms) => (ms == null ? "—" : `${(ms / 1000).toFixed(1)} s`);
 
 /**
  * Report as Markdown. `q7` applies the automatic part of the confidence
@@ -232,7 +266,9 @@ export function reportMarkdown({ label, model, rounds, startedAt, summary, byDis
     "| --- | --- |",
     `| Leçons intactes | **${summary.intact}/${summary.lessons} (${pct(summary.intactRate)})** |`,
     ...Object.entries(byDiscipline).map(([d, s]) => `| — dont ${d} | ${s.intact}/${s.lessons} (${pct(s.intactRate)}) |`),
-    `| Issues | ${Object.entries(summary.outcomes).map(([k, v]) => `${k} : ${v}`).join(" ; ")} |`,
+    `| Issues | ${Object.entries(summary.outcomes)
+      .map(([k, v]) => `${k} : ${v}`)
+      .join(" ; ")} |`,
     `| 1re tranche (médiane / max) | ${sec(summary.firstSlice.medianMs)} / ${sec(summary.firstSlice.maxMs)} |`,
     `| Durée totale (médiane / max) | ${sec(summary.total.medianMs)} / ${sec(summary.total.maxMs)} |`,
     `| Refus (corrections demandées) | ${summary.refusals} |`,
@@ -253,14 +289,19 @@ export function reportMarkdown({ label, model, rounds, startedAt, summary, byDis
     "## Causes des refus et des échecs",
     "",
     ...(Object.keys(summary.causes).length
-      ? Object.entries(summary.causes).sort((a, b) => b[1] - a[1]).map(([c, n]) => `- ${c} : ${n}`)
+      ? Object.entries(summary.causes)
+          .sort((a, b) => b[1] - a[1])
+          .map(([c, n]) => `- ${c} : ${n}`)
       : ["- aucune"]),
     "",
     "## Détail par leçon",
     "",
     "| Leçon | Discipline | Issue | Intacte | Tranches | 1re tranche | Total | Refus | Réparations | Réponse écrite | Jamais montrés | Guides |",
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-    ...results.map((r) => `| ${r.id}#${r.round} | ${r.discipline} | ${r.outcome}${r.lost.length ? ` (perdue : ${r.lost.join(", ")})` : ""} | ${isIntact(r) ? "oui" : "**non**"} | ${r.slices} | ${sec(r.firstSliceMs)} | ${sec(r.ms)} | ${r.refusals.length} | ${r.repairs.length} | ${r.answer == null ? "—" : r.answer.ok ? "oui" : r.answer.saidOnly ? "dite seulement" : "**non**"} | ${r.neverShown.length} | ${r.guides.join(", ") || "aucun"} |`),
+    ...results.map(
+      (r) =>
+        `| ${r.id}#${r.round} | ${r.discipline} | ${r.outcome}${r.lost.length ? ` (perdue : ${r.lost.join(", ")})` : ""} | ${isIntact(r) ? "oui" : "**non**"} | ${r.slices} | ${sec(r.firstSliceMs)} | ${sec(r.ms)} | ${r.refusals.length} | ${r.repairs.length} | ${r.answer == null ? "—" : r.answer.ok ? "oui" : r.answer.saidOnly ? "dite seulement" : "**non**"} | ${r.neverShown.length} | ${r.guides.join(", ") || "aucun"} |`,
+    ),
     "",
   ];
   return lines.join("\n");

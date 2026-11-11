@@ -16,7 +16,15 @@ async function sentBody(options: Partial<CompletionOptions>): Promise<Record<str
       ? sse(JSON.stringify({ type: "message_stop" }))
       : sse(JSON.stringify({ choices: [{ delta: { content: "ok" } }] }), "[DONE]");
   }) as unknown as typeof fetch;
-  for await (const chunk of streamChatCompletion({ endpoint: GATEWAY, apiKey: "k", model: "m", messages: [{ role: "user", content: "x" }], fetchImpl, ...options })) void chunk;
+  for await (const chunk of streamChatCompletion({
+    endpoint: GATEWAY,
+    apiKey: "k",
+    model: "m",
+    messages: [{ role: "user", content: "x" }],
+    fetchImpl,
+    ...options,
+  }))
+    void chunk;
   return body;
 }
 

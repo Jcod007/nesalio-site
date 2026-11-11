@@ -52,8 +52,7 @@ export const REASONING_EFFORTS: readonly ReasoningEffort[] = ["none", "minimal",
 /** Une source de texte en flux : c'est tout ce dont le reste du serveur a besoin. */
 export type CompletionStream = (options: CompletionOptions) => AsyncIterable<string>;
 
-export const streamChatCompletion: CompletionStream = (options) =>
-  options.protocol === "anthropic" ? streamAnthropic(options) : streamOpenAi(options);
+export const streamChatCompletion: CompletionStream = (options) => (options.protocol === "anthropic" ? streamAnthropic(options) : streamOpenAi(options));
 
 async function* streamOpenAi(options: CompletionOptions): AsyncGenerator<string> {
   const fetchImpl = options.fetchImpl ?? fetch;
@@ -92,7 +91,11 @@ async function* streamOpenAi(options: CompletionOptions): AsyncGenerator<string>
  */
 export function gatewayPrivacy(endpoint: string, env: NodeJS.ProcessEnv = process.env) {
   let host = "";
-  try { host = new URL(endpoint).hostname; } catch { /* not a URL: not the Gateway */ }
+  try {
+    host = new URL(endpoint).hostname;
+  } catch {
+    /* not a URL: not the Gateway */
+  }
   if (host !== "ai-gateway.vercel.sh") return {};
   const zeroDataRetention = env.NESALIO_ZDR?.trim() !== "0";
   return { providerOptions: { gateway: { ...(zeroDataRetention ? { zeroDataRetention: true } : {}), disallowPromptTraining: true } } };
@@ -101,7 +104,10 @@ export function gatewayPrivacy(endpoint: string, env: NodeJS.ProcessEnv = proces
 /** API Messages de Claude : le système à part, réflexion modérée pour garder la voix réactive. */
 async function* streamAnthropic(options: CompletionOptions): AsyncGenerator<string> {
   const fetchImpl = options.fetchImpl ?? fetch;
-  const system = options.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n");
+  const system = options.messages
+    .filter((m) => m.role === "system")
+    .map((m) => m.content)
+    .join("\n\n");
   const messages = options.messages.filter((m) => m.role !== "system").map(({ role, content }) => ({ role, content }));
   const response = await fetchImpl(options.endpoint, {
     method: "POST",
@@ -154,7 +160,10 @@ export async function* parseAnthropicSse(body: ReadableStream<Uint8Array>): Asyn
       throw new UpstreamError(event.error?.message ?? "Erreur du modèle", status);
     }
     if (event.type === "content_block_delta" && event.delta?.type === "text_delta" && event.delta.text) yield event.delta.text;
-    if (event.type === "message_stop") { completed = true; break; }
+    if (event.type === "message_stop") {
+      completed = true;
+      break;
+    }
   }
   if (!completed) throw new UpstreamError("Flux Anthropic interrompu avant la fin du message");
 }
@@ -180,7 +189,10 @@ async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string
 export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
   let completed = false;
   for await (const data of sseData(body)) {
-    if (data === "[DONE]") { completed = true; break; }
+    if (data === "[DONE]") {
+      completed = true;
+      break;
+    }
     let payload: { choices?: { delta?: { content?: string }; finish_reason?: string | null }[]; error?: { message?: string } };
     try {
       payload = JSON.parse(data);

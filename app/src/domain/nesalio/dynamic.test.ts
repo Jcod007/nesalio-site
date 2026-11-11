@@ -12,15 +12,35 @@ const math = { symbols: { a: { kind: "parameter" as const, initial: 0.2, min: 0.
 describe("tranche sans nouveaux objets", () => {
   it("accepte une tranche qui omet introduces (vue en vraie génération)", async () => {
     const { validateModelOutput } = await import("./validate");
-    const first = validateModelOutput({ math_context: math, slices: [{
-      slice_id: "s1", introduces: [{ id: "f", type: "function_graph", params: { expression: "a*x", domain: [-2, 2] } }],
-      beats: [{ id: "b1", say: "Une droite.", cues: [], do: [{ id: "d", verb: "draw", target: "f", at: "beat:start" }] }],
-    }] });
+    const first = validateModelOutput({
+      math_context: math,
+      slices: [
+        {
+          slice_id: "s1",
+          introduces: [{ id: "f", type: "function_graph", params: { expression: "a*x", domain: [-2, 2] } }],
+          beats: [{ id: "b1", say: "Une droite.", cues: [], do: [{ id: "d", verb: "draw", target: "f", at: "beat:start" }] }],
+        },
+      ],
+    });
     if (!first.ok) throw new Error(JSON.stringify(first.issues));
-    const next = validateModelOutput({ slices: [{
-      slice_id: "s2",
-      beats: [{ id: "b2", say: "Elle se redresse.", cues: [], do: [{ id: "p", verb: "animate_parameter", parameter: "a", from: 0.2, to: 3, at: "beat:start" }] }],
-    }] }, first.state);
+    const next = validateModelOutput(
+      {
+        slices: [
+          {
+            slice_id: "s2",
+            beats: [
+              {
+                id: "b2",
+                say: "Elle se redresse.",
+                cues: [],
+                do: [{ id: "p", verb: "animate_parameter", parameter: "a", from: 0.2, to: 3, at: "beat:start" }],
+              },
+            ],
+          },
+        ],
+      },
+      first.state,
+    );
     expect(next.ok).toBe(true);
     if (next.ok) expect(next.value.slices[0]!.introduces).toEqual([]);
   });
@@ -40,27 +60,47 @@ describe("objets animés : la caméra cadre toute la plage du paramètre (spéc.
   });
 
   it("recadre avant l'animation pour que la courbe reste entière jusqu'au bout", async () => {
-    const lesson = validateLesson({ ...shell, scene: { ...shell.scene, math_context: math }, slices: [{
-      slice_id: "s",
-      introduces: [{ id: "f", type: "function_graph", params: { expression: "a*x", domain: [-2, 2] } }],
-      beats: [
-        { id: "b0", say: "Une droite presque plate.", cues: [], do: [
-          { id: "d", verb: "draw", target: "f", at: "beat:start" },
-          // Tight framing on today's flat line: the steep line at a = 3 would leave the frame.
-          { id: "c", verb: "camera.focus", targets: ["f"], bounds: "render_bounds", at: "beat:start" },
-        ] },
-        { id: "b1", say: "Elle se redresse.", cues: [], do: [{ id: "p", verb: "animate_parameter", parameter: "a", from: 0.2, to: 3, at: "beat:start" }] },
+    const lesson = validateLesson({
+      ...shell,
+      scene: { ...shell.scene, math_context: math },
+      slices: [
+        {
+          slice_id: "s",
+          introduces: [{ id: "f", type: "function_graph", params: { expression: "a*x", domain: [-2, 2] } }],
+          beats: [
+            {
+              id: "b0",
+              say: "Une droite presque plate.",
+              cues: [],
+              do: [
+                { id: "d", verb: "draw", target: "f", at: "beat:start" },
+                // Tight framing on today's flat line: the steep line at a = 3 would leave the frame.
+                { id: "c", verb: "camera.focus", targets: ["f"], bounds: "render_bounds", at: "beat:start" },
+              ],
+            },
+            { id: "b1", say: "Elle se redresse.", cues: [], do: [{ id: "p", verb: "animate_parameter", parameter: "a", from: 0.2, to: 3, at: "beat:start" }] },
+          ],
+        },
       ],
-    }] });
+    });
     if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues));
     const frames: NesalioFrame[] = [];
     const clip = (playheads: number[]): NesalioClip => ({
-      durationMs: 2_000, cues: new Map(), async play(draw) { for (const playhead of playheads) draw(playhead); }, dispose() {},
+      durationMs: 2_000,
+      cues: new Map(),
+      async play(draw) {
+        for (const playhead of playheads) draw(playhead);
+      },
+      dispose() {},
     });
     await playNesalioLesson(lesson.value, {
-      viewport, signal: new AbortController().signal, wait: async () => {},
-      openClip: async (beat) => beat.id === "b0" ? clip([2_000]) : clip([2_000]),
-      onFrame: (frame, beat) => { if (beat.id === "b1") frames.push(frame); },
+      viewport,
+      signal: new AbortController().signal,
+      wait: async () => {},
+      openClip: async (beat) => (beat.id === "b0" ? clip([2_000]) : clip([2_000])),
+      onFrame: (frame, beat) => {
+        if (beat.id === "b1") frames.push(frame);
+      },
     });
     const { scene } = frames.at(-1)!;
     const view = visibleArea(scene);

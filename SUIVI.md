@@ -84,6 +84,24 @@ voir le journal) ; seuls restent les outils de lecture des séances déjà enreg
 
 ## Journal
 
+### 2026-11-10 — Fusion de main dans Nesalio pour le déploiement (Claude Code, session « relecteur »)
+- Demande : déployer vite (une utilisatrice attend), en fusionnant proprement. `main` (production) avait 26 commits
+  absents de la branche : comptes par code courriel, sécurisation, **essai sans compte (3 réponses)**, Biome + CI
+  GitHub, découpages de l'ancien tuteur. 82 fichiers en conflit.
+- Fait dans un dossier séparé (`../nesalio-fusion`, branche `codex/fusion-main`) pour ne pas toucher l'arbre partagé.
+  Choix : fichiers de l'ancien tuteur gardés supprimés (et les ajouts de main qui ne servaient qu'à lui : `matchChoice`,
+  `sessionMemory`, `turnTranscript`, `cancellable`, morceaux de l'ancien rendu Manim) ; site vitrine `site/` = main ;
+  comptes, sécurité, `usageAccess`, `trial` = main ; moteur de placement = découpage de main (`board/layout/`).
+- **Essai sans compte porté sur Nesalio** (il ne protégeait que `/api/tutor`) : `/api/nesalio` (une leçon = un essai,
+  réservé après validation et avant génération), `/api/voice` (plafonds invités de main), `NesalioApp` dans
+  `TrialGateProvider` (connexion sur place, leçon demandée relancée ensuite, pause pendant la fenêtre de compte).
+  Invités : pas de micro (transcription réservée aux comptes, reconnaissance du navigateur retirée pour la vie privée).
+- Page `/` : démo locale (`NESALIO_LOCAL_DEMO=1 DISABLE_AI=1`) sert Nesalio, pour le parcours de la CI GitHub.
+- Biome : tout reformaté ; 11 règles signalées dans notre code laissées avec `biome-ignore` justifié (aucun changement
+  de comportement). `usageAccess.test.ts` vise maintenant `/api/nesalio`.
+- Vérifié : voir le commit de fusion (types, tests, Biome, build). Pas encore vérifié : vraie fenêtre, CI GitHub,
+  production.
+
 ### 2026-11-10 — Les leçons Nesalio sont enregistrées comme l'étaient les séances (Claude Code, session « relecteur »)
 - Demande de l'utilisateur (« branche-le ») après le constat du ménage : depuis le retrait de `/api/tutor`, plus aucune
   séance d'élève n'était enregistrée. Les cours des élèves sont des données précieuses.

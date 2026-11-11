@@ -46,7 +46,8 @@ export class ManimRenderer {
   }
 
   nesalioProjection(): NesalioProjection {
-    return this.projection ??= new NesalioProjection(this.scene);
+    // biome-ignore lint/suspicious/noAssignInExpressions: projection créée à la première demande
+    return (this.projection ??= new NesalioProjection(this.scene));
   }
 
   drawNesalio(frame: NesalioFrame): void {

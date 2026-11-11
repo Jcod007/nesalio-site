@@ -28,8 +28,8 @@ export function keptLessonsDir(env: NodeJS.ProcessEnv = process.env, cwd = proce
   return value === "1" ? resolve(cwd, "..", "analyses", "lecons-jouees") : resolve(cwd, value);
 }
 
-const text = (detail: unknown) => typeof detail === "string" ? detail
-  : detail instanceof Error ? `${detail.name}: ${detail.message}` : detail === undefined ? "" : JSON.stringify(detail);
+const text = (detail: unknown) =>
+  typeof detail === "string" ? detail : detail instanceof Error ? `${detail.name}: ${detail.message}` : detail === undefined ? "" : JSON.stringify(detail);
 
 export function createLessonKeeper(question: string, dir: string, now = new Date()): LessonKeeper {
   const logs: string[] = [];
@@ -39,7 +39,9 @@ export function createLessonKeeper(question: string, dir: string, now = new Date
   let done = false;
   const started = now.getTime();
   return {
-    log(message, detail) { logs.push(`${message} ${text(detail)}`.trim()); },
+    log(message, detail) {
+      logs.push(`${message} ${text(detail)}`.trim());
+    },
     event(event) {
       if (event.kind === "lesson") header = event;
       else if (event.kind === "slice") slices.push(event.slice);
@@ -52,18 +54,22 @@ export function createLessonKeeper(question: string, dir: string, now = new Date
       const id = (header?.lesson.id ?? "sans-en-tete").replace(/[^\w-]+/g, "_").slice(0, 60);
       const base = join(dir, `${stamp}-${id}`);
       const lesson = {
-        ...shell, lesson: header?.lesson ?? shell.lesson,
+        ...shell,
+        lesson: header?.lesson ?? shell.lesson,
         scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } },
         slices,
       };
       try {
         await mkdir(dir, { recursive: true });
         await writeFile(`${base}.json`, JSON.stringify(lesson, null, 1));
-        await writeFile(`${base}.journal.txt`, [
-          `Question : ${question}`,
-          `Fin : ${ending ? JSON.stringify(ending) : reason ?? "flux fermé"} — ${slices.length} tranche(s) — ${Date.now() - started} ms`,
-          ...logs,
-        ].join("\n"));
+        await writeFile(
+          `${base}.journal.txt`,
+          [
+            `Question : ${question}`,
+            `Fin : ${ending ? JSON.stringify(ending) : (reason ?? "flux fermé")} — ${slices.length} tranche(s) — ${Date.now() - started} ms`,
+            ...logs,
+          ].join("\n"),
+        );
       } catch (error) {
         console.warn("nesalio: leçon non gardée", error);
       }

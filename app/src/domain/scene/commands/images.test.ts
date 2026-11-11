@@ -7,12 +7,39 @@ import { collisions, covered, figureOutline } from "@/domain/board/collisions";
 const t = { start: 0, duration: 1000 };
 const close = (a: number[], b: number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i]!, 6));
 const ends = (s: SegmentNode) => [...s.from, ...s.to];
-const triangle = () => applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[1, 0], [3, 0], [1, 2]], names: ["A", "B", "C"] }, t);
+const triangle = () =>
+  applyAction(
+    emptyBoard(),
+    {
+      type: "triangle",
+      id: "tri",
+      points: [
+        [1, 0],
+        [3, 0],
+        [1, 2],
+      ],
+      names: ["A", "B", "C"],
+    },
+    t,
+  );
 
 describe("transformations géométriques", () => {
   it("réflexion par rapport à une droite : image A'B'C', traits perpendiculaires à l'axe", () => {
     let board = triangle();
-    board = applyAction(board, { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[0, -1], [0, 1]] }, t);
+    board = applyAction(
+      board,
+      {
+        type: "image",
+        id: "img",
+        target: "tri",
+        kind: "reflection",
+        axis: [
+          [0, -1],
+          [0, 1],
+        ],
+      },
+      t,
+    );
     close(ends(board.nodes["img-tri-ab"] as SegmentNode), [-1, 0, -3, 0]);
     expect((board.nodes["img-tri-A"] as TextNode).text).toBe("A'");
     expect(resolveTargets(board, "img-traces").length).toBe(3);
@@ -23,7 +50,20 @@ describe("transformations géométriques", () => {
 
   it("homothétie de centre et de rapport donnés : figure semblable, rayons depuis le centre", () => {
     let board = triangle();
-    board = applyAction(board, { type: "construct", id: "O", kind: "divide", of: [[0, 0], [1, 0]], ratio: 0 }, t);
+    board = applyAction(
+      board,
+      {
+        type: "construct",
+        id: "O",
+        kind: "divide",
+        of: [
+          [0, 0],
+          [1, 0],
+        ],
+        ratio: 0,
+      },
+      t,
+    );
     board = applyAction(board, { type: "image", id: "h", target: "tri", kind: "homothety", center: "O", ratio: 2 }, t);
     close(ends(board.nodes["h-tri-ab"] as SegmentNode), [2, 0, 6, 0]);
     close(ends(board.nodes["h-trace-3"] as SegmentNode), [0, 0, 2, 4]);
@@ -66,10 +106,24 @@ describe("le moteur place l'image à côté de l'original", () => {
 
   it("évite aussi les autres figures du tableau : l'image passe de l'autre côté", () => {
     // Une autre figure juste à droite du triangle (là où l'image irait d'abord).
-    let board = applyAction(triangle(), { type: "triangle", id: "autre", points: [[4.2, 0], [6.2, 0], [4.2, 2]] }, t);
+    const board = applyAction(
+      triangle(),
+      {
+        type: "triangle",
+        id: "autre",
+        points: [
+          [4.2, 0],
+          [6.2, 0],
+          [4.2, 2],
+        ],
+      },
+      t,
+    );
     for (const spec of [{ kind: "reflection", axis: "vertical" }, { kind: "translation" }, { kind: "homothety", ratio: 0.5 }]) {
       const next = play(board, { type: "image", id: "img", target: "tri", ...spec });
-      const hits = collisions(next).filter((c) => [c.a, c.b].some((id) => id.startsWith("img")) && [c.a, c.b].some((id) => id.startsWith("autre") || id.startsWith("tri")));
+      const hits = collisions(next).filter(
+        (c) => [c.a, c.b].some((id) => id.startsWith("img")) && [c.a, c.b].some((id) => id.startsWith("autre") || id.startsWith("tri")),
+      );
       expect(hits, JSON.stringify(spec)).toEqual([]);
     }
   });
@@ -77,8 +131,30 @@ describe("le moteur place l'image à côté de l'original", () => {
   it("le détecteur voit bien une image posée sur la figure (contrôle du test)", () => {
     // Avec un repère, l'axe x = 2 fait partie du problème : le moteur le garde, même à travers la figure.
     const withAxes = applyAction(emptyBoard(), { type: "axes", x: [-6, 6], y: [-4, 4] }, t);
-    let board = applyAction(withAxes, { type: "triangle", id: "tri", points: [[1, 0], [3, 0], [1, 2]], names: ["A", "B", "C"] }, t);
-    board = play(board, { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[2, -1], [2, 3]] });
+    let board = applyAction(
+      withAxes,
+      {
+        type: "triangle",
+        id: "tri",
+        points: [
+          [1, 0],
+          [3, 0],
+          [1, 2],
+        ],
+        names: ["A", "B", "C"],
+      },
+      t,
+    );
+    board = play(board, {
+      type: "image",
+      id: "img",
+      target: "tri",
+      kind: "reflection",
+      axis: [
+        [2, -1],
+        [2, 3],
+      ],
+    });
     expect(clashes(board).map((c) => c.kind)).toContain("dessins");
   });
 
@@ -86,7 +162,16 @@ describe("le moteur place l'image à côté de l'original", () => {
     let board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: "vertical", axisLabel: "d" });
     expect(board.nodes["img-axe"]).toMatchObject({ type: "segment", label: "d" });
     // Axe de symétrie voulu (sur la figure) : gardé tel quel.
-    board = play(triangle(), { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[1, -1], [1, 3]] });
+    board = play(triangle(), {
+      type: "image",
+      id: "img",
+      target: "tri",
+      kind: "reflection",
+      axis: [
+        [1, -1],
+        [1, 3],
+      ],
+    });
     close(ends(board.nodes["img-tri-ab"] as SegmentNode), [1, 0, -1, 0]);
     expect(board.nodes["img-axe"]).toBeUndefined();
   });
@@ -151,7 +236,20 @@ describe("positions libres : le moteur déplace ce qui gêne, garde les relation
 
   it("avec un repère, O(1,5 ; 0,5) fait partie du problème : gardé", () => {
     let board = applyAction(emptyBoard(), { type: "axes", x: [-6, 6], y: [-4, 4] }, t);
-    board = applyAction(board, { type: "triangle", id: "tri", points: [[1, 0], [3, 0], [1, 2]], names: ["A", "B", "C"] }, t);
+    board = applyAction(
+      board,
+      {
+        type: "triangle",
+        id: "tri",
+        points: [
+          [1, 0],
+          [3, 0],
+          [1, 2],
+        ],
+        names: ["A", "B", "C"],
+      },
+      t,
+    );
     board = play(board, { type: "point", id: "O", at: [1.5, 0.5], label: "O" });
     board = play(board, { type: "image", id: "img", target: "tri", kind: "homothety", center: "O", ratio: 2 });
     expect(pointAt(board, "O")).toEqual([1.5, 0.5]);
@@ -168,8 +266,30 @@ describe("positions libres : le moteur déplace ce qui gêne, garde les relation
   });
 
   it("axe de symétrie de la figure (l'image est la figure elle-même) : gardé", () => {
-    let board = applyAction(emptyBoard(), { type: "triangle", id: "tri", points: [[0, 0], [2, 0], [1, 2]], names: ["A", "B", "C"] }, t);
-    board = play(board, { type: "image", id: "img", target: "tri", kind: "reflection", axis: [[1, -1], [1, 3]] });
+    let board = applyAction(
+      emptyBoard(),
+      {
+        type: "triangle",
+        id: "tri",
+        points: [
+          [0, 0],
+          [2, 0],
+          [1, 2],
+        ],
+        names: ["A", "B", "C"],
+      },
+      t,
+    );
+    board = play(board, {
+      type: "image",
+      id: "img",
+      target: "tri",
+      kind: "reflection",
+      axis: [
+        [1, -1],
+        [1, 3],
+      ],
+    });
     close(ends(board.nodes["img-tri-ab"] as SegmentNode), [2, 0, 0, 0]);
   });
 
@@ -181,7 +301,7 @@ describe("positions libres : le moteur déplace ce qui gêne, garde les relation
 
   it.each([2, 3, 0.5, -1])("homothétie de rapport %s, O au hasard dans la figure : jamais d'image sur l'original", (k) => {
     let seed = 7;
-    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let i = 0; i < 25; i++) {
       // Un point au hasard dans le triangle (1,0) (3,0) (1,2).
       let [u, v] = [rand(), rand()];

@@ -121,9 +121,7 @@ function tokenize(source: string, namedSymbols = false): Token[] {
  * « 2xsin(x) » ou « pix » sans espaces. Le plus long nom connu gagne.
  */
 function splitIdentifier(word: string, start: number): Token[] {
-  const names = [...Object.keys(FUNCTIONS), ...Object.keys(CONSTANTS), "x", "t"].sort(
-    (a, b) => b.length - a.length,
-  );
+  const names = [...Object.keys(FUNCTIONS), ...Object.keys(CONSTANTS), "x", "t"].sort((a, b) => b.length - a.length);
   const out: Token[] = [];
   let rest = word.toLowerCase();
   let offset = 0;
@@ -143,7 +141,10 @@ const IMPLICIT_MUL = 20;
 
 class Parser {
   private index = 0;
-  constructor(private readonly tokens: Token[], private readonly symbols?: ReadonlySet<string>) {}
+  constructor(
+    private readonly tokens: Token[],
+    private readonly symbols?: ReadonlySet<string>,
+  ) {}
 
   parse(): ExprNode {
     const node = this.expression(0);
@@ -246,9 +247,7 @@ export const MAX_ABS_CONSTANT = 1e30;
 export const MAX_ABS_EXPONENT = 400;
 
 /** Expressions v3.3, avec des symboles déclarés et des limites indépendantes du moteur de rendu. */
-export function compileNamedExpression(
-  source: string, symbols: ReadonlySet<string>,
-): (values: ReadonlyMap<string, number>) => number | null {
+export function compileNamedExpression(source: string, symbols: ReadonlySet<string>): (values: ReadonlyMap<string, number>) => number | null {
   if (source.length > 256) throw new ExprError("Expression trop longue", 256);
   const root = new Parser(tokenize(source, true), symbols).parse();
   let count = 0;
@@ -256,11 +255,16 @@ export function compileNamedExpression(
   function binary(operator: Extract<ExprNode, { kind: "bin" }>["op"], left: number, right: number): number {
     if (!Number.isFinite(left) || !Number.isFinite(right)) return NaN;
     switch (operator) {
-      case "+": return left + right;
-      case "-": return left - right;
-      case "*": return left * right;
-      case "/": return left / right;
-      case "^": return Math.abs(right) <= MAX_ABS_EXPONENT ? Math.pow(left, right) : NaN;
+      case "+":
+        return left + right;
+      case "-":
+        return left - right;
+      case "*":
+        return left * right;
+      case "/":
+        return left / right;
+      case "^":
+        return Math.abs(right) <= MAX_ABS_EXPONENT ? left ** right : NaN;
     }
   }
   function compile(node: ExprNode, depth: number): Evaluate {
@@ -334,7 +338,7 @@ function build(node: ExprNode): (x: number) => number {
         case "/":
           return (x) => left(x) / right(x);
         case "^":
-          return (x) => Math.pow(left(x), right(x));
+          return (x) => left(x) ** right(x);
       }
     }
   }
@@ -359,15 +363,25 @@ export function tryCompileExpression(source: string): ((x: number) => number) | 
 // numeric members of a simple LaTeX formula. Used by the correctness checks.
 // ---------------------------------------------------------------------------
 
-export interface Rational { numerator: bigint; denominator: bigint }
+export interface Rational {
+  numerator: bigint;
+  denominator: bigint;
+}
 
 /** Bounded exact fraction: IEEE-754 rounding must not turn an error into a success. */
 function fraction(numerator: bigint, denominator: bigint): Rational | null {
   if (denominator === 0n || numerator.toString(2).length > 512 || denominator.toString(2).length > 512) return null;
-  if (denominator < 0n) { numerator = -numerator; denominator = -denominator; }
+  if (denominator < 0n) {
+    numerator = -numerator;
+    denominator = -denominator;
+  }
   let a = numerator < 0n ? -numerator : numerator;
   let b = denominator;
-  while (b) { const remainder = a % b; a = b; b = remainder; }
+  while (b) {
+    const remainder = a % b;
+    a = b;
+    b = remainder;
+  }
   return a === 0n ? { numerator: 0n, denominator: 1n } : { numerator: numerator / a, denominator: denominator / a };
 }
 
@@ -390,12 +404,19 @@ export function exactValue(node: ExprNode): Rational | null {
   const left = exactValue(node.left);
   const right = exactValue(node.right);
   if (!left || !right) return null;
-  const a = left.numerator, b = left.denominator, c = right.numerator, d = right.denominator;
+  const a = left.numerator,
+    b = left.denominator,
+    c = right.numerator,
+    d = right.denominator;
   switch (node.op) {
-    case "+": return fraction(a * d + c * b, b * d);
-    case "-": return fraction(a * d - c * b, b * d);
-    case "*": return fraction(a * c, b * d);
-    case "/": return fraction(a * d, b * c);
+    case "+":
+      return fraction(a * d + c * b, b * d);
+    case "-":
+      return fraction(a * d - c * b, b * d);
+    case "*":
+      return fraction(a * c, b * d);
+    case "/":
+      return fraction(a * d, b * c);
     case "^": {
       if (d !== 1n || c < -128n || c > 128n || (a === 0n && c <= 0n)) return null;
       const exponent = c < 0n ? -c : c;
@@ -452,7 +473,10 @@ interface LatexSource {
  * (with `variables`: if it uses another name than these variables).
  */
 function latexToSource(tex: string, variables: readonly string[] = []): LatexSource | null {
-  let s = tex.trim().replace(/[.;:]$/, "").trim();
+  let s = tex
+    .trim()
+    .replace(/[.;:]$/, "")
+    .trim();
   // A unit written at the end (« 13,47 cm », « 2080 $ ») is not part of the value; elsewhere it is not numeric.
   const unitMatch = TRAILING_UNIT.exec(s);
   const unit = unitMatch ? unitMatch[0].replace(/\\(?:text|mathrm|textrm|mbox)|[\\{}\s~,;:!]/g, "") || null : null;
@@ -498,14 +522,20 @@ function latexToSource(tex: string, variables: readonly string[] = []): LatexSou
   let floorSource = /\[/.test(s) ? s.replace(/\[/g, " floor(").replace(/\]/g, ")").replace(/\{/g, "(").replace(/\}/g, ")") : null;
   s = s.replace(/[{[]/g, "(").replace(/[}\]]/g, ")");
   // Degrees inside a trigonometric function become radians; elsewhere they mark an angle.
-  s = s.replace(/(sin|cos|tan)\s*\(\s*([\d.]+)\s*DEG\s*\)/g, "$1(($2)*pi/180)")
-    .replace(/(sin|cos|tan)\s*([\d.]+)\s*DEG/g, "$1(($2)*pi/180)");
+  s = s.replace(/(sin|cos|tan)\s*\(\s*([\d.]+)\s*DEG\s*\)/g, "$1(($2)*pi/180)").replace(/(sin|cos|tan)\s*([\d.]+)\s*DEG/g, "$1(($2)*pi/180)");
   if (floorSource !== null) {
-    floorSource = floorSource.replace(/(sin|cos|tan)\s*\(\s*([\d.]+)\s*DEG\s*\)/g, "$1(($2)*pi/180)")
-      .replace(/(sin|cos|tan)\s*([\d.]+)\s*DEG/g, "$1(($2)*pi/180)").replace(/DEG/g, " ").replace(/PCT/g, "*0.01").trim();
+    floorSource = floorSource
+      .replace(/(sin|cos|tan)\s*\(\s*([\d.]+)\s*DEG\s*\)/g, "$1(($2)*pi/180)")
+      .replace(/(sin|cos|tan)\s*([\d.]+)\s*DEG/g, "$1(($2)*pi/180)")
+      .replace(/DEG/g, " ")
+      .replace(/PCT/g, "*0.01")
+      .trim();
   }
   let degrees = false;
-  if (/DEG/.test(s)) { degrees = true; s = s.replace(/DEG/g, " "); }
+  if (/DEG/.test(s)) {
+    degrees = true;
+    s = s.replace(/DEG/g, " ");
+  }
   s = s.replace(/PCT/g, "*0.01").trim();
   if (/\\|[^\d\s.+\-*/^()a-z]/.test(s)) return null;
   // Only known function names, pi and the given variables: no other name, no Euler e (it would read as a variable).
@@ -556,10 +586,15 @@ export interface LatexChain {
   relations: { symbol: LatexRelation; start: number; end: number; written: string }[];
 }
 
-const RELATION = /^(?:=|≈|\\approx(?![a-zA-Z])|\\simeq(?![a-zA-Z])|\\neq?(?![a-zA-Z])|\\leq?(?![a-zA-Z])|\\geq?(?![a-zA-Z])|\\leqslant|\\geqslant|\\[lg]t(?![a-zA-Z])|<|>|≤|≥|⩽|⩾|≠)/;
-const STATEMENT_BREAK = /^(?:\\q?quad(?![a-zA-Z])|\\\\|\\(?:Long)?[Rr]ightarrow|\\(?:Long)?[Ll]eftrightarrow|\\implies|\\iff|\\Leftarrow|\\to(?![a-zA-Z])|\\longrightarrow|→|⇒|\\text\s*\{\s*(?:et|donc|ou|soit|car|alors|puis)\s*\}|;|&)/;
+const RELATION =
+  /^(?:=|≈|\\approx(?![a-zA-Z])|\\simeq(?![a-zA-Z])|\\neq?(?![a-zA-Z])|\\leq?(?![a-zA-Z])|\\geq?(?![a-zA-Z])|\\leqslant|\\geqslant|\\[lg]t(?![a-zA-Z])|<|>|≤|≥|⩽|⩾|≠)/;
+const STATEMENT_BREAK =
+  /^(?:\\q?quad(?![a-zA-Z])|\\\\|\\(?:Long)?[Rr]ightarrow|\\(?:Long)?[Ll]eftrightarrow|\\implies|\\iff|\\Leftarrow|\\to(?![a-zA-Z])|\\longrightarrow|→|⇒|\\text\s*\{\s*(?:et|donc|ou|soit|car|alors|puis)\s*\}|;|&)/;
 
-const RELATION_KINDS: readonly (readonly [RegExp, LatexRelation])[] = [[/^=$/, "="], [/^(?:≈|\\approx|\\simeq)$/, "≈"]];
+const RELATION_KINDS: readonly (readonly [RegExp, LatexRelation])[] = [
+  [/^=$/, "="],
+  [/^(?:≈|\\approx|\\simeq)$/, "≈"],
+];
 function relationOf(written: string): LatexRelation {
   return RELATION_KINDS.find(([pattern]) => pattern.test(written))?.[1] ?? "other";
 }
@@ -571,11 +606,22 @@ export function splitLatexChains(formula: string): LatexChain[] {
   let memberStart = 0;
   let depth = 0;
   const closeMember = (end: number) => chain.members.push({ tex: formula.slice(memberStart, end), start: memberStart });
-  for (let i = 0; i < formula.length;) {
+  for (let i = 0; i < formula.length; ) {
     const char = formula[i]!;
-    if (char === "\\" && /[{}[\]()]/.test(formula[i + 1] ?? "")) { i += 2; continue; }
-    if (char === "{" || char === "(" || char === "[") { depth++; i++; continue; }
-    if (char === "}" || char === ")" || char === "]") { depth = Math.max(0, depth - 1); i++; continue; }
+    if (char === "\\" && /[{}[\]()]/.test(formula[i + 1] ?? "")) {
+      i += 2;
+      continue;
+    }
+    if (char === "{" || char === "(" || char === "[") {
+      depth++;
+      i++;
+      continue;
+    }
+    if (char === "}" || char === ")" || char === "]") {
+      depth = Math.max(0, depth - 1);
+      i++;
+      continue;
+    }
     const rest = formula.slice(i);
     // Inside braces or parentheses (coordinates « (3 ; 4) », a fraction) nothing splits.
     const brk = depth === 0 ? STATEMENT_BREAK.exec(rest) : null;
@@ -624,7 +670,7 @@ export function readLatexFunction(tex: string, variables: readonly string[]): ((
     if (!converted || converted.unit || converted.degrees) return null;
     const names = new Set(variables);
     // « xy » is the product x × y.
-    const split = (source: string) => source.replace(/[a-z]+/g, (word) => [...word].every((letter) => names.has(letter)) ? [...word].join(" ") : word);
+    const split = (source: string) => source.replace(/[a-z]+/g, (word) => ([...word].every((letter) => names.has(letter)) ? [...word].join(" ") : word));
     const sources = [converted.source, ...(converted.floorSource === null ? [] : [converted.floorSource])].map(split);
     if (!sources.every((source) => (source.match(/[a-z]+/g) ?? []).some((word) => names.has(word)))) return null;
     return sources.map((source) => compileNamedExpression(source, names));

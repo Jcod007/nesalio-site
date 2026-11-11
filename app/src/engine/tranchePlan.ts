@@ -21,7 +21,17 @@
  */
 import type { Action, Slice } from "@/domain/nesalio/contract";
 import type { Box } from "@/domain/nesalio/placement";
-import { cameraView, currentId, fitSceneCamera, inside, keptInView, sceneBounds, targetObjects, type CameraFrame, type SceneState } from "@/domain/nesalio/sceneState";
+import {
+  cameraView,
+  currentId,
+  fitSceneCamera,
+  inside,
+  keptInView,
+  sceneBounds,
+  targetObjects,
+  type CameraFrame,
+  type SceneState,
+} from "@/domain/nesalio/sceneState";
 
 type CameraState = CameraFrame["state"];
 
@@ -35,8 +45,12 @@ export const COMPOSITION = { fill: 0.45, offCenter: 0.2 } as const;
  * or height) and stands near its centre (within COMPOSITION.offCenter of a screen).
  */
 export function composition(view: Box, shown: Box): { fill: number; offset: number; good: boolean } {
-  const width = view.x1 - view.x0, height = view.y1 - view.y0;
-  const x0 = Math.max(shown.x0, view.x0), x1 = Math.min(shown.x1, view.x1), y0 = Math.max(shown.y0, view.y0), y1 = Math.min(shown.y1, view.y1);
+  const width = view.x1 - view.x0,
+    height = view.y1 - view.y0;
+  const x0 = Math.max(shown.x0, view.x0),
+    x1 = Math.min(shown.x1, view.x1),
+    y0 = Math.max(shown.y0, view.y0),
+    y1 = Math.min(shown.y1, view.y1);
   const fill = Math.max((x1 - x0) / width, (y1 - y0) / height);
   const offset = Math.max(Math.abs((x0 + x1) / 2 - (view.x0 + view.x1) / 2) / width, Math.abs((y0 + y1) / 2 - (view.y0 + view.y1) / 2) / height);
   return { fill, offset, good: fill >= COMPOSITION.fill && offset <= COMPOSITION.offCenter };
@@ -94,7 +108,9 @@ export function planTranche(scene: SceneState, slice: Slice, padding: number, ma
   const aimed = (ids: Iterable<string>) => {
     const list = [...ids].filter((id) => own.has(id));
     const shared = frames(list);
-    const axes = [...scene.objects].filter(([, item]) => item.definition.type === "axes" && !item.removed && item.frame && shared.has(item.frame)).map(([id]) => id);
+    const axes = [...scene.objects]
+      .filter(([, item]) => item.definition.type === "axes" && !item.removed && item.frame && shared.has(item.frame))
+      .map(([id]) => id);
     return [...new Set([...list, ...axes])];
   };
 
@@ -111,10 +127,13 @@ export function planTranche(scene: SceneState, slice: Slice, padding: number, ma
       const key = targets.slice().sort().join("|");
       if (seen.has(key)) continue;
       seen.add(key);
+      // biome-ignore lint/suspicious/noImplicitAnyLet: le type vient du try qui suit
       let fitted;
       try {
         fitted = fitSceneCamera(scene, targets, "layout_bounds", { padding, kept, avoidCutting: true, leaving: passages[k]!.leaving, maxZoom });
-      } catch { fitted = null; }
+      } catch {
+        fitted = null;
+      }
       if (fitted && !fitted.hidden.some((id) => passages[k]!.reveals.includes(id))) pool.push({ targets, state: fitted.state });
     }
   }
@@ -155,14 +174,22 @@ export function planTranche(scene: SceneState, slice: Slice, padding: number, ma
   const back: number[][] = [];
   passages.forEach((passage, k) => {
     const here = pool.map((candidate) => stay(passage, candidate.state));
-    if (k === 0) { best = best.map((cost, c) => cost + here[c]!); back.push(pool.map(() => -1)); return; }
+    if (k === 0) {
+      best = best.map((cost, c) => cost + here[c]!);
+      back.push(pool.map(() => -1));
+      return;
+    }
     const next: number[] = [];
     const from: number[] = [];
     pool.forEach((candidate, c) => {
-      let low = Infinity, arg = c;
+      let low = Infinity,
+        arg = c;
       best.forEach((cost, p) => {
         const total = cost + (p === c ? 0 : move(pool[p]!.state, candidate.state));
-        if (total < low - 1e-9) { low = total; arg = p; }
+        if (total < low - 1e-9) {
+          low = total;
+          arg = p;
+        }
       });
       next.push(low + here[c]!);
       from.push(arg);
@@ -172,7 +199,11 @@ export function planTranche(scene: SceneState, slice: Slice, padding: number, ma
   });
   let c = best.reduce((arg, cost, i) => (cost < best[arg]! ? i : arg), 0);
   const path: number[] = [];
-  for (let k = passages.length - 1; k >= 0; k--) { path[k] = c; c = back[k]![c]!; if (c < 0) c = path[k]!; }
+  for (let k = passages.length - 1; k >= 0; k--) {
+    path[k] = c;
+    c = back[k]![c]!;
+    if (c < 0) c = path[k]!;
+  }
   let previous: CameraState = start;
   passages.forEach((passage, k) => {
     const candidate = pool[path[k]!]!;

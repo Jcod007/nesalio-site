@@ -12,18 +12,27 @@ it("renvoie les repères natifs du clip sans retranscrire la voix", async () => 
   vi.stubEnv("DISABLE_AI", "0");
   vi.stubEnv("AI_GATEWAY_API_KEY", "test");
   const characters = [..."L’étoile brille."];
-  const fetchGateway = vi.fn<typeof fetch>().mockImplementation(async () => Response.json({
-    audio: "AQID",
-    providerMetadata: { elevenlabs: { alignment: {
-      characters,
-      characterStartTimesSeconds: characters.map((_, index) => index / 10),
-      characterEndTimesSeconds: characters.map((_, index) => (index + 1) / 10),
-    } } },
-  }));
+  const fetchGateway = vi.fn<typeof fetch>().mockImplementation(async () =>
+    Response.json({
+      audio: "AQID",
+      providerMetadata: {
+        elevenlabs: {
+          alignment: {
+            characters,
+            characterStartTimesSeconds: characters.map((_, index) => index / 10),
+            characterEndTimesSeconds: characters.map((_, index) => (index + 1) / 10),
+          },
+        },
+      },
+    }),
+  );
   vi.stubGlobal("fetch", fetchGateway);
-  const response = await POST(new Request("http://localhost/api/voice", {
-    method: "POST", body: JSON.stringify({ text: "L’étoile brille.", cues: [{ id: "star", text: "étoile" }] }),
-  }));
+  const response = await POST(
+    new Request("http://localhost/api/voice", {
+      method: "POST",
+      body: JSON.stringify({ text: "L’étoile brille.", cues: [{ id: "star", text: "étoile" }] }),
+    }),
+  );
   expect(response.status).toBe(200);
   expect(fetchGateway).toHaveBeenCalledTimes(1);
   const [url, options] = fetchGateway.mock.calls[0]!;
@@ -39,10 +48,16 @@ it("livre le clip même quand un repère n’a pas d’heure, pour que la voix n
   vi.stubEnv("DISABLE_AI", "0");
   vi.stubEnv("AI_GATEWAY_API_KEY", "test");
   vi.spyOn(console, "warn").mockImplementation(() => {});
-  vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockImplementation(async () => Response.json({ audio: "AQID" })));
-  const response = await POST(new Request("http://localhost/api/voice", {
-    method: "POST", body: JSON.stringify({ text: "L’étoile brille.", cues: [{ id: "star", text: "étoile" }] }),
-  }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>().mockImplementation(async () => Response.json({ audio: "AQID" })),
+  );
+  const response = await POST(
+    new Request("http://localhost/api/voice", {
+      method: "POST",
+      body: JSON.stringify({ text: "L’étoile brille.", cues: [{ id: "star", text: "étoile" }] }),
+    }),
+  );
   expect(response.status).toBe(200);
   expect(JSON.parse(response.headers.get(CUE_TIMINGS_HEADER)!)).toEqual({});
   expect([...new Uint8Array(await response.arrayBuffer())]).toEqual([1, 2, 3]);

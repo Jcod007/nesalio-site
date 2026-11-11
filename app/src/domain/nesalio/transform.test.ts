@@ -20,10 +20,14 @@ const transform = (id: string, source: string, target: string) => ({ id, verb: "
 
 describe("transform : une étape de calcul devient la suivante, sur place", () => {
   it("n’accepte que des formules, et une seule fois la même cible", () => {
-    expect(validateModelOutput({ slices: [solving([[transform("t", "note", "e2")]])] }))
-      .toMatchObject({ ok: false, issues: [{ message: expect.stringContaining("formules") }] });
-    expect(validateModelOutput({ slices: [solving([[transform("t1", "e1", "e2")], [transform("t2", "e3", "e2")]])] }))
-      .toMatchObject({ ok: false, issues: [{ message: expect.stringContaining("déjà la cible") }] });
+    expect(validateModelOutput({ slices: [solving([[transform("t", "note", "e2")]])] })).toMatchObject({
+      ok: false,
+      issues: [{ message: expect.stringContaining("formules") }],
+    });
+    expect(validateModelOutput({ slices: [solving([[transform("t1", "e1", "e2")], [transform("t2", "e3", "e2")]])] })).toMatchObject({
+      ok: false,
+      issues: [{ message: expect.stringContaining("déjà la cible") }],
+    });
     expect(validateModelOutput({ slices: [solving([[transform("t1", "e1", "e2")], [transform("t2", "e2", "e3")]])] }).ok).toBe(true);
   });
 
@@ -38,19 +42,28 @@ describe("transform : une étape de calcul devient la suivante, sur place", () =
   });
 
   it("joue la métamorphose sur la source, puis montre la cible et retire la source", async () => {
-    const lesson = validateLesson({ ...shell, slices: [solving([
-      [{ id: "w1", verb: "write", target: "e1", at: "beat:start" }],
-      [transform("t1", "e1", "e2")],
-    ])] });
+    const lesson = validateLesson({
+      ...shell,
+      slices: [solving([[{ id: "w1", verb: "write", target: "e1", at: "beat:start" }], [transform("t1", "e1", "e2")]])],
+    });
     if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues));
     const frames: NesalioFrame[] = [];
     const clip = (playheads: number[]): NesalioClip => ({
-      durationMs: 2_000, cues: new Map(), async play(draw) { for (const playhead of playheads) draw(playhead); }, dispose() {},
+      durationMs: 2_000,
+      cues: new Map(),
+      async play(draw) {
+        for (const playhead of playheads) draw(playhead);
+      },
+      dispose() {},
     });
     await playNesalioLesson(lesson.value, {
-      viewport, signal: new AbortController().signal, wait: async () => {},
-      openClip: async (beat) => beat.id === "b0" ? clip([2_000]) : clip([450, 2_000]),
-      onFrame: (frame, beat) => { if (beat.id === "b1") frames.push(frame); },
+      viewport,
+      signal: new AbortController().signal,
+      wait: async () => {},
+      openClip: async (beat) => (beat.id === "b0" ? clip([2_000]) : clip([450, 2_000])),
+      onFrame: (frame, beat) => {
+        if (beat.id === "b1") frames.push(frame);
+      },
     });
     const [during, after] = frames as [NesalioFrame, NesalioFrame];
     expect(during.morphs.get("e1")).toMatchObject({ target: "e2", progress: 0.5 });
@@ -72,12 +85,21 @@ describe("transform : une étape de calcul devient la suivante, sur place", () =
     if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues));
     const frames: NesalioFrame[] = [];
     const clip = (playheads: number[]): NesalioClip => ({
-      durationMs: 2_000, cues: new Map(), async play(draw) { for (const playhead of playheads) draw(playhead); }, dispose() {},
+      durationMs: 2_000,
+      cues: new Map(),
+      async play(draw) {
+        for (const playhead of playheads) draw(playhead);
+      },
+      dispose() {},
     });
     await playNesalioLesson(lesson.value, {
-      viewport, signal: new AbortController().signal, wait: async () => {},
-      openClip: async (beat) => beat.id === "b2" ? clip([100, 2_000]) : clip([2_000]),
-      onFrame: (frame, beat) => { if (beat.id === "b2") frames.push(frame); },
+      viewport,
+      signal: new AbortController().signal,
+      wait: async () => {},
+      openClip: async (beat) => (beat.id === "b2" ? clip([100, 2_000]) : clip([2_000])),
+      onFrame: (frame, beat) => {
+        if (beat.id === "b2") frames.push(frame);
+      },
     });
     const [early, end] = frames as [NesalioFrame, NesalioFrame];
     expect(early.highlights.has("e2")).toBe(true);
@@ -89,9 +111,18 @@ describe("transform : une étape de calcul devient la suivante, sur place", () =
   it("refuse de placer un objet par rapport à une formule remplacée, en nommant la remplaçante", () => {
     const first = validateModelOutput({ slices: [solving([[transform("t1", "e1", "e2")]])] });
     if (!first.ok) throw new Error(JSON.stringify(first.issues));
-    const next = validateModelOutput({ slices: [{ slice_id: "s2",
-      introduces: [{ id: "c", type: "text", content: "Bien", layout: { next_to: "e1", direction: "right" } }],
-      beats: [{ id: "c1", say: "Bien.", cues: [], do: [] }] }] }, first.state);
+    const next = validateModelOutput(
+      {
+        slices: [
+          {
+            slice_id: "s2",
+            introduces: [{ id: "c", type: "text", content: "Bien", layout: { next_to: "e1", direction: "right" } }],
+            beats: [{ id: "c1", say: "Bien.", cues: [], do: [] }],
+          },
+        ],
+      },
+      first.state,
+    );
     expect(next).toMatchObject({ ok: false, issues: [{ message: expect.stringContaining("« e2 »") }] });
   });
 });

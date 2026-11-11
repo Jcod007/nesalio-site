@@ -8,9 +8,12 @@ import { accountOrigins, localAccountDemo } from "./authConfig";
 import { devCookieValue } from "./devAccess";
 import { createSessionLimits } from "./rateLimit";
 
-const request = (headers: Record<string, string> = {}) => new Request("https://app.nesalio.com/api/tutor", {
-  method: "POST", headers: { origin: "https://app.nesalio.com", ...headers }, body: "{}",
-});
+const request = (headers: Record<string, string> = {}) =>
+  new Request("https://app.nesalio.com/api/tutor", {
+    method: "POST",
+    headers: { origin: "https://app.nesalio.com", ...headers },
+    body: "{}",
+  });
 
 beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "pk_test_placeholder");
@@ -88,8 +91,9 @@ describe("API account boundary", () => {
   });
 
   it("does not trust wildcard or malformed origin settings", () => {
-    expect(accountOrigins({ NODE_ENV: "production", NEXT_PUBLIC_APP_URL: "https://*.vercel.app", VERCEL_URL: "preview.vercel.app" } as NodeJS.ProcessEnv))
-      .toEqual(["https://preview.vercel.app"]);
+    expect(
+      accountOrigins({ NODE_ENV: "production", NEXT_PUBLIC_APP_URL: "https://*.vercel.app", VERCEL_URL: "preview.vercel.app" } as NodeJS.ProcessEnv),
+    ).toEqual(["https://preview.vercel.app"]);
     expect(accountOrigins({ NODE_ENV: "production", NEXT_PUBLIC_APP_URL: "not a URL" } as NodeJS.ProcessEnv)).toEqual([]);
   });
 });

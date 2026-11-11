@@ -21,9 +21,9 @@
  *   7. « Revoir l'explication » rejoue la leçon sans nouvel appel à /api/nesalio ;
  *   8. une erreur du serveur affiche un message et « Réessayer ».
  *
- * Accès en test : « / » ne sert NesalioApp qu'à un élève connecté (Clerk) quand un
- * modèle est configuré ; la démo locale sans compte (NESALIO_LOCAL_DEMO=1) exige
- * DISABLE_AI=1, qui sert l'ancien tuteur. Le script le détecte et l'explique.
+ * Accès en test : la démo locale sans compte ni IA (NESALIO_LOCAL_DEMO=1 DISABLE_AI=1 npm run dev,
+ * comme la vérification GitHub) sert NesalioApp ; sans elle, « / » demande un compte ou l'essai.
+ * Le script détecte une page qui ne sert pas NesalioApp et l'explique.
  */
 import { readFileSync } from "node:fs";
 import { chromium } from "playwright";
@@ -31,7 +31,9 @@ import { AxeBuilder } from "@axe-core/playwright";
 
 const URL_UNDER_TEST = process.env.NESALIO_URL ?? "http://localhost:3000/";
 const FIXTURE = readFileSync(new URL("./fixtures/lecon-equation.ndjson", import.meta.url), "utf8");
-const EVENTS = FIXTURE.trim().split("\n").map((line) => JSON.parse(line));
+const EVENTS = FIXTURE.trim()
+  .split("\n")
+  .map((line) => JSON.parse(line));
 const QUESTION = "Comment je résous 3x + 5 = 17 ?";
 const SAID = EVENTS.filter((e) => e.kind === "slice").flatMap((e) => e.slice.beats.map((b) => b.say));
 const FIRST = SAID[0];
@@ -42,8 +44,9 @@ const SCREENS = [
 ];
 /** Expected without voice nor account: /api/voice answers 503, side calls may answer 401. */
 const EXPECTED = [/\/api\/voice/, /status of (401|403|503)/, /GPU stall/, /Audio indisponible/];
-const NO_ACCESS = "La page « / » ne sert pas NesalioApp sans compte. Il faut un accès de test côté app (voir le compte rendu du lot 6) : "
-  + "par exemple NESALIO_LOCAL_DEMO=1 qui sert NesalioApp hors production, /api/nesalio et /api/voice étant simulés par ce test.";
+const NO_ACCESS =
+  "La page « / » ne sert pas NesalioApp sans compte. Il faut un accès de test côté app (voir le compte rendu du lot 6) : " +
+  "par exemple NESALIO_LOCAL_DEMO=1 qui sert NesalioApp hors production, /api/nesalio et /api/voice étant simulés par ce test.";
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -56,7 +59,11 @@ async function seriousViolations(page) {
   const { violations } = await new AxeBuilder({ page }).analyze();
   return violations.filter((v) => v.impact === "serious" || v.impact === "critical");
 }
-const describe = (v) => `${v.id} (${v.help}) ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" ; ")}`;
+const describe = (v) =>
+  `${v.id} (${v.help}) ${v.nodes
+    .slice(0, 3)
+    .map((n) => n.target.join(" "))
+    .join(" ; ")}`;
 
 for (const screen of SCREENS) {
   const context = await browser.newContext({ viewport: { width: screen.width, height: screen.height } });
@@ -67,20 +74,31 @@ for (const screen of SCREENS) {
   let step = "0. chargement";
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.route("**/api/voice", (route) => { calls.voice++; return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Voix désactivée pour le test." }) }); });
-  await page.route("**/api/tutor", (route) => { calls.tutor++; return route.fulfill({ status: 503, body: "" }); });
+  await page.route("**/api/voice", (route) => {
+    calls.voice++;
+    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Voix désactivée pour le test." }) });
+  });
+  await page.route("**/api/tutor", (route) => {
+    calls.tutor++;
+    return route.fulfill({ status: 503, body: "" });
+  });
   await page.route("**/api/nesalio", async (route) => {
     calls.nesalio++;
     const body = route.request().postDataJSON();
     if (body?.question !== QUESTION) fail(screen.name, `question envoyée inattendue : ${JSON.stringify(body)}`);
-    const payload = serverMode === "error"
-      ? JSON.stringify({ kind: "error", code: "upstream", message: "Nesa n'arrive pas à répondre pour le moment. Réessaie dans un instant." }) + "\n"
-      : FIXTURE;
+    const payload =
+      serverMode === "error"
+        ? JSON.stringify({ kind: "error", code: "upstream", message: "Nesa n'arrive pas à répondre pour le moment. Réessaie dans un instant." }) + "\n"
+        : FIXTURE;
     await route.fulfill({ status: 200, contentType: "application/x-ndjson; charset=utf-8", body: payload });
   });
 
   const dock = page.getByRole("region", { name: "Nesa" });
-  const caption = () => dock.locator("[aria-live=polite]").innerText().catch(() => "");
+  const caption = () =>
+    dock
+      .locator("[aria-live=polite]")
+      .innerText()
+      .catch(() => "");
   const ask = async () => {
     const field = page.locator("form[data-size=large] input");
     await field.fill(QUESTION);
@@ -126,7 +144,8 @@ for (const screen of SCREENS) {
     const mute = page.getByRole("button", { name: /Couper la voix de Nesa/ });
     await mute.click();
     await page.getByRole("button", { name: /Réactiver la voix de Nesa/ }).waitFor({ timeout: 5_000 });
-    if ((await page.getByRole("button", { name: /Réactiver la voix de Nesa/ }).getAttribute("aria-pressed")) !== "true") fail(screen.name, "bouton du son : aria-pressed n'est pas à true");
+    if ((await page.getByRole("button", { name: /Réactiver la voix de Nesa/ }).getAttribute("aria-pressed")) !== "true")
+      fail(screen.name, "bouton du son : aria-pressed n'est pas à true");
     await page.getByRole("button", { name: /Réactiver la voix de Nesa/ }).click();
     for (const v of await seriousViolations(page)) fail(screen.name, `séance, accessibilité : ${describe(v)}`);
 
@@ -152,13 +171,19 @@ for (const screen of SCREENS) {
     // 8. Erreur simulée
     step = "8. Erreur simulée";
     serverMode = "error";
-    await page.getByRole("button", { name: /Nouvelle question|Nouvelle notion/ }).first().click();
+    await page
+      .getByRole("button", { name: /Nouvelle question|Nouvelle notion/ })
+      .first()
+      .click();
     await page.getByRole("heading", { name: /quelle notion tu bloques/i }).waitFor({ timeout: 10_000 });
     await ask();
     await dock.getByText(/Nesa n'arrive pas à répondre/).waitFor({ timeout: 15_000 });
     await dock.getByRole("button", { name: "Réessayer" }).waitFor({ timeout: 5_000 });
   } catch (error) {
-    fail(screen.name, `parcours interrompu à l'étape « ${step} » : ${error.message.split("\n")[0]} (carte de Nesa : ${JSON.stringify((await caption()).slice(0, 120))})`);
+    fail(
+      screen.name,
+      `parcours interrompu à l'étape « ${step} » : ${error.message.split("\n")[0]} (carte de Nesa : ${JSON.stringify((await caption()).slice(0, 120))})`,
+    );
     if (process.env.E2E_CAPTURES) await page.screenshot({ path: `${process.env.E2E_CAPTURES}/nesalio-${screen.name}.png` }).catch(() => {});
   }
 

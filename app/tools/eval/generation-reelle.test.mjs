@@ -25,14 +25,25 @@ describe.runIf(process.env.GENERATION_REELLE === "1")("génération réelle Nesa
   it("génère, valide et assemble une leçon", { timeout: 300_000 }, async () => {
     const question = process.env.QUESTION ?? "Explique-moi une fonction logarithme";
     const model = process.env.TUTOR_MODEL?.trim() || DEFAULTS.gatewayModel;
-    const slug = process.env.SORTIE ?? question.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+    const slug =
+      process.env.SORTIE ??
+      question
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40);
     const out = join(process.cwd(), "../analyses/generations");
     const started = Date.now();
     let raw = "";
     let firstSliceMs = null;
     for await (const chunk of streamChatCompletion({
-      endpoint: `${GATEWAY_BASE}/v1/chat/completions`, apiKey: gatewayToken(), model,
-      messages: buildNesalioMessages(question), maxTokens: 16_000, reasoningEffort: "low",
+      endpoint: `${GATEWAY_BASE}/v1/chat/completions`,
+      apiKey: gatewayToken(),
+      model,
+      messages: buildNesalioMessages(question),
+      maxTokens: 16_000,
+      reasoningEffort: "low",
     })) {
       raw += chunk;
       if (firstSliceMs === null && /\n\s*\{\s*"slice"[^\n]*\n/.test(raw)) firstSliceMs = Date.now() - started;
@@ -43,18 +54,48 @@ describe.runIf(process.env.GENERATION_REELLE === "1")("génération réelle Nesa
     let header = null;
     let state;
     const slices = [];
-    for (const [index, line] of raw.split("\n").map((l) => l.trim()).filter(Boolean).entries()) {
+    for (const [index, line] of raw
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .entries()) {
       let parsed;
-      try { parsed = JSON.parse(line); } catch { report.lines.push({ index, ok: false, issue: "JSON illisible", line: line.slice(0, 160) }); continue; }
-      if (parsed.lesson) { header = parsed; report.lines.push({ index, kind: "lesson", ok: true }); continue; }
-      if (!parsed.slice) { report.lines.push({ index, ok: false, issue: "ligne inattendue", line: line.slice(0, 160) }); continue; }
+      try {
+        parsed = JSON.parse(line);
+      } catch {
+        report.lines.push({ index, ok: false, issue: "JSON illisible", line: line.slice(0, 160) });
+        continue;
+      }
+      if (parsed.lesson) {
+        header = parsed;
+        report.lines.push({ index, kind: "lesson", ok: true });
+        continue;
+      }
+      if (!parsed.slice) {
+        report.lines.push({ index, ok: false, issue: "ligne inattendue", line: line.slice(0, 160) });
+        continue;
+      }
       const result = validateModelOutput({ ...(state ? {} : { math_context: header?.math_context }), slices: [parsed.slice] }, state);
-      if (result.ok) { state = result.state; slices.push(parsed.slice); }
-      report.lines.push({ index, kind: "slice", id: parsed.slice.slice_id, ok: result.ok, issues: result.ok ? [] : result.issues.slice(0, 8).map((i) => `${i.path.join(".")} : ${i.message}`) });
+      if (result.ok) {
+        state = result.state;
+        slices.push(parsed.slice);
+      }
+      report.lines.push({
+        index,
+        kind: "slice",
+        id: parsed.slice.slice_id,
+        ok: result.ok,
+        issues: result.ok ? [] : result.issues.slice(0, 8).map((i) => `${i.path.join(".")} : ${i.message}`),
+      });
       if (!result.ok) break; // les tranches suivantes dépendent de celle-ci
     }
 
-    const lesson = { ...shell, lesson: header?.lesson ?? shell.lesson, scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } }, slices };
+    const lesson = {
+      ...shell,
+      lesson: header?.lesson ?? shell.lesson,
+      scene: { ...shell.scene, math_context: header?.math_context ?? { symbols: {}, expressions: {} } },
+      slices,
+    };
     const assembled = slices.length ? validateLesson(lesson) : { ok: false, issues: [{ path: [], message: "aucune tranche valide" }] };
     report.assembled = assembled.ok ? "ok" : assembled.issues.slice(0, 5).map((i) => `${i.path.join(".")} : ${i.message}`);
     report.validSlices = slices.length;

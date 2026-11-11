@@ -39,8 +39,16 @@ export interface ValidationState {
 }
 
 const emptyState: ValidationState = {
-  slices: new Set(), objects: new Set(), parts: new Map(), figures: new Set(), members: new Map(), removed: new Set(),
-  formulas: new Set(), morphed: new Set(), replacedBy: new Map(), cameraFrames: new Set(),
+  slices: new Set(),
+  objects: new Set(),
+  parts: new Map(),
+  figures: new Set(),
+  members: new Map(),
+  removed: new Set(),
+  formulas: new Set(),
+  morphed: new Set(),
+  replacedBy: new Map(),
+  cameraFrames: new Set(),
   math: { symbols: {}, expressions: {} },
 };
 
@@ -93,8 +101,22 @@ function expression(source: string, names: ReadonlySet<string>, path: Path, repo
  * \left/\right and \begin/\end, and no exponent or operator cut from its operand.
  */
 const TEX_ARITY: Readonly<Record<string, number>> = {
-  frac: 2, dfrac: 2, tfrac: 2, cfrac: 2, binom: 2, sqrt: 1, text: 1, mathrm: 1, mathbf: 1, operatorname: 1,
-  overline: 1, underline: 1, vec: 1, hat: 1, bar: 1, boxed: 1,
+  frac: 2,
+  dfrac: 2,
+  tfrac: 2,
+  cfrac: 2,
+  binom: 2,
+  sqrt: 1,
+  text: 1,
+  mathrm: 1,
+  mathbf: 1,
+  operatorname: 1,
+  overline: 1,
+  underline: 1,
+  vec: 1,
+  hat: 1,
+  bar: 1,
+  boxed: 1,
 };
 
 /** Index after one argument (a braced group, a command or one character), or -1 if none. */
@@ -129,7 +151,7 @@ export function standaloneTex(text: string): boolean {
       let next = index + (command?.[0].length ?? 1);
       if (name === "sqrt" && text.slice(next).trimStart().startsWith("[")) next = text.indexOf("]", next) + 1 || text.length;
       // Only the presence of each argument is checked here; the main scan still balances their braces.
-      for (let argument = 0; argument < (name ? TEX_ARITY[name] ?? 0 : 0); argument++) {
+      for (let argument = 0; argument < (name ? (TEX_ARITY[name] ?? 0) : 0); argument++) {
         next = skipArgument(text, next);
         if (next < 0) return false;
       }
@@ -151,14 +173,16 @@ export function sameFormula(a: string, b: string): boolean {
 
 /** The comparison form used by `sameFormula`: not meant to be rendered. */
 export function normalFormula(text: string): string {
-  return text
-    .replace(/\\left|\\right/g, "")
-    // Spacing commands change the look, not the formula.
-    .replace(/\\(?:q?quad|[,;:!> ])/g, "")
-    .replace(/\s+/g, "")
-    .replace(/[−–]/g, "-")
-    .replace(/×/g, "\\times")
-    .replace(/([_^])\{([^{}\\])\}/g, "$1$2");
+  return (
+    text
+      .replace(/\\left|\\right/g, "")
+      // Spacing commands change the look, not the formula.
+      .replace(/\\(?:q?quad|[,;:!> ])/g, "")
+      .replace(/\s+/g, "")
+      .replace(/[−–]/g, "-")
+      .replace(/×/g, "\\times")
+      .replace(/([_^])\{([^{}\\])\}/g, "$1$2")
+  );
 }
 
 function checkParts(item: Extract<Slice["introduces"][number], { type: "math" }>, at: Path, report: Report): void {
@@ -180,9 +204,7 @@ function checkParts(item: Extract<Slice["introduces"][number], { type: "math" }>
   report([...at, "parts"], `Les parties mises bout à bout doivent redonner la formule : elles donnent « ${joined} », la formule est « ${item.content} ».`);
 }
 
-function mergeMath(
-  previous: MathContext, delta: MathContext | undefined, path: Path, report: Report,
-): MathContext {
+function mergeMath(previous: MathContext, delta: MathContext | undefined, path: Path, report: Report): MathContext {
   if (!delta) return previous;
   const symbols = { ...previous.symbols, ...delta.symbols };
   const expressions = { ...previous.expressions, ...delta.expressions };
@@ -201,10 +223,21 @@ function mergeMath(
   return { symbols, expressions };
 }
 
-function checkBeat(beat: Beat, state: ValidationState, written: Set<string>, removed: Set<string>, cameraFrames: Set<string>, path: Path, report: Report): void {
+function checkBeat(
+  beat: Beat,
+  state: ValidationState,
+  written: Set<string>,
+  removed: Set<string>,
+  cameraFrames: Set<string>,
+  path: Path,
+  report: Report,
+): void {
   const cues = new Map<string, { start: number; end: number }>();
   /** Declared objects, named in a refusal so that the repair aims at one of them. */
-  const known = () => { const ids = [...state.objects].filter((id) => !removed.has(id)); return ids.length > 15 ? `${ids.slice(-15).join(", ")}…` : ids.join(", ") || "aucun"; };
+  const known = () => {
+    const ids = [...state.objects].filter((id) => !removed.has(id));
+    return ids.length > 15 ? `${ids.slice(-15).join(", ")}…` : ids.join(", ") || "aucun";
+  };
   const cueIds = new Set<string>();
   beat.cues.forEach((cue, index) => {
     const at = [...path, "cues", index];
@@ -230,11 +263,16 @@ function checkBeat(beat: Beat, state: ValidationState, written: Set<string>, rem
         return;
       }
       const cue = cues.get(ref);
-      if (!cue) report([...at, field], `Repère absent ou invalide « ${ref} ». Repères de ce passage : ${[...cueIds].join(", ") || "aucun"} (écris cue:<id> avec un de ces id).`);
+      if (!cue)
+        report(
+          [...at, field],
+          `Repère absent ou invalide « ${ref} ». Repères de ce passage : ${[...cueIds].join(", ") || "aucun"} (écris cue:<id> avec un de ces id).`,
+        );
       return kind === "cue_end" ? cue?.end : cue?.start;
     }
     function checkTarget(id: string, field: Path): void {
-      if (!state.objects.has(id)) report([...at, ...field], `Cible non déclarée « ${id} » : déclare-la dans introduces de cette tranche, ou vise un objet existant (${known()}).`);
+      if (!state.objects.has(id))
+        report([...at, ...field], `Cible non déclarée « ${id} » : déclare-la dans introduces de cette tranche, ou vise un objet existant (${known()}).`);
       // Replaced by a transform: the engine sends the gesture to the formula standing there now.
       else if (removed.has(id) && !state.replacedBy.has(id)) report([...at, ...field], `Objet effacé « ${id} » : après remove, il ne peut plus être utilisé.`);
     }
@@ -265,8 +303,16 @@ function checkBeat(beat: Beat, state: ValidationState, written: Set<string>, rem
     }
     const tableParts = "target" in action ? state.tableParts?.get(action.target) : undefined;
     if (tableParts && (action.verb === "write" || action.verb === "highlight") && action.part !== undefined) {
-      if (action.verb === "write") report([...at, "part"], `« ${action.target} » est un tableau : write l’écrit en entier, sans part ; highlight peut viser une case (r2c3), une ligne (r2) ou une colonne (c3).`);
-      else if (!tableParts.has(action.part)) report([...at, "part"], `Case absente « ${action.part} » dans le tableau « ${action.target} » : vise r<ligne>c<colonne>, r<ligne> ou c<colonne>, comptés à partir de 1 sans les intitulés.`);
+      if (action.verb === "write")
+        report(
+          [...at, "part"],
+          `« ${action.target} » est un tableau : write l’écrit en entier, sans part ; highlight peut viser une case (r2c3), une ligne (r2) ou une colonne (c3).`,
+        );
+      else if (!tableParts.has(action.part))
+        report(
+          [...at, "part"],
+          `Case absente « ${action.part} » dans le tableau « ${action.target} » : vise r<ligne>c<colonne>, r<ligne> ou c<colonne>, comptés à partir de 1 sans les intitulés.`,
+        );
     } else if ((action.verb === "write" || action.verb === "highlight") && action.part !== undefined) {
       const parts = state.parts.get(action.target);
       if (!parts) report([...at, "part"], `« ${action.target} » n’est pas une formule découpée en parties.`);
@@ -281,8 +327,8 @@ function checkBeat(beat: Beat, state: ValidationState, written: Set<string>, rem
     }
     if (action.verb === "move") {
       const to = action.to;
-      const reference = "next_to" in to ? to.next_to : "align_to" in to ? to.align_to
-        : "center_on" in to && to.center_on !== "initial_viewport" ? to.center_on : undefined;
+      const reference =
+        "next_to" in to ? to.next_to : "align_to" in to ? to.align_to : "center_on" in to && to.center_on !== "initial_viewport" ? to.center_on : undefined;
       if (reference !== undefined) {
         checkTarget(reference, ["to"]);
         if (reference === action.target) report([...at, "to"], "Un objet ne se place pas par rapport à lui-même.");
@@ -301,11 +347,12 @@ function checkBeat(beat: Beat, state: ValidationState, written: Set<string>, rem
     if (action.verb === "animate_parameter") {
       const parameter = Object.hasOwn(state.math.symbols, action.parameter) ? state.math.symbols[action.parameter] : undefined;
       if (parameter?.kind !== "parameter") report([...at, "parameter"], "Paramètre animé non déclaré.");
-      else for (const field of ["from", "to"] as const) {
-        if (action[field] < parameter.min || action[field] > parameter.max) {
-          report([...at, field], "Valeur hors de l’intervalle du paramètre.");
+      else
+        for (const field of ["from", "to"] as const) {
+          if (action[field] < parameter.min || action[field] > parameter.max) {
+            report([...at, field], "Valeur hors de l’intervalle du paramètre.");
+          }
         }
-      }
     }
   });
   acyclic(dependencies, [...path, "do"], report);
@@ -332,8 +379,19 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
   const cameraFrames = new Set(before.cameraFrames);
   const tableParts = new Map(before.tableParts ?? []);
   const state: ValidationState = {
-    slices: ids, objects, parts, figures, members: owned, removed, formulas, morphed, replacedBy, cameraFrames, math: before.math,
-    tableParts, coherence: before.coherence,
+    slices: ids,
+    objects,
+    parts,
+    figures,
+    members: owned,
+    removed,
+    formulas,
+    morphed,
+    replacedBy,
+    cameraFrames,
+    math: before.math,
+    tableParts,
+    coherence: before.coherence,
   };
   const symbolNames = new Set(Object.keys(state.math.symbols));
   slices.forEach((slice, index) => {
@@ -364,7 +422,8 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
       if (item.layout && item.attachment) report([...at, "layout"], "Un objet attaché utilise son ancre pour le placement.");
       if (item.frame !== undefined) {
         if (!FIGURE_TYPES.has(item.type)) report([...at, "frame"], "Seule une figure peut rejoindre un repère : un texte se place avec layout ou attachment.");
-        else if (item.layout || item.attachment) report([...at, "frame"], "Une figure qui rejoint un repère en prend la position : pas de layout ni d’attachment en plus.");
+        else if (item.layout || item.attachment)
+          report([...at, "frame"], "Une figure qui rejoint un repère en prend la position : pas de layout ni d’attachment en plus.");
         else if (item.frame === item.id || !figures.has(item.frame)) report([...at, "frame"], `Figure à rejoindre introuvable « ${item.frame} ».`);
         else if (removed.has(item.frame)) report([...at, "frame"], `Figure effacée « ${item.frame} » : son repère n’est plus disponible.`);
       }
@@ -374,12 +433,15 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
         if (item.attachment.part !== undefined) {
           const parent = item.attachment.parent;
           const sibling = slice.introduces.find((other) => other.id === parent);
-          const declared = parts.get(parent) ?? new Set(sibling?.type === "math" ? sibling.parts?.map((part) => part.id) ?? [] : []);
+          const declared = parts.get(parent) ?? new Set(sibling?.type === "math" ? (sibling.parts?.map((part) => part.id) ?? []) : []);
           if (!declared.has(item.attachment.part)) {
-            report([...at, "attachment", "part"], `Partie absente « ${item.attachment.part} » de la formule « ${parent} » : vise une de ses parts (${[...declared].join(", ") || "aucune déclarée"}).`);
+            report(
+              [...at, "attachment", "part"],
+              `Partie absente « ${item.attachment.part} » de la formule « ${parent} » : vise une de ses parts (${[...declared].join(", ") || "aucune déclarée"}).`,
+            );
           }
         }
-        owned.set(item.attachment.parent, [...owned.get(item.attachment.parent) ?? [], item.id]);
+        owned.set(item.attachment.parent, [...(owned.get(item.attachment.parent) ?? []), item.id]);
       }
       // Joining a frame is a placement dependency too: frames cannot form a cycle.
       dependencies.set(item.id, item.frame && figures.has(item.frame) && item.frame !== item.id ? [...parents, item.frame] : parents);
@@ -390,8 +452,7 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
         const names = new Set([...symbolNames, "t"]);
         for (const field of ["x", "y"] as const) expression(item.params[field], names, [...at, "params", field], report);
       }
-      if (item.type === "math" && typeof item.content !== "string"
-        && !Object.hasOwn(state.math.expressions, item.content.expression_ref)) {
+      if (item.type === "math" && typeof item.content !== "string" && !Object.hasOwn(state.math.expressions, item.content.expression_ref)) {
         report([...at, "content", "expression_ref"], "Expression non déclarée.");
       }
       if (item.type === "matrix") tableParts.set(item.id, new Set(matrixParts(item.params)));
@@ -399,20 +460,21 @@ function checkSlices(slices: readonly Slice[], before: ValidationState, report: 
         checkParts(item, at, report);
         parts.set(item.id, new Set(item.parts.map((part) => part.id)));
       }
-      if (item.type === "triangle_right") for (const leg of ["leg_a", "leg_b"] as const) {
-        const value = item.params[leg];
-        if (typeof value === "number") {
-          if (value <= 0) report([...at, "params", leg], "La longueur doit être positive.");
-          continue;
+      if (item.type === "triangle_right")
+        for (const leg of ["leg_a", "leg_b"] as const) {
+          const value = item.params[leg];
+          if (typeof value === "number") {
+            if (value <= 0) report([...at, "params", leg], "La longueur doit être positive.");
+            continue;
+          }
+          const key = "symbol" in value ? value.symbol : value.parameter;
+          const symbol = Object.hasOwn(state.math.symbols, key) ? state.math.symbols[key] : undefined;
+          if (!symbol || symbol.kind !== ("parameter" in value ? "parameter" : "constant")) {
+            report([...at, "params", leg], "Symbole ou paramètre incompatible.");
+          } else if ((symbol.kind === "constant" ? symbol.value : symbol.min) <= 0) {
+            report([...at, "params", leg], "La longueur doit rester positive.");
+          }
         }
-        const key = "symbol" in value ? value.symbol : value.parameter;
-        const symbol = Object.hasOwn(state.math.symbols, key) ? state.math.symbols[key] : undefined;
-        if (!symbol || symbol.kind !== ("parameter" in value ? "parameter" : "constant")) {
-          report([...at, "params", leg], "Symbole ou paramètre incompatible.");
-        } else if ((symbol.kind === "constant" ? symbol.value : symbol.min) <= 0) {
-          report([...at, "params", leg], "La longueur doit rester positive.");
-        }
-      }
     });
     slice.groups?.forEach((group, i) => {
       const at = [...path, "groups", i];
@@ -446,10 +508,12 @@ type Validation<T> =
 
 function checkVocabulary(input: unknown): ContractIssue[] {
   if (typeof input !== "object" || input === null || !("slices" in input) || !Array.isArray(input.slices)) return [];
-  return input.slices.flatMap((slice, i) => negotiateCapabilities(slice, schemaCapabilities).map((issue) => ({
-    path: ["slices", i, ...issue.path],
-    message: issue.status === "unknown" ? `Capacité inconnue « ${issue.name} ».` : `Schéma de capacité indisponible pour « ${issue.name} ».`,
-  })));
+  return input.slices.flatMap((slice, i) =>
+    negotiateCapabilities(slice, schemaCapabilities).map((issue) => ({
+      path: ["slices", i, ...issue.path],
+      message: issue.status === "unknown" ? `Capacité inconnue « ${issue.name} ».` : `Schéma de capacité indisponible pour « ${issue.name} ».`,
+    })),
+  );
 }
 
 export function validateModelOutput(input: unknown, before = emptyState): Validation<ReturnType<typeof ModelOutput.parse>> {
@@ -480,7 +544,11 @@ export function validateLesson(input: unknown): Validation<LessonDocument> {
  * (saved file, player): it must keep loading as it is, so every alert is only noted, nothing is changed.
  */
 function validateSlices<T extends { slices: readonly Slice[] }>(
-  value: T, delta: MathContext | undefined, mathPath: Path, before: ValidationState, source: "model" | "saved" = "model",
+  value: T,
+  delta: MathContext | undefined,
+  mathPath: Path,
+  before: ValidationState,
+  source: "model" | "saved" = "model",
 ): Validation<T> {
   const issues: ContractIssue[] = [];
   const report: Report = (path, message) => issues.push({ path, message });

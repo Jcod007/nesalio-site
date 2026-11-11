@@ -10,20 +10,24 @@ const provider: ChatProvider = { name: "gateway", protocol: "openai", endpoint: 
 const header = JSON.stringify({ lesson: { id: "l", title: "Titre", language: "fr", learning_goal: "But" }, math_context: { symbols: {}, expressions: {} } });
 
 function slice(id: string, say = "Voici un point.", cueText = say.split(" ")[0]!) {
-  return JSON.stringify({ slice: {
-    slice_id: id,
-    introduces: [{ id: `o_${id}`, type: "point", params: { at: [0, 0] } }],
-    beats: [{ id: `b_${id}`, say, cues: [{ id: "c", text: cueText }], do: [{ id: `a_${id}`, verb: "show", target: `o_${id}`, at: "cue:c" }] }],
-  } });
+  return JSON.stringify({
+    slice: {
+      slice_id: id,
+      introduces: [{ id: `o_${id}`, type: "point", params: { at: [0, 0] } }],
+      beats: [{ id: `b_${id}`, say, cues: [{ id: "c", text: cueText }], do: [{ id: `a_${id}`, verb: "show", target: `o_${id}`, at: "cue:c" }] }],
+    },
+  });
 }
 
 /** Une ouverture : des mots seulement (reformuler la question, annoncer la suite), sans données. */
 function opening(id: string, say = "Tu veux savoir comment on additionne. On le voit ensemble.") {
-  return JSON.stringify({ slice: {
-    slice_id: id,
-    introduces: [{ id: `o_${id}`, type: "text", content: "Additionner" }],
-    beats: [{ id: `b_${id}`, say, cues: [{ id: "c", text: say.split(" ")[0]! }], do: [{ id: `a_${id}`, verb: "write", target: `o_${id}`, at: "cue:c" }] }],
-  } });
+  return JSON.stringify({
+    slice: {
+      slice_id: id,
+      introduces: [{ id: `o_${id}`, type: "text", content: "Additionner" }],
+      beats: [{ id: `b_${id}`, say, cues: [{ id: "c", text: say.split(" ")[0]! }], do: [{ id: `a_${id}`, verb: "write", target: `o_${id}`, at: "cue:c" }] }],
+    },
+  });
 }
 
 function scripted(...answers: string[]) {
@@ -53,12 +57,16 @@ async function run(completion: ReturnType<typeof scripted>["completion"], review
   const events: NesalioEvent[] = [];
   const logs: string[] = [];
   for await (const event of generateNesalio("Combien font 3 + 4 ?", {
-    provider, completion, ...(review ? { review } : {}), ...(reviewTimeoutMs ? { reviewTimeoutMs } : {}),
+    provider,
+    completion,
+    ...(review ? { review } : {}),
+    ...(reviewTimeoutMs ? { reviewTimeoutMs } : {}),
     log: (message, detail) => logs.push(`${message} ${String(detail ?? "")}`),
-  })) events.push(event);
+  }))
+    events.push(event);
   return { events, logs };
 }
-const kinds = (events: NesalioEvent[]) => events.map((event) => event.kind === "slice" ? `slice:${event.slice.slice_id}` : event.kind);
+const kinds = (events: NesalioEvent[]) => events.map((event) => (event.kind === "slice" ? `slice:${event.slice.slice_id}` : event.kind));
 const sayOf = (events: NesalioEvent[], id: string) =>
   (events.find((e) => e.kind === "slice" && e.slice.slice_id === id) as { slice: Slice }).slice.beats[0]!.say;
 
@@ -75,8 +83,10 @@ describe("générateur Nesalio avec relecteur", () => {
   });
 
   it("relit une première tranche qui porte des données (figure, nombres), et la fait corriger avant de la montrer", async () => {
-    const model = scripted([header, slice("s1", "Trois plus quatre font huit."), slice("s2")].join("\n"),
-      [slice("s1", "Trois plus quatre font sept."), slice("s2")].join("\n"));
+    const model = scripted(
+      [header, slice("s1", "Trois plus quatre font huit."), slice("s2")].join("\n"),
+      [slice("s1", "Trois plus quatre font sept."), slice("s2")].join("\n"),
+    );
     const { review, seen } = reviewer("font huit");
     const { events } = await run(model.completion, review);
     expect(seen[0]!.slice.slice_id).toBe("s1");
@@ -140,7 +150,9 @@ describe("générateur Nesalio avec relecteur", () => {
 
   it("montre la tranche sans relecture si le relecteur échoue", async () => {
     const model = scripted([header, opening("s1"), slice("s2")].join("\n"));
-    const review: SliceReviewer = async () => { throw new Error("HTTP 503"); };
+    const review: SliceReviewer = async () => {
+      throw new Error("HTTP 503");
+    };
     const { events, logs } = await run(model.completion, review);
     expect(kinds(events)).toEqual(["lesson", "slice:s1", "slice:s2", "end"]);
     expect(logs).toContainEqual(expect.stringMatching(/^nesalio: relecture impossible, tranche montrée sans relecture s2 — HTTP 503/));

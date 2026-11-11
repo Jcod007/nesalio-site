@@ -52,7 +52,9 @@ await cdp.send("Page.startScreencast", { format: "jpeg", quality: 70, maxWidth: 
 const started = Date.now();
 const errors = [];
 page.on("pageerror", (error) => errors.push(String(error)));
-page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+page.on("console", (message) => {
+  if (message.type() === "error") errors.push(message.text());
+});
 
 await page.goto(url.href, { waitUntil: "networkidle" });
 await page.setInputFiles("#nesalio-lesson", lesson);
@@ -91,12 +93,49 @@ if (process.env.FRAMES_DIR) {
 // Chrome only sends a frame when the page changes: each one is held until the next, at a steady rate.
 const file = join(out, `${name}.webm`);
 const cache = join(process.env.PLAYWRIGHT_BROWSERS_PATH ?? join(homedir(), "AppData/Local/ms-playwright"));
-const ffmpeg = process.env.FFMPEG_PATH ?? (existsSync(cache) ? readdirSync(cache).filter((entry) => entry.startsWith("ffmpeg-")).sort()
-  .map((entry) => join(cache, entry, "ffmpeg-win64.exe")).filter(existsSync).at(-1) : undefined);
+const ffmpeg =
+  process.env.FFMPEG_PATH ??
+  (existsSync(cache)
+    ? readdirSync(cache)
+        .filter((entry) => entry.startsWith("ffmpeg-"))
+        .sort()
+        .map((entry) => join(cache, entry, "ffmpeg-win64.exe"))
+        .filter(existsSync)
+        .at(-1)
+    : undefined);
 if (ffmpeg && frames.length) {
   const rate = 25;
-  const encoder = spawn(ffmpeg, ["-loglevel", "error", "-f", "image2pipe", "-c:v", "mjpeg", "-r", String(rate), "-i", "pipe:0", "-y", "-an",
-    "-c:v", "vp8", "-qmin", "0", "-qmax", "40", "-crf", "8", "-b:v", "2M", "-r", String(rate), file], { stdio: ["pipe", "inherit", "inherit"] });
+  const encoder = spawn(
+    ffmpeg,
+    [
+      "-loglevel",
+      "error",
+      "-f",
+      "image2pipe",
+      "-c:v",
+      "mjpeg",
+      "-r",
+      String(rate),
+      "-i",
+      "pipe:0",
+      "-y",
+      "-an",
+      "-c:v",
+      "vp8",
+      "-qmin",
+      "0",
+      "-qmax",
+      "40",
+      "-crf",
+      "8",
+      "-b:v",
+      "2M",
+      "-r",
+      String(rate),
+      file,
+    ],
+    { stdio: ["pipe", "inherit", "inherit"] },
+  );
   const done = new Promise((resolveDone) => encoder.on("close", resolveDone));
   let index = 0;
   for (let time = frames[0].at; time <= frames.at(-1).at; time += 1000 / rate) {
@@ -108,7 +147,21 @@ if (ffmpeg && frames.length) {
 } else {
   console.error("Encodeur ffmpeg introuvable : vidéo non assemblée (définir FFMPEG_PATH, ou FRAMES_DIR pour garder les images).");
 }
-writeFileSync(join(out, `${name}.passages.json`), JSON.stringify({
-  lesson, status, alert, warnings, errors, frames: frames.length, videoStartsAt: frames.length ? (frames[0].at - started) / 1000 : null, passages,
-}, null, 2));
+writeFileSync(
+  join(out, `${name}.passages.json`),
+  JSON.stringify(
+    {
+      lesson,
+      status,
+      alert,
+      warnings,
+      errors,
+      frames: frames.length,
+      videoStartsAt: frames.length ? (frames[0].at - started) / 1000 : null,
+      passages,
+    },
+    null,
+    2,
+  ),
+);
 console.log(JSON.stringify({ video: file, status, alert, warnings, errors: errors.length, passages: passages.length }, null, 2));

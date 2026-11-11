@@ -2,10 +2,14 @@ import type { Beat } from "@/domain/nesalio/contract";
 import { sessionHeaders } from "@/services/session";
 
 export async function fetchVoiceClip(
-  endpoint: string, text: string, signal: AbortSignal, cues?: Beat["cues"],
+  endpoint: string,
+  text: string,
+  signal: AbortSignal,
+  cues?: Beat["cues"],
 ): Promise<{ response: Response; blob: Blob | null }> {
   const response = await fetch(endpoint, {
-    method: "POST", signal,
+    method: "POST",
+    signal,
     headers: { "Content-Type": "application/json", ...sessionHeaders() },
     body: JSON.stringify({ text, cues }),
   });
@@ -18,8 +22,14 @@ export function readClipDuration(audio: HTMLAudioElement, url: string, signal: A
       audio.onloadedmetadata = audio.onerror = null;
       signal.removeEventListener("abort", abort);
     }
-    function abort() { cleanup(); reject(signal.reason); }
-    if (signal.aborted) { abort(); return; }
+    function abort() {
+      cleanup();
+      reject(signal.reason);
+    }
+    if (signal.aborted) {
+      abort();
+      return;
+    }
     signal.addEventListener("abort", abort, { once: true });
     audio.preload = "metadata";
     audio.onloadedmetadata = () => {
@@ -27,7 +37,10 @@ export function readClipDuration(audio: HTMLAudioElement, url: string, signal: A
       if (Number.isFinite(audio.duration) && audio.duration > 0) resolve(audio.duration * 1000);
       else reject(new Error("Durée audio indisponible."));
     };
-    audio.onerror = () => { cleanup(); reject(new Error("Clip audio illisible.")); };
+    audio.onerror = () => {
+      cleanup();
+      reject(new Error("Clip audio illisible."));
+    };
     audio.src = url;
   });
 }

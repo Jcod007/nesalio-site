@@ -25,7 +25,8 @@ export function partsWithSpacing(content: string, parts: readonly string[]): str
     cursor = at + part.trim().length;
   }
   for (let i = 0; i < parts.length - 1; i++) {
-    const end = ends[i], next = starts[i + 1];
+    const end = ends[i],
+      next = starts[i + 1];
     const gap = end !== undefined && next !== undefined && next >= end ? content.slice(end, next) : "";
     const spacing = gap.match(SPACING)?.join(" ") ?? "";
     const word = WORD.test(parts[i]!.trim()) || WORD.test(parts[i + 1]!.trim());

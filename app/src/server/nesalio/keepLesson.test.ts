@@ -6,7 +6,9 @@ import { validateLesson } from "@/domain/nesalio/validate";
 import { createLessonKeeper, keptLessonsDir } from "./keepLesson";
 
 const dirs: string[] = [];
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+});
 
 describe("leçons jouées gardées (NESALIO_GARDER_LECONS)", () => {
   it("est coupé par défaut ; « 1 » garde dans analyses/lecons-jouees, sinon dans le dossier donné", () => {
@@ -21,10 +23,14 @@ describe("leçons jouées gardées (NESALIO_GARDER_LECONS)", () => {
     dirs.push(dir);
     const keeper = createLessonKeeper("Comment je résous 3x = 12 ?", dir, new Date("2026-11-09T20:00:00Z"));
     keeper.event({ kind: "lesson", lesson: { id: "equation", title: "Équation", language: "fr", learning_goal: "Isoler x." } } as never);
-    keeper.event({ kind: "slice", slice: {
-      slice_id: "s1", introduces: [{ id: "eq", type: "math", content: "3x = 12" }],
-      beats: [{ id: "b", say: "On isole x.", cues: [], do: [{ id: "w", verb: "write", target: "eq", at: "beat:start" }] }],
-    } } as never);
+    keeper.event({
+      kind: "slice",
+      slice: {
+        slice_id: "s1",
+        introduces: [{ id: "eq", type: "math", content: "3x = 12" }],
+        beats: [{ id: "b", say: "On isole x.", cues: [], do: [{ id: "w", verb: "write", target: "eq", at: "beat:start" }] }],
+      },
+    } as never);
     keeper.log("nesalio: relecture", "s1 — 0 alerte(s)");
     keeper.event({ kind: "end" });
     await keeper.finish();

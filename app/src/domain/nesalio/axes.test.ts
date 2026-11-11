@@ -51,7 +51,11 @@ describe("phrases longues au tableau", () => {
       expect(line.trim()).not.toMatch(/^[=≈]/);
       expect(line.trim()).not.toMatch(/[=≈]$/);
     }
-    expect(boardLines(text).split("\n").some((line) => line.includes("T = 298,15"))).toBe(true);
+    expect(
+      boardLines(text)
+        .split("\n")
+        .some((line) => line.includes("T = 298,15")),
+    ).toBe(true);
   });
 
   it("mesure un texte coupé sur plusieurs lignes, moins large et plus haut", () => {

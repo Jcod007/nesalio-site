@@ -5,13 +5,11 @@ import { calcColumn, nodeBox, intersects } from "./layout";
 import { emptyBoard, lastMotion, pruneErased, resolveTargets, summarizeBoard, type BoardState, type TextNode } from "./state";
 
 const t = (start: number) => ({ start, duration: 100 });
-const run = (actions: Action[], board: BoardState = emptyBoard()) =>
-  actions.reduce((state, action, i) => applyAction(state, action, t(i * 10)), board);
+const run = (actions: Action[], board: BoardState = emptyBoard()) => actions.reduce((state, action, i) => applyAction(state, action, t(i * 10)), board);
 const text = (board: BoardState, id: string) => board.nodes[id] as TextNode;
 const position = (board: BoardState, id: string) => {
   const node = board.nodes[id]!;
-  const at: [number, number] =
-    node.type === "point" || node.type === "text" ? node.at : node.type === "segment" || node.type === "vector" ? node.from : [0, 0];
+  const at: [number, number] = node.type === "point" || node.type === "text" ? node.at : node.type === "segment" || node.type === "vector" ? node.from : [0, 0];
   return [at[0] + node.offset[0], at[1] + node.offset[1]] as const;
 };
 
@@ -116,7 +114,10 @@ describe("graphe de scène", () => {
   });
 
   it("transforme un point déplacé vers une position absolue", () => {
-    let board = run([{ type: "point", id: "P", at: [1, 1] }, { type: "move", target: "P", by: [1, 0] }]);
+    let board = run([
+      { type: "point", id: "P", at: [1, 1] },
+      { type: "move", target: "P", by: [1, 0] },
+    ]);
     board = applyAction(board, { type: "transform", target: "P", at: [4, 4] }, t(100));
     expect(position(board, "P")).toEqual([4, 4]);
   });
@@ -246,7 +247,10 @@ describe("mouvements", () => {
   });
 
   it("une copie de ligne de calcul devient un texte libre", () => {
-    let board = run([{ type: "note", id: "n1", text: "−2" }, { type: "point", id: "A", at: [2, 2] }]);
+    let board = run([
+      { type: "note", id: "n1", text: "−2" },
+      { type: "point", id: "A", at: [2, 2] },
+    ]);
     board = applyAction(board, { type: "copy", target: "n1", id: "k", near: "A", side: "right" }, t(100));
     expect(text(board, "k").role).toBe("free");
     expect(board.calc).toEqual(["n1"]);
@@ -261,15 +265,39 @@ describe("outils des notions poussées", () => {
       { type: "axes", x: [-6, 6], y: [-4, 4] },
       { type: "grid", id: "g" },
       { type: "vector", id: "v", from: [0, 0], by: [-1, 2] },
-      { type: "polygon", id: "sq", points: [[0, 0], [1, 0], [1, 1], [0, 1]] },
+      {
+        type: "polygon",
+        id: "sq",
+        points: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+        ],
+      },
       { type: "segment", id: "span", from: [-3, 3], to: [3, -3] },
     ]);
     expect(board.order[0]).toBe("g"); // le quadrillage passe derrière
-    board = applyAction(board, { type: "applyMatrix", matrix: [[1, 3], [-2, 0]], targets: ["g", "v", "sq"] }, t(100));
+    board = applyAction(
+      board,
+      {
+        type: "applyMatrix",
+        matrix: [
+          [1, 3],
+          [-2, 0],
+        ],
+        targets: ["g", "v", "sq"],
+      },
+      t(100),
+    );
     const v = board.nodes.v!;
     if (v.type === "vector") close(v.to, [5, 2]);
     const g = board.nodes.g!;
-    if (g.type === "grid") expect(g.matrix).toEqual([[1, 3], [-2, 0]]);
+    if (g.type === "grid")
+      expect(g.matrix).toEqual([
+        [1, 3],
+        [-2, 0],
+      ]);
     const sq = board.nodes.sq!;
     if (sq.type === "polygon") close(sq.points[2]!, [4, -2]);
     expect(v.morph?.start).toBe(100);
@@ -281,18 +309,62 @@ describe("outils des notions poussées", () => {
   it("un texte qui accompagne un objet le suit quand la matrice le déforme", () => {
     let board = run([
       { type: "axes", x: [-1, 6], y: [-1, 5] },
-      { type: "polygon", id: "sq", points: [[0, 0], [1, 0], [1, 1], [0, 1]], fill: true },
+      {
+        type: "polygon",
+        id: "sq",
+        points: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+        ],
+        fill: true,
+      },
       { type: "text", id: "u", text: "aire = 1", near: "sq", side: "above" },
     ]);
     const before = position(board, "u");
-    board = applyAction(board, { type: "applyMatrix", matrix: [[3, 1], [0, 2]] }, t(100));
+    board = applyAction(
+      board,
+      {
+        type: "applyMatrix",
+        matrix: [
+          [3, 1],
+          [0, 2],
+        ],
+      },
+      t(100),
+    );
     expect(position(board, "u")[0]).toBeGreaterThan(before[0] + 2);
     expect(intersects(nodeBox(board.nodes.u!, board.frame), nodeBox(board.nodes.sq!, board.frame))).toBe(false);
   });
 
   it("transforme un polygone sommet par sommet (le carré devient rectangle)", () => {
-    let board = run([{ type: "polygon", id: "sq", points: [[0, 0], [1, 0], [1, 1], [0, 1]] }]);
-    board = applyAction(board, { type: "transform", target: "sq", points: [[0, 0], [3, 0], [3, 2], [0, 2]] }, t(100));
+    let board = run([
+      {
+        type: "polygon",
+        id: "sq",
+        points: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+        ],
+      },
+    ]);
+    board = applyAction(
+      board,
+      {
+        type: "transform",
+        target: "sq",
+        points: [
+          [0, 0],
+          [3, 0],
+          [3, 2],
+          [0, 2],
+        ],
+      },
+      t(100),
+    );
     const sq = board.nodes.sq!;
     if (sq.type === "polygon") expect(sq.points[2]).toEqual([3, 2]);
   });
@@ -314,7 +386,10 @@ describe("outils des notions poussées", () => {
   });
 
   it("colorie l'aire au-dessus et en dessous de l'axe en deux parties", () => {
-    let board = run([{ type: "axes", x: [0, 6.3], y: [-2, 2] }, { type: "curve", id: "f", fn: "sin(x)" }]);
+    let board = run([
+      { type: "axes", x: [0, 6.3], y: [-2, 2] },
+      { type: "curve", id: "f", fn: "sin(x)" },
+    ]);
     board = applyAction(board, { type: "area", id: "A", of: "f", from: 0, to: 6.28 }, t(100));
     expect(resolveTargets(board, "A")).toEqual(["A-plus", "A-moins"]);
     const plus = board.nodes["A-plus"]!;
@@ -356,10 +431,22 @@ describe("outils des notions poussées", () => {
     const board = run([
       { type: "axes", x: [-6, 6], y: [-4, 4] },
       { type: "vector", id: "v", from: [0, 0], by: [2, 1] },
-      { type: "matrix", id: "M", rows: [["2", "1"], ["1", "3"]], near: "v", side: "right" },
+      {
+        type: "matrix",
+        id: "M",
+        rows: [
+          ["2", "1"],
+          ["1", "3"],
+        ],
+        near: "v",
+        side: "right",
+      },
     ]);
     const m = text(board, "M");
-    expect(m.rows).toEqual([["2", "1"], ["1", "3"]]);
+    expect(m.rows).toEqual([
+      ["2", "1"],
+      ["1", "3"],
+    ]);
     expect(intersects(nodeBox(m, board.frame), nodeBox(board.nodes.v!, board.frame))).toBe(false);
     expect(nodeBox(m, board.frame).y1 - nodeBox(m, board.frame).y0).toBeGreaterThan(0.8);
   });

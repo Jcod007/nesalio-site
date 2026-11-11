@@ -104,42 +104,92 @@ paramètre qui bouge), avec les objets du format ; le guide joint à la question
  */
 export const EXAMPLE_LESSON = {
   header: {
-    lesson: { id: "puissance_zero", title: "Pourquoi 2 exposant 0 vaut 1", language: "fr",
-      learning_goal: "Comprendre pourquoi a⁰ = 1 si a ≠ 0, par le motif des puissances." },
+    lesson: {
+      id: "puissance_zero",
+      title: "Pourquoi 2 exposant 0 vaut 1",
+      language: "fr",
+      learning_goal: "Comprendre pourquoi a⁰ = 1 si a ≠ 0, par le motif des puissances.",
+    },
     math_context: { symbols: {}, expressions: {} },
   },
   slices: [
     {
       slice_id: "s_motif",
-      introduces: [{ id: "tab", type: "matrix", params: { rows: [[3, 2, 1], [8, 4, 2]], row_labels: ["exposant", "puissance de 2"] } }],
+      introduces: [
+        {
+          id: "tab",
+          type: "matrix",
+          params: {
+            rows: [
+              [3, 2, 1],
+              [8, 4, 2],
+            ],
+            row_labels: ["exposant", "puissance de 2"],
+          },
+        },
+      ],
       beats: [
-        { id: "regarde", say: "Pour comprendre deux exposant zéro, regarde d'abord les puissances de deux que tu connais.",
+        {
+          id: "regarde",
+          say: "Pour comprendre deux exposant zéro, regarde d'abord les puissances de deux que tu connais.",
           cues: [{ id: "c_puissances", text: "puissances de deux" }],
-          do: [{ id: "s_tab", verb: "show", target: "tab", at: "cue:c_puissances" }] },
-        { id: "motif", say: "Deux au cube, huit. Deux au carré, quatre. Deux exposant un, deux. Chaque fois que l'exposant baisse de un, on divise par deux.",
-          cues: [{ id: "c_baisse", text: "l'exposant baisse de un" }, { id: "c_divise", text: "on divise par deux" }],
+          do: [{ id: "s_tab", verb: "show", target: "tab", at: "cue:c_puissances" }],
+        },
+        {
+          id: "motif",
+          say: "Deux au cube, huit. Deux au carré, quatre. Deux exposant un, deux. Chaque fois que l'exposant baisse de un, on divise par deux.",
+          cues: [
+            { id: "c_baisse", text: "l'exposant baisse de un" },
+            { id: "c_divise", text: "on divise par deux" },
+          ],
           do: [{ id: "h_tab", verb: "highlight", target: "tab", role: "accent", start: "cue:c_baisse", end: "cue_end:c_divise" }],
-          pause_after: "normal" },
+          pause_after: "normal",
+        },
       ],
     },
     {
       slice_id: "s_zero",
       introduces: [
-        { id: "pas", type: "math", content: "2^0 = 2 \\div 2 = 1",
-          parts: [{ id: "puiss", text: "2^0" }, { id: "calc", text: "= 2 \\div 2" }, { id: "res", text: "= 1" }] },
+        {
+          id: "pas",
+          type: "math",
+          content: "2^0 = 2 \\div 2 = 1",
+          parts: [
+            { id: "puiss", text: "2^0" },
+            { id: "calc", text: "= 2 \\div 2" },
+            { id: "res", text: "= 1" },
+          ],
+        },
         { id: "quot", type: "math", content: "\\frac{2^3}{2^3} = 2^{3-3} = 2^0", layout: { next_to: "pas", direction: "down", gap: "lg" } },
       ],
       beats: [
-        { id: "continue", say: "Continuons le motif : pour passer à deux exposant zéro, on divise encore par deux. Deux divisé par deux, ça fait un.",
-          cues: [{ id: "c_zero", text: "deux exposant zéro" }, { id: "c_divdeux", text: "Deux divisé par deux" }, { id: "c_un", text: "ça fait un" }],
-          do: [{ id: "w_puiss", verb: "write", target: "pas", part: "puiss", at: "cue:c_zero" },
+        {
+          id: "continue",
+          say: "Continuons le motif : pour passer à deux exposant zéro, on divise encore par deux. Deux divisé par deux, ça fait un.",
+          cues: [
+            { id: "c_zero", text: "deux exposant zéro" },
+            { id: "c_divdeux", text: "Deux divisé par deux" },
+            { id: "c_un", text: "ça fait un" },
+          ],
+          do: [
+            { id: "w_puiss", verb: "write", target: "pas", part: "puiss", at: "cue:c_zero" },
             { id: "w_calc", verb: "write", target: "pas", part: "calc", at: "cue:c_divdeux" },
-            { id: "w_res", verb: "write", target: "pas", part: "res", at: "cue:c_un" }] },
-        { id: "regle", say: "La règle des exposants dit la même chose : huit divisé par huit, c'est un, et c'est aussi deux exposant trois moins trois.",
-          cues: [{ id: "c_regle", text: "règle des exposants" }, { id: "c_trois", text: "trois moins trois" }],
-          do: [{ id: "d_tab", verb: "dim", target: "tab", at: "cue:c_regle" },
-            { id: "w_quot", verb: "write", target: "quot", at: "cue:c_trois" }],
-          pause_after: "normal" },
+            { id: "w_res", verb: "write", target: "pas", part: "res", at: "cue:c_un" },
+          ],
+        },
+        {
+          id: "regle",
+          say: "La règle des exposants dit la même chose : huit divisé par huit, c'est un, et c'est aussi deux exposant trois moins trois.",
+          cues: [
+            { id: "c_regle", text: "règle des exposants" },
+            { id: "c_trois", text: "trois moins trois" },
+          ],
+          do: [
+            { id: "d_tab", verb: "dim", target: "tab", at: "cue:c_regle" },
+            { id: "w_quot", verb: "write", target: "quot", at: "cue:c_trois" },
+          ],
+          pause_after: "normal",
+        },
       ],
     },
     {
@@ -149,24 +199,47 @@ export const EXAMPLE_LESSON = {
         { id: "cond", type: "label", content: "si a ≠ 0", attachment: { parent: "gen", anchor: "right" } },
       ],
       beats: [
-        { id: "general", say: "Avec n'importe quel nombre a, c'est pareil : a exposant zéro, c'est a divisé par a, donc un.",
-          cues: [{ id: "c_a", text: "n'importe quel nombre a" }, { id: "c_donc", text: "donc un" }],
-          do: [{ id: "f_tab", verb: "fade_out", target: "tab", at: "cue:c_a" }, { id: "f_quot", verb: "fade_out", target: "quot", at: "cue:c_a" },
-            { id: "w_gen", verb: "write", target: "gen", at: "cue:c_donc" }] },
-        { id: "condition", say: "Sauf si a vaut zéro : on ne peut pas diviser par zéro, alors zéro exposant zéro n'est pas défini.",
+        {
+          id: "general",
+          say: "Avec n'importe quel nombre a, c'est pareil : a exposant zéro, c'est a divisé par a, donc un.",
+          cues: [
+            { id: "c_a", text: "n'importe quel nombre a" },
+            { id: "c_donc", text: "donc un" },
+          ],
+          do: [
+            { id: "f_tab", verb: "fade_out", target: "tab", at: "cue:c_a" },
+            { id: "f_quot", verb: "fade_out", target: "quot", at: "cue:c_a" },
+            { id: "w_gen", verb: "write", target: "gen", at: "cue:c_donc" },
+          ],
+        },
+        {
+          id: "condition",
+          say: "Sauf si a vaut zéro : on ne peut pas diviser par zéro, alors zéro exposant zéro n'est pas défini.",
           cues: [{ id: "c_sauf", text: "Sauf si a vaut zéro" }],
-          do: [{ id: "s_cond", verb: "show", target: "cond", at: "cue:c_sauf" }, { id: "f_pas", verb: "fade_out", target: "pas", at: "cue:c_sauf" }],
-          pause_after: "long" },
+          do: [
+            { id: "s_cond", verb: "show", target: "cond", at: "cue:c_sauf" },
+            { id: "f_pas", verb: "fade_out", target: "pas", at: "cue:c_sauf" },
+          ],
+          pause_after: "long",
+        },
       ],
     },
     {
       slice_id: "s_retenir",
       introduces: [],
       beats: [
-        { id: "idee", say: "À retenir : baisser l'exposant de un, c'est diviser par le nombre. Arrivé à zéro, il reste un.",
-          cues: [{ id: "c_retenir", text: "À retenir" }, { id: "c_reste", text: "il reste un" }],
-          do: [{ id: "c_gen", verb: "camera.focus", targets: ["gen"], at: "cue:c_retenir" },
-            { id: "h_gen", verb: "highlight", target: "gen", role: "result", at: "cue:c_reste" }] },
+        {
+          id: "idee",
+          say: "À retenir : baisser l'exposant de un, c'est diviser par le nombre. Arrivé à zéro, il reste un.",
+          cues: [
+            { id: "c_retenir", text: "À retenir" },
+            { id: "c_reste", text: "il reste un" },
+          ],
+          do: [
+            { id: "c_gen", verb: "camera.focus", targets: ["gen"], at: "cue:c_retenir" },
+            { id: "h_gen", verb: "highlight", target: "gen", role: "result", at: "cue:c_reste" },
+          ],
+        },
       ],
     },
   ],
@@ -185,8 +258,7 @@ export function exampleLessonText(): string {
  */
 export const MOVING_EXAMPLE_LESSON = {
   header: {
-    lesson: { id: "parametre_a", title: "Ce que fait a dans f(x) = ax²", language: "fr",
-      learning_goal: "Voir que a multiplie chaque hauteur de x²." },
+    lesson: { id: "parametre_a", title: "Ce que fait a dans f(x) = ax²", language: "fr", learning_goal: "Voir que a multiplie chaque hauteur de x²." },
     math_context: { symbols: { a: { kind: "parameter", initial: 1, min: 0.5, max: 2 } }, expressions: { haut: "a*2^2" } },
   },
   slices: [
@@ -196,60 +268,128 @@ export const MOVING_EXAMPLE_LESSON = {
         { id: "rep", type: "axes", params: { x: [-3, 3], y: [-1, 9] } },
         { id: "ref", type: "function_graph", params: { expression: "x^2", domain: [-2, 2] }, style: { role: "secondary" } },
         { id: "courbe", type: "function_graph", params: { expression: "a*x^2", domain: [-2, 2] }, style: { role: "accent" } },
-        { id: "regle", type: "math", content: "f(x) = ax^2", parts: [{ id: "f", text: "f(x) =" }, { id: "ax", text: "ax^2" }],
-          layout: { next_to: "rep", direction: "right", gap: "lg" } },
+        {
+          id: "regle",
+          type: "math",
+          content: "f(x) = ax^2",
+          parts: [
+            { id: "f", text: "f(x) =" },
+            { id: "ax", text: "ax^2" },
+          ],
+          layout: { next_to: "rep", direction: "right", gap: "lg" },
+        },
       ],
       beats: [
-        { id: "base", say: "Voici la parabole de x au carré.", cues: [{ id: "c_parabole", text: "parabole de x au carré" }],
-          do: [{ id: "s_rep", verb: "show", target: "rep", at: "beat:start" },
-            { id: "d_ref", verb: "draw", target: "ref", start: "cue:c_parabole", end: "cue_end:c_parabole" }] },
-        { id: "param", say: "Mettons un nombre a devant : f de x égale a x au carré. Quand a vaut un, c'est la même courbe.",
-          cues: [{ id: "c_fx", text: "f de x égale" }, { id: "c_ax", text: "a x au carré" }, { id: "c_meme", text: "la même courbe" }],
-          do: [{ id: "w_f", verb: "write", target: "regle", part: "f", at: "cue:c_fx" },
+        {
+          id: "base",
+          say: "Voici la parabole de x au carré.",
+          cues: [{ id: "c_parabole", text: "parabole de x au carré" }],
+          do: [
+            { id: "s_rep", verb: "show", target: "rep", at: "beat:start" },
+            { id: "d_ref", verb: "draw", target: "ref", start: "cue:c_parabole", end: "cue_end:c_parabole" },
+          ],
+        },
+        {
+          id: "param",
+          say: "Mettons un nombre a devant : f de x égale a x au carré. Quand a vaut un, c'est la même courbe.",
+          cues: [
+            { id: "c_fx", text: "f de x égale" },
+            { id: "c_ax", text: "a x au carré" },
+            { id: "c_meme", text: "la même courbe" },
+          ],
+          do: [
+            { id: "w_f", verb: "write", target: "regle", part: "f", at: "cue:c_fx" },
             { id: "w_ax", verb: "write", target: "regle", part: "ax", at: "cue:c_ax" },
-            { id: "d_courbe", verb: "draw", target: "courbe", at: "cue:c_meme" }] },
+            { id: "d_courbe", verb: "draw", target: "courbe", at: "cue:c_meme" },
+          ],
+        },
       ],
     },
     {
       slice_id: "s_effet",
       introduces: [
-        { id: "haut", type: "math", content: { kind: "computed", expression_ref: "haut", template: "f(2) = {value}", precision: 0 },
-          layout: { next_to: "regle", direction: "down", gap: "md" } },
+        {
+          id: "haut",
+          type: "math",
+          content: { kind: "computed", expression_ref: "haut", template: "f(2) = {value}", precision: 0 },
+          layout: { next_to: "regle", direction: "down", gap: "md" },
+        },
         { id: "p_ref", type: "point", params: { at: [2, 4] }, frame: "rep" },
         { id: "p_double", type: "point", params: { at: [2, 8] }, frame: "rep", style: { role: "accent" } },
         { id: "p_demi", type: "point", params: { at: [2, 2] }, frame: "rep", style: { role: "accent" } },
       ],
       beats: [
-        { id: "regarde", say: "Regarde en x égale deux : la hauteur vaut quatre.",
-          cues: [{ id: "c_x2", text: "x égale deux" }, { id: "c_quatre", text: "vaut quatre" }],
-          do: [{ id: "s_ref", verb: "show", target: "p_ref", at: "cue:c_x2" }, { id: "w_haut", verb: "write", target: "haut", at: "cue:c_quatre" }] },
-        { id: "double", say: "Si a passe à deux, chaque hauteur double : la parabole se resserre, et quatre devient huit.",
-          cues: [{ id: "c_passe", text: "a passe à deux" }, { id: "c_resserre", text: "se resserre" }, { id: "c_huit", text: "devient huit" }],
-          do: [{ id: "a_2", verb: "animate_parameter", parameter: "a", from: 1, to: 2, start: "cue:c_passe", end: "cue_end:c_resserre" },
-            { id: "s_double", verb: "show", target: "p_double", at: "cue:c_huit" }],
-          pause_after: "normal" },
-        { id: "ouvre", say: "Si a descend à un demi, chaque hauteur est divisée par deux : la parabole s'ouvre, et il ne reste que deux.",
-          cues: [{ id: "c_demi", text: "descend à un demi" }, { id: "c_ouvre", text: "la parabole s'ouvre" }, { id: "c_deux", text: "il ne reste que deux" }],
-          do: [{ id: "f_double", verb: "fade_out", target: "p_double", at: "cue:c_demi" },
+        {
+          id: "regarde",
+          say: "Regarde en x égale deux : la hauteur vaut quatre.",
+          cues: [
+            { id: "c_x2", text: "x égale deux" },
+            { id: "c_quatre", text: "vaut quatre" },
+          ],
+          do: [
+            { id: "s_ref", verb: "show", target: "p_ref", at: "cue:c_x2" },
+            { id: "w_haut", verb: "write", target: "haut", at: "cue:c_quatre" },
+          ],
+        },
+        {
+          id: "double",
+          say: "Si a passe à deux, chaque hauteur double : la parabole se resserre, et quatre devient huit.",
+          cues: [
+            { id: "c_passe", text: "a passe à deux" },
+            { id: "c_resserre", text: "se resserre" },
+            { id: "c_huit", text: "devient huit" },
+          ],
+          do: [
+            { id: "a_2", verb: "animate_parameter", parameter: "a", from: 1, to: 2, start: "cue:c_passe", end: "cue_end:c_resserre" },
+            { id: "s_double", verb: "show", target: "p_double", at: "cue:c_huit" },
+          ],
+          pause_after: "normal",
+        },
+        {
+          id: "ouvre",
+          say: "Si a descend à un demi, chaque hauteur est divisée par deux : la parabole s'ouvre, et il ne reste que deux.",
+          cues: [
+            { id: "c_demi", text: "descend à un demi" },
+            { id: "c_ouvre", text: "la parabole s'ouvre" },
+            { id: "c_deux", text: "il ne reste que deux" },
+          ],
+          do: [
+            { id: "f_double", verb: "fade_out", target: "p_double", at: "cue:c_demi" },
             { id: "a_demi", verb: "animate_parameter", parameter: "a", from: 2, to: 0.5, start: "cue:c_demi", end: "cue_end:c_ouvre" },
             { id: "s_demi", verb: "show", target: "p_demi", at: "cue:c_deux" },
-            { id: "h_haut", verb: "highlight", target: "haut", role: "accent", start: "cue:c_deux", end: "cue_end:c_deux" }] },
-        { id: "zero", say: "Seule condition : a ne vaut jamais zéro, sinon tout s'écrase sur l'axe.",
+            { id: "h_haut", verb: "highlight", target: "haut", role: "accent", start: "cue:c_deux", end: "cue_end:c_deux" },
+          ],
+        },
+        {
+          id: "zero",
+          say: "Seule condition : a ne vaut jamais zéro, sinon tout s'écrase sur l'axe.",
           cues: [{ id: "c_zero", text: "a ne vaut jamais zéro" }],
-          do: [{ id: "f_ref", verb: "fade_out", target: "p_ref", at: "cue:c_zero" }, { id: "f_demi", verb: "fade_out", target: "p_demi", at: "cue:c_zero" },
-            { id: "f_haut", verb: "fade_out", target: "haut", at: "cue:c_zero" }],
-          pause_after: "long" },
+          do: [
+            { id: "f_ref", verb: "fade_out", target: "p_ref", at: "cue:c_zero" },
+            { id: "f_demi", verb: "fade_out", target: "p_demi", at: "cue:c_zero" },
+            { id: "f_haut", verb: "fade_out", target: "haut", at: "cue:c_zero" },
+          ],
+          pause_after: "long",
+        },
       ],
     },
     {
       slice_id: "s_retenir",
       introduces: [{ id: "idee", type: "text", content: "a multiplie chaque hauteur de x²", layout: { next_to: "regle", direction: "down", gap: "md" } }],
       beats: [
-        { id: "retenir", say: "À retenir : a multiplie chaque hauteur. Plus grand que un, la parabole se resserre ; entre zéro et un, elle s'ouvre.",
-          cues: [{ id: "c_retenir", text: "À retenir" }, { id: "c_multiplie", text: "a multiplie chaque hauteur" }],
-          do: [{ id: "cadre", verb: "camera.focus", targets: ["rep", "regle", "idee"], bounds: "layout_bounds", at: "cue:c_retenir" },
+        {
+          id: "retenir",
+          say: "À retenir : a multiplie chaque hauteur. Plus grand que un, la parabole se resserre ; entre zéro et un, elle s'ouvre.",
+          cues: [
+            { id: "c_retenir", text: "À retenir" },
+            { id: "c_multiplie", text: "a multiplie chaque hauteur" },
+          ],
+          do: [
+            { id: "cadre", verb: "camera.focus", targets: ["rep", "regle", "idee"], bounds: "layout_bounds", at: "cue:c_retenir" },
             { id: "w_idee", verb: "write", target: "idee", at: "cue:c_multiplie" },
-            { id: "h_ax", verb: "highlight", target: "regle", part: "ax", role: "accent", start: "cue:c_multiplie", end: "cue_end:c_multiplie" }] },
+            { id: "h_ax", verb: "highlight", target: "regle", part: "ax", role: "accent", start: "cue:c_multiplie", end: "cue_end:c_multiplie" },
+          ],
+        },
       ],
     },
   ],
@@ -258,8 +398,7 @@ export const MOVING_EXAMPLE_LESSON = {
 /** The short lesson an out-of-scope question gets (format unchanged: one tranche, fixed ids). Validated in a test. */
 export const REFUSAL_EXAMPLE = {
   header: {
-    lesson: { id: "hors_perimetre", title: "Une question de physique", language: "fr",
-      learning_goal: "Refuser poliment et proposer une notion proche." },
+    lesson: { id: "hors_perimetre", title: "Une question de physique", language: "fr", learning_goal: "Refuser poliment et proposer une notion proche." },
     math_context: { symbols: {}, expressions: {} },
   },
   slices: [
@@ -267,10 +406,18 @@ export const REFUSAL_EXAMPLE = {
       slice_id: "s_hors_perimetre",
       introduces: [{ id: "offre", type: "text", content: "Je peux t'expliquer : la parabole et ses zéros" }],
       beats: [
-        { id: "refus", say: "Bonne question, mais elle relève de la physique, et moi j'explique les maths et la chimie de secondaire quatre et cinq.",
-          cues: [], do: [] },
-        { id: "propose", say: "Par contre, je peux te montrer la parabole qui décrit le vol d'un ballon, et comment trouver où elle touche le sol.",
-          cues: [{ id: "c_parabole", text: "la parabole" }], do: [{ id: "s_offre", verb: "show", target: "offre", at: "cue:c_parabole" }] },
+        {
+          id: "refus",
+          say: "Bonne question, mais elle relève de la physique, et moi j'explique les maths et la chimie de secondaire quatre et cinq.",
+          cues: [],
+          do: [],
+        },
+        {
+          id: "propose",
+          say: "Par contre, je peux te montrer la parabole qui décrit le vol d'un ballon, et comment trouver où elle touche le sol.",
+          cues: [{ id: "c_parabole", text: "la parabole" }],
+          do: [{ id: "s_offre", verb: "show", target: "offre", at: "cue:c_parabole" }],
+        },
       ],
     },
   ],
@@ -320,7 +467,7 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
         "m(H₂O) = 1,98 × 18,02 ≈ 35,68 g (garde 4 ÷ 2,02 entier dans la calculatrice). Contrôle par la conservation de la masse : " +
         "il faut 0,99 mol de O₂, soit 31,68 g, et 4 + 31,68 = 35,68 g.",
       "Image : tableau de stœchiométrie (matrix, row_labels « coefficient », « quantité (mol) », « masse (g) », column_labels " +
-        "[\"substance\", \"H₂\", \"O₂\", \"H₂O\"]) : [[2, 1, 2], [1.98, \"?\", \"?\"], [4, \"?\", \"?\"]], chaque « ? » remplacé " +
+        '["substance", "H₂", "O₂", "H₂O"]) : [[2, 1, 2], [1.98, "?", "?"], [4, "?", "?"]], chaque « ? » remplacé ' +
         "par sa valeur au fil du calcul (0,99 ; 1,98 ; 31,68 ; 35,68) ; highlight part « c3 » pour suivre l'eau. Chaque passage " +
         "d'une ligne à l'autre = un label attaché (« ÷ 2,02 », « × 18,02 »).",
       "Réactif limitant : celui qui s'épuise le premier ; compare les quantités de matière divisées par leur coefficient. " +
@@ -333,7 +480,9 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
   {
     id: "chimie_gaz",
     title: "Gaz : lois des gaz (sec 5 Chimie)",
-    keywords: words(/gaz parfaits?|lois? (?:g[ée]n[ée]rale |simples? )?des gaz|pressions? (?:d'un|du|des) gaz|pressions? partielles?|pression totale|m[ée]lange gazeu|\b(?:un|ce|des) gaz\b|quantit[ée]r? de gaz|\bkpa\b|\batm\b|mm ?hg|pression atmosph[ée]rique|boyle|mariotte|gay-lussac|\bcharles\b|p ?v ?= ?n ?r ?t|p1 ?v1|dalton|volume molaire|\bTA?PN\b|th[ée]orie cin[ée]tique|hypoth[èe]se d'avogadro/),
+    keywords: words(
+      /gaz parfaits?|lois? (?:g[ée]n[ée]rale |simples? )?des gaz|pressions? (?:d'un|du|des) gaz|pressions? partielles?|pression totale|m[ée]lange gazeu|\b(?:un|ce|des) gaz\b|quantit[ée]r? de gaz|\bkpa\b|\batm\b|mm ?hg|pression atmosph[ée]rique|boyle|mariotte|gay-lussac|\bcharles\b|p ?v ?= ?n ?r ?t|p1 ?v1|dalton|volume molaire|\bTA?PN\b|th[ée]orie cin[ée]tique|hypoth[èe]se d'avogadro/,
+    ),
     rules: [
       "Températures en kelvins (T = θ + 273,15), pressions en kPa, volumes en L ; R = 8,314 kPa·L/(mol·K). Dis l'unité à voix haute. " +
         "1 atm = 101,3 kPa = 760 mm Hg.",
@@ -351,7 +500,7 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
         "molaire gazeux : 22,4 L/mol à TPN (0 °C, 101,3 kPa), 24,5 L/mol à TAPN (25 °C, 101,3 kPa). Loi de Dalton : la pression " +
         "totale est la somme des pressions partielles. Hypothèse d'Avogadro : à même température et même pression, des volumes " +
         "égaux de gaz contiennent le même nombre de particules. Théorie cinétique : la pression vient des chocs des particules sur la paroi.",
-      "Image : Boyle-Mariotte = la courbe V = k ÷ p (function_graph \"2/x\", domain [0.4, 3.5] car 2 ÷ x n'existe pas en 0, la " +
+      'Image : Boyle-Mariotte = la courbe V = k ÷ p (function_graph "2/x", domain [0.4, 3.5] car 2 ÷ x n\'existe pas en 0, la ' +
         "pression en centaines de kPa sur l'axe des x de 0 à 3,5, le volume en L de 0 à 5, axes nommés par label) avec les points " +
         "(1 ; 2) et (2,5 ; 0,8) ; particules (point) dans un rectangle (polygon) qui rapetisse : mêmes points, moins de place.",
     ],
@@ -359,7 +508,9 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
   {
     id: "chimie_energie",
     title: "Aspect énergétique des transformations (sec 4 ST et STE, sec 5 Chimie)",
-    keywords: words(/enthalpie|Δ ?H|\bdelta ?h\b|\bhess\b|diagramme [ée]nerg|[ée]nergie d'activation|[ée]nergies? de liaison|endotherm|exotherm|\bendo\b|\bexo\b|complexe activ[ée]|changements? d'[ée]tat|cong[ée]lation|solidification|vaporisation|sublimation|liqu[ée]faction|physique ou chimique|calorim|chaleur|chauffer|refroidir|m ?c ?Δ ?T|capacit[ée] thermique|\bkJ\b/),
+    keywords: words(
+      /enthalpie|Δ ?H|\bdelta ?h\b|\bhess\b|diagramme [ée]nerg|[ée]nergie d'activation|[ée]nergies? de liaison|endotherm|exotherm|\bendo\b|\bexo\b|complexe activ[ée]|changements? d'[ée]tat|cong[ée]lation|solidification|vaporisation|sublimation|liqu[ée]faction|physique ou chimique|calorim|chaleur|chauffer|refroidir|m ?c ?Δ ?T|capacit[ée] thermique|\bkJ\b/,
+    ),
     rules: [
       "Changements d'état (transformations PHYSIQUES : la substance reste la même) : fusion, vaporisation et sublimation " +
         "absorbent de l'énergie, endothermiques (ΔH > 0) ; solidification (la congélation de l'eau), condensation liquide " +
@@ -403,7 +554,9 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
   {
     id: "chimie_equilibre",
     title: "Équilibre chimique (sec 5 Chimie)",
-    keywords: words(/[ée]quilibre chimique|[ée]tat d'[ée]quilibre|[àa] l'[ée]quilibre|\bK(?:ps|c|p|a|b)\b|le chatelier|⇌|<=>|constante d'[ée]quilibre|produit de solubilit/),
+    keywords: words(
+      /[ée]quilibre chimique|[ée]tat d'[ée]quilibre|[àa] l'[ée]quilibre|\bK(?:ps|c|p|a|b)\b|le chatelier|⇌|<=>|constante d'[ée]quilibre|produit de solubilit/,
+    ),
     rules: [
       "Équilibre DYNAMIQUE : les réactions directe et inverse continuent à la même vitesse ; les concentrations restent " +
         "constantes, elles ne sont pas égales.",
@@ -424,8 +577,11 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
   },
   {
     id: "chimie_structure",
-    title: "Structure de la matière : modèle atomique, Lewis, liaisons, nomenclature, nucléaire (sec 4 ST ; liaisons, ions polyatomiques, isotopes, nucléaire en STE)",
-    keywords: words(/rutherford|\bbohr\b|\blewis\b|[ée]lectrons? de valence|liaisons? (?:ionique|covalente|chimique)|\bliason|ionique|covalente?|doublets?|(?:double|triple) liaison|isotope|tableau p[ée]riodique|nomenclature|polyatomique|num[ée]ro atomique|masse atomique|nucl[ée]aire|fission|radioacti/),
+    title:
+      "Structure de la matière : modèle atomique, Lewis, liaisons, nomenclature, nucléaire (sec 4 ST ; liaisons, ions polyatomiques, isotopes, nucléaire en STE)",
+    keywords: words(
+      /rutherford|\bbohr\b|\blewis\b|[ée]lectrons? de valence|liaisons? (?:ionique|covalente|chimique)|\bliason|ionique|covalente?|doublets?|(?:double|triple) liaison|isotope|tableau p[ée]riodique|nomenclature|polyatomique|num[ée]ro atomique|masse atomique|nucl[ée]aire|fission|radioacti/,
+    ),
     rules: [
       "Liaison covalente : chaque liaison = un doublet = 2 électrons partagés ; double liaison = 2 doublets = 4 électrons ; " +
         "triple = 6. CO₂ s'écrit O=C=O (deux doubles liaisons) : C (4 électrons de valence) et O (6) sont deux NON-MÉTAUX, ils " +
@@ -448,7 +604,9 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
   {
     id: "chimie_acides",
     title: "Acides, bases, pH, électrolytes (sec 4 ST, sec 5 Chimie)",
-    keywords: words(/\bpH\b|\bacides?\b|basique|\bbases? (?:forte|faible)|neutralis|hydronium|hydroxyde|\bKw\b|[ée]lectrolyt|dissociation|\bions?\b|titra|polyprotique|polyacide|[ée]quivalence|conductibilit|conductivit|javel|tournesol|indicateur/),
+    keywords: words(
+      /\bpH\b|\bacides?\b|basique|\bbases? (?:forte|faible)|neutralis|hydronium|hydroxyde|\bKw\b|[ée]lectrolyt|dissociation|\bions?\b|titra|polyprotique|polyacide|[ée]quivalence|conductibilit|conductivit|javel|tournesol|indicateur/,
+    ),
     rules: [
       "Échelle pH de 0 à 14 : acide sous 7, neutre à 7, basique au-dessus. Une unité de pH = un facteur 10 de [H⁺]. En sec 5 : " +
         "pH = −log[H⁺] et [H⁺] = 10^(−pH) : pH 1, 2, 3 donnent [H⁺] = 0,1 ; 0,01 ; 0,001 mol/L ([H⁺] BAISSE quand le pH monte). " +
@@ -502,7 +660,9 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
   {
     id: "chimie_balancement",
     title: "Balancement d'équations chimiques, conservation de la masse, combustion (sec 4 ST)",
-    keywords: words(/[ée]quilibrer|[ée]quilibre (?:l'|une |cette |mon )[ée]quation|[ée]quations? (?:chimiques? )?[ée]quilibr[ée]e|balanc|conservation de la masse|coefficients? (?:st|d'une [ée]quation)|combustion|triangle de feu|comburant/),
+    keywords: words(
+      /[ée]quilibrer|[ée]quilibre (?:l'|une |cette |mon )[ée]quation|[ée]quations? (?:chimiques? )?[ée]quilibr[ée]e|balanc|conservation de la masse|coefficients? (?:st|d'une [ée]quation)|combustion|triangle de feu|comburant/,
+    ),
     rules: [
       "Idée centrale (loi de la conservation de la masse) : les atomes ne se créent ni ne disparaissent, ils se réarrangent ; il " +
         "faut autant de chaque sorte d'atome des deux côtés. On change les coefficients, jamais les indices (H₂O₂ n'est plus de l'eau).",
@@ -529,12 +689,18 @@ export const CHEMISTRY_GUIDES: readonly NesalioGuide[] = [
  * « aire », « balancer une équation » holds « équation »). « Équilibre » counts
  * only for an equation or a chemical equilibrium, not for a « prix d'équilibre ».
  */
-const CHEMISTRY_WORDS = words(/chimi|mol[ée]cul|\bmoles?\b|molaire|\batomes?\b|r[ée]action|r[ée]actifs?\b|st(?:œ|oe)chiom|concentration|solut[ée]|\bpH\b|\bacides?\b|neutralis|enthalpie|endotherm|exotherm|[ée]quilibrer|[ée]quilibr\w* (?:une |l'|cette |mon |les? )?[ée]quations?|[ée]quilibre chimique|[ée]tat d'[ée]quilibre|balanc\w* (?:une |l'|cette |mon |les? )?[ée]quations?|gaz parfaits?|lois? (?:g[ée]n[ée]rale )?des gaz|\bun gaz\b|\bkpa\b|Δ ?H|calorim|chauffer|\bK(?:ps|c|p|a|b|w)\b|triangle de feu|combustion|comburant|polyatomique|nucl[ée]aire|radioacti|⇌|rutherford|\bbohr\b|st(?:œ|oe)chio|pressions? partielles?|m[ée]lange gazeu|\b(?:ce|des) gaz\b|pression atmosph[ée]rique|\bTA?PN\b|dioxyde|monoxyde|dihydrog[èe]ne|dioxyg[èe]ne|diazote|m[ée]thane|h[ée]lium|titra|polyprotique|conductibilit|javel|bicarbonate|vinaigre|\bendo\b|\bexo\b|complexe activ|changements? d'[ée]tat|ionique|covalente?|\bliason|solubilit/);
+const CHEMISTRY_WORDS = words(
+  /chimi|mol[ée]cul|\bmoles?\b|molaire|\batomes?\b|r[ée]action|r[ée]actifs?\b|st(?:œ|oe)chiom|concentration|solut[ée]|\bpH\b|\bacides?\b|neutralis|enthalpie|endotherm|exotherm|[ée]quilibrer|[ée]quilibr\w* (?:une |l'|cette |mon |les? )?[ée]quations?|[ée]quilibre chimique|[ée]tat d'[ée]quilibre|balanc\w* (?:une |l'|cette |mon |les? )?[ée]quations?|gaz parfaits?|lois? (?:g[ée]n[ée]rale )?des gaz|\bun gaz\b|\bkpa\b|Δ ?H|calorim|chauffer|\bK(?:ps|c|p|a|b|w)\b|triangle de feu|combustion|comburant|polyatomique|nucl[ée]aire|radioacti|⇌|rutherford|\bbohr\b|st(?:œ|oe)chio|pressions? partielles?|m[ée]lange gazeu|\b(?:ce|des) gaz\b|pression atmosph[ée]rique|\bTA?PN\b|dioxyde|monoxyde|dihydrog[èe]ne|dioxyg[èe]ne|diazote|m[ée]thane|h[ée]lium|titra|polyprotique|conductibilit|javel|bicarbonate|vinaigre|\bendo\b|\bexo\b|complexe activ|changements? d'[ée]tat|ionique|covalente?|\bliason|solubilit/,
+);
 /** Words that make a question a mathematics problem whatever its setting. */
 const MATH_WORDS = words(/fonctions?\b|exponenti|taux de variation|\bpente\b|\bisoler\b|\binconnue\b/);
 /** Element symbols of the periodic table, to tell H2O from a point named P1 or a cell A1. */
-const ELEMENTS = new Set(("H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr " +
-  "Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Pt Au Hg Pb Bi Rn Fr Ra U").split(" "));
+const ELEMENTS = new Set(
+  (
+    "H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr " +
+    "Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Pt Au Hg Pb Bi Rn Fr Ra U"
+  ).split(" "),
+);
 /** Something written like a formula with a count: H2O, CO2, C3H8, O2, but also P1 or A1. */
 const FORMULA_LIKE = /\b(?:[A-Z][a-z]?\d*)*[A-Z][a-z]?\d+(?:[A-Z][a-z]?\d*)*\b/g;
 
@@ -557,14 +723,15 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
     // Physics left the scope (2026-11-08): this guide no longer teaches it, it tells to refuse.
     id: "hors_perimetre",
     title: "Question de physique, hors périmètre",
-    keywords: words(/r[ée]fract|lentille|optique|\bnewton|\bF ?= ?m ?a\b|frottement|circuit [ée]lectrique|loi d'ohm|r[ée]sistance [ée]lectrique|[ée]lectricit|pendule/),
+    keywords: words(
+      /r[ée]fract|lentille|optique|\bnewton|\bF ?= ?m ?a\b|frottement|circuit [ée]lectrique|loi d'ohm|r[ée]sistance [ée]lectrique|[ée]lectricit|pendule/,
+    ),
     rules: [
       "Cette question semble relever de la physique, hors du périmètre de Nesalio (mathématiques et chimie de secondaire 4 et 5). " +
         "Si c'est bien de la physique, écris la leçon de refus d'une seule tranche (s_hors_perimetre), sans rien expliquer de physique.",
       "Propose une notion de maths proche : une trajectoire → la parabole et ses zéros ; une vitesse constante → la fonction " +
         "affine et son taux de variation ; une pente, un angle → la trigonométrie du triangle rectangle ; ou une notion de chimie.",
-      "Si la question porte en fait sur des maths ou de la chimie (lois des gaz, vitesse de réaction, énergie d'une réaction), " +
-        "explique-la normalement.",
+      "Si la question porte en fait sur des maths ou de la chimie (lois des gaz, vitesse de réaction, énergie d'une réaction), " + "explique-la normalement.",
     ],
   },
   {
@@ -580,7 +747,7 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
         "Sécante AP : pente (9 − 1) ÷ (3 − 1) = 4. Puis P(2, 4) : pente 3 ; P(1,5 ; 2,25) : pente 2,5. Chaque nouvelle sécante " +
         "est une function_graph droite (ex. 3*(x-1)+1) qui remplace la précédente (fade_out de l'ancienne), et sa pente est écrite.",
       "Pour faire pivoter la sécante sous les yeux de l'élève : paramètre q dans math_context (initial 3, min 1, max 3) et " +
-        "function_graph \"(q+1)*(x-1)+1\" (la pente de AP vaut q + 1) ; animate_parameter q de 3 vers 1 pendant que tu dis " +
+        'function_graph "(q+1)*(x-1)+1" (la pente de AP vaut q + 1) ; animate_parameter q de 3 vers 1 pendant que tu dis ' +
         "que P se rapproche de A et que la pente passe de 4 à 2. À la fin c'est la tangente y = 2x − 1 : pente 2.",
       "Pour f(x) = x², la pente de la sécante entre 1 et q vaut q + 1 : elle DIMINUE de 4 vers 2 quand q va de 3 à 1. " +
         "Vérifie : le nombre dérivé de x² en 1 est 2, en 2 il est 4 (jamais « 2 » en x = 2).",
@@ -591,7 +758,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "statistiques",
     title: "Statistiques, nuage de points, corrélation",
-    keywords: words(/corr[ée]lation|nuage de points|droite d'ajustement|droite de r[ée]gression|statisti|(?<!vitesse )moyenne|m[ée]diane|quartile|[ée]cart[- ]type|histogramme|bo[îi]te [àa] moustaches/),
+    keywords: words(
+      /corr[ée]lation|nuage de points|droite d'ajustement|droite de r[ée]gression|statisti|(?<!vitesse )moyenne|m[ée]diane|quartile|[ée]cart[- ]type|histogramme|bo[îi]te [àa] moustaches/,
+    ),
     rules: [
       "Idée centrale de r : il mesure à quel point les points du nuage sont proches d'une DROITE, donc la force d'un lien LINÉAIRE " +
         "entre deux variables. −1 ≤ r ≤ 1 ; le signe donne le sens (négatif : quand x augmente, y a tendance à diminuer), |r| la force.",
@@ -618,7 +787,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "probabilites",
     title: "Probabilités, dénombrement, probabilité conditionnelle",
-    keywords: words(/probabilit|chances? (?:de|d'|sur)|pile ou face|tirage|al[ée]atoire|[ée]quiprobab|d[ée]nombr|\bdeux dés\b|\bun dé\b|\blance\w* [^?.]{0,25}\bd[ée]s?\b|\bP\([A-Z]/),
+    keywords: words(
+      /probabilit|chances? (?:de|d'|sur)|pile ou face|tirage|al[ée]atoire|[ée]quiprobab|d[ée]nombr|\bdeux dés\b|\bun dé\b|\blance\w* [^?.]{0,25}\bd[ée]s?\b|\bP\([A-Z]/,
+    ),
     rules: [
       "Probabilité = cas favorables ÷ cas possibles, SEULEMENT si les issues sont équiprobables. Dessine l'univers : des cases " +
         "égales (polygon carrés côte à côte, un label inside par issue) ou le tableau des 36 issues de deux dés (matrix 6 × 6 des " +
@@ -655,7 +826,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "programmation_lineaire",
     title: "Inéquations à deux variables, polygone de contraintes, optimisation",
-    keywords: words(/polygones? de contraintes?|programmation lin[ée]aire|r[ée]gion[- ]solution|demi-plan|fonction (?:objectif|[àa] optimiser)|syst[èe]mes? d'in[ée]quations|in[ée]quations? [àa] deux variables/),
+    keywords: words(
+      /polygones? de contraintes?|programmation lin[ée]aire|r[ée]gion[- ]solution|demi-plan|fonction (?:objectif|[àa] optimiser)|syst[èe]mes? d'in[ée]quations|in[ée]quations? [àa] deux variables/,
+    ),
     rules: [
       "Idée centrale : chaque contrainte (inéquation en x et y) garde un DEMI-PLAN ; le polygone de contraintes est la partie " +
         "commune à tous. Trace la droite frontière (y isolé), puis prends un point test qui n'est pas sur elle (souvent (0 ; 0)) : " +
@@ -710,7 +883,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "systemes",
     title: "Systèmes d'équations",
-    keywords: words(/syst[èe]me|valeurs? de x et (?:de )?y|trouver x et y|par comparaison|m[ée]thode de comparaison|substitution|par r[ée]duction|m[ée]thode de r[ée]duction|deux [ée]quations|point de rencontre|point d'intersection/),
+    keywords: words(
+      /syst[èe]me|valeurs? de x et (?:de )?y|trouver x et y|par comparaison|m[ée]thode de comparaison|substitution|par r[ée]duction|m[ée]thode de r[ée]duction|deux [ée]quations|point de rencontre|point d'intersection/,
+    ),
     rules: [
       "Idée centrale : la solution est le couple (x ; y) qui vérifie les deux équations EN MÊME TEMPS, le point de rencontre de " +
         "leurs droites. Montre-le : deux function_graph dans le même repère, et le point d'intersection avec ses coordonnées " +
@@ -735,7 +910,7 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
       "Résous les deux cas l'un à côté de l'autre, chaque étape justifiée : |2x − 3| = 7 donne 2x − 3 = 7 (x = 5) ou " +
         "2x − 3 = −7 (x = −2). Écris l'ensemble-solution {−2, 5}, puis vérifie les deux valeurs (|7| = 7 et |−7| = 7).",
       "Isole d'abord la valeur absolue (2|x − 1| + 3 = 9 → |x − 1| = 3). |u| = un nombre négatif : aucune solution ; |u| = 0 : une seule.",
-      "Lecture graphique : y = |x − 1| (function_graph \"abs(x-1)\", un V de sommet (1 ; 0)) coupe la droite y = 3 en deux " +
+      'Lecture graphique : y = |x − 1| (function_graph "abs(x-1)", un V de sommet (1 ; 0)) coupe la droite y = 3 en deux ' +
         "points, x = −2 et x = 4. Forme canonique de la classe : f(x) = a|b(x − h)| + k, sommet (h ; k).",
       "Inéquation : |x − h| < r, ce sont les x à MOINS de r unités de h : x ∈ ]h − r ; h + r[ ; |x − h| > r, à PLUS de r unités " +
         "de h : x ∈ ]−∞ ; h − r[ ∪ ]h + r ; +∞[. Crochet fermé (vers le nombre) pour ≤ ou ≥, toujours ouvert du côté de l'infini. " +
@@ -746,7 +921,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "analytique",
     title: "Géométrie analytique : pente, milieu, distance, droites",
-    keywords: words(/m[ée]diatrice|milieu|pente|distance entre|g[ée]om[ée]trie analytique|perpendiculaire|parall[èe]le|[ée]quation (?:de la|d'une) droite|forme (?:g[ée]n[ée]rale?|fonctionnelle?|sym[ée]trique)|\b[A-Z] ?\(\s*-?\d/),
+    keywords: words(
+      /m[ée]diatrice|milieu|pente|distance entre|g[ée]om[ée]trie analytique|perpendiculaire|parall[èe]le|[ée]quation (?:de la|d'une) droite|forme (?:g[ée]n[ée]rale?|fonctionnelle?|sym[ée]trique)|\b[A-Z] ?\(\s*-?\d/,
+    ),
     rules: [
       "Chaque formule vient du dessin, dans un repère où les points sont posés (point et label) : pente = montée ÷ avancée " +
         "(triangle de pente en line) ; milieu = la moyenne des coordonnées ; distance = Pythagore sur le triangle de " +
@@ -756,7 +933,7 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
       "Médiatrice : la droite perpendiculaire au segment qui passe par son milieu ; tous ses points sont à la même distance de A " +
         "et de B. Étapes écrites : milieu M ; pente de AB ; pente perpendiculaire ; y = mx + b avec b trouvé en remplaçant M.",
       "Exemple juste : A(0 ; 1), B(4 ; 3) ; M(2 ; 2) ; pente de AB = 2/4 = 1/2 ; pente de la médiatrice −2 ; y = −2x + 6. " +
-        "Trace-la avec son expression (function_graph \"-2*x+6\"), jamais une line entre deux points estimés.",
+        'Trace-la avec son expression (function_graph "-2*x+6"), jamais une line entre deux points estimés.',
       "Vérifie au tableau : M est sur la droite (−2 × 2 + 6 = 2), et un point P(1 ; 4) de la médiatrice est à la même distance " +
         "de A et de B (PA = PB = √10, segments PA et PB tracés).",
       "Formes d'une droite en classe : fonctionnelle y = mx + b, générale Ax + By + C = 0, symétrique x/a + y/b = 1. De " +
@@ -801,7 +978,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "fonctions",
     title: "Fonctions, exponentielle, logarithme, partie entière",
-    keywords: words(/fonctions?\b|exposants?\b|image|ant[ée]c[ée]dent|graphique|courbe|exponenti|logarithm|\blog\b|partie enti[èe]re|parabole|sommet|z[ée]ro|forme canonique/),
+    keywords: words(
+      /fonctions?\b|exposants?\b|image|ant[ée]c[ée]dent|graphique|courbe|exponenti|logarithm|\blog\b|partie enti[èe]re|parabole|sommet|z[ée]ro|forme canonique/,
+    ),
     rules: [
       "Fonction = relation entrée → sortie, une seule sortie par entrée. Montre quelques couples (entrée, sortie) dans un " +
         "tableau (matrix avec row_labels « x » et « f(x) »), puis chaque couple devient un point du graphique, et les points forment la courbe.",
@@ -819,7 +998,7 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
         "l'horizontale jusqu'à la courbe puis descends à x = 3 (lines). Écris les bases en indice (log₂), jamais « log_b ».",
       "Partie entière [x] : le plus grand entier inférieur ou égal à x ([3,7] = 3, [−2,3] = −3 : piège classique). " +
         "Forme canonique f(x) = a[b(x − h)] + k ; |a| = écart entre deux marches, 1/|b| = longueur d'une marche. Courbe : " +
-        "function_graph \"floor(x)\" (ou \"a*floor(b*(x-h))+k\"), jamais une expression sans marches.",
+        'function_graph "floor(x)" (ou "a*floor(b*(x-h))+k"), jamais une expression sans marches.',
       "Zéros de la partie entière : f(x) = 0 donne [b(x − h)] = −k/a ; si −k/a n'est pas entier, aucun zéro ; s'il vaut l'entier n, " +
         "tous les x de n ≤ b(x − h) < n + 1 sont des zéros : un INTERVALLE. Ex. f(x) = 2[x − 1] − 4 : [x − 1] = 2, 2 ≤ x − 1 < 3, " +
         "zéros x ∈ [3 ; 4[ (si b < 0, l'intervalle est ouvert à gauche et fermé à droite).",
@@ -834,7 +1013,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "polynomes",
     title: "Polynômes, produits remarquables, factorisation",
-    keywords: words(/polyn[ôo]me|factoris|d[ée]velopp|bin[ôo]me|trin[ôo]me|carr[ée] parfait|produit remarquable|mise en [ée]vidence|produit-somme|compl[ée]t\w* (?:le |du )?carr[ée]|compl[ée]tion|diff[ée]rence de (deux )?carr|\(x ?[+−-]|divis\w* (?:un |le |d'un |des )?polyn|divis\w* [^?]*\bpar \(?x\b|discriminant|quadratique|produit nul|restriction|rationnel|(?:second|2e|deuxi[èe]me) degr[ée]/),
+    keywords: words(
+      /polyn[ôo]me|factoris|d[ée]velopp|bin[ôo]me|trin[ôo]me|carr[ée] parfait|produit remarquable|mise en [ée]vidence|produit-somme|compl[ée]t\w* (?:le |du )?carr[ée]|compl[ée]tion|diff[ée]rence de (deux )?carr|\(x ?[+−-]|divis\w* (?:un |le |d'un |des )?polyn|divis\w* [^?]*\bpar \(?x\b|discriminant|quadratique|produit nul|restriction|rationnel|(?:second|2e|deuxi[èe]me) degr[ée]/,
+    ),
     rules: [
       "Méthodes du programme, dans cet ordre de réflexion, nommées à voix haute : mise en évidence simple (toujours d'abord) ; " +
         "quatre termes → mise en évidence double ; a² − b² → différence de deux carrés ; a² ± 2ab + b² → trinôme carré parfait ; " +
@@ -865,7 +1046,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "algebre",
     title: "Équations, signes, fractions",
-    keywords: words(/[ée]quation|r[ée]sou|inconnue|isoler|(?<![a-zé])fraction|d[ée]nominateur|num[ée]rateur|pourcentage|proportion|r[èe]gle de trois|signe|n[ée]gatif|distributiv/),
+    keywords: words(
+      /[ée]quation|r[ée]sou|inconnue|isoler|(?<![a-zé])fraction|d[ée]nominateur|num[ée]rateur|pourcentage|proportion|r[èe]gle de trois|signe|n[ée]gatif|distributiv/,
+    ),
     rules: [
       "Équation : écris-la une fois et fais-la évoluer par transform. Chaque opération en deux temps : d'abord l'opération " +
         "écrite des DEUX côtés (« 2x − 1 − 2x = 3x − 4 − 2x »), puis le résultat simplifié ; dis POURQUOI on la fait.",
@@ -885,7 +1068,9 @@ export const NESALIO_GUIDES: readonly NesalioGuide[] = [
   {
     id: "geometrie",
     title: "Géométrie, trigonométrie, Pythagore",
-    keywords: words(/triangle|pythagore|hypot[ée]nuse|angle|sinus|cosinus|tangente d[e'] ?(?:\d|un angle)|trigono|\baires?\b|p[ée]rim[èe]tre|cercle|volume|semblable|isom[ée]tri|thal[èe]s|vecteur|radian/),
+    keywords: words(
+      /triangle|pythagore|hypot[ée]nuse|angle|sinus|cosinus|tangente d[e'] ?(?:\d|un angle)|trigono|\baires?\b|p[ée]rim[èe]tre|cercle|volume|semblable|isom[ée]tri|thal[èe]s|vecteur|radian/,
+    ),
     rules: [
       "La figure dit les mêmes nombres que toi : triplets entiers (3-4-5, 6-8-10, 5-12-13), mesures écrites en label attaché aux côtés.",
       "Pythagore, image : triangle_right (angle droit à l'origine, leg_a sur x, leg_b sur y) et trois carrés posés sur les " +
@@ -921,14 +1106,26 @@ export function guidesFor(question: string): NesalioGuide[] {
  * from the two-guide limit. Every fact is checked (sources: report dev2-consignes-fiches).
  */
 export const FACTS: readonly { keywords: RegExp; fact: string }[] = [
-  { keywords: words(/bicarbonate|hydrog[ée]nocarbonate/), fact: "bicarbonate de soude = hydrogénocarbonate de sodium, NaHCO₃ (sa solution est faiblement basique)" },
-  { keywords: words(/vinaigre|acide ac[ée]tique|acide [ée]thano[ïi]que/), fact: "vinaigre = solution d'acide acétique CH₃COOH (≈ 5 %), acide faible qui libère un seul H⁺" },
-  { keywords: words(/javel|hypochlorite/), fact: "eau de Javel = solution d'hypochlorite de sodium NaClO, basique (pH ≈ 11 à 13), électrolyte : elle conduit très bien le courant" },
+  {
+    keywords: words(/bicarbonate|hydrog[ée]nocarbonate/),
+    fact: "bicarbonate de soude = hydrogénocarbonate de sodium, NaHCO₃ (sa solution est faiblement basique)",
+  },
+  {
+    keywords: words(/vinaigre|acide ac[ée]tique|acide [ée]thano[ïi]que/),
+    fact: "vinaigre = solution d'acide acétique CH₃COOH (≈ 5 %), acide faible qui libère un seul H⁺",
+  },
+  {
+    keywords: words(/javel|hypochlorite/),
+    fact: "eau de Javel = solution d'hypochlorite de sodium NaClO, basique (pH ≈ 11 à 13), électrolyte : elle conduit très bien le courant",
+  },
   { keywords: words(/sel de table|chlorure de sodium/), fact: "sel de table = chlorure de sodium NaCl, un sel : sa solution est neutre et conduit le courant" },
   { keywords: words(/soude caustique|hydroxyde de sodium|\bNaOH\b/), fact: "hydroxyde de sodium (soude caustique) NaOH : base forte, un OH⁻" },
   { keywords: words(/acide chlorhydrique|\bHCl\b/), fact: "acide chlorhydrique HCl : acide fort, un H⁺" },
   { keywords: words(/acide sulfurique|H2SO4|H₂SO₄/), fact: "acide sulfurique H₂SO₄ : deux H⁺ par molécule (n(H⁺) = 2 × n(H₂SO₄))" },
-  { keywords: words(/acide phosphorique|H3PO4|H₃PO₄/), fact: "acide phosphorique H₃PO₄ : trois H⁺ par molécule ; neutralisation complète \\ce{H3PO4 + 3NaOH -> Na3PO4 + 3H2O}" },
+  {
+    keywords: words(/acide phosphorique|H3PO4|H₃PO₄/),
+    fact: "acide phosphorique H₃PO₄ : trois H⁺ par molécule ; neutralisation complète \\ce{H3PO4 + 3NaOH -> Na3PO4 + 3H2O}",
+  },
   { keywords: words(/acide nitrique|HNO3|HNO₃/), fact: "acide nitrique HNO₃ : acide fort, un H⁺" },
   { keywords: words(/acide carbonique|H2CO3|H₂CO₃/), fact: "acide carbonique H₂CO₃ : deux H⁺ ; il se décompose en H₂O + CO₂" },
   { keywords: words(/ammoniac|\bNH3\b|NH₃/), fact: "ammoniac NH₃ : un gaz, une base (avec l'eau, il forme NH₄⁺ et OH⁻)" },
@@ -943,11 +1140,23 @@ export const FACTS: readonly { keywords: RegExp; fact: string }[] = [
   { keywords: words(/dioxyde de soufre/), fact: "dioxyde de soufre SO₂, M = 32,07 + 2 × 16,00 = 64,07 g/mol" },
   { keywords: words(/dihydrog[èe]ne|dioxyg[èe]ne|diazote/), fact: "dihydrogène H₂, dioxygène O₂, diazote N₂ : molécules de deux atomes" },
   { keywords: words(/peroxyde d'hydrog[èe]ne|eau oxyg[ée]n[ée]e/), fact: "peroxyde d'hydrogène (eau oxygénée) H₂O₂, pas H₂O" },
-  { keywords: words(/dihydroxyde de magn[ée]sium|hydroxyde de magn[ée]sium/), fact: "hydroxyde de magnésium Mg(OH)₂ : une base (deux OH⁻) peu soluble, de type 1 : 2 comme PbCl₂ (Kps = [Mg²⁺][OH⁻]² = 4s³)" },
+  {
+    keywords: words(/dihydroxyde de magn[ée]sium|hydroxyde de magn[ée]sium/),
+    fact: "hydroxyde de magnésium Mg(OH)₂ : une base (deux OH⁻) peu soluble, de type 1 : 2 comme PbCl₂ (Kps = [Mg²⁺][OH⁻]² = 4s³)",
+  },
   { keywords: words(/dichlorure de plomb|chlorure de plomb/), fact: "dichlorure de plomb PbCl₂ : sel peu soluble de type 1 : 2 (Kps = 4s³)" },
-  { keywords: words(/cong[ée]l|solidifi|condensation|liqu[ée]faction/), fact: "solidification (congélation), condensation liquide (liquéfaction), condensation solide : changements physiques EXOTHERMIQUES (ΔH < 0)" },
-  { keywords: words(/\bfusion|\bfond(?:re|u|ue)\b|vaporisation|[ée]bullition|[ée]vaporation|sublimation/), fact: "fusion, vaporisation (ébullition, évaporation), sublimation : changements physiques ENDOTHERMIQUES (ΔH > 0) ; la fusion nucléaire, elle, est une transformation nucléaire" },
-  { keywords: words(/uranium|d[ée]sint[ée]gration|fission/), fact: "désintégration radioactive et fission (uranium) : transformations NUCLÉAIRES, ni physiques ni chimiques" },
+  {
+    keywords: words(/cong[ée]l|solidifi|condensation|liqu[ée]faction/),
+    fact: "solidification (congélation), condensation liquide (liquéfaction), condensation solide : changements physiques EXOTHERMIQUES (ΔH < 0)",
+  },
+  {
+    keywords: words(/\bfusion|\bfond(?:re|u|ue)\b|vaporisation|[ée]bullition|[ée]vaporation|sublimation/),
+    fact: "fusion, vaporisation (ébullition, évaporation), sublimation : changements physiques ENDOTHERMIQUES (ΔH > 0) ; la fusion nucléaire, elle, est une transformation nucléaire",
+  },
+  {
+    keywords: words(/uranium|d[ée]sint[ée]gration|fission/),
+    fact: "désintégration radioactive et fission (uranium) : transformations NUCLÉAIRES, ni physiques ni chimiques",
+  },
 ];
 
 /** The facts whose word is in the question. */
@@ -959,8 +1168,12 @@ export function guideSection(question: string): string {
   const guides = guidesFor(question);
   const facts = factsFor(question);
   return [
-    ...(guides.length ? ["GUIDE POUR CETTE NOTION (repris des séances réussies ; adapte-le à la question)",
-      ...guides.flatMap((guide) => [`${guide.title} :`, ...guide.rules.map((rule) => `- ${rule}`)])] : []),
+    ...(guides.length
+      ? [
+          "GUIDE POUR CETTE NOTION (repris des séances réussies ; adapte-le à la question)",
+          ...guides.flatMap((guide) => [`${guide.title} :`, ...guide.rules.map((rule) => `- ${rule}`)]),
+        ]
+      : []),
     ...(facts.length ? ["FAITS EXACTS (à utiliser tels quels)", ...facts.map((fact) => `- ${fact}`)] : []),
   ].join("\n");
 }

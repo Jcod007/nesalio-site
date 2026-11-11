@@ -31,7 +31,7 @@ export const areaCommand = defineCommand({
   doc:
     '{"type":"area","id":"A","of":"f","from":0,"to":3} : colorie l\'aire entre la courbe "of" (ou "fn") et l\'axe des x,\n' +
     '  de from à to : la partie au-dessus de l\'axe en vert, celle en dessous en orange (groupe "A" ; parties A-plus\n' +
-    '  et A-moins). Pour une intégrale, une moyenne, des « bosses » positives et négatives qui s\'annulent.',
+    "  et A-moins). Pour une intégrale, une moyenne, des « bosses » positives et négatives qui s'annulent.",
   duration: 1300,
   aliases: ["integral", "shade"],
   apply(state, action, reveal) {
@@ -101,6 +101,12 @@ export function putMassPoint(state: BoardState, curveId: string, points: Readonl
   if (isVisible(existing) && existing.type === "point") {
     return putNode(state, { ...existing, at: [at[0] - existing.offset[0], at[1] - existing.offset[1]], morph: reveal });
   }
-  const point: BoardNode = { ...base(id, { start: reveal.start + reveal.duration * 0.8, duration: 500 }, "orange"), type: "point", at, label: "centre de masse", ring: true };
+  const point: BoardNode = {
+    ...base(id, { start: reveal.start + reveal.duration * 0.8, duration: 500 }, "orange"),
+    type: "point",
+    at,
+    label: "centre de masse",
+    ring: true,
+  };
   return placeLabel(putNode(state, point), id);
 }

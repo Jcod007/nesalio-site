@@ -2,7 +2,20 @@ import { describe, expect, it } from "vitest";
 import { buildNesalioMessages, buildNesalioSystemPrompt } from "./prompt";
 import { LessonMetadata } from "@/domain/nesalio/contract";
 import { validateModelOutput } from "@/domain/nesalio/validate";
-import { EXAMPLE_LESSON, MOVING_EXAMPLE_LESSON, REFUSAL_EXAMPLE, TEACHING, VISUAL_DICTIONARY, exampleLessonText, guideSection, guidesFor, lessonText, CHEMISTRY_GUIDES, FACTS, factsFor } from "./pedagogy";
+import {
+  EXAMPLE_LESSON,
+  MOVING_EXAMPLE_LESSON,
+  REFUSAL_EXAMPLE,
+  TEACHING,
+  VISUAL_DICTIONARY,
+  exampleLessonText,
+  guideSection,
+  guidesFor,
+  lessonText,
+  CHEMISTRY_GUIDES,
+  FACTS,
+  factsFor,
+} from "./pedagogy";
 
 const ids = (question: string) => guidesFor(question).map((guide) => guide.id);
 
@@ -10,9 +23,17 @@ describe("pédagogie du générateur Nesalio", () => {
   // Measured on 2026-11-08: without the tutor's teaching rules and guides, Nesalio explained worse (3.3/5 vs 4.0/5).
   it("rend au modèle les règles d'enseignement du tuteur, pour le public québécois", () => {
     const prompt = buildNesalioSystemPrompt();
-    for (const rule of ["IDÉE CENTRALE", "JUSTIFIE", "conditions d'application d'une règle AVANT sa formule",
-      "CHOISIS DES EXEMPLES OÙ ÇA SE VOIT", "programme québécois", "dollars et non euros", "LE TABLEAU EXPLIQUE",
-      "UNE SEULE tranche de conclusion", "ce passage dit POURQUOI"]) {
+    for (const rule of [
+      "IDÉE CENTRALE",
+      "JUSTIFIE",
+      "conditions d'application d'une règle AVANT sa formule",
+      "CHOISIS DES EXEMPLES OÙ ÇA SE VOIT",
+      "programme québécois",
+      "dollars et non euros",
+      "LE TABLEAU EXPLIQUE",
+      "UNE SEULE tranche de conclusion",
+      "ce passage dit POURQUOI",
+    ]) {
       expect(prompt, rule).toContain(rule);
     }
   });
@@ -78,16 +99,31 @@ describe("pédagogie du générateur Nesalio", () => {
 
   it("reprend les règles de l'ancien tuteur sur la situation, les noms, les axes et l'effacement", () => {
     // audit-a-garder.md § 6, points 1 to 4: rules of the old prompt never taken back.
-    for (const rule of ["dis ce qui correspond à quoi", "hypothèses (alignement, parallélisme, angle droit)", "Un nom désigne un seul objet",
-      "ce que compte chaque axe", "AVANT d'effacer une représentation"]) expect(TEACHING, rule).toContain(rule);
+    for (const rule of [
+      "dis ce qui correspond à quoi",
+      "hypothèses (alignement, parallélisme, angle droit)",
+      "Un nom désigne un seul objet",
+      "ce que compte chaque axe",
+      "AVANT d'effacer une représentation",
+    ])
+      expect(TEACHING, rule).toContain(rule);
   });
 
   it("demande une figure calculée, sans arrondi précoce, un titre juste et le diagnostic exact d'une erreur", () => {
     // Seen in the baseline measurement: secant of slope 3 called 4, « perpendicular » of slope 1/2, 2433,40 $ from a rounded
     // 1,04⁵, title « trouver x = 3 » for x = 2, an invented « forgotten sign » diagnosis.
-    for (const rule of ["LA FIGURE SE CALCULE", "a son y calculé", "passe par ses points", "pentes opposées inverses",
-      "pavent exactement", "PAS D'ARRONDI avant le résultat final", "Le titre", "recalcule-la pour trouver l'opération exacte",
-      "result = la valeur finale juste"]) expect(TEACHING, rule).toContain(rule);
+    for (const rule of [
+      "LA FIGURE SE CALCULE",
+      "a son y calculé",
+      "passe par ses points",
+      "pentes opposées inverses",
+      "pavent exactement",
+      "PAS D'ARRONDI avant le résultat final",
+      "Le titre",
+      "recalcule-la pour trouver l'opération exacte",
+      "result = la valeur finale juste",
+    ])
+      expect(TEACHING, rule).toContain(rule);
   });
 
   it("dit pour chaque notion fréquente quelle image porte l'idée, dans le guide qui voyage avec la question", () => {
@@ -121,7 +157,8 @@ describe("pédagogie du générateur Nesalio", () => {
       "La réflexion d'une figure, c'est comme un miroir ?",
       "Qu'est-ce qui ressort de ce diagramme ?",
       "Comment calculer l'accélération si v(t) = 3t² ?",
-    ]) expect(ids(question), question).not.toContain("hors_perimetre");
+    ])
+      expect(ids(question), question).not.toContain("hors_perimetre");
     expect(ids("c'est quoi la réfraction de la lumière ?")).toEqual(["hors_perimetre"]);
     expect(ids("je comprends pas F = ma")).toEqual(["hors_perimetre"]);
     expect(ids("comment marche une lentille convergente ?")).toEqual(["hors_perimetre"]);
@@ -140,7 +177,10 @@ describe("pédagogie du générateur Nesalio", () => {
       "pourquoi un acide a un pH plus petit que 7 ?",
     ]) {
       expect(ids(question).length, question).toBeGreaterThan(0);
-      expect(ids(question).filter((id) => !id.startsWith("chimie_")), question).toEqual([]);
+      expect(
+        ids(question).filter((id) => !id.startsWith("chimie_")),
+        question,
+      ).toEqual([]);
     }
   });
 
@@ -149,27 +189,50 @@ describe("pédagogie du générateur Nesalio", () => {
     const corpus: [string, string][] = [
       ["comment j'équilibre l'équation C3H8 + O2 → CO2 + H2O? j'arrive jamais à avoir le même nombre d'oxygènes des deux bords", "chimie_balancement"],
       ["c'est quoi une mole pis comment je trouve combien de moles il y a dans 36 g d'eau?", "chimie_mole"],
-      ["si je fais brûler 4 g d'hydrogène avec assez d'oxygène, combien de grammes d'eau j'obtiens? la réaction c'est 2 H2 + O2 → 2 H2O", "chimie_stoechiometrie"],
+      [
+        "si je fais brûler 4 g d'hydrogène avec assez d'oxygène, combien de grammes d'eau j'obtiens? la réaction c'est 2 H2 + O2 → 2 H2O",
+        "chimie_stoechiometrie",
+      ],
       ["j'ai dissous 10 g de NaCl dans assez d'eau pour faire 250 mL de solution, c'est quoi la concentration en g/L pis en mol/L?", "chimie_concentration"],
-      ["j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?", "chimie_concentration"],
-      ["un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L", "chimie_gaz"],
+      [
+        "j'ai 50 mL d'une solution à 2 mol/L pis j'ajoute de l'eau jusqu'à 200 mL. moi j'trouve 8 mol/L pour la nouvelle concentration, c'est-tu ça?",
+        "chimie_concentration",
+      ],
+      [
+        "un gaz occupe 2,0 L à 100 kPa. si je le comprime à 250 kPa à température constante, c'est quoi son volume? moi j'ai fait 2 × 250 / 100 = 5 L",
+        "chimie_gaz",
+      ],
       ["combien de moles de gaz il y a dans un ballon de 5,0 L à 25 °C pis 101,3 kPa?", "chimie_gaz"],
       ["comment je trouve le ΔH de C + O2 → CO2 si j'ai C + ½ O2 → CO avec ΔH = -110,5 kJ pis CO + ½ O2 → CO2 avec ΔH = -283,0 kJ?", "chimie_energie"],
       ["ça prend combien d'énergie pour chauffer 200 g d'eau de 20 °C à 45 °C?", "chimie_energie"],
-      ["c'est quoi Kc pis comment je le calcule pour H2 + I2 ⇌ 2 HI si à l'équilibre [H2] = 0,10 mol/L, [I2] = 0,10 mol/L pis [HI] = 0,70 mol/L?", "chimie_equilibre"],
+      [
+        "c'est quoi Kc pis comment je le calcule pour H2 + I2 ⇌ 2 HI si à l'équilibre [H2] = 0,10 mol/L, [I2] = 0,10 mol/L pis [HI] = 0,70 mol/L?",
+        "chimie_equilibre",
+      ],
     ];
     for (const [question, guide] of corpus) {
       expect(ids(question)[0], question).toBe(guide);
-      expect(ids(question).filter((id) => !id.startsWith("chimie_")), question).toEqual([]);
+      expect(
+        ids(question).filter((id) => !id.startsWith("chimie_")),
+        question,
+      ).toEqual([]);
     }
     // The other notions of the official list (MEQ 2011) have their guide too.
     expect(ids("c'est quoi la vitesse de réaction pis un catalyseur ?")[0]).toBe("chimie_vitesse");
     expect(ids("comment calculer le pH si [H+] = 0,001 mol/L ?")[0]).toBe("chimie_acides");
     expect(ids("c'est quoi le modèle de Rutherford-Bohr du sodium ?")[0]).toBe("chimie_structure");
     // Mathematics questions get no chemistry guide.
-    for (const question of ["Comment je résous 3x + 5 = 17 ?", "C'est quoi une dérivée ?", "comment je résous |2x − 3| = 7 ?",
-      "Comment calculer l'accélération si v(t) = 3t² ?", "c'est quoi la période d'une fonction sinusoïdale ?"]) {
-      expect(ids(question).filter((id) => id.startsWith("chimie_")), question).toEqual([]);
+    for (const question of [
+      "Comment je résous 3x + 5 = 17 ?",
+      "C'est quoi une dérivée ?",
+      "comment je résous |2x − 3| = 7 ?",
+      "Comment calculer l'accélération si v(t) = 3t² ?",
+      "c'est quoi la période d'une fonction sinusoïdale ?",
+    ]) {
+      expect(
+        ids(question).filter((id) => id.startsWith("chimie_")),
+        question,
+      ).toEqual([]);
     }
   });
 
@@ -248,19 +311,53 @@ describe("pédagogie du générateur Nesalio", () => {
     const prompt = buildNesalioSystemPrompt("completes");
     for (const rule of ["\\ce{", "\\pu{", "column_labels", "« r2c3 »", "jamais coupé entre deux parts"]) expect(prompt, rule).toContain(rule);
     expect(guideSection("c'est quoi la stœchiométrie ?")).toContain("column_labels");
-    const result = validateModelOutput({ slices: [{
-      slice_id: "s_chimie",
-      introduces: [
-        { id: "eq", type: "math", content: "\\ce{2H2 + O2}\\ce{-> 2H2O}", parts: [{ id: "r", text: "\\ce{2H2 + O2}" }, { id: "p", text: "\\ce{-> 2H2O}" }] },
-        { id: "tab", type: "matrix", params: { rows: [[2, 1, 2], ["4 g", "?", null]], row_labels: ["coefficient", "masse"],
-          column_labels: ["substance", "H₂", "O₂", "H₂O"] } },
+    const result = validateModelOutput({
+      slices: [
+        {
+          slice_id: "s_chimie",
+          introduces: [
+            {
+              id: "eq",
+              type: "math",
+              content: "\\ce{2H2 + O2}\\ce{-> 2H2O}",
+              parts: [
+                { id: "r", text: "\\ce{2H2 + O2}" },
+                { id: "p", text: "\\ce{-> 2H2O}" },
+              ],
+            },
+            {
+              id: "tab",
+              type: "matrix",
+              params: {
+                rows: [
+                  [2, 1, 2],
+                  ["4 g", "?", null],
+                ],
+                row_labels: ["coefficient", "masse"],
+                column_labels: ["substance", "H₂", "O₂", "H₂O"],
+              },
+            },
+          ],
+          beats: [
+            {
+              id: "b",
+              say: "Deux H deux plus O deux donnent deux H deux O : il faut quatre grammes d'hydrogène.",
+              cues: [
+                { id: "c_r", text: "Deux H deux plus O deux" },
+                { id: "c_p", text: "donnent deux H deux O" },
+                { id: "c_g", text: "quatre grammes" },
+              ],
+              do: [
+                { id: "w_r", verb: "write", target: "eq", part: "r", at: "cue:c_r" },
+                { id: "w_p", verb: "write", target: "eq", part: "p", at: "cue:c_p" },
+                { id: "s_tab", verb: "show", target: "tab", at: "cue:c_g" },
+                { id: "h_case", verb: "highlight", target: "tab", part: "r2c1", start: "cue:c_g", end: "cue_end:c_g" },
+              ],
+            },
+          ],
+        },
       ],
-      beats: [{ id: "b", say: "Deux H deux plus O deux donnent deux H deux O : il faut quatre grammes d'hydrogène.",
-        cues: [{ id: "c_r", text: "Deux H deux plus O deux" }, { id: "c_p", text: "donnent deux H deux O" }, { id: "c_g", text: "quatre grammes" }],
-        do: [{ id: "w_r", verb: "write", target: "eq", part: "r", at: "cue:c_r" }, { id: "w_p", verb: "write", target: "eq", part: "p", at: "cue:c_p" },
-          { id: "s_tab", verb: "show", target: "tab", at: "cue:c_g" },
-          { id: "h_case", verb: "highlight", target: "tab", part: "r2c1", start: "cue:c_g", end: "cue_end:c_g" }] }],
-    }] });
+    });
     expect(result.ok ? [] : result.issues.map(({ path, message }) => `${path.join(".")} : ${message}`)).toEqual([]);
   });
 
@@ -291,9 +388,13 @@ describe("pédagogie du générateur Nesalio", () => {
     expect(text).toContain('"verb":"animate_parameter"');
     expect(buildNesalioSystemPrompt()).toContain(text);
     // « La figure se calcule »: each point is on f(x) = a·x² for the value of a when it is shown.
-    const points = MOVING_EXAMPLE_LESSON.slices.flatMap((slice) => slice.introduces as readonly { type: string; id: string; params?: unknown }[])
+    const points = MOVING_EXAMPLE_LESSON.slices
+      .flatMap((slice) => slice.introduces as readonly { type: string; id: string; params?: unknown }[])
       .filter((item) => item.type === "point")
-      .map(({ id, params }) => { const [x, y] = (params as { at: [number, number] }).at; return `${id} ${y / (x * x)}`; });
+      .map(({ id, params }) => {
+        const [x, y] = (params as { at: [number, number] }).at;
+        return `${id} ${y / (x * x)}`;
+      });
     expect(points).toEqual(["p_ref 1", "p_double 2", "p_demi 0.5"]);
     // `sceneText` writes toFixed (« 4.0 »): an example with decimals would teach a point the student never says.
     expect(text).not.toMatch(/"precision":[1-9]/);
@@ -306,10 +407,14 @@ describe("pédagogie du générateur Nesalio", () => {
     expect(ids("si je lance deux dés, c'est quoi la probabilité d'avoir une somme de 7? moi j'trouve 1/11")).toEqual(["probabilites"]);
     expect(ids("comment je calcule combien j'vais avoir si je place 2000 $ à 4 % d'intérêt composé par année pendant 5 ans?")).toEqual(["finances"]);
     expect(ids("c'est quoi un radian pis pourquoi on l'utilise au lieu des degrés?")).toEqual(["geometrie"]);
-    expect(ids("J'essaie de résoudre y = 2x + 3 et y = -x + 9 par comparaison, j'obtiens x = 4 mais quand je vérifie ça marche pas"))
-      .toEqual(["systemes", "algebre"]);
-    expect(ids("dans mon triangle j'ai l'angle A = 40°, l'angle B = 60° pis a = 10 cm. je cherche b avec la loi des sinus"))
-      .toEqual(["trigonometrie", "geometrie"]);
+    expect(ids("J'essaie de résoudre y = 2x + 3 et y = -x + 9 par comparaison, j'obtiens x = 4 mais quand je vérifie ça marche pas")).toEqual([
+      "systemes",
+      "algebre",
+    ]);
+    expect(ids("dans mon triangle j'ai l'angle A = 40°, l'angle B = 60° pis a = 10 cm. je cherche b avec la loi des sinus")).toEqual([
+      "trigonometrie",
+      "geometrie",
+    ]);
     expect(ids("comment je résous |2x − 3| = 7 ?")).toEqual(["valeur_absolue", "algebre"]);
     expect(ids("comment je trouve l'équation de la médiatrice du segment AB si A(1, 2) et B(5, 6) ?")).toEqual(["analytique", "algebre"]);
     // Physics without a physics word is left to the general rule of TEACHING (the model decides), not to a keyword.
@@ -342,39 +447,77 @@ describe("pédagogie du générateur Nesalio", () => {
     // app/tools/eval/corpus-alloprof.json (texts copied as is). Analyst, erreurs graves (2026-11-09): these questions got no
     // guide, or a guide of another notion (« fonctionne » → fonctions, « complet » → polynômes, « volume » → géométrie).
     const corpus: [string, string][] = [
-      ["Depuis le début de l’année scolaire les polygones de contraintes et les inéquations ont été un cauchemar. Malgré les nombreuses explications je n’y arrive toujours pas.", "programmation_lineaire"],
+      [
+        "Depuis le début de l’année scolaire les polygones de contraintes et les inéquations ont été un cauchemar. Malgré les nombreuses explications je n’y arrive toujours pas.",
+        "programmation_lineaire",
+      ],
       ["La regle de la majorité il veut juste diviser par 2 ou il faut faire (diviser par 2)+1 ?", "vote_majorite"],
-      ["Dans un problème de résolutions de graphes comment savoir si je dois utiliser le chemin critque ou la chaine de valeur minimale si le graphe est orienté et valué?", "graphes"],
+      [
+        "Dans un problème de résolutions de graphes comment savoir si je dois utiliser le chemin critque ou la chaine de valeur minimale si le graphe est orienté et valué?",
+        "graphes",
+      ],
       ["Comment trouves ton les zéros d'une fontion partie entière?", "fonctions"],
       ["Quelles sont les étapes pour déterminer la valeur de x? 7 exposant 2x−3= 5 exposant x", "fonctions"],
       ["Si (y+3).(7-x)=32.8 et que 2.(y+3)+2.(7-x)=26.9, comment faire pour trouver la valeur de x et y", "systemes"],
       ["Comment je fait pour résoudre une pente alors que j'ai que 1 point complet? Il me manque le y et la pente pour completer le probleme!", "analytique"],
       ["J’ai inventé mon équation en forme fonctionnel: y = 4x + 9 comment je mais ça en forme général", "analytique"],
       ["est ce que le rapport de trigonométrie fonctionne seulement avec des triangles rectangles?", "geometrie"],
-      ["Je voudrais savoir quelles étaient les façons de trouver c dans la parabole (les coniques) lorsque nous avons seulement la ligne directrice et le foyer ?? J'ai essayé de soustraire la valeur du y de F avec la valeur de la ligne directrice mais se ne m'a pas donné la bonne réponse, et j'ai affaire à ce problème dans plusieurs autres exercices de ce genre.", "coniques"],
+      [
+        "Je voudrais savoir quelles étaient les façons de trouver c dans la parabole (les coniques) lorsque nous avons seulement la ligne directrice et le foyer ?? J'ai essayé de soustraire la valeur du y de F avec la valeur de la ligne directrice mais se ne m'a pas donné la bonne réponse, et j'ai affaire à ce problème dans plusieurs autres exercices de ce genre.",
+        "coniques",
+      ],
       ["Comment on fait pour savoir si une correlation est faible ou forte?", "statistiques"],
       ["Comment on sait si c’est endo ou exo", "chimie_energie"],
-      ["je comprend pas comment reconnaitre quelque chose qui est endothermique ou exothermique comme par exemple la congelation de leau, la combustion du bois, la fermentation du raisin, explosion de TNT, désintégration de luranium et encore moin savoir si cest physique ou chimique", "chimie_energie"],
-      ["Pourquoi le CO2 ne peux pas être une liason ionique alors que les deux oxigènes à besoin de 4 electrons et que le carbon à exactement 4 electrons. Le carbone pourrais donner tous ces électrons aux oxigènes non ?", "chimie_structure"],
+      [
+        "je comprend pas comment reconnaitre quelque chose qui est endothermique ou exothermique comme par exemple la congelation de leau, la combustion du bois, la fermentation du raisin, explosion de TNT, désintégration de luranium et encore moin savoir si cest physique ou chimique",
+        "chimie_energie",
+      ],
+      [
+        "Pourquoi le CO2 ne peux pas être une liason ionique alors que les deux oxigènes à besoin de 4 electrons et que le carbon à exactement 4 electrons. Le carbone pourrais donner tous ces électrons aux oxigènes non ?",
+        "chimie_structure",
+      ],
       ["Pourriez vous m'expliquer le lien entre la conductibilité électrique/les électrolytes et le pH svp?", "chimie_acides"],
-      ["Suite à un déversement de NaOH, vous devez déterminer le pH d’un échantillon d’eau de la rivière Yamaska. Votre premier test montre que cette eau vire bleu le papier tournesol rouge. Vous titrez 20 ml de cette solution et le bleu de bromothymol vire vert après l’ajout de 50 ml d’une solution de H3PO4 à 0,003 mol/l. Calculez le pH de cette eau de la Yamaska.", "chimie_acides"],
-      ["Stoechio Si l'équation est CO + 2 H2 --> CH3OH Si tu mélange 5 mol de monooxyde de carbone avec 6mol de dihydrogène, combien de mole de liquide obtiendras-tu", "chimie_stoechiometrie"],
-      ["Je ne comprends pas les lois sur les pressions partielles des gaz. Par exemple, quand deux bonbonnes à pression et au nombre de moles différents se joignent, leur pression s'additionne. J'ai l'impression que ce devrait être plutôt P*n + P*n, où n est le nombre de moles.", "chimie_gaz"],
-      ["Si à la température ambiante et à la pression atmosphérique normale, on recueille 20,5 g de dioxyde de soufre, quel volume occupe ce gaz ?", "chimie_gaz"],
-      ["Un mélange gazeux de diazote et de méthane CH4 pèse 110,0 g et occupe un volume de 70,00 L à 250,0 °C. Sachant que ce mélange est composé de 22,55 % en poids de méthane : calculez la pression totale du mélange gazeux. Pourquoi on multiplie pour trouver m(CH4) ?", "chimie_gaz"],
+      [
+        "Suite à un déversement de NaOH, vous devez déterminer le pH d’un échantillon d’eau de la rivière Yamaska. Votre premier test montre que cette eau vire bleu le papier tournesol rouge. Vous titrez 20 ml de cette solution et le bleu de bromothymol vire vert après l’ajout de 50 ml d’une solution de H3PO4 à 0,003 mol/l. Calculez le pH de cette eau de la Yamaska.",
+        "chimie_acides",
+      ],
+      [
+        "Stoechio Si l'équation est CO + 2 H2 --> CH3OH Si tu mélange 5 mol de monooxyde de carbone avec 6mol de dihydrogène, combien de mole de liquide obtiendras-tu",
+        "chimie_stoechiometrie",
+      ],
+      [
+        "Je ne comprends pas les lois sur les pressions partielles des gaz. Par exemple, quand deux bonbonnes à pression et au nombre de moles différents se joignent, leur pression s'additionne. J'ai l'impression que ce devrait être plutôt P*n + P*n, où n est le nombre de moles.",
+        "chimie_gaz",
+      ],
+      [
+        "Si à la température ambiante et à la pression atmosphérique normale, on recueille 20,5 g de dioxyde de soufre, quel volume occupe ce gaz ?",
+        "chimie_gaz",
+      ],
+      [
+        "Un mélange gazeux de diazote et de méthane CH4 pèse 110,0 g et occupe un volume de 70,00 L à 250,0 °C. Sachant que ce mélange est composé de 22,55 % en poids de méthane : calculez la pression totale du mélange gazeux. Pourquoi on multiplie pour trouver m(CH4) ?",
+        "chimie_gaz",
+      ],
       ["Y a-t-il une loi simple des gaz qui relie le nombre de moles à la température ? Ou cela n'existe pas ?", "chimie_gaz"],
     ];
     for (const [question, guide] of corpus) expect(ids(question)[0], question.slice(0, 60)).toBe(guide);
     // Chemistry questions get no mathematics guide; the gas question with « volume » no longer gets geometry.
     for (const [question, guide] of corpus.filter(([, id]) => id.startsWith("chimie_"))) {
-      expect(ids(question).filter((id) => !id.startsWith("chimie_")), question.slice(0, 60)).toEqual([]);
+      expect(
+        ids(question).filter((id) => !id.startsWith("chimie_")),
+        question.slice(0, 60),
+      ).toEqual([]);
       expect(guide).toMatch(/^chimie_/);
     }
     // A math word keeps the math guide first, the gas guide second.
-    expect(ids("Comment isoler la variable temperature dans la formule p1v1/n1t1=p2v2/n2t2 avec la quantiter de gaz qui est constante"))
-      .toEqual(["algebre", "chimie_gaz"]);
-    expect(ids("Comment fait-on pour déterminer une équation équilibrée a partir de substances? Par exemple, si on fais réagir des morceaux de zinc dans l'acide chlorhydrique et que l'on obtient du dihydrogène gazeux."))
-      .toEqual(["chimie_acides", "chimie_balancement"]);
+    expect(ids("Comment isoler la variable temperature dans la formule p1v1/n1t1=p2v2/n2t2 avec la quantiter de gaz qui est constante")).toEqual([
+      "algebre",
+      "chimie_gaz",
+    ]);
+    expect(
+      ids(
+        "Comment fait-on pour déterminer une équation équilibrée a partir de substances? Par exemple, si on fais réagir des morceaux de zinc dans l'acide chlorhydrique et que l'on obtient du dihydrogène gazeux.",
+      ),
+    ).toEqual(["chimie_acides", "chimie_balancement"]);
     // Absolute-value inequalities are not linear programming.
     expect(ids("Je suis présentement dans les inéquations de la fonction valeur absolue")).not.toContain("programmation_lineaire");
     // Gasoline stays out of chemistry, a ball thrown stays a function.
@@ -384,13 +527,16 @@ describe("pédagogie du générateur Nesalio", () => {
   it("corrige les guides qui ont induit des erreurs et donne les faits manquants", () => {
     const guide = (question: string) => guideSection(question);
     // Rectangle method (correlation-B): the smallest rectangle around ALL the points, L and l defined.
-    expect(guide("Comment on fait pour savoir si une correlation est faible ou forte?"))
-      .toMatch(/PLUS PETIT rectangle qui contient TOUS les points[\s\S]*L = sa longueur \(grand côté\), l = sa largeur \(petit côté\)/);
+    expect(guide("Comment on fait pour savoir si une correlation est faible ou forte?")).toMatch(
+      /PLUS PETIT rectangle qui contient TOUS les points[\s\S]*L = sa longueur \(grand côté\), l = sa largeur \(petit côté\)/,
+    );
     expect(guide("c'est quoi la corrélation ?")).not.toMatch(/largeur vide/);
     // Bleach (conductibilite-B): any ionic solution conducts, the pH only measures [H⁺].
     expect(guide("lien entre la conductibilité et le pH ?")).toMatch(/TOUTE solution d'ions conduit[\s\S]*l'eau de Javel, basique/);
     expect(guide("comment on fait un titrage avec un acide polyprotique ?")).toMatch(/H₃PO₄ 3[\s\S]*n\(H⁺\) = n\(OH⁻\)[\s\S]*0,060 mol\/L/);
-    expect(guide("comment savoir si c'est endo ou exo ?")).toMatch(/solidification \(la congélation de l'eau\)[\s\S]*exothermiques \(ΔH < 0\)[\s\S]*désintégration/);
+    expect(guide("comment savoir si c'est endo ou exo ?")).toMatch(
+      /solidification \(la congélation de l'eau\)[\s\S]*exothermiques \(ΔH < 0\)[\s\S]*désintégration/,
+    );
     expect(guide("peut-on comparer les Kps de deux sels ?")).toMatch(/même nombre d'ions[\s\S]*4s³[\s\S]*SON cas/);
     expect(guide("c'est quoi la loi des gaz parfaits ?")).toMatch(/Charles[\s\S]*n₁T₁ = n₂T₂[\s\S]*Dalton/);
     expect(guide("pourquoi le CO2 n'est pas ionique ?")).toContain("double liaison = 2 doublets = 4 électrons");
@@ -403,7 +549,8 @@ describe("pédagogie du générateur Nesalio", () => {
 
   it("injecte un petit lexique de faits quand son mot est dans la question, même sans guide", () => {
     expect(factsFor("C’est quoi l’équation balancée du bicarbonate de soude et l’acide acétique")).toEqual([
-      expect.stringContaining("NaHCO₃"), expect.stringContaining("CH₃COOH"),
+      expect.stringContaining("NaHCO₃"),
+      expect.stringContaining("CH₃COOH"),
     ]);
     expect(factsFor("titrage avec H3PO4")).toEqual([expect.stringContaining("trois H⁺")]);
     expect(factsFor("la congelation de leau, désintégration de luranium").join("\n")).toMatch(/EXOTHERMIQUES[\s\S]*NUCLÉAIRES/);

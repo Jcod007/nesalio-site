@@ -7,7 +7,10 @@ export interface MarkHandle {
   dispose(): void;
 }
 
-interface Cell { readonly parts: readonly string[]; readonly box: Box }
+interface Cell {
+  readonly parts: readonly string[];
+  readonly box: Box;
+}
 
 /**
  * Outlines around the highlighted parts of a table (cell `r2c3`, row `r2`,
@@ -17,12 +20,14 @@ interface Cell { readonly parts: readonly string[]; readonly box: Box }
 export class TableMarks<M extends MarkHandle> {
   private readonly marks = new Map<string, { mark: M; color: string; at: Point }>();
 
-  constructor(private readonly board: {
-    /** Builds an outline around a box given in world coordinates. */
-    create(box: Box, color: string): M;
-    add(mark: M): void;
-    remove(mark: M): void;
-  }) {}
+  constructor(
+    private readonly board: {
+      /** Builds an outline around a box given in world coordinates. */
+      create(box: Box, color: string): M;
+      add(mark: M): void;
+      remove(mark: M): void;
+    },
+  ) {}
 
   /** `highlights`: part id → colour; `position`: where the table's own origin is in the world. */
   update(cells: readonly Cell[], highlights: ReadonlyMap<string, string>, position: Point, opacity: number): void {

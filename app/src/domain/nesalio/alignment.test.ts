@@ -59,10 +59,17 @@ describe("cueOffset", () => {
 describe("alignBeatCues", () => {
   it("donne à la lettre a et à la lettre b leurs propres heures, dans l'ordre", () => {
     const say = "Prenons un triangle rectangle. Appelons ses côtés a, b et c.";
-    const timings = alignBeatCues({
-      say,
-      cues: [{ id: "sides", text: "côtés" }, { id: "a", text: "a" }, { id: "b", text: "b" }],
-    }, evenAlignment(say));
+    const timings = alignBeatCues(
+      {
+        say,
+        cues: [
+          { id: "sides", text: "côtés" },
+          { id: "a", text: "a" },
+          { id: "b", text: "b" },
+        ],
+      },
+      evenAlignment(say),
+    );
     const at = (index: number) => Math.round(index * 50);
     expect(timings.get("a")).toEqual({ start: at(say.indexOf("a,")), end: at(say.indexOf("a,") + 1) });
     expect(timings.get("b")).toEqual({ start: at(say.indexOf("b et")), end: at(say.indexOf("b et") + 1) });
