@@ -15,7 +15,7 @@ const Body = z.object({ image: z.string().min(16).max(MAX_BODY_BYTES - 1000) });
 const limiter = createSessionLimits({ limit: 20, windowMs: 10 * 60_000, developerAccess: true });
 
 export async function POST(request: Request): Promise<Response> {
-  const access = await requireAccount(request, true);
+  const access = await requireAccount(request);
   if (!access.ok) return access.response;
   const limited = checkRate(limiter, request, access.userId);
   if (limited) return limited;

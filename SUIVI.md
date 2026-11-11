@@ -102,7 +102,22 @@ voir le journal) ; seuls restent les outils de lecture des séances déjà enreg
 - Commité (`6bfeb7c`). Puis, accord de l'utilisateur : avec une photo jointe, « Demander à Nesa » passe **sous** le
   bloc photo (`order` CSS via `data-photo` sur le formulaire), pour envoyer sans remonter après correction. Parcours
   `tools/e2e/photo.mjs` relancé, vert à 1 366 et 390 px ; captures regardées.
-- Ni poussé ni déployé. Prochaine étape : essai avec de vraies photos d'élèves (téléphone, manuscrit).
+- Ni poussé ni déployé.
+- Décision de l'utilisateur : **essai d'utilisabilité** par lui-même ; si concluant, pousser puis déployer.
+  Préparé : serveur `photos` (port 3100) avec `NEXT_PUBLIC_APP_URL=http://localhost:3100` dans `.claude/launch.json`
+  (sinon `/api/photo` refuse l'origine en 403). Vraie lecture vérifiée dans la page `/dev` : énoncé d'équation
+  recopié exactement en 2,1 s ; banc réel `PHOTO_REELLE=1` relancé, vert.
+- Défaut repéré, **non corrigé** (à proposer) : `/api/photo` appelle `requireAccount(request, true)` (format NDJSON)
+  alors que le client lit du JSON : un refus d'accès s'affiche « La lecture de la photo est indisponible » au lieu
+  du vrai message. **Corrigé le 2026-11-11** (accord de l'utilisateur) : `requireAccount(request)` ; vérifié par
+  `curl` (403 `{"error": …}`), tests photo et `tsc` verts.
+- 2026-11-11, parcours complet réel dans `/dev` : photo d'un triangle rectangle (AB = 6 cm, BC = 8 cm, AC ?) lue
+  fidèlement (angle droit, côtés, valeurs) ; Nesa redessine le triangle avec ces mesures et pose
+  AC² = AB² + BC². Remarques : la lecture ajoute parfois une « notion utile » (Pythagore) malgré « ne résous pas » ;
+  la bulle de question affiche « Explique-moi ce qui est sur cette photo. Contenu rec… » (texte brut). Non corrigés.
+- Reste avant déploiement : essai d'utilisabilité de l'utilisateur avec de vraies photos (téléphone, manuscrit).
+- Essai sur téléphone impossible en local (cookie d'accès `secure` refusé en http sur le réseau) : il faudrait un
+  déploiement de prévisualisation.
 
 ### 2026-11-10 — Photos d'exercices, recherche et intégration (Codex, en cours)
 - L'utilisateur demande recherche et intégration, avec priorité au rapport qualité-prix. Catalogue AI Gateway et sources officielles consultés. Haiku 5.5 lit les images, tous ses fournisseurs du catalogue annoncent ZDR et interdiction d'entraînement ; tarifs 0,10 $/M en entrée et 0,50 $/M en sortie pour notre taille de requête. Aucune nouvelle clé nécessaire avec le Gateway déjà utilisé. Qualité sur photos scolaires pas encore mesurée.
