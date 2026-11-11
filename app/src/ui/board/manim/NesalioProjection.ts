@@ -1,8 +1,7 @@
 import {
   Axes, Create, FadeIn, MathTex, NumberLine, TransformMatchingTex, VGroup, VMobject, Write, type Animation, type Mobject, type Scene,
 } from "manim-web";
-import { niceStep } from "@/domain/board/geometry";
-import { FONT_SIZE, TICK_FONT } from "@/domain/board/layout";
+import { FONT_SIZE, niceStep, TICK_FONT } from "@/domain/nesalio/textMetrics";
 import {
   axisNumbers, computedFormula, isTable, writtenText, measureSceneObject, sampleSceneCurve, sceneText, tableCellParts, tableLayout, tableRows,
 } from "@/domain/nesalio/measurement";

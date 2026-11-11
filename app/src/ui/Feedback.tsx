@@ -8,14 +8,18 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { FEEDBACK_KINDS, FEEDBACK_LABELS, type Feedback } from "@/domain/feedback";
-import type { Player } from "@/engine/player";
 import { sessionHeaders } from "@/services/session";
 import styles from "./Feedback.module.css";
 
 type Kind = Feedback["kind"];
 
 /** Any session that can describe what the student just saw: the tutor, or a Nesalio explanation. */
-export function FeedbackButton({ player }: { player: Pick<Player, "recentContext"> }) {
+/** What a report joins: the question, the lesson and the last sentences said (NesalioSession.recentContext). */
+export interface FeedbackContextSource {
+  recentContext(): { question: string | null; title: string | null; status: string; recent: string[]; board: string[]; replay: string };
+}
+
+export function FeedbackButton({ player }: { player: FeedbackContextSource }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [kind, setKind] = useState<Kind>("bug");
   const [message, setMessage] = useState("");

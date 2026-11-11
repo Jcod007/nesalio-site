@@ -1,5 +1,4 @@
-import { niceStep } from "@/domain/board/geometry";
-import { FONT_SIZE, matrixLayout, textWorldExtent } from "@/domain/board/layout";
+import { FONT_SIZE, matrixLayout, niceStep, textWorldExtent } from "./textMetrics";
 import { compileNamedExpression } from "@/domain/math/expr";
 import type { MathContext, MatrixParams, SceneObject } from "./contract";
 import { union, type Box, type Point } from "./placement";

@@ -1,5 +1,5 @@
 import { Arrow, Circle, DashedLine, DashedVMobject, Dot, Line, MathTex, Polygon, Text, setMathJaxScriptUrl, type MathTexOptions, type PolygonOptions } from "manim-web";
-import { toLatex } from "@/domain/board/tex";
+import { toLatex } from "@/domain/nesalio/tex";
 import { BRAND } from "@/ui/theme";
 import { CHEM_MACROS, expandChemistry } from "./chemistry";
 import { drawableAccents } from "./mathAccents";

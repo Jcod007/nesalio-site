@@ -7,7 +7,7 @@
 import { MOVING_EXAMPLE_LESSON, REFUSAL_EXAMPLE, TEACHING, VISUAL_DICTIONARY, exampleLessonText, guideSection, lessonText } from "./pedagogy";
 import { z } from "zod";
 import { Action, NESALIO_FORMAT_VERSION, SceneObject } from "@/domain/nesalio/contract";
-import type { ChatMessage } from "@/server/tutor/prompt";
+import type { ChatMessage } from "@/server/tutor/chatCompletions";
 import { PLAYABLE } from "@/engine/nesalioPlayback";
 
 /** Accepted by the contract but read by no engine rule: offering them would mislead the model. */

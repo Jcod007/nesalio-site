@@ -15,7 +15,7 @@ import { PLAYABLE } from "@/engine/nesalioPlayback";
 import type { ChatProvider } from "@/server/config";
 import { UpstreamError, type CompletionStream } from "@/server/tutor/chatCompletions";
 import { jsonrepair } from "jsonrepair";
-import type { ChatMessage } from "@/server/tutor/prompt";
+import type { ChatMessage } from "@/server/tutor/chatCompletions";
 import { buildNesalioMessages, continueMessage, repairHeaderMessage, repairMessage, reviewFixMessage, simplifyMessage } from "./prompt";
 import type { ReviewAlert, SliceReviewer } from "./review";
 import { buildTeacherMessages, layoutRequest } from "./script";

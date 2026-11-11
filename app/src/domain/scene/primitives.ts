@@ -2,7 +2,7 @@
  * Briques de validation partagées par toutes les commandes du langage de scène.
  */
 import { z } from "zod";
-import { plainText } from "@/domain/board/tex";
+import { plainText } from "@/domain/nesalio/tex";
 import { tryCompileExpression } from "@/domain/math/expr";
 
 /** Palette nommée : le modèle choisit une intention, le rendu choisit la couleur de marque. */

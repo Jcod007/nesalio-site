@@ -15,8 +15,8 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 Nouveau système voix et tableau dans `app/src/domain/nesalio/`. Depuis
 `4c8e447`, la page élève le choisit par défaut quand l’IA est configurée.
-L’ancien tuteur reste accessible selon le réglage, le mode sans IA et
-l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre de travail.
+L’ancien tuteur a été retiré le 2026-11-10 (lot 1 puis ménage du code mort,
+voir le journal) ; seuls restent les outils de lecture des séances déjà enregistrées.
 
 | Module | État |
 | --- | --- |
@@ -30,7 +30,7 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 | Tableau : dim / fade_out / remove, transform, move, to_edge / to_corner | Fait, vu en vraie génération (2026-11-08) |
 | Caméra | En cours : suivi automatique et objets gardés faits ; **reste détaillé dans [`app/docs/chantier-camera.md`](app/docs/chantier-camera.md)** (fiche de passation pour une autre IA) |
 | Orchestrateur de séance (interruptions) | Pas commencé |
-| Bascule du parcours élève sur Nesalio | Bascule par défaut dans le dépôt. Retrait de l’ancien tuteur à décider après vérification de la parité. |
+| Bascule du parcours élève sur Nesalio | Faite ; ancien tuteur retiré le 2026-11-10. Reste : enregistrer les leçons Nesalio comme l'étaient les séances. |
 
 ### Décisions prises
 
@@ -83,6 +83,40 @@ l’inspection locale. Les travaux postérieurs à ce commit sont dans l’arbre
 ---
 
 ## Journal
+
+### 2026-11-10 — Ménage avant déploiement : code mort de l'ancien tuteur retiré (Claude Code, session « relecteur »)
+- Demande : enlever le code qui n'est plus appelé, garder tout ce que le nouveau système utilise, quelle que soit son
+  origine. Consignes : **ne pas supprimer les séances de cours** (données des élèves précieuses, et les outils pour
+  les analyser) ; avant de supprimer un outil, vérifier qu'il n'est ni utilisé ni potentiellement utile.
+- Méthode : graphe des imports de `app/src` depuis les points d'entrée Next (pages, routes, `proxy.ts`) ; un fichier
+  non atteint est mort. Restent non atteints, gardés exprès : `fixtures/zeros-recap-vide.json` (tests),
+  `domain/scene/stepAccess.ts` et `domain/tutor/turnReview.ts` (utilisés par `tools/analyse/seances.ts`).
+- Retiré (application) : démos `content/demoLessons.ts` ; `domain/timeline/*`, `domain/tutor/*` sauf `turnReview`,
+  `domain/audio/speechSpan.ts` ; `engine/player.ts`, `ports.ts`, `renderBarrier.ts` ; `server/tutor/` sauf
+  `chatCompletions.ts` ; `server/ai/syncMeasure.ts` et la partie « mots horodatés / WAV » de `server/ai/audio.ts` ;
+  `services/voice/speechListener.ts` ; le GET de `/api/diagnostic` (séance complète de l'ancien tuteur ; le POST de
+  validation Nesalio reste) ; l'en-tête `X-Speech-Span` de `/api/voice` ; l'ancien rendu de `ManimRenderer.ts`
+  (graphe de scène BoardState, animations planifiées), réduit à la projection Nesalio + molette/glisser/pincer.
+- Déplacé : `domain/board/tex.ts` → `domain/nesalio/tex.ts` ; nouvelles mesures `domain/nesalio/textMetrics.ts`
+  (reprises de `board/layout.ts`). `ChatMessage` et `isUnavailable` vivent dans `server/tutor/chatCompletions.ts`.
+- **Gardé pour les séances** : `/api/seances` (lecture), `/api/seances/purge` (purge à 12 mois promise par la
+  politique de confidentialité), `server/sessionStore.ts` (écriture comprise : à réutiliser pour enregistrer les
+  leçons Nesalio), `domain/sessionLog.ts`, `tools/analyse/seances.ts`, `tools/eval/questions-seances.mjs`.
+- Outils retirés après examen un par un (tous dépendaient de `/api/tutor` ou du GET de diagnostic, donc
+  inutilisables) : `tools/e2e/parcours.mjs` (sa vérification axe ordinateur + téléphone existe déjà dans
+  `tools/e2e/nesalio.mjs`, devenu `npm run test:e2e`), `tools/e2e/pedagogie.mjs`, `tools/eval/evaluer.mjs`,
+  `comparer-formats-modele.mjs`, `tuteur-reel.test.mjs`, `verifier-segments-ui.mjs`, `tools/scenarios/jouer.mjs`,
+  `tools/rejeu/` (rejeu de l'ancien flux ; les « partitions » étaient des leçons de démonstration écrites à la main,
+  pas des données d'élèves). Gardés car réutilisables : `tools/eval/questions.json`, `questions-sn4.json`,
+  `program-check.mjs` (critères du programme, à brancher sur le banc Nesalio).
+- `app/LISEZMOI.md` réécrit là où il décrivait l'ancien tuteur (architecture, vérification, bancs, séances).
+- Vérifié : `tsc` passe ; `vitest run src` : 77 fichiers, 692 tests réussis. Vraie fenêtre (`/`, connecté) : accueil
+  correct, leçon « réactif limitant » jouée. Pas relancé : la suite `tools/` complète ni `npm run test:e2e`.
+- **À savoir** : depuis le lot 1 (retrait de `/api/tutor`), **plus aucune séance d'élève n'est enregistrée en
+  production** ; `keepLesson.ts` ne garde les leçons Nesalio qu'en local (`NESALIO_GARDER_LECONS`). À décider avant
+  de déployer : brancher `sessionStore` sur `/api/nesalio`.
+- Vu en passant (non corrigé, contenu du modèle) : dans la leçon « réactif limitant », la ligne « coefficient » du
+  tableau affichait 2, 1, 2 pour N₂ + 3 H₂ → 2 NH₃ (attendu 1, 3, 2) et deux tableaux redondants.
 
 ### 2026-11-10 — État du reste à faire (Codex)
 - Revue demandée par l’utilisateur. Seul `SUIVI.md` est modifié pour cette revue. Les corrections de rendu, de placement et d’objets oubliés du 10 novembre sont encore dans l’arbre de travail.

@@ -1,4 +1,4 @@
-import { plainMath } from "@/domain/board/tex";
+import { plainMath } from "@/domain/nesalio/tex";
 
 /**
  * What the student sees when a formula cannot be rendered (MathJax error):

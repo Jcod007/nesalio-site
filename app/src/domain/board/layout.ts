@@ -11,7 +11,7 @@
  * convertit avec l'échelle du repère courant.
  */
 import { formatNumber, niceStep, sampleCurve } from "./geometry";
-import { hasMath, mathSize as texSize } from "./tex";
+import { hasMath, mathSize as texSize } from "@/domain/nesalio/tex";
 import { arcPoints, insidePolygon } from "./shapes";
 import {
   anchoredTo,

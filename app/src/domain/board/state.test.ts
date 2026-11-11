@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_LESSONS } from "@/content/demoLessons";
 import { applyAction, type Action } from "@/domain/scene/commands";
 import { ModelEvent } from "@/domain/scene/schema";
 import { calcColumn, nodeBox, intersects } from "./layout";
@@ -200,25 +199,6 @@ describe("graphe de scène", () => {
       { id: "A", type: "point", detail: "(1, 1)" },
       { id: "g", type: "group", detail: "f, A" },
     ]);
-  });
-});
-
-describe("séances de démonstration", () => {
-  it("respectent le langage de scène et ne ciblent que des objets existants", () => {
-    for (const lesson of DEMO_LESSONS) {
-      const events = [lesson.header, ...lesson.steps.map((s) => ({ kind: "step", ...s })), lesson.end];
-      for (const event of events) expect(ModelEvent.safeParse(event).success).toBe(true);
-
-      let board = emptyBoard();
-      for (const step of lesson.steps) {
-        for (const action of step.segments.flatMap((segment) => segment.do)) {
-          if ("target" in action) {
-            expect(resolveTargets(board, action.target).length, `${lesson.header.title} : ${action.type} ${action.target}`).toBeGreaterThan(0);
-          }
-          board = applyAction(board, action, t(0));
-        }
-      }
-    }
   });
 });
 

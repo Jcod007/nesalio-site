@@ -5,7 +5,7 @@
  * changer à ce qui est dit. Le format JSON et le moteur ne changent pas.
  * Activé par NESALIO_DEUX_ETAPES=1 tant que la mesure n'a pas tranché.
  */
-import type { ChatMessage } from "@/server/tutor/prompt";
+import type { ChatMessage } from "@/server/tutor/chatCompletions";
 import { TEACHING, guideSection } from "./pedagogy";
 
 const BOARD = `

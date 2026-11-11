@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hasMath, mathSize, plainMath, plainText, toLatex } from "./tex";
-import { textExtent, FONT_SIZE } from "./layout";
-import { DEFAULT_FRAME } from "./state";
+import { textExtent, FONT_SIZE } from "@/domain/board/layout";
+import { DEFAULT_FRAME } from "@/domain/board/state";
 import { Action } from "@/domain/scene/commands";
 
 describe("formules au tableau", () => {

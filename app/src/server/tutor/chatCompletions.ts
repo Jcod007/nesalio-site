@@ -5,7 +5,12 @@
  * Dans les deux cas, on produit le texte du modèle morceau par morceau.
  */
 import { LineSplitter } from "@/domain/tutor/ndjson";
-import type { ChatMessage } from "./prompt";
+
+/** One message of a conversation with the model. */
+export interface ChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
 
 export class UpstreamError extends Error {
   constructor(
@@ -16,6 +21,11 @@ export class UpstreamError extends Error {
     super(message);
     this.name = "UpstreamError";
   }
+}
+
+/** The provider refuses the account (key, payment, rights): the service is unavailable, not just slow. */
+export function isUnavailable(error: unknown): boolean {
+  return error instanceof UpstreamError && [401, 402, 403].includes(error.status ?? 0);
 }
 
 export interface CompletionOptions {
