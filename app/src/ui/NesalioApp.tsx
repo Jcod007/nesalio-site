@@ -158,6 +158,7 @@ function NesalioScreen() {
       setPaused: (paused) => session.setPaused(paused),
       answer: (choice) => session.answer(choice),
       continueLesson: () => session.continueLesson(),
+      seek: (index) => void session.seek(index),
       newTopic: () => {
         trial.cancelPending();
         setListening(false);

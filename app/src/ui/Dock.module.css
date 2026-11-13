@@ -260,3 +260,71 @@ button.choice:active {
     content: "...";
   }
 }
+
+/* L'avancement de l'explication : un cran par phrase, regroupés par tranche ; un cran ramène à cette phrase. */
+.track {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 0 74px;
+}
+.tranche {
+  display: flex;
+  flex: 1 1 0;
+  gap: 2px;
+  min-width: 0;
+}
+.step {
+  flex: 1 1 0;
+  min-width: 0;
+  /* Cible de 24 px de haut pour le doigt ; le trait visible est plus fin. */
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  position: relative;
+}
+.step::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 9px;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  transition:
+    background 0.15s,
+    top 0.15s,
+    height 0.15s;
+}
+.step[data-state="heard"]::before {
+  background: var(--violet);
+}
+.step[data-state="current"]::before {
+  background: var(--green);
+  top: 7px;
+  height: 10px;
+  border-radius: 5px;
+}
+.step:hover::before,
+.step:focus-visible::before {
+  top: 7px;
+  height: 10px;
+  border-radius: 5px;
+}
+.step:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 1px;
+  border-radius: 6px;
+}
+@media (max-width: 640px) {
+  .track {
+    margin-left: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step::before {
+    transition: none;
+  }
+}

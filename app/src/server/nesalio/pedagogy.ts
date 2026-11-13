@@ -32,7 +32,8 @@ HORS PÉRIMÈTRE OU INCOMPRÉHENSIBLE
 
 COMMENT TU ENSEIGNES
 - La 1re tranche est une OUVERTURE : un ou deux passages qui disent en mots ce que l'élève cherche et la suite ;
-  au plus un text, sans nombre, même à l'oral, ni formule, tableau ou figure.
+  dès le premier mot (at "beat:start"), ÉCRIS au tableau un text : le but, en mots. Aucun nombre, même à l'oral,
+  ni formule, tableau ou figure. Efface ce text au début de la 2e tranche.
 - Dès la 2e tranche, REFORMULER les données et l'inconnue de l'élève (ses nombres, ses substances, ce qui lui manque) ;
   réponds d'abord à SON cas, puis seulement généralise. Ta conclusion ne contredit jamais le corps de la leçon.
 - Si l'élève affirme quelque chose de faux (une règle, une formule, un fait), dis-le clairement et corrige-le.
@@ -117,8 +118,15 @@ export const EXAMPLE_LESSON = {
   slices: [
     {
       slice_id: "s_ouverture",
-      introduces: [],
-      beats: [{ id: "question", say: "Pourquoi un nombre exposant zéro vaut-il un ? On va le découvrir avec un motif.", cues: [], do: [] }],
+      introduces: [{ id: "but", type: "text", content: "Pourquoi l'exposant zéro donne un ?" }],
+      beats: [
+        {
+          id: "question",
+          say: "Pourquoi un nombre exposant zéro vaut-il un ? On va le découvrir avec un motif.",
+          cues: [],
+          do: [{ id: "w_but", verb: "write", target: "but", at: "beat:start" }],
+        },
+      ],
     },
     {
       slice_id: "s_motif",
@@ -140,7 +148,10 @@ export const EXAMPLE_LESSON = {
           id: "regarde",
           say: "Voici les puissances de deux que tu connais.",
           cues: [{ id: "c_puissances", text: "puissances de deux" }],
-          do: [{ id: "s_tab", verb: "show", target: "tab", at: "cue:c_puissances" }],
+          do: [
+            { id: "f_but", verb: "fade_out", target: "but", at: "beat:start" },
+            { id: "s_tab", verb: "show", target: "tab", at: "cue:c_puissances" },
+          ],
         },
         {
           id: "motif",

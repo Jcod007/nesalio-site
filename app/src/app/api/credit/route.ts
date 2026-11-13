@@ -44,7 +44,10 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const result = await quota.redeem(access.userId, parsed.data.code);
     if (result.ok) {
-      return Response.json({ message: `Code accepté : 20 questions par jour jusqu'au ${until(result.bonusUntil)}.`, ...(await quota.status(access.userId)) }, { headers: NO_STORE });
+      return Response.json(
+        { message: `Code accepté : 20 questions par jour jusqu'au ${until(result.bonusUntil)}.`, ...(await quota.status(access.userId)) },
+        { headers: NO_STORE },
+      );
     }
     if (result.reason === "used") return jsonError(409, "Ce code a déjà été utilisé.");
     if (result.reason === "already_active") return jsonError(409, `Ton compte a déjà un code actif jusqu'au ${until(result.bonusUntil!)}.`);

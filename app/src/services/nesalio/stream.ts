@@ -18,12 +18,21 @@ const Event = z.discriminatedUnion("kind", [
 ]);
 type Event = z.infer<typeof Event>;
 
+const CUT_SHORT = "L'explication s'est arrêtée en route. Tu peux réessayer ou poser une autre question.";
+
 async function* events(response: Response): AsyncGenerator<Event> {
   if (!response.body || !response.headers.get("content-type")?.includes("application/x-ndjson")) {
     throw new Error(`Réponse inattendue du serveur (${response.status}).`);
   }
   for await (const line of readLines(response.body)) {
-    const parsed = Event.safeParse(JSON.parse(line));
+    let value: unknown;
+    // A line cut short means the stream was cut: the parser's own message is not for a student.
+    try {
+      value = JSON.parse(line);
+    } catch {
+      throw new Error(CUT_SHORT);
+    }
+    const parsed = Event.safeParse(value);
     if (parsed.success) yield parsed.data;
   }
 }
@@ -63,6 +72,8 @@ export async function openNesalioStream(question: string, signal: AbortSignal, e
             else if (event.kind === "error") throw new Error(event.message);
             else if (event.kind === "end") return;
           }
+          // Closed without « end »: the server stopped on the way. The lesson is not complete and is not offered again as if it were.
+          throw new Error(CUT_SHORT);
         })(),
       };
     }

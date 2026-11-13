@@ -5,6 +5,38 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 ---
 
+### 2026-11-13 — Retours d'atelier reportés sur `main` (Claude Code)
+- Demande de l'utilisateur : publier les trois corrections d'atelier du 12 (tableau dès l'ouverture, arrêt « Continuer »
+  en fin de tranche, curseur et « Phrase précédente »), écrites dans `Desktop/nesalio-site` sur
+  `codex/kairos-json-contract` (36 commits de retard sur `main`). Le détail de ces corrections est dans le `SUIVI.md`
+  de ce dossier-là (entrée « Retours d'atelier », 2026-11-12).
+- Report sur `claude/retours-atelier`, partie de `main` (`17e3cf7`, quota compris), dossier `Desktop/nesalio-atelier`.
+  Fusion à trois voies fichier par fichier, après formatage Biome des deux côtés (sinon la mise en forme de `main`
+  faisait conflit partout). 4 conflits réglés à la main.
+- Ce qui ne se devine pas : **pris avec**, les correctifs du flux du 12 (ligne illisible et flux fermé sans `end` →
+  message à l'élève ; ligne `error` / `incomplete` envoyée par le serveur si le flux plante), car le curseur et l'arrêt
+  s'appuient sur `stream.ts` et `nesalioSession.ts`. **Laissés de côté** : les correctifs photo (bugs 4 à 6 du 12 :
+  refus des questions de plus de 500 caractères sans photo, photo en échec, réponse coupée) et `AccountPage` /
+  `transcribe` : autre sujet, `main` a sa propre version. Ils restent à reporter.
+- `tools/e2e/nesalio.mjs` mis à jour : la leçon s'arrête maintenant en fin de tranche, le parcours clique « Continuer »
+  et vérifie « Phrase précédente » (phrase d'avant revenue, pas de nouvel appel à `/api/nesalio`).
+- Vérifié : `tsc --noEmit` ; `vitest run src --maxWorkers=4` 85 fichiers, 762 réussis ; Biome sur les fichiers touchés
+  (restent 2 avertissements `noFocusedTests` sur la fonction caméra `fit`, faux positif, et 2 anciens dans le parcours) ;
+  parcours navigateur OK sur ordinateur et téléphone (démo locale sans IA, port 3200, Chrome installé).
+- **Pas vérifié** : vraie génération et vraie voix sur cette branche (vérifiées le 12 dans l'autre dossier, avant report) ;
+  lecteur d'écran ; production.
+- Prochaine étape : PR vers `main` et fusion à la demande de l'utilisateur (la fusion déploie en production).
+- Publication demandée par l'utilisateur (« Oui, publie ») : branche poussée, PR #27 ouverte. La fusion automatique
+  GitHub est refusée sur ce dépôt (« Auto merge is not allowed »). Contrôles en cours au moment d'écrire ; fusion à faire
+  à la main une fois verts.
+- Contrôle GitHub « Format, lint, types, tests, build » en échec : **`main` échoue déjà depuis la fusion du quota**
+  (`17e3cf7`), 5 fichiers du quota non mis en forme par Biome (`api/credit/route.ts` + test, `dailyQuota.ts` + test,
+  `CreditCode.tsx`). Corrigé ici par `biome format --write`, mise en forme seule ; 16 tests du quota et `tsc` OK.
+- Piège Windows noté : `git show <rev>:<fichier>` dans ce terminal sort des retours chariot qui ne sont **pas** dans le
+  dépôt ; pour compter les fins de ligne réelles, utiliser `git cat-file -p <rev>:<fichier>`. Les fichiers sont en LF.
+- Le journal GitHub n'affiche que 20 remarques Biome : pour la liste complète, `biome ci --max-diagnostics=300 .`
+  sur une copie extraite avec `core.autocrlf=false` (sinon chaque fichier CRLF de la copie Windows sort en erreur).
+
 ### 2026-11-13 — Quota vérifié en production (Codex)
 
 - Commit applicatif `440a855`, déploiement `dpl_GsoTy9q8gDC3wiNQTR58HJTN1cxi` prêt sur `app.nesalio.com`. Build Vercel réussi, route `/api/credit` disponible et Redis réel joignable.

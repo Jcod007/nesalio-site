@@ -5,10 +5,22 @@ function memoryStore(): QuotaStore {
   const data = new Map<string, string>();
   return {
     get: async (key) => data.get(key) ?? null,
-    incr: async (key) => { const n = Number(data.get(key) ?? 0) + 1; data.set(key, String(n)); return n; },
-    decr: async (key) => { data.set(key, String(Number(data.get(key) ?? 0) - 1)); },
-    setOnce: async (key, value) => { if (data.has(key)) return false; data.set(key, value); return true; },
-    set: async (key, value) => { data.set(key, value); },
+    incr: async (key) => {
+      const n = Number(data.get(key) ?? 0) + 1;
+      data.set(key, String(n));
+      return n;
+    },
+    decr: async (key) => {
+      data.set(key, String(Number(data.get(key) ?? 0) - 1));
+    },
+    setOnce: async (key, value) => {
+      if (data.has(key)) return false;
+      data.set(key, value);
+      return true;
+    },
+    set: async (key, value) => {
+      data.set(key, value);
+    },
   };
 }
 
@@ -69,7 +81,9 @@ describe("codes crédit", () => {
   it("une panne après la réservation ne perd pas le code : le même compte réessaie, un autre non", async () => {
     const store = memoryStore();
     const set = store.set;
-    store.set = async () => { throw new Error("Redis indisponible"); };
+    store.set = async () => {
+      throw new Error("Redis indisponible");
+    };
     const q = createDailyQuota(store, { codeHashes: () => new Set(CODES.map(hashCode)) });
     await expect(q.redeem("a", "ATEL-IER1", NOON)).rejects.toThrow();
     store.set = set;

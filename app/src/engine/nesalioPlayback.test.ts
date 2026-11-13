@@ -761,7 +761,7 @@ describe("question à l'élève après une tranche", () => {
       signal: new AbortController().signal,
       wait: async () => {},
       openClip: async () => clip({}, 1_000, [1_000]),
-      onFrame: (frame, beat) => {
+      onFrame: (_frame, beat) => {
         if (order.at(-1) !== beat.id) order.push(beat.id);
       },
       afterSlice: async (id) => {
@@ -769,5 +769,47 @@ describe("question à l'élève après une tranche", () => {
       },
     });
     expect(order).toEqual(["s1_b1", "s1_b2", "question après s1", "s2_b1", "s2_b2", "question après s2"]);
+  });
+
+  // 2026-11-12, workshop feedback: the student goes back to a passage already heard.
+  it("repart d'un passage : ceux d'avant sont posés au tableau sans voix ni question, la suite est jouée", async () => {
+    const tranche = (id: string) => ({
+      slice_id: id,
+      introduces: [{ id: `t_${id}`, type: "text", content: `Texte ${id}` }],
+      beats: [1, 2].map((n) => ({
+        id: `${id}_b${n}`,
+        say: "Voici.",
+        cues: [],
+        do: n === 1 ? [{ id: `s_${id}`, verb: "show", target: `t_${id}`, at: "beat:start" }] : [],
+      })),
+    });
+    const lesson = validateLesson({ ...shell, slices: [tranche("s1"), tranche("s2"), tranche("s3")] });
+    if (!lesson.ok) throw new Error(JSON.stringify(lesson.issues));
+    const order: string[] = [];
+    const voiced: string[] = [];
+    let firstFrame: string[] | undefined;
+    await playNesalioLesson(lesson.value, {
+      viewport: { x0: -8, y0: -4.5, x1: 8, y1: 4.5 },
+      signal: new AbortController().signal,
+      wait: async () => {},
+      openClip: async (beat) => {
+        voiced.push(beat.id);
+        return clip({}, 1_000, [1_000]);
+      },
+      startAt: 3,
+      onPassage: (index, sliceId) => {
+        order.push(`${index}:${sliceId}`);
+      },
+      onFrame: (frame) => {
+        firstFrame ??= [...frame.scene.objects].filter(([, object]) => object.visible).map(([id]) => id);
+      },
+      afterSlice: async (id) => {
+        order.push(`après ${id}`);
+      },
+    });
+    // The fourth passage is the second of s2: s1 and the start of s2 are on the board, unheard, and s1's stop is not replayed.
+    expect(voiced).toEqual(["s2_b2", "s3_b1", "s3_b2"]);
+    expect(firstFrame).toEqual(["t_s1", "t_s2"]);
+    expect(order).toEqual(["3:s2", "après s2", "4:s3", "5:s3", "après s3"]);
   });
 });

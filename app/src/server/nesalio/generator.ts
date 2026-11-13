@@ -8,7 +8,7 @@
 import { LessonMetadata, MathContext, type Slice } from "@/domain/nesalio/contract";
 import { LessonQuestion, MAX_QUESTIONS } from "@/domain/nesalio/question";
 import { negotiateCapabilities } from "@/domain/nesalio/capabilities";
-import { escapeLatex, normalizeMathContext, normalizeSlice } from "@/domain/nesalio/normalize";
+import { OPENING_TITLE_ID, clearOpeningTitle, escapeLatex, normalizeMathContext, normalizeSlice, openingOnBoard } from "@/domain/nesalio/normalize";
 import { validateMathContext, validateModelOutput, type ContractIssue, type ValidationState } from "@/domain/nesalio/validate";
 import { LineSplitter } from "@/domain/tutor/ndjson";
 import { PLAYABLE } from "@/engine/nesalioPlayback";
@@ -685,7 +685,16 @@ export async function* generateNesalio(question: string, config: GeneratorConfig
         return;
       }
       if (waitFor(sliceId(value.slice))) return;
-      const { slice: normalized, fixes } = normalizeSlice(value.slice, state);
+      // The board is never empty while the lesson opens; the title the engine wrote leaves with the next tranche.
+      const opened =
+        slices === 0
+          ? openingOnBoard(value.slice, header.lesson.title)
+          : slices === 1 && state?.objects.has(OPENING_TITLE_ID)
+            ? clearOpeningTitle(value.slice)
+            : { slice: value.slice, fixes: [] };
+      const tidy = normalizeSlice(opened.slice, state);
+      const normalized = tidy.slice;
+      const fixes = [...opened.fixes, ...tidy.fixes];
       const result = check(normalized, header.math_context, state);
       if (!result.ok) {
         // Read by jsonrepair only: its guess is not what the model wrote, the line is sent back as unreadable.
