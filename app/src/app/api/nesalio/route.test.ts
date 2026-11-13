@@ -102,4 +102,3 @@ it("refuse la question quand la limite du jour est atteinte, en proposant le cod
     expect(line.message).toContain("code crédit");
   } finally { quota.allowed = true; }
 });
-
