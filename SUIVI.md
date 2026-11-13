@@ -5,6 +5,29 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 ---
 
+### 2026-11-13 — Accueil allégé : code crédit et compteur là où ils servent (Claude Code)
+- Demande de l'utilisateur : juger la charge cognitive de l'accueil (capture de la production) ; il trouvait le champ du
+  code crédit trop présent. Quatre changements proposés, acceptés tels quels (« les 4 »).
+- Constat en passant : sur `main`, le champ était déjà caché derrière « J'ai un code crédit », mais le lien disparaissait
+  une fois ouvert et le compteur « Il te reste 10 questions … sur 10 » s'affichait toujours.
+- Fait (branche `claude/accueil-code`, partie de `main` `e791673`) :
+  1. Accueil : seul le lien « J'ai un code » ; il ouvre et referme le champ (`aria-expanded`). « Valider » en contour
+     sur l'accueil, pour ne pas concurrencer « Demander à Nesa ». Plus de modèle « XXXX-XXXX-XX » (faisait clé de licence).
+  2. Compteur seulement à `LOW_QUOTA` = 3 questions restantes ou moins (« Plus que 2 questions aujourd'hui. »), et le
+     message de fin de journée à 0.
+  3. Limite atteinte : la carte de Nesa montre le champ « Ton code crédit » ; pas de « Réessayer » avant un code accepté,
+     puis « Poser ma question ». Un compte déjà crédité ne voit pas de champ. Message du serveur : « … entre un code
+     crédit ci-dessous » (au lieu de « sur l'accueil »).
+  4. Pour ça, l'erreur garde son code jusqu'à l'écran : `NesalioServerError` (`domain/nesalio/serverError.ts`), levée
+     par `stream.ts`, gardée dans `SessionSnapshot.errorCode`.
+- Vérifié : `tsc` ; `vitest run src` 85 fichiers, 764 réussis (+1 test flux, +1 test séance) ; Biome sur les fichiers
+  touchés ; parcours `tools/e2e/nesalio.mjs` OK. Script navigateur jetable (réponses `/api/credit` et `/api/nesalio`
+  simulées, pas de Redis en local), ordinateur et téléphone : lien, ouverture et fermeture, compteur caché à 10 et
+  affiché à 2, champ dans la carte à la limite, « Poser ma question » après le code et nouvel envoi de la question,
+  axe sans violation grave, aucune erreur de page.
+- **Pas vérifié** : avec le vrai Redis (production) ; lecteur d'écran.
+- Prochaine étape : PR et fusion à la demande de l'utilisateur.
+
 ### 2026-11-13 — Retours d'atelier reportés sur `main` (Claude Code)
 - Demande de l'utilisateur : publier les trois corrections d'atelier du 12 (tableau dès l'ouverture, arrêt « Continuer »
   en fin de tranche, curseur et « Phrase précédente »), écrites dans `Desktop/nesalio-site` sur
