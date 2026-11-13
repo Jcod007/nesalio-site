@@ -42,9 +42,7 @@ export interface QuotaStatus {
   bonusUntil: string | null;
 }
 
-export type RedeemResult =
-  | { ok: true; bonusUntil: string }
-  | { ok: false; reason: "invalid" | "used" | "already_active"; bonusUntil?: string };
+export type RedeemResult = { ok: true; bonusUntil: string } | { ok: false; reason: "invalid" | "used" | "already_active"; bonusUntil?: string };
 
 /** Majuscules, sans espaces ni tirets : « abcd-efgh » et « ABCDEFGH » sont le même code. */
 export function normalizeCode(code: string): string {
@@ -57,7 +55,12 @@ export function hashCode(code: string): string {
 
 /** Empreintes valides, lues dans NESALIO_CODES_CREDIT (séparées par virgules ou espaces). */
 export function validCodeHashes(raw = process.env.NESALIO_CODES_CREDIT): Set<string> {
-  return new Set((raw ?? "").split(/[\s,]+/).map((h) => h.trim().toLowerCase()).filter((h) => /^[0-9a-f]{64}$/.test(h)));
+  return new Set(
+    (raw ?? "")
+      .split(/[\s,]+/)
+      .map((h) => h.trim().toLowerCase())
+      .filter((h) => /^[0-9a-f]{64}$/.test(h)),
+  );
 }
 
 /** Date du jour à Montréal, AAAA-MM-JJ. */
@@ -138,9 +141,13 @@ export function redisQuotaStore(env: NodeJS.ProcessEnv = process.env): QuotaStor
       const [count] = await redis.pipeline().incr(key).expire(key, ttl).exec<[number, number]>();
       return Number(count);
     },
-    decr: async (key) => { await redis.decr(key); },
+    decr: async (key) => {
+      await redis.decr(key);
+    },
     setOnce: async (key, value) => (await redis.set(key, value, { nx: true })) === "OK",
-    set: async (key, value, ttl) => { await redis.set(key, value, { ex: ttl }); },
+    set: async (key, value, ttl) => {
+      await redis.set(key, value, { ex: ttl });
+    },
   };
 }
 

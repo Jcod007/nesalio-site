@@ -26,6 +26,16 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 - **Pas vérifié** : vraie génération et vraie voix sur cette branche (vérifiées le 12 dans l'autre dossier, avant report) ;
   lecteur d'écran ; production.
 - Prochaine étape : PR vers `main` et fusion à la demande de l'utilisateur (la fusion déploie en production).
+- Publication demandée par l'utilisateur (« Oui, publie ») : branche poussée, PR #27 ouverte. La fusion automatique
+  GitHub est refusée sur ce dépôt (« Auto merge is not allowed »). Contrôles en cours au moment d'écrire ; fusion à faire
+  à la main une fois verts.
+- Contrôle GitHub « Format, lint, types, tests, build » en échec : **`main` échoue déjà depuis la fusion du quota**
+  (`17e3cf7`), 5 fichiers du quota non mis en forme par Biome (`api/credit/route.ts` + test, `dailyQuota.ts` + test,
+  `CreditCode.tsx`). Corrigé ici par `biome format --write`, mise en forme seule ; 16 tests du quota et `tsc` OK.
+- Piège Windows noté : `git show <rev>:<fichier>` dans ce terminal sort des retours chariot qui ne sont **pas** dans le
+  dépôt ; pour compter les fins de ligne réelles, utiliser `git cat-file -p <rev>:<fichier>`. Les fichiers sont en LF.
+- Le journal GitHub n'affiche que 20 remarques Biome : pour la liste complète, `biome ci --max-diagnostics=300 .`
+  sur une copie extraite avec `core.autocrlf=false` (sinon chaque fichier CRLF de la copie Windows sort en erreur).
 
 ### 2026-11-13 — Quota vérifié en production (Codex)
 

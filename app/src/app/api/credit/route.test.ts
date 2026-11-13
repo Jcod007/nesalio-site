@@ -10,11 +10,18 @@ vi.mock("@/server/dailyQuota", () => ({
     status: async () => ({ used: 3, limit: 20, remaining: 17, bonusUntil: "2026-12-12T17:00:00.000Z" }),
   }),
 }));
-beforeEach(() => { state.result = { ok: true, bonusUntil: "2026-12-12T17:00:00.000Z" }; });
+beforeEach(() => {
+  state.result = { ok: true, bonusUntil: "2026-12-12T17:00:00.000Z" };
+});
 
-const post = (code: string, ip: string) => POST(new Request("http://localhost/api/credit", {
-  method: "POST", body: JSON.stringify({ code }), headers: { "x-forwarded-for": ip },
-}));
+const post = (code: string, ip: string) =>
+  POST(
+    new Request("http://localhost/api/credit", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+      headers: { "x-forwarded-for": ip },
+    }),
+  );
 
 it("donne les questions restantes", async () => {
   const response = await GET(new Request("http://localhost/api/credit"));

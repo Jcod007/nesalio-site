@@ -4,7 +4,11 @@ import { useEffect, useState, type FormEvent } from "react";
 import { sessionHeaders } from "@/services/session";
 import styles from "./CreditCode.module.css";
 
-interface Quota { remaining: number; limit: number; bonusUntil: string | null }
+interface Quota {
+  remaining: number;
+  limit: number;
+  bonusUntil: string | null;
+}
 
 /** Questions restantes aujourd'hui, et le champ pour entrer un code crédit (api/credit). */
 export function CreditCode() {
@@ -17,8 +21,10 @@ export function CreditCode() {
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/credit", { signal: controller.signal, headers: sessionHeaders() })
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => { if (data?.available) setQuota(data); })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.available) setQuota(data);
+      })
       .catch(() => undefined);
     return () => controller.abort();
   }, []);
@@ -46,7 +52,9 @@ export function CreditCode() {
       }
     } catch {
       setMessage({ text: "Le code n'a pas pu être vérifié. Réessaie.", ok: false });
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   const plural = quota.remaining > 1 ? "s" : "";
@@ -57,18 +65,44 @@ export function CreditCode() {
           ? `Il te reste ${quota.remaining} question${plural} aujourd'hui sur ${quota.limit}.`
           : `Tu as utilisé tes ${quota.limit} questions d'aujourd'hui. Reviens demain !`}
         {!quota.bonusUntil && !open ? (
-          <> <button type="button" className={styles.link} onClick={() => { setOpen(true); setMessage(null); }}>J'ai un code crédit</button></>
+          <>
+            {" "}
+            <button
+              type="button"
+              className={styles.link}
+              onClick={() => {
+                setOpen(true);
+                setMessage(null);
+              }}
+            >
+              J'ai un code crédit
+            </button>
+          </>
         ) : null}
       </p>
       {open ? (
         <form className={styles.form} onSubmit={submit}>
           <label htmlFor="credit-code">Code crédit</label>
-          <input id="credit-code" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off"
-            autoCapitalize="characters" spellCheck={false} maxLength={40} placeholder="XXXX-XXXX-XX" />
-          <button type="submit" disabled={busy || !code.trim()}>{busy ? "Vérification…" : "Valider"}</button>
+          <input
+            id="credit-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            maxLength={40}
+            placeholder="XXXX-XXXX-XX"
+          />
+          <button type="submit" disabled={busy || !code.trim()}>
+            {busy ? "Vérification…" : "Valider"}
+          </button>
         </form>
       ) : null}
-      {message ? <p role="status" className={message.ok ? styles.ok : styles.error}>{message.text}</p> : null}
+      {message ? (
+        <p role="status" className={message.ok ? styles.ok : styles.error}>
+          {message.text}
+        </p>
+      ) : null}
     </div>
   );
 }
