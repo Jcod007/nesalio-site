@@ -5,6 +5,28 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 ---
 
+### 2026-11-13 — Quota vérifié en production (Codex)
+
+- Commit applicatif `440a855`, déploiement `dpl_GsoTy9q8gDC3wiNQTR58HJTN1cxi` prêt sur `app.nesalio.com`. Build Vercel réussi, route `/api/credit` disponible et Redis réel joignable.
+- Essai HTTP réel avec deux comptes Clerk temporaires. Les dix premières requêtes `/api/nesalio` ont renvoyé 200, flux arrêtés après les en-têtes pour limiter les générations. La onzième a renvoyé 429 `daily_limit` et le compteur est resté à 10.
+- Code temporaire accepté sur A, limite 20 et 10 restantes. Réutilisation sur A refusée avec bonus actif, sur B refusée en 409 « Ce code a déjà été utilisé ». Après crédit, nouvelle question acceptée et compteur 11/20, neuf restantes.
+- Jeton Clerk émis directement par le Backend refusé normalement car sans `azp`. Jeton Frontend lié à `https://app.nesalio.com` accepté, contrôles d’origine inchangés.
+- Les six codes d’origine n’ont pas été consommés. Empreinte temporaire retirée des variables du projet après succès. Les deux comptes de test ont été supprimés après vérification de leurs métadonnées.
+- Export global des variables refusé par le contrôle automatique, donc non effectué. Compteurs et bonus temporaires laissés à leur expiration Redis (2 et 30 jours) ; réservation du code de test conservée comme toute réservation utilisée, empreinte désormais hors liste valide.
+- Prochaine étape concrète — fusionner la branche validée puis vérifier la publication finale sans le code de test.
+
+
+### 2026-11-13 — Quota journalier et crédits, préparation de la publication (Codex)
+
+- Redis `nesalio-quota` créé dans le Marketplace Vercel et relié à `nesalio-app`, production seulement. Forfait gratuit, Montréal, éviction et passage automatique au payant désactivés. Conditions acceptées dans le navigateur, installation CLI terminée avec succès.
+- `NESALIO_CODES_CREDIT` configuré en secret de production avec les six empreintes de `app/.env.local`, sans publier les codes.
+- Portage isolé sur `codex/credit-quota`, depuis `origin/main` (`fe03e6c`). Conservation des essais invités de `usageAccess.ts` et de la fonction photo déjà fusionnés. Quota uniquement pour les comptes élèves, après validation et vérification que l’IA est active.
+- Fichiers ajoutés `dailyQuota`, route `/api/credit`, composant `CreditCode`, outil `codes-credit`, tests associés. Vérifications et déploiement encore à faire.
+- Vérifications terminées — 20 tests ciblés réussis (`dailyQuota`, `/api/credit`, `/api/nesalio`, essais invités), `tsc --noEmit` réussi. Premier lancement corrigé après installation locale de la dépendance Redis. Revue React des deux composants, hooks et formulaire accessibles.
+- Essai réel prévu avec deux comptes temporaires et un septième code exclusivement de test, retiré après vérification pour conserver les six codes initiaux disponibles.
+- Prochaine étape concrète — commit, déploiement et essai réel.
+
+
 ## État actuel : format Nesalio v3.3 (branche `codex/kairos-json-contract`)
 
 > **Nom :** « Kairos » est l'**ancien nom** de ce système. Il a été renommé

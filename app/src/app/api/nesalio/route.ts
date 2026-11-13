@@ -14,6 +14,7 @@ import { encodeLine } from "@/domain/tutor/ndjson";
 import { readAiConfig, readReviewer } from "@/server/config";
 import { readBoundedText } from "@/server/http";
 import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess";
+import { dailyQuota, exemptFromQuota } from "@/server/dailyQuota";
 import { createSessionLimits } from "@/server/rateLimit";
 import { generateNesalio, type NesalioEvent } from "@/server/nesalio/generator";
 import { createSliceReviewer } from "@/server/nesalio/review";
@@ -61,6 +62,20 @@ export async function POST(request: Request): Promise<Response> {
 
   const config = readAiConfig(request.headers);
   if (!config.chat) return single({ kind: "error", code: "upstream", message: "Le modèle n'est pas configuré." }, 503);
+  // Daily limit per account (dailyQuota.ts), counted only for a valid question the server can answer.
+  const quota = access.userId && !exemptFromQuota(access.userId) ? dailyQuota() : null;
+  if (quota && access.userId) {
+    const daily = await quota.consume(access.userId).catch((error: unknown) => {
+      console.warn("Limite journalière illisible, question acceptée.", error);
+      return null;
+    });
+    if (daily && !daily.allowed) {
+      return single({ kind: "error", code: "daily_limit", message: daily.limit > 10
+        ? `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain !`
+        : `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain, ou entre un code crédit sur l'accueil pour passer à 20 par jour.` }, 429);
+    }
+  }
+
   // Reserved only now: a refused or invalid question does not use up a trial turn.
   const permit = await reserveUsage(request, access, "tutor", true);
   if (!permit.ok) return permit.response;

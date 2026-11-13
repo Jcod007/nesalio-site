@@ -1,5 +1,6 @@
 "use client";
 
+import { CreditCode } from "./CreditCode";
 import { Nesa } from "./Nesa";
 import { QuestionInput } from "./QuestionInput";
 import styles from "./StartScreen.module.css";
@@ -40,6 +41,7 @@ export function StartScreen({ onAsk, listening, onListeningChange, lede, suggest
         ))}
       </div>
       <p className={styles.sound}>Active le son : Nesa parle.</p>
+      <CreditCode />
       <p className={styles.privacy}>
         Les échanges peuvent être conservés pour améliorer Nesalio. Évite de partager des renseignements personnels dans tes questions.{" "}
         <a href="https://nesalio.com/confidentialite" target="_blank" rel="noopener">

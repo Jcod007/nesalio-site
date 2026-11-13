@@ -83,3 +83,22 @@ it("accepte un énoncé de photo de plus de 500 caractères sans le tronquer", a
   expect(saved[0]).toMatchObject({ question });
   expect((await post({ question: "a".repeat(4501) })).status).toBe(400);
 }, 20_000);
+
+const quota = vi.hoisted(() => ({ allowed: true, limit: 10 }));
+vi.mock("@/server/dailyQuota", () => ({
+  exemptFromQuota: () => false,
+  dailyQuota: () => ({ consume: async () => ({ allowed: quota.allowed, limit: quota.limit, remaining: 0 }) }),
+}));
+
+it("refuse la question quand la limite du jour est atteinte, en proposant le code crédit", async () => {
+  vi.stubEnv("DISABLE_AI", "0");
+  vi.stubEnv("AI_GATEWAY_API_KEY", "test");
+  quota.allowed = false;
+  try {
+    const response = await post({ question: "Encore une" });
+    expect(response.status).toBe(429);
+    const line = JSON.parse((await response.text()).trim());
+    expect(line).toMatchObject({ kind: "error", code: "daily_limit" });
+    expect(line.message).toContain("code crédit");
+  } finally { quota.allowed = true; }
+});
