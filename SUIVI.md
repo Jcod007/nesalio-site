@@ -5,6 +5,17 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 ---
 
+### 2026-11-13 — Quota journalier et crédits, préparation de la publication (Codex)
+
+- Redis `nesalio-quota` créé dans le Marketplace Vercel et relié à `nesalio-app`, production seulement. Forfait gratuit, Montréal, éviction et passage automatique au payant désactivés. Conditions acceptées dans le navigateur, installation CLI terminée avec succès.
+- `NESALIO_CODES_CREDIT` configuré en secret de production avec les six empreintes de `app/.env.local`, sans publier les codes.
+- Portage isolé sur `codex/credit-quota`, depuis `origin/main` (`fe03e6c`). Conservation des essais invités de `usageAccess.ts` et de la fonction photo déjà fusionnés. Quota uniquement pour les comptes élèves, après validation et vérification que l’IA est active.
+- Fichiers ajoutés `dailyQuota`, route `/api/credit`, composant `CreditCode`, outil `codes-credit`, tests associés. Vérifications et déploiement encore à faire.
+- Vérifications terminées — 20 tests ciblés réussis (`dailyQuota`, `/api/credit`, `/api/nesalio`, essais invités), `tsc --noEmit` réussi. Premier lancement corrigé après installation locale de la dépendance Redis. Revue React des deux composants, hooks et formulaire accessibles.
+- Essai réel prévu avec deux comptes temporaires et un septième code exclusivement de test, retiré après vérification pour conserver les six codes initiaux disponibles.
+- Prochaine étape concrète — commit, déploiement et essai réel.
+
+
 ## État actuel : format Nesalio v3.3 (branche `codex/kairos-json-contract`)
 
 > **Nom :** « Kairos » est l'**ancien nom** de ce système. Il a été renommé
