@@ -75,6 +75,9 @@ describe("pédagogie du générateur Nesalio", () => {
     expect(isPlainOpening(first)).toBe(true);
     expect(isPlainOpening(second)).toBe(false);
     expect(TEACHING).toContain("La 1re tranche est une OUVERTURE");
+    // 2026-11-12, workshop feedback: the opening left the board empty for 7 to 11.5 s of voice.
+    expect(first.beats[0].do[0]).toMatchObject({ verb: "write", at: "beat:start" });
+    expect(TEACHING).toContain("ÉCRIS au tableau un text");
   });
 
   it("donne pour la dérivée des nombres justes", () => {

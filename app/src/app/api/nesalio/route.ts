@@ -70,9 +70,17 @@ export async function POST(request: Request): Promise<Response> {
       return null;
     });
     if (daily && !daily.allowed) {
-      return single({ kind: "error", code: "daily_limit", message: daily.limit > 10
-        ? `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain !`
-        : `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain, ou entre un code crédit sur l'accueil pour passer à 20 par jour.` }, 429);
+      return single(
+        {
+          kind: "error",
+          code: "daily_limit",
+          message:
+            daily.limit > 10
+              ? `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain !`
+              : `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain, ou entre un code crédit sur l'accueil pour passer à 20 par jour.`,
+        },
+        429,
+      );
     }
   }
 
@@ -125,8 +133,20 @@ export async function POST(request: Request): Promise<Response> {
         }
       } catch (error) {
         console.error("nesalio: flux interrompu", error);
+        // The student is told the rest is missing: a stream closed in silence would pass for a whole lesson.
+        const stopped: NesalioEvent = {
+          kind: "error",
+          code: "incomplete",
+          message: "L'explication s'est arrêtée en route. Tu peux réessayer ou poser une autre question.",
+        };
+        recorder.event(stopped);
         recorder.finish("error");
         await keeper?.finish(`flux interrompu : ${error instanceof Error ? error.message : String(error)}`);
+        try {
+          controller.enqueue(encoder.encode(encodeLine(stopped)));
+        } catch {
+          /* the student has already left */
+        }
         controller.close();
       }
     },

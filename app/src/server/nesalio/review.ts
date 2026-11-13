@@ -12,7 +12,7 @@
  */
 import type { MathContext, SceneObject, Slice } from "@/domain/nesalio/contract";
 import { sceneText } from "@/domain/nesalio/measurement";
-import { escapeLatex, restoreLatex } from "@/domain/nesalio/normalize";
+import { OPENING_TITLE_ID, escapeLatex, restoreLatex } from "@/domain/nesalio/normalize";
 import type { ChatProvider } from "@/server/config";
 import type { CompletionStream } from "@/server/tutor/chatCompletions";
 
@@ -55,6 +55,8 @@ const DATA =
  */
 export function isPlainOpening(slice: Slice): boolean {
   const wordsOnly = slice.introduces.every((object) => {
+    // The lesson's title, written by the engine on an empty opening: already shown in the top bar, not the model's data.
+    if (object.id === OPENING_TITLE_ID) return true;
     const content = "content" in object ? object.content : undefined;
     return WORD_TYPES.has(object.type) && typeof content === "string" && !DATA.test(content);
   });

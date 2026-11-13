@@ -28,9 +28,12 @@ import { PROMPT_EXAMPLES, buildNesalioMessages, buildNesalioSystemPrompt, consig
  * deux lignes de CHECKLIST qui répétaient SYNC_RULES 4 et RÉCAPITULATIF FINAL partent, celle des calculs est réduite
  * (JUSTESSE la porte). 37 474 → 37 486. Puis « sans nombre, même à l'oral » (l'ouverture répétait « trois x plus
  * cinq égale dix-sept » et était relue). 37 486 → 37 495.
+ * Mise à jour VOLONTAIRE le 2026-11-12 (retour d'atelier : tableau vide 7 à 11,5 s) : l'ouverture ÉCRIT un text (le but,
+ * en mots) dès le premier mot et l'efface à la 2e tranche ; l'exemple de leçon complète le montre. La limite des deux
+ * versions passe de 37 500 à 38 000 caractères. 37 495 → 37 807.
  */
-const FULL_PROMPT_SHA256 = "c0f1984af13186eab50108ef0a83951bc678fd953f66657b15359f62343aef4b";
-const FULL_PROMPT_LENGTH = 37_495;
+const FULL_PROMPT_SHA256 = "d09d2e6e6ccbdb718523205ade8e327c34ecd52a3c2098f8fd489f6f918908a1";
+const FULL_PROMPT_LENGTH = 37_807;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 
@@ -109,7 +112,7 @@ describe("consignes du prompt système (NESALIO_CONSIGNES)", () => {
       ]) {
         expect(prompt, `${version} : ${rule}`).toContain(rule);
       }
-      expect(prompt.length, version).toBeLessThan(37_500);
+      expect(prompt.length, version).toBeLessThan(38_000);
     }
   });
 

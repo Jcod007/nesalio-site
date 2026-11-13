@@ -14,12 +14,15 @@ export interface NesalioDockActions {
   setPaused(paused: boolean): void;
   answer(choice: number): void;
   continueLesson(): void;
+  /** Back (or forward) to a passage already received. */
+  seek(index: number): void;
   newTopic(): void;
   setListening(listening: boolean): void;
 }
 
-function nesaState({ status, paused, waiting, asking }: SessionSnapshot, listening: boolean): NesaState {
+function nesaState({ status, paused, waiting, asking, resting }: SessionSnapshot, listening: boolean): NesaState {
   if (listening) return "ecoute";
+  if (resting) return "repos";
   // A question on screen: Nesa waits for the answer, then is pleased with a right one.
   if (asking) return asking.right ? "content" : "repos";
   if (status === "preparing" || waiting) return "reflechit";
@@ -29,13 +32,15 @@ function nesaState({ status, paused, waiting, asking }: SessionSnapshot, listeni
 
 /**
  * La carte de Nesa pendant une explication Nesalio : la phrase dite, la pause,
- * et à la fin une autre question, « Revoir l'explication » ou une nouvelle notion.
+ * l'avancement (un cran par phrase, pour revenir en arrière), l'arrêt en fin de
+ * tranche (« Continuer ») et à la fin une autre question, « Revoir l'explication » ou une nouvelle notion.
  */
 export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; listening: boolean; actions: NesalioDockActions }>(function NesalioDock(
   { snapshot, listening, actions },
   ref,
 ) {
-  const { status, caption, paused, waiting, error, question, canReplay, asking } = snapshot;
+  const { status, caption, paused, waiting, error, question, canReplay, asking, resting, steps, position } = snapshot;
+  const tracked = (status === "playing" || status === "done") && steps.length > 1;
   return (
     <section ref={ref} className={styles.dock} aria-label="Nesa">
       {question ? (
@@ -73,9 +78,15 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
             ) : (
               <>
                 <p className={styles.caption}>{caption}</p>
-                {paused ? <p className={styles.notice}>En pause.</p> : null}
+                {resting ? (
+                  <p className={styles.notice} data-right="true">
+                    Prends le temps de lire le tableau.
+                  </p>
+                ) : paused ? (
+                  <p className={styles.notice}>En pause.</p>
+                ) : null}
                 {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: points d'attente, nommés pour les lecteurs d'écran */}
-                {waiting && !paused ? <span className={styles.dots} aria-label="Nesa écrit la suite" /> : null}
+                {waiting && !paused && !resting ? <span className={styles.dots} aria-label="Nesa écrit la suite" /> : null}
               </>
             )}
           </div>
@@ -103,13 +114,20 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
           </div>
         ) : null}
 
+        {tracked ? <LessonTrack steps={steps} position={position} onSeek={actions.seek} /> : null}
+
         <div className={styles.controls}>
-          {asking && asking.solved !== null ? (
+          {(asking && asking.solved !== null) || resting ? (
             <button type="button" className="cta" onClick={actions.continueLesson}>
               Continuer
             </button>
           ) : null}
-          {status === "playing" && !asking ? (
+          {tracked && status === "playing" ? (
+            <button type="button" className="btn-line" disabled={!position} onClick={() => actions.seek((position ?? 0) - 1)}>
+              <BackIcon /> Phrase précédente
+            </button>
+          ) : null}
+          {status === "playing" && !asking && !resting ? (
             <button type="button" className="btn-line" onClick={() => actions.setPaused(!paused)}>
               {paused ? (
                 <>
@@ -153,6 +171,48 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
     </section>
   );
 });
+
+/**
+ * L'avancement de l'explication : un cran par phrase de Nesa, regroupés par tranche. Un cran déjà reçu ramène le
+ * tableau et la voix à cette phrase (retour d'atelier du 2026-11-12 : pouvoir revenir en arrière).
+ */
+function LessonTrack({ steps, position, onSeek }: { steps: readonly string[]; position: number | null; onSeek(index: number): void }) {
+  const tranches: number[][] = [];
+  steps.forEach((slice, index) => {
+    if (index > 0 && steps[index - 1] === slice) tranches.at(-1)!.push(index);
+    else tranches.push([index]);
+  });
+  const at = position ?? -1;
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: groupe de boutons de navigation, pas un formulaire
+    <div className={styles.track} role="group" aria-label="Avancement de l'explication">
+      {tranches.map((passages) => (
+        <span key={passages[0]} className={styles.tranche}>
+          {passages.map((index) => (
+            <button
+              key={index}
+              type="button"
+              className={styles.step}
+              data-state={index < at ? "heard" : index === at ? "current" : "ahead"}
+              aria-current={index === at ? "step" : undefined}
+              aria-label={`Phrase ${index + 1} sur ${steps.length}`}
+              title={index === at ? "Réécouter cette phrase" : "Aller à cette phrase"}
+              onClick={() => onSeek(index)}
+            />
+          ))}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path d="M11 5v14l-9-7zM21 5v14l-9-7z" fill="currentColor" />
+    </svg>
+  );
+}
 
 function PauseIcon() {
   return (

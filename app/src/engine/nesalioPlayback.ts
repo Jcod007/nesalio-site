@@ -809,6 +809,13 @@ export interface NesalioPlaybackOptions {
   onWarning?(warning: NesalioWarning): void;
   /** The next passage's tranche has not arrived yet: the model is still writing it. */
   onWaiting?(): void;
+  /**
+   * Passage (rank in the lesson, from 0) to start from: the ones before it are applied to the board at once, without
+   * voice, pause or question, so the board is as it stood when that passage began (the student went back, 2026-11-12).
+   */
+  startAt?: number;
+  /** A passage starts playing: its rank in the lesson and its tranche. */
+  onPassage?(index: number, sliceId: string): void;
   /** Hold used for a passage without voice; replaceable in tests. */
   wait?(ms: number, signal: AbortSignal): Promise<void>;
   /** Pause and mute from the page: silences stop elapsing, the next passage waits for the resume. */
@@ -842,6 +849,9 @@ export function readingTimeMs(say: string): number {
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
+
+/** Where a passage skipped by `startAt` is sampled: later than any gesture or camera move lasts. */
+const SKIPPED_PLAYHEAD_MS = 60_000;
 
 type QueuedBeat = { slice: Slice; beat: Beat; first: boolean };
 
@@ -942,13 +952,14 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
   try {
     let tranchePlan = new Map<string, PlannedFraming>();
     let previousSlice: string | undefined;
+    const startAt = Math.max(0, options.startAt ?? 0);
     for (let index = 0; ; index++) {
       signal.throwIfAborted();
       await whenRunning(options.control, signal);
       if (!queue.settled(index)) options.onWaiting?.();
       const current = await queue.at(index);
       // The tranche just played is over: its question, if it has one, is asked before anything else moves.
-      if (previousSlice !== undefined && (!current || current.first)) {
+      if (previousSlice !== undefined && (!current || current.first) && index > startAt) {
         await options.afterSlice?.(previousSlice, signal);
         signal.throwIfAborted();
         await whenRunning(options.control, signal);
@@ -988,6 +999,13 @@ export async function playNesalioStream(header: LessonHeader, slices: AsyncItera
           options.onWarning?.({ beat: beat.id, kind: "framing", action, reason });
         }
       };
+      if (index < startAt) {
+        // Sampled well after the passage: every gesture and camera move it holds is finished.
+        const planned = planPassage(before, immediateSchedule(beat.do, 0), sliceObjects, 0, ctx);
+        frame = frameAt(before, planned.timeline, SKIPPED_PLAYHEAD_MS, planned.context);
+        continue;
+      }
+      options.onPassage?.(index, slice.slice_id);
       let prepared = (next ? await next : null) ?? (await prepare(beat));
       next = undefined;
       // One more attempt before giving up on the voice of this passage.

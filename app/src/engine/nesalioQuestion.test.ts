@@ -101,3 +101,81 @@ describe("questions à l'élève pendant une leçon", () => {
     expect(judge(three, 1).right).toBe(true);
   });
 });
+
+// 2026-11-12, workshop feedback: a stop at the end of each tranche so the student can read, and going back to a passage.
+describe("arrêt en fin de tranche et retour à un passage", () => {
+  const two = (id: string): Slice => ({
+    slice_id: id,
+    introduces: [],
+    beats: [1, 2].map((n) => ({ id: `${id}_b${n}`, say: `Phrase ${n} de ${id}.`, cues: [], do: [] })),
+  });
+  function lesson() {
+    const played: string[] = [];
+    const starts: number[] = [];
+    const deps: SessionDeps = {
+      open: async () => ({
+        header,
+        slices: (async function* () {
+          yield two("s1");
+          yield two("s2");
+          yield two("s3");
+        })(),
+      }),
+      async play(_header, slices, play) {
+        starts.push(play.startAt);
+        let index = 0;
+        let previous: string | undefined;
+        for await (const s of slices) {
+          if (previous !== undefined && index > play.startAt) await play.afterSlice(previous, play.signal);
+          for (const beat of s.beats) {
+            if (index++ < play.startAt) continue;
+            play.signal.throwIfAborted();
+            play.onPassage(index - 1);
+            play.onFrame(frame, beat);
+            played.push(beat.id);
+            await tick();
+          }
+          previous = s.slice_id;
+        }
+        if (previous !== undefined) await play.afterSlice(previous, play.signal);
+      },
+      board: { reset() {}, draw() {} },
+    };
+    return { session: new NesalioSession(deps), played, starts };
+  }
+  const settle = async () => {
+    for (let i = 0; i < 8; i++) await tick();
+  };
+
+  it("ne s'arrête pas après l'ouverture, s'arrête après chaque tranche suivante jusqu'à « Continuer », pas après la dernière", async () => {
+    const { session: s, played } = lesson();
+    const done = s.ask("Q");
+    await settle();
+    expect(played).toEqual(["s1_b1", "s1_b2", "s2_b1", "s2_b2"]);
+    expect(s.getSnapshot()).toMatchObject({ status: "playing", resting: true, asking: null, position: 3, steps: ["s1", "s1", "s2", "s2", "s3", "s3"] });
+    s.continueLesson();
+    await done;
+    expect(played).toHaveLength(6);
+    expect(s.getSnapshot()).toMatchObject({ status: "done", resting: false, position: 5, canReplay: true });
+  });
+
+  it("revient à un passage déjà entendu, pendant la leçon ou après, sans redemander au modèle", async () => {
+    const { session: s, played, starts } = lesson();
+    void s.ask("Q");
+    await settle();
+    const back = s.seek(1);
+    expect(s.getSnapshot()).toMatchObject({ status: "playing", resting: false, position: 1, caption: "Phrase 2 de s1." });
+    await settle();
+    expect(starts).toEqual([0, 1]);
+    expect(played.slice(4)).toEqual(["s1_b2", "s2_b1", "s2_b2"]);
+    s.continueLesson();
+    await back;
+    expect(s.getSnapshot().status).toBe("done");
+    void s.seek(9); // Not a passage of this lesson: nothing moves.
+    expect(s.getSnapshot().status).toBe("done");
+    const again = s.seek(4);
+    await again;
+    expect(starts).toEqual([0, 1, 4]);
+    expect(played.slice(-2)).toEqual(["s3_b1", "s3_b2"]);
+  });
+});

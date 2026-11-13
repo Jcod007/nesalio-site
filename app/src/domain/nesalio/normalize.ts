@@ -286,6 +286,65 @@ function renameRedeclared(slice: Json, beats: readonly Json[], before: Validatio
   }
 }
 
+/** The text the engine writes itself on an opening that leaves the board empty: the lesson's title. */
+export const OPENING_TITLE_ID = "ouverture_titre";
+const REVEALS = new Set(["show", "write", "draw"]);
+const WORDS = new Set(["text", "label", "callout"]);
+
+/**
+ * The board is never empty while the lesson opens (2026-11-12, workshop feedback: on the six real lessons the
+ * first stroke came 7 to 11.5 s of voice after the start). If the first passage of the first tranche shows
+ * nothing: a text of words the tranche shows later is shown from the first word instead; failing that, the
+ * engine writes the lesson's title (`clearOpeningTitle` takes it away when the next tranche starts).
+ */
+export function openingOnBoard(raw: unknown, title: string): { slice: unknown; fixes: string[] } {
+  if (!isObject(raw)) return { slice: raw, fixes: [] };
+  const slice = structuredClone(raw);
+  const beats = objects(slice.beats);
+  const first = beats[0];
+  if (!first || (first.do !== undefined && !Array.isArray(first.do))) return { slice: raw, fixes: [] };
+  const done = objects(first.do);
+  if (done.some((action) => REVEALS.has(String(action.verb)))) return { slice: raw, fixes: [] };
+  const words = new Set(
+    objects(slice.introduces)
+      .filter((item) => WORDS.has(String(item.type)) && !isObject(item.attachment))
+      .map((item) => item.id),
+  );
+  const all = beats.flatMap((beat) => objects(beat.do));
+  for (const beat of beats.slice(1)) {
+    if (!Array.isArray(beat.do)) continue;
+    const later = objects(beat.do).find(
+      (action) =>
+        REVEALS.has(String(action.verb)) &&
+        action.part === undefined &&
+        words.has(action.target) &&
+        !all.some((other) => other.at === `after:${String(action.id)}`),
+    );
+    if (!later) continue;
+    beat.do = beat.do.filter((action) => action !== later);
+    delete later.start;
+    delete later.end;
+    first.do = [{ ...later, at: "beat:start" }, ...done];
+    return { slice, fixes: [`ouverture au tableau vide : « ${String(later.target)} » montré dès le premier mot`] };
+  }
+  const shown = title.trim();
+  if (!shown || objects(slice.introduces).some((item) => item.id === OPENING_TITLE_ID)) return { slice: raw, fixes: [] };
+  slice.introduces = [{ id: OPENING_TITLE_ID, type: "text", content: shown }, ...(Array.isArray(slice.introduces) ? slice.introduces : [])];
+  first.do = [{ id: `w_${OPENING_TITLE_ID}`, verb: "write", target: OPENING_TITLE_ID, at: "beat:start" }, ...done];
+  return { slice, fixes: ["ouverture au tableau vide : titre de la leçon écrit par le moteur"] };
+}
+
+/** The title the engine wrote on the opening leaves when the tranche after it starts, unless that tranche uses it. */
+export function clearOpeningTitle(raw: unknown): { slice: unknown; fixes: string[] } {
+  if (!isObject(raw)) return { slice: raw, fixes: [] };
+  const slice = structuredClone(raw);
+  const first = objects(slice.beats)[0];
+  if (!first || (first.do !== undefined && !Array.isArray(first.do))) return { slice: raw, fixes: [] };
+  if (objects(slice.beats).some((beat) => objects(beat.do).some((action) => action.target === OPENING_TITLE_ID))) return { slice: raw, fixes: [] };
+  first.do = [{ id: `f_${OPENING_TITLE_ID}`, verb: "fade_out", target: OPENING_TITLE_ID, at: "beat:start" }, ...objects(first.do)];
+  return { slice, fixes: ["titre d'ouverture effacé au début de la tranche"] };
+}
+
 export function normalizeSlice(raw: unknown, before?: ValidationState): { slice: unknown; fixes: string[] } {
   if (!isObject(raw)) return { slice: raw, fixes: [] };
   const slice = structuredClone(raw);

@@ -24,8 +24,21 @@ vi.mock("@/server/sessionStore", () => ({
     return true;
   },
 }));
+// A line of the response that fails to be written (0: none), to stand for a crash in the middle of the stream.
+const breakLine = vi.hoisted(() => ({ at: 0, written: 0 }));
+vi.mock("@/domain/tutor/ndjson", async (original) => {
+  const actual = await original<typeof import("@/domain/tutor/ndjson")>();
+  return {
+    ...actual,
+    encodeLine: (value: unknown) => {
+      if (breakLine.at && ++breakLine.written === breakLine.at) throw new Error("panne");
+      return actual.encodeLine(value);
+    },
+  };
+});
 afterEach(() => {
   vi.unstubAllEnvs();
+  breakLine.written = 0;
   afterTasks.length = 0;
   saved.length = 0;
 });
@@ -100,5 +113,30 @@ it("refuse la question quand la limite du jour est atteinte, en proposant le cod
     const line = JSON.parse((await response.text()).trim());
     expect(line).toMatchObject({ kind: "error", code: "daily_limit" });
     expect(line.message).toContain("code crédit");
-  } finally { quota.allowed = true; }
+  } finally {
+    quota.allowed = true;
+  }
 });
+
+it("un plantage en cours de génération envoie une ligne d'erreur à l'élève, jamais un flux fermé en silence", async () => {
+  vi.stubEnv("DISABLE_AI", "0");
+  vi.stubEnv("AI_GATEWAY_API_KEY", "test");
+  answer.text = `${JSON.stringify(lesson)}\n${JSON.stringify(slice)}\n`;
+  // Writing the second line fails: stands for any exception thrown while the stream is being written.
+  breakLine.at = 2;
+  const silence = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  try {
+    const response = await post({ question: "Explique-moi un point" });
+    const lines = (await response.text())
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    expect(lines.map((line) => line.kind)).toEqual(["lesson", "error"]);
+    expect(lines.at(-1)).toMatchObject({ code: "incomplete" });
+    for (const task of afterTasks) await task();
+    expect(saved[0]).toMatchObject({ outcome: "error" });
+  } finally {
+    breakLine.at = 0;
+    silence.mockRestore();
+  }
+}, 20_000);

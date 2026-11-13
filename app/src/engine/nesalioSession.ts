@@ -2,7 +2,9 @@
  * Séance d'explication Nesalio de la page élève : une question → la leçon
  * générée en flux et jouée au tableau, avec pause, son coupé, « Revoir
  * l'explication » (sans nouvel appel au modèle) et des messages d'erreur faits
- * pour l'élève. Au plus deux questions à choix pour vérifier la compréhension (question.ts) : la lecture
+ * pour l'élève. L'élève peut revenir à un passage déjà entendu (`seek`) : le tableau est remis dans l'état de ce
+ * moment et la voix repart de là. À la fin de chaque tranche la lecture s'arrête, tableau affiché, jusqu'à
+ * « Continuer » (retours d'atelier du 2026-11-12). Au plus deux questions à choix pour vérifier la compréhension (question.ts) : la lecture
  * s'arrête après la tranche, l'élève répond, Nesa réagit ; pas de bilan.
  * La page affiche l'état (`getSnapshot`) ; le tableau et le réseau sont fournis.
  */
@@ -51,6 +53,12 @@ export interface SessionSnapshot {
   lastFinished: string | null;
   /** A question to the student, playback waiting for the answer. */
   asking: AskingSnapshot | null;
+  /** The passages received so far, in order: for each, the tranche it belongs to. What the student can go back to. */
+  steps: readonly string[];
+  /** Rank in `steps` of the passage being played (the last one played, once the lesson is over). */
+  position: number | null;
+  /** A tranche is over and stays on the board: playback waits for « Continuer », so the student can read. */
+  resting: boolean;
 }
 
 export interface SessionDeps {
@@ -64,6 +72,9 @@ export interface SessionDeps {
       onFrame(frame: NesalioFrame, beat: Beat): void;
       onWaiting(): void;
       afterSlice(sliceId: string, signal: AbortSignal): Promise<void>;
+      /** Passage to start from; the ones before it are applied to the board without being played. */
+      startAt: number;
+      onPassage(index: number): void;
     },
   ): Promise<void>;
   board: { reset(): void; draw(frame: NesalioFrame): void };
@@ -81,7 +92,24 @@ export const INITIAL_SESSION: SessionSnapshot = {
   canReplay: false,
   lastFinished: null,
   asking: null,
+  steps: [],
+  position: null,
+  resting: false,
 };
+
+/** A lesson as received: read from the network once, whatever is played and replayed from it. */
+interface Lesson {
+  header: LessonHeader;
+  slices: Slice[];
+  questions: Map<string, LessonQuestion>;
+  /** The whole lesson was received. */
+  complete: boolean;
+  /** The stream broke: what was received can still be played, then this is thrown. */
+  failure?: { error: unknown };
+  /** Stops the network stream (new question, back to the start screen). */
+  stop: AbortController;
+  wake: Set<() => void>;
+}
 
 const OFFLINE = "Je n'arrive pas à joindre Nesalio. Vérifie ta connexion, puis réessaie.";
 const STOPPED = "L'explication s'est arrêtée en route. Tu peux réessayer ou poser une autre question.";
@@ -98,10 +126,10 @@ export class NesalioSession {
   private snapshot: SessionSnapshot = INITIAL_SESSION;
   private readonly listeners = new Set<() => void>();
   private current?: AbortController;
-  private recorded?: { header: LessonHeader; slices: Slice[]; complete: boolean; questions: Map<string, LessonQuestion> };
+  private lesson?: Lesson;
   private said: string[] = [];
-  /** The question on screen and what releases playback once the student is done with it. */
-  private pending?: { question: LessonQuestion; release(): void };
+  /** What releases playback once the student is done with the question on screen, or has read the tranche. */
+  private pending?: { question?: LessonQuestion; release(): void };
 
   constructor(private readonly deps: SessionDeps) {
     this.control.subscribe(() => this.set({ paused: this.control.paused, muted: this.control.muted }));
@@ -118,72 +146,117 @@ export class NesalioSession {
 
   /** A new question: the board is cleared and the model writes a new lesson. */
   async ask(question: string): Promise<void> {
+    this.lesson?.stop.abort();
+    this.lesson = undefined;
     const run = this.begin({ question: question.trim(), title: null });
-    this.recorded = undefined;
+    const stop = new AbortController();
+    // Until the lesson is opened, leaving stops the request; afterwards the lesson outlives each playback run.
+    run.signal.addEventListener(
+      "abort",
+      () => {
+        if (this.lesson?.stop !== stop) stop.abort();
+      },
+      { once: true },
+    );
     let header: LessonHeader;
     let slices: AsyncIterable<Slice>;
     let questions: Map<string, LessonQuestion>;
     try {
       let given: Map<string, LessonQuestion> | undefined;
-      ({ header, slices, questions: given } = await this.deps.open(question.trim(), run.signal));
+      ({ header, slices, questions: given } = await this.deps.open(question.trim(), stop.signal));
       questions = given ?? new Map();
     } catch (error) {
       if (!run.signal.aborted) this.set({ status: "error", error: forStudent(error) });
       return;
     }
     if (run.signal.aborted) return;
-    const recorded = { header, slices: [] as Slice[], complete: false, questions };
-    this.recorded = recorded;
+    const lesson: Lesson = { header, slices: [], questions, complete: false, stop, wake: new Set() };
+    this.lesson = lesson;
     this.set({ title: header.lesson.title });
-    const recording = (async function* () {
+    void this.receive(lesson, slices);
+    await this.run(run, lesson, 0);
+  }
+
+  /** Reads the lesson from the network, whatever playback does meanwhile (the student may go back before it ends). */
+  private async receive(lesson: Lesson, slices: AsyncIterable<Slice>): Promise<void> {
+    try {
       for await (const slice of slices) {
-        recorded.slices.push(slice);
-        yield slice;
+        if (lesson.stop.signal.aborted) break;
+        lesson.slices.push(slice);
+        if (this.lesson === lesson) this.set({ steps: lesson.slices.flatMap((s) => s.beats.map(() => s.slice_id)) });
+        this.wake(lesson);
       }
-      recorded.complete = true;
-    })();
-    await this.run(run, header, recording, questions);
+      if (!lesson.stop.signal.aborted) lesson.complete = true;
+    } catch (error) {
+      lesson.failure = { error };
+    } finally {
+      this.wake(lesson);
+    }
+  }
+
+  private wake(lesson: Lesson): void {
+    const waiting = [...lesson.wake];
+    lesson.wake.clear();
+    for (const resume of waiting) resume();
+  }
+
+  /** The lesson's tranches from the first one: those received, then the others as they come. */
+  private async *tranches(lesson: Lesson, signal: AbortSignal): AsyncGenerator<Slice> {
+    for (let index = 0; ; ) {
+      while (index < lesson.slices.length) yield lesson.slices[index++]!;
+      if (lesson.failure) throw lesson.failure.error;
+      if (lesson.complete || signal.aborted) return;
+      await new Promise<void>((resolve) => {
+        lesson.wake.add(resolve);
+        signal.addEventListener("abort", () => resolve(), { once: true });
+      });
+    }
   }
 
   /** The student picks a choice of the question on screen. */
   answer(choice: number): void {
     const asking = this.snapshot.asking;
     const pending = this.pending;
-    if (!asking || !pending || asking.solved !== null || asking.wrong.includes(choice) || choice < 0 || choice >= asking.choices.length) return;
-    const { right, say } = judge(pending.question, choice);
+    if (!asking || !pending?.question || asking.solved !== null || asking.wrong.includes(choice) || choice < 0 || choice >= asking.choices.length) return;
+    const question = pending.question;
+    const { right, say } = judge(question, choice);
     if (right) {
       this.set({ asking: { ...asking, solved: choice, feedback: say, right: true } });
       return;
     }
     const wrong = [...asking.wrong, choice];
     // Second miss: the right answer is shown, with what this choice got wrong.
-    const solved = wrong.length >= QUESTION_TRIES ? pending.question.check.answer! : null;
+    const solved = wrong.length >= QUESTION_TRIES ? question.check.answer! : null;
     const answer = solved === null ? "" : ` La bonne réponse : ${asking.choices[solved]}.`;
     this.set({ asking: { ...asking, wrong, solved, feedback: `${say}${answer}`, right: false } });
   }
 
-  /** The student is done with the question: the lesson goes on. */
+  /** The student is done with the question, or has read the tranche: the lesson goes on. */
   continueLesson(): void {
     const pending = this.pending;
     if (!pending || this.snapshot.asking?.solved === null) return;
     this.pending = undefined;
-    this.set({ asking: null });
+    this.set({ asking: null, resting: false });
     pending.release();
   }
 
   /** The same lesson again, from the start, without asking the model. */
   async replay(): Promise<void> {
-    const recorded = this.recorded;
-    if (!recorded?.complete) return;
-    const run = this.begin({ question: this.snapshot.question, title: this.snapshot.title });
-    await this.run(
-      run,
-      recorded.header,
-      (async function* () {
-        yield* recorded.slices;
-      })(),
-      recorded.questions,
-    );
+    if (!this.lesson?.complete) return;
+    await this.seek(0);
+  }
+
+  /**
+   * Back (or forward) to a passage already received: the board is put as it stood when that passage began and the
+   * voice starts again from there, without asking the model. Passages not received yet cannot be reached.
+   */
+  async seek(index: number): Promise<void> {
+    const lesson = this.lesson;
+    const { steps, status, question, title } = this.snapshot;
+    if (!lesson || !Number.isInteger(index) || index < 0 || index >= steps.length || (status !== "playing" && status !== "done")) return;
+    const caption = lesson.slices.flatMap((slice) => slice.beats)[index]?.say ?? null;
+    const run = this.begin({ question, title }, { status: "playing", steps, position: index, caption });
+    await this.run(run, lesson, index);
   }
 
   /** Back to the start screen, board cleared. */
@@ -191,7 +264,8 @@ export class NesalioSession {
     this.releaseQuestion();
     this.current?.abort();
     this.current = undefined;
-    this.recorded = undefined;
+    this.lesson?.stop.abort();
+    this.lesson = undefined;
     this.said = [];
     this.control.setPaused(false);
     this.deps.board.reset();
@@ -225,7 +299,7 @@ export class NesalioSession {
     pending?.release();
   }
 
-  private begin(identity: Pick<SessionSnapshot, "question" | "title">): AbortController {
+  private begin(identity: Pick<SessionSnapshot, "question" | "title">, kept: Partial<SessionSnapshot> = {}): AbortController {
     this.releaseQuestion();
     this.current?.abort();
     const run = new AbortController();
@@ -233,19 +307,28 @@ export class NesalioSession {
     this.said = [];
     this.control.setPaused(false);
     this.deps.board.reset();
-    this.set({ ...INITIAL_SESSION, ...identity, status: "preparing", muted: this.control.muted, lastFinished: this.snapshot.lastFinished });
+    this.set({ ...INITIAL_SESSION, ...identity, status: "preparing", muted: this.control.muted, lastFinished: this.snapshot.lastFinished, ...kept });
     return run;
   }
 
-  private async run(run: AbortController, header: LessonHeader, slices: AsyncIterable<Slice>, questions: Map<string, LessonQuestion>): Promise<void> {
-    let played = false;
+  private async run(run: AbortController, lesson: Lesson, startAt: number): Promise<void> {
+    // Back on a passage already heard: the lesson has been played, whatever happens next.
+    let played = this.snapshot.status === "playing";
     try {
-      await this.deps.play(header, slices, {
+      await this.deps.play(lesson.header, this.tranches(lesson, run.signal), {
         signal: run.signal,
         control: this.control,
+        startAt,
+        onPassage: (index) => {
+          if (this.current === run && this.snapshot.position !== index) this.set({ position: index });
+        },
         afterSlice: (sliceId, signal) => {
-          const question = questions.get(sliceId);
-          if (!question || this.current !== run || signal.aborted) return Promise.resolve();
+          if (this.current !== run || signal.aborted) return Promise.resolve();
+          const question = lesson.questions.get(sliceId);
+          // Nothing to read after the opening; after the last tranche the lesson is simply over.
+          const opening = lesson.slices[0]?.slice_id === sliceId;
+          const last = lesson.complete && lesson.slices.at(-1)?.slice_id === sliceId;
+          if (!question && (opening || last)) return Promise.resolve();
           return new Promise<void>((resolve) => {
             const release = () => {
               signal.removeEventListener("abort", release);
@@ -253,7 +336,11 @@ export class NesalioSession {
             };
             signal.addEventListener("abort", release, { once: true });
             this.pending = { question, release };
-            this.set({ asking: { prompt: question.check.prompt, choices: question.check.choices, wrong: [], solved: null, feedback: null, right: null } });
+            this.set(
+              question
+                ? { asking: { prompt: question.check.prompt, choices: question.check.choices, wrong: [], solved: null, feedback: null, right: null } }
+                : { resting: true },
+            );
           });
         },
         onWaiting: () => {
@@ -273,7 +360,7 @@ export class NesalioSession {
       this.set({
         status: played ? "done" : "error",
         waiting: false,
-        canReplay: Boolean(this.recorded?.complete),
+        canReplay: lesson.complete,
         error: played ? null : FAILED,
         ...(played ? { lastFinished: this.snapshot.question } : {}),
       });

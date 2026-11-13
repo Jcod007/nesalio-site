@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeLatex, normalizeMathContext, normalizeSlice } from "./normalize";
+import { OPENING_TITLE_ID, clearOpeningTitle, escapeLatex, normalizeMathContext, normalizeSlice, openingOnBoard } from "./normalize";
 import { validateMathContext, validateModelOutput, type ValidationState } from "./validate";
 import zerosRecapVide from "./fixtures/zeros-recap-vide.json";
 
@@ -1100,5 +1100,62 @@ describe("un élément désigné à part est un bloc à part", () => {
         }),
       ).fixes,
     ).toEqual([]);
+  });
+});
+
+// 2026-11-12, workshop feedback: on the six real lessons the opening left the board empty for 7 to 11.5 s of voice.
+describe("ouverture : le tableau n'est jamais vide au premier passage", () => {
+  const beat = (id: string, done: unknown[] = []) => ({ id, say: "On va voir comment faire.", cues: [], do: done });
+
+  it("écrit le titre de la leçon quand l'ouverture ne montre rien, et l'efface à la tranche suivante", () => {
+    const { slice, fixes } = openingOnBoard({ slice_id: "s_ouverture", introduces: [], beats: [beat("question")] }, "Le réactif limitant");
+    expect(fixes).toHaveLength(1);
+    expect(slice).toMatchObject({
+      introduces: [{ id: OPENING_TITLE_ID, type: "text", content: "Le réactif limitant" }],
+      beats: [{ do: [{ verb: "write", target: OPENING_TITLE_ID, at: "beat:start" }] }],
+    });
+    expect(validateModelOutput({ slices: [normalizeSlice(slice).slice] }).ok).toBe(true);
+    const next = clearOpeningTitle({ slice_id: "s_suite", introduces: [], beats: [beat("suite")] });
+    expect(next.slice).toMatchObject({ beats: [{ do: [{ verb: "fade_out", target: OPENING_TITLE_ID, at: "beat:start" }] }] });
+  });
+
+  it("avance au premier mot le texte que la tranche montrait plus tard", () => {
+    const raw = {
+      slice_id: "s_hors_perimetre",
+      introduces: [{ id: "offre", type: "text", content: "Je peux t'expliquer la mole" }],
+      beats: [
+        beat("refus"),
+        {
+          id: "propose",
+          say: "Par contre, je peux te montrer la mole.",
+          cues: [{ id: "c_mole", text: "la mole" }],
+          do: [{ id: "s_offre", verb: "show", target: "offre", at: "cue:c_mole" }],
+        },
+      ],
+    };
+    const { slice } = openingOnBoard(raw, "Hors périmètre");
+    expect(slice).toMatchObject({
+      introduces: [{ id: "offre" }],
+      beats: [{ do: [{ id: "s_offre", verb: "show", target: "offre", at: "beat:start" }] }, { do: [] }],
+    });
+  });
+
+  it("ne touche pas une ouverture qui écrit déjà, ni une formule montrée plus tard", () => {
+    const written = {
+      slice_id: "s_ouverture",
+      introduces: [{ id: "but", type: "text", content: "Le but" }],
+      beats: [beat("question", [{ id: "w_but", verb: "write", target: "but", at: "beat:start" }])],
+    };
+    expect(openingOnBoard(written, "Titre")).toEqual({ slice: written, fixes: [] });
+    const formula = {
+      slice_id: "s_loi",
+      introduces: [{ id: "loi", type: "math", content: "pV = nRT" }],
+      beats: [beat("dit"), beat("ecrit", [{ id: "w_loi", verb: "write", target: "loi", at: "beat:start" }])],
+    };
+    // The formula keeps its moment (said, then written); the title holds the board until then.
+    expect(openingOnBoard(formula, "La loi des gaz").slice).toMatchObject({
+      introduces: [{ id: OPENING_TITLE_ID }, { id: "loi" }],
+      beats: [{ do: [{ target: OPENING_TITLE_ID }] }, { do: [{ target: "loi" }] }],
+    });
   });
 });

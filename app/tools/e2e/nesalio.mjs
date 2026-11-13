@@ -17,7 +17,9 @@
  *   3. le sous-titre suit la leçon ; le tableau est dessiné ;
  *   4. pause : le sous-titre ne bouge plus ; reprise : la leçon repart ;
  *   5. le bouton du son bascule ;
- *   6. fin : « Voilà pour l'explication », sans violation axe grave en séance ;
+ *   6. arrêt « Prends le temps de lire le tableau » en fin de tranche ; « Phrase précédente » ramène la phrase
+ *      d'avant sans rappeler /api/nesalio ; « Continuer » à chaque arrêt jusqu'à la fin : « Voilà pour l'explication »,
+ *      sans violation axe grave en séance ;
  *   7. « Revoir l'explication » rejoue la leçon sans nouvel appel à /api/nesalio ;
  *   8. une erreur du serveur affiche un message et « Réessayer ».
  *
@@ -37,7 +39,6 @@ const EVENTS = FIXTURE.trim()
 const QUESTION = "Comment je résous 3x + 5 = 17 ?";
 const SAID = EVENTS.filter((e) => e.kind === "slice").flatMap((e) => e.slice.beats.map((b) => b.say));
 const FIRST = SAID[0];
-const LAST = SAID.at(-1);
 const SCREENS = [
   { name: "ordinateur", width: 1366, height: 800 },
   { name: "téléphone", width: 390, height: 844 },
@@ -149,10 +150,34 @@ for (const screen of SCREENS) {
     await page.getByRole("button", { name: /Réactiver la voix de Nesa/ }).click();
     for (const v of await seriousViolations(page)) fail(screen.name, `séance, accessibilité : ${describe(v)}`);
 
-    // 6. Fin
+    // 6. Arrêt en fin de tranche, retour d'une phrase, puis fin
+    step = "6. Arrêt en fin de tranche";
+    const resting = dock.getByText("Prends le temps de lire le tableau.");
+    const end = dock.getByText(/Voilà pour l'explication/);
+    await resting.or(end).first().waitFor({ timeout: 90_000 });
+    if (!(await resting.count())) fail(screen.name, "aucun arrêt « Continuer » en fin de tranche");
+    else {
+      const restingOn = (await caption()).split("\n")[0];
+      const at = SAID.indexOf(restingOn);
+      if (at < 1) fail(screen.name, `arrêt sur une phrase inattendue : ${JSON.stringify(restingOn.slice(0, 80))}`);
+      else {
+        step = "6. Phrase précédente";
+        await dock.getByRole("button", { name: /Phrase précédente/ }).click();
+        await dock.getByText(SAID[at - 1]).waitFor({ timeout: 10_000 });
+        if (calls.nesalio !== 1) fail(screen.name, "revenir d'une phrase a rappelé /api/nesalio");
+      }
+    }
     step = "6. Fin";
-    await dock.getByText(LAST).waitFor({ timeout: 90_000 });
-    await dock.getByText(/Voilà pour l'explication/).waitFor({ timeout: 60_000 });
+    let stops = 0;
+    while (!(await end.count())) {
+      await resting.or(end).first().waitFor({ timeout: 90_000 });
+      if (await resting.count()) {
+        stops++;
+        await dock.getByRole("button", { name: "Continuer" }).click();
+        await resting.waitFor({ state: "detached", timeout: 5_000 });
+      }
+      if (stops > SAID.length) throw new Error("trop d'arrêts « Continuer »");
+    }
     for (const v of await seriousViolations(page)) fail(screen.name, `fin de séance, accessibilité : ${describe(v)}`);
     // The after-trial questions open one minute after the lesson ends (AFTER_TRIAL_DELAY in NesalioApp.tsx: « Revoir
     // l'explication » stays reachable first), over the dock: closed here.
