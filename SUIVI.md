@@ -12,7 +12,8 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 - Non changé, faute de pouvoir le vérifier dans le code : région Montréal du Blob, région d'Upstash, passage de toutes les IA par Vercel en production, suppression de compte activée dans Clerk, textos.
 - Vérifié : balises équilibrées, diff relu (12 lignes ajoutées, 7 retirées). **Pas vérifié** : rendu dans un navigateur. Pas un avis juridique. Rien commité ni déployé.
 - Attention : le `confidentialite.html` à la racine de `codex/kairos-json-contract` est une ancienne copie (connexion par mot de passe, sans essai) : ne pas la reporter.
-- Prochaine étape concrète — accord de l'utilisateur pour commiter et ouvrir la PR vers `main`.
+- **Suite, même jour** : accord donné. Commit `b084d67`, poussé, **PR Jcod007/nesalio-site#30** vers `main`, pas fusionnée.
+- Prochaine étape concrète — regarder la page sur l'aperçu Vercel de la PR, puis fusion sur accord de l'utilisateur.
 
 ### 2026-11-13 — Accueil allégé : code crédit et compteur là où ils servent (Claude Code)
 - Demande de l'utilisateur : juger la charge cognitive de l'accueil (capture de la production) ; il trouvait le champ du
