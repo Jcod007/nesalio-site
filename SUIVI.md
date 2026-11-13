@@ -5,6 +5,15 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 ---
 
+### 2026-11-13 — Page de confidentialité corrigée (Claude Code)
+
+- Constat fait d'abord sur `codex/kairos-json-contract` (voir son `SUIVI.md`) : la page en ligne était fidèle au code, sauf six écarts. L'utilisateur a demandé de les corriger. Branche `claude/confidentialite` depuis `main` (`ce3444e`), dossier `.claude/worktrees/confidentialite`. Seul `site/confidentialite.html` est touché.
+- Ajouté ou précisé : section « La limite de questions par jour » (Upstash Redis : identifiant Clerk, compteur du jour effacé après 2 jours, crédit 30 jours, code utilisé gardé sans échéance) ; durées de l'essai sans compte (31 jours pour l'identifiant, 7 jours pour les compteurs par empreinte IP, purgés par `/api/seances/purge`) ; Google Fonts et statistiques Vercel ; les envois Formspree portent aussi la question posée et l'identifiant abrégé de séance ; le courriel ne retrouve les séances que pour une inscription par le formulaire du site, pas pour un compte créé dans l'application ; « mathématiques et de chimie » ; date du 13 novembre.
+- Non changé, faute de pouvoir le vérifier dans le code : région Montréal du Blob, région d'Upstash, passage de toutes les IA par Vercel en production, suppression de compte activée dans Clerk, textos.
+- Vérifié : balises équilibrées, diff relu (12 lignes ajoutées, 7 retirées). **Pas vérifié** : rendu dans un navigateur. Pas un avis juridique. Rien commité ni déployé.
+- Attention : le `confidentialite.html` à la racine de `codex/kairos-json-contract` est une ancienne copie (connexion par mot de passe, sans essai) : ne pas la reporter.
+- Prochaine étape concrète — accord de l'utilisateur pour commiter et ouvrir la PR vers `main`.
+
 ### 2026-11-13 — Accueil allégé : code crédit et compteur là où ils servent (Claude Code)
 - Demande de l'utilisateur : juger la charge cognitive de l'accueil (capture de la production) ; il trouvait le champ du
   code crédit trop présent. Quatre changements proposés, acceptés tels quels (« les 4 »).
