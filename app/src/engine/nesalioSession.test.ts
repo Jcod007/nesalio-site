@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Slice } from "@/domain/nesalio/contract";
 import { lessonHeader } from "@/domain/nesalio/lesson";
+import { NesalioServerError } from "@/domain/nesalio/serverError";
 import { FeedbackContextSchema } from "@/domain/feedback";
 import { NesalioSession, type SessionDeps } from "./nesalioSession";
 import type { NesalioFrame } from "./nesalioPlayback";
@@ -107,6 +108,23 @@ describe("séance d'explication Nesalio (page élève)", () => {
     );
     await offline.ask("Q");
     expect(offline.getSnapshot().error).toMatch(/connexion/i);
+  });
+
+  it("garde le code d'une erreur du serveur (limite du jour), et l'oublie à la question suivante", async () => {
+    let limited = true;
+    const session = new NesalioSession(
+      fake({
+        open: async (question, signal) => {
+          if (limited) throw new NesalioServerError("daily_limit", "Tu as utilisé tes 10 questions d'aujourd'hui.");
+          return fake().deps.open(question, signal);
+        },
+      }).deps,
+    );
+    await session.ask("Q");
+    expect(session.getSnapshot()).toMatchObject({ status: "error", errorCode: "daily_limit", error: "Tu as utilisé tes 10 questions d'aujourd'hui." });
+    limited = false;
+    await session.ask("Q");
+    expect(session.getSnapshot()).toMatchObject({ status: "done", errorCode: null, error: null });
   });
 
   it("garde au tableau ce qui a été expliqué quand la suite échoue, et le signale", async () => {

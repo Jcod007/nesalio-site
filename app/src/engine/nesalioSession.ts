@@ -11,6 +11,7 @@
 import type { Beat, Slice } from "@/domain/nesalio/contract";
 import type { LessonHeader } from "@/domain/nesalio/lesson";
 import { judge, type LessonQuestion } from "@/domain/nesalio/question";
+import { NesalioServerError } from "@/domain/nesalio/serverError";
 import { createPlaybackControl, type PlaybackControl } from "./nesalioControl";
 import type { NesalioFrame } from "./nesalioPlayback";
 
@@ -44,6 +45,8 @@ export interface SessionSnapshot {
   muted: boolean;
   /** For the student: why nothing could be explained, or why the explanation stopped early. */
   error: string | null;
+  /** The server's code for that error (« daily_limit »…), when the server gave one: what the page can offer next. */
+  errorCode: string | null;
   /** The whole lesson was received: it can be played again without asking the model. */
   canReplay: boolean;
   /**
@@ -89,6 +92,7 @@ export const INITIAL_SESSION: SessionSnapshot = {
   paused: false,
   muted: false,
   error: null,
+  errorCode: null,
   canReplay: false,
   lastFinished: null,
   asking: null,
@@ -119,6 +123,10 @@ function forStudent(error: unknown): string {
   // fetch fails with a TypeError when the network is down: its text is not for a student.
   if (error instanceof TypeError) return OFFLINE;
   return error instanceof Error && error.message ? error.message : FAILED;
+}
+
+function codeOf(error: unknown): string | null {
+  return error instanceof NesalioServerError ? error.code : null;
 }
 
 export class NesalioSession {
@@ -166,7 +174,7 @@ export class NesalioSession {
       ({ header, slices, questions: given } = await this.deps.open(question.trim(), stop.signal));
       questions = given ?? new Map();
     } catch (error) {
-      if (!run.signal.aborted) this.set({ status: "error", error: forStudent(error) });
+      if (!run.signal.aborted) this.set({ status: "error", error: forStudent(error), errorCode: codeOf(error) });
       return;
     }
     if (run.signal.aborted) return;
@@ -370,7 +378,7 @@ export class NesalioSession {
       this.set(
         played
           ? { status: "done", waiting: false, canReplay: false, error: STOPPED, lastFinished: this.snapshot.question }
-          : { status: "error", waiting: false, canReplay: false, error: forStudent(error) },
+          : { status: "error", waiting: false, canReplay: false, error: forStudent(error), errorCode: codeOf(error) },
       );
     }
   }

@@ -20,6 +20,11 @@ describe("flux de /api/nesalio", () => {
     vi.stubGlobal("fetch", async () => ndjson('{"kind":"error","code":"daily_limit","message":"Reviens demain !"}\n'));
     await expect(openNesalioStream("q", new AbortController().signal)).rejects.toThrow("Reviens demain !");
   });
+
+  it("garde le code de l'erreur, pour que la page sache quoi proposer (code crédit à la limite du jour)", async () => {
+    vi.stubGlobal("fetch", async () => ndjson('{"kind":"error","code":"daily_limit","message":"Reviens demain !"}\n'));
+    await expect(openNesalioStream("q", new AbortController().signal)).rejects.toMatchObject({ code: "daily_limit" });
+  });
 });
 
 describe("fin du flux", () => {

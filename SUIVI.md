@@ -6,7 +6,7 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 ---
 
 ### 2026-11-13 — Durcissement sécurité : limites partagées, accès développeur, statut (Claude Code)
-- Demande de l'utilisateur après un constat « secure by design ? » (détail du constat dans le `SUIVI.md` de `Desktop/nesalio-site`, branche `codex/kairos-json-contract`). Il a choisi les correctifs 1, 2, 3 et 5 ; la CSP stricte (4) est remise à plus tard. Branche `claude/securite-limites` depuis `main` (`e791673`), dans `.claude/worktrees/securite`. **Rien de commité ni de déployé.**
+- Demande de l'utilisateur après un constat « secure by design ? » (détail du constat dans le `SUIVI.md` de `Desktop/nesalio-site`, branche `codex/kairos-json-contract`). Il a choisi les correctifs 1, 2, 3 et 5 ; la CSP stricte (4) est remise à plus tard. Branche `claude/securite-limites` depuis `main` (`e791673`), dans `.claude/worktrees/securite`. PR #29 ouverte vers `main`, `main` refusionné dedans (seul conflit : ce journal). **Pas encore fusionnée ni déployée.**
 - **Limite de débit partagée** (`rateLimit.ts`, `http.ts`, les 7 routes) : `limit()` compte dans Redis avec `@upstash/ratelimit` (fenêtre glissante, même Redis que le quota), `check()` reste le compteur en mémoire. Sans Redis, sur erreur ou après 1,5 s sans réponse, `limit()` se replie sur la mémoire : une panne Redis ne laisse plus la dépense sans borne. Adresse et compte hachés avant d'aller dans Redis. Chaque `createSessionLimits` porte un `name` (préfixe `nesalio:rate:<route>`).
 - Décision : `@upstash/ratelimit` figé en **2.2.0** (septembre) et non 2.2.1, publiée la veille : pas de version d'un jour en production.
 - **Plafonds journaliers** (`dailyQuota.ts`, routes photo et transcribe) : 20 photos et 40 transcriptions par compte et par jour (`EXTRA_DAILY_LIMITS`), comptés après validation, avant l'appel payant. Chiffres proposés par Claude, acceptés tels quels par l'utilisateur ; à ajuster au besoin. Redis illisible : demande acceptée, la limite courte reste.
@@ -14,7 +14,30 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 - **Mineurs** : `/api/status` sans jeton ne renvoie que `{ tutor, voice, transcription }` en vrai/faux (plus de fournisseur ni de modèle) ; purge avec comparaison à temps constant (`hasCronAccess`) ; `.quota-*.mjs` ignorés par git.
 - Vérifié : `tsc`, 787 tests verts (dont nouveaux tests limite partagée, repli, plafonds, cookie daté, formulaire, statut), Biome sur les fichiers touchés, et un essai jetable avec la vraie bibliothèque et un Redis injoignable (repli mémoire constaté). **Pas vérifié** : vrai Redis Upstash, `next build`, formulaire `/dev/access` dans un navigateur derrière le proxy Clerk. `biome ci .` complet échoue ici sur les fins de ligne CRLF du checkout Windows, sans rapport avec ce changement.
 - À surveiller : chaque requête fait deux appels Redis (adresse, puis compte). Le forfait gratuit Upstash a un plafond mensuel et la montée payante est désactivée : s'il est atteint, les limites retombent sur la mémoire (avertissement « Limite partagée indisponible » dans les journaux).
-- Prochaine étape concrète — accord de l'utilisateur pour commiter et ouvrir la PR, puis après déploiement : vérifier dans les journaux Vercel l'absence de l'avertissement de repli, et rouvrir `/dev/access` avec le secret.
+- Prochaine étape concrète — fusion de la PR #29 par l'utilisateur, puis après déploiement : vérifier dans les journaux Vercel l'absence de l'avertissement de repli, et rouvrir `/dev/access` avec le secret.
+
+### 2026-11-13 — Accueil allégé : code crédit et compteur là où ils servent (Claude Code)
+- Demande de l'utilisateur : juger la charge cognitive de l'accueil (capture de la production) ; il trouvait le champ du
+  code crédit trop présent. Quatre changements proposés, acceptés tels quels (« les 4 »).
+- Constat en passant : sur `main`, le champ était déjà caché derrière « J'ai un code crédit », mais le lien disparaissait
+  une fois ouvert et le compteur « Il te reste 10 questions … sur 10 » s'affichait toujours.
+- Fait (branche `claude/accueil-code`, partie de `main` `e791673`) :
+  1. Accueil : seul le lien « J'ai un code » ; il ouvre et referme le champ (`aria-expanded`). « Valider » en contour
+     sur l'accueil, pour ne pas concurrencer « Demander à Nesa ». Plus de modèle « XXXX-XXXX-XX » (faisait clé de licence).
+  2. Compteur seulement à `LOW_QUOTA` = 3 questions restantes ou moins (« Plus que 2 questions aujourd'hui. »), et le
+     message de fin de journée à 0.
+  3. Limite atteinte : la carte de Nesa montre le champ « Ton code crédit » ; pas de « Réessayer » avant un code accepté,
+     puis « Poser ma question ». Un compte déjà crédité ne voit pas de champ. Message du serveur : « … entre un code
+     crédit ci-dessous » (au lieu de « sur l'accueil »).
+  4. Pour ça, l'erreur garde son code jusqu'à l'écran : `NesalioServerError` (`domain/nesalio/serverError.ts`), levée
+     par `stream.ts`, gardée dans `SessionSnapshot.errorCode`.
+- Vérifié : `tsc` ; `vitest run src` 85 fichiers, 764 réussis (+1 test flux, +1 test séance) ; Biome sur les fichiers
+  touchés ; parcours `tools/e2e/nesalio.mjs` OK. Script navigateur jetable (réponses `/api/credit` et `/api/nesalio`
+  simulées, pas de Redis en local), ordinateur et téléphone : lien, ouverture et fermeture, compteur caché à 10 et
+  affiché à 2, champ dans la carte à la limite, « Poser ma question » après le code et nouvel envoi de la question,
+  axe sans violation grave, aucune erreur de page.
+- **Pas vérifié** : avec le vrai Redis (production) ; lecteur d'écran.
+- Prochaine étape : PR et fusion à la demande de l'utilisateur.
 
 ### 2026-11-13 — Retours d'atelier reportés sur `main` (Claude Code)
 - Demande de l'utilisateur : publier les trois corrections d'atelier du 12 (tableau dès l'ouverture, arrêt « Continuer »
