@@ -5,6 +5,17 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 ---
 
+### 2026-11-13 — Durcissement sécurité : limites partagées, accès développeur, statut (Claude Code)
+- Demande de l'utilisateur après un constat « secure by design ? » (détail du constat dans le `SUIVI.md` de `Desktop/nesalio-site`, branche `codex/kairos-json-contract`). Il a choisi les correctifs 1, 2, 3 et 5 ; la CSP stricte (4) est remise à plus tard. Branche `claude/securite-limites` depuis `main` (`e791673`), dans `.claude/worktrees/securite`. **Rien de commité ni de déployé.**
+- **Limite de débit partagée** (`rateLimit.ts`, `http.ts`, les 7 routes) : `limit()` compte dans Redis avec `@upstash/ratelimit` (fenêtre glissante, même Redis que le quota), `check()` reste le compteur en mémoire. Sans Redis, sur erreur ou après 1,5 s sans réponse, `limit()` se replie sur la mémoire : une panne Redis ne laisse plus la dépense sans borne. Adresse et compte hachés avant d'aller dans Redis. Chaque `createSessionLimits` porte un `name` (préfixe `nesalio:rate:<route>`).
+- Décision : `@upstash/ratelimit` figé en **2.2.0** (septembre) et non 2.2.1, publiée la veille : pas de version d'un jour en production.
+- **Plafonds journaliers** (`dailyQuota.ts`, routes photo et transcribe) : 20 photos et 40 transcriptions par compte et par jour (`EXTRA_DAILY_LIMITS`), comptés après validation, avant l'appel payant. Chiffres proposés par Claude, acceptés tels quels par l'utilisateur ; à ajuster au besoin. Redis illisible : demande acceptée, la limite courte reste.
+- **Accès développeur** (`devAccess.ts`, `dev/access/route.ts`, `LISEZMOI.md`) : le secret se saisit dans un champ et part en POST, plus jamais dans l'adresse ; cookie `v2.<fin>.<signature>` valable 7 jours au lieu d'une valeur fixe de 30 jours. **Conséquence au déploiement : les anciens liens `?key=` ne marchent plus et les cookies déjà posés sont refusés ; il faut repasser par `/dev/access`.**
+- **Mineurs** : `/api/status` sans jeton ne renvoie que `{ tutor, voice, transcription }` en vrai/faux (plus de fournisseur ni de modèle) ; purge avec comparaison à temps constant (`hasCronAccess`) ; `.quota-*.mjs` ignorés par git.
+- Vérifié : `tsc`, 787 tests verts (dont nouveaux tests limite partagée, repli, plafonds, cookie daté, formulaire, statut), Biome sur les fichiers touchés, et un essai jetable avec la vraie bibliothèque et un Redis injoignable (repli mémoire constaté). **Pas vérifié** : vrai Redis Upstash, `next build`, formulaire `/dev/access` dans un navigateur derrière le proxy Clerk. `biome ci .` complet échoue ici sur les fins de ligne CRLF du checkout Windows, sans rapport avec ce changement.
+- À surveiller : chaque requête fait deux appels Redis (adresse, puis compte). Le forfait gratuit Upstash a un plafond mensuel et la montée payante est désactivée : s'il est atteint, les limites retombent sur la mémoire (avertissement « Limite partagée indisponible » dans les journaux).
+- Prochaine étape concrète — accord de l'utilisateur pour commiter et ouvrir la PR, puis après déploiement : vérifier dans les journaux Vercel l'absence de l'avertissement de repli, et rouvrir `/dev/access` avec le secret.
+
 ### 2026-11-13 — Retours d'atelier reportés sur `main` (Claude Code)
 - Demande de l'utilisateur : publier les trois corrections d'atelier du 12 (tableau dès l'ouverture, arrêt « Continuer »
   en fin de tranche, curseur et « Phrase précédente »), écrites dans `Desktop/nesalio-site` sur

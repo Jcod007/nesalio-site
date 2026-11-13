@@ -18,13 +18,13 @@ export const maxDuration = 30;
 
 const Body = z.object({ text: z.string().trim().min(1).max(400), cues: z.array(Cue).max(32).default([]) });
 // Une séance compte une dizaine de phrases : la limite est large mais réelle.
-const limiter = createSessionLimits({ limit: 160, windowMs: 10 * 60_000, developerAccess: true });
+const limiter = createSessionLimits({ name: "voice", limit: 160, windowMs: 10 * 60_000, developerAccess: true });
 
 export async function POST(request: Request): Promise<Response> {
   // Signed-in student, or a guest within the bounded trial (usageAccess.ts, as on main).
   const access = await identifyUsage(request);
   if (!access.ok) return access.response;
-  const limited = checkRate(limiter, request, access.userId);
+  const limited = await checkRate(limiter, request, access.userId);
   if (limited) return limited;
   const read = await readJson(request, 24_000);
   if (!read.ok) return read.response;

@@ -1,8 +1,10 @@
 /**
  * GET /api/status — quels services sont branchés (sans rien appeler).
  *
- * Avec Authorization: Bearer <SELFTEST_TOKEN>, fait aussi un petit appel réel à chaque
- * service, pour vérifier un déploiement. Sans le bon jeton, aucun appel payant.
+ * Sans jeton : seulement « branché ou non » pour chaque service, sans fournisseur ni modèle
+ * (ces détails ne regardent pas le public), et aucun appel payant.
+ * Avec Authorization: Bearer <SELFTEST_TOKEN> : le détail, et un petit appel réel à chaque
+ * service, pour vérifier un déploiement.
  * La voix vérifiée est celle de la page élève : ElevenLabs, avec horodatage des mots.
  * Un seul appel, phrase courte.
  * La transcription est essayée sur ce même son (pas de synthèse de plus), avec les options
@@ -27,7 +29,10 @@ export async function GET(request: Request): Promise<Response> {
     transcription: config.gatewayToken ? { model: config.transcription.model, privacy: transcriptionPrivacy(config.transcription.model).gateway } : null,
   };
 
-  if (!hasSelfTestAccess(request)) return Response.json(status, { headers: { "Cache-Control": "no-store" } });
+  if (!hasSelfTestAccess(request)) {
+    const connected = { tutor: Boolean(config.chat), voice: Boolean(status.voice), transcription: Boolean(status.transcription) };
+    return Response.json(connected, { headers: { "Cache-Control": "no-store" } });
+  }
 
   const results: Record<string, string> = {};
   if (config.chat) {

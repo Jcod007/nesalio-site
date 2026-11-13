@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BONUS_LIMIT, createDailyQuota, DAILY_LIMIT, hashCode, quotaDay, type QuotaStore, validCodeHashes } from "./dailyQuota";
+import { BONUS_LIMIT, createDailyQuota, DAILY_LIMIT, EXTRA_DAILY_LIMITS, hashCode, quotaDay, type QuotaStore, validCodeHashes } from "./dailyQuota";
 
 function memoryStore(): QuotaStore {
   const data = new Map<string, string>();
@@ -98,5 +98,17 @@ describe("codes crédit", () => {
   it("lit les empreintes de l'environnement et ignore le reste", () => {
     const h = hashCode("X");
     expect(validCodeHashes(`${h}, pas-une-empreinte ,`)).toEqual(new Set([h]));
+  });
+});
+
+describe("plafonds journaliers hors questions", () => {
+  it("compte photos et transcriptions à part, et refuse sans compter au-delà du plafond", async () => {
+    const q = quota();
+    for (let i = 0; i < EXTRA_DAILY_LIMITS.photo; i++) expect((await q.consumeExtra("a", "photo", NOON)).allowed).toBe(true);
+    expect(await q.consumeExtra("a", "photo", NOON)).toEqual({ allowed: false, limit: EXTRA_DAILY_LIMITS.photo });
+    expect((await q.consumeExtra("a", "transcribe", NOON)).allowed).toBe(true);
+    expect((await q.consumeExtra("b", "photo", NOON)).allowed).toBe(true);
+    expect((await q.consume("a", NOON)).remaining).toBe(DAILY_LIMIT - 1);
+    expect((await q.consumeExtra("a", "photo", new Date("2026-11-13T05:30:00Z"))).allowed).toBe(true);
   });
 });

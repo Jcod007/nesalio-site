@@ -10,6 +10,9 @@
  * Les codes eux-mêmes ne sont jamais stockés : seule leur empreinte SHA-256 est
  * listée dans `NESALIO_CODES_CREDIT` (voir tools/codes-credit.mjs).
  *
+ * La lecture de photo et la transcription ont chacune leur plafond journalier
+ * (`EXTRA_DAILY_LIMITS`), pour qu'un compte ne dépense pas sans fin hors questions.
+ *
  * Sans Redis configuré (développement local), aucune limite journalière n'est
  * appliquée et les codes sont indisponibles ; la limite courte par session
  * (rateLimit.ts) reste en place.
@@ -20,6 +23,9 @@ import { Redis } from "@upstash/redis";
 export const DAILY_LIMIT = 10;
 export const BONUS_LIMIT = 20;
 export const BONUS_DAYS = 30;
+/** Plafonds journaliers des appels payants hors questions (par compte, même jour de Montréal). */
+export const EXTRA_DAILY_LIMITS = { photo: 20, transcribe: 40 } as const;
+export type ExtraUsage = keyof typeof EXTRA_DAILY_LIMITS;
 const TIME_ZONE = "America/Toronto";
 const PREFIX = "nesalio:quota";
 
@@ -99,6 +105,18 @@ export function createDailyQuota(store: QuotaStore, options: { codeHashes?: () =
       return { allowed: true, limit, remaining: limit - count };
     },
 
+    /** Compte une photo lue ou une transcription ; refuse (sans la compter) au-delà du plafond du jour. */
+    async consumeExtra(user: string, usage: ExtraUsage, now = new Date()): Promise<{ allowed: boolean; limit: number }> {
+      const limit = EXTRA_DAILY_LIMITS[usage];
+      const key = `${PREFIX}:${usage}:${user}:${quotaDay(now)}`;
+      const count = await store.incr(key, 2 * 24 * 3600);
+      if (count > limit) {
+        await store.decr(key);
+        return { allowed: false, limit };
+      }
+      return { allowed: true, limit };
+    },
+
     async redeem(user: string, code: string, now = new Date()): Promise<RedeemResult> {
       const hash = hashCode(code);
       if (!normalizeCode(code) || !codeHashes().has(hash)) return { ok: false, reason: "invalid" };
@@ -126,12 +144,18 @@ export function createDailyQuota(store: QuotaStore, options: { codeHashes?: () =
 }
 export type DailyQuota = ReturnType<typeof createDailyQuota>;
 
-/** Magasin Redis (Upstash via le Marketplace Vercel), ou null s'il n'est pas configuré. */
-export function redisQuotaStore(env: NodeJS.ProcessEnv = process.env): QuotaStore | null {
+/** Adresse et jeton du Redis (Upstash via le Marketplace Vercel), ou null s'il n'est pas configuré. */
+export function redisEnv(env: NodeJS.ProcessEnv = process.env): { url: string; token: string } | null {
   const url = env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL;
   const token = env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN;
-  if (!url || !token) return null;
-  const redis = new Redis({ url, token, automaticDeserialization: false });
+  return url && token ? { url, token } : null;
+}
+
+/** Magasin Redis du quota, ou null s'il n'est pas configuré. */
+export function redisQuotaStore(env: NodeJS.ProcessEnv = process.env): QuotaStore | null {
+  const credentials = redisEnv(env);
+  if (!credentials) return null;
+  const redis = new Redis({ ...credentials, automaticDeserialization: false });
   return {
     get: async (key) => {
       const value = await redis.get<string>(key);
@@ -160,6 +184,21 @@ export function dailyQuota(): DailyQuota | null {
     if (!shared) console.warn("Limite journalière désactivée : Redis (UPSTASH_REDIS_REST_URL / KV_REST_API_URL) non configuré.");
   }
   return shared;
+}
+
+/**
+ * Vrai si le compte a atteint son plafond du jour pour cet usage. Redis absent ou illisible :
+ * la demande passe, la limite courte (rateLimit.ts) reste en place.
+ */
+export async function extraLimitReached(userId: string, usage: ExtraUsage): Promise<boolean> {
+  const quota = exemptFromQuota(userId) ? null : dailyQuota();
+  if (!quota) return false;
+  try {
+    return !(await quota.consumeExtra(userId, usage)).allowed;
+  } catch (error) {
+    console.warn(`Plafond journalier (${usage}) illisible, demande acceptée.`, error);
+    return false;
+  }
 }
 
 /** Identités qui ne sont pas des élèves : jamais limitées par jour. */

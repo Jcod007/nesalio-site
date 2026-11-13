@@ -27,7 +27,7 @@ export const maxDuration = 180;
 
 const Body = z.object({ question: z.string().trim().min(1).max(PHOTO_MAX_QUESTION) });
 // Same pace as the tutor: about eight explanations per ten minutes for one student.
-const limiter = createSessionLimits({ limit: 40, windowMs: 10 * 60_000, developerAccess: true });
+const limiter = createSessionLimits({ name: "nesalio", limit: 40, windowMs: 10 * 60_000, developerAccess: true });
 
 const NDJSON_HEADERS = {
   "Content-Type": "application/x-ndjson; charset=utf-8",
@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
   // Signed-in student, or a guest within the bounded trial: one lesson is one trial turn (usageAccess.ts).
   const access = await identifyUsage(request, true);
   if (!access.ok) return access.response;
-  const limit = limiter.check(request.headers, undefined, access.userId);
+  const limit = await limiter.limit(request.headers, access.userId);
   if (!limit.allowed) {
     return single({ kind: "error", code: "rate_limited", message: "Tu as posé beaucoup de questions d'un coup. Réessaie dans quelques minutes." }, 429, {
       "Retry-After": String(limit.retryAfterSeconds),

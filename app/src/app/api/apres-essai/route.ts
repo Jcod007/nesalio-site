@@ -12,7 +12,7 @@ import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess
 
 export const runtime = "nodejs";
 
-const limiter = createSessionLimits({ limit: 3, windowMs: 60 * 60_000, ipFactor: 10 });
+const limiter = createSessionLimits({ name: "apres-essai", limit: 3, windowMs: 60 * 60_000, ipFactor: 10 });
 
 export async function POST(request: Request): Promise<Response> {
   const access = await identifyUsage(request);
@@ -21,7 +21,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!read.ok) return read.response;
   const parsed = AfterTrialSchema.safeParse(read.body);
   if (!parsed.success) return jsonError(400, "Réponses invalides.");
-  const limit = limiter.check(request.headers, undefined, access.userId);
+  const limit = await limiter.limit(request.headers, access.userId);
   if (!limit.allowed) return jsonError(429, "Merci, tes réponses sont déjà arrivées.");
 
   const permit = await reserveUsage(request, access, "feedback");

@@ -68,7 +68,7 @@ describe("API account boundary", () => {
   });
 
   it("does not reset an account quota when the client changes its navigation ID", () => {
-    const limits = createSessionLimits({ limit: 1, windowMs: 60_000 });
+    const limits = createSessionLimits({ name: "test", limit: 1, windowMs: 60_000 });
     expect(limits.check(new Headers({ "x-nesalio-session": "session-one" }), 10, "user_alice").allowed).toBe(true);
     expect(limits.check(new Headers({ "x-nesalio-session": "session-two" }), 11, "user_alice").allowed).toBe(false);
     expect(limits.check(new Headers({ "x-nesalio-session": "session-two" }), 12, "user_bob").allowed).toBe(true);

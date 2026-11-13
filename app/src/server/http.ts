@@ -43,8 +43,8 @@ export async function readJson(request: Request, maxBytes: number): Promise<{ ok
   }
 }
 
-export function checkRate(limits: SessionLimits, request: Request, accountId?: string): Response | null {
-  const limit = limits.check(request.headers, undefined, accountId);
+export async function checkRate(limits: SessionLimits, request: Request, accountId?: string): Promise<Response | null> {
+  const limit = await limits.limit(request.headers, accountId);
   if (limit.allowed) return null;
   return jsonError(429, "Trop de demandes d'un coup. Réessaie dans quelques minutes.", {
     "Retry-After": String(limit.retryAfterSeconds),
