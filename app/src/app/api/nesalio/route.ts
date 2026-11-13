@@ -77,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
           message:
             daily.limit > 10
               ? `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain !`
-              : `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain, ou entre un code crédit sur l'accueil pour passer à 20 par jour.`,
+              : `Tu as utilisé tes ${daily.limit} questions d'aujourd'hui. Reviens demain, ou entre un code crédit ci-dessous pour passer à 20 par jour.`,
         },
         429,
       );

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { LessonMetadata, MathContext, Slice } from "@/domain/nesalio/contract";
 import { lessonHeader, type LessonHeader } from "@/domain/nesalio/lesson";
 import { LessonQuestion } from "@/domain/nesalio/question";
+import { NesalioServerError } from "@/domain/nesalio/serverError";
 import { readLines } from "@/domain/tutor/ndjson";
 import { sessionHeaders } from "@/services/session";
 
@@ -59,7 +60,7 @@ export async function openNesalioStream(question: string, signal: AbortSignal, e
   for (;;) {
     const { value, done } = await source.next();
     if (done) throw new Error("Le serveur n'a envoyé aucune explication.");
-    if (value.kind === "error") throw new Error(value.message);
+    if (value.kind === "error") throw new NesalioServerError(value.code, value.message);
     if (value.kind === "lesson") {
       const questions = new Map<string, LessonQuestion>();
       return {
@@ -69,7 +70,7 @@ export async function openNesalioStream(question: string, signal: AbortSignal, e
           for await (const event of source) {
             if (event.kind === "slice") yield event.slice;
             else if (event.kind === "question") questions.set(event.after, { id: event.id, after: event.after, check: event.check });
-            else if (event.kind === "error") throw new Error(event.message);
+            else if (event.kind === "error") throw new NesalioServerError(event.code, event.message);
             else if (event.kind === "end") return;
           }
           // Closed without « end »: the server stopped on the way. The lesson is not complete and is not offered again as if it were.

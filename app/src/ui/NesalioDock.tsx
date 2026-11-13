@@ -1,7 +1,8 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { SessionSnapshot } from "@/engine/nesalioSession";
+import { CreditCode } from "./CreditCode";
 import { Nesa } from "./Nesa";
 import { QuestionInput } from "./QuestionInput";
 import type { NesaState } from "./theme";
@@ -39,7 +40,13 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
   { snapshot, listening, actions },
   ref,
 ) {
-  const { status, caption, paused, waiting, error, question, canReplay, asking, resting, steps, position } = snapshot;
+  const { status, caption, paused, waiting, error, errorCode, question, canReplay, asking, resting, steps, position } = snapshot;
+  // The day's questions are used up: the code field is offered here, and asking again only makes sense once a code is in.
+  const limited = status === "error" && errorCode === "daily_limit";
+  const [redeemed, setRedeemed] = useState(false);
+  useEffect(() => {
+    if (!limited) setRedeemed(false);
+  }, [limited]);
   const tracked = (status === "playing" || status === "done") && steps.length > 1;
   return (
     <section ref={ref} className={styles.dock} aria-label="Nesa">
@@ -114,6 +121,7 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
           </div>
         ) : null}
 
+        {limited ? <CreditCode variant="limit" onRedeemed={() => setRedeemed(true)} /> : null}
         {tracked ? <LessonTrack steps={steps} position={position} onSeek={actions.seek} /> : null}
 
         <div className={styles.controls}>
@@ -158,9 +166,11 @@ export const NesalioDock = forwardRef<HTMLElement, { snapshot: SessionSnapshot; 
 
           {status === "error" ? (
             <>
-              <button type="button" className="cta" onClick={actions.retry}>
-                Réessayer
-              </button>
+              {!limited || redeemed ? (
+                <button type="button" className="cta" onClick={actions.retry}>
+                  {redeemed ? "Poser ma question" : "Réessayer"}
+                </button>
+              ) : null}
               <button type="button" className="btn-line" onClick={actions.newTopic}>
                 Autre question
               </button>
