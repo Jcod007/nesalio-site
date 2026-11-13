@@ -36,11 +36,12 @@ npm run test:e2e             # parcours réel dans le navigateur (ordinateur + t
 ## Accès privé au développement
 
 Configurer sur le serveur `NESALIO_DEV_ACCESS_TOKEN` avec un secret aléatoire
-d'au moins 32 caractères. Le lien privé `https://app.nesalio.com/dev/access?key=<secret>`
-installe un cookie sécurisé puis ouvre `/dev`, sans compte Nesalio. Conserver ce
-lien confidentiel : il donne accès à Nesa, à la voix et à la transcription
-sans limites applicatives. Le cookie expire après 30 jours ; changer le secret
-révoque les liens et cookies précédents. Les coûts et quotas des fournisseurs
+d'au moins 32 caractères. Ouvrir `https://app.nesalio.com/dev/access` et y entrer
+le secret : la page installe un cookie sécurisé puis ouvre `/dev`, sans compte
+Nesalio. Le secret ne se met jamais dans l'adresse (elle reste dans les journaux
+et l'historique). Conserver ce secret confidentiel : il donne accès à Nesa, à la
+voix et à la transcription sans limites applicatives. Le cookie expire après
+7 jours ; changer le secret révoque les cookies précédents. Les coûts et quotas des fournisseurs
 restent applicables. Sans secret configuré, l'accès reste fermé.
 
 Ces vérifications tournent seules sur GitHub à chaque pull request et à chaque push dans `main` (`.github/workflows/ci.yml`) : format et lint, types, tests unitaires, build, puis le parcours dans le navigateur en mode démonstration (sans IA : `NESALIO_LOCAL_DEMO=1 DISABLE_AI=1 npm run dev`, réservé au local, le parcours répond lui-même à `/api/nesalio` et `/api/voice`). Ne fusionne une pull request que si elles sont vertes.

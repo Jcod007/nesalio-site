@@ -33,10 +33,18 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("GET /api/status", () => {
-  it("annonce la voix de Nesalio (ElevenLabs) quand Nesalio explique, sans rien appeler sans jeton", async () => {
-    const body = await (await GET(request())).json();
-    expect(body.voice).toMatchObject({ system: "nesalio", model: DEFAULTS.nesalioVoiceModel, speed: DEFAULTS.nesalioVoiceSpeed });
+  it("sans jeton, dit seulement ce qui est branché, sans fournisseur ni modèle, et n'appelle rien", async () => {
+    expect(await (await GET(request())).json()).toEqual({ tutor: true, voice: true, transcription: true });
+    expect(await (await GET(request("mauvais-jeton"))).json()).toEqual({ tutor: true, voice: true, transcription: true });
     expect(synthesizeSpeech).not.toHaveBeenCalled();
+    vi.stubEnv("DISABLE_AI", "1");
+    expect(await (await GET(request())).json()).toEqual({ tutor: false, voice: false, transcription: false });
+  });
+
+  it("avec le jeton, annonce la voix de Nesalio (ElevenLabs)", async () => {
+    const body = await (await GET(request("secret-de-test"))).json();
+    expect(body.voice).toMatchObject({ system: "nesalio", model: DEFAULTS.nesalioVoiceModel, speed: DEFAULTS.nesalioVoiceSpeed });
+    expect(body.tutor).toMatchObject({ provider: "gateway" });
   });
 
   it("vérifie la voix réellement utilisée par Nesalio, en un seul court appel", async () => {

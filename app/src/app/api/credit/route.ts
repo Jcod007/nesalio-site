@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 
 const Body = z.object({ code: z.string().trim().min(1).max(40) });
 // Few attempts: a code cannot be guessed by trying many.
-const attempts = createSessionLimits({ limit: 5, windowMs: 10 * 60_000, ipFactor: 6 });
+const attempts = createSessionLimits({ name: "credit", limit: 5, windowMs: 10 * 60_000, ipFactor: 6 });
 const NO_STORE = { "Cache-Control": "no-store" };
 
 const until = (iso: string) => new Intl.DateTimeFormat("fr-CA", { day: "numeric", month: "long", timeZone: "America/Toronto" }).format(new Date(iso));
@@ -33,7 +33,7 @@ export async function GET(request: Request): Promise<Response> {
 export async function POST(request: Request): Promise<Response> {
   const access = await requireAccount(request);
   if (!access.ok) return access.response;
-  const limited = checkRate(attempts, request, access.userId);
+  const limited = await checkRate(attempts, request, access.userId);
   if (limited) return limited;
   const quota = dailyQuota();
   if (!quota) return jsonError(503, "Les codes crédit sont indisponibles pour le moment.");

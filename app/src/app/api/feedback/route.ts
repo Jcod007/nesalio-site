@@ -15,7 +15,7 @@ import { identifyUsage, reserveUsage, usageResponse } from "@/server/usageAccess
 export const runtime = "nodejs";
 
 // Assez pour signaler plusieurs problèmes pendant un essai, pas assez pour inonder le formulaire.
-const limiter = createSessionLimits({ limit: 8, windowMs: 30 * 60_000, ipFactor: 6 });
+const limiter = createSessionLimits({ name: "feedback", limit: 8, windowMs: 30 * 60_000, ipFactor: 6 });
 
 export async function POST(request: Request): Promise<Response> {
   const access = await identifyUsage(request);
@@ -25,7 +25,7 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = FeedbackSchema.safeParse(read.body);
   if (!parsed.success) return jsonError(400, parsed.error.issues[0]?.message ?? "Retour invalide.");
 
-  const limit = limiter.check(request.headers, undefined, access.userId);
+  const limit = await limiter.limit(request.headers, access.userId);
   if (!limit.allowed) return jsonError(429, "Merci ! Tu as déjà envoyé plusieurs retours ; réessaie un peu plus tard.");
 
   const permit = await reserveUsage(request, access, "feedback");
