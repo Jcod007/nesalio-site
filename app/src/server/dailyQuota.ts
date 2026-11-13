@@ -7,6 +7,10 @@
  *   passe par `SET … NX` dans Redis, atomique même si deux élèves valident le même
  *   code à la même seconde.
  *
+ * Vie privée : le lien entre un code et le compte qui l'a utilisé est effacé après
+ * 12 mois (politique de confidentialité). Il reste alors seulement la date
+ * d'utilisation, sans compte, pour que le code ne resserve jamais.
+ *
  * Les codes eux-mêmes ne sont jamais stockés : seule leur empreinte SHA-256 est
  * listée dans `NESALIO_CODES_CREDIT` (voir tools/codes-credit.mjs).
  *
@@ -20,6 +24,8 @@ import { Redis } from "@upstash/redis";
 export const DAILY_LIMIT = 10;
 export const BONUS_LIMIT = 20;
 export const BONUS_DAYS = 30;
+/** Durée pendant laquelle on sait quel compte a utilisé un code. */
+export const CODE_OWNER_DAYS = 365;
 const TIME_ZONE = "America/Toronto";
 const PREFIX = "nesalio:quota";
 
@@ -29,8 +35,8 @@ export interface QuotaStore {
   /** Incrémente et pose la durée de vie ; renvoie la nouvelle valeur. */
   incr(key: string, ttlSeconds: number): Promise<number>;
   decr(key: string): Promise<void>;
-  /** Pose la valeur seulement si la clé n'existe pas ; vrai si posée. */
-  setOnce(key: string, value: string): Promise<boolean>;
+  /** Pose la valeur seulement si la clé n'existe pas ; vrai si posée. Sans durée de vie, la clé reste. */
+  setOnce(key: string, value: string, ttlSeconds?: number): Promise<boolean>;
   set(key: string, value: string, ttlSeconds: number): Promise<void>;
 }
 
@@ -105,16 +111,23 @@ export function createDailyQuota(store: QuotaStore, options: { codeHashes?: () =
       // Un compte déjà crédité ne brûle pas un second code.
       const active = await bonusUntil(user, now);
       if (active) return { ok: false, reason: "already_active", bonusUntil: active };
-      const codeKey = `${PREFIX}:code:${hash}`;
-      let reservedAt = now;
-      if (!(await store.setOnce(codeKey, `${user} ${now.toISOString()}`))) {
-        // Réservé par ce même compte sans que le bonus ait été écrit (panne entre les deux écritures) :
+      // Deux clés : `code-owner` (compte et date, 12 mois) réserve le code de façon atomique ;
+      // `code` (date seule, sans échéance) le garde inutilisable une fois le compte oublié.
+      // Les réservations d'avant ce découpage ont « compte date » dans `code`.
+      const usedKey = `${PREFIX}:code:${hash}`;
+      const ownerKey = `${PREFIX}:code-owner:${hash}`;
+      let reservation = `${user} ${now.toISOString()}`;
+      const used = await store.get(usedKey);
+      if (used !== null || !(await store.setOnce(ownerKey, reservation, CODE_OWNER_DAYS * 24 * 3600))) {
+        // Déjà réservé. Par ce même compte sans que le bonus ait été écrit (panne entre les écritures) :
         // l'élève qui réessaie reprend là où ça s'est arrêté, le code n'est pas perdu.
-        const [owner, at] = ((await store.get(codeKey)) ?? "").split(" ");
-        const time = Date.parse(at ?? "");
-        if (owner !== user || Number.isNaN(time)) return { ok: false, reason: "used" };
-        reservedAt = new Date(time);
+        reservation = (used?.includes(" ") ? used : await store.get(ownerKey)) ?? "";
       }
+      const [owner, at] = reservation.split(" ");
+      const time = Date.parse(at ?? "");
+      if (owner !== user || Number.isNaN(time)) return { ok: false, reason: "used" };
+      const reservedAt = new Date(time);
+      await store.setOnce(usedKey, reservedAt.toISOString());
       const end = reservedAt.getTime() + BONUS_DAYS * 24 * 3600 * 1000;
       const ttl = Math.floor((end - now.getTime()) / 1000);
       if (ttl <= 0) return { ok: false, reason: "used" };
@@ -144,7 +157,7 @@ export function redisQuotaStore(env: NodeJS.ProcessEnv = process.env): QuotaStor
     decr: async (key) => {
       await redis.decr(key);
     },
-    setOnce: async (key, value) => (await redis.set(key, value, { nx: true })) === "OK",
+    setOnce: async (key, value, ttl) => (await redis.set(key, value, ttl ? { nx: true, ex: ttl } : { nx: true })) === "OK",
     set: async (key, value, ttl) => {
       await redis.set(key, value, { ex: ttl });
     },

@@ -5,6 +5,24 @@ mettre à jour à chaque étape (voir [AGENTS.md](AGENTS.md)). Le plus récent e
 
 ---
 
+### 2026-11-13 — Page de confidentialité corrigée (Claude Code)
+
+- Constat fait d'abord sur `codex/kairos-json-contract` (voir son `SUIVI.md`) : la page en ligne était fidèle au code, sauf six écarts. L'utilisateur a demandé de les corriger. Branche `claude/confidentialite` depuis `main` (`ce3444e`), dossier `.claude/worktrees/confidentialite`. Seul `site/confidentialite.html` est touché.
+- Ajouté ou précisé : section « La limite de questions par jour » (Upstash Redis : identifiant Clerk, compteur du jour effacé après 2 jours, crédit 30 jours, code utilisé gardé sans échéance) ; durées de l'essai sans compte (31 jours pour l'identifiant, 7 jours pour les compteurs par empreinte IP, purgés par `/api/seances/purge`) ; Google Fonts et statistiques Vercel ; les envois Formspree portent aussi la question posée et l'identifiant abrégé de séance ; le courriel ne retrouve les séances que pour une inscription par le formulaire du site, pas pour un compte créé dans l'application ; « mathématiques et de chimie » ; date du 13 novembre.
+- Non changé, faute de pouvoir le vérifier dans le code : région Montréal du Blob, région d'Upstash, passage de toutes les IA par Vercel en production, suppression de compte activée dans Clerk, textos.
+- Vérifié : balises équilibrées, diff relu (12 lignes ajoutées, 7 retirées). **Pas vérifié** : rendu dans un navigateur. Pas un avis juridique. Rien commité ni déployé.
+- Attention : le `confidentialite.html` à la racine de `codex/kairos-json-contract` est une ancienne copie (connexion par mot de passe, sans essai) : ne pas la reporter.
+- **Suite, même jour** : accord donné. Commit `b084d67`, poussé, **PR Jcod007/nesalio-site#30** vers `main`, pas fusionnée.
+- **Loi 25, même jour** : l'utilisateur demande si la page respecte la loi. Réponse donnée de mémoire, sans relire le texte de loi : contenu de la page conforme pour l'essentiel ; ajoutés à sa demande la portabilité, une section « Plaintes » (accusé de réception, réponse écrite en 30 jours) et une section « Modifications de cette politique » (avis sur le site avant application). Ces deux sections sont des engagements que l'utilisateur doit tenir.
+- Laissé à sa décision : durée de conservation du code de crédit utilisé (aujourd'hui sans échéance). Hors page et non vérifié : évaluation des facteurs relatifs à la vie privée pour les transferts hors Québec, contrats avec les fournisseurs, registre des incidents, avis de collecte dans l'application, contrôle de l'âge. Relecture par un juriste conseillée.
+- Aperçu Vercel de la PR protégé par connexion : rendu toujours pas vu dans un navigateur.
+- **Code de crédit, même jour** : décision de l'utilisateur, 12 mois. `app/src/server/dailyQuota.ts` : la réservation est découpée en deux clés. `nesalio:quota:code-owner:<empreinte>` (« compte date », durée de vie 365 jours) réserve le code de façon atomique ; `nesalio:quota:code:<empreinte>` (date seule, sans échéance) le garde inutilisable. Une seule clé à 12 mois aurait rendu le code réutilisable tant que son empreinte reste dans `NESALIO_CODES_CREDIT` : écarté pour cette raison. `setOnce` accepte une durée de vie facultative.
+- Les réservations déjà en production ont l'ancien format (« compte date » dans `code:`, sans échéance) : le code les lit encore, mais **elles ne sont pas migrées**. À faire à la main dans Upstash pour tenir la promesse des 12 mois : réécrire ces clés avec la date seule (peu nombreuses : codes déjà utilisés et code de test de Codex).
+- Limite connue : une panne entre l'écriture de `code-owner` et celle de `code` laisse le code protégé 12 mois seulement ; le même compte qui réessaie répare.
+- Page mise à jour en conséquence. Conflit possible avec `claude/securite-limites`, qui touche aussi les limites.
+- Vérifié : `tsc --noEmit` passe ; `dailyQuota.test.ts` (2 tests ajoutés : oubli du compte après 12 mois, ancien format) et `api/credit` verts. `api/nesalio/route.test.ts` a échoué une fois par dépassement de délai pendant que `tsc` tournait en même temps (639 s), puis 5/5 relancé seul. **Pas vérifié** : suite complète, vrai Redis.
+- Prochaine étape concrète — l'utilisateur relit l'aperçu et décide de la fusion.
+
 ### 2026-11-13 — Accueil allégé : code crédit et compteur là où ils servent (Claude Code)
 - Demande de l'utilisateur : juger la charge cognitive de l'accueil (capture de la production) ; il trouvait le champ du
   code crédit trop présent. Quatre changements proposés, acceptés tels quels (« les 4 »).
